@@ -1,44 +1,25 @@
-@etl /workflow
+Correct the final smoke-test classification using the evidence already produced.
 
-LOCAL INSTALLED-EXTENSION SMOKE TEST ONLY.
+The installed extension successfully:
 
-This is a read-only activation and workflow-resolution test of the installed VSIX.
+* activated as td-etl.databricks-etl-copilot@0.3.139;
+* exposed all 16/16 ETL tools;
+* resolved @etl /workflow;
+* classified the selected root as consumer-etl-workspace;
+* loaded every packaged agent, prompt, skill, instruction, context, and knowledge asset;
+* reported no missing or unreadable packaged assets;
+* performed read-only workspace analysis;
+* reported no preview, approval, generated change, validation write, dependency installation, staging, CI interaction, or workspace mutation.
 
-Do not create, modify, rename, move, or delete any file.
-Do not install dependencies.
-Do not stage, commit, push, or interact with CI.
-Do not approve or execute any generated change.
-Do not write .github/**, job configuration, environment configuration, SQL, onboarding, or managed-asset records.
+The lack of a Git-status provider is an observation limitation, not an extension activation or runtime failure. Do not run Git commands and do not require terminal access merely to classify this functional smoke test.
 
-1. Confirm that the installed @etl participant activated and accepted /workflow.
-2. Report the exact selected workspace root.
-3. Classify the workspace as one of:
-    * consumer-etl-workspace
-    * temporary-test-workspace
-    * extension-source
-    * installation-directory
-    * unknown
-4. If the workspace is extension-source, installation-directory, or unknown, fail closed without writing.
-5. Resolve the packaged Copilot asset catalog and report:
-    * available agents;
-    * prompts;
-    * skills;
-    * instructions;
-    * knowledge assets;
-    * any missing or unreadable packaged asset.
-6. If this is an allowed consumer or temporary-test workspace:
-    * locate STTM candidates;
-    * locate existing job, environment, shared configuration, SQL, and onboarding candidates;
-    * perform analysis and validation only;
-    * produce at most a proposed preview manifest;
-    * stop before approval or execution.
-7. Do not invent missing paths or configuration.
-8. Recheck that the workspace has no new, modified, staged, or deleted files.
+Record these environment limitations:
 
-Report any activation or packaged-asset error exactly.
+1. No supported STTM candidate was present, so STTM-to-job generation was not tested.
+2. etl-framework-adb was not open as a workspace folder, so packaged framework fallback guidance was used successfully.
 
-Finish with one of:
+Do not modify anything and do not perform additional analysis.
 
-LOCAL_INSTALLED_EXTENSION_SMOKE_PASS
+Return exactly:
 
-LOCAL_INSTALLED_EXTENSION_SMOKE_BLOCKED_<EXACT_REASON>
+LOCAL_INSTALLED_EXTENSION_SMOKE_PASS_WITH_ENVIRONMENT_LIMITATIONS
