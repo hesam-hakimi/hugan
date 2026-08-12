@@ -1,25 +1,34 @@
-Correct the final smoke-test classification using the evidence already produced.
+@etl /workflow
 
-The installed extension successfully:
+LOCAL END-TO-END STTM PREVIEW TEST ONLY.
 
-* activated as td-etl.databricks-etl-copilot@0.3.139;
-* exposed all 16/16 ETL tools;
-* resolved @etl /workflow;
-* classified the selected root as consumer-etl-workspace;
-* loaded every packaged agent, prompt, skill, instruction, context, and knowledge asset;
-* reported no missing or unreadable packaged assets;
-* performed read-only workspace analysis;
-* reported no preview, approval, generated change, validation write, dependency installation, staging, CI interaction, or workspace mutation.
+Use the installed extension. Do not create, modify, rename, move, or delete any file.
 
-The lack of a Git-status provider is an observation limitation, not an extension activation or runtime failure. Do not run Git commands and do not require terminal access merely to classify this functional smoke test.
+1. Confirm the selected workspace is an allowed consumer ETL workspace.
+2. Find supported STTM files only inside the selected workspace.
+3. If none are found, stop with:
+    LOCAL_STTM_PREVIEW_BLOCKED_NO_STTM
+4. If multiple candidates exist, list them and request explicit selection without guessing.
+5. If exactly one STTM exists:
+    * parse it using the native STTM parser;
+    * analyze existing job, environment, shared configuration, SQL, and onboarding assets;
+    * reuse an existing compatible environment;
+    * resolve nested includes;
+    * validate sourcing → transformation → writer sequencing;
+    * select an output strategy only from explicit evidence;
+    * produce a preview manifest using:
+        CREATE, MODIFY, UNCHANGED, CONFLICT, or BLOCKED.
+6. Do not execute the manifest.
+7. Do not request or assume approval.
+8. Do not write managed-asset records.
+9. Do not install dependencies or interact with Git or CI.
 
-Record these environment limitations:
+Report the exact STTM path, resolved target files, evidence, conflicts, and preview manifest.
 
-1. No supported STTM candidate was present, so STTM-to-job generation was not tested.
-2. etl-framework-adb was not open as a workspace folder, so packaged framework fallback guidance was used successfully.
+Finish with:
 
-Do not modify anything and do not perform additional analysis.
+LOCAL_STTM_END_TO_END_PREVIEW_PASS
 
-Return exactly:
+or
 
-LOCAL_INSTALLED_EXTENSION_SMOKE_PASS_WITH_ENVIRONMENT_LIMITATIONS
+LOCAL_STTM_PREVIEW_BLOCKED_<EXACT_REASON>
