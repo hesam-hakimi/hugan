@@ -1,34 +1,46 @@
 @etl /workflow
 
-LOCAL END-TO-END STTM PREVIEW TEST ONLY.
+READ-ONLY BLOCKER PROVENANCE CHECK ONLY.
 
-Use the installed extension. Do not create, modify, rename, move, or delete any file.
+Reuse the STTM parse and preview evidence already produced. Do not regenerate artifacts or repeat runtime validation.
 
-1. Confirm the selected workspace is an allowed consumer ETL workspace.
-2. Find supported STTM files only inside the selected workspace.
-3. If none are found, stop with:
-    LOCAL_STTM_PREVIEW_BLOCKED_NO_STTM
-4. If multiple candidates exist, list them and request explicit selection without guessing.
-5. If exactly one STTM exists:
-    * parse it using the native STTM parser;
-    * analyze existing job, environment, shared configuration, SQL, and onboarding assets;
-    * reuse an existing compatible environment;
-    * resolve nested includes;
-    * validate sourcing → transformation → writer sequencing;
-    * select an output strategy only from explicit evidence;
-    * produce a preview manifest using:
-        CREATE, MODIFY, UNCHANGED, CONFLICT, or BLOCKED.
-6. Do not execute the manifest.
-7. Do not request or assume approval.
-8. Do not write managed-asset records.
-9. Do not install dependencies or interact with Git or CI.
+Search only the selected workspace’s existing job, environment, onboarding, SQL, and shared configuration assets, plus approved packaged repository-convention rules, for explicit evidence resolving:
 
-Report the exact STTM path, resolved target files, evidence, conflicts, and preview manifest.
+* source dataset location;
+* target storage path;
+* Delta and CSV write semantics and merge keys;
+* job ID and onboarding metadata;
+* compatible environment and deployment state;
+* canonical failure-status literals for BR_0003 and BR_0007 through BR_0010.
 
-Finish with:
+Follow locally available YAML includes recursively. Stop at includes outside the selected workspace.
 
-LOCAL_STTM_END_TO_END_PREVIEW_PASS
+Do not:
 
-or
+* treat an unrelated job or environment as compatible by analogy;
+* invent or select any missing value;
+* generate files;
+* perform runtime validation;
+* use Git, shell, network, CI, or companion providers;
+* modify the workspace.
 
-LOCAL_STTM_PREVIEW_BLOCKED_<EXACT_REASON>
+For every item, return exactly one classification:
+
+* EXPLICIT_WORKSPACE_EVIDENCE — cite the exact file and key;
+* APPROVED_CONVENTION_EVIDENCE — cite the exact applicable rule;
+* CONFLICTING_EVIDENCE;
+* MISSING_USER_DECISION;
+* EXTERNAL_RUNTIME_VALIDATION_ONLY.
+
+Also determine:
+
+1. Whether the ten blank error descriptions are warnings or blockers under the documented validation contract.
+2. Whether the two active mappings referencing inactive target schemas are warnings or blockers.
+3. Why the parser reports audit status pass while still reporting those semantic findings.
+4. Whether the shared ADLS roots mean only dataset-relative paths are missing, rather than complete source/target locations.
+
+Do not resolve user decisions automatically.
+
+Finish with exactly:
+
+LOCAL_STTM_BLOCKER_PROVENANCE_COMPLETE
