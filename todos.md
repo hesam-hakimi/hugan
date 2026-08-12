@@ -1,113 +1,125 @@
-Continue from DRAFT_PR_7_CI_PENDING.
+Stop all CI/CD investigation. The current product goal is local-only development and packaging.
 
-Do not perform another blind 20-minute polling loop. Perform a one-shot, strict read-only queue diagnosis.
+Do not wait for, rerun, cancel, diagnose, or modify GitHub Actions. Leave Draft PR #7 and its queued check unchanged.
 
-AUTHORITATIVE STATE
+LOCAL BUILD SOURCE
 
-* Repository: TD-Universe/agentic_etl
-* PR: #7
-* Branch: feature/v3-agentic-redesign
-* Head SHA: b2e44c3a1a051aa7fa6008931d225bc06d22e847
-* Workflow run ID: 31634828341
-* Job ID: 94242373290
-* Check: workflow-contract
-* Last observation: queued, no conclusion, no completed steps
+* Repository:
+    C:\repos\etl-extension\etl_fw2\etl_framework_extension
+* Branch:
+    feature/v3-agentic-redesign
+* Exact source commit:
+    b2e44c3a1a051aa7fa6008931d225bc06d22e847
 
-No test failure has been demonstrated.
+Build only from this committed SHA in a new isolated temporary directory.
 
-SAFETY RULES
+Do not build from the dirty main worktree. The following unstaged files must remain untouched and must not enter the package:
 
-* Use GET/read-only operations only.
-* Do not rerun, cancel, approve, edit, dispatch, push, comment, or change Actions settings.
-* Do not modify runners, runner groups, labels, permissions, billing, workflow files, or repository files.
-* Do not create Commit 10.
+* .tsbuildinfo.test
+* package.json
+* src/customization/CopilotAssetCatalog.ts
+* src/tools/EtlActionToolService.ts
+
+HARD RULES
+
+* Do not read or use .env, GH, or GH_TOKEN.
+* Do not modify the main repository.
+* Do not stage, commit, amend, push, pull, merge, rebase, reset, restore, clean, or create Commit 10.
+* Do not edit or disable CI workflows.
 * Do not click Keep or Undo.
-* Leave all excluded unstaged files and worktrees untouched.
-* Never display .env, GH, GH_TOKEN, headers, or credential-bearing URLs.
-* Clear process-scoped GH_TOKEN in finally.
+* Do not bump the extension version.
+* Do not install global npm packages.
+* Do not overwrite an existing VSIX artifact.
 
-PHASE 1 — RECHECK CURRENT STATUS ONCE
+PHASE 1 — DISCOVER LOCAL BUILD PROCEDURE
 
-Retrieve the current PR, workflow run, check-run, and job state.
+From the committed SHA, inspect:
 
-If workflow-contract is now:
+* package.json
+* package scripts
+* declared Node/npm requirements
+* VS Code extension manifest fields
+* documented compile, test, prepublish, and VSIX packaging commands
 
-* completed/success: report the evidence and finish with:
-    DRAFT_PR_7_CI_PASS_OBSERVED_CHECKS
-* in_progress: report runner identity and start time, then finish with:
-    DRAFT_PR_7_CI_NOW_RUNNING
-* completed with failure, cancellation, timeout, or action-required: retrieve available logs using GET only, summarize the first actionable failure, and finish with:
-    DRAFT_PR_7_CI_BLOCKED_<CONCLUSION>
-* still queued: continue below.
+Use repository-declared commands instead of inventing commands.
 
-PHASE 2 — RESOLVE JOB ROUTING
+PHASE 2 — CREATE ISOLATED SOURCE SNAPSHOT
 
-Using the workflow run and exact approved SHA:
+Export the exact committed SHA into a uniquely named temporary directory outside the repository.
 
-1. Resolve the workflow file path and exact job definition for workflow-contract.
-2. Read the workflow from the committed SHA, not from mutable worktree content.
-3. Report only the relevant routing fields:
-    * runs-on
-    * resolved labels and runner group
-    * matrix values affecting runs-on
-    * workflow-level and job-level concurrency
-    * needs
-    * if
-    * environment
-4. Report these job API fields:
-    * status and conclusion
-    * labels
-    * runner ID/name
-    * runner-group ID/name
-    * step statuses and timestamps
+Confirm that:
 
-Do not treat started_at alone as proof of execution when the job is still queued, no runner is assigned, and no step has started.
+* snapshot commit source is the approved SHA;
+* none of the four unstaged files came from the main worktree;
+* .env and credentials are absent.
 
-PHASE 3 — FIND THE QUEUE CAUSE
+PHASE 3 — DEPENDENCIES
 
-1. Inspect up to the latest 20 runs of the same workflow.
-2. Identify:
-    * the last successful run;
-    * its runner labels/name/group;
-    * other queued or running jobs;
-    * any run holding the same concurrency group.
-3. If runs-on uses self-hosted/custom labels:
-    * attempt read-only repository and organization runner inventory;
-    * compare every required label as one complete set;
-    * report runner status, busy state, and runner-group repository access.
-4. If runner inventory returns 403, do not change the token or permissions. Record the sanitized response and classify visibility as insufficient.
-5. If it uses a standard GitHub-hosted label:
-    * inspect available evidence for concurrency saturation or an explicit Actions policy/billing restriction;
-    * do not claim capacity, billing, or policy failure without direct evidence.
-6. Inspect check-run output/annotations for an explicit scheduling, policy, billing, or approval message.
+Prefer a compatible lockfile and npm ci.
 
-PHASE 4 — REPORT
+The existing ignored package-lock.json, if considered for the temporary snapshot, must first match this hash:
 
-Provide:
+79645d6a4df11aabc30f16b608f3249018eb46c5
 
-* exact workflow and job routing;
-* runner labels/group required;
-* historical comparison;
-* direct evidence for the queue;
-* root-cause classification and confidence;
-* the smallest next human/admin action, without performing it.
+Copy it only into the temporary build directory and never modify the original.
 
-Use one of these causes only when directly supported:
+If it is incompatible with the committed package.json, use npm install --package-lock=false only inside the temporary directory and clearly report that dependency installation was not lockfile-reproducible.
 
-* NO_MATCHING_SELF_HOSTED_RUNNER
-* MATCHING_RUNNER_OFFLINE
-* MATCHING_RUNNERS_BUSY
-* RUNNER_GROUP_ACCESS_MISMATCH
-* CONCURRENCY_GATE
-* EXPLICIT_ACTIONS_POLICY_OR_BILLING_GATE
+PHASE 4 — LOCAL VALIDATION
 
-Otherwise state that the cause remains unconfirmed.
+Run the repository-declared:
 
-Finally confirm that local HEAD, index, worktrees, excluded files, PR state, and review card remained unchanged.
+1. compile/build command;
+2. fast unit-test command, if available;
+3. VS Code prepublish command, if defined.
+
+Do not run tests requiring external enterprise services unless the repository explicitly requires them for packaging.
+
+Any compile or test failure is a hard stop. Do not bypass it.
+
+PHASE 5 — BUILD VSIX
+
+Use the repository-declared local VSCE dependency or packaging script.
+
+Create one VSIX without publishing it.
+
+Copy the completed artifact to a new uniquely named directory under:
+
+C:\repos\etl-extension\etl_fw2\local-release-artifacts
+
+Verify the VSIX contains:
+
+* the extension manifest;
+* compiled runtime JavaScript;
+* required resources/copilot/** packaged assets;
+* no .env;
+* no credentials;
+* no temporary evidence files;
+* no unintended source worktree artifacts.
+
+Compute its SHA-256 hash.
+
+Do not install or replace an existing extension yet. Instead, provide the exact non-force VS Code installation command for the generated VSIX.
+
+FINAL REPORT
+
+Report:
+
+* extension name, ID, and version;
+* absolute VSIX path;
+* SHA-256;
+* dependency installation method;
+* compile/build command and result;
+* tests executed and result;
+* package command and result;
+* VSIX content verification;
+* exact manual installation command;
+* confirmation that the repository, PR, CI, token, unstaged files, and review card remained untouched.
 
 Finish with exactly one:
 
-* DRAFT_PR_7_QUEUE_DIAGNOSED_<EXACT_CAUSE>
-* DRAFT_PR_7_QUEUE_DIAGNOSIS_INSUFFICIENT_VISIBILITY
-* DRAFT_PR_7_QUEUE_STILL_INDETERMINATE
-* one of the Phase 1 terminal classifications
+LOCAL_VSIX_PACKAGE_READY
+
+or
+
+LOCAL_VSIX_BUILD_BLOCKED_<EXACT_REASON>
