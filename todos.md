@@ -1,93 +1,67 @@
 Continue from:
 
-LOCAL_VSIX_BUILD_BLOCKED_UNIT_TESTS_FAILED_6_OF_1802
-
-The user explicitly authorizes a LOCAL-ONLY release policy. This supersedes the earlier rule that every unit-test failure is automatically a packaging hard stop.
-
-Do not blanket-waive product, runtime, or package-integrity failures.
-
-SCOPE
-
-* Build source:
-    b2e44c3a1a051aa7fa6008931d225bc06d22e847
-* Reuse only the previously verified isolated build root:
-    etlfw_vsix_build_20260812_182051_2fb60be8
-* Main repository, Draft PR #7, CI, credentials, and unstaged files must remain untouched.
-* Do not create Commit 10.
-* Do not click Keep or Undo.
-
-CLASSIFY THE SIX FAILURES
-
-For each failure, report:
-
-* exact test file and test name;
-* exact affected file paths;
-* whether the affected files are:
-    * extension runtime;
-    * packaged product/customization assets;
-    * maintainer-only repository assets;
-    * evaluation baseline only;
-* whether they appear in the actual VSIX candidate;
-* whether runtime code reads or references them.
-
-AUTHORIZED CONDITIONAL WAIVERS
-
-1. The two stale Phase H/EvalGating baseline failures may be waived only after confirming they test baseline freshness and not runtime behavior.
-2. The missing maintainer delivery prompt may be waived only if it is under .github/**, excluded from the VSIX, and never referenced by packaged runtime code.
-3. The AGENT.md versus AGENTS.md convention failure may be waived only if those files are maintainer guidance, excluded from the VSIX, and not required by generated consumer assets.
-4. The missing frontmatter name failure must not be automatically waived:
-    * If the file is under resources/copilot/**, copied to consumer workspaces, registered by the customization catalog, or otherwise consumed by the extension, classify it as a local-product blocker.
-    * If it is maintainer-only, excluded from the package, and not consumed at runtime, document and waive it.
-
-PACKAGE-CONTRACT INVESTIGATION
-
-Do not automatically waive the .vscodeignore failure.
-
-1. Run the repository-declared vscode:prepublish / package:prepare command inside the isolated build root.
-2. Use only the repository-local VSCE dependency to obtain the exact package candidate list.
-3. Determine the complete runtime dependency closure starting from:
-    * out/extension.js
-    * out/sttm-runtime.js
-    * required out/vendor/**
-4. Account for static imports, dynamic imports, runtime file reads, and packaged resources/copilot/**.
-5. Verify that the current narrow .vscodeignore allowlist includes every required runtime file.
-
-If any required runtime or product asset is missing, stop without modifying files and report every exact missing path:
-
-LOCAL_VSIX_BUILD_BLOCKED_PACKAGE_CONTENT_INCOMPLETE
-
-If the candidate is complete, classify the .vscodeignore assertion as a stale broad-pattern test and record a local-release waiver.
-
-LOCAL PACKAGE GATE
-
-Continue only if:
-
-* compile passed;
-* lint passed;
-* all six failures are either safely waived with evidence or proven irrelevant to the local product;
-* the VSIX candidate contains the complete runtime and product asset set.
-
-Then:
-
-1. Build exactly one VSIX without publishing or installing it.
-2. Inspect the actual VSIX archive.
-3. Require:
-    * extension/package.json;
-    * compiled entrypoint and complete runtime closure;
-    * required resources/copilot/**;
-    * no .env, credentials, Git metadata, test files, evaluation output, logs, diagnostic evidence, or temporary build files.
-4. Compute SHA-256.
-5. Copy it without overwriting anything into:
-    C:\repos\etl-extension\etl_fw2\local-release-artifacts
-6. Provide the exact non-force manual VS Code installation command.
-7. Clearly list all local-release waivers and state that CI was not used as a release gate.
-
-Do not modify any source file merely to make a test green. Do not modify the main repository, stage, commit, push, edit the PR, or touch CI.
-
-Finish with exactly one:
-
 LOCAL_VSIX_PACKAGE_READY_WITH_DOCUMENTED_WAIVERS
+
+You are authorized to install the exact locally built VSIX into the local VS Code installation.
+
+ARTIFACT
+
+* Extension ID:
+    td-etl.databricks-etl-copilot
+* Version:
+    3.139
+* VSIX:
+    C:\repos\etl-extension\etl_fw2\local-release-artifacts\databricks-etl-copilot-0.3.139.vsix
+* Expected SHA-256:
+    e6ce31f2d1d2a9217e9a4e295bbf2816642eff5613858c39c86872d69d208e98
+
+SAFETY RULES
+
+* Do not modify the repository or artifact.
+* Do not stage, commit, push, edit PR #7, or interact with CI.
+* Do not read .env, GH, or GH_TOKEN.
+* Do not click Keep or Undo.
+* Do not uninstall the existing extension.
+* Do not reload, restart, or close VS Code automatically.
+
+PREFLIGHT
+
+1. Confirm the VSIX exists.
+2. Recompute SHA-256 and require an exact match.
+3. Record:
+    * code --version
+    * currently installed version of td-etl.databricks-etl-copilot, if any.
+4. Reconfirm the main repository HEAD, index, unstaged files, PR, and CI remain untouched.
+
+INSTALLATION
+
+If the extension is not currently installed, run:
+
+code --install-extension "C:\repos\etl-extension\etl_fw2\local-release-artifacts\databricks-etl-copilot-0.3.139.vsix"
+
+If a different version is installed, first attempt the same normal installation command.
+
+If version 0.3.139 is already installed and VS Code refuses to replace it because the version is unchanged, one force installation is explicitly authorized only for this exact verified VSIX:
+
+code --install-extension "C:\repos\etl-extension\etl_fw2\local-release-artifacts\databricks-etl-copilot-0.3.139.vsix" --force
+
+Do not use --force for any other extension or artifact.
+
+POST-INSTALL VERIFICATION
+
+1. Require installation exit code 0.
+2. Run code --list-extensions --show-versions.
+3. Require:
+    td-etl.databricks-etl-copilot@0.3.139
+4. Confirm the VSIX hash and source artifact remained unchanged.
+5. Confirm no repository, PR, CI, token, worktree, or review-card state changed.
+6. Do not launch the extension or perform a smoke test in this step.
+7. Tell the user to run Developer: Reload Window manually.
+
+Finish with exactly:
+
+LOCAL_VSIX_INSTALLED_RELOAD_REQUIRED
 
 or
 
-LOCAL_VSIX_BUILD_BLOCKED_<EXACT_REASON>
+LOCAL_VSIX_INSTALL_BLOCKED_<EXACT_REASON>
