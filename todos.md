@@ -1,194 +1,382 @@
-Task: LOCAL-PHASE-A1A-20260813-01-RESUME-01
+Task: LOCAL-PHASE-A1A-PATH-ARCHITECTURE-DESIGN-20260813-01
 
-Resume the blocked LOCAL-PHASE-A1A-20260813-01 task from its current checkpoint.
+Mode: read-only architecture and extraction design
+Target: extension-source
+Delivery: report-only
+Mutation authorization: NONE
 
-All prior constraints, protected paths, lifecycle requirements, 19-item executable coverage matrix, isolated A/B validation requirements, and prohibitions remain in force.
+Accepted finding
 
-Do not click Keep or Undo. Do not start Phase A1B.
+The latest blocker is substantiated:
 
-Exact scope expansion
+* TrustedCreatePreviewService.ts owns environment selection but is not the canonical owner of all artifact paths.
+* Artifact-set and path rules are distributed across:
+    * ArtifactGenerationPipeline
+    * RepoWriter.generatePaths
+    * IncludeFileRenderer
+    * EnvConfigRenderer
+* Some paths become available only after ETLBlueprint generation or mutation.
+* The current generation pipeline may use prompt/AI behavior and therefore cannot be assumed pure or deterministic.
+* Adding a descriptor only to TrustedCreatePreviewService would either duplicate path rules or invoke downstream generation/writer dependencies before the correct safety gate.
 
-Authorize exactly one additional production file:
+The previous sixth-file authorization was not used and is insufficient for implementation. Do not attempt another workaround.
 
-TrustedCreatePreviewService.ts
+Hard boundaries
 
-Resolve and report its unique canonical path under src/** before editing.
+1. Do not click Keep or Undo; preserve the current pending nine-file review card.
+2. Do not edit any source, test, configuration, documentation, package, generated output, or workspace file.
+3. Do not start Phase A1B or any implementation.
+4. Do not stage, commit, push, merge, switch branches, edit PR #7, or invoke CI.
+5. Do not build, package, install, uninstall, or replace a VSIX.
+6. Do not install dependencies or compile/test inside the real repository.
+7. Do not modify any Consumer workspace or contact an external system.
+8. Do not copy current path formulas into a second component.
+9. Do not weaken containment, collision safety, ownership verification, preview immutability, or incomplete-evidence blocking.
+10. Do not change Phase 6 or Golden Corpus expectations to accept permanent preview blocking.
+11. Do not treat fixtures, samples, or AI output as product truth.
+12. Do not infer credentials, physical paths, environment values, write modes, merge keys, onboarding IDs, or business decisions.
 
-This is the sixth and final additional A1A production file. No seventh production file is authorized. The previously authorized test-file budget is unchanged.
+Only local search, source/contracts/tests reading, static tracing, and reporting are authorized.
 
-If this file is absent or ambiguous, or another production/helper file is required, stop with:
+1. Identity and immutability
 
-LOCAL_PHASE_A1A_BLOCKED
+Revalidate read-only:
 
-Mandatory pre-edit proof
+* repository, origin, branch, and exact HEAD;
+* staged state and exact git status --porcelain;
+* registered worktrees;
+* current nine pending A0R paths and hashes;
+* four protected dirty-file hashes;
+* committed/worktree package versions;
+* candidate and observable installed VSIX identity;
+* current review-card state.
 
-Before making any edit:
+If state differs materially, stop with:
 
-1. Revalidate repository, origin, branch, HEAD, worktrees, staged state, package versions, candidate VSIX hash, protected-file hashes, and the current pending changed-file manifest.
-2. Prove that TrustedCreatePreviewService is the canonical owner of environment selection and intended artifact-path derivation.
-3. Print the proposed preflight method signature and its exact callers.
-4. Show the dependency/import graph remains acyclic.
-5. If the implementation would introduce a circular dependency, dynamic-import workaround, service locator, or duplicated path logic, stop and request explicit scope expansion.
-6. Confirm no unexpected file has changed.
+LOCAL_PHASE_A1A_PATH_DESIGN_BLOCKED_IDENTITY
 
-Authorized implementation
+2. Complete artifact-path ownership inventory
 
-Refactor TrustedCreatePreviewService.ts only enough to expose a pure, deterministic, side-effect-free preflight descriptor API.
+Trace every artifact and path that can appear for:
 
-The descriptor must be derived from explicit immutable inputs, including:
+* UPDATE_EXISTING_JOB
+* CREATE_NEW_JOB
+* INITIALIZE_NEW_CONSUMER_REPO
 
-* trusted selected workspace and provenance;
-* current session/workspace binding;
-* canonical STTM identity and SHA-256;
-* repository/environment discovery snapshot identity;
-* provisional lifecycle route and stable job identity, when available;
-* explicit environment selection or grounded environment candidates.
+Include at minimum:
 
-The descriptor must contain:
+* primary job configuration;
+* split extract/load job configurations;
+* sourcing artifacts;
+* transformation SQL;
+* writer/output artifacts;
+* environment configuration;
+* common/shared configuration;
+* include and nested-include patches;
+* additional-job artifacts;
+* onboarding/registration;
+* CSV or other declared outputs;
+* managed ownership metadata.
 
-* descriptorComplete;
-* normalized workspace-relative artifact paths;
-* artifact kinds;
-* canonical contained paths;
-* deterministic sorted intended-path-set hash;
+For every artifact report:
+
+Artifact kind	Actual path owner/symbol	Required inputs	Available before generation?	Deterministic?	AI-dependent?	Blueprint-mutation-dependent?	Filesystem read/write?	Preview/apply usage
+
+Cite exact canonical files, symbols, callers, and line ranges.
+
+Do not call a component the owner merely because it invokes the actual path-producing symbol.
+
+3. Current call graphs and side effects
+
+Produce exact call graphs for:
+
+1. direct /create;
+2. trusted preview;
+3. preview validation;
+4. later write/apply;
+5. /workflow create.
+
+Trace at minimum:
+
+* TrustedCreatePreviewService
+* TrustedPlanningEvidenceService
+* ArtifactGenerationPipeline
+* RepoWriter.generatePaths
+* IncludeFileRenderer.renderAll
+* IncludeFileRenderer.ensureModuleIncludes
+* EnvConfigRenderer.buildEnvConfigPath
+* lifecycle/reuse classifiers;
+* collision and ownership services;
+* validators;
+* write services.
+
+For every relevant symbol identify:
+
+* pure/stateful;
+* synchronous/asynchronous;
+* filesystem reads;
+* filesystem writes;
+* directory creation;
+* cache or plan mutation;
+* ambient workspace or process.cwd() usage;
+* model/AI invocation;
+* timestamps/randomness;
+* writer dependency.
+
+Explicitly answer:
+
+* Does ArtifactGenerationPipeline perform any write or directory creation?
+* Does it call RepoWriter, NewArtifactWriter, writeArtifacts, or an external operation?
+* Does AI control artifact content, artifact identity, filenames, paths, or all of them?
+* What is the earliest point where the exact complete normalized candidate path set exists?
+* Can exact paths be obtained without AI or blueprint mutation?
+* Can generation safely execute once, entirely in memory, before collision inspection?
+* Does full preview regenerate or recompute any artifact/path?
+* Can renderers consume supplied paths instead of independently creating them?
+
+4. Contract truth analysis
+
+For every current path rule classify it as:
+
+* explicitly defined by authoritative ETL Framework contracts/templates;
+* deterministically derived from trusted STTM/job identity;
+* derived from grounded environment selection;
+* embedded only in RepoWriter;
+* embedded only in a renderer;
+* selected by AI;
+* fixture/sample convention only;
+* unresolved.
+
+Identify which path decisions require:
+
+* selected Consumer root;
+* lifecycle route;
+* stable managed job identity;
+* deterministic STTM-derived module plan;
+* environment selection;
+* discovered managed artifact paths;
+* logical source/target/output evidence;
+* unresolved deployment or business values.
+
+If a path cannot be known without guessing, report it as unresolved.
+
+5. Compare the coherent architecture options
+
+Option A — deterministic structural path plan
+
+trusted evidence
+→ discovery
+→ lifecycle/environment decision
+→ pure StructuralArtifactPlan
+→ exact path manifest
+→ collision inspection
+→ planningEligible
+→ in-memory content generation
+→ trusted preview
+
+Select this only if every artifact identity and path can be derived without AI, content generation, blueprint mutation, writer access, or guessed values.
+
+Option B — two-gate, render-once architecture
+
+trusted evidence
+→ discovery
+→ lifecycle/environment decision
+→ candidateGenerationEligible
+→ one completely write-free in-memory generation
+→ frozen exact candidate manifest
+→ containment/collision/ownership inspection
+→ previewEligible/planningEligible
+→ validation and user-visible trusted preview
+
+Select this only if generation can be proven to have:
+
+* zero filesystem writes;
+* zero directory creation;
+* zero writer calls;
+* zero external operational actions;
+* no Consumer mutation.
+
+The exact generated paths/content/environment result must be frozen and reused without regeneration.
+
+Option C — pure generation-core extraction
+
+Refactor the current generation pipeline into:
+
+* a pure in-memory candidate-generation core;
+* separate validation;
+* separate later writer/apply adapter.
+
+Select this if exact paths require generation but the current generation pipeline is not sufficiently side-effect-free.
+
+Option D — hybrid
+
+Use deterministic structural planning for artifact identities and contract-derived paths, followed by one frozen in-memory generation step for genuinely content-dependent information.
+
+Select this only if it still provides one canonical owner per path rule and no duplicated formulas.
+
+Compare:
+
+Criterion	A	B	C	D
+One canonical path truth				
+No write before approval				
+Handles AI nondeterminism				
+Exact collision inventory				
+UPDATE path preservation				
+CREATE/INITIALIZE support				
+Environment-selection support				
+Windows containment				
+Phase 6/Golden compatibility				
+Dependency-cycle risk				
+Estimated production files				
+Estimated test files				
+Migration risk				
+
+Recommend exactly one architecture and reject the others using source evidence. Do not choose solely by lowest file count.
+
+6. Required safety state machine
+
+The recommended design must distinguish, where necessary:
+
+* evidenceComplete
+* candidateGenerationEligible
+* manifestComplete
+* previewEligible or planningEligible
+* applyEligible
+
+Do not overload one flag across multiple lifecycle stages.
+
+Required rules:
+
+* unknown/unsafe workspace blocks before generation;
+* missing or external STTM blocks before generation;
+* multiple matching jobs request explicit selection;
+* incomplete discovery must not mean “no match”;
+* one stable managed match routes to update;
+* no match in a confirmed existing repository routes to create;
+* an explicitly confirmed empty repository routes to initialize;
+* unmanaged collisions block after the exact candidate path set is known;
+* preview is always write-free;
+* applyEligible remains unconditionally false in this phase;
+* /workflow create remains separate and unchanged.
+
+7. Canonical immutable manifest design
+
+Specify the minimum immutable candidate-manifest schema, including:
+
+* workspace/session binding;
+* STTM identity and SHA-256;
+* discovery snapshot hash;
+* lifecycle route;
 * environment-selection outcome;
-* environment-candidate-set hash when applicable;
-* workspace, STTM, and discovery bindings;
-* typed unresolved codes and safety blockers.
+* stable artifact ID;
+* artifact kind;
+* normalized relative path;
+* canonical contained destination;
+* path provenance;
+* ownership observation;
+* content or deferred-content status;
+* content SHA-256 when generated;
+* path-set hash;
+* manifest hash;
+* unresolved non-safety decisions;
+* blockers.
 
-It must not contain generated artifact content, preview-validation success, ownership claims, approval state, planningEligible, or applyEligible.
+For each field state:
 
-Correct lifecycle order
+* which component creates it;
+* when it becomes available;
+* whether it is safety-critical;
+* how immutability is enforced;
+* how collision inspection, preview, and future apply consume the identical manifest;
+* how drift, replay, regeneration, or stale evidence is rejected.
 
-Avoid a circular routing contract. Use this order:
+8. Exact phased migration plan
 
-trusted workspace/STTM/session evidence
-→ complete read-only job/environment discovery
-→ provisional lifecycle classification
-→ pure preflight descriptor
-→ collision/ownership inventory over exactly those paths
-→ final lifecycle decision
-→ derive planningEligible
-→ full in-memory preview and validation
+Design implementation slices but do not implement them.
 
-Required provisional outcomes remain:
+For each slice provide:
 
-* one stable managed match → update candidate;
-* no match in an existing confirmed repository → create candidate;
-* explicitly selected empty repository → initialize candidate;
-* multiple matches → request explicit job selection;
-* unsafe or unknown target → block.
+* exact production files;
+* exact test files;
+* new files, if any;
+* symbols changed;
+* dependency direction;
+* compatibility/delegation approach;
+* behavior preserved;
+* acceptance tests;
+* explicit scope expansion required.
 
-Unmanaged collision is classified after the exact descriptor path set is known and must block before preview.
+At minimum separate:
 
-Purity and safety
+1. extracting or defining canonical path/layout ownership with parity tests;
+2. changing existing path producers to delegate to or consume it;
+3. separating mutating include behavior from in-memory preview behavior;
+4. adding discovery/collision and the necessary eligibility gates;
+5. restoring valid Phase 6 and Golden direct-create preview flows;
+6. complete isolated A/B validation.
 
-The preflight operation must:
+Explicitly answer:
 
-* use no process.cwd(), active-editor inference, ambient workspace state, or sample/customer defaults;
-* call no RepoWriter, NewArtifactWriter, writeArtifacts, resolveWorkspacePath, writer, or external system;
-* perform no filesystem write, directory creation, preview validation, or approval/apply action;
-* receive read-only observations as explicit inputs instead of recollecting mutable ambient state;
-* never invent paths, environment values, credentials, storage values, write modes, merge keys, onboarding IDs, or business decisions;
-* return descriptorComplete: false when any safety-critical path or environment choice is unresolved;
-* reject outside-root, extension/install-root, different-drive, UNC escape, .., mixed-separator escape, symlink/junction escape, duplicate-path, and unsafe case-alias outcomes.
+* Must RepoWriter.generatePaths be extracted or become a thin delegate?
+* Must RepoWriter itself change?
+* Must ArtifactGenerationPipeline change?
+* Must IncludeFileRenderer change?
+* Must EnvConfigRenderer change?
+* Can TrustedCreatePreviewService remain environment-selection/orchestration-only?
+* Where is collision inspection performed?
+* Where does the manifest become authoritative?
+* How does future write consume it without recomputing paths?
+* What is the smallest coherent scope that does not duplicate logic?
 
-A descriptor is only a planning observation. It is not managed-ownership evidence.
+No proposed slice is authorized by this task.
 
-applyEligible must remain unconditionally false.
+9. Future executable test plan
 
-Single path truth and drift protection
+Design coverage for:
 
-There must be one canonical implementation of environment/path derivation.
+* manifest/preview/write path parity;
+* no hidden path recomputation;
+* no writes during evidence, generation, collision, or preview;
+* AI nondeterminism captured by immutable hashes;
+* regenerated-content or path drift rejection;
+* update-path preservation;
+* create and empty-repository initialization;
+* environment reuse, absence, ambiguity, and stale selection;
+* managed/unmanaged/unknown ownership;
+* duplicate/case-alias paths;
+* Windows mixed separators and drive behavior;
+* UNC and different-drive escape;
+* C:\foo versus C:\foobar;
+* .. traversal;
+* symlink/junction escape;
+* stale workspace/STTM/discovery/manifest;
+* all three existing Phase 6/Golden regressions;
+* /workflow create separation;
+* applyEligible === false.
 
-Prefer that both preflight and full preview call the same internal pure path planner inside TrustedCreatePreviewService.ts. Do not copy the rules into another service.
+Provide the future A1 → B1 → B2 → A2 validation matrix and failure-equivalence criteria.
 
-Before accepting a full preview, verify exact parity for:
+Final report
 
-* artifact paths and kinds;
-* environment-selection outcome;
-* environment-candidate-set hash;
-* intended-path-set hash;
-* workspace binding;
-* STTM hash;
-* discovery snapshot hash.
+Return:
 
-Any missing, added, renamed, differently normalized, or differently typed artifact must fail closed with a typed result such as:
+1. Identity and immutability evidence.
+2. Complete artifact/path ownership table.
+3. Current call graphs and side-effect matrix.
+4. Earliest exact-manifest point.
+5. Contract-derived versus AI/implementation-derived path table.
+6. Architecture-option comparison.
+7. Exactly one recommended architecture.
+8. Exact eligibility state machine.
+9. Immutable manifest schema.
+10. Phased file/symbol migration plan.
+11. Scope expansion required per slice.
+12. Dependency-cycle and semantic-cycle assessment.
+13. Future executable test/A/B plan.
+14. Confirmation that no file changed and no Keep/Undo, Git/PR/CI, package/VSIX/install, Consumer, or external action occurred.
 
-BLOCK_PREVIEW_DESCRIPTOR_DRIFT
+End with exactly one token:
 
-Collision inspection must receive exactly the descriptor’s canonical path set. No later path may be added silently.
-
-Eligibility boundary
-
-planningEligible: true may be derived only when:
-
-* workspace/session/STTM evidence is trusted and current;
-* job and environment discovery are complete;
-* the provisional lifecycle route permits planning;
-* the descriptor is complete;
-* every safety-critical environment choice is resolved;
-* collision/ownership inventory covers the exact descriptor path set;
-* no unsafe collision or stale evidence exists.
-
-After eligibility, the full preview may render content in memory and validate it, but must remain completely write-free. Descriptor parity must be checked before returning trusted_preview_validated.
-
-Unresolved deployment/business values that do not affect paths or collision safety may remain visible in preview, but must not be invented and must keep apply blocked.
-
-Mandatory executable tests
-
-Within the existing test budget, prove:
-
-1. Complete trusted direct /create evidence reaches trusted_preview_validated.
-2. Incomplete, ambiguous, stale, external, or unsafe evidence blocks before full preview.
-3. Phase 6 valid direct-create behavior is restored.
-4. Golden Corpus acceptance returns to 1.
-5. Canonical ABFSS aiFirst.acceptance === true.
-6. Existing Phase 6 and Golden expectations are not weakened.
-7. Test fixtures use genuine temporary trusted workspaces—not an arbitrary bare C:\workspace.
-8. Preflight/full-preview paths and environment outcomes have exact parity.
-9. Added, removed, renamed, renormalized, or differently typed paths trigger descriptor-drift blocking.
-10. Environment-selection and candidate-set drift are rejected.
-11. Collision inspection receives the exact descriptor path set.
-12. Unique-environment reuse, deterministic generic scaffold, multiple selection, stale selection, and incomplete discovery are all covered.
-13. Repeated/permuted equivalent input produces an identical immutable descriptor and hash.
-14. All writer and filesystem-write APIs have executable zero-call assertions.
-15. No preview validation occurs when evidence is incomplete.
-16. The same immutable evidence identity reaches the executor.
-17. Extension/install, mixed separators, UNC, different drive, case alias, symlink, and junction cases are covered.
-18. /workflow create remains unchanged and separate.
-19. applyEligible === false in every scenario.
-
-Validation
-
-Use only isolated temporary snapshots created from exact git archive HEAD with committed package.json 0.3.139.
-
-Record:
-
-* UNPINNED_TEMP_DEPENDENCY_RESOLUTION;
-* Node/npm versions;
-* temporary lock hash;
-* exact dependency identity;
-* A1 → B1 → B2 → A2 results;
-* compile/typecheck;
-* focused suites;
-* broader pure-unit runner;
-* Phase 6 and Golden suites;
-* all 19 coverage items;
-* lifecycle and environment matrices;
-* git diff --check;
-* independent verifier result.
-
-Both B runs must eliminate the exact three source regressions and introduce no new or changed failure identity relative to both A runs.
-
-Do not modify package/VSIX/install, Git/PR/CI state, real Consumer workspaces, protected dirty files, writers, apply/approval code, packaged assets, or control-plane paths.
-
-Do not click Keep even after success; report whether the pending review card is safe for the user to keep.
-
-Use the original final token set:
-
-* LOCAL_PHASE_A1A_IMPLEMENTED_AND_AB_VERIFIED
-* LOCAL_PHASE_A1A_OVERLAY_REGRESSION
-* LOCAL_PHASE_A1A_COVERAGE_GAP
-* LOCAL_PHASE_A1A_INCONCLUSIVE
-* LOCAL_PHASE_A1A_BLOCKED
+LOCAL_PHASE_A1A_PATH_ARCHITECTURE_DESIGN_READY
+LOCAL_PHASE_A1A_PATH_ARCHITECTURE_DESIGN_INCONCLUSIVE
+LOCAL_PHASE_A1A_PATH_DESIGN_BLOCKED_IDENTITY
