@@ -1,422 +1,191 @@
-IMPLEMENT LOCAL PHASE A1B — SLICE 1 CANONICAL ETL ARTIFACT PATH/LAYOUT OWNERSHIP
+Task: LOCAL-PHASE-A1B-SLICE1-INDEPENDENT-AUDIT-20260813-01
 
-You are implementing ONLY Slice 1 from the completed read-only architecture task:
+Mode: independent read-only audit
+Delivery: report-only
+Mutation authorization: NONE
+Slice 2: PROHIBITED
 
-LOCAL-PHASE-A1A-PATH-ARCHITECTURE-DESIGN-20260813-01
+Independently audit Slice 1 before it is accepted.
 
-The A1A investigation is the authoritative design input for this task.
+Expected Slice 1 scope
 
-==================================================
-PRIMARY OBJECTIVE
-==================================================
+The pre-existing nine-file A0R review-card overlay must remain byte-identical.
 
-Establish ONE canonical, deterministic owner for ETL artifact path/layout rules.
+Exactly these three files were reportedly added:
 
-This slice is PARITY-ONLY.
+1. src/core/artifacts/layout/EtlArtifactLayout.ts
+2. src/core/artifacts/layout/ArtifactPathNormalizer.ts
+3. src/test/suite/etlArtifactLayoutParity.test.ts
 
-Do NOT migrate existing producers yet.
-Do NOT change runtime behavior yet.
-Do NOT implement Slice 2 or later slices.
+Do not trust these claims without verification.
 
-The purpose is to introduce and prove the canonical path/layout contract that later slices will delegate to.
+Hard boundaries
 
-Target architecture from A1A:
+* Do not click Keep or Undo.
+* Do not edit any real file, including testPatterns.ts.
+* Do not begin or design Slice 2.
+* Do not resolve disputed canonical path formulas.
+* Do not change tests or expectations.
+* Do not perform Git, PR, CI, package, VSIX, installation, Consumer-workspace, or external actions.
+* Any compilation or test must run only in disposable snapshots created from git archive HEAD.
 
-trusted evidence
-→ lifecycle route
-→ environment selection
-→ structural artifact planning
-→ canonical path manifest
-→ collision/ownership inspection
-→ preview
-→ future apply
+1. Identity and exact scope
 
-This task implements ONLY the canonical path/layout foundation required by that architecture.
+Verify repository, origin, branch, exact HEAD, worktrees, staged state, package versions, VSIX identity and all protected hashes.
 
-==================================================
-MANDATORY PRE-FLIGHT
-==================================================
+Reconcile:
 
-Before modifying anything:
+* the UI statement suggesting “Created 4 files”;
+* the reported three-file Slice 1 table;
+* actual filesystem and git status evidence.
 
-1. Re-read the complete A1A design evidence available in the current session.
+Confirm there is no hidden fourth file or modification to an existing production file.
 
-2. Verify repository identity:
-   - repository root
-   - origin
-   - current branch
-   - HEAD SHA
-   - git status
-   - staged files
-   - worktrees
+2. Layout-contract audit
 
-3. Reconcile the current pending review-card state.
+Audit every export in EtlArtifactLayout.ts.
 
-The A1A report identified:
-- nine pending AOR review-card files
-- four protected dirty files
-- previously authorized TrustedCreatePreviewService state
+For each path formula, trace the real current producer and prove exact parity with:
 
-Do NOT modify, Keep, Undo, stage, revert, restore, clean, overwrite, or otherwise disturb those existing changes.
+* RepoWriter.generatePaths
+* ArtifactPatchPlanner
+* ArtifactGenerationPipeline
+* EnvConfigRenderer
+* BlueprintBuilder
+* IncludeFileRenderer
+* onboarding generation
 
-Record hashes before implementation.
+Verify directory, filename, sanitizer, lowercasing, suffix, environment segment and .yaml versus .yml.
 
-If the repository state materially differs from the A1A starting state:
-STOP and report the drift.
+Confirm disputed formulas remain fail-closed:
 
-==================================================
-SLICE 1 AUTHORIZED SCOPE
-==================================================
+* primary_job_config
+* environment_config_create
+* transformation_sql_suggestion
 
-Implement the canonical ETL artifact layout owner.
+They must return explicit unresolved results unless an exact formula ID is supplied.
 
-Expected new production files:
+Confirm no formula is invented for:
 
-src/core/artifacts/layout/EtlArtifactLayout.ts
+* common_shared_config
+* declared_tabular_output
+* managed_ownership_marker
 
-src/core/artifacts/layout/ArtifactPathNormalizer.ts
+3. Path-normalizer security audit
 
-Expected new test file:
+Audit and execute tests for:
 
-src/test/suite/etlArtifactLayoutParity.test.ts
+* POSIX, Windows and mixed separators;
+* empty and NUL paths;
+* . and ..;
+* absolute and drive-relative paths;
+* drive mismatch;
+* UNC and extended Windows paths;
+* case aliases;
+* trailing dot/space aliases and Windows reserved names;
+* C:\foo versus C:\foobar;
+* duplicate destinations;
+* symlink/junction escape using the injected realpath resolver.
 
-You may adjust exact filenames only if repository conventions make these paths technically invalid.
+Confirm lexical normalization is not presented as proof of filesystem or symlink containment.
 
-If so:
-STOP before implementation and explain why.
+4. Purity and dependency audit
 
-No other production files are authorized in this slice.
+Prove both production modules are deterministic leaf components with:
 
-==================================================
-DESIGN REQUIREMENTS
-==================================================
+* no filesystem write or directory creation;
+* no RepoWriter, renderer mutation or preview dependency;
+* no process.cwd() or ambient workspace;
+* no AI/model, time, randomness, network or global mutable state;
+* no import, runtime or semantic cycle;
+* immutable or defensively copied outputs.
 
-EtlArtifactLayout must become the future single owner of deterministic ETL artifact path formulas.
+5. Test-quality audit
 
-It must provide pure path-planning functions for the artifact families identified in A1A, including as applicable:
+Inspect etlArtifactLayoutParity.test.ts.
 
-- primary job config
-- split EXTRACT config
-- split LOAD config
-- transformation SQL include files
-- environment config CREATE path
-- onboarding / registration artifact
-- any deterministic artifact path already proven by repository evidence
+Map every production path formula and every security case to an exact test title.
 
-IMPORTANT:
+Reject circular assertions where expected values come from the same new registry/helper being tested.
 
-Do NOT invent paths for artifact families where A1A found no authoritative producer or contract.
+Classify each required behavior as:
 
-Specifically unresolved items must remain unresolved and explicit, including where applicable:
+* COVERED
+* PARTIAL
+* GAP
+* INVALID_ASSERTION
 
-- common/shared config path
-- CSV / other declared outputs
-- managed-ownership marker for ETL artifacts
+6. Test registration decision
 
-Do not guess them.
+Determine whether the registered runner uses PURE_UNIT_TEST_PATTERNS and whether the new test is currently omitted.
 
-==================================================
-PARITY REQUIREMENT
-==================================================
+Evaluate this exact proposed entry without applying it:
 
-This slice MUST preserve existing path behavior byte-for-byte/string-for-string for every path formula that is already authoritative enough to reproduce.
+**/etlArtifactLayoutParity.test.js
 
-The new layout owner must encode existing behavior.
+Prove whether it:
 
-Existing producers must NOT delegate to it yet.
+* selects exactly one compiled suite;
+* works on Windows and POSIX;
+* causes no duplicate execution;
+* changes test discovery only.
 
-Therefore:
+Return one decision:
 
-CURRENT PRODUCERS
-        │
-        │ existing behavior unchanged
-        ▼
-existing paths
+* APPROVE_EXACT_TEST_REGISTRATION_SCOPE_EXPANSION
+* REGISTRATION_ALREADY_EFFECTIVE_NO_CHANGE_REQUIRED
+* REJECT_PROPOSED_REGISTRATION_PATTERN
+* REGISTRATION_DECISION_INCONCLUSIVE
 
-AND IN PARALLEL:
+7. Isolated verification
 
-same grounded inputs
-        │
-        ▼
-EtlArtifactLayout
-        │
-        ▼
-canonical candidate paths
+Using one identical temporary dependency seed, create:
 
-Tests must prove parity between these wherever authoritative existing behavior exists.
+* B0: HEAD plus exactly the nine pre-Slice-1 A0R files;
+* B1: B0 plus exactly the three Slice 1 files;
+* B1R: B1 plus a temporary hypothetical one-line registration change.
 
-If two existing producers disagree on a formula:
+Do not include the four protected user-owned dirty files.
 
-DO NOT silently choose one.
+Run:
 
-Instead:
+* TypeScript test compilation;
+* focused Slice 1 suite;
+* registered canonical runner;
+* test-discovery enumeration;
+* directly affected suites;
+* git diff --check.
 
-1. identify the conflicting producers,
-2. preserve both observed formulas in evidence,
-3. classify the conflict,
-4. make the canonical function require an explicit contract decision OR represent the unresolved state safely,
-5. add a test proving that the conflict cannot silently resolve through guessing.
+Compare full test titles, error types, messages and first meaningful stack frames—not only counts.
 
-A1A specifically found disagreement around job-config and env-config formulas. Treat these as contract conflicts, not refactoring trivia.
+Acceptance requires:
 
-==================================================
-PATH NORMALIZATION
-==================================================
+* B0 and B1 have identical broader failure signatures;
+* focused Slice 1 tests pass;
+* B1R registers the new suite exactly once;
+* B1R introduces no new failure;
+* no expectation is weakened.
 
-ArtifactPathNormalizer must define deterministic normalization/containment primitives required by the future manifest.
-
-Design for both Linux and Windows path semantics where applicable.
-
-Cover at minimum:
-
-- workspace-relative paths
-- separator normalization
-- "." segments
-- ".." traversal rejection
-- absolute path rejection where a relative artifact path is required
-- Windows drive-letter behavior
-- UNC paths
-- mixed separators
-- case-folded comparison key where needed for collision detection
-- canonical destination resolution beneath a selected workspace root
-- containment verification
-- symlink/realpath boundary considerations where filesystem evidence is required
-
-IMPORTANT:
-
-Do not perform writes.
-
-Pure normalization functions should remain filesystem-independent.
-
-If realpath/symlink verification requires filesystem access, separate that concern cleanly from pure normalization rather than hiding I/O inside path formula functions.
-
-==================================================
-ARCHITECTURAL BOUNDARIES
-==================================================
-
-The new layout module must be a LEAF dependency.
-
-It may depend on stable types/utilities.
-
-It must NOT depend on:
-
-- chat/v3
-- TrustedCreatePreviewService
-- AgentMessageRouter
-- AgentActionExecutor
-- RenderingChain
-- ArtifactGenerationPipeline orchestration
-- RepoWriter
-- ArtifactPatchPlanner
-- UI
-- Copilot runtime orchestration
-
-Higher-level components will eventually depend on the layout owner, not vice versa.
-
-Check for dependency cycles.
-
-==================================================
-NO AI / NO NONDETERMINISM
-==================================================
-
-Canonical path calculation must be deterministic.
-
-It must NOT depend on:
-
-- LLM output
-- model ranking
-- current time
-- Date.now()
-- random values
-- ambient active editor
-- ambient workspace selection
-- Databricks calls
-- network calls
-
-All required inputs must be explicit function parameters.
-
-==================================================
-NO WRITES / NO SIDE EFFECTS
-==================================================
-
-Slice 1 is path-contract foundation only.
-
-The new production code must not:
-
-- create directories
-- write files
-- modify files
-- call RepoWriter.writeArtifacts
-- call NewArtifactWriter.writeFiles
-- stage Git changes
-- commit
-- push
-- package
-- install
-- modify a consumer workspace
-- contact external systems
-
-==================================================
-TEST REQUIREMENTS
-==================================================
-
-Create focused tests for the new canonical layout and normalizer.
-
-At minimum cover:
-
-1. deterministic output for identical inputs
-2. primary job-config path parity
-3. split EXTRACT path parity
-4. split LOAD path parity
-5. transformation include path parity
-6. environment CREATE path parity where contract is authoritative
-7. onboarding path parity
-8. unresolved/conflicting formulas fail explicitly rather than guessing
-9. POSIX separator normalization
-10. Windows separator normalization
-11. mixed separators
-12. "." normalization
-13. ".." traversal rejection
-14. absolute-path rejection
-15. Windows drive-letter escape rejection
-16. UNC escape rejection
-17. prefix-confusion containment:
-    C:\foo must not contain C:\foobar
-18. case-folded collision-key behavior
-19. duplicate normalized destination detection primitives
-20. no filesystem writes
-21. no AI/model dependency
-22. no ambient workspace dependency
-23. stable output across repeated executions
-
-Where practical, compare the new canonical functions against the existing producer formulas using identical grounded inputs.
-
-Do NOT modify existing producers merely to make tests easier.
-
-==================================================
-REGRESSION SAFETY
-==================================================
-
-Run the smallest relevant existing test suites first.
-
-Then run the broader appropriate extension tests permitted by the environment.
-
-Pay special attention to the three regressions identified in A1A:
-
-- phase6WriteDeployRun.test.ts expected trusted_preview_validated
-- goldenCorpusRunner.test.ts acceptance behavior
-- goldenCorpusRunner.test.ts ABESS aiFirst.acceptance === true
-
-Use the A/B methodology defined in A1A where practical to distinguish:
-
-PRE-EXISTING failures
-from
-NEW REGRESSIONS.
-
-Do not “fix” unrelated failures in this slice.
-
-==================================================
-SCOPE ESCALATION RULE
-==================================================
-
-If implementation requires modifying ANY existing production file:
-
-STOP.
-
-Do not expand scope automatically.
+Final report
 
 Report:
 
-SCOPE_EXPANSION_REQUIRED
+1. exact scope and hashes;
+2. “four created” versus three-file reconciliation;
+3. formula/producer parity table;
+4. unresolved-conflict table;
+5. normalizer security matrix;
+6. purity/dependency result;
+7. test-quality matrix;
+8. B0/B1/B1R results;
+9. exact registration decision;
+10. any defect with file and symbol evidence;
+11. proof that the real worktree and review card remained unchanged.
 
-and include:
+End with exactly one token:
 
-- exact file
-- exact symbol
-- why Slice 1 cannot be completed without it
-- minimal proposed change
-- whether it belongs to Slice 1 or should wait for Slice 2
-
-Do not make that modification without explicit authorization.
-
-==================================================
-GIT / REVIEW-CARD SAFETY
-==================================================
-
-Do not touch the existing pending AOR review-card files.
-
-Do not press Keep or Undo.
-
-Do not stage anything.
-
-Do not commit.
-
-Do not push.
-
-Do not create or modify PRs.
-
-Do not switch branches.
-
-Do not rebase or merge.
-
-Do not build/package/install a VSIX.
-
-Do not modify consumer repositories.
-
-At the end, prove the original pending files are byte-identical to their starting hashes.
-
-==================================================
-FINAL REPORT
-==================================================
-
-Return a concise but evidence-rich report containing:
-
-1. PASS / FAIL / BLOCKED / SCOPE_EXPANSION_REQUIRED
-
-2. Repository identity:
-   - root
-   - branch
-   - starting HEAD
-   - ending HEAD
-
-3. Existing pending-file integrity:
-   - before/after hashes
-   - confirmation untouched
-
-4. Exact new files created
-
-5. Canonical path functions implemented
-
-6. Path formulas represented
-
-7. Any formula conflicts intentionally left unresolved
-
-8. Normalization and containment rules implemented
-
-9. Dependency-cycle result
-
-10. Determinism / no-AI / no-I/O evidence
-
-11. Tests executed with exact pass/fail counts
-
-12. Classification of any failures:
-    - pre-existing
-    - introduced
-    - environment
-    - unresolved
-
-13. Confirmation:
-    - no existing production files modified
-    - no consumer files modified
-    - no package/VSIX operation
-    - no commit/push/PR action
-    - no external action
-
-14. Recommendation:
-    READY_FOR_SLICE_1_AUDIT
-    or
-    NOT_READY_FOR_SLICE_1_AUDIT
-
-Do NOT start Slice 2.
-
-Do NOT propose implementation of Slice 2 beyond identifying evidence needed for the next decision.
+* LOCAL_PHASE_A1B_SLICE1_AUDIT_PASS_REGISTRATION_APPROVED
+* LOCAL_PHASE_A1B_SLICE1_AUDIT_PASS_NO_REGISTRATION_CHANGE
+* LOCAL_PHASE_A1B_SLICE1_AUDIT_FAIL
+* LOCAL_PHASE_A1B_SLICE1_AUDIT_INCONCLUSIVE
+* LOCAL_PHASE_A1B_SLICE1_AUDIT_BLOCKED
