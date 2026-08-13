@@ -1,46 +1,54 @@
 @etl /workflow
 
-READ-ONLY BLOCKER PROVENANCE CHECK ONLY.
+READ-ONLY TARGET WORKSPACE IDENTITY CHECK ONLY.
 
-Reuse the STTM parse and preview evidence already produced. Do not regenerate artifacts or repeat runtime validation.
+Do not generate, modify, delete, approve, install, stage, commit, push, deploy, or execute anything.
 
-Search only the selected workspace’s existing job, environment, onboarding, SQL, and shared configuration assets, plus approved packaged repository-convention rules, for explicit evidence resolving:
+Current evidence:
 
-* source dataset location;
-* target storage path;
-* Delta and CSV write semantics and merge keys;
-* job ID and onboarding metadata;
-* compatible environment and deployment state;
-* canonical failure-status literals for BR_0003 and BR_0007 through BR_0010.
+* Open workspace appears to be: etl-acz0001-aczdg
+* STTM file: CD-Renewal_DataMapping_V3.0 1.xlsx
+* Logical target: cz_acz0004_retail.cd_renewal
+* Sources include: ccaudittrx, ccaudittrxreference, and cd_renewal
 
-Follow locally available YAML includes recursively. Stop at includes outside the selected workspace.
+Do not assume that the workspace is correct or incorrect based only on its folder name.
 
-Do not:
+Determine whether the currently selected workspace is the intended Consumer ETL repository for creating the CD Renewal job.
 
-* treat an unrelated job or environment as compatible by analogy;
-* invent or select any missing value;
-* generate files;
-* perform runtime validation;
-* use Git, shell, network, CI, or companion providers;
-* modify the workspace.
+Use only explicit repository evidence, including:
 
-For every item, return exactly one classification:
+* README and repository documentation
+* existing repository structure
+* job configuration conventions
+* environment configuration conventions
+* onboarding records
+* source-system identifiers
+* target database and table identifiers
+* shared configuration references
+* existing CD Renewal references
+* approved repository naming or ownership evidence
 
-* EXPLICIT_WORKSPACE_EVIDENCE — cite the exact file and key;
-* APPROVED_CONVENTION_EVIDENCE — cite the exact applicable rule;
-* CONFLICTING_EVIDENCE;
-* MISSING_USER_DECISION;
-* EXTERNAL_RUNTIME_VALIDATION_ONLY.
+Report:
 
-Also determine:
+1. Current selected workspace root.
+2. Evidence supporting that it is the correct target.
+3. Evidence suggesting that it is the wrong target.
+4. Whether CD Renewal is expected to be:
+    * a new job in this repository,
+    * an existing job being modified,
+    * or a job belonging to another repository.
+5. The exact repository or workspace name, if explicit evidence identifies one.
+6. Any missing evidence that requires user confirmation.
+7. Confirmation that zero files were changed.
 
-1. Whether the ten blank error descriptions are warnings or blockers under the documented validation contract.
-2. Whether the two active mappings referencing inactive target schemas are warnings or blockers.
-3. Why the parser reports audit status pass while still reporting those semantic findings.
-4. Whether the shared ADLS roots mean only dataset-relative paths are missing, rather than complete source/target locations.
+Do not perform the full STTM preview again.
 
-Do not resolve user decisions automatically.
+Finish with exactly one:
 
-Finish with exactly:
+TARGET_WORKSPACE_CONFIRMED_CORRECT
 
-LOCAL_STTM_BLOCKER_PROVENANCE_COMPLETE
+TARGET_WORKSPACE_CONFIRMED_WRONG_<EXPECTED_WORKSPACE>
+
+or
+
+TARGET_WORKSPACE_IDENTITY_REQUIRES_USER_CONFIRMATION
