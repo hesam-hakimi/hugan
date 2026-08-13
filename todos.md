@@ -1,68 +1,83 @@
-Task: LOCAL-PHASE-A0R-AB-VALIDATION-20260813-01
-Mode: isolated differential validation only
+Task: LOCAL-PHASE-A0R2-TRIAGE-20260813-01
+Mode: read-only isolated regression triage
 Target: extension-source
 Delivery: report-only
 Mutation authorization: NONE
+Phase A1: PROHIBITED
 
-Purpose
+Objective
 
-Phase A0R currently reports:
+The prior differential validation established:
 
-* TypeScript test compilation: PASS
-* focused suites: 32 passing, 0 failing
-* registered A0 run: 6 passing, 0 failing
-* all original eight failures resolved
-* real worktree and protected files unchanged
+* clean A1/A2 and overlay B1/B2 all compile;
+* shared repository-baseline failures occur in all four snapshots;
+* B1 and B2 each introduce the same three assertion failures absent from A1/A2;
+* focused B suites pass with 32 passing, 0 failing;
+* registered A0 B runs pass with 6 passing, 0 failing;
+* the complete 19-item executable coverage matrix was not produced;
+* final classification was:
 
-However, the broader pure-unit run reported nine failures and classified them as unrelated without showing results from clean HEAD under the identical dependency tree and test command.
+LOCAL_PHASE_A0R_AB_OVERLAY_REGRESSION
 
-Do not accept that classification based on filenames, suite names, historical knowledge, or intuition. Prove it through an isolated A/B comparison.
+This task must identify the exact cause and minimal future repair scope. Do not repair anything yet.
 
 Hard boundaries
 
-1. Do not click Keep or Undo. Leave the nine-file review card pending.
-2. Do not start, plan, or implement Phase A1.
-3. Do not modify any source, test, configuration, documentation, package, generated output, or workspace file.
-4. This task is validation-only. If a regression or coverage gap is found, report it and stop.
-5. Do not stage, commit, push, merge, rebase, switch branches, edit PR #7, invoke CI, or make any Git/PR/CI mutation.
-6. Do not package, rebuild, install, uninstall, or replace a VSIX.
-7. Do not install dependencies or run compilation/tests in the real repository.
-8. Do not touch any real Consumer workspace or external Databricks, ADF, SQL Server, or storage system.
-9. Do not alter:
+1. Do not click Keep or Undo; leave the current nine-file review card pending.
+2. Do not start, plan, scaffold, or implement Phase A1.
+3. Do not edit any source, test, helper, configuration, documentation, package, or tracked/generated file.
+4. Do not stage, commit, push, merge, rebase, switch branches, edit PR #7, or invoke CI.
+5. Do not package, rebuild, install, uninstall, or replace a VSIX.
+6. Do not install dependencies, compile, or test inside the real repository.
+7. Do not modify any Consumer workspace or contact Databricks, ADF, SQL Server, storage, or another external system.
+8. Do not modify:
     * .tsbuildinfo.test
     * package.json
     * CopilotAssetCatalog.ts
     * EtlActionToolService.ts
-10. Do not repair failures during this task.
+    * SolutionMemoryStore.ts
+    * .github/**
+    * AGENTS.md
+    * workflow/**
+    * COPY_ORDER.md
+9. Do not restore RepoWriter, process.cwd(), ambient workspace inference, or preview with incomplete evidence.
+10. Do not classify a test as stale merely because it fails under the new implementation.
+11. Do not propose weakening, deleting, skipping, quarantining, or renaming tests out of discovery.
 
-Expected identity
+Temporary diagnostic output may be created only under one unique OS temporary root and must be deleted afterward.
+
+Identity preflight
 
 Verify read-only:
 
+* repository: TD-Universe/agentic_etl
 * origin: https://github.com/TD-Universe/agentic_etl.git
 * branch: feature/v3-agentic-redesign
 * HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
-* HEAD package.json version: 0.3.139
-* protected dirty package.json version: 0.3.128
+* committed package version: 0.3.139
+* protected dirty package version: 0.3.128
 * staged changes: none
-* candidate and installed VSIX: 0.3.139, both PRE-A0R
+* candidate/installed VSIX: pre-A0 0.3.139
+* current review scope: exactly nine A0R files
 
 Capture before-state:
 
 * exact git status --porcelain;
 * registered worktrees;
-* SHA-256 of all nine pending A0R files;
-* SHA-256 of all four protected dirty files;
+* canonical paths and SHA-256 of all nine A0R files;
+* hashes of the four protected dirty files;
 * candidate VSIX SHA-256;
 * protected control-plane hashes.
 
 If identity or scope differs, stop with:
 
-LOCAL_PHASE_A0R_AB_BLOCKED_IDENTITY_OR_SCOPE
+LOCAL_PHASE_A0R2_TRIAGE_BLOCKED_IDENTITY_OR_SCOPE
 
-Exact B overlay
+Overlay partitions
 
-Resolve the canonical repository paths for exactly these nine pending files:
+Resolve the exact nine canonical paths and partition them without changing them.
+
+Production/source overlay
 
 1. TrustedPlanningEvidenceService.ts
 2. EtlAgent.ts
@@ -70,212 +85,263 @@ Resolve the canonical repository paths for exactly these nine pending files:
 4. AgentActionExecutor.ts
 5. ResponseComposer.ts
 6. index.ts
+
+Test/test-helper overlay
+
 7. trustedPlanningEvidenceService.test.ts
 8. testPatterns.ts
 9. phase5AgentRouter.test.ts
 
-Prove before testing that:
+Prove that no tenth file is part of the overlay and that SolutionMemoryStore.ts is unchanged.
 
-* no tenth file belongs to the A0R overlay;
-* SolutionMemoryStore.ts is unchanged;
-* none of the four protected dirty files is included;
-* no out/**, node_modules, cache, VSIX, or Consumer content is included.
+Isolated environment
 
-Isolated A/B environment
+Create one unique temporary dependency seed from git archive HEAD.
 
-Create one unique OS temporary root outside the real repository and all Consumer workspaces.
+Because HEAD has no committed lockfile:
 
-Create a dependency seed from git archive HEAD:
-
-1. Confirm its package.json is committed version 0.3.139.
-2. Because HEAD has no committed lockfile, install dependencies only in this temporary seed.
-3. Record:
-    * Node version;
-    * npm version;
-    * exact install command and exit code;
-    * generated temporary lockfile SHA-256;
-    * npm ls --depth=0;
-    * dependency-resolution timestamp.
-4. Label the run:
+* install dependencies only in the temporary seed;
+* record Node/npm versions;
+* record exact installation command and exit code;
+* record generated temporary lockfile SHA-256;
+* record npm ls --depth=0;
+* label the environment:
 
 UNPINNED_TEMP_DEPENDENCY_RESOLUTION
 
-5. Never copy node_modules, lockfiles, outputs, or caches into the real repository.
+Never copy dependencies, lockfiles, compiled output, or caches back to the repository.
 
-From the same dependency seed, create:
+Create these isolated variants using the identical dependency tree:
 
-* A1: clean committed HEAD
-* B1: identical environment plus exactly the nine-file A0R overlay
-* A2: a second fresh clean HEAD snapshot
-* B2: a second fresh snapshot plus the identical nine-file overlay
+Variant	Source files	Test files
+H	clean HEAD	clean HEAD
+S	six-file A0 source overlay	clean HEAD tests
+T	clean HEAD source	three-file A0 test overlay
+F	six-file source overlay	three-file test overlay
 
-All four must use byte-identical:
+If T cannot compile because its tests legitimately require new A0 types, record the exact compile errors. Do not treat that expected dependency mismatch as a product regression.
 
-* package.json;
-* generated temporary lockfile;
-* dependency tree;
-* Node/npm versions;
-* environment variables;
-* test commands and configuration.
+Do not reuse compiled/test output between variants.
 
-Run in this order:
+Capture the exact three failures
 
-1. A1
-2. B1
-3. B2
-4. A2
+Run the exact broader pure-unit command previously used on H, S and F, and on T if it compiles.
 
-Do not reuse generated compilation/test output between runs.
+The original command must run unchanged first. A diagnostic reporter may then be added in a separate run solely to obtain structured failure output; it must not change test discovery or execution semantics.
 
-Broader-suite comparison
+For every failure, capture:
 
-Recover and report the exact command that produced the previously reported nine broader pure-unit failures.
+* full test file path;
+* complete suite and test title;
+* error/assertion class;
+* exact expected value;
+* exact actual value;
+* normalized error message;
+* first meaningful test stack frame;
+* first meaningful production stack frame;
+* variant(s) where it occurs;
+* whether the same test passed, failed, or was absent in clean HEAD.
 
-Run that identical command in all four snapshots. Do not replace it with a narrower grep.
+Produce the exact three-element F-only or overlay-sensitive failure set. Exit code alone is insufficient.
 
-For every run, record:
+Individual and order-dependence reproduction
 
-* command;
-* exit code;
-* passing/failing/pending counts;
-* full failing test titles;
-* error class;
-* normalized assertion/error message;
-* first meaningful repository stack frame.
+For each of the three failures, using variant F:
 
-Normalize only temporary directory prefixes, timestamps, and durations. Do not normalize meaningful errors, assertion values, test titles, or stack frames.
+1. Run the test alone in a fresh process twice.
+2. Run all three together twice.
+3. Run the owning test file alone twice.
+4. Reproduce it in the broader runner.
+5. Identify the immediately preceding suite/test in broader execution order.
+6. Run the preceding suite followed by the failing test.
+7. Where supported without changing test semantics, run the owning file in reversed test order.
 
-Classify each failure:
+Repeat the corresponding individual test under H and S where it exists.
 
-BASELINE_FAILURE
+Record whether the failure is:
 
-The same full test title, error class, materially equivalent message, and meaningful stack origin occur in A1, A2, B1, and B2.
+* reproducible individually;
+* reproducible only in the owning file;
+* reproducible only after another suite;
+* reproducible only in the broader runner;
+* caused by changed production code;
+* caused by changed test/helper code.
 
-OVERLAY_FIXED_BASELINE_FAILURE
+Inspect read-only for shared mutable state, including:
 
-The failure occurs consistently in A1 and A2 but not in B1 or B2.
+* singleton or module-level registries;
+* cached planning evidence;
+* shared SolutionMemoryStore;
+* environment-variable mutation;
+* VS Code mocks;
+* spies/stubs not restored;
+* module cache;
+* test lifecycle hooks;
+* shared workspace/root selections;
+* mutable response or plan fixtures.
 
-OVERLAY_REGRESSION
+Do not edit or reset tracked code during this investigation.
 
-Any of the following:
+Route and hunk tracing
 
-* failure occurs in B1/B2 but not A1/A2;
-* failure count is equal but identities or signatures differ;
-* A compiles but B does not;
-* an A0R focused gate fails in either B run.
+For each failure, trace the complete call path and identify:
 
-FLAKY_OR_INCONCLUSIVE
+* whether it exercises direct /create;
+* /workflow create;
+* another agent command;
+* response composition only;
+* preview/writer behavior;
+* a fixture/helper rather than production behavior.
 
-A1 differs from A2, B1 differs from B2, or environment/dependency identity cannot be proven.
+Map the observed change to the exact A0 overlay hunk(s).
 
-Do not call a failure “unrelated” unless it qualifies executably as BASELINE_FAILURE.
+Use the H/S/T/F comparison to distinguish production changes from test-overlay effects:
 
-A0R coverage proof
+* Failure in S and F, absent in H: likely source behavior change.
+* Failure only in F, while S passes: likely test/helper interaction or state/order issue.
+* Failure only during broad F but not isolated F: likely shared-state/order leakage.
+* Failure on /workflow create caused by the A0 gate: likely out-of-scope route interception.
+* Old expectation requiring ambient RepoWriter or incomplete-evidence preview: candidate stale legacy expectation, but only after authoritative contract confirmation.
 
-In both B snapshots, run and report the focused suites again.
+Per-failure adjudication
 
-Provide a table mapping each requirement below to:
+Classify each failure as exactly one:
 
-* exact test file;
-* full test title;
-* executable assertion;
-* B1 result;
-* B2 result.
+TRUE_SOURCE_REGRESSION
 
-Required coverage:
+A still-valid product invariant is violated by the source overlay.
+
+Examples:
+
+* /workflow create changes;
+* unrelated routes are intercepted;
+* valid complete evidence is mishandled;
+* response compatibility is unintentionally broken;
+* evidence mutates;
+* behavior becomes nondeterministic.
+
+STALE_LEGACY_EXPECTATION
+
+The old expectation directly conflicts with an explicit A0 safety invariant, such as:
+
+* ambient/default RepoWriter workspace resolution;
+* process.cwd() fallback;
+* preview with incomplete evidence;
+* intent alone being treated as complete discovery/collision evidence.
+
+Do not use this classification unless the original safety purpose is identified and a replacement exact assertion is proposed.
+
+TEST_ORDER_OR_SHARED_STATE_LEAK
+
+The test passes individually but fails after another suite or only within the broader process, with the responsible mutable state or missing cleanup boundary identified.
+
+TEST_OVERLAY_OR_FIXTURE_DEFECT
+
+The changed test/helper introduces an invalid fixture, incompatible expectation, or unintended effect not caused by production behavior.
+
+OUT_OF_SCOPE_ROUTE_INTERCEPTION
+
+The A0 direct /create evidence gate is incorrectly affecting /workflow create or another route that must remain unchanged.
+
+INCONCLUSIVE
+
+Evidence is insufficient or contradictory.
+
+For each failure provide:
+
+Field	Required evidence
+Full test identity	File, suite and title
+Expected/actual	Exact assertion values
+Route	Direct create, workflow create, other, or fixture
+H/S/T/F result	Compile and test status
+Individual result	Two-run outcome
+Broad result	Two-run outcome
+Responsible hunk/state	Exact source or shared-state owner
+Classification	One permitted classification
+Preserved invariant	Original safety/compatibility purpose
+Minimal proposed repair	Files and behavior, without editing
+Required regression test	Exact future assertion
+
+If any failure remains INCONCLUSIVE, do not recommend a repair.
+
+Existing 19-item coverage audit
+
+Without adding or editing tests, map the currently existing executable tests to these requirements:
 
 1. Explicit selected-workspace provenance.
 2. Ambiguous multi-root fail-closed behavior.
-3. No process.cwd() or ambient workspace fallback.
+3. No process.cwd() or ambient fallback.
 4. Empty-repository initialization intent.
-5. STTM SHA-256 and selected-root containment.
-6. External and stale STTM rejection.
-7. Extension-source/installation-root rejection as a Consumer target.
+5. STTM canonical identity, SHA-256 and containment.
+6. Missing/external/stale STTM rejection.
+7. Extension-source/installation-root rejection.
 8. Windows drive and mixed-separator containment.
 9. UNC escape handling.
-10. Symlink/junction escape handling or a precise platform limitation plus equivalent resolved-path assertion.
-11. Candidate/job-discovery absence represented as explicitly unresolved.
-12. Collision/ownership absence represented as explicitly unresolved.
-13. Direct /create collects evidence before AgentActionExecutor.
-14. Executor receives the same immutable evidence.
+10. Symlink/junction or equivalent resolved-path handling.
+11. Missing job discovery represented explicitly as unresolved.
+12. Missing collision/ownership evidence represented explicitly as unresolved.
+13. Direct /create collects evidence before executor.
+14. Executor receives immutable evidence.
 15. Incomplete evidence blocks preview.
 16. Exact unresolved codes reach ResponseComposer.
-17. Executable spies prove zero calls to:
-    * RepoWriter
-    * NewArtifactWriter
-    * writeArtifacts
-    * resolveWorkspacePath
-    * preview writer/validator
-    * filesystem write APIs
-18. /workflow create remains on its separate unchanged workflow-manager path.
-19. applyEligible === false throughout Phase A0.
+17. Spies prove zero calls to writer, preview and filesystem-write boundaries.
+18. /workflow create remains separate and unchanged.
+19. applyEligible === false.
 
-Source-text searches are supplementary and cannot replace executable assertions.
+For each item report:
 
-If any required item has no executable test, do not add one during this validation task. Report:
+* exact test file and full title;
+* executable assertion;
+* latest observed result;
+* COVERED, PARTIAL, or GAP.
 
-LOCAL_PHASE_A0R_AB_COVERAGE_GAP
+Do not claim coverage from source-text search alone.
 
-Additional B gates
+Required repair proposal
 
-For both B1 and B2, require:
+Make no edits. Produce a proposed next repair scope containing:
 
-* TypeScript test compilation succeeds;
-* focused suites have zero failures;
-* registered A0 runner has zero failures;
-* git diff --check for the nine-file overlay passes;
-* no writer or preview call occurs with incomplete evidence.
+* exact files that would need modification;
+* whether each change is production, test, fixture, or cleanup;
+* hunk-level behavioral intent;
+* assertions that must be retained;
+* new regression tests required;
+* commands required for focused and final A/B validation;
+* explicit files that must remain untouched.
 
-Acceptance
-
-A/B validation passes only if:
-
-* A1 and A2 are consistent;
-* B1 and B2 are consistent;
-* B introduces no new or changed broader-suite failure;
-* all nine previously reported failures are proven baseline failures or are fixed by B;
-* all 19 A0 coverage requirements map to passing executable assertions;
-* all focused B tests have zero failures;
-* no real state changes.
-
-If the same nine failures exist in A and B with materially identical signatures, report them as pre-existing baseline failures—not as a fully green repository.
+If production repair would require a file outside the existing six production files, identify it as a scope-expansion request rather than assuming authorization.
 
 Cleanup and immutability
 
-After evidence collection:
+Delete only the exact temporary root.
 
-* delete only the exact temporary root;
-* verify deletion;
-* compare real git status --porcelain byte-for-byte before and after;
-* verify all nine pending A0R hashes are unchanged;
-* verify all protected dirty hashes are unchanged;
-* verify candidate VSIX hash is unchanged;
-* verify Consumer workspaces and control-plane paths are unchanged.
+Then verify:
 
-Required final report
+* git status --porcelain is byte-for-byte unchanged;
+* all nine overlay hashes are unchanged;
+* all protected dirty hashes are unchanged;
+* candidate VSIX hash is unchanged;
+* no Consumer, control-plane, Git, PR, CI, package, installation, or external state changed;
+* Keep/Undo remains untouched;
+* Phase A1 remains unstarted.
+
+Final report
 
 Provide:
 
-1. Identity and overlay evidence.
-2. Exact nine paths and hashes.
-3. Dependency seed and reproducibility disclosure.
-4. A1/B1/B2/A2 command matrix.
-5. Failure-equivalence table.
-6. Adjudication of all nine broader failures.
-7. Nineteen-item executable coverage matrix.
-8. Focused B1/B2 results.
-9. Any flakiness or platform limitation.
-10. Before/after immutability evidence.
-11. Explicit confirmation:
-    * Keep/Undo untouched;
-    * A1 not started;
-    * no edits performed;
-    * no Git/PR/CI/package/VSIX/install/external action occurred.
+1. Identity and isolation evidence.
+2. Exact H/S/T/F command matrix.
+3. Exact three-failure inventory.
+4. Individual/order-dependence results.
+5. Route and overlay-hunk trace.
+6. Per-failure adjudication table.
+7. Existing 19-item coverage matrix.
+8. Minimal proposed repair scope.
+9. Before/after immutability proof.
+10. Explicit confirmation that no edit or external mutation occurred.
 
 End with exactly one token:
 
-LOCAL_PHASE_A0R_AB_BASELINE_CONFIRMED
-LOCAL_PHASE_A0R_AB_OVERLAY_REGRESSION
-LOCAL_PHASE_A0R_AB_COVERAGE_GAP
-LOCAL_PHASE_A0R_AB_INCONCLUSIVE
-LOCAL_PHASE_A0R_AB_BLOCKED
+LOCAL_PHASE_A0R2_TRIAGE_READY_FOR_BOUNDED_REPAIR
+LOCAL_PHASE_A0R2_TRIAGE_INCONCLUSIVE
+LOCAL_PHASE_A0R2_TRIAGE_BLOCKED
