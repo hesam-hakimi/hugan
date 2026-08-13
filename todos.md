@@ -1,382 +1,422 @@
-Task: LOCAL-PHASE-A1A-PATH-ARCHITECTURE-DESIGN-20260813-01
+IMPLEMENT LOCAL PHASE A1B — SLICE 1 CANONICAL ETL ARTIFACT PATH/LAYOUT OWNERSHIP
 
-Mode: read-only architecture and extraction design
-Target: extension-source
-Delivery: report-only
-Mutation authorization: NONE
+You are implementing ONLY Slice 1 from the completed read-only architecture task:
 
-Accepted finding
+LOCAL-PHASE-A1A-PATH-ARCHITECTURE-DESIGN-20260813-01
 
-The latest blocker is substantiated:
+The A1A investigation is the authoritative design input for this task.
 
-* TrustedCreatePreviewService.ts owns environment selection but is not the canonical owner of all artifact paths.
-* Artifact-set and path rules are distributed across:
-    * ArtifactGenerationPipeline
-    * RepoWriter.generatePaths
-    * IncludeFileRenderer
-    * EnvConfigRenderer
-* Some paths become available only after ETLBlueprint generation or mutation.
-* The current generation pipeline may use prompt/AI behavior and therefore cannot be assumed pure or deterministic.
-* Adding a descriptor only to TrustedCreatePreviewService would either duplicate path rules or invoke downstream generation/writer dependencies before the correct safety gate.
+==================================================
+PRIMARY OBJECTIVE
+==================================================
 
-The previous sixth-file authorization was not used and is insufficient for implementation. Do not attempt another workaround.
+Establish ONE canonical, deterministic owner for ETL artifact path/layout rules.
 
-Hard boundaries
+This slice is PARITY-ONLY.
 
-1. Do not click Keep or Undo; preserve the current pending nine-file review card.
-2. Do not edit any source, test, configuration, documentation, package, generated output, or workspace file.
-3. Do not start Phase A1B or any implementation.
-4. Do not stage, commit, push, merge, switch branches, edit PR #7, or invoke CI.
-5. Do not build, package, install, uninstall, or replace a VSIX.
-6. Do not install dependencies or compile/test inside the real repository.
-7. Do not modify any Consumer workspace or contact an external system.
-8. Do not copy current path formulas into a second component.
-9. Do not weaken containment, collision safety, ownership verification, preview immutability, or incomplete-evidence blocking.
-10. Do not change Phase 6 or Golden Corpus expectations to accept permanent preview blocking.
-11. Do not treat fixtures, samples, or AI output as product truth.
-12. Do not infer credentials, physical paths, environment values, write modes, merge keys, onboarding IDs, or business decisions.
+Do NOT migrate existing producers yet.
+Do NOT change runtime behavior yet.
+Do NOT implement Slice 2 or later slices.
 
-Only local search, source/contracts/tests reading, static tracing, and reporting are authorized.
+The purpose is to introduce and prove the canonical path/layout contract that later slices will delegate to.
 
-1. Identity and immutability
-
-Revalidate read-only:
-
-* repository, origin, branch, and exact HEAD;
-* staged state and exact git status --porcelain;
-* registered worktrees;
-* current nine pending A0R paths and hashes;
-* four protected dirty-file hashes;
-* committed/worktree package versions;
-* candidate and observable installed VSIX identity;
-* current review-card state.
-
-If state differs materially, stop with:
-
-LOCAL_PHASE_A1A_PATH_DESIGN_BLOCKED_IDENTITY
-
-2. Complete artifact-path ownership inventory
-
-Trace every artifact and path that can appear for:
-
-* UPDATE_EXISTING_JOB
-* CREATE_NEW_JOB
-* INITIALIZE_NEW_CONSUMER_REPO
-
-Include at minimum:
-
-* primary job configuration;
-* split extract/load job configurations;
-* sourcing artifacts;
-* transformation SQL;
-* writer/output artifacts;
-* environment configuration;
-* common/shared configuration;
-* include and nested-include patches;
-* additional-job artifacts;
-* onboarding/registration;
-* CSV or other declared outputs;
-* managed ownership metadata.
-
-For every artifact report:
-
-Artifact kind	Actual path owner/symbol	Required inputs	Available before generation?	Deterministic?	AI-dependent?	Blueprint-mutation-dependent?	Filesystem read/write?	Preview/apply usage
-
-Cite exact canonical files, symbols, callers, and line ranges.
-
-Do not call a component the owner merely because it invokes the actual path-producing symbol.
-
-3. Current call graphs and side effects
-
-Produce exact call graphs for:
-
-1. direct /create;
-2. trusted preview;
-3. preview validation;
-4. later write/apply;
-5. /workflow create.
-
-Trace at minimum:
-
-* TrustedCreatePreviewService
-* TrustedPlanningEvidenceService
-* ArtifactGenerationPipeline
-* RepoWriter.generatePaths
-* IncludeFileRenderer.renderAll
-* IncludeFileRenderer.ensureModuleIncludes
-* EnvConfigRenderer.buildEnvConfigPath
-* lifecycle/reuse classifiers;
-* collision and ownership services;
-* validators;
-* write services.
-
-For every relevant symbol identify:
-
-* pure/stateful;
-* synchronous/asynchronous;
-* filesystem reads;
-* filesystem writes;
-* directory creation;
-* cache or plan mutation;
-* ambient workspace or process.cwd() usage;
-* model/AI invocation;
-* timestamps/randomness;
-* writer dependency.
-
-Explicitly answer:
-
-* Does ArtifactGenerationPipeline perform any write or directory creation?
-* Does it call RepoWriter, NewArtifactWriter, writeArtifacts, or an external operation?
-* Does AI control artifact content, artifact identity, filenames, paths, or all of them?
-* What is the earliest point where the exact complete normalized candidate path set exists?
-* Can exact paths be obtained without AI or blueprint mutation?
-* Can generation safely execute once, entirely in memory, before collision inspection?
-* Does full preview regenerate or recompute any artifact/path?
-* Can renderers consume supplied paths instead of independently creating them?
-
-4. Contract truth analysis
-
-For every current path rule classify it as:
-
-* explicitly defined by authoritative ETL Framework contracts/templates;
-* deterministically derived from trusted STTM/job identity;
-* derived from grounded environment selection;
-* embedded only in RepoWriter;
-* embedded only in a renderer;
-* selected by AI;
-* fixture/sample convention only;
-* unresolved.
-
-Identify which path decisions require:
-
-* selected Consumer root;
-* lifecycle route;
-* stable managed job identity;
-* deterministic STTM-derived module plan;
-* environment selection;
-* discovered managed artifact paths;
-* logical source/target/output evidence;
-* unresolved deployment or business values.
-
-If a path cannot be known without guessing, report it as unresolved.
-
-5. Compare the coherent architecture options
-
-Option A — deterministic structural path plan
+Target architecture from A1A:
 
 trusted evidence
-→ discovery
-→ lifecycle/environment decision
-→ pure StructuralArtifactPlan
-→ exact path manifest
-→ collision inspection
-→ planningEligible
-→ in-memory content generation
-→ trusted preview
+→ lifecycle route
+→ environment selection
+→ structural artifact planning
+→ canonical path manifest
+→ collision/ownership inspection
+→ preview
+→ future apply
 
-Select this only if every artifact identity and path can be derived without AI, content generation, blueprint mutation, writer access, or guessed values.
+This task implements ONLY the canonical path/layout foundation required by that architecture.
 
-Option B — two-gate, render-once architecture
+==================================================
+MANDATORY PRE-FLIGHT
+==================================================
 
-trusted evidence
-→ discovery
-→ lifecycle/environment decision
-→ candidateGenerationEligible
-→ one completely write-free in-memory generation
-→ frozen exact candidate manifest
-→ containment/collision/ownership inspection
-→ previewEligible/planningEligible
-→ validation and user-visible trusted preview
+Before modifying anything:
 
-Select this only if generation can be proven to have:
+1. Re-read the complete A1A design evidence available in the current session.
 
-* zero filesystem writes;
-* zero directory creation;
-* zero writer calls;
-* zero external operational actions;
-* no Consumer mutation.
+2. Verify repository identity:
+   - repository root
+   - origin
+   - current branch
+   - HEAD SHA
+   - git status
+   - staged files
+   - worktrees
 
-The exact generated paths/content/environment result must be frozen and reused without regeneration.
+3. Reconcile the current pending review-card state.
 
-Option C — pure generation-core extraction
+The A1A report identified:
+- nine pending AOR review-card files
+- four protected dirty files
+- previously authorized TrustedCreatePreviewService state
 
-Refactor the current generation pipeline into:
+Do NOT modify, Keep, Undo, stage, revert, restore, clean, overwrite, or otherwise disturb those existing changes.
 
-* a pure in-memory candidate-generation core;
-* separate validation;
-* separate later writer/apply adapter.
+Record hashes before implementation.
 
-Select this if exact paths require generation but the current generation pipeline is not sufficiently side-effect-free.
+If the repository state materially differs from the A1A starting state:
+STOP and report the drift.
 
-Option D — hybrid
+==================================================
+SLICE 1 AUTHORIZED SCOPE
+==================================================
 
-Use deterministic structural planning for artifact identities and contract-derived paths, followed by one frozen in-memory generation step for genuinely content-dependent information.
+Implement the canonical ETL artifact layout owner.
 
-Select this only if it still provides one canonical owner per path rule and no duplicated formulas.
+Expected new production files:
 
-Compare:
+src/core/artifacts/layout/EtlArtifactLayout.ts
 
-Criterion	A	B	C	D
-One canonical path truth				
-No write before approval				
-Handles AI nondeterminism				
-Exact collision inventory				
-UPDATE path preservation				
-CREATE/INITIALIZE support				
-Environment-selection support				
-Windows containment				
-Phase 6/Golden compatibility				
-Dependency-cycle risk				
-Estimated production files				
-Estimated test files				
-Migration risk				
+src/core/artifacts/layout/ArtifactPathNormalizer.ts
 
-Recommend exactly one architecture and reject the others using source evidence. Do not choose solely by lowest file count.
+Expected new test file:
 
-6. Required safety state machine
+src/test/suite/etlArtifactLayoutParity.test.ts
 
-The recommended design must distinguish, where necessary:
+You may adjust exact filenames only if repository conventions make these paths technically invalid.
 
-* evidenceComplete
-* candidateGenerationEligible
-* manifestComplete
-* previewEligible or planningEligible
-* applyEligible
+If so:
+STOP before implementation and explain why.
 
-Do not overload one flag across multiple lifecycle stages.
+No other production files are authorized in this slice.
 
-Required rules:
+==================================================
+DESIGN REQUIREMENTS
+==================================================
 
-* unknown/unsafe workspace blocks before generation;
-* missing or external STTM blocks before generation;
-* multiple matching jobs request explicit selection;
-* incomplete discovery must not mean “no match”;
-* one stable managed match routes to update;
-* no match in a confirmed existing repository routes to create;
-* an explicitly confirmed empty repository routes to initialize;
-* unmanaged collisions block after the exact candidate path set is known;
-* preview is always write-free;
-* applyEligible remains unconditionally false in this phase;
-* /workflow create remains separate and unchanged.
+EtlArtifactLayout must become the future single owner of deterministic ETL artifact path formulas.
 
-7. Canonical immutable manifest design
+It must provide pure path-planning functions for the artifact families identified in A1A, including as applicable:
 
-Specify the minimum immutable candidate-manifest schema, including:
+- primary job config
+- split EXTRACT config
+- split LOAD config
+- transformation SQL include files
+- environment config CREATE path
+- onboarding / registration artifact
+- any deterministic artifact path already proven by repository evidence
 
-* workspace/session binding;
-* STTM identity and SHA-256;
-* discovery snapshot hash;
-* lifecycle route;
-* environment-selection outcome;
-* stable artifact ID;
-* artifact kind;
-* normalized relative path;
-* canonical contained destination;
-* path provenance;
-* ownership observation;
-* content or deferred-content status;
-* content SHA-256 when generated;
-* path-set hash;
-* manifest hash;
-* unresolved non-safety decisions;
-* blockers.
+IMPORTANT:
 
-For each field state:
+Do NOT invent paths for artifact families where A1A found no authoritative producer or contract.
 
-* which component creates it;
-* when it becomes available;
-* whether it is safety-critical;
-* how immutability is enforced;
-* how collision inspection, preview, and future apply consume the identical manifest;
-* how drift, replay, regeneration, or stale evidence is rejected.
+Specifically unresolved items must remain unresolved and explicit, including where applicable:
 
-8. Exact phased migration plan
+- common/shared config path
+- CSV / other declared outputs
+- managed-ownership marker for ETL artifacts
 
-Design implementation slices but do not implement them.
+Do not guess them.
 
-For each slice provide:
+==================================================
+PARITY REQUIREMENT
+==================================================
 
-* exact production files;
-* exact test files;
-* new files, if any;
-* symbols changed;
-* dependency direction;
-* compatibility/delegation approach;
-* behavior preserved;
-* acceptance tests;
-* explicit scope expansion required.
+This slice MUST preserve existing path behavior byte-for-byte/string-for-string for every path formula that is already authoritative enough to reproduce.
 
-At minimum separate:
+The new layout owner must encode existing behavior.
 
-1. extracting or defining canonical path/layout ownership with parity tests;
-2. changing existing path producers to delegate to or consume it;
-3. separating mutating include behavior from in-memory preview behavior;
-4. adding discovery/collision and the necessary eligibility gates;
-5. restoring valid Phase 6 and Golden direct-create preview flows;
-6. complete isolated A/B validation.
+Existing producers must NOT delegate to it yet.
 
-Explicitly answer:
+Therefore:
 
-* Must RepoWriter.generatePaths be extracted or become a thin delegate?
-* Must RepoWriter itself change?
-* Must ArtifactGenerationPipeline change?
-* Must IncludeFileRenderer change?
-* Must EnvConfigRenderer change?
-* Can TrustedCreatePreviewService remain environment-selection/orchestration-only?
-* Where is collision inspection performed?
-* Where does the manifest become authoritative?
-* How does future write consume it without recomputing paths?
-* What is the smallest coherent scope that does not duplicate logic?
+CURRENT PRODUCERS
+        │
+        │ existing behavior unchanged
+        ▼
+existing paths
 
-No proposed slice is authorized by this task.
+AND IN PARALLEL:
 
-9. Future executable test plan
+same grounded inputs
+        │
+        ▼
+EtlArtifactLayout
+        │
+        ▼
+canonical candidate paths
 
-Design coverage for:
+Tests must prove parity between these wherever authoritative existing behavior exists.
 
-* manifest/preview/write path parity;
-* no hidden path recomputation;
-* no writes during evidence, generation, collision, or preview;
-* AI nondeterminism captured by immutable hashes;
-* regenerated-content or path drift rejection;
-* update-path preservation;
-* create and empty-repository initialization;
-* environment reuse, absence, ambiguity, and stale selection;
-* managed/unmanaged/unknown ownership;
-* duplicate/case-alias paths;
-* Windows mixed separators and drive behavior;
-* UNC and different-drive escape;
-* C:\foo versus C:\foobar;
-* .. traversal;
-* symlink/junction escape;
-* stale workspace/STTM/discovery/manifest;
-* all three existing Phase 6/Golden regressions;
-* /workflow create separation;
-* applyEligible === false.
+If two existing producers disagree on a formula:
 
-Provide the future A1 → B1 → B2 → A2 validation matrix and failure-equivalence criteria.
+DO NOT silently choose one.
 
-Final report
+Instead:
 
-Return:
+1. identify the conflicting producers,
+2. preserve both observed formulas in evidence,
+3. classify the conflict,
+4. make the canonical function require an explicit contract decision OR represent the unresolved state safely,
+5. add a test proving that the conflict cannot silently resolve through guessing.
 
-1. Identity and immutability evidence.
-2. Complete artifact/path ownership table.
-3. Current call graphs and side-effect matrix.
-4. Earliest exact-manifest point.
-5. Contract-derived versus AI/implementation-derived path table.
-6. Architecture-option comparison.
-7. Exactly one recommended architecture.
-8. Exact eligibility state machine.
-9. Immutable manifest schema.
-10. Phased file/symbol migration plan.
-11. Scope expansion required per slice.
-12. Dependency-cycle and semantic-cycle assessment.
-13. Future executable test/A/B plan.
-14. Confirmation that no file changed and no Keep/Undo, Git/PR/CI, package/VSIX/install, Consumer, or external action occurred.
+A1A specifically found disagreement around job-config and env-config formulas. Treat these as contract conflicts, not refactoring trivia.
 
-End with exactly one token:
+==================================================
+PATH NORMALIZATION
+==================================================
 
-LOCAL_PHASE_A1A_PATH_ARCHITECTURE_DESIGN_READY
-LOCAL_PHASE_A1A_PATH_ARCHITECTURE_DESIGN_INCONCLUSIVE
-LOCAL_PHASE_A1A_PATH_DESIGN_BLOCKED_IDENTITY
+ArtifactPathNormalizer must define deterministic normalization/containment primitives required by the future manifest.
+
+Design for both Linux and Windows path semantics where applicable.
+
+Cover at minimum:
+
+- workspace-relative paths
+- separator normalization
+- "." segments
+- ".." traversal rejection
+- absolute path rejection where a relative artifact path is required
+- Windows drive-letter behavior
+- UNC paths
+- mixed separators
+- case-folded comparison key where needed for collision detection
+- canonical destination resolution beneath a selected workspace root
+- containment verification
+- symlink/realpath boundary considerations where filesystem evidence is required
+
+IMPORTANT:
+
+Do not perform writes.
+
+Pure normalization functions should remain filesystem-independent.
+
+If realpath/symlink verification requires filesystem access, separate that concern cleanly from pure normalization rather than hiding I/O inside path formula functions.
+
+==================================================
+ARCHITECTURAL BOUNDARIES
+==================================================
+
+The new layout module must be a LEAF dependency.
+
+It may depend on stable types/utilities.
+
+It must NOT depend on:
+
+- chat/v3
+- TrustedCreatePreviewService
+- AgentMessageRouter
+- AgentActionExecutor
+- RenderingChain
+- ArtifactGenerationPipeline orchestration
+- RepoWriter
+- ArtifactPatchPlanner
+- UI
+- Copilot runtime orchestration
+
+Higher-level components will eventually depend on the layout owner, not vice versa.
+
+Check for dependency cycles.
+
+==================================================
+NO AI / NO NONDETERMINISM
+==================================================
+
+Canonical path calculation must be deterministic.
+
+It must NOT depend on:
+
+- LLM output
+- model ranking
+- current time
+- Date.now()
+- random values
+- ambient active editor
+- ambient workspace selection
+- Databricks calls
+- network calls
+
+All required inputs must be explicit function parameters.
+
+==================================================
+NO WRITES / NO SIDE EFFECTS
+==================================================
+
+Slice 1 is path-contract foundation only.
+
+The new production code must not:
+
+- create directories
+- write files
+- modify files
+- call RepoWriter.writeArtifacts
+- call NewArtifactWriter.writeFiles
+- stage Git changes
+- commit
+- push
+- package
+- install
+- modify a consumer workspace
+- contact external systems
+
+==================================================
+TEST REQUIREMENTS
+==================================================
+
+Create focused tests for the new canonical layout and normalizer.
+
+At minimum cover:
+
+1. deterministic output for identical inputs
+2. primary job-config path parity
+3. split EXTRACT path parity
+4. split LOAD path parity
+5. transformation include path parity
+6. environment CREATE path parity where contract is authoritative
+7. onboarding path parity
+8. unresolved/conflicting formulas fail explicitly rather than guessing
+9. POSIX separator normalization
+10. Windows separator normalization
+11. mixed separators
+12. "." normalization
+13. ".." traversal rejection
+14. absolute-path rejection
+15. Windows drive-letter escape rejection
+16. UNC escape rejection
+17. prefix-confusion containment:
+    C:\foo must not contain C:\foobar
+18. case-folded collision-key behavior
+19. duplicate normalized destination detection primitives
+20. no filesystem writes
+21. no AI/model dependency
+22. no ambient workspace dependency
+23. stable output across repeated executions
+
+Where practical, compare the new canonical functions against the existing producer formulas using identical grounded inputs.
+
+Do NOT modify existing producers merely to make tests easier.
+
+==================================================
+REGRESSION SAFETY
+==================================================
+
+Run the smallest relevant existing test suites first.
+
+Then run the broader appropriate extension tests permitted by the environment.
+
+Pay special attention to the three regressions identified in A1A:
+
+- phase6WriteDeployRun.test.ts expected trusted_preview_validated
+- goldenCorpusRunner.test.ts acceptance behavior
+- goldenCorpusRunner.test.ts ABESS aiFirst.acceptance === true
+
+Use the A/B methodology defined in A1A where practical to distinguish:
+
+PRE-EXISTING failures
+from
+NEW REGRESSIONS.
+
+Do not “fix” unrelated failures in this slice.
+
+==================================================
+SCOPE ESCALATION RULE
+==================================================
+
+If implementation requires modifying ANY existing production file:
+
+STOP.
+
+Do not expand scope automatically.
+
+Report:
+
+SCOPE_EXPANSION_REQUIRED
+
+and include:
+
+- exact file
+- exact symbol
+- why Slice 1 cannot be completed without it
+- minimal proposed change
+- whether it belongs to Slice 1 or should wait for Slice 2
+
+Do not make that modification without explicit authorization.
+
+==================================================
+GIT / REVIEW-CARD SAFETY
+==================================================
+
+Do not touch the existing pending AOR review-card files.
+
+Do not press Keep or Undo.
+
+Do not stage anything.
+
+Do not commit.
+
+Do not push.
+
+Do not create or modify PRs.
+
+Do not switch branches.
+
+Do not rebase or merge.
+
+Do not build/package/install a VSIX.
+
+Do not modify consumer repositories.
+
+At the end, prove the original pending files are byte-identical to their starting hashes.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Return a concise but evidence-rich report containing:
+
+1. PASS / FAIL / BLOCKED / SCOPE_EXPANSION_REQUIRED
+
+2. Repository identity:
+   - root
+   - branch
+   - starting HEAD
+   - ending HEAD
+
+3. Existing pending-file integrity:
+   - before/after hashes
+   - confirmation untouched
+
+4. Exact new files created
+
+5. Canonical path functions implemented
+
+6. Path formulas represented
+
+7. Any formula conflicts intentionally left unresolved
+
+8. Normalization and containment rules implemented
+
+9. Dependency-cycle result
+
+10. Determinism / no-AI / no-I/O evidence
+
+11. Tests executed with exact pass/fail counts
+
+12. Classification of any failures:
+    - pre-existing
+    - introduced
+    - environment
+    - unresolved
+
+13. Confirmation:
+    - no existing production files modified
+    - no consumer files modified
+    - no package/VSIX operation
+    - no commit/push/PR action
+    - no external action
+
+14. Recommendation:
+    READY_FOR_SLICE_1_AUDIT
+    or
+    NOT_READY_FOR_SLICE_1_AUDIT
+
+Do NOT start Slice 2.
+
+Do NOT propose implementation of Slice 2 beyond identifying evidence needed for the next decision.
