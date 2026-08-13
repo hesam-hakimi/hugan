@@ -1,55 +1,76 @@
-/verify-change
+Task: LOCAL-PHASE-A0R-20260813-01
+Mode: bounded Phase A0 repair and isolated executable verification
+Target: extension-source
+Delivery: source-only
+Phase A1: PROHIBITED
 
-LOCAL PHASE A0V — ISOLATED EXECUTABLE VERIFICATION
+Current evidence:
 
-Phase A0 changes are still pending in the current Agent review card. Do not click Keep or Undo, and do not modify the Phase A0 implementation during this task.
+* Repository: TD-Universe/agentic_etl
+* Branch: feature/v3-agentic-redesign
+* Expected HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* Committed package version: 0.3.139
+* Protected dirty worktree package.json: 0.3.128
+* Candidate and installed VSIX: 0.3.139, both PRE-A0 and unchanged
+* Current Agent review card contains 8 pending Phase A0 files.
+* Isolated validation results:
+    * test TypeScript compilation: PASS
+    * focused suites: 24 passing, 8 failing
+    * registered grep run: 5 passing, 1 failing
+* Phase A1 was not started.
 
-This is a verification-only task. Do not begin Phase A1.
+Do not click Keep or Undo. Leave the current review card pending throughout this task.
 
-1. Restrictions
+Hard prohibitions
 
-Do not:
+1. Do not start or implement Phase A1.
+2. Do not stage, commit, push, merge, rebase, switch branches, edit PR #7, invoke CI, or perform any Git/PR/CI mutation.
+3. Do not package, rebuild, install, uninstall, or replace any VSIX.
+4. Do not install dependencies, build, test, or generate output inside the real repository.
+5. Do not modify any Consumer workspace, Databricks/ADF/SQL resource, external system, workflow control plane, or packaged Copilot asset.
+6. Do not modify these protected user-owned files:
+    * .tsbuildinfo.test
+    * package.json
+    * CopilotAssetCatalog.ts
+    * EtlActionToolService.ts
+7. Do not restore RepoWriter-based workspace fallback.
+8. Do not weaken the trusted-evidence gate or allow preview with incomplete evidence.
+9. The direct /create planning route must not invoke:
+    * RepoWriter
+    * NewArtifactWriter
+    * writeArtifacts
+    * resolveWorkspacePath
+    * process.cwd()
+    * any filesystem write API
+10. Do not delete, skip, quarantine, or weaken failing tests merely to obtain green output.
 
-* edit, reformat, repair, regenerate, or delete any real source/test file;
-* stage, commit, push, merge, rebase, switch branches, or alter Git state;
-* edit Draft PR #7 or perform any CI/CD action;
-* change package version, lockfiles, snapshots, baselines, or tracked out/**;
-* build, package, install, uninstall, or replace a VSIX;
-* change the installed Extension;
-* modify any real Consumer workspace;
-* invoke RepoWriter, NewArtifactWriter, writeArtifacts, Apply, approval, deployment, publication, registration, Databricks, ADF, or SQL Server operations;
-* use the dirty worktree package.json;
-* copy any protected user-owned dirty file into the validation snapshot.
+Preflight
 
-2. Establish the real-worktree baseline
+Before editing, verify read-only:
 
-Report:
-
-* repository root and origin;
+* repository origin and resolved root;
 * branch and exact HEAD;
-* staged, unstaged, and untracked state;
-* exact eight Phase A0 file paths and SHA-256 hashes;
-* hashes of all protected dirty files;
-* committed HEAD:package.json version;
-* dirty worktree package.json version;
-* candidate and installed VSIX identity, read-only.
+* staged state and worktrees;
+* complete current status;
+* committed package version;
+* current pending A0 diff and exact changed-file list;
+* candidate VSIX version and SHA-256.
 
-Expected:
+Capture before-state SHA-256 hashes for:
 
-* repository: TD-Universe/agentic_etl
-* branch: feature/v3-agentic-redesign
-* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
-* committed package version: 0.3.139
-* dirty user-owned package version: 0.3.128
+* all current pending A0 files;
+* all four protected dirty files;
+* candidate VSIX;
+* protected control-plane paths;
+* any observable real Consumer workspace roots.
 
-Protected dirty files:
+If repository, branch, HEAD, workspace, or scope differs materially, stop with:
 
-* .tsbuildinfo.test
-* package.json
-* CopilotAssetCatalog.ts
-* EtlActionToolService.ts
+LOCAL_PHASE_A0R_BLOCKED_IDENTITY_MISMATCH
 
-Expected Phase A0 files:
+Authorized scope
+
+Current eight-file A0 overlay:
 
 1. TrustedPlanningEvidenceService.ts
 2. EtlAgent.ts
@@ -57,145 +78,209 @@ Expected Phase A0 files:
 4. AgentActionExecutor.ts
 5. ResponseComposer.ts
 6. index.ts
-7. TrustedPlanningEvidenceService.test.ts
+7. trustedPlanningEvidenceService.test.ts
 8. testPatterns.ts
 
-Resolve and report their exact repository-relative paths.
+One additional test-only file is explicitly authorized because seven observed failures reside there:
 
-Stop if:
+9. phase5AgentRouter.test.ts
 
-* repository, branch, or HEAD differs;
-* exactly eight Phase A0 files cannot be isolated;
-* a Phase A0 file overlaps a protected file;
-* the implementation depends on an unapproved dirty file.
+No other file may change, except under the conditional SolutionMemoryStore.ts rule below.
 
-3. Create an isolated validation snapshot
+Part A — adjudicate incoming is not iterable
 
-Create a unique directory under the OS temporary directory, outside all repository and VS Code workspace roots.
+First trace read-only:
 
-Populate it using the committed tree at HEAD through a read-only method equivalent to:
+* authoritative SolutionPlan and evidence types;
+* canonical constructors/factories;
+* SolutionMemoryStore.mergeEvidence;
+* every production and test caller supplying the incoming value;
+* the exact synthetic fixture reaching AgentActionExecutor.
 
-git archive HEAD
+Then choose exactly one evidence-backed classification.
 
-Do not use git clone, git worktree add, or copy the entire dirty worktree.
+Case 1 — invalid synthetic fixture
 
-Overlay exactly the eight Phase A0 files from the current worktree, preserving their repository-relative paths. Overlay no other file.
+If the authoritative type and every legitimate runtime caller require an evidence array:
 
-Verify:
+* repair only the test fixture/helper;
+* construct the plan through its canonical factory where available;
+* otherwise provide a structurally valid explicit empty evidence collection;
+* do not alter production SolutionMemoryStore behavior.
 
-* snapshot package.json is committed version 0.3.139;
-* the eight overlay hashes match the pending Phase A0 files;
-* protected dirty files came from HEAD and not the worktree;
-* no real out/**, node_modules, VSIX, cache, or Consumer file was copied.
+The repaired test must reach and assert the trusted-evidence gate. It must not crash before the assertion.
 
-If compilation requires a protected dirty file, stop with:
+Case 2 — legitimately optional runtime evidence
 
-PROTECTED_DIRTY_DEPENDENCY_DETECTED
+Only if authoritative types or reachable production callers prove that omitted evidence is valid, a minimal edit to SolutionMemoryStore.ts may be made.
 
-Do not copy that dependency.
+Before editing it, report the exact type and caller evidence justifying this scope expansion.
 
-4. Install dependencies only inside the snapshot
+If justified:
 
-Dependency installation is explicitly authorized only inside this temporary snapshot.
+* normalize only legitimate absence to an empty collection;
+* reject a present malformed/non-array value with a structured fail-closed result;
+* do not use blanket incoming ?? [];
+* do not catch and suppress the TypeError without validating the input;
+* add executable cases for valid empty, valid populated, legitimately absent, and malformed evidence.
 
-If the committed lockfile exists, run the repository-supported equivalent of:
+If neither case is proven, stop with:
 
-npm ci --include=dev --no-audit --no-fund
+LOCAL_PHASE_A0R_BLOCKED_SOLUTION_PLAN_CONTRACT
 
-Do not install globally or modify dependencies in the real repository.
+Part B — reconcile the seven router regressions
 
-Use only binaries from the snapshot-local node_modules/.bin. Do not perform interactive or unpinned npx installation.
+Inventory each failing test in phase5AgentRouter.test.ts.
 
-All compiled output, .tsbuildinfo, caches, and test output must remain inside the snapshot.
+For every test, report:
 
-5. Execute validation
+* test title;
+* former expectation;
+* original behavior it protected;
+* why the expectation conflicts with the authorized A0 contract;
+* replacement executable assertion.
 
-Inspect the committed test scripts and runner, then run:
+Apply these rules:
 
-1. TypeScript compile/type-check;
-2. the focused TrustedPlanningEvidenceService tests;
-3. directly affected routing and containment tests;
-4. the Phase A0 suite registered through testPatterns.ts.
+* Never restore default RepoWriter workspace resolution.
+* Never let incomplete evidence reach trusted preview.
+* Preserve the original safety purpose of each test.
+* Do not rewrite unrelated expectations.
+* Do not fabricate workspace identity, STTM identity, job candidates, ownership, or collision evidence merely to make a complete fixture.
+* Do not delete or blanket-skip any failure.
 
-If focused selection is unavailable, a broader unit suite may run only inside the snapshot.
+For incomplete evidence, assert:
 
-For every command report:
+* preview and validation receive zero calls;
+* all writer APIs receive zero calls;
+* applyEligible === false;
+* exact unresolved-evidence codes are returned;
+* the response is deterministic and fail-closed.
 
-* working directory;
-* exact command;
-* exit code;
-* passing, failing, pending/skipped, and total counts;
-* complete relevant failure diagnostics.
+Where explicit selected-workspace evidence is legitimately present, assert its provenance and containment.
 
-Do not change implementation or tests if anything fails.
+Candidate/job-discovery and collision ownership are deferred to A1. In A0 they must be represented explicitly as unresolved—not silently empty, absent, safe, or complete.
 
-6. Executable assertions required
+Rename stale test titles where necessary so they describe the new safety contract.
 
-Executable tests—not only source search—must verify:
+Part C — close A0 executable-coverage gaps
 
-* explicit workspace selection retains provenance;
-* ambiguous multi-root selection fails closed;
-* process.cwd() is never an implicit Consumer target;
-* Extension-source, installation, external and traversal targets are rejected;
-* explicit empty-root initialization is distinguished from inferred emptiness;
-* contained STTM identity and SHA-256 are stable;
-* missing/external STTM returns structured blockers;
-* no sample fallback occurs;
-* incomplete mandatory evidence prevents trusted preview;
-* applyEligible is always false;
-* direct /create receives evidence before AgentActionExecutor;
-* /workflow create remains separate workflow-asset setup;
-* RepoWriter, NewArtifactWriter, writeArtifacts, Apply and filesystem writers receive zero calls.
+Add focused executable tests for:
 
-Map every Phase A0 requirement to:
+1. Direct /create evidence propagation:
+    * evidence is collected in AgentMessageRouter before AgentActionExecutor;
+    * executor receives the same immutable evidence identity/content;
+    * incomplete evidence blocks before preview;
+    * unresolved codes reach ResponseComposer.
+2. Zero side effects:
+    * use executable spies/fakes for every reachable writer and preview writer boundary;
+    * assert zero calls;
+    * text search alone is insufficient.
+3. Workspace/root behavior:
+    * no process.cwd() fallback;
+    * no default or ambient workspace inference;
+    * ambiguous multi-root remains fail-closed;
+    * explicit selected-root provenance is preserved;
+    * a confirmed empty repository can express initialization intent without pretending candidate/collision discovery is complete.
+4. Extension-source classification:
+    * extension installation/source roots cannot become Consumer targets;
+    * classification must use trusted path evidence, not repository names or sample strings.
+5. Containment:
+    * POSIX outside-root escape;
+    * Windows drive escape;
+    * UNC escape;
+    * mixed separators;
+    * symlink/junction escape where the host permits it;
+    * stale or external STTM rejection.
 
-* test name;
-* executed/not executed;
-* pass/fail;
-* evidence.
+A narrowly justified platform-specific conditional test is acceptable only where the host cannot create the relevant filesystem object. Do not silently skip an entire safety category.
 
-Do not report an assertion as passed if it was only statically inspected.
+6. Candidate/collision evidence:
+    * absent adapters produce explicit unresolved observations;
+    * absence must not mean “no candidates” or “no collision”;
+    * applyEligible remains false.
 
-7. Confirm real-worktree immutability
+Do not implement A1 job-discovery or collision-inventory adapters during A0R.
 
-After testing, prove:
+Part D — isolated executable verification
 
-* git status --porcelain is byte-for-byte unchanged from baseline;
-* staged state is unchanged;
-* all eight Phase A0 file hashes are unchanged;
-* all four protected dirty-file hashes are unchanged;
-* .github/**, AGENTS.md, workflow/**, and COPY_ORDER.md are unchanged;
-* candidate VSIX is unchanged;
-* no real Consumer workspace was touched;
-* no untracked file was created in the real repository.
+After the bounded repair, validate only in a fresh unique OS temporary directory.
 
-Capture results before safely removing only the exact validated temporary directory.
+1. Create a clean snapshot using git archive HEAD.
+2. Overlay only the final authorized pending A0R files.
+3. Do not copy:
+    * dirty protected files;
+    * real out/**;
+    * node_modules;
+    * caches;
+    * VSIX files;
+    * Consumer workspace content.
+4. Confirm snapshot package.json is committed version 0.3.139.
+5. The committed tree has no lockfile. Therefore:
+    * dependency resolution is allowed only inside the temporary snapshot;
+    * use the least-mutating no-audit/no-fund command supported by the repository;
+    * record Node and npm versions;
+    * record resolved top-level dependency versions;
+    * record SHA-256 of the temporary generated lockfile;
+    * label the result UNPINNED_TEMP_DEPENDENCY_RESOLUTION;
+    * never copy the lockfile or generated artifacts into the real repository.
+6. Run test TypeScript compilation.
+7. Run at minimum:
+    * TrustedPlanningEvidenceService tests;
+    * phase5AgentRouter tests;
+    * workspaceInputContainment tests;
+    * focused AgentActionExecutor evidence-gate tests;
+    * direct /create propagation tests;
+    * zero-writer-call tests;
+    * the repository-registered focused unit runner.
+8. Run the broader directly affected unit suite if available without modifying tracked/generated real-repository content.
+9. Every original failure must be resolved and no new failure introduced.
+10. Delete only the exact temporary snapshot after validation.
 
-8. Final result
+Final immutability verification
 
-Do not begin Phase A1.
+Prove that:
 
-Return:
+* real git status --porcelain is byte-for-byte identical before and after;
+* hashes of all protected dirty files are unchanged;
+* candidate VSIX hash is unchanged;
+* protected control-plane paths are unchanged;
+* real Consumer roots are unchanged;
+* no package, VSIX, installation, Git, PR, CI, workflow, external-system, or control-plane action occurred;
+* only explicitly authorized pending A0R files changed relative to the pre-repair pending overlay.
 
-1. baseline identity;
-2. exact eight overlay files;
-3. temporary snapshot construction evidence;
-4. dependency-installation result;
-5. all compile/test commands and results;
-6. executable assertions proven;
-7. assertions still supported only statically;
-8. failures or remaining gaps;
-9. before/after worktree and protected-file evidence;
-10. confirmation that installed/candidate VSIX 0.3.139 is pre-A0 content and was not changed.
+Required final report
 
-Finish with exactly one:
+Provide:
 
-LOCAL_PHASE_A0_ISOLATED_EXECUTABLE_TESTS_PASS
+1. Repository/workspace identity evidence.
+2. Exact final changed-file list.
+3. A table mapping all original eight failures to:
+    * root cause;
+    * repair;
+    * executable assertion;
+    * result.
+4. SolutionMemoryStore decision with exact type/caller evidence.
+5. Coverage matrix for every A0R requirement.
+6. Exact test commands, exit codes, and passing/failing/pending counts.
+7. Node/npm versions, dependency-resolution label, resolved dependency inventory, and temporary lock hash.
+8. Before/after hashes and immutability evidence.
+9. Explicit confirmation that A1 did not start.
+10. Explicit confirmation that Keep/Undo remains untouched.
+11. Explicit statement that candidate/installed VSIX remains PRE-A0 runtime and does not yet contain the pending source changes.
 
-or:
+Pass only if:
 
-LOCAL_PHASE_A0_ISOLATED_EXECUTABLE_TESTS_FAIL
+* compilation passes;
+* all focused A0 suites have zero failures;
+* all eight original failures are resolved;
+* required executable assertions pass;
+* writer/preview-writer call counts are zero where evidence is incomplete;
+* no safety contract was weakened;
+* real-worktree immutability is proven.
 
-or:
+End with exactly one token:
 
-LOCAL_PHASE_A0_ISOLATED_EXECUTABLE_TESTS_BLOCKED
+LOCAL_PHASE_A0R_ISOLATED_EXECUTABLE_TESTS_PASS
+LOCAL_PHASE_A0R_ISOLATED_EXECUTABLE_TESTS_FAIL
+LOCAL_PHASE_A0R_BLOCKED
