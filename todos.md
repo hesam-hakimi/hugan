@@ -1,384 +1,387 @@
 /build
 
-Implement only the first bounded local-only phase of the generic ETL job lifecycle:
+Start a new bounded task:
 
-DETERMINISTIC ETL LIFECYCLE ROUTING AND ZERO-WRITE PLANNING PREVIEW
+LOCAL PHASE A0 — PLANNING-ONLY WORKSPACE AND EVIDENCE COLLECTION BOUNDARY
 
-This is an Extension-source implementation task. It is not a Consumer ETL job-generation task, packaging task, Git task, PR task, CI task, or deployment task.
+The previous Phase A task correctly stopped with:
 
-Use the four ETL reference documents and the two recent read-only audit results as context. Current source, contracts, tests, and the explicit requirements below remain authoritative.
+LOCAL_PHASE_A_BLOCKED_BEFORE_UNSAFE_OR_OVERLAPPING_CHANGE
 
-1. Hard restrictions
+Resume development by implementing only the missing trusted, read-only evidence boundary required before deterministic ETL lifecycle routing.
+
+Do not implement the lifecycle decision matrix yet.
+
+1. Scope
+
+Implement a planning-only evidence collector and typed lifecycle-planning context for the direct ETL /create path.
+
+The direct /create call path was reported as:
+
+ETLChatParticipant
+→ AgentMessageRouter
+→ AgentActionExecutor
+→ planning/preview
+
+The collector must execute before lifecycle planning or preview.
+
+It must not use RepoWriter to resolve the workspace and must not invoke any writer.
+
+Preserve the separate meaning of:
+
+/workflow create
+
+It remains managed Copilot workflow-asset setup and must not be repurposed as ETL job creation.
+
+2. Restrictions
 
 Do not:
 
-* stage, commit, amend, push, pull, merge, rebase, switch branches, or alter Git state;
+* stage, commit, push, merge, rebase, or alter Git state;
 * edit Draft PR #7;
-* trigger, rerun, cancel, or change CI/CD;
+* perform any CI/CD action;
 * change package version;
-* build, package, install, uninstall, or replace a VSIX;
-* change the installed Extension;
-* invoke Databricks, ADF, DBFS, SQL Server, Jira, or Confluence operations;
-* write to a real Consumer ETL workspace;
-* invoke any production writer or Apply operation;
-* implement atomic apply or rollback in this phase;
-* mass-replace CD Renewal or other sample-related literals;
-* modify maintainer .github/**, root AGENTS.md, workflow/**, or COPY_ORDER.md;
-* invent credentials, storage values, environment values, writer modes, merge keys, onboarding identities, or business decisions.
+* modify or regenerate a VSIX;
+* install or change the installed Extension;
+* modify a real Consumer workspace;
+* invoke RepoWriter, NewArtifactWriter, writeArtifacts, Apply, approval, publish, deploy, register, or run;
+* implement lifecycle routing outcomes;
+* implement candidate artifact generation;
+* implement atomicity, rollback, or idempotent Apply;
+* modify maintainer .github/**, AGENTS.md, workflow/**, or COPY_ORDER.md;
+* invent missing STTM, job, ownership, infrastructure, environment, or business evidence.
 
-Any delegated sub-agent must receive the same restrictions.
+All delegated agents must follow the same restrictions.
 
-2. Mandatory read-only preflight
+3. Mandatory source/version identity gate
 
-Before modifying anything, report:
+Before editing, report read-only evidence for:
 
-* Git top-level repository path;
-* repository identity/origin;
+* repository root and origin;
 * current branch;
 * exact HEAD SHA;
-* registered worktrees;
-* staged, unstaged, and untracked state;
-* all VS Code workspace roots;
-* which root is the Extension source;
-* package version;
-* candidate VSIX identity, if present;
-* installed Extension version, if observable;
-* whether source, out/**, candidate VSIX, and installed VSIX represent the same build.
+* worktrees;
+* staged, unstaged, and untracked files;
+* current worktree package.json version;
+* committed HEAD package.json version using the HEAD blob, not the dirty working copy;
+* current worktree and committed blob hashes for:
+    * package.json
+    * CopilotAssetCatalog.ts
+    * EtlActionToolService.ts
+* candidate VSIX version/hash, if available;
+* installed Extension version, if observable.
 
-Expected—but not automatically trusted—state:
+Current reported state:
 
 * repository: TD-Universe/agentic_etl
 * branch: feature/v3-agentic-redesign
-* reported HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* working package.json: 0.3.128
+* candidate/installed Extension: 0.3.139
 
-Preserve all pre-existing dirty files.
+Apply this gate:
 
-The following were previously reported as user-owned dirty files:
+Case A
+
+If committed HEAD package.json is 0.3.139 and the 0.3.128 value exists only in the protected dirty working copy:
+
+* report WORKTREE_PACKAGE_VERSION_DIRTY_MISMATCH;
+* preserve the dirty file;
+* continue source-only Phase A0 without changing package.json.
+
+Case B
+
+If committed HEAD is not 0.3.139, or the expected repository/branch/HEAD cannot be proven:
+
+* stop before editing;
+* report the exact source/package/runtime mismatch;
+* finish with the blocked status token specified below.
+
+Do not “fix” the mismatch by editing or restoring package.json.
+
+4. Protected dirty files
+
+The following are user-owned pre-existing changes:
 
 * .tsbuildinfo.test
 * package.json
 * CopilotAssetCatalog.ts
 * EtlActionToolService.ts
 
-Inspect their current diffs read-only. Do not reset, restore, overwrite, stage, reformat, or incorporate them into this task.
+Do not edit, reset, restore, reformat, stage, or overwrite them.
 
-If the correct implementation necessarily overlaps one of these dirty files and the existing intent cannot be preserved with certainty, stop before editing and return a precise overlap report.
+Phase A0 must be designed around them.
 
-If repository or branch identity is wrong or ambiguous, stop before editing.
+If the evidence boundary cannot be integrated without modifying one of these files, stop before editing and report the exact required overlap.
 
-A source/VSIX/installed-version mismatch should be reported. It does not authorize packaging or installation during this phase.
+5. New planning evidence contract
 
-3. Reconciled starting findings
+Introduce an immutable typed contract equivalent in semantics to:
 
-Treat these as the current working interpretation, but verify the relevant integration points before editing:
+type EtlPlanningEvidenceRequest = {
+  requestedWorkspaceRoot?: string;
+  workspaceSelectionSource:
+    | "explicit_argument"
+    | "trusted_workspace_selection"
+    | "active_editor"
+    | "single_eligible_root"
+    | "none";
+  initializationIntent?: "none" | "initialize_new_consumer_repo";
+  requestedSttmPath?: string;
+  explicitJobSelection?: string;
+};
+type EtlPlanningEvidence = {
+  workspace: {
+    selectionSource: string;
+    requestedRoot?: string;
+    canonicalRoot?: string;
+    targetType:
+      | "consumer_etl_workspace"
+      | "empty_consumer_initialization_candidate"
+      | "temporary_test_workspace"
+      | "extension_source"
+      | "extension_installation"
+      | "external"
+      | "unknown";
+    explicitlySelected: boolean;
+    containmentValidated: boolean;
+    evidence: string[];
+    blockers: string[];
+  };
+  initializationIntent: {
+    explicit: boolean;
+    requested: boolean;
+  };
+  sttm: {
+    requestedPath?: string;
+    canonicalPath?: string;
+    workspaceRelativePath?: string;
+    exists: boolean;
+    containmentValidated: boolean;
+    sha256?: string;
+    evidence: string[];
+    blockers: string[];
+  };
+  discoveredJobs: Array<{
+    candidateId: string;
+    canonicalJobConfigPath?: string;
+    stableJobId?: string;
+    onboardingIdentity?: string;
+    managedAssetId?: string;
+    ownershipProven: boolean;
+    evidence: string[];
+  }>;
+  explicitJobSelection?: {
+    candidateId: string;
+    selectionSource: "trusted_user_selection";
+  };
+  collisions: Array<{
+    relativePath: string;
+    exists: boolean;
+    ownership: "managed" | "unmanaged" | "unknown";
+    evidence: string[];
+  }>;
+  unresolvedDecisions: Array<{
+    code: string;
+    affectedArtifacts: string[];
+    requiredFrom: "user" | "repository" | "sttm" | "external_runtime";
+  }>;
+  evidenceComplete: boolean;
+  planningEligible: boolean;
+  applyEligible: false;
+};
 
-1. No behavior-affecting CD Renewal, acz0004, or sample_sttm hard-code was established in the inspected shipped runtime.
-2. cd_renewal may exist as a structural STTM template label; do not rename it unless current evidence proves externally visible behavioral coupling.
-3. TARGET_WORKSPACE_IDENTITY_REQUIRES_USER_CONFIRMATION was not found as a production result identifier in the inspected source/package.
-4. The observed blocked behavior can be explained by the generic multi-root guard:
-    multiple eligible roots + no explicit workspaceRoot + no active-editor selection → fail closed.
-5. @etl /workflow create currently initializes managed Copilot workflow assets. Preserve that meaning. Do not repurpose it as the ETL job lifecycle.
-6. Discovery, scoring, scaffold, preview, and writer components exist, but isolated component existence is not proof of a complete ETL lifecycle.
-7. Similarity scoring may identify candidates, but it is not sufficient evidence for automatic update.
-8. Generic scaffold fragments are not equivalent to an end-to-end empty-repository initializer.
-9. Unmanaged job-artifact collision lacks sufficient ownership enforcement for the required product contract.
+Exact type and symbol names may follow repository conventions, but all semantics above must be represented.
 
-4. Goal
+Do not add fields whose values would need to be guessed.
 
-Add one trusted, typed, deterministic ETL lifecycle decision layer, integrated into the existing read-only ETL job planning path.
+6. Planning-only workspace resolver
 
-Do not create a duplicate planning pipeline. First trace the current planning call graph and choose the smallest existing integration point.
+Implement a read-only workspace-resolution component for planning.
 
-Preserve /workflow create as Copilot workflow-asset initialization.
+It must:
 
-The new decision layer must accept explicit, structured evidence including:
+1. accept an explicit trusted workspaceRoot;
+2. canonicalize paths using platform-aware path handling;
+3. preserve Windows and POSIX behavior;
+4. check containment and filesystem identity;
+5. distinguish Extension source, installation, Consumer, temporary-test, external, empty, and unknown roots;
+6. preserve fail-closed multi-root behavior;
+7. never use process.cwd() as an implicit Consumer target;
+8. never call RepoWriter.resolveWorkspacePath;
+9. never select a root merely because ETL artifacts were discovered there;
+10. record the selection source and evidence.
 
-* explicitly selected and containment-validated workspaceRoot;
-* explicit initialization intent where an empty repository is involved;
-* validated STTM identity/evidence;
-* discovered job artifacts;
-* managed-ownership or stable job-identity evidence;
-* explicit user job selection, if provided;
-* detected destination collisions;
-* unresolved operational or business decisions.
+Selection precedence:
 
-Do not use:
+1. explicit trusted workspaceRoot;
+2. trusted VS Code workspace selection;
+3. active editor only when it unambiguously belongs to exactly one eligible root;
+4. single eligible root;
+5. otherwise return structured ambiguity evidence and planningEligible: false.
 
-* repository name similarity as ownership proof;
-* workbook name similarity as ownership proof;
-* sample identities;
-* process.cwd() as an implicit Consumer target;
-* prompt text as a substitute for trusted runtime enforcement.
+An explicitly selected empty root may be classified as:
 
-5. Typed decision contract
+empty_consumer_initialization_candidate
 
-Design the contract so that lifecycle routing and preview readiness are not collapsed into one ambiguous string.
+only when initializationIntent is explicitly supplied and containment succeeds.
 
-The lifecycle route must be exactly one of:
+An empty directory alone is not authorization.
+
+7. STTM identity collection
+
+The collector must resolve the requested STTM only against the selected planning workspace.
+
+It must:
+
+* canonicalize the exact requested path;
+* verify containment;
+* verify existence/readability;
+* compute a stable SHA-256 when readable;
+* retain canonical and workspace-relative identity;
+* reject traversal, external, stale-session, Extension-source, installation, and sample fallback paths;
+* never substitute sample_sttm or another workbook;
+* return structured blockers when the path is absent or invalid.
+
+Do not parse business rules or generate artifacts in this phase. This phase establishes stable STTM identity only.
+
+8. Read-only job and ownership evidence
+
+Use existing read-only discovery services where safe, but do not treat their scores as ownership.
+
+Collect job candidates and distinguish:
+
+* stable managed identity;
+* onboarding identity;
+* stable job ID;
+* canonical job-config path;
+* managed-asset identity;
+* similarity-only candidate;
+* no ownership evidence.
+
+Rules:
+
+* similarity score is candidate evidence only;
+* repository-name similarity is not identity;
+* STTM/workbook-name similarity is not identity;
+* an existing file is not automatically managed;
+* missing artifacts are valid evidence and must not cause a write or failure by themselves;
+* do not select the final lifecycle route in Phase A0.
+
+9. Collision evidence
+
+Perform a read-only collision inventory for known/planned destinations only when those destinations can be derived without guessing.
+
+Classify existing paths as:
+
+* managed
+* unmanaged
+* unknown
+
+Do not overwrite, skip, repair, or approve anything.
+
+If destination paths cannot yet be derived safely, record an unresolved decision instead of inventing paths.
+
+10. Integration into the v3 /create planning path
+
+Propagate the typed evidence result through the direct /create planning path before preview.
+
+Requirements:
+
+* planning receives the evidence object, not just free-form plan text;
+* missing evidence remains explicit;
+* the collector may return planningEligible: false;
+* no preview that implies safe routing may be produced when mandatory evidence is missing;
+* no writer may be invoked;
+* no scoring result may be promoted to managed identity;
+* existing /workflow create behavior remains unchanged.
+
+If the existing v3 message/request shape cannot carry the evidence without changing a protected dirty file, stop and report the exact limitation.
+
+Do not parse untrusted free-form user text into trusted workspace, STTM, initialization, job-selection, or ownership evidence.
+
+11. Required Phase A0 tests
+
+Use neutral names and unique OS temporary workspaces.
+
+Do not use CD Renewal, cd_renewal, acz0004, renewal, or sample_sttm.
+
+Add tests proving:
+
+1. explicit workspace selection is retained with provenance;
+2. unambiguous active-editor selection is handled;
+3. ambiguous multi-root selection fails closed;
+4. no workspace is selected through process.cwd();
+5. Extension-source and installation roots are rejected;
+6. external, traversal, mixed-separator, different-drive, UNC, and symlink/junction escapes are rejected where applicable;
+7. an explicitly selected empty root plus explicit initialization intent becomes an initialization candidate;
+8. an empty root without initialization intent is not authorized;
+9. a contained STTM receives stable canonical identity and SHA-256;
+10. missing or external STTM produces structured blockers;
+11. no sample workbook fallback occurs;
+12. job candidates remain candidates unless stable ownership evidence exists;
+13. similarity scoring never becomes managed identity;
+14. unmanaged/unknown collision evidence is retained;
+15. incomplete evidence results in:
+    * evidenceComplete: false
+    * planningEligible: false where mandatory
+    * applyEligible: false
+16. direct /create receives structured evidence before planning/preview;
+17. /workflow create remains unchanged;
+18. RepoWriter, NewArtifactWriter, and all write methods are never invoked;
+19. real Consumer workspaces and protected Extension paths remain byte-identical.
+
+12. Validation
+
+Run only:
+
+* new Phase A0 targeted tests;
+* directly affected existing read-only workspace/containment tests;
+* safe affected-file lint/type-check where it does not modify protected dirty files.
+
+If normal commands would change .tsbuildinfo.test, compiled output, package files, snapshots, lockfiles, or tracked caches, use an isolated temporary build/test location where supported.
+
+Do not run package, install, VSIX, CI, or live-provider validation.
+
+13. Explicitly deferred
+
+Do not implement yet:
 
 * UPDATE_EXISTING_JOB
 * CREATE_NEW_JOB
 * INITIALIZE_NEW_CONSUMER_REPO
 * REQUEST_JOB_SELECTION
-* BLOCK_UNSAFE_TARGET
 * BLOCK_UNSAFE_OVERWRITE
-
-For routable create/update/initialize results, separately report preview readiness:
-
-* READY_FOR_PLANNING_PREVIEW
-* PREVIEW_WITH_UNRESOLVED_DECISIONS
-
-The result must include, as applicable:
-
-* selected workspace identity;
-* STTM identity/hash or other stable reference;
-* route;
-* readiness;
-* evidence used;
-* matching job candidates;
-* selected stable managed identity;
-* unresolved decisions;
-* detected collisions;
-* blocked artifacts;
-* reason codes;
-* applyEligible: false.
-
-This phase must always return applyEligible: false.
-
-This is a planning preview, not an approval-bound write manifest.
-
-6. Deterministic decision rules
-
-Implement these rules:
-
-A. Exactly one matching managed job
-
-Return UPDATE_EXISTING_JOB only when stable identity is supported by trusted evidence such as:
-
-* managed-asset identity;
-* stable job ID;
-* authoritative onboarding identity;
-* canonical managed path plus ownership evidence;
-* or an explicit trusted user selection among presented candidates.
-
-A heuristic or similarity score alone must never auto-select update.
-
-B. Valid non-empty Consumer repository with no matching job
-
-Return:
-
-CREATE_NEW_JOB
-
-The absence of an existing job, environment file, onboarding file, or SQL file is not itself a blocker.
-
-C. Explicitly selected empty Consumer repository
-
-Return:
-
-INITIALIZE_NEW_CONSUMER_REPO
-
-only when:
-
-* the workspace was explicitly selected;
-* initialization intent is explicit;
-* the root passes containment and safety checks;
-* it is not Extension source, installation, external, stale, or ambiguous.
-
-Do not reject the target merely because job_conf, env_conf, onboarding, or managed context does not yet exist.
-
-Emptiness by itself is not authorization.
-
-D. Multiple plausible matches
-
-Return:
-
-REQUEST_JOB_SELECTION
-
-Include deterministic candidate identities and evidence. Do not auto-select using score alone.
-
-E. Unmanaged or user-owned collision
-
-Return:
-
-BLOCK_UNSAFE_OVERWRITE
-
-An overwrite: true flag alone is not authorization.
-
-Do not invoke a writer.
-
-F. Unsafe target
-
-Return:
-
-BLOCK_UNSAFE_TARGET
-
-for:
-
-* Extension source;
-* Extension installation;
-* external/unselected root;
-* unknown root;
-* stale session path;
-* ambiguous multi-root selection;
-* path traversal or containment failure.
-
-Preserve the current correct fail-closed multi-root behavior.
-
-G. Missing operational or business decision
-
-Preserve the underlying lifecycle route, but set:
-
-readiness: PREVIEW_WITH_UNRESOLVED_DECISIONS
-
-and:
-
-applyEligible: false
-
-Examples include missing:
-
-* physical source or destination path;
-* compatible environment value;
-* write mode;
-* merge key;
-* credential;
-* onboarding identity;
-* generation-affecting business decision.
-
-Do not invent a value.
-
-7. Zero-write requirement
-
-The entire phase must remain planning/preview-only.
-
-The new route must not:
-
-* create directories;
-* create or modify Consumer artifacts;
-* invoke RepoWriter, NewArtifactWriter, writeArtifacts, or equivalent write methods;
-* create approval state;
-* call Apply;
-* write managed-ownership metadata;
-* publish, deploy, register, or run anything.
-
-Add an explicit production guard or architecture boundary preventing the new planning route from reaching a writer.
-
-8. Required neutral contract tests
-
-Use entirely neutral names. Do not use:
-
-* CD Renewal
-* cd_renewal
-* acz0004
-* cz_acz0004_retail
-* renewal
-* sample_sttm
-* historical repository or workbook names
-
-Every filesystem-capable test must use a unique OS temporary workspace with reliable teardown.
-
-Add tests for:
-
-1. stable managed match → UPDATE_EXISTING_JOB;
-2. similarity-only match → must not auto-update;
-3. valid non-empty Consumer repository with no match → CREATE_NEW_JOB;
-4. explicitly selected empty repository with initialization intent → INITIALIZE_NEW_CONSUMER_REPO;
-5. empty repository without explicit initialization intent → safe block/request, never initialization by inference;
-6. multiple matches → REQUEST_JOB_SELECTION;
-7. unmanaged collision → BLOCK_UNSAFE_OVERWRITE;
-8. Extension-source target → BLOCK_UNSAFE_TARGET;
-9. external, stale, traversal, or ambiguous multi-root target → BLOCK_UNSAFE_TARGET;
-10. missing deployment/business values → original lifecycle route plus PREVIEW_WITH_UNRESOLVED_DECISIONS;
-11. neutral renamed repository, workbook, job, and target → identical routing semantics;
-12. /workflow create remains workflow-asset setup and is not repurposed;
-13. no writer is invoked for any planning result;
-14. directory snapshot before and after every scenario proves zero Consumer-workspace mutation;
-15. real Extension .github/** and other protected paths remain byte-identical.
-
-Do not weaken or rewrite unrelated tests merely to obtain green results.
-
-9. Validation allowed in this phase
-
-Run only:
-
-* the new targeted contract tests;
-* directly affected existing routing/containment tests;
-* a safe TypeScript type-check or lint limited to affected files, if it can run without changing protected or pre-existing dirty files.
-
-If a repository script would modify .tsbuildinfo.test, package files, compiled output, snapshots, lockfiles, caches inside tracked locations, or another dirty/protected file, do not run it directly. Use an isolated temporary output location where supported, or report the limitation.
-
-Do not:
-
-* perform full packaging;
-* build a VSIX;
-* install or activate a new version;
-* change evaluation baselines;
-* run CI.
-
-10. Likely areas to inspect—not automatic edit authorization
-
-Inspect the current roles and call graph around:
-
-* WorkflowTargetResolver
-* ArtifactDiscovery
-* ArtifactReuseScorer
-* ArtifactReuseAdvisor
-* ArtifactReuseConversationCoordinator
-* ArtifactPatchPlanner
-* ArtifactPreviewService
-* RepoWriter
-* NewArtifactWriter
-* EtlActionToolService
-* relevant packaged create/validate assets under resources/copilot/**
-
-Edit only the smallest necessary files.
-
-Do not modify EtlActionToolService.ts while it remains an unresolved user-owned dirty file. If integration requires it, stop and report the exact required changes without applying them.
-
-11. Explicitly deferred
-
-Do not implement in this phase:
-
-* full job/env/shared/SQL/onboarding candidate generation;
-* approval-bound exact-byte manifest;
-* managed-ownership registry writes;
-* filesystem Apply;
-* transactional write;
-* compensating rollback;
-* replay or concurrent approval consumption;
-* post-create idempotent Apply;
-* package/version/VSIX work;
-* installed-extension smoke testing;
-* Git, PR, CI, Production, Databricks, ADF, or SQL Server work.
-
-These belong to later phases:
-
-1. complete in-memory candidate generation;
-2. trusted approval and atomic guarded Apply;
-3. failure injection and idempotency;
-4. clean local VSIX rebuild/install/smoke;
-5. formal Git/PR/CI closure.
-
-12. Required final report
-
-Return:
-
-1. identity/preflight evidence;
-2. source/out/VSIX/installed-version parity status;
-3. reconciled current behavior;
-4. selected integration point and why;
-5. exact files changed;
-6. final typed decision contract;
-7. scenario A–G decision matrix;
-8. targeted tests and exact results;
-9. zero-write evidence;
-10. protected/dirty-file preservation evidence;
-11. known limitations and next implementation phase;
-12. explicit confirmation that no Git, PR, CI, package, VSIX, installation, deployment, or real Consumer-workspace action occurred.
-
-End with exactly one:
-
-LOCAL_PHASE_A_DETERMINISTIC_ROUTING_IMPLEMENTED_AND_VERIFIED
+* lifecycle decision precedence;
+* full artifact candidate manifest;
+* SQL/job/env/onboarding rendering;
+* approval or Apply;
+* writer hardening;
+* atomicity or rollback;
+* idempotency.
+
+Those begin only after Phase A0 supplies trustworthy structured evidence.
+
+14. Required final report
+
+Report:
+
+1. source/version identity gate result;
+2. exact cause of the 0.3.128 versus 0.3.139 mismatch;
+3. protected dirty files and proof they remained unchanged;
+4. selected architecture/integration point;
+5. evidence contract;
+6. files changed;
+7. tests executed and exact results;
+8. evidence that /create no longer depends on RepoWriter for planning workspace selection;
+9. evidence that no writer was invoked;
+10. evidence of zero real Consumer-workspace mutation;
+11. remaining work for Phase A1 deterministic lifecycle decisions.
+
+Finish with exactly one:
+
+LOCAL_PHASE_A0_PLANNING_EVIDENCE_BOUNDARY_IMPLEMENTED_AND_VERIFIED
 
 or:
 
-LOCAL_PHASE_A_BLOCKED_BEFORE_UNSAFE_OR_OVERLAPPING_CHANGE
+LOCAL_PHASE_A0_BLOCKED_BY_SOURCE_IDENTITY_OR_PROTECTED_FILE_OVERLAP
