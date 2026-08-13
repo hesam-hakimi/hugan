@@ -1,151 +1,232 @@
-Task: LOCAL-PHASE-A1B-SLICE1-REPAIR-INDEPENDENT-REAUDIT-20260813-01
+TASK: LOCAL-PHASE-A1B-CONTRACT-EXTRACTION-AUDIT-20260813-01
 
-Mode: fresh independent read-only re-audit.
+Mode: strictly read-only authoritative contract extraction.
+Use the current shared workspace, but approach the task as a fresh independent agent.
 
-Do not edit any file. Do not click Keep/Undo. Do not start Slice 2. No Git, PR, CI, package, VSIX, installation, Consumer-workspace or external-system action.
+Current checkpoint:
+- Slice 1 repair independently passed.
+- Test registration independently passed.
+- The combined review card is NOT safe to Keep because it still contains the unaccepted nine-file A0R overlay.
+- Phase-H baseline staleness is a separate pre-existing governance blocker.
+- Slice 2 has not started.
 
-Objective
+NON-NEGOTIABLE SAFETY RULES
 
-Independently verify the completed bounded Slice-1 repair while keeping the pre-existing Phase-H baseline problem separate from the Slice-1 code-quality verdict.
+1. Before analysis, revalidate:
+   - repository root and origin;
+   - branch and HEAD;
+   - registered worktrees;
+   - staged state;
+   - exact dirty/untracked path manifest;
+   - current Slice-1 files;
+   - protected user-owned files;
+   - candidate and installed VSIX identity.
 
-Identity and scope
+2. Do not:
+   - edit, create, delete, rename, or format any file;
+   - click Keep or Undo;
+   - stage, commit, push, merge, rebase, switch branches, stash, or modify PR/CI;
+   - build, package, install, or modify a VSIX;
+   - regenerate Phase-H/evaluation baselines;
+   - touch any Consumer workspace or external system;
+   - start or implement Slice 2.
 
-Revalidate repository, origin, branch, HEAD, staged state, candidate VSIX and installed extension.
+3. Do not resolve contracts using:
+   - majority or frequency of current implementations;
+   - whichever producer is easiest to reuse;
+   - examples, fixtures, sample repositories, test data, OCR text, or documentation examples;
+   - customer-specific names or conventions.
 
-Prove:
+4. Do not infer:
+   - credentials;
+   - physical storage values;
+   - environment values;
+   - write mode;
+   - merge keys;
+   - onboarding IDs;
+   - deployment or business decisions.
 
-* the nine A0R files remain byte-identical to their pre-repair state;
-* the four protected user-owned dirty files remain unchanged;
-* TrustedCreatePreviewService.ts remains unchanged;
-* only these four authorized Slice-1 repair paths changed:
-    * EtlArtifactLayout.ts
-    * ArtifactPathNormalizer.ts
-    * etlArtifactLayoutParity.test.ts
-    * testPatterns.ts, with exactly one registration line;
-* no existing ETL producer, evaluator, Phase-H baseline, control-plane file or Consumer workspace changed.
+OBJECTIVE
 
-Verify repaired defects
+Extract the authoritative structural ETL Framework contracts required before Slice 2 can delegate existing path producers to the canonical layout owner.
 
-D1/D2 — Runtime immutability
+STTM remains the functional source of truth, but do not assume that STTM defines repository directory and filename conventions unless explicit evidence proves it.
 
-Prove with executable mutation probes that:
+CONTRACT AREAS TO EXTRACT
 
-* all exported registries, entries, nested arrays and nested objects are deeply immutable;
-* every returned resolved/unresolved/normalizer/collision result is deeply immutable or defensively isolated;
-* mutation attempts cannot affect later calls;
-* no mutable global state or cache exists.
+A. PRIMARY JOB CONFIG
 
-D3 — Platform-safe paths and collisions
+Determine the authoritative path and naming grammar, including the current conflict between conventions such as:
 
-Run an adversarial matrix for explicit win32 and posix behavior.
+- conf/jobs/..._config.json
+- job_conf/...json
 
-Verify:
+Determine whether these represent:
 
-* drive-relative/absolute, UNC, extended/device, ADS and illegal absolute paths are rejected;
-* Windows trailing-dot/space aliases and reserved device names are handled safely;
-* Windows collision keys case-fold correctly;
-* POSIX remains case-sensitive;
-* backslash behavior is explicit and does not guess;
-* percent-encoded text is not silently URL-decoded;
-* prefix confusion is prevented;
-* lexical containment is not claimed as symlink/junction containment;
-* realpath escape tests remain separate and fail closed.
+- competing contracts;
+- CREATE versus UPDATE behavior;
+- legacy versus current behavior;
+- different artifact families;
+- or an implementation defect.
 
-D4/D5
+For UPDATE, explicitly determine whether an existing managed path must be preserved unless a separately approved migration is requested.
 
-Verify:
+B. ENVIRONMENT CONFIG
 
-* transformation include provenance equals the registered formula provenance;
-* PatchPlanner’s catalog ?? "common" behavior is represented only inside its specific observed formula;
-* this default does not leak into other environment formulas;
-* the environment family remains unresolved and no canonical contract is selected.
+Extract the authoritative contract for:
 
-D7 — Parity quality
+- directory;
+- filename;
+- environment segment;
+- process/job identifier;
+- `.yaml` versus `.yml`;
+- CREATE, UPDATE, reuse, shared, and environment-specific behavior.
 
-Verify direct, non-circular producer parity for:
+The three existing producer conventions must be evaluated independently. Do not select one based on prevalence.
 
-* RepoWriter.generatePaths;
-* BlueprintBuilder.resolveIncludePath;
-* ArtifactPatchPlanner.suggestSqlPath;
-* EXTRACT/LOAD behavior from ArtifactGenerationPipeline;
-* onboarding default, naming override and entity fallback;
-* environment producers;
-* exact formula IDs, family IDs, provenance and unresolved codes.
+C. TRANSFORMATION ARTIFACTS
 
-Expected values must not be generated by the helper under test.
+Determine whether the following are truly competing representations or distinct artifact kinds:
 
-Fail-closed preservation
+- executable transformation `.sql`;
+- HOCON/YAML include or module configuration;
+- transformation SQL suggestion paths.
 
-Confirm no decision was made for:
+For every proven artifact kind, extract:
 
-* primary job-config conflict;
-* environment-config conflict;
-* .sql versus .yaml;
-* families without an authoritative producer.
+- responsibility;
+- path grammar;
+- filename grammar;
+- required inputs;
+- lifecycle applicability;
+- relationship to job/module configuration.
 
-Confirm stable unresolved codes remain intact and no sample/customer-specific value became product truth.
+Do not collapse SQL and include configuration into one artifact merely because both concern transformation.
 
-Registration
+D. FAMILIES WITHOUT A CURRENT AUTHORITATIVE PRODUCER
 
-Prove the added PURE_UNIT_TEST_PATTERNS entry:
+Investigate:
 
-* selects exactly one compiled suite;
-* moves it out of integration discovery;
-* does not duplicate execution;
-* changes no other registration;
-* works with Windows and POSIX separators.
+- common/shared configuration;
+- declared tabular output;
+- managed-ownership marker.
 
-Isolated executable comparison
+For each, determine whether it is:
 
-Using one identical temporary dependency tree, compare:
+- mandatory;
+- optional;
+- externally owned;
+- derived in a later phase;
+- represented through another artifact;
+- intentionally absent;
+- or genuinely missing from the contract.
 
-1. clean HEAD twice;
-2. nine-file A0R overlay;
-3. repaired A0R + Slice-1 + registration overlay.
+Do not invent a path for any family lacking authority.
 
-Run:
+EVIDENCE SOURCES
 
-* TypeScript compile;
-* lint;
-* focused Slice-1 tests;
-* canonical registered runner;
-* directly affected producer suites;
-* adversarial security tests;
-* determinism/mutation probes;
-* git diff --check.
+Inspect read-only:
 
-Compare full failure titles, error messages/classes and first meaningful stack frames.
+- current Consumer ETL Framework contracts and schemas;
+- production Framework source;
+- Framework tests that assert external contracts;
+- generic packaged templates and assets;
+- Extension contracts, production source, and tests;
+- onboarding, environment, include, SQL, writer, and output schemas;
+- neutral real-consumer evidence, if available and safe to inspect read-only.
 
-Require zero new failure identities and no weakened expectation.
+For every source, label it as one of:
 
-Phase-H classification — no mutation
+- NORMATIVE_CONTRACT
+- CURRENT_RUNTIME_BEHAVIOR
+- LEGACY_COMPATIBILITY
+- CORROBORATING_CONSUMER_EVIDENCE
+- DOCUMENTATION_ONLY
+- EXAMPLE_OR_FIXTURE
 
-Do not regenerate or edit the Phase-H baseline.
+Examples, fixtures, sample names, and observed frequency cannot establish product truth.
 
-Separately establish:
+Names including CD Renewal, cd_renewal, acz0004, cz_acz0004_retail, renewal, and sample_sttm must never become defaults or contract evidence.
 
-* whether the committed Phase-H baseline already fails on clean HEAD;
-* the unrelated stale-file inventory and golden-acceptance problem;
-* the incremental effect of the Slice-1 files;
-* why regenerating it now would or would not mask unrelated failures.
+CLASSIFICATION RULE
 
-Classify this as a separate governance blocker rather than automatically treating it as a Slice-1 code defect, provided the repaired code introduces no evaluator change.
+For every contract and sub-contract, return exactly one:
 
-Separate verdicts required
+1. PROVEN
+   - An authoritative rule is established.
+   - State its exact grammar, required inputs, applicability, provenance, and competing evidence.
+   - Explain why competing behavior is legacy, context-specific, or defective.
 
-Report independently:
+2. CONFLICTING_EVIDENCE
+   - Multiple authoritative sources disagree.
+   - Enumerate every conflict.
+   - Do not select one.
 
-1. Slice-1 repair code verdict;
-2. test-registration verdict;
-3. Phase-H governance/baseline verdict;
-4. whether the combined 12-file review card is safe to Keep.
+3. NO_AUTHORITATIVE_EVIDENCE
+   - Only implementation accidents, incomplete documentation, fixtures, or examples exist.
+   - Do not invent a rule.
 
-Even if Slice-1 code passes, Keep must remain untouched because the review card also contains the unresolved A0R scope.
+4. INCONCLUSIVE
+   - Required authoritative material could not be inspected.
+   - State the exact missing evidence and blocker.
+
+IMPORTANT DISTINCTIONS
+
+- Incomplete discovery is not equivalent to no match.
+- Existing managed path preservation and new-repository path creation may have different contracts.
+- A transformation SQL file and a transformation include file may be distinct artifact families.
+- An observed runtime convention is not automatically a normative contract.
+- Producer count, test count, or current prevalence is not authority.
+- Do not silently combine conflicting sources.
+
+WHO MAKES THE DECISION?
+
+If a contract is PROVEN:
+- record it;
+- do not ask the user;
+- do not implement it yet.
+
+If it is CONFLICTING_EVIDENCE or NO_AUTHORITATIVE_EVIDENCE:
+- do not guess;
+- produce a MAINTAINER_DECISION_PACKET for the maintainer/product owner.
+
+The packet must include:
+
+1. exact unresolved question;
+2. 2–3 viable options;
+3. authoritative and non-authoritative evidence for each;
+4. backward-compatibility impact;
+5. migration impact for existing managed repositories;
+6. CREATE/UPDATE/INITIALIZE consequences;
+7. safety and collision implications;
+8. recommended option only if evidence supports a recommendation;
+9. the exact short question the maintainer must answer;
+10. what remains blocked until that decision is made.
+
+Do not ask an ordinary Extension consumer to choose structural Framework conventions.
+
+A runtime consumer may later be asked only for genuinely workload-specific values explicitly required by an already-established contract.
+
+REQUIRED OUTPUT
+
+1. Repository identity and immutability report.
+2. Authority hierarchy actually used.
+3. Contract evidence matrix with exact file and symbol citations.
+4. Separate classifications for every contract/sub-contract.
+5. List of PROVEN contracts ready to become future Slice-2 inputs.
+6. Minimal MAINTAINER_DECISION_PACKET containing only unresolved decisions.
+7. Explicit statement whether Slice 2 is:
+   - READY_AFTER_MAINTAINER_APPROVAL;
+   - BLOCKED_BY_CONTRACT_DECISIONS;
+   - or BLOCKED_BY_MISSING_EVIDENCE.
+8. Confirmation that Keep/Undo, Git, PR, CI, VSIX, Phase-H, Consumer workspaces, and all files remained untouched.
+
+Do not implement anything after reporting.
 
 End with exactly one:
 
-* LOCAL_PHASE_A1B_SLICE1_REPAIR_REAUDIT_PASS_WITH_SEPARATE_PHASE_H_BLOCKER
-* LOCAL_PHASE_A1B_SLICE1_REPAIR_REAUDIT_PASS
-* LOCAL_PHASE_A1B_SLICE1_REPAIR_REAUDIT_FAIL
-* LOCAL_PHASE_A1B_SLICE1_REPAIR_REAUDIT_INCONCLUSIVE
-* LOCAL_PHASE_A1B_SLICE1_REPAIR_REAUDIT_BLOCKED
+LOCAL_PHASE_A1B_CONTRACT_EXTRACTION_PROVEN
+LOCAL_PHASE_A1B_CONTRACT_EXTRACTION_MAINTAINER_DECISION_REQUIRED
+LOCAL_PHASE_A1B_CONTRACT_EXTRACTION_NO_AUTHORITY
+LOCAL_PHASE_A1B_CONTRACT_EXTRACTION_INCONCLUSIVE
+LOCAL_PHASE_A1B_CONTRACT_EXTRACTION_BLOCKED_IDENTITY_MISMATCH
