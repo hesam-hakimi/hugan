@@ -1,53 +1,117 @@
-LOCAL_SA_KEEP_GATE — Bounded Keep of the Independently Accepted S-A Candidate
+LOCAL_PHASE_A1H_HASH_VERDICT_RECONCILIATION — Read-Only Exact-Byte Applicability Check
 
-The fresh independent A1H re-audit completed with:
+Remain an independent read-only auditor.
+
+Do not trust any hash comparison, chronology, or conclusion supplied by the S-A implementation/repair chat. Use your own immediately preceding A1H audit report and fresh live repository evidence.
+
+Goal:
+
+Determine exactly which four file bytes your own:
 
 SAFE_TO_KEEP_SA: YES
-SAFE_TO_PROCEED_TO_S_B: NO
 LOCAL_PHASE_A1H_SA_REAUDIT_PASS
 
-This step authorizes only the bounded retention/Keep decision for the existing four-file S-A candidate. It does not authorize any implementation, repair, cleanup, Git action, package action, or later slice.
+verdict was issued against, and whether those exact bytes are still on disk now.
 
-Authorized S-A files only:
+This is only a hash/verdict reconciliation. It is not implementation, repair, Keep authorization, S-B authorization, or a substitute for a full re-audit when bytes differ.
+
+Files:
 
 * src/core/settings/EtlSettingsInventory.ts
 * src/core/settings/EtlSettingsProvenance.ts
 * src/core/settings/EtlSettingsVsCodeBindings.ts
 * src/test/suite/settingsInventoryProvenance.test.ts
 
-Strict rules:
+STRICTLY PROHIBITED
 
-* Do not edit, save, format, create, delete, rename, restore, revert, discard, clean, stage, commit, push, build, package, install, or run CI.
-* Do not modify the four S-A files.
-* Do not modify package.json, package-lock.json, testPatterns.ts, protected paths, pre-existing pending files, or any unrelated file.
-* Do not implement the A1H Medium or Low advisory findings in this step.
-* Do not start S-B or any later slice.
-* Do not treat Keep as Git acceptance, commit, PR approval, CI approval, or release approval.
+Do not:
 
-Before authorizing the UI action, verify read-only:
+* edit, save, format, create, delete, rename, restore, revert, discard, clean, stage, commit, push, stash, checkout, or change any file or worktree;
+* click Keep or Undo;
+* run build, package, install, dependency, lifecycle, CI, PR, or VSIX actions;
+* implement or repair any Medium, Low, High, or other finding;
+* start S-B;
+* rely on the implementation chat’s self-verification or chronology.
 
-1. Repository root, origin, branch, and HEAD still match the A1H target.
-2. Staged count remains zero.
-3. The Copilot review card/change set to be Kept contains exactly the four authorized S-A files above and no other path.
-4. No additional S-A file or later-slice artifact exists.
-5. All other pending or dirty paths remain user-owned/pre-existing and outside this Keep decision.
-6. A1H’s Medium and Low findings are retained as follow-up debt and are not silently classified as fixed.
-7. S-B remains explicitly unauthorized.
+REQUIRED CHECKS
 
-If the review card contains any additional file, any repository identity differs, staged count is nonzero, or current state is ambiguous, do not authorize Keep.
+1. From your own prior A1H audit record in this same chat, recover the exact full SHA-256 recorded at both audit start and audit end for each of the four files.
+2. Do not infer those hashes from:
+    * filenames;
+    * abbreviated screenshots;
+    * the implementation chat;
+    * current file contents;
+    * remembered summaries.
+3. Recompute the exact full SHA-256 of all four files now.
+4. Reverify current:
+    * canonical repository root;
+    * origin;
+    * branch;
+    * HEAD;
+    * worktree inventory;
+    * staged count;
+    * porcelain status with untracked files expanded.
+5. Return an exact comparison table:
 
-Return exactly:
+| File | A1H start SHA-256 | A1H end SHA-256 | Current SHA-256 | Start=end | End=current |
 
-KEEP_SCOPE_EXACT: YES|NO
-STAGED_COUNT: 
-S_B_AUTHORIZED: NO
-SAFE_TO_CLICK_KEEP_SA_CARD: YES|NO
-LOCAL_SA_KEEP_GATE_READY
+Use full hashes, not abbreviated hashes.
 
-or:
+6. State whether your preceding PASS audit’s start and end hashes were:
 
-KEEP_SCOPE_EXACT: YES|NO
-STAGED_COUNT: 
-S_B_AUTHORIZED: NO
-SAFE_TO_CLICK_KEEP_SA_CARD: NO
-LOCAL_SA_KEEP_GATE_BLOCKED
+* EtlSettingsInventory.ts beginning with 6B99E6EB;
+* EtlSettingsProvenance.ts beginning with 09CDA453;
+* EtlSettingsVsCodeBindings.ts beginning with 0A010841;
+* settingsInventoryProvenance.test.ts beginning with 64A4682C;
+
+or whether those prefixes belong to a different state.
+
+The prefixes are only discrepancy pointers. Your own full recorded hashes remain authoritative.
+
+7. Reconcile this apparent conflict explicitly:
+
+* Your displayed A1H PASS evidence appeared to show the four prefixes above.
+* A later implementation-chat Keep gate claimed that A1H audited different prefixes:
+    24616C11, F3B86468, 4B840A43, and 265D7D05.
+
+Determine which set belongs to the exact A1H PASS immediately preceding this request.
+
+8. Do not reassess findings or rerun the full test matrix if all four current hashes exactly match your A1H end hashes and repository state has not drifted.
+9. If even one current hash differs from your A1H end hash, or if your original full A1H hashes cannot be recovered reliably:
+    * Keep remains blocked;
+    * do not reuse the prior verdict;
+    * require a new full independent A1H audit against the current bytes.
+10. If all four hashes exactly match and repository identity/state has not drifted:
+
+* state that the existing A1H verdict applies to the current bytes;
+* do not authorize Keep or S-B in this reconciliation step;
+* return the evidence to ChatGPT for the final bounded Keep decision.
+
+Finish with exactly one of these blocks.
+
+MATCH:
+
+A1H_ORIGINAL_HASH_EVIDENCE_AVAILABLE: YES
+CURRENT_BYTES_MATCH_A1H_PASS: YES
+A1H_VERDICT_APPLIES_TO_CURRENT_BYTES: YES
+KEEP_ACTION_AUTHORIZED_BY_THIS_RECONCILIATION: NO
+SAFE_TO_PROCEED_TO_S_B: NO
+LOCAL_PHASE_A1H_HASH_RECONCILIATION_MATCH
+
+MISMATCH:
+
+A1H_ORIGINAL_HASH_EVIDENCE_AVAILABLE: YES
+CURRENT_BYTES_MATCH_A1H_PASS: NO
+A1H_VERDICT_APPLIES_TO_CURRENT_BYTES: NO
+KEEP_ACTION_AUTHORIZED_BY_THIS_RECONCILIATION: NO
+SAFE_TO_PROCEED_TO_S_B: NO
+LOCAL_PHASE_A1H_HASH_RECONCILIATION_MISMATCH
+
+INSUFFICIENT:
+
+A1H_ORIGINAL_HASH_EVIDENCE_AVAILABLE: NO
+CURRENT_BYTES_MATCH_A1H_PASS: UNKNOWN
+A1H_VERDICT_APPLIES_TO_CURRENT_BYTES: NO
+KEEP_ACTION_AUTHORIZED_BY_THIS_RECONCILIATION: NO
+SAFE_TO_PROCEED_TO_S_B: NO
+LOCAL_PHASE_A1H_HASH_RECONCILIATION_INSUFFICIENT
