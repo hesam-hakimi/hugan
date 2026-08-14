@@ -1,272 +1,157 @@
-TASK: LOCAL_PHASE_A1G — INDEPENDENT READ-ONLY AUDIT OF S-A SETTINGS INVENTORY AND PROVENANCE
+Continue the current S-A implementation in this same chat from the independent audit failure.
 
-Act as an independent adversarial auditor. You did not implement this change. Treat the implementation report and all previous-chat conclusions as untrusted claims that must be re-derived from the live workspace.
+The four S-A candidate files are still unkept. This message authorizes a bounded repair of S-A only. It does not authorize S-B or any later slice.
 
-TARGET
+Independent audit result:
+
+* LOCAL_PHASE_A1G_SA_AUDIT_FAIL
+* SAFE_TO_KEEP_SA: NO
+* SAFE_TO_PROCEED_TO_S_B: NO
+
+Repository identity expected:
 
 * Repository: etl_framework_extension
-* Use the currently selected repository root in this existing multi-root VS Code workspace.
-* The candidate changes are still pending behind Keep/Undo.
-* Do not click Keep, Undo, Revert, Discard, Clean, Restore, or any equivalent action.
-* If the four candidate files are not visible to this chat, stop with CANDIDATE_OVERLAY_NOT_VISIBLE. Do not ask the user to Keep them merely to make them visible.
+* Branch: feature/v3-agentic-redesign
+* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-CANDIDATE S-A FILES
+Authorized files only:
 
 1. src/core/settings/EtlSettingsInventory.ts
 2. src/core/settings/EtlSettingsProvenance.ts
 3. src/core/settings/EtlSettingsVsCodeBindings.ts
 4. src/test/suite/settingsInventoryProvenance.test.ts
 
-Reported but untrusted claims:
+Before editing, re-establish the live repository identity, staged state, porcelain inventory, and SHA-256 baseline for every pending/Keep file plus package.json and package-lock.json. If the repository identity or the four candidate files differ unexpectedly, stop and report the mismatch.
 
-* All four files are new.
-* No pre-existing source or control-plane file was edited.
-* npm ci was previously authorized and completed; dependencies now exist.
-* package.json and package-lock.json remained byte-identical.
-* Targeted TypeScript checks passed.
-* Direct Mocha execution reported 22 passing tests.
-* S-B and later slices were not implemented.
+Required repairs
 
-MODE AND IMMUTABILITY
+1. Fix real VS Code inspect() contribution semantics
 
-This phase is strictly read-only and audit-only.
+The current implementation incorrectly uses own-property presence to determine whether a scope contributed.
 
-* Do not edit, create, delete, rename, format, save, stage, commit, or generate repository files.
-* Do not click Keep or Undo.
-* Do not run npm ci, npm install, package updates, build, packaging, VSIX, baseline regeneration, or snapshot updates.
-* Use only already-installed local dependencies.
-* Do not use npx if it could download anything.
-* Targeted no-emit type checks and targeted tests are permitted.
-* Do not write into the repository’s out, dist, coverage, snapshot, or cache directories.
-* If temporary compilation is indispensable, use a fresh OS temporary directory outside the repository and remove only that directory afterward.
-* Do not clean existing node_modules, ignored output, or user-owned pending files.
-* Do not touch sibling worktrees or consumer workspaces.
-* Do not begin S-B or propose fixes as edits. Report a minimal repair plan only.
+VS Code 1.95 returns a dense inspect() result: scope fields exist even when their value is undefined.
 
-ESTABLISH THE BASELINE FIRST
+A scope contributes if and only if its corresponding runtime value is not undefined.
 
-Capture and report:
+Preserve all defined falsy values as real contributions, including:
 
-* exact repository root, origin, branch, HEAD;
-* all worktrees;
-* staged state;
-* porcelain status with untracked files expanded;
-* hashes of every pre-existing pending/protected file;
-* hashes of the four S-A candidate files;
-* hashes of package.json and package-lock.json.
+* false
+* 0
+* ""
+* null
+* empty arrays
+* empty objects
 
-Recheck the same state at the end.
+Derive the winning scope from the documented VS Code precedence order using defined values, not property presence or truthiness.
 
-INTENDED S-A BOUNDARY
+2. Handle duplicate manifest declarations safely
 
-S-A is source-only infrastructure. It must provide:
+Do not silently retain the first duplicate declaration.
 
-A. A pure manifest settings inventory that does not import or call VS Code.
+Implement one deterministic fail-closed representation:
 
-B. A provenance resolver over an injected configuration host that models only values actually exposed by the supported VS Code API.
+* preserve every declaration and return an explicit ambiguous/duplicate result with sufficient metadata; or
+* reject duplicate declarations with a typed diagnostic.
 
-C. A narrow VS Code binding responsible only for reading the installed extension manifest and adapting WorkspaceConfiguration.
+Conflicting defaults, types, scopes, titles, descriptions, and language variants must not be discarded.
 
-D. Deterministic, English-only, read-only results.
+Do not invent a precedence rule for duplicates.
 
-E. Focused tests demonstrating the above.
+3. Replace sparse fake inspection tests
 
-S-A must not:
+Add regression tests using a dense VS Code 1.95-style inspection object in which all inspection fields exist and absent scopes contain undefined.
 
-* write configuration;
-* call update;
-* select a ConfigurationTarget;
-* register onDidChangeConfiguration;
-* freeze task context;
-* implement S-B context serialization or hashing;
-* spawn agents;
-* persist state;
-* read environment variables;
-* access secrets;
-* log setting values;
-* choose a workspace folder implicitly;
-* define Job/Environment grammar, deployment profiles, or any structural policy.
+Cover at minimum:
 
-MANDATORY AUDIT QUESTIONS
-
-1. VS CODE VERSION COMPATIBILITY
-
-The repository reportedly declares engines.vscode: ^1.95.0, while installed typings may be @types/vscode@1.109.0.
-
-* Enumerate every WorkspaceConfiguration.inspect() field and VS Code API used by the candidate.
-* Prove each field exists at the repository’s minimum supported VS Code version.
-* Newer installed typings alone are not proof of minimum-version compatibility.
-* Do not invent fields such as remoteValue.
-* If minimum-version compatibility cannot be established from available authoritative evidence, record a compatibility blocker rather than assuming it.
-
-2. PRECEDENCE AND PRESENCE SEMANTICS
-
-Verify the resolver exactly matches real VS Code behavior:
-
-* effective-value precedence;
-* normal versus language-specific override fields;
-* globalValue, workspaceValue, and workspaceFolderValue;
-* default and language-default handling;
-* winning scope versus all contributing scopes;
-* property presence versus value equality;
-* preservation of false, 0, "", and null;
-* distinction between an omitted default and an explicitly declared default.
-
-A test in which multiple scopes contain identical values must still identify the correct winning scope.
-
-3. MANIFEST INVENTORY
-
-Audit contributes.configuration handling for:
-
-* object form;
-* array form;
-* absent configuration;
-* malformed entries;
-* duplicate keys across sections;
-* properties without type;
-* string versus array type declarations;
-* omitted versus declared scope;
-* title/category metadata;
-* deterministic ordering;
-* correct namespace and relative-key handling;
-* no accidental interpretation of arbitrary manifest data as a setting.
-
-Determine whether duplicate declarations fail closed, are represented explicitly, or are silently overwritten.
-
-4. MULTI-ROOT SAFETY
-
-Prove that:
-
-* with two or more workspace folders and no explicit resource, resolution fails closed;
-* workspace.workspaceFolders?.[0] is never selected;
-* sibling-folder settings never contaminate the selected folder;
-* the resource supplied to getConfiguration and inspect is handled consistently;
-* single-folder behavior does not weaken the multi-root contract.
-
-5. PURITY AND SIDE EFFECTS
-
-Search the candidate files for direct or indirect use of:
-
-* configuration writes or update;
-* ConfigurationTarget;
-* onDidChangeConfiguration;
-* filesystem or network writes;
-* logging;
-* environment variables;
-* secret storage;
-* caching that can become stale;
-* ambient workspace-folder discovery in the pure modules.
-
-Confirm that only the binding file imports vscode.
-
-6. DATA MINIMIZATION AND SECURITY
-
-Determine whether inventory or provenance results can expose credential-like or tenant-specific values unnecessarily.
-
-* No secret value may be returned, logged, hashed into diagnostics, or included in errors.
-* Manifest metadata and manifest defaults must remain distinguishable from effective user configuration.
-* Flag any API that makes unsafe value propagation likely for S-B.
-
-7. API AND TYPE QUALITY
-
-Review the exported and internal types for:
-
-* discriminated-union exhaustiveness;
-* serializability;
-* absence of any-driven ambiguity;
-* deterministic output;
-* stable English error codes and messages;
-* minimal public surface;
-* compatibility with a future S-B context layer without prematurely implementing or freezing S-B semantics.
-
-Check whether the implementation is unnecessarily large, duplicated, or internally contradictory. File size alone is not a defect; identify concrete maintainability or correctness consequences.
-
-8. BINDING CORRECTNESS
-
-Verify that the VS Code binding:
-
-* resolves the intended extension ID;
-* reads the installed extension manifest, not an unrelated workspace manifest;
-* handles unavailable extensions and malformed manifests safely;
-* does not silently mix source version, installed version, or sibling-extension state;
-* does not make production configuration calls during inventory construction.
-
-9. TEST ROUTE AND COVERAGE
-
-Independently prove whether src/test/suite/settingsInventoryProvenance.test.ts is discovered by the actual repository test runner.
-
-Do not rely only on the test’s own assertions or the previous report.
-
-Audit coverage for at least:
-
-* object and array configuration forms;
-* missing and malformed manifests;
-* duplicate declarations;
-* missing versus explicit defaults;
-* false/zero/empty/null defaults;
-* scope omitted versus declared;
-* normal and language-specific overrides;
-* identical values at multiple scopes;
-* unknown setting;
-* unavailable inspect;
-* unavailable get;
-* multi-root ambiguity;
+* only Default defined;
+* Default plus Global;
+* Workspace and Workspace Folder precedence;
+* language override precedence;
+* identical values at several scopes;
+* every supported falsy value;
+* all fields present but only one field defined;
+* multi-root resolution with no resource;
 * explicit resource selection;
-* deterministic sorting;
-* English-only strings;
-* absence of mutation and configuration-write APIs.
+* no implicit workspaceFolders[0].
 
-Identify self-fulfilling tests, source-text-only assertions that do not prove runtime behavior, and important mutation survivors.
+The regression must fail against the pre-repair implementation.
 
-10. CHANGE-SURFACE INTEGRITY
+4. Fail closed on malformed manifest properties
 
-Prove that:
+A non-object or otherwise malformed configuration property entry must not become an empty valid descriptor.
 
-* only the four candidate files belong to S-A;
-* no pre-existing pending/Keep file changed;
-* package.json, package-lock.json, control-plane files, test registries, and protected Slice-1 files remain unchanged;
-* no S-B functionality or unrelated production wiring was added;
-* existing ignored outputs were not mistaken for product changes.
+Return a typed invalid-manifest diagnostic or reject inventory construction deterministically. Include the setting key and a safe English explanation, but do not expose arbitrary raw manifest content.
 
-ALLOWED VERIFICATION
+5. Prevent sensitive-value propagation
 
-Use the smallest relevant set only:
+S-B sensitivity classification is not authorized.
 
-* source inspection and searches;
-* existing local TypeScript compiler in no-emit mode;
-* the exact targeted S-A test;
-* inspection of actual test-runner globs/configuration;
-* VS Code diagnostics;
-* read-only Git/status/hash commands.
+The public S-A provenance result must expose scope presence/definedness, contributing scopes, winning scope, and provenance metadata without logging or serializing raw effective/contributing values.
 
-Record every command and exact exit status. A passing test is not sufficient if the test is not genuinely registered or does not test the claimed contract.
+If removing or changing raw-value exposure conflicts with an explicitly authorized S-A API contract, stop and report the precise conflict and the smallest decision required. Do not invent a sensitivity classifier and do not begin S-B.
 
-REQUIRED REPORT
+6. Eliminate mutable aliasing
 
-Write the report in English and include:
+Returned inventory descriptors and manifest defaults must not alias mutable manifest objects.
 
-1. Repository identity and start-state proof.
-2. Findings ordered Critical, High, Medium, Low, with exact file and line citations.
-3. Contract matrix for inventory, provenance resolver, VS Code binding, and tests.
-4. VS Code minimum-version compatibility verdict.
-5. Manifest parsing and duplicate-key verdict.
-6. Precedence/language-override verdict.
-7. Multi-root and trust-boundary verdict.
-8. Test-discovery and coverage verdict.
-9. Exact commands and results.
-10. Start/end status and SHA-256 immutability proof.
-11. Minimal repair plan for every blocking issue, without editing anything.
-12. Explicit answers:
+Use deterministic defensive copying and/or freezing, and add mutation-isolation tests proving that modifying returned data cannot modify the source manifest or another result.
 
-* SAFE_TO_KEEP_SA: YES or NO
-* SAFE_TO_PROCEED_TO_S_B: YES or NO
+Preserve existing valid boundaries
 
-End with exactly one marker:
+Keep all of the following:
 
-* LOCAL_PHASE_A1G_SA_AUDIT_PASS
-* LOCAL_PHASE_A1G_SA_AUDIT_PASS_WITH_CORRECTIONS
-* LOCAL_PHASE_A1G_SA_AUDIT_FAIL
+* narrow VS Code binding;
+* the existing extension ID lookup;
+* injected configuration host;
+* multi-root fail-closed behavior;
+* English-only user-facing strings;
+* deterministic setting ordering;
+* no setting writes;
+* no ConfigurationTarget;
+* no onDidChangeConfiguration;
+* no process.env;
+* no secrets, logging, persistence, filesystem access, network access, or cross-call cache;
+* no ambient workspace-folder fallback;
+* no S-B context serialization, envelopes, orchestrator freezing, chat guidance, or later-slice work.
 
-A PASS requires no unresolved correctness, compatibility, test-registration, isolation, security, or immutability issue. Cosmetic observations alone may produce PASS_WITH_CORRECTIONS, but any behaviorally material uncertainty requires FAIL.
+Forbidden actions
 
-Do not implement repairs. Do not start S-B.
+Do not:
+
+* edit package.json, package-lock.json, testPatterns.ts, or any other pre-existing pending/Keep file;
+* run another package installation;
+* borrow dependencies or typings from sibling repositories;
+* run a repository build, package operation, or VSIX operation;
+* stage, commit, push, merge, rebase, reset, checkout, stash, clean, or change worktrees;
+* click or invoke Keep, Undo, Revert, Discard, Restore, or Clean;
+* repair unrelated repository errors, including the existing OnboardingWriteApproval.test.ts:200 failure.
+
+Dependencies have already been restored. Use only the installed local toolchain.
+
+Verification required
+
+Run and report:
+
+1. a focused compile/type check covering only the four S-A files;
+2. targeted ESLint for the four files, if available without changing configuration;
+3. direct targeted Mocha execution for settingsInventoryProvenance.test.ts;
+4. proof that its clean integration-test discovery route still works without modifying testPatterns.ts;
+5. source scans proving the prohibited APIs and later-slice behavior remain absent;
+6. start/end Git status and SHA-256 comparison for every pre-existing pending/Keep file, package.json, and package-lock.json.
+
+Do not treat an unrelated full-repository failure as an S-A failure, but report it separately and prove it was pre-existing.
+
+Final report
+
+Return:
+
+* exact files changed;
+* each audit finding and its repair;
+* exact verification commands and exit codes;
+* targeted test count;
+* remaining blockers or residual risks;
+* end-state staged count and hash-integrity proof;
+* SAFE_TO_KEEP_SA: YES or NO;
+* SAFE_TO_PROCEED_TO_S_B: NO.
+
+Even if the repair succeeds, do not proceed to S-B. Stop for a fresh independent audit.
