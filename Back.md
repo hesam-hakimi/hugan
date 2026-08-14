@@ -1,295 +1,280 @@
-DIAGNOSE AND REPAIR LOCAL KMAI DEVELOPMENT AGENT ROLE_OUTPUT_INVALID
+LOCAL_PHASE_SB0 — POST-KEEP READ-ONLY S-B READINESS AND CONTRACT EXTRACTION
 
-A real Observe-mode qualification task failed inside the local
-`.kmai-dev-agent`.
+You are performing a fresh, independent, strictly read-only verification and planning task.
 
-Task:
+This task does NOT authorize implementation of S-B. Do not create or modify any file.
 
-Phase 2C Acceptance Audit Remediation Planning
+1. Authoritative current boundary
 
-Verified runtime facts:
+The established chronology is:
 
-- Workspace:
-  /tmp/kmai-phase2c-semantic-plan
+S-A implementation created
+→ independent A1G audit failed
+→ bounded S-A repair completed
+→ independent A1H re-audit passed
+→ exact A1H hashes reconciled against the current bytes
+→ the user clicked Keep for exactly the four S-A files
+→ S-B implementation has not yet been authorized
 
-- Branch:
-  phase2/semantic-plan-contract-validator
+The independent decisions were:
 
-- Autonomy:
-  observe
+SAFE_TO_KEEP_SA: YES
+SAFE_TO_PROCEED_TO_S_B: NO
+LOCAL_PHASE_A1H_SA_REAUDIT_PASS
 
-- Model profile:
-  Existing Default
+The subsequent reconciliation established:
 
-- Requested model alias:
-  complex-reasoning-configured
+A1H_ORIGINAL_HASH_EVIDENCE_AVAILABLE: YES
+CURRENT_BYTES_MATCH_A1H_PASS: YES
+A1H_VERDICT_APPLIES_TO_CURRENT_BYTES: YES
+KEEP_ACTION_AUTHORIZED_BY_THIS_RECONCILIATION: NO
+SAFE_TO_PROCEED_TO_S_B: NO
+LOCAL_PHASE_A1H_HASH_RECONCILIATION_MATCH
 
-- Actual model:
-  gpt-4o-2024-08-06
+ChatGPT separately reviewed that evidence and authorized Keep of only the four S-A files. The user reports that Keep has now been clicked.
 
-- Worktree was clean and verified during the task.
+Treat UI Keep as a user-reported review decision, not as a Git operation. Verify the live repository state independently.
 
-- The task reached:
-  running_regression_tests
-  → reviewing
-  → failed
+2. Expected repository identity — reverify, never assume
 
-- Final error:
-  role_output_invalid
+Expected canonical repository:
 
-- Activity evidence:
-  reviewer_started
-  followed by
-  role_output_invalid
+* Root: C:\repos\etl-extension\etl_fw2\etl_framework_extension
+* Origin: https://github.com/TD-Universe/agentic_etl.git
+* Branch: feature/v3-agentic-redesign
+* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* Three worktrees total: the main worktree plus two known detached c7 worktrees
+* Staged count: zero
+* Work remains local-only
+* Draft PR #7 remains untouched
+* No S-B or later-slice implementation should exist
 
-- git-diff-check exited 0.
+Operate only in the canonical main worktree. Do not inspect or alter another worktree except for the read-only git worktree list identity check.
 
-- No project source change was introduced.
+3. Exact kept S-A surface
 
-The purpose of this task is to diagnose and repair the local agent
-infrastructure failure. Do not perform Phase 2C remediation.
+The only S-A files are:
 
-────────────────────────────────────
-1. Safety boundaries
-────────────────────────────────────
+* src/core/settings/EtlSettingsInventory.ts
+* src/core/settings/EtlSettingsProvenance.ts
+* src/core/settings/EtlSettingsVsCodeBindings.ts
+* src/test/suite/settingsInventoryProvenance.test.ts
 
-Allowed modifications:
+Recompute full SHA-256 values and compare them with these authoritative A1H values:
 
-- locally ignored `.kmai-dev-agent/**` only.
+* EtlSettingsInventory.ts
+    6B99E6EB1851AB45050AE69225D06A59CE6AE0CE85871BF7A9C1DEAD0FBADD84
+* EtlSettingsProvenance.ts
+    09CD4A53A92D845D6C7F34279CBD2B2495F6C2EAE03D14567CBBC8474D553AC8
+* EtlSettingsVsCodeBindings.ts
+    0A010841E9806F6FDB51C35559EE20CB4A39A246F29001CA6A9DD749A3CD15D1
+* settingsInventoryProvenance.test.ts
+    64A4682CB2428B70F1E4B99B706A3050542502E14A57CC4BF7336D5711AB8AE2
 
-Do not modify:
+Use the complete hashes. Do not rely on abbreviated prefixes or the previously identified transposed-prefix typo.
 
-- tracked application source;
-- application tests;
-- tracked documentation;
-- branches;
-- worktrees;
-- pull requests;
-- Git history;
-- environment configuration;
-- authentication configuration.
+4. Strict read-only restrictions
 
 Do not:
 
-- commit;
-- push;
-- merge;
-- rebase;
-- deploy;
-- install packages;
-- expose credentials;
-- rerun the full real Phase 2C task until the infrastructure defect has
-  been reproduced and repaired.
+* edit, save, format, create, rename, move, or delete files;
+* click Keep, Undo, Revert, Discard, Restore, or Clean;
+* stage, commit, push, stash, reset, checkout, merge, or alter a worktree;
+* update Draft PR #7 or invoke CI;
+* install dependencies or run lifecycle scripts;
+* build, package, install, or smoke-test a VSIX;
+* modify package.json, package-lock.json, src/test/testPatterns.ts, control-plane files, documentation, or any pending/protected file;
+* implement S-B, S-C, or any later slice;
+* treat the S-A implementation chat’s self-reports as independent evidence.
 
-Confirm `.kmai-dev-agent` is ignored and contains no tracked file before
-editing.
+Use only read-only inspection commands. Capture repository identity, porcelain status with untracked files expanded, staged count, worktree list, and relevant hashes at both the start and end.
 
-────────────────────────────────────
-2. Inspect the failed task evidence
-────────────────────────────────────
+All pending or dirty files outside the four kept S-A paths are user-owned or pre-existing unless live evidence proves otherwise.
 
-Locate the persisted state, events and sanitized role artifacts for the
-failed task.
+5. Preserve the independent A1H findings
 
-Identify exactly:
+A1H reported no Critical or High findings, but the following remain open and must not be silently described as fixed:
 
-1. which role produced the invalid output:
-   - planner;
-   - reviewer;
-   - another role;
+* MEDIUM-1: the S-A suite is currently reachable only through the Electron integration route; the test contains a negative assertion preventing pure-unit discovery.
+* MEDIUM-2: EtlSettingsVsCodeBindings.ts has no executable test coverage and currently has no production consumer; its behavior is asserted primarily through source-text checks.
+* LOW-1: a precedence assertion is partially self-referential.
+* LOW-2: policy-enforced values may appear through VS Code as defaultValue; the limitation needs accurate documentation.
+* LOW-3: unbounded recursion depth in deep clone/freeze.
+* LOW-4: present and defined may disagree for hostile prototype-chain inputs.
+* LOW-5: languageIds is spread without an explicit array guard.
+* LOW-6: an own contributes.configuration: undefined edge case lacks coverage and is classified as malformed rather than absent.
+* INFO: winningScope is not necessarily the sole source for object-valued settings because VS Code merges objects across scopes.
 
-2. which schema validator rejected it;
+Determine, using live source evidence, whether any of these findings blocks S-B implementation. Do not repair them in this task. If resolving one requires modifying a protected or pre-existing file, report that exact dependency and stop at planning.
 
-3. the precise safe validation failure:
-   - invalid JSON;
-   - missing required property;
-   - extra forbidden property;
-   - invalid enum;
-   - wrong data type;
-   - nullability mismatch;
-   - code-fence wrapping;
-   - explanatory text surrounding JSON;
-   - truncated output;
-   - token exhaustion;
-   - incorrect role schema;
-   - parser defect;
-   - another identified reason.
+6. S-B intended architectural outcome
 
-Do not print private reasoning, credentials, prompts containing sensitive
-repository content, or the complete raw model response.
+S-B is limited to:
 
-Return only a sanitized structural summary and validation path.
+* a deeply immutable/frozen ResolvedEtlAgentContext;
+* deterministic canonical serialization;
+* a deterministic versioned digest over the permitted canonical representation.
 
-────────────────────────────────────
-3. Reproduce minimally
-────────────────────────────────────
+S-B must establish a pure trust boundary before any planner or agent consumes the context.
 
-Build the smallest deterministic reproduction using:
+It must not absorb later-slice responsibilities:
 
-- the same role schema;
-- the same parser/validator;
-- a sanitized fixture shaped like the failed output;
-- no real repository modification;
-- no external action.
+* S-C: explicit workspace/resource selection and evidence completeness/ambiguity;
+* S-D: bootstrap/result envelopes and child/nested-agent propagation;
+* S-E: drift detection, stale-context rejection, and re-plan behavior;
+* S-F: user-facing English settings guidance;
+* S-G: temporary task overrides;
+* S-H: persistent VS Code configuration writes;
+* S-I/S-J/S-K: owner/platform-dependent registry, deployment-path, and publisher-recovery contracts.
 
-Prove the reproduction fails with the same `role_output_invalid`
-classification.
+S-B must not expose, log, serialize, or digest raw secret-like, credential-like, tenant-specific, or physical-storage values. Do not assume raw configuration values are permitted merely because they exist in VS Code. If live contracts do not support a safe representation, identify that as a blocker rather than expanding the trust boundary.
 
-Check whether the existing bounded schema-repair retry was:
+7. Required live-source investigation
 
-- invoked;
-- skipped;
-- exhausted;
-- incompatible with the failure;
-- incorrectly configured.
+Inspect and cite exact file paths and line ranges for:
 
-────────────────────────────────────
-4. Inspect the role-output contract
-────────────────────────────────────
+1. The public types and functions exposed by the four S-A files.
+2. Existing repository conventions for immutable domain objects.
+3. Existing deterministic serialization, stable-key ordering, hashing, schema-versioning, or digest utilities.
+4. Existing context, planning, evidence, bootstrap, envelope, or routing types that might conflict with or constrain ResolvedEtlAgentContext.
+5. Existing exports/barrel files and test naming/discovery conventions.
+6. Current Node/TypeScript facilities already available without adding a dependency.
+7. Any existing type or artifact already named similarly to ResolvedEtlAgentContext.
+8. Any current consumer of the S-A modules.
+9. Any forbidden early implementation of S-C or later behavior.
+10. The smallest exact S-B candidate change surface, distinguishing:
 
-Review:
+* new S-B files;
+* any existing file that would require modification;
+* protected/pre-existing files that must remain untouched.
 
-- Planner output schema;
-- Reviewer output schema;
-- role prompts;
-- structured-output request parameters;
-- output parsing;
-- code-fence removal;
-- JSON extraction;
-- schema-repair retry;
-- maximum output-token settings;
-- failure classification;
-- UI event/state propagation.
+Do not select file paths merely by preference. Ground every proposed path in current repository conventions.
 
-Check for contract drift between:
+8. Required S-B contract proposal
 
-- prompt instructions;
-- expected JSON schema;
-- Pydantic/dataclass/manual validator;
-- persisted role artifact;
-- UI parser.
+Produce a concrete, evidence-backed proposal covering:
 
-Do not weaken required safety fields merely to make the model pass.
+A. Context schema
 
-────────────────────────────────────
-5. Implement the smallest safe repair
-────────────────────────────────────
+For every proposed field, report:
 
-The repair may include, only when supported by evidence:
+* exact field name and type;
+* source/evidence owner;
+* whether it is required or optional;
+* why it belongs in S-B rather than S-C or later;
+* sensitivity classification;
+* whether it enters canonical serialization and the digest.
 
-- deterministic stripping of Markdown code fences;
-- extraction of exactly one JSON object;
-- rejection of ambiguous multiple JSON objects;
-- bounded repair of syntactic JSON defects;
-- one bounded schema-repair model retry;
-- explicit missing-field repair instructions;
-- enum normalization only when the mapping is unambiguous;
-- sufficient role output-token budget;
-- correct structured-output request configuration;
-- corrected prompt/schema alignment;
-- improved sanitized validation diagnostics.
+Do not invent environment, workspace, deployment, business, job, or provider values.
 
-Requirements:
+B. Immutability contract
 
-- preserve fail-closed behavior;
-- never accept incomplete evidence as PASS;
-- never invent required findings;
-- never expose private chain-of-thought;
-- never return raw malformed model text to the browser;
-- never silently discard required fields;
-- cap all retries;
-- record the exact repair reason in sanitized task events.
+Define:
 
-────────────────────────────────────
-6. Tests
-────────────────────────────────────
+* defensive-copy requirements;
+* recursive freezing behavior;
+* treatment of arrays and objects;
+* prototype and own-property handling;
+* cycles and excessive nesting;
+* mutation-isolation expectations;
+* repeated-construction determinism.
 
-Add focused local-agent tests for:
+C. Canonical serialization contract
 
-1. valid Planner output;
-2. valid Reviewer output;
-3. JSON wrapped in one Markdown code fence;
-4. leading/trailing explanatory text;
-5. missing required field;
-6. forbidden extra field;
-7. invalid enum;
-8. truncated JSON;
-9. multiple JSON objects;
-10. schema-repair success;
-11. schema-repair exhaustion;
-12. output remains invalid and fails closed;
-13. no private reasoning appears in events;
-14. UI receives a useful sanitized validation error;
-15. final Reviewer PASS is accepted only from a schema-valid output.
+Define explicitly:
 
-Run:
+* schema/version marker;
+* object-key ordering;
+* array ordering;
+* omitted versus undefined;
+* null, booleans, strings, and numbers;
+* non-finite numbers;
+* unsupported values and prototypes;
+* duplicate or ambiguous inputs;
+* Unicode/string behavior if relevant;
+* fail-closed error outcomes.
 
-- focused role-schema tests;
-- local-agent self-tests;
-- fake-repository Observe E2E;
-- fake-repository Safe E2E;
-- UI self-tests;
-- Python compilation;
-- Bash syntax validation;
-- authentication probe.
+D. Digest contract
 
-Expected authentication result:
+Determine from existing repository/runtime evidence:
 
-KMAI_DEV_AGENT_AUTH_OK
+* algorithm;
+* encoding;
+* version/domain-separation strategy;
+* exact bytes being digested;
+* whether the digest is recomputed or stored;
+* how accidental raw-value or secret inclusion is prevented.
 
-────────────────────────────────────
-7. Controlled real smoke test
-────────────────────────────────────
+Do not add dependencies.
 
-After all local and fake-repository tests pass, run a small real
-Observe-only smoke task against the clean Phase 2C worktree.
+E. Integration boundary
 
-The smoke task should only ask the Agent to return:
+Explain exactly how S-B may consume safe S-A results without:
 
-- repository branch;
-- HEAD;
-- applicable Phase 2 ADR paths;
-- confirmation that no tracked source file changed.
+* importing VS Code into the pure context module;
+* reading configuration again;
+* choosing an implicit workspace folder;
+* carrying mutable S-A objects;
+* implementing S-C selection/completeness;
+* implementing S-D propagation or S-E drift handling.
 
-It must exercise:
+F. Test plan
 
-- Planner;
-- repository evidence;
-- Reviewer;
-- schema validation;
-- final report.
+Provide the smallest focused test matrix that would discriminate:
 
-Do not yet rerun the complete Phase 2C remediation-planning task.
+* stable output across different object insertion orders;
+* meaningful array-order preservation;
+* deep immutability and mutation isolation;
+* canonical serialization determinism;
+* digest determinism and domain/version separation;
+* unsupported or unsafe input rejection;
+* absence of raw-value/secret propagation;
+* no VS Code import in the pure S-B module;
+* strict boundary against S-C and later slices;
+* actual discovery through an existing unmodified test route.
 
-Expected:
+Account explicitly for A1H MEDIUM-1 and MEDIUM-2. Do not modify src/test/testPatterns.ts during this task.
 
-- Planner output valid;
-- Reviewer output valid;
-- Reviewer verdict present;
-- Final Report present;
-- no tracked change;
-- no `role_output_invalid`.
-
-────────────────────────────────────
-8. Final response
-────────────────────────────────────
+9. Required report
 
 Return:
 
-1. Overall PASS or FAIL
-2. Exact failing role
-3. Exact sanitized schema-validation failure
-4. Why the existing repair mechanism did not recover
-5. Exact local-agent files changed
-6. Repair implemented
-7. Focused-test results
-8. Full self-test results
-9. Fake E2E results
-10. Real Observe smoke-test result
-11. Probe result
-12. Before/after tracked Git status
-13. Confirmation that no application source, branch, worktree, PR,
-    credential, environment setting or deployment was modified
-14. Whether the original Phase 2C Observe task is now safe to rerun
+1. Repository identity and start/end immutability proof.
+2. Full current SHA-256 table for all four S-A files.
+3. Complete porcelain classification:
+    * four kept S-A files;
+    * pre-existing/user-owned pending paths;
+    * any unexpected path.
+4. Confirmation whether an S-B or later artifact already exists.
+5. Live-source evidence table with path and line references.
+6. Open A1H finding impact table: blocker, non-blocker, or requires separate decision.
+7. Proposed S-B schema and trust-boundary table.
+8. Canonical serialization and digest specification.
+9. Exact proposed implementation file surface.
+10. Focused test matrix and unmodified discovery route.
+11. All blockers, ambiguities, or user/owner decisions still required.
+12. The smallest bounded S-B implementation plan—but no implementation.
 
-Do not perform Phase 2C remediation in this task.
+If repository identity differs, staged count is nonzero, any S-A full hash differs, an unexpected new artifact exists, protected files drift during inspection, the S-B trust boundary cannot be made explicit, or the exact change surface cannot be bounded, return FAIL.
+
+Finish with exactly one of these outcomes:
+
+POST_KEEP_SA_BYTES_MATCH_A1H: YES|NO
+PRE_EXISTING_OR_PROTECTED_DRIFT_DETECTED: YES|NO
+S_A_OPEN_FINDINGS_PRESERVED: YES|NO
+S_B_SCOPE_CONTRACT_COMPLETE: YES|NO
+S_B_READY_FOR_BOUNDED_IMPLEMENTATION: YES|NO
+S_B_IMPLEMENTATION_AUTHORIZED: NO
+SAFE_TO_PROCEED_TO_S_C: NO
+LOCAL_PHASE_SB0_READINESS_PASS
+
+or:
+
+POST_KEEP_SA_BYTES_MATCH_A1H: YES|NO
+PRE_EXISTING_OR_PROTECTED_DRIFT_DETECTED: YES|NO
+S_A_OPEN_FINDINGS_PRESERVED: YES|NO
+S_B_SCOPE_CONTRACT_COMPLETE: YES|NO
+S_B_READY_FOR_BOUNDED_IMPLEMENTATION: YES|NO
+S_B_IMPLEMENTATION_AUTHORIZED: NO
+SAFE_TO_PROCEED_TO_S_C: NO
+LOCAL_PHASE_SB0_READINESS_FAIL
