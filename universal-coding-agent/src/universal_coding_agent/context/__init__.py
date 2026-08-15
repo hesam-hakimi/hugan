@@ -1,0 +1,1 @@
+"""Role-specific context compilation."""
