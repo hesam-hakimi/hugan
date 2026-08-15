@@ -1,388 +1,249 @@
+LOCAL_PHASE_SB2R — EXACT REVERSIBLE RECOVERY OF THE AUDIT-CREATED DIRECTORY
 
-DIAGNOSE AND REPAIR GPT-5.5 PLANNER REASONING-TOKEN BUDGET EXHAUSTION
+Your SB2 audit correctly returned FAIL, but its malformed cached-host command accidentally created this directory at the canonical repository root:
 
-Work only on the AskTD / KMAI local development agent.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension\System.Management.Automation.Internal.Host.InternalHost
 
-Repository:
+Your report states that:
 
-/app1/tag5916/projects/kmai-td-genie
+* the directory did not exist at audit start;
+* it was created solely by the malformed SB2 audit command;
+* it contains 96 files totaling 21,257,633 bytes;
+* it contributes exactly 72 new pending entries;
+* expanded pending count increased from 23 to 95;
+* eight associated Code processes were stopped;
+* no original protected, S-A, or S-B candidate byte changed;
+* the directory was not deleted.
 
-Local tool:
+This task authorizes only a reversible quarantine move of that exact directory outside every Git worktree and workspace folder.
 
-.kmai-dev-agent
+It does not authorize deletion, repair, testing, process management, Keep, Undo, S-C, Git, package, VSIX, PR, CI, or any other mutation.
 
-The previous Reviewer schema defect has been successfully repaired and
-qualified:
-
-- Reviewer-only real-model replay: PASS
-- Reviewer verdict: PASS_WITH_CONDITIONS
-- Reviewer output: schema-valid
-- local-agent self-tests: 86/86 passed
-- UI self-tests: 63/63 passed
-
-A separate defect was discovered during the one controlled full
-qualification run.
-
-Observed failure:
-
-- stage: Planner
-- model profile: gpt55-quality
-- actual deployment/model: gpt-5.5-2026-04-24
-- maximumModelOutputTokens: 1200
-- completion_tokens: 1200
-- visible response content: empty
-- accepted_prediction_tokens: 0
-- surfaced error: json_parse_failed
-
-Evidence indicates the entire output-token budget was consumed by model
-reasoning, leaving no visible JSON Planner output.
-
-This task is only for repairing that local-agent infrastructure defect.
-
-Do not implement or remediate Phase 2C application findings.
-
-────────────────────────────────────
-1. Safety boundary
-────────────────────────────────────
-
-Allowed changes:
-
-- `.kmai-dev-agent/**` only.
-
-Do not modify:
-
-- tracked AskTD source;
-- tracked AskTD tests;
-- tracked documentation;
-- branches;
-- worktrees;
-- PRs;
-- Git history;
-- deployment configuration;
-- application configuration;
-- authentication;
-- credentials;
-- environment settings.
+1. Absolute restrictions
 
 Do not:
 
-- commit;
-- push;
-- merge;
-- rebase;
-- deploy;
-- install packages;
-- print raw model responses;
-- expose private model reasoning;
-- rerun the complete Phase 2C qualification before Planner-only replay
-  passes.
+* edit any source, test, package, configuration, documentation, or evaluation file;
+* modify any of the three S-B candidate files;
+* modify any S-A or pre-existing pending file;
+* delete the accidental directory;
+* use Remove-Item, rm, rmdir, del, git clean, or any equivalent deletion command;
+* move, delete, or alter .vscode-test;
+* restart, stop, kill, or otherwise manage any process;
+* click Keep or Undo;
+* stage, commit, push, stash, reset, checkout, merge, or alter a worktree;
+* compile, lint, test, build, package, install, download, or use network access;
+* create a quarantine directory inside any Git worktree or selected workspace folder;
+* use a wildcard, unresolved relative path, broad repository-root operation, or recursive operation against any parent directory.
 
-Confirm first that `.kmai-dev-agent` remains ignored and untracked.
+If any verification is ambiguous, stop without moving anything.
 
-────────────────────────────────────
-2. Locate the exact failed controlled run
-────────────────────────────────────
+2. Reverify repository state before recovery
 
-Locate the most recent controlled full-qualification task that has:
+Verify read-only:
+
+* Root:
+    C:\repos\etl-extension\etl_fw2\etl_framework_extension
+* Origin:
+    https://github.com/TD-Universe/agentic_etl.git
+* Branch:
+    feature/v3-agentic-redesign
+* HEAD:
+    b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* Worktree count: 3
+* Staged count: 0
+* Expanded pending count: 95
 
-- model profile `gpt55-quality`;
-- Planner-stage failure;
-- `json_parse_failed`;
-- zero visible content;
-- completion-token usage equal to the 1200-token budget.
+Confirm that exactly:
 
-Inspect only sanitized task artifacts and model-event metadata.
+* 20 paths are the original pre-S-B pending paths;
+* 3 paths are the S-B candidate;
+* 72 additional pending entries are beneath only:
+    System.Management.Automation.Internal.Host.InternalHost\
 
-Record:
+If any additional unexplained pending path exists, stop.
 
-- task ID;
-- model profile;
-- requested deployment/alias;
-- actual model;
-- role;
-- configured token budget;
-- completion tokens;
-- reasoning tokens when available;
-- visible-content length;
-- finish reason;
-- repair-attempt count;
-- final classification.
+3. Reverify protected and candidate bytes
 
-Do not print private reasoning or the raw response.
+Recompute the four authoritative S-A hashes:
 
-────────────────────────────────────
-3. Confirm the root cause
-────────────────────────────────────
+* EtlSettingsInventory.ts
+    6B99E6EB1851AB45050AE69225D06A59CE6AE0CE85871BF7A9C1DEAD0FBADD84
+* EtlSettingsProvenance.ts
+    09CD4A53A92D845D6C7F34279CBD2B2495F6C2EAE03D14567CBBC8474D553AC8
+* EtlSettingsVsCodeBindings.ts
+    0A010841E9806F6FDB51C35559EE20CB4A39A246F29001CA6A9DD749A3CD15D1
+* settingsInventoryProvenance.test.ts
+    64A4682CB2428B70F1E4B99B706A3050542502E14A57CC4BF7336D5711AB8AE2
 
-Determine whether the failure was caused by:
+Recompute the S-B candidate hashes and compare them with the SB2 start/end values:
 
-A. reasoning-token budget exhaustion;
+* EtlAgentContextCanonicalForm.ts
+    428327984682B2F473CD9AD481792C0D6029D78C1FFB655FB3435FF8D893C192
+* ResolvedEtlAgentContext.ts
+    DFC19D693C96DC0180CBBA92AA66F620582344FFD89ADA6100DACC3240D678CD
+* resolvedEtlAgentContext.test.ts
+    E35BFE5DE246A6956533B2B1BCE761F35225264B29A51B770557C26010F988C5
+
+Compare all 16 original pending-path hashes and the complete SB2 protected manifest with your captured audit-start values.
 
-B. unsupported or incorrectly mapped request parameters;
+If any protected or candidate hash differs, stop.
 
-C. response parsing before visible output was available;
+4. Prove the accidental-directory identity
 
-D. Planner prompt/schema drift;
+Resolve the exact source with a literal absolute path.
 
-E. another evidenced cause.
+Before moving it, prove:
 
-Do not assume that increasing tokens is the only possible fix.
+1. The resolved path equals exactly:
+    C:\repos\etl-extension\etl_fw2\etl_framework_extension\System.Management.Automation.Internal.Host.InternalHost
+2. It is a directory, not a file.
+3. It was absent from the SB2 audit-start inventory.
+4. It contains no Git-tracked or staged path.
+5. All 72 additional pending entries are descendants of this directory.
+6. No original 23 pending path is inside it.
+7. It contains 96 files totaling 21,257,633 bytes, or explain any discrepancy before proceeding.
+8. Neither the directory nor any descendant is a:
+    * symbolic link;
+    * junction;
+    * mount point;
+    * reparse point.
+9. No descendant resolves outside the exact source directory.
+10. No file timestamp predates the audit-created directory in a way that contradicts the recorded accident chronology.
 
-Inspect:
+Create an in-memory, deterministically sorted source manifest containing for every file:
 
-- `.kmai-dev-agent/policy.json`;
-- model-profile role mappings;
-- Planner invocation code;
-- KMAI client request construction;
-- output-token parameter mapping;
-- reasoning-effort support;
-- Planner parser and validator;
-- retry and failure-classification logic.
+* relative path;
+* length;
+* SHA-256.
 
-Do not read or print credentials.
+Compute a single manifest digest from that sorted manifest.
 
-────────────────────────────────────
-4. Replace the global fixed budget with bounded role/model policy
-────────────────────────────────────
+Do not write the manifest inside the repository.
 
-If confirmed by evidence, introduce a server-controlled, profile-aware,
-role-aware output-budget policy.
+If any condition fails, do not move anything.
 
-The browser must not supply arbitrary token values.
+5. Select a safe quarantine destination
 
-The policy must support distinct bounded budgets for:
+Resolve the operating-system temporary directory.
 
-- search;
-- planner;
-- implementer;
-- reviewer;
-- repair;
-- escalation.
+Create a unique quarantine parent named similarly to:
 
-Preserve the existing profile behavior.
+SB2_AUDIT_QUARANTINE_20260815_<unique-suffix>
 
-For `gpt55-quality`, determine the smallest safe Planner budget through
-bounded calibration rather than guessing.
+The final destination must:
 
-Use a sanitized Planner fixture representative of the full workload.
+* be on the same volume as the source so the directory move can be atomic;
+* be outside the canonical repository;
+* be outside all three Git worktrees;
+* be outside every selected multi-root workspace folder;
+* not already exist;
+* not be a descendant of the accidental source directory;
+* not be .vscode-test;
+* contain no pre-existing user file.
 
-Calibrate in bounded steps, for example:
+Report the fully resolved destination before moving.
 
-- current budget;
-- next bounded budget;
-- one final higher bounded budget.
+If a same-volume safe destination cannot be established, stop. Do not fall back to copy-and-delete.
 
-Stop at the first budget that returns:
+6. Perform exactly one reversible move
 
-- non-empty visible content;
-- exactly one JSON object;
-- schema-valid Planner output.
+After every check passes, move only the literal source directory to the verified quarantine destination using an exact-path directory move.
 
-Do not exceed a documented local-agent maximum.
+Prefer a same-volume atomic directory move such as the platform equivalent of System.IO.Directory.Move.
 
-Do not run the full repository qualification during calibration.
+Do not:
 
-────────────────────────────────────
-5. Model-aware failure classification
-────────────────────────────────────
+* recursively delete the source;
+* copy selected files;
+* merge into an existing destination;
+* overwrite anything;
+* operate on the repository root or source parent;
+* perform any second filesystem mutation.
 
-When all available completion tokens are consumed and visible content is
-empty, do not report only:
+If the move fails, stop immediately. Do not retry with deletion, force, wildcard, or fallback logic.
 
-json_parse_failed
+7. Post-move verification
 
-Classify it safely as something equivalent to:
+After the move, prove:
 
-model_output_budget_exhausted
+* the original source path no longer exists;
+* the quarantine destination exists;
+* the destination remains outside all worktrees/workspace folders;
+* destination file count is exactly 96;
+* destination total bytes are exactly 21,257,633;
+* the destination’s sorted relative-path/length/SHA-256 manifest exactly matches the pre-move source manifest;
+* repository expanded pending count returned from 95 to exactly 23;
+* the 72 audit-created pending entries disappeared;
+* the original 20 pending paths remain present and byte-identical;
+* the three S-B files remain present and byte-identical;
+* all four S-A hashes still match A1H;
+* every protected hash is unchanged;
+* staged count remains 0;
+* root, origin, branch, HEAD, and three-worktree inventory are unchanged;
+* .vscode-test is untouched;
+* the Copilot S-B review card still contains exactly the same three files;
+* no process state was changed by this recovery task.
 
-Persist sanitized fields such as:
+Do not delete the quarantine destination after verification.
 
-- role;
-- profile;
-- actual model;
-- configured budget;
-- completion-token count;
-- reasoning-token count when available;
-- visible-content length;
-- finish reason.
-
-Do not expose raw content or private reasoning.
-
-The UI should show a useful safe message such as:
-
-Planner produced no visible structured output because the configured
-model-output budget was exhausted.
-
-────────────────────────────────────
-6. Bounded retry behavior
-────────────────────────────────────
-
-If budget exhaustion is conclusively detected:
-
-- allow at most one bounded retry;
-- use the next approved server-side budget for that profile and role;
-- do not repeat the same request with the same exhausted budget;
-- do not retry unrelated schema failures as budget failures;
-- record the retry reason safely.
-
-If the second attempt still has no visible output, fail closed.
-
-No unbounded retries.
-
-────────────────────────────────────
-7. Planner output compactness
-────────────────────────────────────
-
-Review whether the Planner prompt requests unnecessary verbosity.
-
-The schema-bound Planner output should remain concise and deterministic.
-
-Detailed evidence should stay in persisted evidence artifacts and be
-referenced by safe identifiers rather than duplicated extensively inside
-the Planner JSON.
-
-Do not remove required planning fields.
-
-Do not weaken planning quality or safety gates.
-
-────────────────────────────────────
-8. Tests
-────────────────────────────────────
-
-Add focused tests for:
-
-1. Existing Default profile and current budgets remain unchanged.
-2. GPT-5.5 Planner receives the configured role-specific budget.
-3. Browser cannot submit an arbitrary token budget.
-4. Empty visible content with budget fully consumed is classified as
-   model_output_budget_exhausted.
-5. Empty output without proven exhaustion is not misclassified.
-6. One bounded budget retry succeeds.
-7. Second exhaustion fails closed.
-8. Schema failures do not trigger a budget retry.
-9. Valid Planner JSON is accepted.
-10. Truncated Planner JSON remains rejected.
-11. Planner output remains bounded and concise.
-12. Historical tasks remain readable.
-13. Task state records sanitized budget diagnostics.
-14. UI displays safe diagnostics.
-15. No raw model response or private reasoning is persisted.
-16. Reviewer schema repair remains passing.
-17. Existing fake Observe and Safe E2E remain passing.
-
-Run:
-
-- focused Planner/model-policy tests;
-- Reviewer hardening tests;
-- all local-agent self-tests;
-- all UI self-tests;
-- fake Observe E2E;
-- fake Safe E2E;
-- Python compilation;
-- Bash syntax validation;
-- authentication probe.
-
-Expected authentication result:
-
-KMAI_DEV_AGENT_AUTH_OK
-
-────────────────────────────────────
-9. Planner-only real-model replay
-────────────────────────────────────
-
-After all local tests pass, replay only the Planner stage using:
-
-- the persisted full-qualification task input;
-- the same `gpt55-quality` profile;
-- the repaired role/model budget policy.
-
-Do not rerun repository indexing or application tests.
-
-Expected:
-
-- visible content is non-empty;
-- Planner JSON is schema-valid;
-- Planner artifact is created;
-- no json_parse_failed;
-- no model_output_budget_exhausted after the bounded retry policy;
-- no tracked AskTD changes.
-
-If Planner-only replay fails, stop.
-
-Do not run the full qualification.
-
-────────────────────────────────────
-10. Reviewer regression replay
-────────────────────────────────────
-
-After Planner-only replay passes, confirm the previously repaired
-Reviewer-only replay still passes:
-
-- schema-valid;
-- verdict populated;
-- no role_output_invalid.
-
-────────────────────────────────────
-11. One controlled full qualification
-────────────────────────────────────
-
-Only after both Planner-only and Reviewer-only replays pass, run one
-complete Phase 2C Observe qualification.
-
-Use:
-
-Workspace:
-/tmp/kmai-phase2c-semantic-plan
-
-Branch:
-phase2/semantic-plan-contract-validator
-
-Autonomy:
-observe
-
-Model profile:
-gpt55-quality
-
-Expected:
-
-- phase completed;
-- Planner artifact present;
-- evidence present;
-- tests present;
-- Reviewer artifact schema-valid;
-- Reviewer verdict populated;
-- Final Report present;
-- changed paths empty;
-- no commit/push/merge/deploy;
-- no json_parse_failed;
-- no role_output_invalid.
-
-Do not perform application remediation.
-
-────────────────────────────────────
-12. Final response
-────────────────────────────────────
+8. Required report
 
 Return:
 
-1. Overall PASS or FAIL.
-2. Exact root-cause classification.
-3. Failed controlled-run task ID.
-4. Original budget and sanitized token-usage evidence.
-5. Whether request-parameter mapping was correct.
-6. Exact local-agent files changed.
-7. Role/model budget policy implemented.
-8. Calibrated GPT-5.5 Planner budget and evidence for choosing it.
-9. Failure-classification behavior.
-10. Bounded retry behavior.
-11. Focused test results.
-12. Full self-test and UI-test results.
-13. Planner-only replay result.
-14. Reviewer regression replay result.
-15. Controlled full-qualification result.
-16. Authentication probe result.
-17. Before/after tracked Git status.
-18. Confirmation that no AskTD source, branch, worktree, PR, credential,
-    environment setting, or deployment was changed.
-19. Whether the Agent is now qualified for full real Observe tasks with
-    the `gpt55-quality` profile.
+1. Repository identity.
+2. Exact pre-move pending classification.
+3. Source-directory identity and reparse/tracked-content checks.
+4. Source count, bytes, and manifest digest.
+5. Fully resolved quarantine destination.
+6. Exact move operation and exit/result.
+7. Destination count, bytes, and manifest comparison.
+8. Post-move pending inventory.
+9. Start/end hashes for all S-A and S-B files.
+10. Start/end comparison for all protected paths.
+11. Confirmation that no other operation occurred.
+12. Exact quarantine path retained for later disposition.
+
+This recovery does not authorize S-B repair or Keep.
+
+Finish with exactly one block and no text after it.
+
+SUCCESS:
+
+ACCIDENT_PATH_EXACTLY_VERIFIED: YES
+TRACKED_CONTENT_IN_ACCIDENT_PATH: NO
+REPARSE_POINT_DETECTED: NO
+QUARANTINE_DESTINATION_SAFE: YES
+REVERSIBLE_MOVE_SUCCEEDED: YES
+SOURCE_PATH_ABSENT_AFTER_MOVE: YES
+QUARANTINE_MANIFEST_MATCHES_SOURCE: YES
+PENDING_COUNT_RESTORED_TO_23: YES
+ORIGINAL_20_PATHS_BYTE_IDENTICAL: YES
+S_A_HASHES_MATCH_A1H: YES
+S_B_CANDIDATE_HASHES_UNCHANGED: YES
+PROTECTED_PATH_DRIFT: NO
+STAGED_COUNT: 0
+SAFE_TO_CLICK_KEEP: NO
+SAFE_TO_REPAIR_S_B: NO
+SAFE_TO_PROCEED_TO_S_C: NO
+LOCAL_PHASE_SB2R_RECOVERY_COMPLETE
+
+FAILURE:
+
+ACCIDENT_PATH_EXACTLY_VERIFIED: YES|NO
+TRACKED_CONTENT_IN_ACCIDENT_PATH: YES|NO|UNKNOWN
+REPARSE_POINT_DETECTED: YES|NO|UNKNOWN
+QUARANTINE_DESTINATION_SAFE: YES|NO
+REVERSIBLE_MOVE_SUCCEEDED: YES|NO
+SOURCE_PATH_ABSENT_AFTER_MOVE: YES|NO
+QUARANTINE_MANIFEST_MATCHES_SOURCE: YES|NO|UNKNOWN
+PENDING_COUNT_RESTORED_TO_23: YES|NO
+ORIGINAL_20_PATHS_BYTE_IDENTICAL: YES|NO
+S_A_HASHES_MATCH_A1H: YES|NO
+S_B_CANDIDATE_HASHES_UNCHANGED: YES|NO
+PROTECTED_PATH_DRIFT: YES|NO|UNKNOWN
+STAGED_COUNT: 
+SAFE_TO_CLICK_KEEP: NO
+SAFE_TO_REPAIR_S_B: NO
+SAFE_TO_PROCEED_TO_S_C: NO
+LOCAL_PHASE_SB2R_RECOVERY_BLOCKED
