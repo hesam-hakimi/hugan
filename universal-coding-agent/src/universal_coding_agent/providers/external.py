@@ -3,7 +3,6 @@ import os
 
 from universal_coding_agent.providers.base import ModelProvider
 
-
 DEFAULT_FACTORY_ENV = "UCA_MODEL_PROVIDER_FACTORY"
 
 
