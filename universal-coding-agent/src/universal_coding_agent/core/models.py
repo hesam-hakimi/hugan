@@ -59,7 +59,7 @@ class TaskRequest(FrozenModel):
     metadata: dict[str, str] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def phase_one_is_observe_only(self) -> "TaskRequest":
+    def phase_one_is_observe_only(self) -> TaskRequest:
         if self.mode is not TaskMode.OBSERVE:
             raise ValueError("this milestone supports observe mode only")
         return self
@@ -127,7 +127,7 @@ class PhasePlan(FrozenModel):
     final_acceptance_criteria: tuple[str, ...] = ()
 
     @model_validator(mode="after")
-    def validate_slice_graph(self) -> "PhasePlan":
+    def validate_slice_graph(self) -> PhasePlan:
         ids = [item.slice_id for item in self.slices]
         if len(ids) != len(set(ids)):
             raise ValueError("slice IDs must be unique")

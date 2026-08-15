@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 import importlib
 import os
-from collections.abc import Callable
 
 from universal_coding_agent.providers.base import ModelProvider
 
