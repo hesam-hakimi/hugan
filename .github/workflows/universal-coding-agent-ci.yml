@@ -1,0 +1,48 @@
+name: Universal Coding Agent CI
+
+on:
+  push:
+    branches:
+      - feature/universal-coding-agent-mvp
+    paths:
+      - "universal-coding-agent/**"
+      - ".github/workflows/universal-coding-agent-ci.yml"
+  pull_request:
+    paths:
+      - "universal-coding-agent/**"
+      - ".github/workflows/universal-coding-agent-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: universal-coding-agent/pyproject.toml
+
+      - name: Install package and development dependencies
+        run: python -m pip install -e './universal-coding-agent[dev]'
+
+      - name: Compile Python sources
+        run: python -m compileall -q universal-coding-agent/src universal-coding-agent/tests
+
+      - name: Run lint
+        run: ruff check universal-coding-agent
+
+      - name: Run tests
+        run: pytest -q universal-coding-agent/tests
