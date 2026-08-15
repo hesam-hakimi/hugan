@@ -1,142 +1,193 @@
 LOCAL_PHASE_SB3 — BOUNDED THREE-FILE S-B REPAIR AFTER INDEPENDENT AUDIT FAILURE
 
-FINAL COMBINED PROMPT WITH CONSOLIDATED ONE-TIME AUTHORIZATION
+FINAL CONSOLIDATED IMPLEMENTATION PROMPT
 
-Run this task in the original chat that performed LOCAL_PHASE_SB1.
+Execute this prompt only in the original Copilot chat that performed:
 
-This is a bounded repair of the existing S-B candidate after the independent LOCAL_PHASE_SB2 audit failure and the completed LOCAL_PHASE_SB2R recovery.
+LOCAL_PHASE_SB1 — BOUNDED S-B IMPLEMENTATION
 
-This is:
+This is the chat whose current review card shows exactly:
 
-* not a fresh S-B implementation;
-* not an independent audit;
-* not a Keep authorization;
-* not S-C or any later slice;
-* not authorization to modify repository infrastructure, protected files, evaluation evidence, package files, Git state, or existing user-owned work.
+3 files changed +2494 -3
 
-All explanations, code comments, test names, command output summaries, and final reporting must be in English.
+Do not execute this prompt in the independent S-B correctness and security audit chat.
 
-The words MUST, ONLY, EXACTLY, NEVER, and DO NOT are hard constraints.
+This task repairs the existing three-file S-B candidate. It is not a new implementation, not another recovery attempt, not an independent audit, not a Keep decision, and not authorization for S-C.
+
+All explanations, code comments, test names, and final reporting must be in English.
+
+MUST, ONLY, EXACTLY, NEVER, and DO NOT are hard constraints.
 
 ⸻
 
-0. CONSOLIDATED ONE-TIME AUTHORIZATION GATE — HIGHEST PRIORITY
+0. AUTHORITATIVE INTERPRETATION OF THE PRECEDING SB2R REPORT
 
-This section takes precedence over every later instruction concerning preflight, execution, editing, commands, temporary files, and permission requests.
+The immediately preceding SB2R rerun in this chat was read-only and found that the recovery had already been completed by an earlier session.
 
-Phase A — ask exactly once
+Its markers:
 
-Before performing the first tool call, filesystem read, repository inspection, file edit, shell command, or temporary-directory operation:
+SAFE_TO_REPAIR_S_B: NO
+REVERSIBLE_MOVE_SUCCEEDED: NO
+LOCAL_PHASE_SB2R_RECOVERY_BLOCKED
 
-1. Do not execute anything.
+apply only to authorization to repeat the already-completed recovery move.
+
+They are not an SB3 eligibility decision.
+
+The following recovered live state is expected:
+
+* the accidental repository source path is absent;
+* expanded pending count is exactly 23;
+* the original 20 pre-S-B pending paths are present and byte-identical;
+* the three S-B candidate paths are present and match their authoritative pre-repair hashes;
+* staged count is 0;
+* S-A hashes match A1H;
+* protected-path drift is zero;
+* repository identity, branch, HEAD, and worktrees are unchanged.
+
+The source-to-quarantine manifest comparison is permanently UNKNOWN because the original source no longer exists and the earlier VS Code test host continued writing 15,492 bytes after the move.
+
+This quarantine discrepancy is not an SB3 preflight blocker.
+
+Do not:
+
+* repeat the recovery;
+* recreate the accidental source;
+* inspect or manage processes;
+* inspect, modify, move, copy, merge, or delete the quarantine;
+* require source-to-quarantine byte equivalence as an SB3 gate.
+
+Determine SB3 eligibility only from the live repository preflight requirements in this prompt.
+
+The independent SB2 audit transcript is not present in this implementation chat. The audit findings stated in this prompt are nevertheless authoritative repair requirements. Verify them against the current three candidate files; do not reject the task merely because the SB2 transcript is absent from this chat.
+
+⸻
+
+1. CONSOLIDATED ONE-TIME AUTHORIZATION GATE — HIGHEST PRIORITY
+
+This section takes precedence over every later instruction concerning preflight, editing, command execution, temporary files, and permission requests.
+
+Phase A — ask once and stop
+
+Before the first tool call, filesystem read, repository inspection, file edit, command, or temporary-directory operation:
+
+1. Execute nothing.
 2. Display the exact authorization request below.
-3. Stop.
-4. Wait for the user to reply with the exact approval token:
+3. Stop and wait for the exact approval token:
 
 APPROVE_LOCAL_PHASE_SB3_BATCH
 
 Display exactly:
 
 CONSOLIDATED_APPROVAL_REQUEST — LOCAL_PHASE_SB3
-Authorize one bounded local batch covering all of the following:
+Authorize one bounded local batch covering:
 A. READ-ONLY INSPECTION
-- Verify repository root, origin, branch, HEAD, worktrees, staged count, pending-path inventory, candidate hashes, S-A hashes, and protected-path hashes.
-- Read and search repository files needed to repair and validate the existing S-B candidate.
-- Run read-only Git operations such as rev-parse, remote inspection, branch inspection, worktree list, status, diff, diff --no-index where safe, ls-files, show, and hash-object.
-- Run local path, file-size, line-count, text-search, and SHA-256 commands.
+- Verify repository root, origin, branch, HEAD, worktrees, staged count, pending paths, candidate hashes, S-A hashes, and protected-path hashes.
+- Read/search only the files necessary to implement and validate the SB3 repair.
+- Run read-only Git, path, text-search, line-count, and SHA-256 commands.
 B. EXACTLY THREE AUTHORIZED FILE EDITS
 1. src/core/agentContext/ResolvedEtlAgentContext.ts
 2. src/core/agentContext/EtlAgentContextCanonicalForm.ts
 3. src/test/suite/resolvedEtlAgentContext.test.ts
 No other repository file may be created, modified, deleted, renamed, moved, restored, staged, or generated.
 C. AUTHORIZED LOCAL VALIDATION
-- Invoke only already-installed local Node.js, TypeScript, ESLint, and Mocha binaries.
+- Use only already-installed local Node.js, TypeScript, ESLint, and Mocha binaries.
 - Run TypeScript no-emit validation.
 - Perform an isolated TypeScript compilation whose config and emitted output remain entirely inside one authorized OS temporary directory.
-- Run direct focused Mocha tests for S-B.
-- Run the required direct S-A regression filter.
-- Run ESLint only against the three authorized files, with caching disabled.
+- Run direct focused S-B Mocha tests.
+- Run the direct S-A regression filter.
+- Run ESLint only against the three authorized files with caching disabled.
 - Perform final status, diff, path-inventory, and SHA-256 reconciliation.
-- Do not install, update, or download any dependency.
 D. ONE UNIQUE OS TEMPORARY DIRECTORY
-- Create one uniquely named operating-system temporary directory outside the repository, all Git worktrees, all selected workspace folders, .vscode-test, and the retained SB2 quarantine.
+- Create one uniquely named OS temporary directory outside every repository, worktree, selected workspace folder, .vscode-test, and retained quarantine.
 - Use it only for isolated compilation and test artifacts.
-- Record and validate its exact canonical path before use.
-- At completion, delete only that exact directory, provided it was created by this phase and did not exist before this phase.
-- Never use a wildcard, unresolved variable, repository path, workspace root, HOME directory, parent directory, or broad recursive target for cleanup.
+- Record and validate its exact canonical path.
+- Delete only that exact directory after validation, provided this phase created it and it did not previously exist.
+- Never use a wildcard, unresolved variable, repository path, workspace root, HOME directory, parent directory, or broad recursive deletion target.
 E. FINAL VERIFICATION
-- Confirm that exactly the three authorized files changed during SB3.
+- Confirm exactly the three authorized files changed.
 - Confirm staged count remains zero.
-- Confirm all non-candidate pending, protected, package, control-plane, evaluation, workflow, and S-A files remain byte-identical.
-- Report every validation command, exit code, test count, resulting candidate hash, unrelated failure, deviation, and remaining limitation.
+- Confirm all S-A, non-candidate pending, package, protected, control-plane, evaluation, and workflow files remain byte-identical.
+- Report commands, exit codes, test counts, resulting hashes, unrelated failures, deviations, and limitations.
 EXPLICITLY NOT AUTHORIZED:
 - Any fourth repository file
 - Network access or downloads
-- npm install, npm update, dependency mutation, or download-capable npx execution
+- npm install, npm update, dependency changes, or download-capable npx execution
 - downloadAndUnzipVSCode or any VS Code/Electron test-download wrapper
-- Modification, deletion, refresh, or cleanup of .vscode-test
-- Modification, deletion, or inspection-driven mutation of the retained SB2 quarantine
-- Package, VSIX, release, deployment, PR, CI, or publishing work
-- Git add, commit, checkout, restore, reset, clean, stash, merge, rebase, branch creation, tag, push, or pull
+- Modification or deletion of .vscode-test
+- Modification, deletion, movement, or further inspection of the SB2 quarantine
+- Git add, commit, checkout, restore, reset, clean, stash, merge, rebase, branch, tag, push, or pull
+- Package, VSIX, release, PR, CI, deployment, or publishing work
 - Keep or Undo
 - S-C or any later phase
 - Evaluation-baseline regeneration or docs/eval writes
 - Process-management actions
 - Any operation not explicitly listed above
-This approval does not authorize accepting or keeping the repaired candidate. A new independent audit is still required.
+This approval does not authorize accepting or keeping the repaired candidate. A new independent audit remains mandatory.
 Reply exactly:
 APPROVE_LOCAL_PHASE_SB3_BATCH
 
-Phase B — execution after approval
+Phase B — autonomous execution after approval
 
 After receiving the exact approval token:
 
-1. Treat it as one conversational authorization for every operation explicitly listed above.
-2. Begin preflight immediately and execute the complete SB3 workflow autonomously.
+1. Treat it as one conversational authorization for all operations explicitly listed above.
+2. Begin preflight immediately.
 3. Do not ask another conversational permission question for an already-authorized read, edit, command, validation, or exact temporary-directory cleanup.
-4. Group logically related safe checks into the minimum practical number of terminal or tool calls.
-5. Do not combine commands in a way that hides effects, weakens error handling, or makes target paths ambiguous.
-6. Do not expand scope merely to make a command, build, or test pass.
-7. If an operation outside the approved manifest becomes necessary, stop before performing it and request one new narrowly scoped authorization.
-8. If repository identity, hashes, path inventory, or protected state does not match the required preflight state, perform no edit and report LOCAL_PHASE_SB3_PREFLIGHT_BLOCKED.
+4. Group logically related safe operations into the minimum practical number of tool calls.
+5. Do not combine commands in a way that hides their effects or makes target paths ambiguous.
+6. Do not broaden scope to make compilation or tests pass.
+7. If an unlisted operation becomes necessary, stop before performing it and request one new narrowly scoped authorization.
+8. If repository identity, hashes, pending inventory, or protected state fails preflight, perform no edit and report:
 
-Host-enforced permission boundary
+LOCAL_PHASE_SB3_PREFLIGHT_BLOCKED
+
+Host permission boundary
 
 The approval token is conversational authorization. It does not override VS Code, Copilot, operating-system, sandbox, or host security controls.
 
-If the host still displays a mandatory Allow, Run tool, or equivalent dialog:
+If the host still shows a mandatory Allow, Run tool, or equivalent dialog:
 
-* minimize dialogs by batching only already-authorized operations;
+* minimize dialogs by batching already-authorized operations;
 * do not repeat the permission question in chat;
-* do not request broad workspace access or Always Allow;
-* do not change permission settings;
-* do not use shell tricks or alternate tools to bypass the host control;
-* resume the authorized workflow immediately after the host-level permission is granted.
+* do not request broad access or Always Allow;
+* do not modify permission settings;
+* do not use alternate commands or shell tricks to bypass the host;
+* resume immediately after host authorization.
 
 ⸻
 
-1. AUTHORITATIVE START STATE
+2. AUTHORITATIVE REPOSITORY START STATE
 
-The following state is authoritative for this task.
+Identity
 
-Repository identity
+Repository root:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension
+Origin:
+https://github.com/TD-Universe/agentic_etl.git
+Branch:
+feature/v3-agentic-redesign
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Worktree count:
+3
+Staged count:
+0
+Expanded pending count:
+23
 
-* Repository root leaf: etl_framework_extension
-* Origin: https://github.com/TD-Universe/agentic_etl.git
-* Branch: feature/v3-agentic-redesign
-* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
-* Worktree count: 3
-* Staged paths: 0
-* Expanded pending paths after SB2R recovery: 23
-    * original pre-S-B pending paths: 20
-    * S-B candidate paths: 3
-    * accidental audit-created entries remaining in the repository: 0
+Pending classification:
 
-The three S-B files must still be absent from both HEAD and the index.
+Original pre-S-B pending paths: 20
+S-B candidate paths: 3
+Accidental-directory entries: 0
+Unexplained additional paths: 0
 
-Current S-B candidate hashes
+The three S-B paths must remain absent from both HEAD and the Git index.
 
-Full SHA-256 values must be compared without prefix abbreviation:
+Authoritative S-B pre-repair hashes
+
+Compare all 64 characters without abbreviation:
 
 src/core/agentContext/EtlAgentContextCanonicalForm.ts
 428327984682B2F473CD9AD481792C0D6029D78C1FFB655FB3435FF8D893C192
@@ -145,11 +196,11 @@ DFC19D693C96DC0180CBBA92AA66F620582344FFD89ADA6100DACC3240D678CD
 src/test/suite/resolvedEtlAgentContext.test.ts
 E35BFE5DE246A6956533B2B1BCE761F35225264B29A51B770557C26010F988C5
 
-These are the authorized repair inputs. Their hashes are expected to change during SB3.
+These are the only files whose hashes may change during SB3.
 
 Authoritative S-A hashes
 
-Resolve each path uniquely by its exact filename and verify its full SHA-256 value:
+Resolve each exact filename uniquely and verify its complete SHA-256 value:
 
 EtlSettingsInventory.ts
 6B99E6EB1851AB45050AE69225D06A59CE6AE0CE85871BF7A9C1DEAD0FBADD84
@@ -160,124 +211,149 @@ EtlSettingsVsCodeBindings.ts
 settingsInventoryProvenance.test.ts
 64A4682CB2428B70F1E4B99B706A3050542502E14A57CC4BF7336D5711AB8AE2
 
-No S-A file may be modified.
+No S-A file may change.
 
-SB2 recovery state
+Recovery and quarantine state
 
-The audit-created repository directory named:
+The repository path named:
 
 System.Management.Automation.Internal.Host.InternalHost
 
-must be absent from the repository.
+must be absent.
 
-Its recovered quarantine leaf is:
+The retained quarantine is:
 
-SB2_AUDIT_QUARANTINE_20260815_5574a5974eab
+C:\Users\tag5916\AppData\Local\Temp\SB2_AUDIT_QUARANTINE_20260815_5574a5974eab
 
-It is outside all repositories and worktrees. Do not modify, move, delete, merge, copy, or enumerate its contents during SB3.
+Do not inspect, modify, move, or delete it.
 
-The existing .vscode-test cache is unrelated and protected. Do not modify or delete it.
+The existing .vscode-test cache is protected and unrelated. Do not modify or delete it.
 
-Protected-state reconciliation
+Other protected paths
 
-Use retained SB0, SB1, SB2, and SB2R evidence already present in this chat.
+The protected set includes, but is not limited to:
 
-Reconcile the complete 57-path SB2R start manifest if available:
+.tsbuildinfo.test
+package.json
+package-lock.json
+tsconfig.json
+tsconfig.test.json
+testPatterns.ts
+src/customization/CopilotAssetCatalog.ts
+src/tools/EtlActionToolService.ts
+EvalGovernance.ts
+evalGating.test.ts
+docs/eval/**
+.github/**
+workflow/**
+AGENTS.md
+COPY_ORDER.md
 
-* exactly the three authorized S-B candidates may change;
-* the other 54 paths must remain byte-identical.
+Resolve actual paths read-only. Do not modify them.
 
-If the complete retained manifest cannot be reconstructed from the chat, do not invent hashes. Capture a fresh read-only SB3 baseline for every non-authorized pending and protected path after all exact identity, pending-count, S-A, and candidate-hash checks have passed.
+If the historical complete protected manifest is unavailable in this chat, do not invent hashes. After all fixed identity, count, candidate-hash, and S-A-hash checks pass, capture a fresh SB3 start hash for every non-authorized pending/protected path and compare it at the end.
 
-Any preflight mismatch is a hard stop.
+Any fixed preflight mismatch is a hard stop.
 
 ⸻
 
-2. EXACT AUTHORIZED REPAIR SURFACE
+3. EXACT AUTHORIZED REPAIR SURFACE
 
 Modify in place only:
 
-1. src/core/agentContext/ResolvedEtlAgentContext.ts
-2. src/core/agentContext/EtlAgentContextCanonicalForm.ts
-3. src/test/suite/resolvedEtlAgentContext.test.ts
+src/core/agentContext/ResolvedEtlAgentContext.ts
+src/core/agentContext/EtlAgentContextCanonicalForm.ts
+src/test/suite/resolvedEtlAgentContext.test.ts
 
 Do not:
 
 * create a barrel or index.ts;
-* create helper, fixture, config, report, Markdown, JSON, snapshot, or generated file in the repository;
-* modify package.json, package-lock.json, TypeScript configs, test registries, runner files, or scripts;
+* create another source or test file;
+* create repository-local fixtures, configs, reports, Markdown, JSON, snapshots, or generated output;
+* modify package files or TypeScript configs;
 * modify testPatterns.ts;
 * modify S-A;
-* modify control-plane, workflow, docs/eval/**, or user-owned pending files;
+* modify control-plane, workflow, evaluation, or existing user-owned paths;
 * apply repository-wide formatting;
 * add a dependency;
-* move code into a fourth file.
+* move implementation into a fourth file.
 
-All production repair code and all permanent tests must fit inside the same three files.
+All permanent repair code and tests must remain inside the existing three candidate files.
 
 ⸻
 
-3. SB2 FINDINGS THAT MUST BE REPAIRED
+4. MANDATORY SB2 REPAIRS
 
-3.1 HIGH — literal schema-version contract
+4.1 Literal schema-version contract
 
-The public schema currently exposes schemaVersion as number.
+The current public interface exposes schemaVersion as number.
 
 Repair it so that:
 
-* the public context contract exposes readonly schemaVersion: 1;
-* the exported schema-version constant retains literal type 1;
-* every successfully built context contains runtime value 1;
-* canonicalization validates the exact value;
-* a version-2 context or payload is rejected;
-* a compile-time probe proves that version 2 is not assignable;
+* the public contract declares readonly schemaVersion: 1;
+* the schema-version constant retains literal type 1;
+* a successful context always contains runtime value 1;
+* canonicalization validates exact value 1;
+* a version-2 payload fails closed;
+* a compile-time probe proves 2 is not assignable;
 * changing the domain/version header changes the digest.
 
-Do not rely only on runtime comparison. The public TypeScript contract itself must be literal.
+A runtime equality test alone is insufficient. The exported TypeScript contract must itself use literal 1.
 
-3.2 HIGH — hostile-input and reflective-boundary safety
+4.2 Hostile-input boundary
 
-The current candidate can invoke getters, custom array iterators, and proxy traps, and thrown attacker-controlled prose can escape.
+The current implementation may invoke getters, custom array iterators, or Proxy/reflection traps and may allow attacker-controlled exception prose to escape.
 
 Replace unsafe traversal with a bounded descriptor-snapshot boundary.
 
 Required behavior:
 
-* Never read untrusted object fields using ordinary property access before validation.
-* Never invoke getters, setters, custom iterators, coercion hooks, toJSON, or attacker-provided callbacks.
-* Inspect own property descriptors under guarded exception handling.
-* Reject accessor descriptors without invoking them.
-* Copy only validated own data descriptors.
-* Wrap all reflection operations that may trigger Proxy traps.
-* Convert reflection or Proxy failures to fixed machine-only failure codes.
-* Never return, interpolate, log, or echo attacker-controlled exception text.
-* Do not use array spread, slice, Array.from, map, for...of, or the iterator protocol on untrusted arrays.
-* Validate array index descriptors directly.
-* Reject sparse arrays.
-* Reject augmented arrays containing extra string or symbol properties.
-* Reject custom array prototypes.
-* Reject symbol-keyed input.
-* Reject unsupported non-enumerable input properties, except the intrinsic validated array length descriptor.
-* Reject accessor-backed array elements or length anomalies.
-* Reject non-plain object prototypes, while continuing to accept explicitly supported ordinary and null-prototype records.
-* Handle an own data property named __proto__ without prototype pollution.
-* Preserve harmless repeated/shared references.
-* Reject true cycles.
-* Permit the established maximum depth of exactly 32.
-* Reject depth greater than 32 with a fixed machine code and no partial context.
-* Reject null, functions, symbols, BigInt, class instances, Date, Map, Set, RegExp, typed or exotic objects, and other unsupported values.
-* Reject NaN, positive or negative infinity, negative zero, non-integers, and unsafe integers.
-* Snapshot validated data before later projection so subsequent caller mutation cannot alter the accepted context or digest.
+* do not read untrusted fields through ordinary property access before validation;
+* never invoke getters or setters;
+* never invoke custom iterators;
+* never invoke coercion hooks, toJSON, or caller callbacks;
+* inspect only own property descriptors under guarded exception handling;
+* reject accessor descriptors without invoking them;
+* copy only validated own data descriptors;
+* catch exceptions from reflection and Proxy traps;
+* convert caught failures to fixed machine-only codes;
+* never echo, interpolate, log, or return attacker-controlled exception text;
+* do not use spread, slice, Array.from, map, for...of, or iterator-based copying on untrusted arrays;
+* validate array index descriptors directly;
+* reject sparse arrays;
+* reject augmented arrays;
+* reject symbol-keyed array or record data;
+* reject unsupported non-enumerable extras;
+* permit only the intrinsic validated array length descriptor;
+* reject custom array prototypes;
+* reject accessor-backed array entries;
+* reject invalid array length/index structures;
+* reject non-plain record prototypes except explicitly supported ordinary and null-prototype records;
+* safely handle an own data key named __proto__ without prototype pollution;
+* preserve harmless shared references;
+* reject true cycles;
+* permit maximum depth exactly 32;
+* reject depth greater than 32 with a fixed code and no partial context;
+* reject null, function, symbol, BigInt, Date, Map, Set, RegExp, class instances, typed arrays, and other unsupported/exotic objects;
+* reject NaN, infinities, negative zero, non-integers, and unsafe integers;
+* snapshot validated data before projection so later mutation cannot change the accepted context or digest.
 
-A transparent Proxy cannot always be identified by JavaScript. Do not claim universal Proxy detection. The required guarantee is that accessors and iterators are not invoked, reflective failures are caught, observable hostile behavior fails closed, and attacker prose never escapes.
+Do not claim that JavaScript can detect every transparent Proxy. The required guarantee is:
 
-3.3 HIGH — complete S-A semantic correlation
+* getters and iterators are not invoked;
+* reflective failures are caught;
+* observable hostile behavior fails closed;
+* attacker prose never escapes.
 
-The current key-only correlation accepts conflicting fabricated provenance and rejects legitimate S-A negative outcomes.
+4.3 Complete S-A semantic correlation
 
-Derive the exact runtime contract from the unchanged, hash-verified S-A modules. Do not invent a new S-A interpretation.
+The current key-only correlation can reject legitimate S-A negative results while accepting conflicting fabricated same-key results.
 
-Implement exhaustive outcome-aware validation for every actual S-A provenance discriminant, including the existing outcomes:
+Derive the exact runtime contract from the unchanged, hash-verified S-A modules.
+
+Do not invent or repair S-A semantics.
+
+Implement exhaustive validation for the actual outcomes, including:
 
 resolved
 unknown_setting
@@ -286,46 +362,40 @@ malformed_declaration
 ambiguous_resource_selection
 provenance_unavailable
 
-The hash-verified live S-A definitions remain authoritative.
+The live hash-verified S-A definitions remain authoritative.
 
-Required behavior:
+For every outcome:
 
-* Validate the exact discriminant.
-* Validate every required, optional, and forbidden own field for that outcome.
-* Validate field types and descriptor safety.
-* Validate outcome-specific semantic combinations.
-* Correlate provenance to the applicable inventory descriptor using all identity and semantic evidence required by the real S-A contract.
-* Key-only correlation is forbidden.
-* Reject duplicate or conflicting results for the same setting.
-* Reject a forged same-key result whose descriptor metadata conflicts.
-* Reject an outcome containing fields valid only for another outcome.
-* Reject missing required resolved data.
-* Reject missing required diagnostic data.
-* Reject duplicate or contradictory diagnostics.
-* Accept real S-A-produced examples of every legitimate negative outcome.
-* Preserve S-A’s winningScope verbatim and never re-derive it.
-* Preserve S-A’s contributionForm classification verbatim.
-* Do not silently repair or reinterpret existing S-A findings.
-* Do not import or call VS Code bindings.
-* Do not reread configuration or the workspace.
+* validate its discriminant;
+* validate required, optional, and forbidden own fields;
+* validate descriptor safety and field types;
+* validate outcome-specific semantic combinations;
+* correlate provenance to the applicable inventory descriptor using all identity and semantic evidence required by S-A;
+* never use key-only correlation;
+* reject duplicate or conflicting results;
+* reject fabricated same-key results with conflicting descriptor metadata;
+* reject fields belonging to another outcome;
+* reject missing resolved fields;
+* reject missing required diagnostic evidence;
+* reject duplicate or contradictory diagnostics;
+* accept real S-A-produced examples of every legitimate negative outcome;
+* preserve winningScope verbatim and never re-derive it;
+* preserve contributionForm verbatim;
+* do not reread VS Code configuration or workspace state.
 
-3.4 HIGH — remove public validation bypasses
+4.4 Remove public validation bypasses
 
-The current export surface allows callers to canonicalize or hash impossible raw payloads.
+The current export surface permits impossible raw payloads to reach canonicalization or digest computation.
 
-Reduce the public API to the smallest contract-facing surface necessary for S-B.
+Reduce the API to the smallest contract-facing surface required for:
 
-Contract-facing exports may include only what is genuinely needed for:
-
-* the immutable context, entry, diagnostic, and domain types;
-* the builder input and discriminated build result;
-* the literal schema-version constant;
+* immutable context, entry, diagnostic, and domain types;
+* builder input and discriminated result types;
+* literal schema-version constant;
 * buildResolvedEtlAgentContext;
-* a safe digest-recomputation entry point if retained as part of the contract.
+* a safe validated digest-recomputation function, if retained.
 
-Implementation details must be private, relocated within the same two production files, or made safe through full runtime validation.
-
-Review and remove or harden unnecessary public exports, including the existing categories:
+Remove, privatize, relocate within the same two production files, or fully guard implementation-only exports such as:
 
 * raw digest payload types;
 * unused trusted-input aliases;
@@ -333,50 +403,46 @@ Review and remove or harden unnecessary public exports, including the existing c
 * raw-payload digest functions;
 * generic admission helpers;
 * plain-record helpers;
+* descriptor and domain tables;
 * own-property helpers;
-* descriptor tables;
-* domain lookup tables;
 * internal result types;
-* implementation-only header and depth constants;
+* implementation-only constants;
 * broad failure-code unions.
 
 Requirements:
 
-* No exported function may accept an unvalidated raw payload and produce a canonical string or digest.
-* No caller may construct an impossible unknown_setting entry with resolved-only scope metadata and successfully canonicalize or hash it.
-* A TypeScript brand alone is not runtime validation.
-* Any retained exported recomputation function must validate the complete closed context schema and semantic combinations before computing a digest.
-* No production consumer, barrel, registry, or fourth file may be created.
-* Add an export-surface test that fails if an unintended runtime export returns.
+* no exported function may accept an unvalidated raw payload and return a canonical string or digest;
+* an impossible unknown_setting entry carrying resolved-only fields must fail;
+* TypeScript branding alone is not runtime validation;
+* any public recomputation entry point must validate the complete closed context and outcome semantics;
+* no new consumer, barrel, registry, or production file may be created;
+* add an executable export-surface allow-list test.
 
-3.5 MEDIUM — excessive and unreachable public complexity
+4.5 Reduce unreachable or excessive failure codes
 
-The previous candidate exposed approximately 34 symbols and 54 failure codes. Eighteen codes lacked explicit assertions and DIAGNOSTIC_FIELD_INVALID was unreachable.
+The independent audit found approximately 34 exports and 54 failure codes, including unasserted and unreachable cases such as DIAGNOSTIC_FIELD_INVALID.
 
-Repair this by:
+Repair by:
 
-* removing unreachable failure codes;
-* consolidating redundant codes where semantics are identical;
-* keeping machine codes stable and specific enough for callers;
-* exporting only codes callers genuinely need;
-* ensuring every retained externally observable failure code is reachable;
-* adding an explicit behavioral test for every retained externally observable failure code;
-* avoiding arbitrary target counts;
-* never embedding attacker-controlled values or prose in an error result.
+* removing unreachable codes;
+* consolidating redundant codes where the semantics are identical;
+* keeping externally meaningful codes machine-readable and stable;
+* ensuring every retained externally observable code is reachable;
+* adding a behavioral assertion for every retained externally observable code;
+* avoiding an arbitrary target count;
+* never placing attacker-controlled values or prose in an error result.
 
-A failure must remain a discriminated machine-readable result such as:
+Failures must remain discriminated and contain no partial context, for example:
 
 { ok: false, code: SOME_FIXED_CODE }
 
-Do not return partial context on failure.
-
 ⸻
 
-4. S-B CONTRACT THAT MUST REMAIN TRUE
+5. CONTRACT THAT MUST REMAIN TRUE
 
-4.1 Exact top-level context schema
+5.1 Top-level context
 
-A successful context contains exactly these six keys:
+A successful context contains exactly six keys:
 
 schemaVersion
 namespace
@@ -387,9 +453,9 @@ contextDigest
 
 No extra key is admitted.
 
-4.2 Setting-entry schema
+5.2 Setting entry
 
-A setting entry permits exactly these 13 keys.
+A setting entry permits exactly 13 keys.
 
 Required:
 
@@ -410,11 +476,11 @@ winningScope
 resourceProvided
 languageIds
 
-Absence must remain absence. Do not replace omitted optional fields with undefined or null.
+Omitted fields must remain absent, not undefined or null.
 
-4.3 Diagnostic schema
+5.3 Diagnostic
 
-A diagnostic permits exactly four keys:
+A diagnostic permits exactly four keys.
 
 Required:
 
@@ -426,150 +492,157 @@ key
 categoryIndex
 declarationCount
 
-Diagnostic English prose and raw reason strings are excluded.
+Do not include diagnostic English prose or raw reason strings.
 
-4.4 Raw-value and secret exclusion
+5.4 Raw-value exclusion
 
-The context, canonical string, digest input, diagnostics, and error results must never carry:
+The context, canonical representation, digest input, diagnostics, and error results must never include:
 
-* raw manifestDefault;
-* any effective, default, policy, or per-scope configuration value;
-* title;
-* description;
-* markdownDescription;
-* categoryTitle;
-* negative-outcome reason prose;
-* scopeStates;
-* relativeKey;
-* declaredScopeLiteral;
-* SettingsResourceUri;
-* fsPath;
-* workspace root;
-* folder count;
-* environment or deployment data;
-* registry, publisher, or physical-storage identity;
-* bootstrap, envelope, evidence-completeness, drift, staleness, or persistence data;
-* unknown caller-supplied keys.
+manifestDefault raw value
+effective/default/policy/per-scope configuration values
+title
+description
+markdownDescription
+categoryTitle
+reason prose
+scopeStates
+relativeKey
+declaredScopeLiteral
+SettingsResourceUri
+fsPath
+workspace root
+folder count
+environment or deployment data
+registry or publisher identity
+bootstrap/result envelopes
+evidence completeness
+drift or staleness state
+persistence state
+unknown caller-supplied keys
 
-Presence of a manifest default is represented only by hasManifestDefault.
+Only hasManifestDefault may represent default presence.
 
-Resource resolution is represented only by the already-resolved boolean resourceProvided.
+Only the already-resolved boolean resourceProvided may represent resource availability.
 
-4.5 Immutability
+5.5 Immutability and determinism
 
-For successful inputs:
+For successful input:
 
-* defensively copy every admitted value;
+* copy every admitted value defensively;
 * retain no caller-owned object or array reference;
 * deeply freeze every returned object and array;
 * preserve meaningful array order;
-* mutation of any source input after construction must not change the context or digest;
-* mutation of every returned nested object or array must fail under strict mode;
-* two equal inputs must yield deeply equal values, distinct object identities, identical canonical strings, and identical digests.
+* source mutation after construction must not change the context or digest;
+* returned nested writes must fail in strict mode;
+* equal inputs must produce deeply equal values;
+* separate builds must return different object identities;
+* equal inputs must produce identical canonical strings and digests.
 
-4.6 Canonical serialization
+5.6 Canonical serialization
 
-Preserve the existing canonical contract:
+Preserve:
 
-* canonical bytes begin with the domain-separated header:
-    etl.agent.context.v1\n
-* object keys are ordered by ascending UTF-16 code-unit comparison;
-* never use locale-sensitive ordering or localeCompare;
-* meaningful array order is preserved verbatim;
-* contributingScopes and languageIds are order-significant;
-* undefined and omitted optional fields are absent from canonical output;
-* null is rejected;
-* strings and booleans are encoded deterministically;
-* numbers are admitted only when finite safe integers are permitted by the closed schema;
-* Unicode bytes are preserved without normalization or case folding;
-* control, quote, slash, and backslash characters are escaped deterministically;
-* duplicate or ambiguous normalized keys fail closed;
-* unsupported values fail closed;
-* no insertion-order-dependent object digest is permitted;
-* do not use raw JSON.stringify(payload) as the canonical algorithm;
-* if JSON.stringify is retained for scalar string escaping, it must never receive an unvalidated object or array.
+* domain header: etl.agent.context.v1\n;
+* ascending UTF-16 code-unit object-key ordering;
+* no localeCompare;
+* meaningful array order;
+* contributingScopes and languageIds order significance;
+* omission of absent optionals;
+* rejection of null;
+* deterministic string, boolean, and safe-integer encoding;
+* Unicode byte preservation without normalization or case folding;
+* deterministic control and quote escaping;
+* failure on duplicate or ambiguous input;
+* failure on unsupported values;
+* insertion-order independence.
 
-4.7 Digest contract
+Do not use raw JSON.stringify(payload) as canonicalization.
 
-* Algorithm: SHA-256.
-* Encoding: UTF-8.
-* Output: exactly 64 lowercase hexadecimal characters.
-* The domain/version header is inside the digested bytes.
-* contextDigest itself is excluded from its own digest input.
-* The stored digest and an independent recomputation from the same validated frozen context must match.
-* Changing the header or any admitted order-significant value must change the digest.
-* Object insertion order alone must not change the digest.
-* No new dependency is allowed; use only the existing local node:crypto facility.
+If JSON.stringify is used only for scalar string escaping, it must never receive an unvalidated object or array.
 
-4.8 Integration boundary
+5.7 Digest
 
-The production S-B modules:
+Required:
 
-* must not import vscode;
-* must not call or reference downloadAndUnzipVSCode;
-* must not read workspace folders;
-* must not read configuration;
-* must not select resources;
-* must not read environment variables;
-* must not create or update evidence envelopes;
-* must not calculate completeness;
-* must not compare drift or staleness;
-* must not perform persistence;
-* must not implement S-C, S-D, S-E, S-F, S-G, or S-H behavior.
+Algorithm: SHA-256
+Encoding: UTF-8
+Output: 64 lowercase hex characters
 
-S-B consumes already-computed, hash-verified S-A outputs and projects only the closed trusted context.
+The version header must be inside the digested bytes.
+
+contextDigest must be excluded from its own input.
+
+Stored digest and independent recomputation from the same validated frozen context must match.
+
+No new dependency is permitted. Use only the existing node:crypto.
+
+5.8 Slice boundary
+
+The production S-B modules must not:
+
+* import vscode;
+* invoke a VS Code test/download wrapper;
+* read workspace folders;
+* read configuration;
+* select a resource;
+* read environment variables;
+* create evidence envelopes;
+* calculate evidence completeness;
+* compare drift or staleness;
+* perform persistence;
+* implement S-C or any later slice.
 
 ⸻
 
-5. REQUIRED EXECUTABLE TEST REPAIR
+6. REQUIRED EXECUTABLE TEST MATRIX
 
-Preserve all useful existing S-B tests. Do not weaken or delete a test merely to obtain green output.
+Preserve all useful existing tests. Do not weaken or delete a test merely to obtain green output.
 
-Add executable coverage for every SB2 defect.
+Add executable coverage for the following.
 
-5.1 Literal schema typing
+6.1 Literal schema typing
 
-Test:
+Prove:
 
-* successful context type exposes literal 1;
-* a compile-time assignment to literal 1 succeeds;
-* a version-2 assignment or payload is rejected at compile time;
-* runtime version 2 is rejected;
-* version/header separation affects the digest.
+* successful context exposes literal 1;
+* assignment to literal 1 succeeds;
+* version 2 is rejected at compile time;
+* runtime version 2 fails closed;
+* header/version changes alter the digest.
 
-Do not substitute a source-text search for the compile-time contract.
+A source-text search is not a substitute for compile-time evidence.
 
-5.2 Getter and accessor canaries
+6.2 Getter/accessor safety
 
-Use getter/setter fixtures that:
+Use getters or setters that:
 
 * increment a canary;
-* throw attacker-controlled prose;
+* throw attacker prose;
 * attempt to mutate another field.
 
 Assert:
 
-* the accessor is never invoked;
-* the input fails closed with a fixed code;
-* no attacker prose appears in the result;
+* accessor invocation count remains zero;
+* input fails with a fixed code;
+* attacker prose is absent;
 * no partial context is returned.
 
-5.3 Proxy and reflection failures
+6.3 Proxy/reflection failures
 
-Add throwing Proxy traps for relevant reflection operations.
+Add throwing Proxy traps.
 
 Assert:
 
-* no exception escapes the builder;
-* no trap message is echoed;
-* the result is a fixed machine code;
-* no partial context or digest is produced.
+* no exception escapes;
+* trap text is not returned;
+* a fixed machine code is returned;
+* no context or digest is produced.
 
 Do not claim detection of fully transparent proxies.
 
-5.4 Array-hostility cases
+6.4 Hostile arrays
 
-Add behavioral tests for:
+Cover:
 
 * custom iterator canary;
 * symbol-keyed array;
@@ -577,41 +650,41 @@ Add behavioral tests for:
 * enumerable augmented property;
 * accessor-backed element;
 * sparse array;
-* custom array prototype;
-* invalid length/index structure;
-* non-string languageIds element;
+* custom prototype;
+* invalid length/index shape;
+* non-string languageIds;
 * hostile contributingScopes;
-* ordinary dense arrays that remain valid.
+* valid ordinary dense arrays.
 
-Assert that the custom iterator is never invoked.
+Assert the custom iterator is never invoked.
 
-5.5 Unsupported values and numbers
+6.5 Unsupported values
 
 Cover:
 
-* null;
-* undefined where not permitted;
-* function;
-* symbol;
-* BigInt;
-* Date;
-* Map;
-* Set;
-* RegExp;
-* class instance;
-* typed array or exotic object;
-* NaN;
-* Infinity;
-* -Infinity;
-* -0;
-* non-integer;
-* unsafe integer;
-* true cycle;
-* depth 32;
-* depth 33;
-* harmless shared reference.
+null
+invalid undefined
+function
+symbol
+BigInt
+Date
+Map
+Set
+RegExp
+class instance
+typed or exotic object
+NaN
+Infinity
+-Infinity
+-0
+non-integer
+unsafe integer
+true cycle
+depth 32
+depth 33
+harmless shared reference
 
-5.6 Prototype safety
+6.6 Prototype safety
 
 Cover:
 
@@ -620,14 +693,13 @@ Cover:
 * own __proto__ data;
 * polluted prototype chains;
 * forbidden custom prototypes;
-* prototype remains unchanged;
-* no global pollution occurs.
+* unchanged global/object prototypes.
 
-5.7 Complete S-A outcome matrix
+6.7 Complete S-A outcomes
 
-Construct cases using actual hash-verified S-A producers or faithful runtime-shaped outputs derived directly from those producers.
+Use real S-A producers or faithful runtime-shaped values derived directly from the live S-A contract.
 
-Cover every legitimate outcome:
+Cover all legitimate outcomes:
 
 resolved
 unknown_setting
@@ -636,10 +708,10 @@ malformed_declaration
 ambiguous_resource_selection
 provenance_unavailable
 
-For each outcome, test:
+For every applicable outcome, cover:
 
 * valid minimum form;
-* valid optional fields;
+* valid optional form;
 * missing required field;
 * forbidden cross-outcome field;
 * invalid field type;
@@ -647,263 +719,267 @@ For each outcome, test:
 * conflicting same-key descriptor;
 * mismatched descriptor identity;
 * contradictory diagnostic;
-* missing required diagnostic where applicable.
+* missing required diagnostic.
 
-Prove that legitimate S-A negative outcomes are accepted and forged correlations are rejected.
+Prove that legitimate negative results are accepted and fabricated correlations are rejected.
 
-5.8 Public API boundary
+6.8 Public API
 
-Test the runtime export surface.
+Test the runtime export surface and prove:
 
-Prove that:
+* unintended helpers are absent;
+* raw canonicalization bypass is absent or fully guarded;
+* raw digest bypass is absent or fully guarded;
+* an impossible context cannot be hashed;
+* every exported function validates runtime input;
+* every retained externally observable failure code has behavioral coverage.
 
-* unintended helpers are not exported;
-* raw-payload canonicalization is unavailable or fully guarded;
-* raw-payload digest bypass is unavailable or fully guarded;
-* an impossible context cannot be hashed successfully;
-* all retained exported functions reject malformed runtime input;
-* every retained public failure code has a behavioral assertion.
+6.9 Canonical form and digest
 
-5.9 Canonical and digest behavior
+Cover:
 
-Retain or add executable assertions for:
-
-* exact independently written canonical fixture;
-* equal output for different object insertion orders;
-* different digest when meaningful array order changes;
-* exact UTF-16 key ordering;
-* no localeCompare;
-* Unicode preservation without normalization;
+* independently written exact canonical fixture;
+* insertion-order independence;
+* meaningful array-order sensitivity;
+* exact UTF-16 ordering;
+* no locale-sensitive sorting;
+* Unicode preservation;
 * deterministic escaping;
-* digest independent recomputation;
+* independent digest recomputation;
 * self-digest exclusion;
-* 64-character lowercase hex output;
+* lowercase 64-hex result;
 * domain/version separation.
 
-5.10 Trust-boundary exclusions
+6.10 Secret/raw-value exclusion
 
-Build a real S-A inventory using a manifest containing a distinctive secret default and user-facing metadata.
+Build a real S-A inventory containing a distinctive secret default and user-facing metadata.
 
-Assert that none of the following appears anywhere in the context, canonical string, digest-input representation, diagnostic, or error:
+Prove the context and canonical representation contain none of:
 
 * secret default;
 * title or description;
-* raw reason prose;
-* resource URI or path;
+* reason prose;
+* resource URI/path;
 * scope-state payload;
-* unknown extra field.
+* unknown extra data.
 
-5.11 Immutability and determinism
+6.11 Immutability
 
 Test:
 
-* source mutation after construction;
-* nested returned-object mutation;
-* returned-array mutation;
+* mutation of source after construction;
+* nested returned-object writes;
+* returned-array writes;
 * repeated construction;
 * distinct references;
 * deep equality;
-* identical digests across repeated local processes where practical.
+* identical digests.
 
-Security behavior must be tested by execution. Source-text assertions may supplement but must not replace hostile-input, correlation, schema-typing, and public-boundary behavioral tests.
+Security behavior must be executable. Source-text assertions may supplement but must not replace runtime hostile-input, outcome-correlation, schema-typing, and API-boundary tests.
 
 ⸻
 
-6. SAFE COMMAND AND TEMPORARY-DIRECTORY RULES
+7. COMMAND AND TEMP-DIRECTORY SAFETY
 
-Use only existing local tools.
+Use only existing local binaries.
 
 Do not use npx.
 
-Do not run any command capable of installing or downloading packages.
-
-Do not run the VS Code/Electron test wrapper.
+Do not run an install/update command.
 
 Do not run downloadAndUnzipVSCode.
+
+Do not run the VS Code/Electron test wrapper.
 
 Do not run npm run eval:golden.
 
 Do not regenerate docs/eval/**.
 
-Do not run a compile command that emits into the repository.
+Do not run a compiler command that emits into the repository.
 
 PowerShell safety
 
-Because SB2 accidentally created a directory through a malformed host/cache command:
+The SB2 accident was caused by interpolation of PowerShell’s automatic $Host variable into a path.
 
-* never assign to or repurpose automatic variables such as $Host, $HOME, $PWD, $PID, $Error, $Args, or $Input;
-* use task-specific variable names such as $sb3RepoRoot and $sb3TempRoot;
-* resolve every destructive target to a literal canonical path first;
-* verify the temporary directory was created by this phase;
-* verify it is outside all repositories and worktrees;
+Therefore:
+
+* never assign to or repurpose $Host, $HOME, $PWD, $PID, $Error, $Args, or $Input;
+* use task-specific variables such as $sb3RepoRoot and $sb3TempRoot;
+* resolve every cleanup target to a literal canonical path;
+* verify the temporary path is outside all repositories and worktrees;
+* verify this task created it;
 * never use wildcard deletion;
 * never delete a parent directory;
-* never retry cleanup against a shortened or fallback path;
-* if exact cleanup validation fails, leave the temporary directory in place and report it rather than risking a broad deletion.
+* never retry against a shortened, empty, or fallback path;
+* if cleanup validation fails, retain the temp directory and report it instead of risking an unsafe deletion.
 
-The only authorized deletion is the exact unique OS temporary directory created by this SB3 run.
+The only authorized deletion is the exact temporary directory created by this SB3 execution.
 
 ⸻
 
-7. REQUIRED EXECUTION ORDER AFTER APPROVAL
+8. EXECUTION ORDER AFTER APPROVAL
 
-Step 1 — read-only preflight
+Step 1 — preflight
 
-Capture before-state evidence:
+Capture:
 
-* repository identity;
+* repository root, origin, branch, and HEAD;
 * all three worktrees;
 * staged count;
 * expanded pending inventory;
-* candidate path/index/HEAD status;
-* full candidate hashes;
+* candidate HEAD/index absence;
+* full S-B hashes;
 * full S-A hashes;
-* non-candidate pending and protected hashes;
-* absence of the accidental audit directory;
-* absence of any unexpected S-B or later-slice artifact.
+* non-candidate protected hashes;
+* accidental source-path absence;
+* absence of unexpected S-B or later-slice artifacts.
 
-If any required value differs, stop without editing.
+The already-existing quarantine is not an unexpected artifact.
 
-Step 2 — inspect the three files and live S-A contracts
+If any fixed required value differs, stop before editing.
+
+Step 2 — inspect contracts
 
 Read:
 
 * the three authorized files;
-* only the S-A types and implementation sections needed to derive exact discriminants and semantic relationships;
-* existing test-runner configuration strictly read-only.
+* only the S-A definitions needed to derive exact discriminants and semantic relationships;
+* test-runner details strictly read-only.
 
-Do not modify anything during inspection.
+Do not edit during inspection.
 
-Step 3 — design the minimal repair
+Step 3 — establish minimal design
 
-Before editing, establish internally:
+Before editing, determine internally:
 
 * final public export allow-list;
 * final reachable failure-code set;
-* exact S-A outcome matrix;
+* complete S-A outcome matrix;
 * descriptor-safe snapshot strategy;
-* canonicalization trust boundary;
-* tests mapped to every SB2 finding.
+* canonical trust boundary;
+* mapping from every SB2 finding to executable tests.
 
 Do not create a plan file.
 
-Step 4 — edit exactly the three authorized files
+Step 4 — repair exactly three files
 
-Implement the repair in the two production files and update the single S-B test file.
+Implement the smallest complete repair in the two production files and the one S-B test file.
 
-Avoid unrelated refactoring and formatting churn.
+Avoid unrelated formatting or refactoring.
 
-Step 5 — self-review before commands
+Step 5 — self-review
 
 Inspect the exact diff and confirm:
 
-* only the three paths changed;
-* no raw bypass remains;
-* no unsafe property/array traversal remains;
-* no getter or custom iterator is invoked;
-* reflection exceptions map to fixed codes;
-* semantic correlation is exhaustive;
+* only three paths changed;
 * schema version is literal;
-* no unnecessary runtime export remains;
-* no S-C behavior was introduced.
+* no raw public bypass remains;
+* unsafe getters and iterators are not invoked;
+* reflection failures map to fixed codes;
+* attacker prose cannot escape;
+* correlation is outcome-aware and exhaustive;
+* all retained codes are reachable;
+* no S-C behavior exists.
 
 Step 6 — isolated validation
 
-Run, using local binaries only:
+Using local binaries only, run:
 
-1. TypeScript no-emit validation that cannot write repository artifacts.
-2. Isolated TypeScript compilation with config and output inside the unique OS temporary directory.
-3. Direct Mocha focused on S-B tests.
-4. Direct Mocha S-A regression filter.
-5. ESLint with --no-cache against exactly the three authorized files.
-6. Any necessary mutation/security probes inside the same OS temporary directory.
+1. TypeScript no-emit validation that writes no repository artifact.
+2. Isolated TypeScript compilation with config/output entirely inside the authorized OS temp directory.
+3. Direct Mocha S-B tests.
+4. Direct Mocha S-A regression tests.
+5. ESLint with caching disabled against exactly the three files.
+6. Required security/mutation probes inside the same temporary directory.
 
 Expected evidence:
 
 * isolated candidate compilation: exit 0;
-* no TypeScript diagnostic in an S-B file;
-* S-B tests: all pass, with a count not lower than the previous 38;
-* S-A regression filter: all pass, preserving the prior 59/59 baseline unless the runner proves a legitimate deterministic count difference;
+* zero TypeScript diagnostics in an S-B file;
+* S-B tests: all pass, with count not lower than the previous 38;
+* S-A regression filter: preserve the previous 59/59 result unless a legitimate deterministic discovery difference is proven;
 * ESLint for the three files: exit 0.
 
-The repository-wide compiler previously reported 15 unrelated TS2353 diagnostics in onboardingWriteApproval.test.ts, caused by pre-existing changes to EtlActionToolService.ts.
+The repository compiler previously produced 15 unrelated TS2353 diagnostics in onboardingWriteApproval.test.ts, caused by pre-existing changes involving EtlActionToolService.ts.
 
-If still present:
+If those remain:
 
 * report them separately;
-* prove there are zero S-B diagnostics in the same compiler run;
+* prove zero S-B diagnostics occurred;
 * do not modify either unrelated file;
 * do not claim the repository is globally green.
 
-If the unrelated failure differs in path, code, or count, investigate read-only and report the exact difference. Do not repair it.
+If the unrelated failure changes in file, code, or count, investigate read-only and report it. Do not repair it.
 
-Step 7 — exact cleanup
+Step 7 — exact temp cleanup
 
-Delete only the validated SB3 temporary directory.
+Delete only the validated unique SB3 temporary directory.
 
-Do not touch .vscode-test or the SB2 quarantine.
+Do not touch .vscode-test or the quarantine.
 
 Step 8 — end-state proof
 
 Recompute:
 
-* repository identity;
-* worktree count;
+* identity and worktrees;
 * staged count;
-* pending inventory;
-* full hashes of all three repaired S-B files;
+* pending path inventory;
+* full hashes of all three repaired files;
 * all four S-A hashes;
-* every non-authorized start-state hash;
-* control-plane and protected-path drift;
-* accidental-directory absence;
-* temporary-directory absence.
+* all non-authorized start hashes;
+* protected/control-plane drift;
+* accidental-source absence;
+* temp-directory absence.
 
 Required end state:
 
-* repository identity unchanged;
-* worktree count remains 3;
-* staged count remains 0;
-* pending count remains 23;
-* pending-path names remain identical;
-* exactly the three authorized S-B file bytes changed;
-* all original 20 pre-S-B pending paths remain byte-identical;
-* all four S-A files remain byte-identical;
-* no new repository file or directory exists;
-* no Git state mutation occurred;
-* no quarantine or .vscode-test mutation occurred.
+Repository identity unchanged
+Worktrees: 3
+Staged count: 0
+Pending count: 23
+Pending path names unchanged
+Exactly three S-B files changed
+Original 20 paths byte-identical
+All S-A files byte-identical
+No new repository path
+No Git mutation
+No quarantine mutation
+No .vscode-test mutation
 
 ⸻
 
-8. FINAL REPORT
+9. FINAL REPORT
 
 Return one complete evidence report containing:
 
 1. Approval token received.
 2. Repository identity and preflight result.
 3. Start/end pending inventory.
-4. Start/end full SHA-256 hashes of the three S-B files.
+4. Start/end full hashes for the three S-B files.
 5. Full S-A hash comparison.
-6. Non-candidate protected-path drift comparison.
+6. Protected non-candidate drift comparison.
 7. Exact changed-file list.
 8. File-and-line citations for every substantive repair.
-9. Before/after runtime export list.
-10. Before/after externally observable failure-code list.
-11. A disposition table for every SB2 finding.
-12. Hostile-input safety evidence.
-13. S-A semantic-correlation evidence.
+9. Before/after runtime export lists.
+10. Before/after externally observable failure-code lists.
+11. Disposition of every SB2 finding.
+12. Hostile-input evidence.
+13. S-A outcome-correlation evidence.
 14. Literal schema-version evidence.
-15. Canonical-string and digest evidence.
+15. Canonicalization and digest evidence.
 16. Exact commands, exit codes, and test counts.
 17. Unrelated failures, clearly separated.
-18. Temporary-directory creation and verified removal.
+18. Temporary-directory creation and removal evidence.
 19. Remaining limitations.
-20. Confirmation that no Keep, Undo, S-C, Git, package, VSIX, network, download, or evaluation action occurred.
+20. Confirmation that no Keep, Undo, Git, package, VSIX, network, download, evaluation, or S-C action occurred.
 
-Do not claim independent assurance. This is a repair self-check and still requires a new independent audit.
+This is an implementer self-check, not an independent audit.
 
-Finish with exactly one of the following marker blocks.
+Do not claim the candidate is safe to Keep.
 
-Successful repair marker
+Finish with exactly one of these blocks.
+
+Successful repair
 
 REPOSITORY_IDENTITY_MATCH: YES
 CONSOLIDATED_BATCH_APPROVAL_RECEIVED: YES
@@ -933,15 +1009,17 @@ SAFE_TO_CLICK_KEEP_S_B_CARD: NO
 SAFE_TO_PROCEED_TO_S_C: NO
 LOCAL_PHASE_SB3_REPAIR_COMPLETE
 
-Blocked or incomplete marker
+Blocked or incomplete
 
 SAFE_TO_REAUDIT_S_B: NO
 SAFE_TO_CLICK_KEEP_S_B_CARD: NO
 SAFE_TO_PROCEED_TO_S_C: NO
 LOCAL_PHASE_SB3_REPAIR_INCOMPLETE
 
-If blocked or incomplete, add the exact failed gate immediately before the marker.
+If incomplete, place the exact failed gate immediately before the marker.
 
 Do not click Keep or Undo.
-Do not begin an independent audit.
+
+Do not begin the independent audit.
+
 Stop after the final SB3 report.
