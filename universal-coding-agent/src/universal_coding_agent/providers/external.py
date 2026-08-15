@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Callable
 import importlib
 import os
 
@@ -25,11 +24,7 @@ def load_provider(factory_path: str | None = None) -> ModelProvider:
     factory = getattr(module, function_name, None)
     if not callable(factory):
         raise RuntimeError(f"provider factory {value!r} is not callable")
-    provider = _invoke_factory(factory)
+    provider = factory()
     if not isinstance(provider, ModelProvider):
         raise RuntimeError("provider factory returned an incompatible object")
     return provider
-
-
-def _invoke_factory(factory: Callable[[], object]) -> ModelProvider:
-    return factory()  # type: ignore[return-value]
