@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -42,7 +42,7 @@ jobs:
         run: python -m compileall -q universal-coding-agent/src universal-coding-agent/tests
 
       - name: Run lint
-        run: ruff check universal-coding-agent
+        run: ruff check --output-format=github universal-coding-agent
 
       - name: Run tests
         run: pytest -q universal-coding-agent/tests
