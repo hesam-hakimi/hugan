@@ -24,10 +24,6 @@ jobs:
       matrix:
         python-version: ["3.11", "3.13"]
 
-    defaults:
-      run:
-        working-directory: universal-coding-agent
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -48,6 +44,19 @@ jobs:
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
         run: python -m compileall -q src tests
+
+      - name: Diagnose Ruff import ordering
+        working-directory: repository/universal-coding-agent
+        shell: bash
+        run: |
+          set -euo pipefail
+          target='src/universal_coding_agent/providers/external.py'
+          ruff check --fix "$target" || true
+          if ! git diff --quiet -- "$target"; then
+            encoded="$(git diff -- "$target" | base64 -w0)"
+            echo "::error file=$target::RUFF_FIX_BASE64=$encoded"
+            exit 1
+          fi
 
       - name: Run lint
         working-directory: repository/universal-coding-agent
