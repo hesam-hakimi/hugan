@@ -24,25 +24,35 @@ jobs:
       matrix:
         python-version: ["3.11", "3.13"]
 
+    defaults:
+      run:
+        working-directory: universal-coding-agent
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          path: repository
 
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: universal-coding-agent/pyproject.toml
+          cache-dependency-path: repository/universal-coding-agent/pyproject.toml
 
       - name: Install package and development dependencies
-        run: python -m pip install -e './universal-coding-agent[dev]'
+        working-directory: repository/universal-coding-agent
+        run: python -m pip install -e '.[dev]'
 
       - name: Compile Python sources
-        run: python -m compileall -q universal-coding-agent/src universal-coding-agent/tests
+        working-directory: repository/universal-coding-agent
+        run: python -m compileall -q src tests
 
       - name: Run lint
-        run: ruff check --output-format=github universal-coding-agent
+        working-directory: repository/universal-coding-agent
+        run: ruff check --output-format=github .
 
       - name: Run tests
-        run: pytest -q universal-coding-agent/tests
+        working-directory: repository/universal-coding-agent
+        run: pytest -q
