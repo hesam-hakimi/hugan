@@ -53,6 +53,20 @@ def create_client():
     raise AttributeError("direct client must not be used by probe")
 '''
 
+DATACLASS_HOST_INVOKE_MODULE = '''
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class HostConfig:
+    name: str = "host"
+
+
+def invoke_text(prompt, max_output_tokens=8):
+    assert HostConfig().name == "host"
+    return "UCA_HOST_PROVIDER_OK"
+'''
+
 BROKEN_INVOKE_MODULE = '''
 def invoke_text(prompt, max_output_tokens=8):
     raise AttributeError("private internal detail")
@@ -100,6 +114,16 @@ def test_probe_prefers_existing_host_invoke_contract(tmp_path) -> None:
     assert details["ok"] is True
     assert details["content"] == "UCA_HOST_PROVIDER_OK"
     assert details["safe_diagnostics"]["transport"] == "host_invoke_function"
+
+
+def test_probe_loads_dataclass_host_module(tmp_path) -> None:
+    provider = HostSubprocessProvider(
+        host_module_path=_host_module(tmp_path, DATACLASS_HOST_INVOKE_MODULE),
+        host_python=sys.executable,
+    )
+    details = provider.probe_details()
+    assert details["ok"] is True
+    assert details["content"] == "UCA_HOST_PROVIDER_OK"
 
 
 def test_probe_reports_safe_host_invoke_stage(tmp_path) -> None:
