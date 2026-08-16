@@ -25,14 +25,23 @@ class AgentService:
     artifacts: ArtifactStore
 
     @classmethod
-    def create(cls, state_root: Path, provider: ModelProvider) -> AgentService:
+    def create(
+        cls,
+        state_root: Path,
+        provider: ModelProvider,
+        *,
+        allow_local_sources: bool = False,
+    ) -> AgentService:
         state_root = state_root.resolve()
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
         state_root.mkdir(parents=True, exist_ok=True)
         artifacts = ArtifactStore(state_root / "artifacts")
         services = GraphServices(
             provider=provider,
-            sandbox=GitSandboxManager(state_root),
+            sandbox=GitSandboxManager(
+                state_root,
+                allow_local_sources=allow_local_sources,
+            ),
             indexer=RepositoryIndexer(),
             context=ContextCompiler(),
             artifacts=artifacts,
