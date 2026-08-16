@@ -12,6 +12,7 @@ from universal_coding_agent.providers.base import ModelProviderError
 
 HOST_CLIENT_PATH_ENV = "UCA_HOST_CLIENT_PATH"
 HOST_PYTHON_ENV = "UCA_HOST_PYTHON"
+INVOKE_FUNCTION_ENV = "UCA_HOST_INVOKE_FUNCTION"
 CLIENT_FACTORY_ENV = "UCA_HOST_CLIENT_FACTORY"
 CONFIG_FACTORY_ENV = "UCA_HOST_MODEL_CONFIG_FACTORY"
 DEPLOYMENT_ATTRIBUTE_ENV = "UCA_HOST_DEPLOYMENT_ATTRIBUTE"
@@ -22,10 +23,11 @@ TIMEOUT_ENV = "UCA_HOST_BRIDGE_TIMEOUT_SECONDS"
 
 @dataclass
 class HostSubprocessProvider:
-    """Run the existing site-owned model client in its own Python environment."""
+    """Run a site-owned model adapter in its own Python environment."""
 
     host_module_path: Path | str
     host_python: Path | str
+    invoke_function_name: str = "invoke_text"
     client_factory_name: str = "create_client"
     config_factory_name: str = "get_configured_model_or_deployment"
     deployment_attribute: str = "deployment"
@@ -54,7 +56,7 @@ class HostSubprocessProvider:
         return self._call_bridge(
             {
                 "action": "probe",
-                "max_output_tokens": max(16, int(os.getenv(PROBE_TOKENS_ENV, "64"))),
+                "max_output_tokens": max(8, int(os.getenv(PROBE_TOKENS_ENV, "16"))),
             },
             raise_on_error=False,
         )
@@ -102,6 +104,7 @@ class HostSubprocessProvider:
         payload = {
             **request,
             "host_client_path": str(self.host_module_path),
+            "invoke_function": self.invoke_function_name,
             "client_factory": self.client_factory_name,
             "config_factory": self.config_factory_name,
             "deployment_attribute": self.deployment_attribute,
@@ -123,17 +126,21 @@ class HostSubprocessProvider:
                 "ok": False,
                 "error_code": "host_bridge_output_invalid",
                 "error_type": "BridgeOutputError",
+                "error_stage": "bridge_output",
             }
         if not isinstance(result, dict):
             result = {
                 "ok": False,
                 "error_code": "host_bridge_output_invalid",
                 "error_type": "BridgeOutputError",
+                "error_stage": "bridge_output",
             }
         if not result.get("ok") and raise_on_error:
             code = str(result.get("error_code") or "host_bridge_failed")
             error_type = str(result.get("error_type") or "unknown")
-            raise ModelProviderError(code, f"host bridge failed safely: {error_type}")
+            error_stage = str(result.get("error_stage") or "unknown")
+            message = f"host bridge failed safely at {error_stage}: {error_type}"
+            raise ModelProviderError(code, message)
         return result
 
 
@@ -153,6 +160,8 @@ def create_provider() -> HostSubprocessProvider:
     return HostSubprocessProvider(
         host_module_path=path_value,
         host_python=python_value,
+        invoke_function_name=os.getenv(INVOKE_FUNCTION_ENV, "invoke_text").strip()
+        or "invoke_text",
         client_factory_name=os.getenv(CLIENT_FACTORY_ENV, "create_client").strip()
         or "create_client",
         config_factory_name=(
