@@ -15,6 +15,11 @@ def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="uca", description="Universal Coding Agent")
     root.add_argument("--state-root", type=Path, default=Path(".uca-state"))
     root.add_argument("--provider-factory")
+    root.add_argument(
+        "--allow-local-sources",
+        action="store_true",
+        help="allow local repository paths explicitly; intended for controlled smoke tests",
+    )
     sub = root.add_subparsers(dest="command", required=True)
 
     sub.add_parser("probe")
@@ -47,7 +52,11 @@ def main(argv: list[str] | None = None) -> int:
         print("AGENT_MODEL_PROVIDER_OK")
         return 0
 
-    service = AgentService.create(arguments.state_root, provider)
+    service = AgentService.create(
+        arguments.state_root,
+        provider,
+        allow_local_sources=arguments.allow_local_sources,
+    )
     try:
         if arguments.command == "observe":
             objective = arguments.task_file.read_text(encoding="utf-8")
