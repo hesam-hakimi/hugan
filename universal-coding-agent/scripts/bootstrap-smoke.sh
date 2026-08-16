@@ -13,23 +13,25 @@ BASE_REF=""
 STATE_ROOT=""
 SKIP_INSTALL=0
 SKIP_QUALITY=0
+LOCAL_SOURCE_MODE=0
 
 usage() {
   cat <<'USAGE'
 Usage: bash scripts/bootstrap-smoke.sh [options]
 
 Options:
-  --repository URL     Git repository to inspect. Defaults to this checkout's origin.
-  --ref REF            Branch, tag, or commit. Defaults to current branch or HEAD.
-  --state-root PATH    Persistent smoke-test state directory.
-  --skip-install       Use the current Python environment; do not create/install a venv.
-  --skip-quality       Skip pytest, Ruff, and compileall (probe/Observe/resume still run).
-  -h, --help           Show this help.
+  --repository URL|PATH  Git repository to inspect. If omitted and this copy has no
+                         Git remote, a tiny local fixture repository is created automatically.
+  --ref REF              Branch, tag, or commit. Defaults to current branch/HEAD when possible.
+  --state-root PATH      Persistent smoke-test state directory.
+  --skip-install         Use the current Python environment; do not create/install a venv.
+  --skip-quality         Skip pytest, Ruff, and compileall (probe/Observe/resume still run).
+  -h, --help             Show this help.
 
 Environment overrides:
-  PYTHON_BIN           Bootstrap Python executable (default: python3).
-  UCA_VENV_PATH        Virtual environment path (default: .venv in the project).
-  UCA_SMOKE_STATE_BASE Parent directory for generated state.
+  PYTHON_BIN             Bootstrap Python executable (default: python3).
+  UCA_VENV_PATH          Virtual environment path (default: .venv in the project).
+  UCA_SMOKE_STATE_BASE   Parent directory for generated state.
 USAGE
 }
 
@@ -130,15 +132,61 @@ if ((SKIP_QUALITY == 0)); then
   printf 'UCA_QUALITY_GATES_OK\n'
 fi
 
+create_local_fixture() {
+  local fixture="$STATE_ROOT/source-fixture"
+  rm -rf -- "$fixture"
+  mkdir -p "$fixture"
+  git -C "$fixture" init -b main >/dev/null
+  git -C "$fixture" config user.email "uca-smoke@example.invalid"
+  git -C "$fixture" config user.name "UCA Smoke Test"
+  cat > "$fixture/AGENTS.md" <<'EOF'
+Read-only qualification fixture. Do not modify source files.
+EOF
+  cat > "$fixture/README.md" <<'EOF'
+# Universal Coding Agent local smoke fixture
+
+This repository exists only to exercise sandboxing, indexing, planning,
+review, checkpointing, and resume without depending on an external Git remote.
+EOF
+  cat > "$fixture/app.py" <<'EOF'
+def answer() -> int:
+    return 42
+EOF
+  cat > "$fixture/test_app.py" <<'EOF'
+def test_answer() -> None:
+    assert True
+EOF
+  git -C "$fixture" add AGENTS.md README.md app.py test_app.py
+  git -C "$fixture" commit -m "Create deterministic smoke fixture" >/dev/null
+  REPOSITORY="$fixture"
+  BASE_REF="main"
+  LOCAL_SOURCE_MODE=1
+  printf 'UCA_LOCAL_FIXTURE_REPOSITORY=%s\n' "$fixture"
+}
+
 if [[ -z "$REPOSITORY" ]]; then
   REPOSITORY="$(git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null || true)"
+  if [[ -z "$REPOSITORY" ]]; then
+    create_local_fixture
+  fi
 fi
-[[ -n "$REPOSITORY" ]] || fail "unable to determine repository URL; pass --repository"
+
+if [[ -e "$REPOSITORY" ]]; then
+  REPOSITORY="$(cd -- "$REPOSITORY" && pwd)"
+  LOCAL_SOURCE_MODE=1
+fi
 
 if [[ -z "$BASE_REF" ]]; then
-  BASE_REF="$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || true)"
-  if [[ -z "$BASE_REF" ]]; then
-    BASE_REF="$(git -C "$PROJECT_ROOT" rev-parse HEAD 2>/dev/null || true)"
+  if ((LOCAL_SOURCE_MODE == 1)); then
+    BASE_REF="$(git -C "$REPOSITORY" branch --show-current 2>/dev/null || true)"
+    if [[ -z "$BASE_REF" ]]; then
+      BASE_REF="$(git -C "$REPOSITORY" rev-parse HEAD 2>/dev/null || true)"
+    fi
+  else
+    BASE_REF="$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || true)"
+    if [[ -z "$BASE_REF" ]]; then
+      BASE_REF="$(git -C "$PROJECT_ROOT" rev-parse HEAD 2>/dev/null || true)"
+    fi
   fi
 fi
 [[ -n "$BASE_REF" ]] || fail "unable to determine repository ref; pass --ref"
@@ -149,6 +197,9 @@ CLI=(
   --state-root "$STATE_ROOT"
   --provider-factory "$PROVIDER_FACTORY"
 )
+if ((LOCAL_SOURCE_MODE == 1)); then
+  CLI+=(--allow-local-sources)
+fi
 
 "${CLI[@]}" probe
 
@@ -276,6 +327,7 @@ print(f"RESUME_REPORT={report_path}")
 PY
 
 printf '\nUCA_BOOTSTRAP_SMOKE_PASS\n'
+printf 'SOURCE_MODE=%s\n' "$([[ "$LOCAL_SOURCE_MODE" -eq 1 ]] && printf local || printf remote)"
 printf 'REPOSITORY=%s\n' "$REPOSITORY"
 printf 'REF=%s\n' "$BASE_REF"
 printf 'STATE_ROOT=%s\n' "$STATE_ROOT"
