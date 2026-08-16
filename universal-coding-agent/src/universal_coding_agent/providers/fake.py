@@ -58,3 +58,9 @@ class FakeModelProvider:
         else:
             payload = {"status": "ok"}
         return ModelResponse(structured=payload, actual_model="fake-model", finish_reason="stop")
+
+
+def create_provider() -> FakeModelProvider:
+    """Return the deterministic provider used by bootstrap and smoke tests."""
+
+    return FakeModelProvider()
