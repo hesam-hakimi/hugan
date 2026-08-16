@@ -43,10 +43,13 @@ def test_agent_service_can_explicitly_use_local_source(tmp_path: Path) -> None:
     )
     try:
         result = service.run(task)
+        report = service.artifacts.read_json(result["final_report_ref"])
     finally:
         service.close()
 
     assert result["status"] == "completed"
     assert result["reviewer_verdict"] == "PASS"
-    assert result["source_changes"] == []
+    assert report["status"] == "completed"
+    assert report["source_changes"] == []
+    assert report["commit_push_pr_merge_deploy"] is False
     assert _git(source, "status", "--porcelain") == ""
