@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 
 from universal_coding_agent.core.models import ModelRequest
-from universal_coding_agent.providers.host_chat import HostChatCompletionsProvider, create_provider
-
+from universal_coding_agent.providers.host_chat import (
+    HostChatCompletionsProvider,
+    create_provider,
+)
 
 HOST_MODULE = '''
 from types import SimpleNamespace
@@ -13,14 +15,15 @@ from types import SimpleNamespace
 
 class _Completions:
     def create(self, **kwargs):
-        content = '{"phase_id":"P1","title":"Plan","objective":"Inspect","requirements":[],"exclusions":[],"evidence":[],"slices":[],"architecture_decisions_required":[],"blockers":[],"final_acceptance_criteria":[]}'
+        content = '{"phase_id":"P1"}'
+        message = SimpleNamespace(content=content)
+        choice = SimpleNamespace(message=message, finish_reason="stop")
+        details = SimpleNamespace(reasoning_tokens=11)
+        usage = SimpleNamespace(completion_tokens=77, completion_tokens_details=details)
         return SimpleNamespace(
             model="actual-model",
-            choices=[SimpleNamespace(message=SimpleNamespace(content=content), finish_reason="stop")],
-            usage=SimpleNamespace(
-                completion_tokens=77,
-                completion_tokens_details=SimpleNamespace(reasoning_tokens=11),
-            ),
+            choices=[choice],
+            usage=usage,
         )
 
 
@@ -75,7 +78,10 @@ def test_create_provider_uses_environment(tmp_path: Path, monkeypatch) -> None:
     assert provider.probe() is True
 
 
-def test_create_provider_does_not_require_site_secrets(tmp_path: Path, monkeypatch) -> None:
+def test_create_provider_does_not_require_site_secrets(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
     path = _write_host_module(tmp_path)
     monkeypatch.setenv("UCA_HOST_CLIENT_PATH", str(path))
     monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
