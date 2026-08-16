@@ -7,6 +7,7 @@ PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 VENV_PATH="${UCA_VENV_PATH:-$PROJECT_ROOT/.venv}"
 HOST_CLIENT="${UCA_HOST_CLIENT_PATH:-}"
+HOST_PYTHON="${UCA_HOST_PYTHON:-}"
 STATE_ROOT=""
 SKIP_INSTALL=0
 SKIP_QUALITY=0
@@ -18,6 +19,8 @@ Usage: bash scripts/qualify-host-provider.sh [options]
 Options:
   --host-client PATH   Existing site-owned Python client module. Required unless
                        UCA_HOST_CLIENT_PATH is already set.
+  --host-python PATH   Python interpreter for the site-owned client. If omitted,
+                       the script searches parent .venv/venv directories first.
   --state-root PATH    Qualification state directory.
   --skip-install       Reuse the current environment; do not install the package.
   --skip-quality       Skip local compile/lint/test gates.
@@ -44,6 +47,11 @@ while (($#)); do
     --host-client)
       (($# >= 2)) || fail "--host-client requires a value"
       HOST_CLIENT="$2"
+      shift 2
+      ;;
+    --host-python)
+      (($# >= 2)) || fail "--host-python requires a value"
+      HOST_PYTHON="$2"
       shift 2
       ;;
     --state-root)
@@ -76,6 +84,27 @@ command -v "$PYTHON_BIN" >/dev/null 2>&1 || fail "$PYTHON_BIN is not available"
 [[ -n "${HOME:-}" && -d "$HOME" && -w "$HOME" ]] || fail "HOME must be writable"
 
 HOST_CLIENT="$(cd -- "$(dirname -- "$HOST_CLIENT")" && pwd)/$(basename -- "$HOST_CLIENT")"
+
+if [[ -z "$HOST_PYTHON" ]]; then
+  search_dir="$(dirname -- "$HOST_CLIENT")"
+  for _ in 1 2 3 4 5 6; do
+    for candidate in "$search_dir/.venv/bin/python" "$search_dir/venv/bin/python"; do
+      if [[ -x "$candidate" ]]; then
+        HOST_PYTHON="$candidate"
+        break 2
+      fi
+    done
+    parent="$(dirname -- "$search_dir")"
+    [[ "$parent" != "$search_dir" ]] || break
+    search_dir="$parent"
+  done
+fi
+if [[ -z "$HOST_PYTHON" ]]; then
+  HOST_PYTHON="$(command -v python3 || true)"
+fi
+[[ -n "$HOST_PYTHON" && -x "$HOST_PYTHON" ]] || fail "unable to locate host Python interpreter"
+HOST_PYTHON="$(cd -- "$(dirname -- "$HOST_PYTHON")" && pwd)/$(basename -- "$HOST_PYTHON")"
+
 RUN_ID="uca-host-$(date -u +%Y%m%dT%H%M%SZ)-$$"
 if [[ -z "$STATE_ROOT" ]]; then
   STATE_ROOT="$HOME/.uca-host-runs/$RUN_ID"
@@ -86,9 +115,14 @@ export TMPDIR="$STATE_ROOT/tmp"
 export PYTHONDONTWRITEBYTECODE=1
 export PIP_DISABLE_PIP_VERSION_CHECK=1
 export UCA_HOST_CLIENT_PATH="$HOST_CLIENT"
-export UCA_MODEL_PROVIDER_FACTORY="universal_coding_agent.providers.host_chat:create_provider"
+export UCA_HOST_PYTHON="$HOST_PYTHON"
+export UCA_MODEL_PROVIDER_FACTORY="universal_coding_agent.providers.host_subprocess:create_provider"
 
 trap 'printf "UCA_HOST_PROVIDER_QUALIFICATION_FAIL: command failed at line %s\n" "$LINENO" >&2' ERR
+
+printf 'HOST_CLIENT=%s\n' "$HOST_CLIENT"
+printf 'HOST_PYTHON=%s\n' "$HOST_PYTHON"
+"$HOST_PYTHON" --version
 
 "$PYTHON_BIN" - <<'PY'
 import sys
@@ -120,6 +154,18 @@ if ((SKIP_QUALITY == 0)); then
   printf 'UCA_HOST_LOCAL_QUALITY_GATES_OK\n'
 fi
 
+"$PYTHON" - <<'PY'
+import json
+from universal_coding_agent.providers.host_subprocess import create_provider
+
+provider = create_provider()
+details = provider.probe_details()
+print("UCA_HOST_BRIDGE_PROBE=" + json.dumps(details, sort_keys=True))
+if not details.get("ok"):
+    raise SystemExit("UCA_HOST_BRIDGE_PROBE_FAIL")
+print("UCA_HOST_BRIDGE_PROBE_PASS")
+PY
+
 CLI=(
   "$PYTHON" -m universal_coding_agent.cli
   --state-root "$STATE_ROOT"
@@ -132,7 +178,7 @@ printf 'UCA_REAL_PROVIDER_PROBE_PASS\n'
 
 "$PYTHON" - <<'PY'
 from universal_coding_agent.core.models import ModelRequest
-from universal_coding_agent.providers.host_chat import create_provider
+from universal_coding_agent.providers.host_subprocess import create_provider
 
 provider = create_provider()
 response = provider.invoke(
@@ -242,5 +288,6 @@ PY
 
 printf '\nUCA_HOST_PROVIDER_QUALIFICATION_PASS\n'
 printf 'HOST_CLIENT=%s\n' "$HOST_CLIENT"
+printf 'HOST_PYTHON=%s\n' "$HOST_PYTHON"
 printf 'STATE_ROOT=%s\n' "$STATE_ROOT"
 printf 'VENV=%s\n' "$VENV_PATH"
