@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
-from sys import executable
 
 from universal_coding_agent.core.models import ModelRequest
 from universal_coding_agent.providers.host_subprocess import HostSubprocessProvider
@@ -52,7 +52,7 @@ def _host_module(tmp_path: Path) -> Path:
 def test_subprocess_provider_probe_and_structured_invoke(tmp_path: Path) -> None:
     provider = HostSubprocessProvider(
         host_module_path=_host_module(tmp_path),
-        host_python=Path(executable),
+        host_python=Path(sys.executable),
     )
     details = provider.probe_details()
     assert details["ok"] is True
@@ -80,7 +80,7 @@ def test_subprocess_provider_returns_safe_probe_error(tmp_path: Path) -> None:
     broken.write_text("raise RuntimeError('private internal detail')\n", encoding="utf-8")
     provider = HostSubprocessProvider(
         host_module_path=broken,
-        host_python=Path(executable),
+        host_python=Path(sys.executable),
     )
     details = provider.probe_details()
     assert details["ok"] is False
