@@ -41,9 +41,11 @@ jobs:
         working-directory: repository/universal-coding-agent
         run: python -m pip install -e '.[dev]'
 
-      - name: Validate bootstrap script syntax
+      - name: Validate shell script syntax
         working-directory: repository/universal-coding-agent
-        run: bash -n scripts/bootstrap-smoke.sh
+        run: |
+          bash -n scripts/bootstrap-smoke.sh
+          bash -n scripts/qualify-host-provider.sh
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
