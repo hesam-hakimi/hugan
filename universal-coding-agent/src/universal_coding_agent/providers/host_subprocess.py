@@ -24,16 +24,16 @@ TIMEOUT_ENV = "UCA_HOST_BRIDGE_TIMEOUT_SECONDS"
 class HostSubprocessProvider:
     """Run the existing site-owned model client in its own Python environment."""
 
-    host_module_path: Path
-    host_python: Path
+    host_module_path: Path | str
+    host_python: Path | str
     client_factory_name: str = "create_client"
     config_factory_name: str = "get_configured_model_or_deployment"
     deployment_attribute: str = "deployment"
     json_mode: bool = True
 
     def __post_init__(self) -> None:
-        self.host_module_path = self.host_module_path.expanduser().resolve()
-        self.host_python = self.host_python.expanduser().resolve()
+        self.host_module_path = Path(self.host_module_path).expanduser().resolve()
+        self.host_python = Path(self.host_python).expanduser().resolve()
         if not self.host_module_path.is_file():
             raise ModelProviderError("host_client_not_found", "host client module was not found")
         if not self.host_python.is_file():
@@ -151,8 +151,8 @@ def create_provider() -> HostSubprocessProvider:
             f"set {HOST_PYTHON_ENV} to the site's Python interpreter",
         )
     return HostSubprocessProvider(
-        host_module_path=Path(path_value),
-        host_python=Path(python_value),
+        host_module_path=path_value,
+        host_python=python_value,
         client_factory_name=os.getenv(CLIENT_FACTORY_ENV, "create_client").strip()
         or "create_client",
         config_factory_name=(
