@@ -7,6 +7,16 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+_SAFE_RUNTIME_ERROR_CODES = {
+    "host_bridge_request_invalid",
+    "host_bridge_unknown_action",
+    "host_client_load_failed",
+    "host_client_not_found",
+    "host_deployment_missing",
+    "host_factory_missing",
+    "host_model_invoke_failed",
+}
+
 
 def _load_module(path: Path) -> ModuleType:
     module_name = f"_uca_host_bridge_{abs(hash(str(path)))}"
@@ -87,7 +97,7 @@ def _create_completion(
             break
     if last_error is None:
         raise RuntimeError("host_model_invoke_failed")
-    raise last_error
+    raise RuntimeError("host_model_invoke_failed") from last_error
 
 
 def _message_text(message: Any) -> str:
@@ -178,6 +188,14 @@ def _run(request: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _safe_error_code(exc: Exception) -> str:
+    if isinstance(exc, RuntimeError):
+        code = str(exc).strip()
+        if code in _SAFE_RUNTIME_ERROR_CODES:
+            return code
+    return "host_bridge_failed"
+
+
 def main() -> int:
     try:
         request = json.loads(sys.stdin.read())
@@ -185,10 +203,9 @@ def main() -> int:
             raise RuntimeError("host_bridge_request_invalid")
         payload = _run(request)
     except Exception as exc:
-        code = str(exc) if isinstance(exc, RuntimeError) and str(exc) else "host_bridge_failed"
         payload = {
             "ok": False,
-            "error_code": code,
+            "error_code": _safe_error_code(exc),
             "error_type": type(exc).__name__,
         }
     sys.stdout.write(json.dumps(payload, separators=(",", ":")))
