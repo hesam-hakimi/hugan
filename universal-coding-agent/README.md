@@ -59,11 +59,13 @@ The script performs the complete first qualification automatically:
 3. installs the package and development dependencies;
 4. runs `pip check`, compilation, Ruff, and pytest;
 5. probes the built-in deterministic fake provider;
-6. clones the selected repository/ref into isolated task sandboxes;
+6. resolves a repository source and clones it into isolated task sandboxes;
 7. executes a complete Observe workflow;
 8. verifies the final report, reviewer verdict, and clean sandbox;
 9. pauses a second task at the LangGraph approval interrupt;
 10. resumes it from SQLite checkpoint state in a separate CLI invocation.
+
+The source checkout does **not** need to contain `.git` metadata. If the files were copied into the target environment without Git history or a configured remote, the bootstrap script automatically creates a tiny deterministic local Git fixture beneath the smoke-test state directory and runs the same sandbox/index/plan/review/resume qualification against that fixture. Local repository paths are accepted only when the CLI is explicitly started with `--allow-local-sources`; normal agent operation continues to require credential-free HTTPS or SSH Git URLs.
 
 Successful completion ends with:
 
@@ -71,7 +73,7 @@ Successful completion ends with:
 UCA_BOOTSTRAP_SMOKE_PASS
 ```
 
-The generated checkpoint database, artifacts, mirrors, and sandboxes are retained beneath a unique directory under:
+The generated checkpoint database, artifacts, mirrors, sandboxes, and any local smoke fixture are retained beneath a unique directory under:
 
 ```text
 ~/.uca-smoke-runs/
@@ -84,6 +86,14 @@ bash scripts/bootstrap-smoke.sh \
   --repository https://github.com/example/project.git \
   --ref main \
   --state-root "$HOME/.uca-smoke/custom-run"
+```
+
+A controlled local repository can also be supplied explicitly:
+
+```bash
+bash scripts/bootstrap-smoke.sh \
+  --repository /absolute/path/to/local/repository \
+  --ref main
 ```
 
 For an environment where the package and quality checks have already run:
@@ -178,6 +188,7 @@ Each model role receives a fresh, bounded context compiled from project memory, 
 - subprocesses use explicit argument arrays with `shell=False`;
 - Observe mode performs no source writes;
 - repository and branch identity are pinned to an immutable base SHA;
+- local repository paths require an explicit `--allow-local-sources` opt-in and are intended for controlled smoke/testing scenarios;
 - resume is tied to the same task/thread and checkpoint store;
 - no commit, push, PR, merge, or deploy behavior exists in this milestone.
 
