@@ -70,10 +70,13 @@ class HostChatCompletionsProvider:
             deployment = self._deployment(module)
             system_prompt = request.system_prompt
             if request.response_schema:
-                schema = json.dumps(request.response_schema, separators=(",", ":"), sort_keys=True)
-                system_prompt = (
-                    f"{system_prompt}\n\nRequired JSON Schema (return one JSON object only):\n{schema}"
+                schema = json.dumps(
+                    request.response_schema,
+                    separators=(",", ":"),
+                    sort_keys=True,
                 )
+                schema_heading = "Required JSON Schema (return one JSON object only):"
+                system_prompt = f"{system_prompt}\n\n{schema_heading}\n{schema}"
             response, request_metadata = self._create_completion(
                 client,
                 deployment,
@@ -218,16 +221,19 @@ def create_provider() -> HostChatCompletionsProvider:
             "host_client_path_missing",
             f"set {HOST_CLIENT_PATH_ENV} to the existing site-owned client module",
         )
+    client_factory = os.getenv(CLIENT_FACTORY_ENV, "create_client").strip() or "create_client"
+    config_factory = (
+        os.getenv(CONFIG_FACTORY_ENV, "get_configured_model_or_deployment").strip()
+        or "get_configured_model_or_deployment"
+    )
+    deployment_attribute = (
+        os.getenv(DEPLOYMENT_ATTRIBUTE_ENV, "deployment").strip() or "deployment"
+    )
     return HostChatCompletionsProvider(
         host_module_path=Path(path_value),
-        client_factory_name=os.getenv(CLIENT_FACTORY_ENV, "create_client").strip() or "create_client",
-        config_factory_name=(
-            os.getenv(CONFIG_FACTORY_ENV, "get_configured_model_or_deployment").strip()
-            or "get_configured_model_or_deployment"
-        ),
-        deployment_attribute=(
-            os.getenv(DEPLOYMENT_ATTRIBUTE_ENV, "deployment").strip() or "deployment"
-        ),
+        client_factory_name=client_factory,
+        config_factory_name=config_factory,
+        deployment_attribute=deployment_attribute,
         json_mode=_truthy(os.getenv(JSON_MODE_ENV, "1")),
     )
 
