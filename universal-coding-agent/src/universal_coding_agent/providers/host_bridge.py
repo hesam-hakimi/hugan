@@ -4,9 +4,10 @@ import importlib.util
 import inspect
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 _T = TypeVar("_T")
 _PROBE_SENTINEL = "UCA_HOST_PROVIDER_OK"
