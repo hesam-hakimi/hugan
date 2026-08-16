@@ -1,21 +1,32 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 import json
 import sys
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Callable, TypeVar
 
-_SAFE_RUNTIME_ERROR_CODES = {
-    "host_bridge_request_invalid",
-    "host_bridge_unknown_action",
-    "host_client_load_failed",
-    "host_client_not_found",
-    "host_deployment_missing",
-    "host_factory_missing",
-    "host_model_invoke_failed",
-}
+_T = TypeVar("_T")
+_PROBE_SENTINEL = "UCA_HOST_PROVIDER_OK"
+
+
+class _BridgeStageError(Exception):
+    def __init__(self, stage: str, code: str, cause: Exception) -> None:
+        super().__init__(code)
+        self.stage = stage
+        self.code = code
+        self.cause_type = type(cause).__name__
+
+
+def _at_stage(stage: str, code: str, operation: Callable[[], _T]) -> _T:
+    try:
+        return operation()
+    except _BridgeStageError:
+        raise
+    except Exception as exc:
+        raise _BridgeStageError(stage, code, exc) from exc
 
 
 def _load_module(path: Path) -> ModuleType:
@@ -64,7 +75,11 @@ def _create_completion(
     max_output_tokens: int,
     use_json_mode: bool,
 ) -> tuple[Any, dict[str, str | bool]]:
-    create = client.chat.completions.create
+    try:
+        create = client.chat.completions.create
+    except AttributeError as exc:
+        raise RuntimeError("host_client_interface_invalid") from exc
+
     base: dict[str, Any] = {"model": deployment, "messages": messages}
     if use_json_mode:
         base["response_format"] = {"type": "json_object"}
@@ -97,7 +112,32 @@ def _create_completion(
             break
     if last_error is None:
         raise RuntimeError("host_model_invoke_failed")
-    raise RuntimeError("host_model_invoke_failed") from last_error
+    raise last_error
+
+
+def _call_host_invoke(function: Any, prompt: str, max_output_tokens: int) -> str:
+    if not callable(function):
+        raise RuntimeError("host_invoke_function_missing")
+    signature = inspect.signature(function)
+    parameters = signature.parameters
+    has_kwargs = any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    )
+    if "max_output_tokens" in parameters or has_kwargs:
+        value = function(prompt, max_output_tokens=max_output_tokens)
+    else:
+        positional = [
+            parameter
+            for parameter in parameters.values()
+            if parameter.kind
+            in {
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            }
+        ]
+        value = function(prompt, max_output_tokens) if len(positional) >= 2 else function(prompt)
+    return str(value or "")
 
 
 def _message_text(message: Any) -> str:
@@ -127,21 +167,66 @@ def _optional_text(value: Any) -> str | None:
     return text or None
 
 
-def _run(request: dict[str, Any]) -> dict[str, Any]:
-    path = Path(str(request["host_client_path"])).expanduser().resolve()
-    if not path.is_file():
-        raise RuntimeError("host_client_not_found")
-    module = _load_module(path)
-    client = _call_factory(module, str(request["client_factory"]))
-    deployment = _deployment(module, request)
+def _probe_with_host_function(
+    module: ModuleType,
+    request: dict[str, Any],
+) -> dict[str, Any] | None:
+    function_name = str(request.get("invoke_function") or "invoke_text")
+    function = getattr(module, function_name, None)
+    if not callable(function):
+        return None
+    max_output_tokens = min(64, max(8, int(request.get("max_output_tokens", 16))))
+    prompt = f"Reply with exactly: {_PROBE_SENTINEL}"
+    content = _at_stage(
+        "invoke_host_function",
+        "host_invoke_function_failed",
+        lambda: _call_host_invoke(function, prompt, max_output_tokens),
+    ).strip()
+    if content != _PROBE_SENTINEL:
+        raise _BridgeStageError(
+            "validate_host_probe",
+            "host_probe_output_mismatch",
+            RuntimeError("host_probe_output_mismatch"),
+        )
+    return {
+        "ok": True,
+        "content": content,
+        "actual_model": None,
+        "finish_reason": None,
+        "completion_tokens": None,
+        "reasoning_tokens": None,
+        "safe_diagnostics": {
+            "provider": "host_subprocess",
+            "transport": "host_invoke_function",
+            "invoke_function": function_name,
+            "visible_content_length": len(content),
+        },
+    }
 
-    action = str(request.get("action", ""))
+
+def _direct_request(
+    module: ModuleType,
+    request: dict[str, Any],
+    *,
+    action: str,
+) -> dict[str, Any]:
+    client = _at_stage(
+        "create_host_client",
+        "host_client_factory_failed",
+        lambda: _call_factory(module, str(request["client_factory"])),
+    )
+    deployment = _at_stage(
+        "resolve_host_deployment",
+        "host_model_config_failed",
+        lambda: _deployment(module, request),
+    )
+
     if action == "probe":
         messages = [
             {"role": "system", "content": "Reply briefly."},
             {"role": "user", "content": "Reply with OK."},
         ]
-        max_output_tokens = int(request.get("max_output_tokens", 64))
+        max_output_tokens = int(request.get("max_output_tokens", 16))
         use_json_mode = False
     elif action == "invoke":
         system_prompt = str(request.get("system_prompt", ""))
@@ -160,40 +245,62 @@ def _run(request: dict[str, Any]) -> dict[str, Any]:
     else:
         raise RuntimeError("host_bridge_unknown_action")
 
-    response, metadata = _create_completion(
-        client,
-        deployment,
-        messages=messages,
-        max_output_tokens=max_output_tokens,
-        use_json_mode=use_json_mode,
+    response, metadata = _at_stage(
+        "invoke_host_sdk",
+        "host_model_invoke_failed",
+        lambda: _create_completion(
+            client,
+            deployment,
+            messages=messages,
+            max_output_tokens=max_output_tokens,
+            use_json_mode=use_json_mode,
+        ),
     )
-    choice = response.choices[0] if getattr(response, "choices", None) else None
-    message = getattr(choice, "message", None)
-    usage = getattr(response, "usage", None)
-    details = getattr(usage, "completion_tokens_details", None)
-    content = _message_text(message)
-    return {
-        "ok": True,
-        "content": content,
-        "actual_model": _optional_text(getattr(response, "model", None)),
-        "finish_reason": _optional_text(getattr(choice, "finish_reason", None)),
-        "completion_tokens": _non_negative_int(getattr(usage, "completion_tokens", None)),
-        "reasoning_tokens": _non_negative_int(getattr(details, "reasoning_tokens", None)),
-        "safe_diagnostics": {
-            "provider": "host_subprocess",
-            "requested_deployment": deployment,
-            "visible_content_length": len(content),
-            **metadata,
-        },
-    }
+
+    def build_payload() -> dict[str, Any]:
+        choice = response.choices[0] if getattr(response, "choices", None) else None
+        message = getattr(choice, "message", None)
+        usage = getattr(response, "usage", None)
+        details = getattr(usage, "completion_tokens_details", None)
+        content = _message_text(message)
+        return {
+            "ok": True,
+            "content": content,
+            "actual_model": _optional_text(getattr(response, "model", None)),
+            "finish_reason": _optional_text(getattr(choice, "finish_reason", None)),
+            "completion_tokens": _non_negative_int(
+                getattr(usage, "completion_tokens", None)
+            ),
+            "reasoning_tokens": _non_negative_int(
+                getattr(details, "reasoning_tokens", None)
+            ),
+            "safe_diagnostics": {
+                "provider": "host_subprocess",
+                "transport": "host_sdk_client",
+                "requested_deployment": deployment,
+                "visible_content_length": len(content),
+                **metadata,
+            },
+        }
+
+    return _at_stage("read_host_response", "host_response_invalid", build_payload)
 
 
-def _safe_error_code(exc: Exception) -> str:
-    if isinstance(exc, RuntimeError):
-        code = str(exc).strip()
-        if code in _SAFE_RUNTIME_ERROR_CODES:
-            return code
-    return "host_bridge_failed"
+def _run(request: dict[str, Any]) -> dict[str, Any]:
+    path = Path(str(request["host_client_path"])).expanduser().resolve()
+    if not path.is_file():
+        raise RuntimeError("host_client_not_found")
+    module = _at_stage(
+        "load_host_module",
+        "host_client_load_failed",
+        lambda: _load_module(path),
+    )
+    action = str(request.get("action", ""))
+    if action == "probe":
+        function_result = _probe_with_host_function(module, request)
+        if function_result is not None:
+            return function_result
+    return _direct_request(module, request, action=action)
 
 
 def main() -> int:
@@ -202,11 +309,26 @@ def main() -> int:
         if not isinstance(request, dict):
             raise RuntimeError("host_bridge_request_invalid")
         payload = _run(request)
-    except Exception as exc:
+    except _BridgeStageError as exc:
         payload = {
             "ok": False,
-            "error_code": _safe_error_code(exc),
+            "error_code": exc.code,
+            "error_type": exc.cause_type,
+            "error_stage": exc.stage,
+        }
+    except Exception as exc:
+        code = str(exc).strip() if isinstance(exc, RuntimeError) else ""
+        if code not in {
+            "host_bridge_request_invalid",
+            "host_bridge_unknown_action",
+            "host_client_not_found",
+        }:
+            code = "host_bridge_failed"
+        payload = {
+            "ok": False,
+            "error_code": code,
             "error_type": type(exc).__name__,
+            "error_stage": "bridge",
         }
     sys.stdout.write(json.dumps(payload, separators=(",", ":")))
     sys.stdout.write("\n")
