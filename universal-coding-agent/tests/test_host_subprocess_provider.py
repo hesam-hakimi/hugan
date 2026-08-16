@@ -85,5 +85,6 @@ def test_subprocess_provider_returns_safe_probe_error(tmp_path) -> None:
     )
     details = provider.probe_details()
     assert details["ok"] is False
+    assert details["error_code"] == "host_bridge_failed"
     assert details["error_type"] == "RuntimeError"
     assert "private internal detail" not in str(details)
