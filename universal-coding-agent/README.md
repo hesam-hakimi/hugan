@@ -37,12 +37,62 @@ Not yet included:
 ## Install
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 ```
 
 LangGraph 1.2+ is used as the orchestration runtime. SQLite checkpoint support is included for local durable execution.
+
+## One-command first smoke test
+
+From the `universal-coding-agent` directory, run:
+
+```bash
+bash scripts/bootstrap-smoke.sh
+```
+
+The script performs the complete first qualification automatically:
+
+1. verifies Python 3.11+;
+2. creates or reuses `.venv`;
+3. installs the package and development dependencies;
+4. runs `pip check`, compilation, Ruff, and pytest;
+5. probes the built-in deterministic fake provider;
+6. clones the selected repository/ref into isolated task sandboxes;
+7. executes a complete Observe workflow;
+8. verifies the final report, reviewer verdict, and clean sandbox;
+9. pauses a second task at the LangGraph approval interrupt;
+10. resumes it from SQLite checkpoint state in a separate CLI invocation.
+
+Successful completion ends with:
+
+```text
+UCA_BOOTSTRAP_SMOKE_PASS
+```
+
+The generated checkpoint database, artifacts, mirrors, and sandboxes are retained beneath a unique directory under:
+
+```text
+~/.uca-smoke-runs/
+```
+
+Override the repository, ref, or state path when needed:
+
+```bash
+bash scripts/bootstrap-smoke.sh \
+  --repository https://github.com/example/project.git \
+  --ref main \
+  --state-root "$HOME/.uca-smoke/custom-run"
+```
+
+For an environment where the package and quality checks have already run:
+
+```bash
+bash scripts/bootstrap-smoke.sh --skip-install --skip-quality
+```
+
+The bootstrap smoke test uses only the built-in fake provider. It does not use site authentication, consume a real model, modify source, commit, push, create a pull request, merge, or deploy.
 
 ## Model provider
 
