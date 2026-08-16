@@ -35,11 +35,25 @@ def _load_module(path: Path) -> ModuleType:
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError("host_client_load_failed")
+
     module = importlib.util.module_from_spec(spec)
     parent = str(path.parent)
     if parent not in sys.path:
         sys.path.insert(0, parent)
-    spec.loader.exec_module(module)
+
+    # Some decorators and runtime type helpers, including dataclasses, resolve
+    # the module through sys.modules while the module body is executing.
+    # Register before exec_module to match normal Python import semantics.
+    previous = sys.modules.get(module_name)
+    sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if previous is None:
+            sys.modules.pop(module_name, None)
+        else:
+            sys.modules[module_name] = previous
+        raise
     return module
 
 
