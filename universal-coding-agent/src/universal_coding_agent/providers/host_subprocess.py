@@ -37,7 +37,10 @@ class HostSubprocessProvider:
         if not self.host_module_path.is_file():
             raise ModelProviderError("host_client_not_found", "host client module was not found")
         if not self.host_python.is_file():
-            raise ModelProviderError("host_python_not_found", "host Python interpreter was not found")
+            raise ModelProviderError(
+                "host_python_not_found",
+                "host Python interpreter was not found",
+            )
 
     def capabilities(self) -> ModelCapabilities:
         return ModelCapabilities(
