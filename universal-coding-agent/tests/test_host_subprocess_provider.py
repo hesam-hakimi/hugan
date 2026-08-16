@@ -43,10 +43,25 @@ def get_configured_model_or_deployment():
     return SimpleNamespace(deployment="host-deployment")
 '''
 
+HOST_INVOKE_MODULE = '''
+def invoke_text(prompt, max_output_tokens=8):
+    assert max_output_tokens <= 64
+    return "UCA_HOST_PROVIDER_OK"
 
-def _host_module(tmp_path):
+
+def create_client():
+    raise AttributeError("direct client must not be used by probe")
+'''
+
+BROKEN_INVOKE_MODULE = '''
+def invoke_text(prompt, max_output_tokens=8):
+    raise AttributeError("private internal detail")
+'''
+
+
+def _host_module(tmp_path, content=HOST_MODULE):
     path = tmp_path / "host_client.py"
-    path.write_text(HOST_MODULE, encoding="utf-8")
+    path.write_text(content, encoding="utf-8")
     return path
 
 
@@ -76,7 +91,31 @@ def test_subprocess_provider_probe_and_structured_invoke(tmp_path) -> None:
     assert response.safe_diagnostics["requested_deployment"] == "host-deployment"
 
 
-def test_subprocess_provider_returns_safe_probe_error(tmp_path) -> None:
+def test_probe_prefers_existing_host_invoke_contract(tmp_path) -> None:
+    provider = HostSubprocessProvider(
+        host_module_path=_host_module(tmp_path, HOST_INVOKE_MODULE),
+        host_python=sys.executable,
+    )
+    details = provider.probe_details()
+    assert details["ok"] is True
+    assert details["content"] == "UCA_HOST_PROVIDER_OK"
+    assert details["safe_diagnostics"]["transport"] == "host_invoke_function"
+
+
+def test_probe_reports_safe_host_invoke_stage(tmp_path) -> None:
+    provider = HostSubprocessProvider(
+        host_module_path=_host_module(tmp_path, BROKEN_INVOKE_MODULE),
+        host_python=sys.executable,
+    )
+    details = provider.probe_details()
+    assert details["ok"] is False
+    assert details["error_code"] == "host_invoke_function_failed"
+    assert details["error_type"] == "AttributeError"
+    assert details["error_stage"] == "invoke_host_function"
+    assert "private internal detail" not in str(details)
+
+
+def test_subprocess_provider_returns_safe_load_error(tmp_path) -> None:
     broken = tmp_path / "broken_client.py"
     broken.write_text("raise RuntimeError('private internal detail')\n", encoding="utf-8")
     provider = HostSubprocessProvider(
@@ -85,6 +124,7 @@ def test_subprocess_provider_returns_safe_probe_error(tmp_path) -> None:
     )
     details = provider.probe_details()
     assert details["ok"] is False
-    assert details["error_code"] == "host_bridge_failed"
+    assert details["error_code"] == "host_client_load_failed"
     assert details["error_type"] == "RuntimeError"
+    assert details["error_stage"] == "load_host_module"
     assert "private internal detail" not in str(details)
