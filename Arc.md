@@ -1,228 +1,179 @@
-askAlpha — Enterprise Target-State Data Flow Diagram
+# askAlpha / SpruceX — PIA Third-Party Section Draft
 
-Prepared: 2026-08-13
-Basis: Architect 2 meeting and the established AskTD product context
-Status: Architect-aligned target-state draft; not yet architecture-approved
+**Version:** 2 (scope correction)  
+**Date:** 2026-08-17  
+**Status:** Draft for PIA completion; not evidence of final Privacy, TPRM, Security, AI Governance, DAC, or contractual approval.
 
-> This document describes the intended production data flows. It deliberately distinguishes confirmed direction, required controls, unresolved decisions, and optional future capabilities. SpruceX is a pre-production validation environment and is not part of the production runtime.
+## Scope correction
 
-Status legend
+SpruceX is a pre-production Azure environment that provides **governed, role-based access to approved real / production-origin data**. Therefore, this PIA must not describe the environment as synthetic-data-only.
 
-• Solid arrow: intended target-state data flow.
-• Dashed arrow: conditional, future, or not yet approved.
-• TBD node: a decision that must be resolved before production approval.
-• Required control node: a security/privacy control required for a safe target design even if the exact implementation is still being finalized.
+That environment-level access is distinct from the content sent to Azure OpenAI. The application must retrieve only authorized data through the approved governed path (for example, DAC-treated views), apply user and runtime-identity authorization before retrieval, and send Azure OpenAI only the **minimum necessary approved rows, columns, derived measures, and prompt context** for a request. Access to real data does not authorize unrestricted prompt payloads or raw/base-table access.
 
-1. Production runtime data flow
+For this initiative, Microsoft Azure OpenAI is the third-party service provider. The solution does not use ChatGPT or the public OpenAI API.
 
-```mermaid
-graph TD
-    EMP[Employee]
-    ENTRA[Microsoft Entra ID]
-    UI[AskTD Employee UI and Application Server]
-    AGENT[User Triggered Agent Engine]
-    POLICY[Authorization and Query Policy Guard]
-    PRIVACY[Prompt and Result Privacy Control]
-    REDIS[Optional Azure Managed Redis]
-    SEARCH[Dedicated Azure AI Search]
-    REGISTRY[AskTD Semantic Registry]
-    GATEWAY[Enterprise LLM Gateway]
-    AOAI[Approved Azure OpenAI Models]
-    IDAUTH[TBD Approved End User Authorization Propagation]
-    UC[Databricks SQL and Unity Catalog]
-    DELTA[Rahona ADLS Curated Delta Tables]
+> **Project data classification note:** SpruceX can support governed access to Confidential and Restricted data. That environment capability does not expand the askAlpha scope. PCI-DSS data remains outside the intended Phase 1 scope, subject to final approved field-level inventory confirmation.
 
-    EMP -->|Open AskTD and sign in| UI
-    ENTRA -->|JWT and trusted AD group claims| UI
-    EMP -->|Natural language question| UI
-    UI -->|Validated request and user context| AGENT
+## Evidence still required before final submission
 
-    REGISTRY -->|Versioned governed metadata| SEARCH
-    SEARCH -->|Authorized metadata retrieval| AGENT
+| Required fact | Why it is required | Obtain from |
+|---|---|---|
+| Microsoft/Azure vendor relationship owner and start date | Required by Question 1 | Foundational PIA owner, TD Azure service owner, Vendor Management, or AI Governance |
+| TPRM E# and risk rating | Required by Questions 3 and 4 | TPRM / Vendor Management / Foundational PIA |
+| Azure OpenAI resource geography and deployment type (`Standard`, `Data Zone`, or `Global`) | Required by Question 2 and storage/residency answers | Azure service owner / solution architecture |
+| Abuse-monitoring configuration and retention period | Required by Questions 16 and 17 | Azure service owner, TPRM evidence, and Foundational PIA |
+| Proof of approved payload controls and runtime access | Required to distinguish SpruceX data access from Azure OpenAI disclosure | DAC, Security, Privacy, AI Governance, and technical test evidence |
 
-    AGENT -->|Minimum approved context| PRIVACY
-    PRIVACY -->|Protected prompt| GATEWAY
-    GATEWAY -->|Approved model request| AOAI
-    AOAI -->|Model response| GATEWAY
-    GATEWAY -->|Gateway response| PRIVACY
-    PRIVACY -->|Validated model output| AGENT
+---
 
-    AGENT -->|Candidate semantic plan or read only SQL| POLICY
-    UI -->|Validated employee entitlement context| POLICY
-    POLICY -->|Approved query and trusted context| IDAUTH
-    IDAUTH -->|Approved access mechanism is unresolved| UC
-    DELTA -->|Curated governed data| UC
-    UC -->|Authorized masked and bounded result| POLICY
-    POLICY -->|Governed result| AGENT
+## 1. Third-party name, service, existing-vendor status, and TD relationship owner
 
-    AGENT -->|Answer citations and status| UI
-    UI -->|Governed response| EMP
+**Form question**
 
-    AGENT -.-> REDIS
-    REDIS -.-> AGENT
-```
+> Please provide the third Party name; the service they will provide; whether they are an existing vendor (and since when); and who in TD owns the relationship with the vendor.
 
-Runtime interpretation
+**Proposed response**
 
-1. The employee authenticates with Entra ID. The application validates the token and derives trusted AD-group/persona context.
-2. The Agent Engine runs only in response to a user action; it is not an autonomous background agent.
-3. Azure AI Search supplies authorized metadata context. It is a derived index, not the source of truth.
-4. Model calls use the enterprise LLM Gateway in the target state. Prompts and any result context must be minimized and protected before leaving the AskTD boundary.
-5. Generated SQL is treated as untrusted until the policy guard validates read-only scope, approved objects, limits, and the employee’s entitlement.
-6. Unity Catalog must be the authoritative data-platform enforcement point for table, column, row, and masking policies.
-7. The exact mechanism that preserves the employee’s authorization while AskTD connects to Databricks is unresolved. A shared Managed Identity plus application filtering alone must not be represented as complete end-user enforcement.
-8. Redis is optional/conditional and remains behind the application. It may hold short-lived session, job, and progress state; the browser must not connect directly to it.
+Microsoft Corporation — Azure OpenAI Service.
 
-2. Metadata lifecycle and indexing flow
+Microsoft provides a managed cloud AI service that processes application prompts, approved retrieved context, and generated outputs for model inference, together with applicable service-level safety and abuse-monitoring functions.
 
-```mermaid
-graph TD
-    UC_META[Unity Catalog Technical Metadata]
-    COLL[Collibra Business Metadata]
-    OWNER[Data Owners and Domain SMEs]
-    SYNC[TBD Metadata Sync Validation and Conflict Resolution]
-    REG[Proposed Versioned AskTD Registry]
-    SEARCH[Azure AI Search Derived Index]
-    CACHE[Optional Redis Metadata Cache]
-    AGENT[AskTD Agent Engine]
-    PRODUCER[TBD Named Metadata Event Producer]
-    KAFKA[Conditional Future Enterprise Kafka]
-    CONSUMER[TBD Named Downstream Consumer]
+Microsoft is an existing TD enterprise cloud vendor. The Azure OpenAI service onboarding/contract effective date and the TD owner of the enterprise Microsoft relationship are **TBD** and must be confirmed from the Foundational PIA, applicable TPRM engagement, or the TD Azure/AI Governance service owner.
 
-    UC_META -->|Schemas tables columns relationships and grants| SYNC
-    COLL -->|Owners glossary and governed descriptions| SYNC
-    OWNER -->|Taxonomy synonyms KPIs joins and recipes| SYNC
-    SYNC -->|Validated and versioned metadata| REG
-    REG -->|Full or incremental index update| SEARCH
-    REG -.-> CACHE
-    SEARCH -->|Security trimmed retrieval| AGENT
-    REG -->|Runtime definitions by version| AGENT
+The askAlpha project team must not be recorded as the vendor relationship owner unless that ownership is formally confirmed.
 
-    PRODUCER -.-> KAFKA
-    KAFKA -.-> SYNC
-    KAFKA -.-> CONSUMER
-```
+---
 
-Metadata decisions still required
+## 2. Jurisdiction(s) where the third party processes Personal Information
 
-• Confirm which system is authoritative for each metadata category.
-• Confirm whether and how Unity Catalog and Collibra are synchronized; the meeting did not establish this as fact.
-• Define ownership and precedence when Unity Catalog, Collibra, and AskTD semantic definitions conflict.
-• Choose the refresh method: scheduled batch/polling, source notification, or an event-driven process.
-• Define how registry, AI Search, and Redis are refreshed or invalidated after metadata or permission changes.
-• Security-trim the metadata itself so a user cannot discover unauthorized schemas, tables, or fields.
-• Do not add Kafka merely as a placeholder. It requires a named producer, event schema, named consumer, owner, retention/replay need, and approved network path.
+**Form question**
 
-3. Observability, audit, usage and cost flow
+> Which jurisdiction(s) is the personal information being processed in by the Third party?
 
-```mermaid
-graph TD
-    UI[AskTD UI and Application Server]
-    AGENT[AskTD Agent Engine]
-    GATEWAY[Enterprise LLM Gateway]
-    UC[Databricks and Unity Catalog]
-    TRACE[Enterprise Python Tracing Library]
-    TRACE_STORE[Approved ADLS Trace Landing]
-    AIOBS[Enterprise AI Observability with Existing Event Hub and AKS]
-    LANG[LangSmith AI Traceability for MRM]
-    DYN[Enterprise Application Monitoring]
-    AUDIT_PIPE[TBD Approved Audit Collection Path]
-    AUDIT_STORE[TBD Authoritative Immutable Audit Store]
-    AUDIT_CONSUMER[TBD Named Audit Consumer]
-    COST[TBD Usage and Cost Records]
-    REPORT[TBD Showback and Governance Reporting]
+**Current response status: `TBD — do not finalize the country table yet.`**
 
-    UI -->|Redacted application correlation data| TRACE
-    AGENT -->|Redacted agent decisions and model traces| TRACE
-    TRACE -->|Approved trace files| TRACE_STORE
-    TRACE_STORE -->|Platform ingestion| AIOBS
-    AIOBS -->|AI execution trace| LANG
+The answer must be based on the Azure OpenAI resource's actual region and deployment type, not solely on the fact that the source data is TD US Data or that SpruceX provides access to real data.
 
-    UI -->|Operational logs and metrics| DYN
-    AGENT -->|Operational logs and metrics| DYN
+**Table-selection guidance after configuration is confirmed**
 
-    UI -->|Authentication event and correlation ID| AUDIT_PIPE
-    AGENT -->|Authorization and execution decision| AUDIT_PIPE
-    UC -->|Governed data access event| AUDIT_PIPE
-    AUDIT_PIPE -->|Validated audit record| AUDIT_STORE
-    AUDIT_STORE -->|Authorized reporting| AUDIT_CONSUMER
+| Azure OpenAI configuration | Form treatment |
+|---|---|
+| Standard deployment in a United States Azure region | Select `United States` for **Use**. Select **Storing** only where the confirmed service configuration stores data; select **Access** only where the documented configuration confirms it. Do not select **Collection** or **Sharing** for Microsoft in this table. |
+| Data Zone deployment | Record the applicable data-zone geography exactly as documented; do not assume a single U.S. region. |
+| Global deployment | Do not state that processing is U.S.-only; document the Global deployment geography and obtain Privacy/TPRM confirmation. |
 
-    GATEWAY -->|Model token and request usage| COST
-    UC -->|Query and compute usage| COST
-    COST -->|Aggregated usage| REPORT
-```
+**Interim wording for the form, if text is required**
 
-Separation of concerns
+> Pending confirmation of the Azure OpenAI resource region, deployment type, and abuse-monitoring configuration. The project will document all processing jurisdictions from the approved Azure service configuration and Foundational PIA before final submission.
 
-• LangSmith / AI Observability: agent decisions, model calls, latency, errors, token usage, and MRM traceability.
-• Operational monitoring: application health, availability, CPU/memory/network, dependency failures, and slow requests.
-• Security/data audit: who requested what, effective authorization, governed objects used, query identifier/hash, result size/status, and access outcome.
-• Usage/cost: model tokens, Databricks query/compute usage, and product-level showback.
+---
 
-The existing Event Hub shown above is internal to the enterprise AI Observability platform. It is not approval for a separate AskTD business-event backbone.
+## 3. TPRM engagement number
 
-Full prompts, raw query results, customer identifiers, PII, PCI, access tokens, and unrestricted SQL must not be logged by default. Any exception requires explicit data-classification, masking, access-control, retention, Privacy, Security, and MRM approval.
+**Form question**
 
-4. Conditional extensibility paths
+> What is the Third Party Risk Management (TPRM) engagement number (E#)?
 
-```mermaid
-graph TD
-    OTHER[Future Enterprise Application]
-    APIM[Conditional Enterprise API Gateway]
-    AGENT[Reusable AskTD Agent Engine]
-    FAST[Short Running Question]
-    LONG[Long Running Report]
-    REST[Synchronous REST Response]
-    ASYNC[Authenticated Async Job and Progress Stream]
-    REDIS[Conditional Redis State]
+**Proposed response**
 
-    OTHER -.-> APIM
-    APIM -.-> AGENT
-    FAST -->|Seconds| REST
-    LONG -.-> ASYNC
-    ASYNC -.-> REDIS
-    REDIS -.-> ASYNC
-```
+> TBD — Microsoft/Azure is an existing enterprise vendor. The applicable TPRM E# must be obtained from the Foundational PIA owner, TD Azure service owner, AI Governance, or Vendor Management.
 
-• The Agent Engine is kept logically separate so it can later be exposed as an enterprise API, but APIM/API Gateway is not required until another approved application needs it.
-• A hybrid request model is recommended: normal synchronous REST for short questions and an authenticated asynchronous job/progress pattern for longer reports. The exact transport and AMR role require performance and security validation.
-• A relational application database may be added only when durable application state has a defined requirement; it is not shown as a mandatory runtime dependency.
+Do not invent an E#.
 
-5. Production trust boundaries and approvals
+---
 
-|Boundary / connection             |Required consideration                                                                                          |
-|----------------------------------|----------------------------------------------------------------------------------------------------------------|
-|Employee device → AskTD           |Entra authentication, token validation, group-claim handling, session protection                                |
-|AskTD UI/server → Agent Engine    |Approved service-to-service identity, trusted user-context envelope, authorization, timeout/retry contract      |
-|AskTD → LLM Gateway               |Managed/workload identity, data minimization, filtering, logging policy, cost attribution, gateway readiness/SLA|
-|AskTD → Rahona Databricks         |Cross-MAL-code connectivity, JDBC/private network route, WIM review, CPoP/firewall approval                     |
-|AskTD user context → Unity Catalog|**Critical unresolved decision:** approved delegated/brokered policy-enforcement pattern                        |
-|Unity Catalog → ADLS Delta        |Governed views/external tables, least privilege, row/column/masking policies                                    |
-|AskTD → AI Observability          |Approved trace schema, redaction, retention, access, MRM onboarding                                             |
-|AskTD → audit destination         |Named audit owner/consumer, immutable storage, retention, correlation, privacy controls                         |
+## 4. TPRM risk rating
 
-6. Items intentionally excluded from the production runtime
+**Form question**
 
-• SpruceX: lower-environment validation with production data and support for MRM approval; not a production hosting platform.
-• Synapse copy path: current/interim fallback while Unity Catalog rollout is incomplete; not the preferred target data flow.
-• A new AskTD Event Hub: not approved or required for MVP1.
-• Enterprise Kafka: conditional future capability only after a concrete producer, consumer, and event requirement are approved.
-• Direct browser access to Redis, Databricks, Azure AI Search, or the LLM Gateway: not permitted in this target design.
-• Autonomous agents: outside the agreed scope; agents are initiated by user requests.
-• Unrestricted direct Azure OpenAI access: a transitional POC path only; the enterprise LLM Gateway is the target direction.
-• Claims of zero-copy: the exact cross-environment zero-copy pattern remains unresolved and must be defined separately.
+> What is the Risk Rating of the TPRM engagement?
 
-7. Architecture decisions required before this DFD can be approved
+**Proposed response**
 
-1. End-user authorization to Unity Catalog: determine the TD-approved mechanism that preserves the employee’s data scope when AskTD uses a workload/Managed Identity.
-2. Metadata ownership: assign authoritative ownership for technical, business, and AskTD-specific semantic metadata and define conflict resolution.
-3. Metadata refresh: agree on batch/poll/event triggers and registry/index/cache invalidation behavior.
-4. Security audit: define the authoritative sink, schema, retention, owner, and named consumers; keep this separate from LangSmith observability.
-5. Privacy controls: define which prompts, metadata, query results, and identifiers can reach the LLM and tracing platforms.
-6. LLM Gateway readiness: validate authentication, routing, content filtering, fallback, logging, cost output, SLA, and environment availability.
-7. Network topology: approve MAL-code boundaries, private connectivity, CPoP/firewall rules, and service-to-service identities.
-8. Long-running requests: validate the synchronous/asynchronous threshold, progress transport, AMR usage, reauthorization, timeout, retry, and disconnect behavior.
+> TBD — select the rating only after the associated TPRM E# and official risk rating are confirmed.
 
-────────
+Do not choose a risk rating based on the project team's assessment.
 
-Recommended approval wording: This DFD is suitable as the working target-state baseline. Production approval remains blocked on the Unity Catalog end-user authorization pattern, metadata ownership/synchronization contract, security-audit destination, privacy controls, and network/CPoP decisions listed above.
+---
+
+## 5. Is the third party collecting on behalf of TD and/or sharing Personal Information?
+
+**Form question**
+
+> Is the third party collecting on behalf of TD and/or sharing personal information?
+
+**Selection:** `None of the above`
+
+**Supporting explanation**
+
+Azure OpenAI does not directly collect Personal Information from individuals on TD's behalf and is not engaged to share Personal Information with another party. Microsoft processes the limited inputs TD provides as a service provider. TD's provision of Personal Information to Microsoft, if approved, is addressed in Question 6.
+
+---
+
+## 6. Will TD be sharing/providing Personal Information to the third party to perform this activity?
+
+**Form question**
+
+> Will TD be sharing/providing personal information to the third party to perform this activity?
+
+**Selection:** `Yes`
+
+**Supporting explanation**
+
+Yes. SpruceX provides governed access to approved real / production-origin data, and askAlpha may provide Microsoft Azure OpenAI with the minimum necessary authorized content in application prompts and retrieved context to generate a response.
+
+Before a request is made, the solution must enforce applicable user authorization, runtime-identity permissions, DAC treatment, row/column restrictions, and payload minimization. Azure OpenAI must not receive unrestricted source data, raw/base-table data, or data outside the approved payload scope. Production-origin Personal Information processing through Azure OpenAI remains subject to applicable Privacy, Security, AI Governance, DAC/data-governance, TPRM, and contractual approvals.
+
+---
+
+## 16. Retention period at the third party
+
+**Form question**
+
+> How long will the personal information be retained by the third party? (time period)
+
+**Proposed response**
+
+> TBD — Azure OpenAI model inference is stateless and does not store prompts or completions in the model. However, service-level abuse monitoring or optional stateful Azure OpenAI features may retain applicable content under the approved Microsoft/TD service configuration. The exact retention period, whether modified abuse monitoring is enabled, and whether any stateful feature is in use must be confirmed from the Foundational PIA, TPRM evidence, and Azure OpenAI service configuration before final submission.
+
+Do not enter `0 days`, `30 days`, or another fixed period unless the applicable TD-approved service documentation confirms it.
+
+---
+
+## 17. Rationale for the retention period
+
+**Form question**
+
+> What is the rationale for the retention period?
+
+**Proposed response**
+
+Any retention must be limited to the minimum period necessary for Microsoft to operate the Azure OpenAI service, including applicable safety and abuse-monitoring requirements under the approved service configuration.
+
+There is no business requirement for askAlpha to retain Azure OpenAI prompt or completion content beyond approved operational logging and audit requirements. The final retention period must align with the applicable TD/Microsoft contractual terms, TPRM evidence, and Privacy-approved configuration.
+
+---
+
+## 18. Storage location
+
+**Form question**
+
+> Where will the personal information be stored?
+
+**Selection:** `Cloud`
+
+**Supporting explanation**
+
+Microsoft Azure cloud — Azure OpenAI Service. Source data and DAC-treated views remain in SpruceX / TD-managed stores; Azure OpenAI receives request-scoped, minimum-necessary approved content. Any Azure-held content depends on the approved abuse-monitoring and stateful-feature configuration. The exact Azure region/geography, deployment type, and any service-level stored-data component must be confirmed before final PIA submission.
+
+---
+
+## Questions not yet captured
+
+Questions **7–15** were not visible in the supplied screenshots. Add them to this document once screenshots or the form text are available; do not infer their wording or selections.
+
+## Technical reference (not a TD approval)
+
+Microsoft documents that Azure-hosted models process prompts and generated content; optional features and abuse monitoring can affect storage and processing location. This public documentation is technical context only and does **not** replace TD's Foundational PIA, TPRM evidence, contractual terms, or approval decisions.
+
+- [Microsoft Learn — Data, privacy, and security for Models sold by Azure](https://learn.microsoft.com/en-us/azure/foundry/responsible-ai/openai/data-privacy)
