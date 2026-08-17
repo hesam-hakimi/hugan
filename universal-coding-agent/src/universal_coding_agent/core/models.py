@@ -105,6 +105,7 @@ class SlicePlan(FrozenModel):
     title: str = Field(min_length=1, max_length=200)
     objective: str = Field(min_length=1, max_length=4000)
     dependencies: tuple[str, ...] = ()
+    external_dependencies: tuple[str, ...] = ()
     included_scope: tuple[str, ...] = ()
     excluded_scope: tuple[str, ...] = ()
     expected_paths: tuple[str, ...] = ()
