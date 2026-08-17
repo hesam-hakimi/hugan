@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import operator
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,6 +18,10 @@ from universal_coding_agent.core.models import (
     TaskRequest,
     TaskStatus,
 )
+from universal_coding_agent.orchestration.structured_output import (
+    StructuredOutputError,
+    invoke_structured,
+)
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
 from universal_coding_agent.sandbox.git import GitSandboxManager
@@ -33,11 +36,13 @@ class TaskGraphState(TypedDict, total=False):
     sandbox_id: str
     manifest_ref: str
     planner_context_ref: str
+    planner_validation_ref: str
     plan_ref: str
     plan_hash: str
     plan_approved: bool | None
     checks_ref: str
     reviewer_context_ref: str
+    reviewer_validation_ref: str
     review_ref: str
     reviewer_verdict: str
     final_report_ref: str
@@ -114,7 +119,8 @@ class ObserveGraph:
             base_sha=state["base_sha"],
         )
         reference = self.services.artifacts.write_json(
-            f"tasks/{task.task_id}/repository-manifest.json", manifest.model_dump(mode="json")
+            f"tasks/{task.task_id}/repository-manifest.json",
+            manifest.model_dump(mode="json"),
         )
         return {
             "status": TaskStatus.INDEXED.value,
@@ -126,22 +132,45 @@ class ObserveGraph:
         task = TaskRequest.model_validate(state["task"])
         manifest_data = self.services.artifacts.read_json(state["manifest_ref"])
         manifest = ProjectManifest.model_validate(manifest_data)
-        context = self.services.context.compile_planner(Path(state["sandbox_path"]), task, manifest)
+        context = self.services.context.compile_planner(
+            Path(state["sandbox_path"]), task, manifest
+        )
         context_ref = self.services.artifacts.write_text(
             f"tasks/{task.task_id}/planner-context.md", context, "text/markdown"
         )
-        response = self.services.provider.invoke(
-            ModelRequest(
-                role="planner",
-                system_prompt=PLANNER_SYSTEM_PROMPT,
-                user_prompt=context,
-                response_schema=PhasePlan.model_json_schema(),
-                max_output_tokens=4000,
-                metadata={"task_id": task.task_id},
-            )
+        request = ModelRequest(
+            role="planner",
+            system_prompt=PLANNER_SYSTEM_PROMPT,
+            user_prompt=context,
+            response_schema=PhasePlan.model_json_schema(),
+            max_output_tokens=4000,
+            metadata={"task_id": task.task_id},
         )
-        payload = response.structured or _parse_single_json(response.content)
-        plan = PhasePlan.model_validate(payload)
+        try:
+            structured = invoke_structured(
+                self.services.provider,
+                request,
+                PhasePlan,
+                repair_guidance=PLANNER_REPAIR_GUIDANCE,
+            )
+        except StructuredOutputError as exc:
+            validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/planner-model-validation.json",
+                exc.diagnostics,
+            )
+            return {
+                "status": TaskStatus.FAILED.value,
+                "planner_context_ref": context_ref.uri,
+                "planner_validation_ref": validation_ref.uri,
+                "safe_errors": [f"planner:{exc.code}"],
+                "events": [self._event("planner", f"failed safely: {exc.code}")],
+            }
+
+        plan = structured.value
+        validation_ref = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/planner-model-validation.json",
+            structured.diagnostics,
+        )
         plan_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/phase-plan.json", plan.model_dump(mode="json")
         )
@@ -151,12 +180,19 @@ class ObserveGraph:
             if task.require_plan_approval
             else TaskStatus.PLANNING.value
         )
+        repair_note = " after schema repair" if structured.repair_used else ""
         return {
             "status": status,
             "planner_context_ref": context_ref.uri,
+            "planner_validation_ref": validation_ref.uri,
             "plan_ref": plan_ref.uri,
             "plan_hash": plan_hash,
-            "events": [self._event("planner", f"created {len(plan.slices)}-slice phase plan")],
+            "events": [
+                self._event(
+                    "planner",
+                    f"created {len(plan.slices)}-slice phase plan{repair_note}",
+                )
+            ],
         }
 
     def approve_plan(self, state: TaskGraphState) -> dict[str, Any]:
@@ -182,7 +218,9 @@ class ObserveGraph:
     def run_checks(self, state: TaskGraphState) -> dict[str, Any]:
         task = TaskRequest.model_validate(state["task"])
         checks = self.services.sandbox.read_only_git_checks(Path(state["sandbox_path"]))
-        reference = self.services.artifacts.write_json(f"tasks/{task.task_id}/checks.json", checks)
+        reference = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/checks.json", checks
+        )
         return {
             "status": TaskStatus.CHECKING.value,
             "checks_ref": reference.uri,
@@ -202,27 +240,55 @@ class ObserveGraph:
         context_ref = self.services.artifacts.write_text(
             f"tasks/{task.task_id}/reviewer-context.md", context, "text/markdown"
         )
-        response = self.services.provider.invoke(
-            ModelRequest(
-                role="reviewer",
-                system_prompt=REVIEWER_SYSTEM_PROMPT,
-                user_prompt=context,
-                response_schema=ReviewResult.model_json_schema(),
-                max_output_tokens=3200,
-                metadata={"task_id": task.task_id},
-            )
+        request = ModelRequest(
+            role="reviewer",
+            system_prompt=REVIEWER_SYSTEM_PROMPT,
+            user_prompt=context,
+            response_schema=ReviewResult.model_json_schema(),
+            max_output_tokens=3200,
+            metadata={"task_id": task.task_id},
         )
-        payload = response.structured or _parse_single_json(response.content)
-        review = ReviewResult.model_validate(payload)
+        try:
+            structured = invoke_structured(
+                self.services.provider,
+                request,
+                ReviewResult,
+                repair_guidance=REVIEWER_REPAIR_GUIDANCE,
+            )
+        except StructuredOutputError as exc:
+            validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/reviewer-model-validation.json",
+                exc.diagnostics,
+            )
+            return {
+                "status": TaskStatus.FAILED.value,
+                "reviewer_context_ref": context_ref.uri,
+                "reviewer_validation_ref": validation_ref.uri,
+                "safe_errors": [f"reviewer:{exc.code}"],
+                "events": [self._event("reviewer", f"failed safely: {exc.code}")],
+            }
+
+        review = structured.value
+        validation_ref = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/reviewer-model-validation.json",
+            structured.diagnostics,
+        )
         review_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/review.json", review.model_dump(mode="json")
         )
+        repair_note = " after schema repair" if structured.repair_used else ""
         return {
             "status": TaskStatus.REVIEWING.value,
             "reviewer_context_ref": context_ref.uri,
+            "reviewer_validation_ref": validation_ref.uri,
             "review_ref": review_ref.uri,
             "reviewer_verdict": review.verdict.value,
-            "events": [self._event("reviewer", f"verdict {review.verdict}")],
+            "events": [
+                self._event(
+                    "reviewer",
+                    f"verdict {review.verdict.value}{repair_note}",
+                )
+            ],
         }
 
     def finalize(self, state: TaskGraphState) -> dict[str, Any]:
@@ -255,8 +321,12 @@ class ObserveGraph:
             "base_sha": state.get("base_sha"),
             "sandbox_id": state.get("sandbox_id"),
             "manifest_ref": state.get("manifest_ref"),
+            "planner_context_ref": state.get("planner_context_ref"),
+            "planner_validation_ref": state.get("planner_validation_ref"),
             "plan_ref": state.get("plan_ref"),
             "checks_ref": state.get("checks_ref"),
+            "reviewer_context_ref": state.get("reviewer_context_ref"),
+            "reviewer_validation_ref": state.get("reviewer_validation_ref"),
             "review_ref": state.get("review_ref"),
             "reviewer_verdict": state.get("reviewer_verdict"),
             "safe_errors": state.get("safe_errors", []),
@@ -288,31 +358,27 @@ class ObserveGraph:
         return {"stage": stage, "summary": summary[:1000]}
 
 
-def _parse_single_json(value: str) -> dict[str, Any]:
-    text = value.strip()
-    if text.startswith("```"):
-        lines = text.splitlines()
-        if len(lines) >= 3 and lines[-1].strip() == "```":
-            text = "\n".join(lines[1:-1])
-            if text.lstrip().startswith("json"):
-                text = text.lstrip()[4:].lstrip("\n")
-    decoder = json.JSONDecoder()
-    payload, end = decoder.raw_decode(text.lstrip())
-    if text.lstrip()[end:].strip():
-        raise ValueError("model returned trailing content after the JSON object")
-    if not isinstance(payload, dict):
-        raise ValueError("model output must be one JSON object")
-    return payload
-
-
 PLANNER_SYSTEM_PROMPT = """You are a read-only software phase planner.
 Return exactly one JSON object matching the supplied schema. Build an evidence-backed
 phase plan with small slices, explicit dependencies, acceptance criteria, checks,
 exclusions, rollback notes, and stop conditions. Treat missing contracts as blockers.
-Do not claim to modify files or run commands."""
+A slice's dependencies array may contain only exact slice_id values declared by other
+slices in this same response. Put prior-phase contracts, external artifacts, and other
+prerequisites in external_dependencies instead. Do not claim to modify files or run
+commands."""
+
+PLANNER_REPAIR_GUIDANCE = """For every slice, dependencies must contain only exact
+slice_id values declared in this same plan. Move prior-phase specifications, contracts,
+external artifacts, and descriptive prerequisite names to external_dependencies. Preserve
+an unresolved prerequisite in blockers or stop_conditions when evidence is missing."""
 
 REVIEWER_SYSTEM_PROMPT = """You are an independent read-only reviewer.
 Return exactly one JSON object matching the supplied schema. Review the plan against the
 original task, repository context, security boundaries, scope, and read-only check evidence.
-Findings must be concise strings. Do not include private reasoning or Markdown outside the
-JSON object."""
+Check that internal dependencies use exact slice IDs and external prerequisites remain
+explicit. Findings must be concise strings. Do not include private reasoning or Markdown
+outside the JSON object."""
+
+REVIEWER_REPAIR_GUIDANCE = """Keep every finding field as an array of concise strings.
+Use only the declared verdict enum and confidence enum. Preserve substantive findings while
+correcting JSON structure and field types."""
