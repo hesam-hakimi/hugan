@@ -81,7 +81,6 @@ jobs:
           PYTHON_BIN: python
         run: >-
           bash scripts/observe-project.sh
-          --skip-install
           --provider-factory universal_coding_agent.providers.fake:create_provider
           --repository "https://github.com/${{ github.repository }}.git"
           --ref "${{ github.sha }}"
