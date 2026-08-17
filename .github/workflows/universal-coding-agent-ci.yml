@@ -46,6 +46,8 @@ jobs:
         run: |
           bash -n scripts/bootstrap-smoke.sh
           bash -n scripts/qualify-host-provider.sh
+          bash -n scripts/observe-project.sh
+          bash scripts/observe-project.sh --help >/dev/null
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
@@ -71,3 +73,18 @@ jobs:
           --repository "https://github.com/${{ github.repository }}.git"
           --ref "${{ github.sha }}"
           --state-root "${{ runner.temp }}/uca-bootstrap-smoke"
+
+      - name: Run generic project Observe wrapper
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: >-
+          bash scripts/observe-project.sh
+          --skip-install
+          --provider-factory universal_coding_agent.providers.fake:create_provider
+          --repository "https://github.com/${{ github.repository }}.git"
+          --ref "${{ github.sha }}"
+          --phase-id "CI read-only qualification"
+          --focus "repository structure and test evidence"
+          --state-root "${{ runner.temp }}/uca-project-observe"
