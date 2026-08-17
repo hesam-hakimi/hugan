@@ -24,21 +24,49 @@ def test_task_is_observe_only() -> None:
             thread_id="thread-123",
             title="unsafe",
             objective="write code",
-            repository=RepositorySpec(url="https://example.test/repo.git", base_ref="main"),
+            repository=RepositorySpec(
+                url="https://example.test/repo.git",
+                base_ref="main",
+            ),
             mode=TaskMode.SAFE,
         )
 
 
-def test_phase_plan_rejects_unknown_dependency() -> None:
+def test_phase_plan_rejects_unknown_internal_dependency() -> None:
     with pytest.raises(ValidationError):
         PhasePlan(
             phase_id="P1",
             title="phase",
             objective="objective",
             slices=(
-                SlicePlan(slice_id="S1", title="one", objective="one", dependencies=("missing",)),
+                SlicePlan(
+                    slice_id="S1",
+                    title="one",
+                    objective="one",
+                    dependencies=("missing",),
+                ),
             ),
         )
+
+
+def test_phase_plan_accepts_explicit_external_dependency() -> None:
+    plan = PhasePlan(
+        phase_id="P2C",
+        title="phase",
+        objective="objective",
+        slices=(
+            SlicePlan(
+                slice_id="S1",
+                title="one",
+                objective="one",
+                external_dependencies=("Phase 2B canonical schema specification",),
+            ),
+        ),
+    )
+    assert plan.slices[0].dependencies == ()
+    assert plan.slices[0].external_dependencies == (
+        "Phase 2B canonical schema specification",
+    )
 
 
 def test_artifact_store_is_atomic_and_contained(tmp_path: Path) -> None:
@@ -93,7 +121,11 @@ def test_phase_plan_rejects_dependency_cycle() -> None:
 
 
 def test_sanitizer_redacts_common_secret_shapes() -> None:
-    value = "Authorization: Bearer abc.def.ghi\napi_key=super-secret\nghp_123456789012345678901234"
+    value = (
+        "Authorization: Bearer abc.def.ghi\n"
+        "api_key=super-secret\n"
+        "ghp_123456789012345678901234"
+    )
     sanitized = sanitize_text(value)
     assert "abc.def.ghi" not in sanitized
     assert "super-secret" not in sanitized
