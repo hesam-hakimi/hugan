@@ -53,7 +53,7 @@ def invoke_structured(
         try:
             payload = _single_json_object(response)
             value = model_type.model_validate(payload)
-        except (ValidationError, ValueError, TypeError, json.JSONDecodeError) as exc:
+        except (ValidationError, ValueError, TypeError) as exc:
             issue = _validation_issue(exc)
             attempts.append(_attempt_diagnostics(attempt_index, response, raw_output, issue))
             if attempt_index >= max_repair_attempts:
@@ -148,6 +148,7 @@ def _raw_output(response: ModelResponse) -> str:
             ensure_ascii=False,
             separators=(",", ":"),
             sort_keys=True,
+            default=str,
         )
     return response.content
 
@@ -155,7 +156,12 @@ def _raw_output(response: ModelResponse) -> str:
 def _validation_issue(exc: Exception) -> str:
     if isinstance(exc, ValidationError):
         value: Any = exc.errors(include_url=False, include_input=False)
-        text = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        text = json.dumps(
+            value,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            default=str,
+        )
     else:
         text = f"{type(exc).__name__}: {exc}"
     return sanitize_text(text)[:12_000]
@@ -191,7 +197,12 @@ def _repair_request(
     repair_guidance: str,
     repair_attempt: int,
 ) -> ModelRequest:
-    schema_text = json.dumps(schema, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    schema_text = json.dumps(
+        schema,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
     guidance = repair_guidance.strip()
     user_prompt = (
         "Correct the JSON object below so that it satisfies the supplied JSON Schema.\n"
