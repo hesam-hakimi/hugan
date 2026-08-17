@@ -1,0 +1,82 @@
+& {
+    $hf1Source = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension'
+    $hf1Clone = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
+    $hf1ExpectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
+    $hf1Branch = 'hotfix/hf1-oracle-fresh-consumer'
+    $hf1Origin = 'https://github.com/TD-Universe/agentic_etl.git'
+
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        throw 'Git was not found.'
+    }
+
+    if (-not (Test-Path -LiteralPath $hf1Source -PathType Container)) {
+        throw "Source repository does not exist: $hf1Source"
+    }
+
+    if (Test-Path -LiteralPath $hf1Clone) {
+        throw "Destination already exists. Do not delete it. Stop and inspect: $hf1Clone"
+    }
+
+    $hf1ActualHead = (git -C $hf1Source rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not read the source HEAD.'
+    }
+
+    if ($hf1ActualHead -ne $hf1ExpectedHead) {
+        throw "Unexpected source HEAD. Expected $hf1ExpectedHead but observed $hf1ActualHead"
+    }
+
+    $hf1WorktreeOutput = git -C $hf1Source worktree list --porcelain
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not read the worktree inventory.'
+    }
+
+    $hf1WorktreesBefore = @($hf1WorktreeOutput | Select-String -Pattern '^worktree ').Count
+    if ($hf1WorktreesBefore -ne 3) {
+        throw "Expected exactly 3 existing worktrees but observed $hf1WorktreesBefore"
+    }
+
+    git clone --local --no-hardlinks --branch feature/v3-agentic-redesign --single-branch -- $hf1Source $hf1Clone
+    if ($LASTEXITCODE -ne 0) {
+        throw "Local clone failed. Do not delete or retry blindly. Inspect: $hf1Clone"
+    }
+
+    git -C $hf1Clone remote set-url origin $hf1Origin
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not set the GitHub origin in the isolated clone.'
+    }
+
+    git -C $hf1Clone switch -c $hf1Branch $hf1ExpectedHead
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not create the dedicated HF1 branch.'
+    }
+
+    $hf1CloneStatus = @(git -C $hf1Clone status --porcelain)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Could not verify the clone status.'
+    }
+
+    if ($hf1CloneStatus.Count -ne 0) {
+        throw "The isolated clone is unexpectedly dirty: $($hf1CloneStatus -join ', ')"
+    }
+
+    $hf1CloneHead = (git -C $hf1Clone rev-parse HEAD).Trim()
+    $hf1CloneBranch = (git -C $hf1Clone branch --show-current).Trim()
+    $hf1CloneOrigin = (git -C $hf1Clone remote get-url origin).Trim()
+
+    $hf1WorktreeOutputAfter = git -C $hf1Source worktree list --porcelain
+    $hf1WorktreesAfter = @($hf1WorktreeOutputAfter | Select-String -Pattern '^worktree ').Count
+
+    if ($hf1WorktreesAfter -ne 3) {
+        throw "Original worktree count changed unexpectedly to $hf1WorktreesAfter"
+    }
+
+    Write-Host ''
+    Write-Host 'HF1 ISOLATED CLONE READY' -ForegroundColor Green
+    Write-Host "Path: $hf1Clone"
+    Write-Host "Branch: $hf1CloneBranch"
+    Write-Host "HEAD: $hf1CloneHead"
+    Write-Host "Origin: $hf1CloneOrigin"
+    Write-Host "Original worktree count: $hf1WorktreesAfter"
+    Write-Host 'Clone status: CLEAN'
+}
