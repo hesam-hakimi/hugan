@@ -13,9 +13,19 @@ from universal_coding_agent.safety.sanitizer import sanitize_text
 
 _ModelT = TypeVar("_ModelT", bound=BaseModel)
 
+_TRUNCATION_FINISH_REASONS = frozenset(
+    {
+        "length",
+        "max_tokens",
+        "max_output_tokens",
+        "token_limit",
+    }
+)
+_MAX_MODEL_OUTPUT_TOKENS = 32_000
+
 
 class StructuredOutputError(RuntimeError):
-    """Safe failure raised after bounded structured-output repair is exhausted."""
+    """Safe failure raised after bounded structured-output recovery is exhausted."""
 
     def __init__(self, code: str, diagnostics: dict[str, Any]):
         self.code = code
@@ -37,56 +47,130 @@ def invoke_structured(
     *,
     repair_guidance: str = "",
     max_repair_attempts: int = 1,
+    max_budget_retries: int = 1,
 ) -> StructuredOutputResult[_ModelT]:
-    """Invoke one role and perform at most one schema-only correction round."""
+    """Invoke one role with bounded output-budget retry and schema repair.
+
+    Output truncation is not a schema defect. When the provider explicitly reports
+    a length/token-limit finish reason, retry the same logical request once with a
+    doubled server-controlled output budget before attempting any schema repair.
+    Schema repair remains separately bounded and is used only for complete model
+    responses that fail JSON/schema validation.
+    """
 
     if max_repair_attempts < 0 or max_repair_attempts > 2:
         raise ValueError("max_repair_attempts must be between 0 and 2")
+    if max_budget_retries < 0 or max_budget_retries > 2:
+        raise ValueError("max_budget_retries must be between 0 and 2")
 
     attempts: list[dict[str, Any]] = []
     current_request = request
     original_role = request.role
+    repair_attempts_used = 0
+    budget_retries_used = 0
 
-    for attempt_index in range(max_repair_attempts + 1):
+    while True:
+        attempt_index = len(attempts)
         response = _invoke_provider(provider, current_request, attempt_index)
         raw_output = _raw_output(response)
+
+        if _output_was_truncated(response):
+            issue = _truncation_issue(response, current_request)
+            attempts.append(
+                _attempt_diagnostics(
+                    attempt_index,
+                    response,
+                    raw_output,
+                    issue,
+                    failure_kind="output_budget_exhausted",
+                )
+            )
+            if budget_retries_used >= max_budget_retries:
+                raise StructuredOutputError(
+                    "model_output_budget_exhausted",
+                    {
+                        "role": original_role,
+                        "repair_used": repair_attempts_used > 0,
+                        "budget_retry_used": budget_retries_used > 0,
+                        "attempts": attempts,
+                    },
+                )
+            next_budget = min(
+                current_request.max_output_tokens * 2,
+                _MAX_MODEL_OUTPUT_TOKENS,
+            )
+            if next_budget <= current_request.max_output_tokens:
+                raise StructuredOutputError(
+                    "model_output_budget_exhausted",
+                    {
+                        "role": original_role,
+                        "repair_used": repair_attempts_used > 0,
+                        "budget_retry_used": budget_retries_used > 0,
+                        "attempts": attempts,
+                    },
+                )
+            budget_retries_used += 1
+            current_request = _budget_retry_request(
+                current_request,
+                next_budget=next_budget,
+                budget_retry=budget_retries_used,
+            )
+            continue
+
         try:
             payload = _single_json_object(response)
             value = model_type.model_validate(payload)
         except (ValidationError, ValueError, TypeError) as exc:
             issue = _validation_issue(exc)
-            attempts.append(_attempt_diagnostics(attempt_index, response, raw_output, issue))
-            if attempt_index >= max_repair_attempts:
+            attempts.append(
+                _attempt_diagnostics(
+                    attempt_index,
+                    response,
+                    raw_output,
+                    issue,
+                    failure_kind="schema_invalid",
+                )
+            )
+            if repair_attempts_used >= max_repair_attempts:
                 raise StructuredOutputError(
                     "model_schema_invalid",
                     {
                         "role": original_role,
-                        "repair_used": attempt_index > 0,
+                        "repair_used": repair_attempts_used > 0,
+                        "budget_retry_used": budget_retries_used > 0,
                         "attempts": attempts,
                     },
                 ) from exc
+            repair_attempts_used += 1
             current_request = _repair_request(
-                request,
+                current_request,
                 raw_output=raw_output,
                 validation_issue=issue,
                 schema=model_type.model_json_schema(),
                 repair_guidance=repair_guidance,
-                repair_attempt=attempt_index + 1,
+                repair_attempt=repair_attempts_used,
             )
             continue
 
-        attempts.append(_attempt_diagnostics(attempt_index, response, raw_output, None))
+        attempts.append(
+            _attempt_diagnostics(
+                attempt_index,
+                response,
+                raw_output,
+                None,
+                failure_kind=None,
+            )
+        )
         return StructuredOutputResult(
             value=value,
-            repair_used=attempt_index > 0,
+            repair_used=repair_attempts_used > 0,
             diagnostics={
                 "role": original_role,
-                "repair_used": attempt_index > 0,
+                "repair_used": repair_attempts_used > 0,
+                "budget_retry_used": budget_retries_used > 0,
                 "attempts": attempts,
             },
         )
-
-    raise AssertionError("structured-output loop terminated unexpectedly")
 
 
 def _invoke_provider(
@@ -101,7 +185,8 @@ def _invoke_provider(
             exc.code,
             {
                 "role": request.role,
-                "repair_used": attempt_index > 0,
+                "repair_used": request.metadata.get("schema_repair") == "true",
+                "budget_retry_used": request.metadata.get("output_budget_retry") == "true",
                 "stage": "provider_invoke",
                 "error_type": type(exc).__name__,
             },
@@ -111,11 +196,27 @@ def _invoke_provider(
             "model_provider_failed",
             {
                 "role": request.role,
-                "repair_used": attempt_index > 0,
+                "repair_used": request.metadata.get("schema_repair") == "true",
+                "budget_retry_used": request.metadata.get("output_budget_retry") == "true",
                 "stage": "provider_invoke",
                 "error_type": type(exc).__name__,
             },
         ) from exc
+
+
+def _output_was_truncated(response: ModelResponse) -> bool:
+    reason = (response.finish_reason or "").strip().lower()
+    return reason in _TRUNCATION_FINISH_REASONS
+
+
+def _truncation_issue(response: ModelResponse, request: ModelRequest) -> str:
+    reason = (response.finish_reason or "unknown").strip()
+    completion_tokens = response.completion_tokens
+    return sanitize_text(
+        "model output was truncated before JSON validation "
+        f"(finish_reason={reason}, completion_tokens={completion_tokens}, "
+        f"requested_max_output_tokens={request.max_output_tokens})"
+    )
 
 
 def _single_json_object(response: ModelResponse) -> dict[str, Any]:
@@ -172,6 +273,8 @@ def _attempt_diagnostics(
     response: ModelResponse,
     raw_output: str,
     validation_issue: str | None,
+    *,
+    failure_kind: str | None,
 ) -> dict[str, Any]:
     diagnostics: dict[str, Any] = {
         "attempt": attempt_index + 1,
@@ -183,9 +286,35 @@ def _attempt_diagnostics(
         "output_sha256": hashlib.sha256(raw_output.encode("utf-8")).hexdigest(),
         "schema_valid": validation_issue is None,
     }
+    if failure_kind is not None:
+        diagnostics["failure_kind"] = failure_kind
     if validation_issue is not None:
         diagnostics["validation_issue"] = validation_issue
     return diagnostics
+
+
+def _budget_retry_request(
+    current: ModelRequest,
+    *,
+    next_budget: int,
+    budget_retry: int,
+) -> ModelRequest:
+    metadata = dict(current.metadata)
+    metadata.update(
+        {
+            "output_budget_retry": "true",
+            "output_budget_retry_attempt": str(budget_retry),
+            "previous_max_output_tokens": str(current.max_output_tokens),
+        }
+    )
+    return ModelRequest(
+        role=current.role,
+        system_prompt=current.system_prompt,
+        user_prompt=current.user_prompt,
+        response_schema=current.response_schema,
+        max_output_tokens=next_budget,
+        metadata=metadata,
+    )
 
 
 def _repair_request(
