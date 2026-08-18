@@ -15,6 +15,7 @@ from universal_coding_agent.core.safe_models import (
     PatchValidationResult,
     normalize_repository_path,
 )
+from universal_coding_agent.safety.sanitizer import sanitize_text
 
 _DIFF_HEADER = re.compile(r"^diff --git a/([^\s]+) b/([^\s]+)$")
 _SHA = re.compile(r"^[0-9a-f]{40,64}$")
@@ -29,6 +30,7 @@ _FORBIDDEN_MARKERS = (
     "old mode 120000",
     "new mode 120000",
 )
+_GIT_APPLY_DIAGNOSTIC_LIMIT = 4_000
 
 
 @dataclass(frozen=True)
@@ -116,6 +118,7 @@ class SafePatchEngine:
                     [
                         "apply",
                         "--check",
+                        "--verbose",
                         "--whitespace=error",
                         "--recount",
                         str(patch_path),
@@ -123,7 +126,11 @@ class SafePatchEngine:
                     check=False,
                 )
                 if result.returncode != 0:
-                    errors.append("git apply --check rejected the proposed patch")
+                    diagnostic = _bounded_git_diagnostic(result.stdout, result.stderr)
+                    message = "git apply --check rejected the proposed patch"
+                    if diagnostic:
+                        message += f": {diagnostic}"
+                    errors.append(message)
             finally:
                 patch_path.unlink(missing_ok=True)
 
@@ -248,6 +255,14 @@ class SafePatchEngine:
         if path != root and root not in path.parents:
             raise ValueError("approved path escapes sandbox")
         return path
+
+
+def _bounded_git_diagnostic(stdout: str, stderr: str) -> str:
+    combined = "\n".join(part.strip() for part in (stderr, stdout) if part.strip())
+    if not combined:
+        return ""
+    sanitized = sanitize_text(combined).replace("\x00", "")
+    return sanitized[:_GIT_APPLY_DIAGNOSTIC_LIMIT]
 
 
 def parse_unified_diff(value: str) -> tuple[tuple[str, ...], dict[str, ChangeOperation]]:
