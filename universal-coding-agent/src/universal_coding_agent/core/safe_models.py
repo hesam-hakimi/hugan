@@ -14,6 +14,7 @@ from universal_coding_agent.core.models import RepositorySpec, ReviewVerdict, Ta
 _SHA = re.compile(r"^[0-9a-f]{40,64}$")
 _HASH = re.compile(r"^[0-9a-f]{64}$")
 _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$")
+_DIFF_HEADER = re.compile(r"^diff --git a/([^\s]+) b/([^\s]+)$")
 _DEFAULT_DENIED_PREFIXES = (
     ".git",
     ".ssh",
@@ -190,10 +191,32 @@ class SafeTaskRequest(FrozenSafeModel):
 
 class PatchProposal(FrozenSafeModel):
     summary: str = Field(min_length=1, max_length=4000)
-    unified_diff: str = Field(min_length=1, max_length=2_000_000)
+    unified_diff: str = Field(
+        min_length=1,
+        max_length=2_000_000,
+        description=(
+            "A text-only git-style unified diff. Every section must begin with "
+            "'diff --git a/<path> b/<path>', use --- a/<path> and +++ b/<path> "
+            "markers (or /dev/null for an approved create), contain at least one @@ hunk, "
+            "and end with a newline. Do not use Markdown fences."
+        ),
+    )
     changed_paths: tuple[str, ...] = Field(min_length=1, max_length=64)
     requested_test_profiles: tuple[str, ...] = ()
     assumptions: tuple[str, ...] = ()
+
+    @field_validator("unified_diff")
+    @classmethod
+    def validate_unified_diff_envelope(cls, value: str) -> str:
+        if "```" in value:
+            raise ValueError("unified_diff must not contain Markdown code fences")
+        if not value.endswith("\n"):
+            raise ValueError("unified_diff must end with a newline")
+        if not value.startswith("diff --git a/"):
+            raise ValueError(
+                "unified_diff must start with a git-style 'diff --git a/<path> b/<path>' header"
+            )
+        return value
 
     @field_validator("changed_paths")
     @classmethod
@@ -212,6 +235,48 @@ class PatchProposal(FrozenSafeModel):
         if len(normalized) != len(set(normalized)):
             raise ValueError("requested test profile IDs must be unique")
         return normalized
+
+    @model_validator(mode="after")
+    def validate_diff_paths_and_sections(self) -> PatchProposal:
+        lines = self.unified_diff.splitlines()
+        sections: list[tuple[str, list[str]]] = []
+        index = 0
+        while index < len(lines):
+            header = _DIFF_HEADER.fullmatch(lines[index])
+            if header is None:
+                raise ValueError("unified_diff contains content outside a git diff section")
+            old_path = normalize_repository_path(header.group(1))
+            new_path = normalize_repository_path(header.group(2))
+            if old_path != new_path:
+                raise ValueError("unified_diff rename/copy headers are not supported")
+            index += 1
+            section: list[str] = []
+            while index < len(lines) and not lines[index].startswith("diff --git "):
+                section.append(lines[index])
+                index += 1
+            sections.append((new_path, section))
+
+        parsed_paths: list[str] = []
+        for path, section in sections:
+            old_markers = [line for line in section if line.startswith("--- ")]
+            new_markers = [line for line in section if line.startswith("+++ ")]
+            if len(old_markers) != 1 or len(new_markers) != 1:
+                raise ValueError(
+                    f"unified_diff section for {path} must contain exactly one --- and +++ marker"
+                )
+            if old_markers[0] not in {f"--- a/{path}", "--- /dev/null"}:
+                raise ValueError(f"unified_diff has an invalid old-file marker for {path}")
+            if new_markers[0] not in {f"+++ b/{path}", "+++ /dev/null"}:
+                raise ValueError(f"unified_diff has an invalid new-file marker for {path}")
+            if not any(line.startswith("@@ ") for line in section):
+                raise ValueError(f"unified_diff section for {path} contains no @@ hunk")
+            parsed_paths.append(path)
+
+        if tuple(parsed_paths) != self.changed_paths:
+            raise ValueError(
+                "changed_paths must exactly match the ordered paths in unified_diff headers"
+            )
+        return self
 
 
 class PatchValidationResult(FrozenSafeModel):
