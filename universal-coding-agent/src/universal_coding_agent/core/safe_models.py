@@ -196,9 +196,12 @@ class PatchProposal(FrozenSafeModel):
         max_length=2_000_000,
         description=(
             "A text-only git-style unified diff. Every section must begin with "
-            "'diff --git a/<path> b/<path>', use --- a/<path> and +++ b/<path> "
-            "markers (or /dev/null for an approved create), contain at least one @@ hunk, "
-            "and end with a newline. Do not use Markdown fences."
+            "'diff --git a/<path> b/<path>'. The file-metadata prefix before the first "
+            "@@ hunk must contain exactly one --- a/<path> and exactly one +++ b/<path> "
+            "marker (or /dev/null for an approved create). Hunk body content may itself "
+            "begin with --- or +++ and must not be confused with file metadata. Every "
+            "section must contain at least one @@ hunk and the diff must end with a newline. "
+            "Do not use Markdown fences."
         ),
     )
     changed_paths: tuple[str, ...] = Field(min_length=1, max_length=64)
@@ -258,18 +261,25 @@ class PatchProposal(FrozenSafeModel):
 
         parsed_paths: list[str] = []
         for path, section in sections:
-            old_markers = [line for line in section if line.startswith("--- ")]
-            new_markers = [line for line in section if line.startswith("+++ ")]
+            first_hunk_index = next(
+                (index for index, line in enumerate(section) if line.startswith("@@ ")),
+                None,
+            )
+            if first_hunk_index is None:
+                raise ValueError(f"unified_diff section for {path} contains no @@ hunk")
+
+            metadata_prefix = section[:first_hunk_index]
+            old_markers = [line for line in metadata_prefix if line.startswith("--- ")]
+            new_markers = [line for line in metadata_prefix if line.startswith("+++ ")]
             if len(old_markers) != 1 or len(new_markers) != 1:
                 raise ValueError(
-                    f"unified_diff section for {path} must contain exactly one --- and +++ marker"
+                    f"unified_diff metadata prefix for {path} must contain exactly one "
+                    "--- and +++ file marker before the first @@ hunk"
                 )
             if old_markers[0] not in {f"--- a/{path}", "--- /dev/null"}:
                 raise ValueError(f"unified_diff has an invalid old-file marker for {path}")
             if new_markers[0] not in {f"+++ b/{path}", "+++ /dev/null"}:
                 raise ValueError(f"unified_diff has an invalid new-file marker for {path}")
-            if not any(line.startswith("@@ ") for line in section):
-                raise ValueError(f"unified_diff section for {path} contains no @@ hunk")
             parsed_paths.append(path)
 
         if tuple(parsed_paths) != self.changed_paths:
