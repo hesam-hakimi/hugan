@@ -5,7 +5,7 @@ import json
 import re
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Any
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -113,6 +113,8 @@ class ApprovedChangeManifest(FrozenSafeModel):
 
 
 class TestProfile(FrozenSafeModel):
+    __test__: ClassVar[bool] = False
+
     profile_id: str
     argv: tuple[str, ...] = Field(min_length=1, max_length=64)
     cwd: str = "."
@@ -220,6 +222,8 @@ class PatchValidationResult(FrozenSafeModel):
 
 
 class TestExecutionResult(FrozenSafeModel):
+    __test__: ClassVar[bool] = False
+
     profile_id: str
     passed: bool
     returncode: int
