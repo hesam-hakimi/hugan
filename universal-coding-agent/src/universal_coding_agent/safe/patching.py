@@ -265,6 +265,16 @@ def _bounded_git_diagnostic(stdout: str, stderr: str) -> str:
     return sanitized[:_GIT_APPLY_DIAGNOSTIC_LIMIT]
 
 
+def patch_validation_allows_applicability_repair(result: PatchValidationResult) -> bool:
+    """Allow one model repair only when deterministic git applicability alone failed."""
+
+    return (
+        not result.valid
+        and len(result.errors) == 1
+        and result.errors[0].startswith("git apply --check rejected the proposed patch")
+    )
+
+
 def parse_unified_diff(value: str) -> tuple[tuple[str, ...], dict[str, ChangeOperation]]:
     if not value.endswith("\n"):
         raise ValueError("unified diff must end with a newline")
