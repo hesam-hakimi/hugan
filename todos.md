@@ -1,110 +1,34 @@
-DO NOT IMPLEMENT YET. Revise and freeze the LOCAL_HOTFIX_HF1 plan using read-only inspection only.
+bash -lc '
+set -Eeuo pipefail
 
-Resolve all of the following before requesting authorization again:
+cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-1. Reconcile the exact edit inventory.
+test -f src/universal_coding_agent/orchestration/structured_output.py
+grep -q "external_dependencies" \
+  src/universal_coding_agent/core/models.py
+grep -q "invoke_structured" \
+  src/universal_coding_agent/orchestration/graph.py
+grep -q "test_structured_output_repairs_external_dependency_once" \
+  tests/test_structured_output.py
 
-You stated “2 new + 3 modified” test files, but the coverage table also modifies createPreviewFlow.test.ts. List every new and modified file exactly once and provide correct totals. No unlisted file may be changed after authorization.
+.venv/bin/python -m compileall -q src tests
 
-2. Make fresh-consumer classification explicit and machine-readable.
+.venv/bin/python -m pytest -q \
+  tests/test_core.py \
+  tests/test_structured_output.py \
+  tests/test_graph.py
 
-An explicitly selected, repository-contained, valid fresh consumer with no job_conf/ and no env_conf/ must produce an exact typed decision value:
-
-CREATE_NEW_JOB
-
-A free-form reason such as explicit_fresh_consumer is insufficient by itself. Show the exact type, field, and downstream branch that consume CREATE_NEW_JOB. Existing unselected, external, installation, extension-source, and unknown targets must remain blocked. No marker or configuration directory may be created automatically.
-
-3. Close every write bypass.
-
-Prove that every write entry point, including the current hasOnboarding === false path, follows exactly:
-
-validation → immutable preview/path manifest → explicit approval → write
-
-performWrite must not be directly reachable without a valid approval bound to:
-
-* selected workspace identity
-* target type
-* selected artifact types
-* exact artifact paths and content hashes
-* trusted framework identity
-* trusted framework fingerprint
-
-Add negative tests for every previously bypassing route.
-
-4. Avoid incorrect layering or circular dependencies.
-
-TrustedFrameworkDefinitionResolver must not depend on the approval-store layer merely to obtain SHA-256 functionality if that creates reversed layering or a circular import. Use node:crypto directly or an already-existing lower-level utility. Do not add another source file unless it is explicitly disclosed in the revised edit inventory.
-
-5. Define trusted Oracle verification precisely.
-
-State the exact framework definition files and semantic evidence used to verify db_data_out and db_ctrl_out. Checking only a folder name, filename, module-name constant, or packaged fallback is insufficient.
-
-The fingerprint must cover the complete verified definition set using deterministic sorted relative paths and content hashes.
-
-Resolver precedence must remain:
-
-explicit validated configuration → explicitly present validated multi-root etl-framework-adb → unavailable
-
-No recursive machine scan, repository guessing, or packaged-reference trust is permitted.
-
-6. Clarify the configuration contract.
-
-Confirm that databricks-etl-copilot.frameworkRepositoryPath:
-
-* defaults to an empty string
-* is read using the selected workspace/resource scope
-* is canonicalized using realpath
-* must resolve to a validated framework root
-* never causes writes to the framework repository
-* cannot silently fall back after an invalid explicitly configured value
-
-7. Preserve the consumer artifact contract exactly.
-
-The existing set, paths, ordering, and bytes of all 12 consumer preview artifacts must remain unchanged. Framework provenance may be added only to the internal validation/approval manifest and must not become a thirteenth consumer artifact or alter generated consumer content.
-
-8. Make validation commands Windows PowerShell-compatible.
-
-Do not use POSIX syntax such as:
-
-MOCHA_GREP=”…” npm run test:unit
-
-Use PowerShell syntax and remove the temporary environment variable afterward, for example:
-
-$env:MOCHA_GREP = ‘HF1|Trusted framework|RepoWriter workspace selection|Job development readiness’
-npm run test:unit
-$hf1TestExit = $LASTEXITCODE
-Remove-Item Env:MOCHA_GREP -ErrorAction SilentlyContinue
-if ($hf1TestExit -ne 0) { exit $hf1TestExit }
-
-9. Perform a read-only dependency preflight now.
-
-Report whether node_modules, TypeScript, ESLint, Mocha, and every required local test dependency are already available in etl_framework_extension_hf1.
-
-Do not install, copy, link, or download dependencies. If the required local toolchain is unavailable, report:
-
-HF1_VALIDATION_TOOLCHAIN_UNAVAILABLE
-
-and identify the missing components before implementation authorization.
-
-10. Keep the evidence limitation explicit.
-
-Real-consumer verification remains:
-
-NOT EXECUTED — SAMPLE UNAVAILABLE
-
-Synthetic tests must not be described as production-consumer validation.
-
-Return:
-
-* corrected root-cause-to-change mapping
-* exact final new-file list
-* exact final modified-file list
-* exact no-touch list
-* exact PowerShell validation commands
-* dependency-preflight result
-* final test matrix
-* confirmation that no mutation occurred
-
-Then stop and request the same single authorization token:
-
-APPLY_LOCAL_HOTFIX_HF1
+bash scripts/observe-project.sh \
+  --skip-install \
+  --repository /app1/tag5916/projects/kmai-td-genie \
+  --ref phase2/semantic-plan-contract-validator \
+  --phase-id "Phase 2C acceptance remediation" \
+  --title "Phase 2C read-only qualification" \
+  --focus "canonical ProductGroup -> Schema -> Dataset hierarchy and mandatory schema membership" \
+  --focus "governed registry-version identity and full snapshot-content identity" \
+  --focus "field governance and classification metadata deferral" \
+  --focus "cross-ProductGroup relationship behavior and dedicated test coverage" \
+  --focus "registry-cache concurrency behavior and acceptance-gate stability" \
+  --focus "public API, security, compatibility, and unchanged-scope evidence" \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py
+'
