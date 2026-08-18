@@ -48,8 +48,10 @@ jobs:
           bash -n scripts/qualify-host-provider.sh
           bash -n scripts/observe-project.sh
           bash -n scripts/safe-smoke.sh
+          bash -n scripts/qualify-safe-host-provider.sh
           bash scripts/observe-project.sh --help >/dev/null
           bash scripts/safe-smoke.sh --help >/dev/null
+          bash scripts/qualify-safe-host-provider.sh --help >/dev/null
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
@@ -98,3 +100,17 @@ jobs:
         run: >-
           bash scripts/safe-smoke.sh
           --state-root "${{ runner.temp }}/uca-safe-smoke"
+
+      - name: Run host-subprocess Safe Mode qualification
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: |
+          export UCA_VENV_PATH="$(python -c 'import sys; print(sys.prefix)')"
+          bash scripts/qualify-safe-host-provider.sh \
+            --host-client "$PWD/tests/fixtures/host_safe_client.py" \
+            --host-python "$(command -v python)" \
+            --state-root "${{ runner.temp }}/uca-safe-host" \
+            --skip-install \
+            --skip-quality
