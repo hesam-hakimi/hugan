@@ -170,6 +170,68 @@ def test_safe_graph_repairs_non_git_style_patch_before_validation(tmp_path: Path
         service.close()
 
 
+def test_safe_graph_repairs_git_applicability_once(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+
+    def implementer(request):
+        if request.metadata.get("patch_applicability_repair") == "true":
+            return {
+                "summary": "Repair the approved fixture patch context.",
+                "unified_diff": (
+                    "diff --git a/app.py b/app.py\n"
+                    "--- a/app.py\n"
+                    "+++ b/app.py\n"
+                    "@@ -1,2 +1,2 @@\n"
+                    " def answer():\n"
+                    "-    return 42\n"
+                    "+    return 43\n"
+                ),
+                "changed_paths": ["app.py"],
+                "requested_test_profiles": ["python-check"],
+                "assumptions": [],
+            }
+        return {
+            "summary": "Change the approved fixture answer using stale context.",
+            "unified_diff": (
+                "diff --git a/app.py b/app.py\n"
+                "--- a/app.py\n"
+                "+++ b/app.py\n"
+                "@@ -1,2 +1,2 @@\n"
+                " def answer():\n"
+                "-    return 41\n"
+                "+    return 43\n"
+            ),
+            "changed_paths": ["app.py"],
+            "requested_test_profiles": ["python-check"],
+            "assumptions": [],
+        }
+
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(handlers={"implementer": implementer}),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-applicability-repair")
+    try:
+        service.run(task)
+        final = service.resume(task.thread_id, True)
+        assert final["status"] == "completed"
+        assert final["reviewer_verdict"] == "PASS"
+        assert final["patch_repair_used"] is True
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["patch_repair_used"] is True
+        assert report["initial_patch_ref"].endswith("/proposed.patch")
+        assert report["patch_repair_ref"].endswith("/proposed-repair.patch")
+        repaired_validation = service.artifacts.read_json(final["patch_validation_ref"])
+        assert repaired_validation["valid"] is True
+        sandbox = state_root / "sandboxes" / task.task_id / "repo"
+        assert "return 43" in (sandbox / "app.py").read_text(encoding="utf-8")
+        assert "return 42" in (source / "app.py").read_text(encoding="utf-8")
+    finally:
+        service.close()
+
+
 def test_safe_graph_rolls_back_when_reviewer_has_conditions(tmp_path: Path) -> None:
     source, base_sha = _source(tmp_path)
 
