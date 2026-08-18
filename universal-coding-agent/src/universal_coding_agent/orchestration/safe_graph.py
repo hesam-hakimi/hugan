@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import operator
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any, TypedDict
@@ -14,6 +15,7 @@ from universal_coding_agent.core.safe_models import (
     PatchProposal,
     SafeReviewResult,
     SafeTaskRequest,
+    TestExecutionResult,
 )
 from universal_coding_agent.orchestration.structured_output import (
     StructuredOutputError,
@@ -116,7 +118,11 @@ class SafeModeGraph:
             self.route_after_apply,
             {"tests": "tests", "finalize": "finalize"},
         )
-        builder.add_edge("tests", "review")
+        builder.add_conditional_edges(
+            "tests",
+            self.route_after_tests,
+            {"review": "review", "finalize": "finalize"},
+        )
         builder.add_edge("review", "finalize")
         builder.add_edge("finalize", END)
         return builder.compile(checkpointer=checkpointer)
@@ -174,7 +180,7 @@ class SafeModeGraph:
             manifest.model_dump(mode="json"),
         )
         return {
-            "status": TaskStatus.INDEXED.value,
+            "status": "awaiting_scope_approval",
             "manifest_ref": reference.uri,
             "events": [self._event("index", f"indexed {len(manifest.files)} tracked files")],
         }
@@ -372,7 +378,7 @@ class SafeModeGraph:
                 Path(state["sandbox_path"]),
                 tuple(item.path for item in task.manifest.allowed_changes),
             )
-        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:  # type: ignore[name-defined]
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
             return {
                 "status": TaskStatus.FAILED.value,
                 "safe_errors": [f"tests:{type(exc).__name__}"],
@@ -406,8 +412,6 @@ class SafeModeGraph:
             self.services.artifacts.read_json(state["patch_proposal_ref"])
         )
         tests_payload = self.services.artifacts.read_json(state["tests_ref"])
-        from universal_coding_agent.core.safe_models import TestExecutionResult
-
         tests = tuple(
             TestExecutionResult.model_validate(item)
             for item in tests_payload.get("results", [])
@@ -593,6 +597,10 @@ class SafeModeGraph:
     @staticmethod
     def route_after_apply(state: SafeGraphState) -> str:
         return "tests" if state.get("patch_applied") else "finalize"
+
+    @staticmethod
+    def route_after_tests(state: SafeGraphState) -> str:
+        return "review" if state.get("tests_ref") else "finalize"
 
     @staticmethod
     def _event(stage: str, summary: str) -> dict[str, str]:
