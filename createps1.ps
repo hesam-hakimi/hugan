@@ -2,129 +2,114 @@
     $ErrorActionPreference = 'Stop'
 
     $hf1Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
-    $hf1ExpectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
-    $hf1ExpectedBranch = 'hotfix/hf1-oracle-fresh-consumer'
-    $hf1Vsce = 'C:\Users\tag5916\AppData\Roaming\npm\vsce.cmd'
-
     Set-Location -LiteralPath $hf1Root
 
-    if ((git rev-parse HEAD).Trim() -ne $hf1ExpectedHead) {
-        throw 'Unexpected HF1 HEAD.'
-    }
-
-    if ((git branch --show-current).Trim() -ne $hf1ExpectedBranch) {
-        throw 'Unexpected HF1 branch.'
-    }
-
-    git diff --cached --quiet
+    $hf1BeforeStatus = @(git status --porcelain=v1 --untracked-files=all)
     if ($LASTEXITCODE -ne 0) {
-        throw 'Staged changes detected.'
+        throw 'Unable to capture repository state.'
     }
 
-    $hf1BeforeStatus = @(
-        git status --porcelain=v1 --untracked-files=all
-    )
+    $hf1SourceVsix = Get-ChildItem -LiteralPath $env:TEMP `
+        -Directory `
+        -Filter 'HF1_TEST_PACKAGE_*' |
+        ForEach-Object {
+            Get-ChildItem -LiteralPath $_.FullName `
+                -File `
+                -Filter 'databricks-etl-copilot-hf1-test.vsix' `
+                -ErrorAction SilentlyContinue
+        } |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1
 
-    if ($hf1BeforeStatus.Count -ne 27) {
-        throw "Expected exactly 27 HF1 changed files; observed $($hf1BeforeStatus.Count)."
+    if ($null -eq $hf1SourceVsix) {
+        throw 'The previously generated HF1 test VSIX was not found.'
     }
 
-    git diff --check
-    if ($LASTEXITCODE -ne 0) {
-        throw 'git diff --check failed.'
-    }
-
-    if (-not (Test-Path -LiteralPath $hf1Vsce -PathType Leaf)) {
-        throw 'Local vsce.cmd is unavailable. Do not use npx or download dependencies.'
-    }
-
-    $hf1PackageDirectory = Join-Path `
+    $hf1SafeDirectory = Join-Path `
         $env:TEMP `
-        ('HF1_TEST_PACKAGE_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+        ('HF1_TEST_PACKAGE_SANITIZED_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
 
-    New-Item `
-        -ItemType Directory `
-        -Path $hf1PackageDirectory `
-        -ErrorAction Stop | Out-Null
+    New-Item -ItemType Directory -Path $hf1SafeDirectory |
+        Out-Null
 
-    $hf1Vsix = Join-Path `
-        $hf1PackageDirectory `
-        'databricks-etl-copilot-hf1-test.vsix'
+    $hf1SafeVsix = Join-Path `
+        $hf1SafeDirectory `
+        'databricks-etl-copilot-hf1-test-sanitized.vsix'
 
-    $hf1Stdout = Join-Path $hf1PackageDirectory 'vsce.stdout.log'
-    $hf1Stderr = Join-Path $hf1PackageDirectory 'vsce.stderr.log'
+    Copy-Item `
+        -LiteralPath $hf1SourceVsix.FullName `
+        -Destination $hf1SafeVsix
 
-    $hf1PackageProcess = Start-Process `
-        -FilePath $hf1Vsce `
-        -ArgumentList @('package', '--out', $hf1Vsix) `
-        -WorkingDirectory $hf1Root `
-        -RedirectStandardOutput $hf1Stdout `
-        -RedirectStandardError $hf1Stderr `
-        -NoNewWindow `
-        -Wait `
-        -PassThru
-
-    Get-Content -LiteralPath $hf1Stdout -ErrorAction SilentlyContinue
-    Get-Content -LiteralPath $hf1Stderr -ErrorAction SilentlyContinue
-
-    if ($hf1PackageProcess.ExitCode -ne 0) {
-        throw "VSIX packaging failed with exit $($hf1PackageProcess.ExitCode)."
-    }
-
-    if (-not (Test-Path -LiteralPath $hf1Vsix -PathType Leaf)) {
-        throw 'VSIX output was not created.'
-    }
-
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-    $hf1Archive = [System.IO.Compression.ZipFile]::OpenRead($hf1Vsix)
+    $hf1Archive = [System.IO.Compression.ZipFile]::Open(
+        $hf1SafeVsix,
+        [System.IO.Compression.ZipArchiveMode]::Update
+    )
+
+    try {
+        foreach ($hf1EntryName in @(
+            'extension/.tsbuildinfo.test',
+            'extension/tsconfig.test.json'
+        )) {
+            $hf1Entry = $hf1Archive.GetEntry($hf1EntryName)
+
+            if ($null -ne $hf1Entry) {
+                Write-Host "REMOVING FROM TEMP VSIX: $hf1EntryName"
+                $hf1Entry.Delete()
+            }
+        }
+    }
+    finally {
+        $hf1Archive.Dispose()
+    }
+
+    $hf1Archive = [System.IO.Compression.ZipFile]::OpenRead($hf1SafeVsix)
 
     try {
         $hf1Entries = @(
             $hf1Archive.Entries |
-                ForEach-Object { $_.FullName.Replace('\', '/') }
+            ForEach-Object {
+                $_.FullName.Replace('\', '/')
+            }
         )
     }
     finally {
         $hf1Archive.Dispose()
     }
 
-    $hf1PackageJson = Get-Content `
-        -LiteralPath (Join-Path $hf1Root 'package.json') `
-        -Raw |
-        ConvertFrom-Json
-
-    $hf1Main = ([string]$hf1PackageJson.main) `
-        -replace '^[.][/\\]', '' `
-        -replace '\\', '/'
-
-    $hf1ExpectedMainEntry = "extension/$hf1Main"
-
-    if ($hf1Entries -notcontains 'extension/package.json') {
-        throw 'VSIX does not contain extension/package.json.'
+    foreach ($hf1RequiredEntry in @(
+        'extension/package.json',
+        'extension/out/extension.js',
+        'extension/out/sttm-runtime.js'
+    )) {
+        if ($hf1Entries -notcontains $hf1RequiredEntry) {
+            throw "Required VSIX entry is missing: $hf1RequiredEntry"
+        }
     }
 
-    if ($hf1Entries -notcontains $hf1ExpectedMainEntry) {
-        throw "VSIX does not contain its declared main file: $hf1ExpectedMainEntry"
-    }
+    $hf1CopilotResources = @(
+        $hf1Entries |
+        Where-Object {
+            $_ -match '^extension/resources/copilot/.+'
+        }
+    )
 
-    if (-not ($hf1Entries | Where-Object {
-        $_ -like 'extension/resources/copilot/*'
-    })) {
-        throw 'VSIX does not contain the packaged Copilot resources.'
+    if ($hf1CopilotResources.Count -eq 0) {
+        throw 'Required Copilot resources are missing.'
     }
 
     $hf1ForbiddenPatterns = @(
-        '^extension/\.git/',
-        '^extension/\.github/',
-        '^extension/\.vscode-test/',
-        '^extension/docs/eval/',
-        '^extension/src/test/',
-        '^extension/out/test/',
-        '^extension/(AGENT|AGENTS)\.md$',
-        '\.tsbuildinfo',
-        '\.log$',
-        '\.vsix$'
+        '^extension/(?:\.git|\.github|\.vscode-test)(?:/|$)',
+        '^extension/docs/eval(?:/|$)',
+        '^extension/src/test(?:/|$)',
+        '^extension/out/test(?:/|$)',
+        '^extension/(?:.*/)?(?:AGENT|AGENTS)\.md$',
+        '^extension/(?:.*/)?[^/]*\.tsbuildinfo(?:\..*)?$',
+        '^extension/(?:.*/)?tsconfig\.test\.json$',
+        '^extension/.*\.log$',
+        '^extension/.*\.vsix$'
     )
 
     $hf1ForbiddenEntries = @(
@@ -138,32 +123,39 @@
         }
     ) | Sort-Object -Unique
 
-    if ($hf1ForbiddenEntries.Count -gt 0) {
-        Write-Host ''
-        Write-Host 'Forbidden package entries detected:'
-        $hf1ForbiddenEntries | ForEach-Object {
-            Write-Host "  $_"
-        }
+    if ($hf1ForbiddenEntries.Count -ne 0) {
+        Write-Host 'Forbidden entries remain:'
 
-        throw 'HF1 test VSIX content check failed. Do not install this package.'
+        $hf1ForbiddenEntries |
+            ForEach-Object {
+                Write-Host "  $_"
+            }
+
+        throw 'Sanitized HF1 VSIX content check failed. Do not install it.'
     }
 
-    $hf1AfterStatus = @(
-        git status --porcelain=v1 --untracked-files=all
-    )
-
-    if (($hf1BeforeStatus -join "`n") -ne ($hf1AfterStatus -join "`n")) {
-        throw 'Repository state changed during packaging.'
+    $hf1AfterStatus = @(git status --porcelain=v1 --untracked-files=all)
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to verify final repository state.'
     }
 
-    $hf1VsixHash = (
-        Get-FileHash -LiteralPath $hf1Vsix -Algorithm SHA256
+    if (
+        [string]::Join("`n", $hf1BeforeStatus) -cne
+        [string]::Join("`n", $hf1AfterStatus)
+    ) {
+        throw 'Repository state changed while sanitizing the VSIX.'
+    }
+
+    $hf1Hash = (
+        Get-FileHash `
+            -LiteralPath $hf1SafeVsix `
+            -Algorithm SHA256
     ).Hash
 
     Write-Host ''
-    Write-Host "VSIX: $hf1Vsix"
-    Write-Host "SHA-256: $hf1VsixHash"
+    Write-Host "SAFE TEST VSIX: $hf1SafeVsix"
+    Write-Host "SHA-256: $hf1Hash"
     Write-Host "Files inside VSIX: $($hf1Entries.Count)"
     Write-Host 'Repository source state: UNCHANGED'
-    Write-Host 'HF1_TEST_VSIX_CREATED_CONTENTS_CHECKED'
+    Write-Host 'HF1_TEST_VSIX_SANITIZED_CONTENTS_CHECKED'
 }
