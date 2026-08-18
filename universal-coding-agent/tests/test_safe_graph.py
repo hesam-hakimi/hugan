@@ -112,6 +112,64 @@ def test_safe_graph_requires_approval_and_retains_only_passing_patch(tmp_path: P
         service.close()
 
 
+def test_safe_graph_repairs_non_git_style_patch_before_validation(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+
+    def implementer(request):
+        if request.metadata.get("schema_repair") == "true":
+            return {
+                "summary": "Change the approved fixture answer.",
+                "unified_diff": (
+                    "diff --git a/app.py b/app.py\n"
+                    "--- a/app.py\n"
+                    "+++ b/app.py\n"
+                    "@@ -1,2 +1,2 @@\n"
+                    " def answer():\n"
+                    "-    return 42\n"
+                    "+    return 43\n"
+                ),
+                "changed_paths": ["app.py"],
+                "requested_test_profiles": ["python-check"],
+                "assumptions": [],
+            }
+        return {
+            "summary": "Change the approved fixture answer.",
+            "unified_diff": (
+                "--- app.py\n"
+                "+++ app.py\n"
+                "@@ -1,2 +1,2 @@\n"
+                " def answer():\n"
+                "-    return 42\n"
+                "+    return 43\n"
+            ),
+            "changed_paths": ["app.py"],
+            "requested_test_profiles": ["python-check"],
+            "assumptions": [],
+        }
+
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(handlers={"implementer": implementer}),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-format-repair")
+    try:
+        service.run(task)
+        final = service.resume(task.thread_id, True)
+        assert final["status"] == "completed"
+        assert final["reviewer_verdict"] == "PASS"
+        validation = service.artifacts.read_json(final["implementer_validation_ref"])
+        assert validation["repair_used"] is True
+        assert len(validation["attempts"]) == 2
+        assert validation["attempts"][0]["schema_valid"] is False
+        assert validation["attempts"][1]["schema_valid"] is True
+        proposal = service.artifacts.read_json(final["patch_proposal_ref"])
+        assert proposal["unified_diff"].startswith("diff --git a/app.py b/app.py\n")
+    finally:
+        service.close()
+
+
 def test_safe_graph_rolls_back_when_reviewer_has_conditions(tmp_path: Path) -> None:
     source, base_sha = _source(tmp_path)
 
