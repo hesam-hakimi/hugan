@@ -1,9 +1,1 @@
-As requested, below are the highest-priority gaps/dependencies we have identified so far while progressing AskTD in SpruceX. This is not intended to be an exhaustive list, as we are still validating the end-to-end integration.
-
-* High – Unity Catalog / governed data access: We have now confirmed that the current SpruceX Databricks workspace is not Unity Catalog enabled. Since the target AskTD design relies on governed Unity Catalog access, we need the Platform/Architecture teams to confirm whether UC can be enabled in SpruceX or provide the approved integration path to Rahona/Unity Catalog governed data.
-* High – End-user authorization: AskTD can identify the signed-in user through Entra ID, but the enterprise mechanism for determining and enforcing that user’s effective access to Unity Catalog data is still open. A service/API to retrieve user-level access was discussed, but it does not appear to exist today and requires an owner and implementation path.
-* High – Interactive Databricks compute: SpruceX provides a Databricks workspace and default cluster, but we still need an approved compute option for an interactive AskTD workload. The current AZ compute model can introduce several minutes of startup delay after inactivity, so the supported endpoint, expected latency/SLA and cost model need to be confirmed.
-* High – Identity and connectivity: The workload identity, AD-group access, firewall/network path and connectivity between AskTD in SpruceX and the governed Rahona/Unity Catalog data still need to be validated end to end.
-* Medium – Privacy / production-data readiness: SpruceX supports governed production-origin data, but the remaining PIA/DAC controls, masking requirements and permitted Azure OpenAI data boundary need to be completed before full production-data and MRM validation.
-
-We are working with the Architecture, Rahona/Unity Catalog and SpruceX teams to identify owners and determine the interim and target solutions for these items.
+eleven 
