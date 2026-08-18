@@ -1,105 +1,238 @@
-AUTHORIZE_LOCAL_HOTFIX_HF1_SCOPE_AMENDMENT_M22
+& {
+    $ErrorActionPreference = 'Stop'
 
-The frozen LOCAL_HOTFIX_HF1 inventory is amended by exactly one file:
+    $hf1Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
+    $hf1ExpectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
+    $hf1Npm = 'C:\Program Files\nodejs\npm.cmd'
+    $hf1Stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+    $hf1LogDir = Join-Path $env:TEMP "HF1_validation_$hf1Stamp"
 
-src/test/suite/etlActionTools.test.ts
+    $authorizedPaths = @(
+        'src/core/framework/TrustedFrameworkDefinitionResolver.ts'
+        'src/core/trusted/WriteAuthorization.ts'
+        'src/test/helpers/mintTestWriteAuthorization.ts'
+        'src/test/suite/trustedFrameworkDefinitionResolver.test.ts'
+        'src/test/suite/hf1OracleFreshConsumer.test.ts'
+        'src/core/framework/FrameworkDiscoveryService.ts'
+        'src/core/readiness/JobKnowledgeContract.ts'
+        'src/core/readiness/ReadinessProfileCatalog.ts'
+        'src/core/readiness/JobDevelopmentReadinessEvaluator.ts'
+        'src/validation/PreWriteValidationPipeline.ts'
+        'src/tools/TrustedWriteApprovalStore.ts'
+        'src/tools/EtlActionToolService.ts'
+        'src/writers/RepoWriter.ts'
+        'src/core/trusted/index.ts'
+        'src/chat/WriteCoordinator.ts'
+        'src/chat/DeployCoordinator.ts'
+        'src/test/testPatterns.ts'
+        'src/test/suite/repoWriterWorkspaceSelection.test.ts'
+        'src/test/suite/jobDevelopmentReadiness.test.ts'
+        'src/test/suite/onboardingWriteApproval.test.ts'
+        'src/test/suite/createPreviewFlow.test.ts'
+        'src/test/suite/writeFlow.test.ts'
+        'src/test/suite/extension.test.ts'
+        'src/test/suite/phase6WriteDeployRun.test.ts'
+        'src/test/suite/runtimeCreateFlow.test.ts'
+        'package.json'
+        'src/test/suite/etlActionTools.test.ts'
+    )
 
-Updated authorized totals:
+    Set-Location -LiteralPath $hf1Root
+    New-Item -ItemType Directory -Path $hf1LogDir | Out-Null
 
-* 5 new files
-* 22 modified files
-* 27 files total
+    $observedHead = (& git rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or $observedHead -ne $hf1ExpectedHead) {
+        throw "Unexpected HEAD: $observedHead"
+    }
 
-Continue from the current partial implementation. Preserve the eight already-created/modified in-scope files. Do not restart, roll back, or edit any no-touch file.
+    $staged = @(& git diff --cached --name-only)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect staged files.' }
+    if ($staged.Count -ne 0) {
+        throw "Unexpected staged files:`n$($staged -join "`n")"
+    }
 
-AMENDMENT PURPOSE
+    $unstaged = @(& git diff --name-only)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect modified files.' }
 
-Modify only the tests in etlActionTools.test.ts whose successful-write or post-write-checkpoint expectations are directly affected by the newly authorized two-step contract:
+    $untracked = @(& git ls-files --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to inspect untracked files.' }
 
-validation → preview → explicit approval → authorized write
+    $changedBefore = @(
+        $unstaged
+        $untracked
+    ) |
+        ForEach-Object { $_.Trim().Replace('\', '/') } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
 
-TEST-UPDATE REQUIREMENTS
+    $unexpected = @(
+        $changedBefore | Where-Object { $_ -notin $authorizedPaths }
+    )
 
-1. Do not weaken, delete, skip, suppress, or mark any affected test pending.
-2. Do not add:
+    $plannedButUnchanged = @(
+        $authorizedPaths | Where-Object { $_ -notin $changedBefore }
+    )
 
-* automatic approval
-* approval when previewId is absent
-* a test-only production bypass
-* a feature flag bypass
-* a forged WriteAuthorization
-* direct access to a private store
-* direct RepoWriter writes that evade the public workflow
+    Write-Host ''
+    Write-Host "Actual changed files: $($changedBefore.Count)"
+    $changedBefore | ForEach-Object { Write-Host "  CHANGED: $_" }
 
-3. For tests requiring a completed write, drive the real public workflow:
+    Write-Host ''
+    Write-Host "Authorized but unchanged: $($plannedButUnchanged.Count)"
+    $plannedButUnchanged | ForEach-Object { Write-Host "  UNCHANGED: $_" }
 
-* first invocation produces the immutable preview and performs zero writes
-* perform the real explicit approval transition
-* second invocation supplies the approved preview identity
-* exactly one authorized write occurs
-* returned workspace path, artifact paths, manifest binding, and continuation checkpoint are asserted
+    if ($unexpected.Count -ne 0) {
+        throw "OUT-OF-SCOPE FILES DETECTED:`n$($unexpected -join "`n")"
+    }
 
-4. Tests that use a real write only to seed an Autonomous Guarded checkpoint must seed it through the same approved two-step workflow before testing publish/run continuation behavior.
-5. Preserve the original semantic assertions:
+    & git diff --check
+    if ($LASTEXITCODE -ne 0) {
+        throw 'git diff --check failed.'
+    }
 
-* usedWorkspacePath
-* success state after approved write
-* markdown/result contract
-* checkpoint scope
-* approval-token behavior
-* publish/run continuation
-* requested-path coverage
-* rejection when the stored checkpoint does not cover the requested path
-* no unintended publish, onboarding, or run side effects
+    & git diff --stat
 
-6. Tests that fail earlier during validation or workspace selection and never reach the write boundary should remain unchanged unless compilation proves a minimal signature update is required.
-7. A plain preview response must not be rewritten as a successful completed write. The tests must explicitly distinguish:
+    $sourceHashesBefore = @{}
+    foreach ($relativePath in $changedBefore) {
+        $absolutePath = Join-Path $hf1Root $relativePath
+        if (Test-Path -LiteralPath $absolutePath -PathType Leaf) {
+            $sourceHashesBefore[$relativePath] =
+                (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash
+        }
+    }
 
-* preview generated / no write
-* approval accepted
-* write completed
+    $compileOutput = @(& $hf1Npm run compile 2>&1)
+    $compileExit = $LASTEXITCODE
+    $compileOutput | Set-Content -LiteralPath (Join-Path $hf1LogDir 'compile.log') -Encoding UTF8
+    Write-Host "Compile exit: $compileExit"
+    if ($compileExit -ne 0) {
+        $compileOutput | Select-Object -Last 60
+        throw 'HF1 compile failed.'
+    }
 
-8. Keep src/test/suite/etlActionTools.test.ts registered through its existing PURE_UNIT_TEST_PATTERNS entry. Do not modify registration merely for this amendment.
+    $lintOutput = @(& $hf1Npm run lint 2>&1)
+    $lintExit = $LASTEXITCODE
+    $lintOutput | Set-Content -LiteralPath (Join-Path $hf1LogDir 'lint.log') -Encoding UTF8
+    Write-Host "Lint exit: $lintExit"
+    if ($lintExit -ne 0) {
+        $lintOutput | Select-Object -Last 60
+        throw 'HF1 lint failed.'
+    }
 
-SCOPE ENFORCEMENT
+    $env:MOCHA_GREP =
+        'HF1|Trusted framework|RepoWriter workspace selection|Job development readiness|WriteAuthorization|EtlActionTools|ETL action tools'
 
-No additional production file is authorized beyond the original 26-file inventory.
+    $focusedOutput = @(& $hf1Npm run test:unit 2>&1)
+    $focusedExit = $LASTEXITCODE
+    Remove-Item Env:MOCHA_GREP -ErrorAction SilentlyContinue
 
-No additional test file is authorized beyond this amendment.
+    $focusedOutput |
+        Set-Content -LiteralPath (Join-Path $hf1LogDir 'focused-unit.log') -Encoding UTF8
 
-If any other unlisted file becomes necessary, stop and report:
+    Write-Host "Focused tests exit: $focusedExit"
+    $focusedOutput | Select-Object -Last 40
 
-LOCAL_HOTFIX_HF1_SCOPE_AMENDMENT_REQUIRED
+    if ($focusedExit -ne 0) {
+        throw 'Focused HF1 tests failed.'
+    }
 
-Do not modify that file.
+    $fullOutput = @(& $hf1Npm run test:unit 2>&1)
+    $fullExit = $LASTEXITCODE
 
-VALIDATION AND BASELINE
+    $fullOutput |
+        Set-Content -LiteralPath (Join-Path $hf1LogDir 'full-unit.log') -Encoding UTF8
 
-Continue to enforce:
+    $ansiPattern = "$([char]27)\[[0-9;]*[A-Za-z]"
+    $fullText = (($fullOutput -join "`n") -replace $ansiPattern, '')
 
-* compile must pass
-* lint must pass
-* focused HF1 tests must pass
-* all new HF1 tests must pass
-* the full unit suite may retain only the exact six documented pre-existing baseline failures
-* no seventh failure
-* no changed failure identity
+    $failureMatches =
+        [regex]::Matches($fullText, '(?m)^\s*(\d+)\s+failing\b')
 
-Do not repair or modify the six baseline failures.
+    $failureCount = -1
+    if ($failureMatches.Count -gt 0) {
+        $failureCount =
+            [int]$failureMatches[$failureMatches.Count - 1].Groups[1].Value
+    }
 
-If native execution remains unavailable in this Chat, report the exact external PowerShell commands without fabricating results and finish with:
+    $knownFailures = @(
+        'passes against the committed Phase H baseline report'
+        'allows deterministic v3 baseline reports without prompt telemetry'
+        'excludes dev logs, eval outputs, generated packages, and test artifacts from VSIX candidate'
+        'maintainer delivery prompt references real repo-local agents'
+        'repo customization assets use valid frontmatter and agent file naming'
+        'source tree uses standard AGENTS.md guidance instead of module AGENT.md files'
+    )
 
-LOCAL_HOTFIX_HF1_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+    $missingKnownFailures = @(
+        $knownFailures | Where-Object { -not $fullText.Contains($_) }
+    )
 
-AUDIT CORRECTION
+    Write-Host ''
+    Write-Host "Full unit exit: $fullExit"
+    Write-Host "Observed failure count: $failureCount"
 
-In the next report, avoid any statement equivalent to “no file was modified in this session,” because eight authorized files have already been changed.
+    $fullOutput |
+        Select-String -Pattern 'passing|pending|failing' |
+        Select-Object -Last 8
 
-State accurately:
+    if ($failureCount -ne 6 -or $missingKnownFailures.Count -ne 0) {
+        Write-Host "Missing known baseline identities: $($missingKnownFailures.Count)"
+        $missingKnownFailures | ForEach-Object { Write-Host "  MISSING: $_" }
+        throw 'Full-unit result differs from the six-failure baseline.'
+    }
 
-* eight authorized files were changed before this amendment
-* zero out-of-inventory files were changed
-* zero no-touch files were changed
-* no Git mutation, install, download, package, deployment, or consumer write occurred
+    $unstagedAfter = @(& git diff --name-only)
+    $untrackedAfter = @(& git ls-files --others --exclude-standard)
 
-Proceed with the amended 27-file frozen scope.
+    $changedAfter = @(
+        $unstagedAfter
+        $untrackedAfter
+    ) |
+        ForEach-Object { $_.Trim().Replace('\', '/') } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
+
+    $newUnexpected = @(
+        $changedAfter | Where-Object { $_ -notin $authorizedPaths }
+    )
+
+    if ($newUnexpected.Count -ne 0) {
+        throw "VALIDATION CREATED OUT-OF-SCOPE FILES:`n$($newUnexpected -join "`n")"
+    }
+
+    $validationMutatedSource = @()
+
+    foreach ($relativePath in $sourceHashesBefore.Keys) {
+        $absolutePath = Join-Path $hf1Root $relativePath
+        if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
+            $validationMutatedSource += "$relativePath (missing)"
+            continue
+        }
+
+        $afterHash =
+            (Get-FileHash -LiteralPath $absolutePath -Algorithm SHA256).Hash
+
+        if ($afterHash -ne $sourceHashesBefore[$relativePath]) {
+            $validationMutatedSource += $relativePath
+        }
+    }
+
+    if ($validationMutatedSource.Count -ne 0) {
+        throw "VALIDATION MUTATED SOURCE:`n$($validationMutatedSource -join "`n")"
+    }
+
+    & git diff --check
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Final git diff --check failed.'
+    }
+
+    Write-Host ''
+    Write-Host 'HF1_EXTERNAL_VALIDATION_PASS'
+    Write-Host "HEAD: $observedHead"
+    Write-Host "Actual changed files: $($changedAfter.Count)"
+    Write-Host 'Compile: PASS'
+    Write-Host 'Lint: PASS'
+    Write-Host 'Focused HF1 tests: PASS'
+    Write-Host 'Full unit: exact six pre-existing failures; no seventh failure'
+    Write-Host "Logs: $hf1LogDir"
+}
