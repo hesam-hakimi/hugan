@@ -1,19 +1,7 @@
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent \
-&& .venv/bin/python -m compileall -q src tests \
-&& .venv/bin/ruff check \
-     src/universal_coding_agent/core/safe_models.py \
-     src/universal_coding_agent/context/safe_compiler.py \
-     src/universal_coding_agent/orchestration/safe_graph.py \
-     src/universal_coding_agent/safe \
-     src/universal_coding_agent/safe_service.py \
-     src/universal_coding_agent/cli.py \
-     tests/test_safe_models.py \
-     tests/test_safe_patching.py \
-     tests/test_safe_graph.py \
-&& .venv/bin/python -m pytest -q \
-     tests/test_safe_models.py \
-     tests/test_safe_patching.py \
-     tests/test_safe_graph.py \
-&& bash scripts/safe-smoke.sh \
-     --skip-install \
-     --state-root "$HOME/.uca-safe-smoke-$(date -u +%Y%m%dT%H%M%SZ)"
+&& bash scripts/qualify-safe-host-provider.sh \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --skip-install \
+  --skip-quality \
+  --state-root "$HOME/.uca-safe-host-runs/uca-safe-host-$(date -u +%Y%m%dT%H%M%SZ)"
