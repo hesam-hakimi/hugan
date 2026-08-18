@@ -1,82 +1,112 @@
 & {
-    $hf1Source = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension'
+    $ErrorActionPreference = 'Stop'
+
+    $hf1Original = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension'
     $hf1Clone = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
+    $hf1DependencySource = Join-Path $hf1Original 'node_modules'
+    $hf1DependencyDestination = Join-Path $hf1Clone 'node_modules'
     $hf1ExpectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
-    $hf1Branch = 'hotfix/hf1-oracle-fresh-consumer'
-    $hf1Origin = 'https://github.com/TD-Universe/agentic_etl.git'
+    $hf1NodeExe = 'C:\Program Files\nodejs\node.exe'
+    $hf1NpmCmd = 'C:\Program Files\nodejs\npm.cmd'
 
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        throw 'Git was not found.'
+    if (-not (Test-Path -LiteralPath $hf1Clone -PathType Container)) {
+        throw "HF1 clone does not exist: $hf1Clone"
     }
 
-    if (-not (Test-Path -LiteralPath $hf1Source -PathType Container)) {
-        throw "Source repository does not exist: $hf1Source"
+    if (-not (Test-Path -LiteralPath $hf1DependencySource -PathType Container)) {
+        throw "Source node_modules does not exist: $hf1DependencySource"
     }
 
-    if (Test-Path -LiteralPath $hf1Clone) {
-        throw "Destination already exists. Do not delete it. Stop and inspect: $hf1Clone"
+    if (Test-Path -LiteralPath $hf1DependencyDestination) {
+        throw "HF1 node_modules already exists. Stop and inspect it before continuing."
     }
 
-    $hf1ActualHead = (git -C $hf1Source rev-parse HEAD).Trim()
+    if (-not (Test-Path -LiteralPath $hf1NodeExe -PathType Leaf)) {
+        throw "Node executable was not found: $hf1NodeExe"
+    }
+
+    if (-not (Test-Path -LiteralPath $hf1NpmCmd -PathType Leaf)) {
+        throw "npm.cmd was not found: $hf1NpmCmd"
+    }
+
+    $hf1ObservedHead = (& git -C $hf1Clone rev-parse HEAD).Trim()
+
     if ($LASTEXITCODE -ne 0) {
-        throw 'Could not read the source HEAD.'
+        throw 'Unable to read the HF1 clone HEAD.'
     }
 
-    if ($hf1ActualHead -ne $hf1ExpectedHead) {
-        throw "Unexpected source HEAD. Expected $hf1ExpectedHead but observed $hf1ActualHead"
+    if ($hf1ObservedHead -ne $hf1ExpectedHead) {
+        throw "Unexpected HF1 HEAD: $hf1ObservedHead"
     }
 
-    $hf1WorktreeOutput = git -C $hf1Source worktree list --porcelain
+    $hf1StatusBefore = @(& git -C $hf1Clone status --short --untracked-files=all)
+
     if ($LASTEXITCODE -ne 0) {
-        throw 'Could not read the worktree inventory.'
+        throw 'Unable to read the HF1 clone status.'
     }
 
-    $hf1WorktreesBefore = @($hf1WorktreeOutput | Select-String -Pattern '^worktree ').Count
-    if ($hf1WorktreesBefore -ne 3) {
-        throw "Expected exactly 3 existing worktrees but observed $hf1WorktreesBefore"
+    if ($hf1StatusBefore.Count -ne 0) {
+        throw "HF1 clone is not clean before dependency preparation:`n$($hf1StatusBefore -join "`n")"
     }
 
-    git clone --local --no-hardlinks --branch feature/v3-agentic-redesign --single-branch -- $hf1Source $hf1Clone
+    Write-Host 'Copying existing local dependencies into the isolated HF1 clone...'
+
+    & robocopy.exe `
+        $hf1DependencySource `
+        $hf1DependencyDestination `
+        /E /COPY:DAT /DCOPY:DAT /R:1 /W:1 /XJ /NFL /NDL /NJH /NJS /NP
+
+    $hf1CopyExit = $LASTEXITCODE
+
+    if ($hf1CopyExit -ge 8) {
+        throw "Dependency copy failed with robocopy exit code $hf1CopyExit"
+    }
+
+    Set-Location -LiteralPath $hf1Clone
+
+    & $hf1NodeExe --version
     if ($LASTEXITCODE -ne 0) {
-        throw "Local clone failed. Do not delete or retry blindly. Inspect: $hf1Clone"
+        throw 'Node execution failed.'
     }
 
-    git -C $hf1Clone remote set-url origin $hf1Origin
+    & $hf1NpmCmd --version
     if ($LASTEXITCODE -ne 0) {
-        throw 'Could not set the GitHub origin in the isolated clone.'
+        throw 'npm execution failed.'
     }
 
-    git -C $hf1Clone switch -c $hf1Branch $hf1ExpectedHead
+    & $hf1NpmCmd ls --depth=0
     if ($LASTEXITCODE -ne 0) {
-        throw 'Could not create the dedicated HF1 branch.'
+        throw 'Copied dependencies do not match the clean HF1 package.json.'
     }
 
-    $hf1CloneStatus = @(git -C $hf1Clone status --porcelain)
+    & $hf1NpmCmd run compile
     if ($LASTEXITCODE -ne 0) {
-        throw 'Could not verify the clone status.'
+        throw 'Baseline compile failed.'
     }
 
-    if ($hf1CloneStatus.Count -ne 0) {
-        throw "The isolated clone is unexpectedly dirty: $($hf1CloneStatus -join ', ')"
+    & $hf1NpmCmd run lint
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Baseline lint failed.'
     }
 
-    $hf1CloneHead = (git -C $hf1Clone rev-parse HEAD).Trim()
-    $hf1CloneBranch = (git -C $hf1Clone branch --show-current).Trim()
-    $hf1CloneOrigin = (git -C $hf1Clone remote get-url origin).Trim()
+    & $hf1NpmCmd run test:unit
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Baseline unit tests failed.'
+    }
 
-    $hf1WorktreeOutputAfter = git -C $hf1Source worktree list --porcelain
-    $hf1WorktreesAfter = @($hf1WorktreeOutputAfter | Select-String -Pattern '^worktree ').Count
+    $hf1StatusAfter = @(& git status --short --untracked-files=all)
 
-    if ($hf1WorktreesAfter -ne 3) {
-        throw "Original worktree count changed unexpectedly to $hf1WorktreesAfter"
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to read final Git status.'
+    }
+
+    if ($hf1StatusAfter.Count -ne 0) {
+        throw "Source drift detected after toolchain preparation:`n$($hf1StatusAfter -join "`n")"
     }
 
     Write-Host ''
-    Write-Host 'HF1 ISOLATED CLONE READY' -ForegroundColor Green
-    Write-Host "Path: $hf1Clone"
-    Write-Host "Branch: $hf1CloneBranch"
-    Write-Host "HEAD: $hf1CloneHead"
-    Write-Host "Origin: $hf1CloneOrigin"
-    Write-Host "Original worktree count: $hf1WorktreesAfter"
-    Write-Host 'Clone status: CLEAN'
+    Write-Host 'HF1_BASELINE_TOOLCHAIN_READY'
+    Write-Host "HEAD: $hf1ObservedHead"
+    Write-Host 'Git status: CLEAN'
+    Write-Host 'Network/download/install: NONE'
 }
