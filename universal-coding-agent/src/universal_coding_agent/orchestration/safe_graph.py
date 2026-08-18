@@ -23,7 +23,10 @@ from universal_coding_agent.orchestration.structured_output import (
 )
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
-from universal_coding_agent.safe.patching import SafePatchEngine
+from universal_coding_agent.safe.patching import (
+    SafePatchEngine,
+    patch_validation_allows_applicability_repair,
+)
 from universal_coding_agent.safe.testing import SafeTestRunner
 from universal_coding_agent.sandbox.git import GitSandboxManager
 from universal_coding_agent.storage.artifacts import ArtifactStore
@@ -42,9 +45,17 @@ class SafeGraphState(TypedDict, total=False):
     scope_approval_ref: str
     implementer_context_ref: str
     implementer_validation_ref: str
+    initial_patch_proposal_ref: str
+    initial_patch_ref: str
     patch_proposal_ref: str
     patch_ref: str
     patch_validation_ref: str
+    patch_repair_needed: bool
+    patch_repair_used: bool
+    patch_repair_context_ref: str
+    patch_repair_validation_ref: str
+    patch_repair_proposal_ref: str
+    patch_repair_ref: str
     rollback_checkpoint_ref: str
     patch_apply_ref: str
     patch_applied: bool
@@ -85,6 +96,7 @@ class SafeModeGraph:
         builder.add_node("scope_approval", self.approve_scope)
         builder.add_node("implement", self.implement)
         builder.add_node("validate_patch", self.validate_patch)
+        builder.add_node("repair_patch", self.repair_patch)
         builder.add_node("apply_patch", self.apply_patch)
         builder.add_node("tests", self.run_tests)
         builder.add_node("review", self.review)
@@ -111,7 +123,16 @@ class SafeModeGraph:
         builder.add_conditional_edges(
             "validate_patch",
             self.route_after_patch_validation,
-            {"apply_patch": "apply_patch", "finalize": "finalize"},
+            {
+                "repair_patch": "repair_patch",
+                "apply_patch": "apply_patch",
+                "finalize": "finalize",
+            },
+        )
+        builder.add_conditional_edges(
+            "repair_patch",
+            self.route_after_patch_repair,
+            {"validate_patch": "validate_patch", "finalize": "finalize"},
         )
         builder.add_conditional_edges(
             "apply_patch",
@@ -137,6 +158,8 @@ class SafeModeGraph:
             "status": TaskStatus.VALIDATING.value,
             "scope_ref": scope_ref.uri,
             "scope_hash": task.manifest.canonical_hash(),
+            "patch_repair_used": False,
+            "patch_repair_needed": False,
             "events": [self._event("validate", f"validated safe task {task.task_id}")],
         }
 
@@ -285,6 +308,8 @@ class SafeModeGraph:
             "status": TaskStatus.PLANNING.value,
             "implementer_context_ref": context_ref.uri,
             "implementer_validation_ref": validation_ref.uri,
+            "initial_patch_proposal_ref": proposal_ref.uri,
+            "initial_patch_ref": patch_ref.uri,
             "patch_proposal_ref": proposal_ref.uri,
             "patch_ref": patch_ref.uri,
             "events": [self._event("implementer", f"proposed patch{repair_note}")],
@@ -300,12 +325,18 @@ class SafeModeGraph:
             task.manifest,
             proposal,
         )
+        artifact_name = (
+            "patch-validation-repair.json"
+            if state.get("patch_repair_used")
+            else "patch-validation.json"
+        )
         result_ref = self.services.artifacts.write_json(
-            f"tasks/{task.task_id}/patch-validation.json",
+            f"tasks/{task.task_id}/{artifact_name}",
             result.model_dump(mode="json"),
         )
         response: dict[str, Any] = {
             "patch_validation_ref": result_ref.uri,
+            "patch_repair_needed": False,
             "events": [
                 self._event(
                     "patch_validation",
@@ -315,10 +346,138 @@ class SafeModeGraph:
         }
         if result.valid:
             response["status"] = TaskStatus.CHECKING.value
+        elif (
+            not state.get("patch_repair_used")
+            and patch_validation_allows_applicability_repair(result)
+        ):
+            response["status"] = TaskStatus.PLANNING.value
+            response["patch_repair_needed"] = True
+            response["events"] = [
+                self._event(
+                    "patch_validation",
+                    "git applicability failed; one bounded repair authorized",
+                )
+            ]
         else:
             response["status"] = TaskStatus.BLOCKED.value
             response["safe_errors"] = ["patch:validation_failed"]
         return response
+
+    def repair_patch(self, state: SafeGraphState) -> dict[str, Any]:
+        task = SafeTaskRequest.model_validate(state["task"])
+        proposal = PatchProposal.model_validate(
+            self.services.artifacts.read_json(state["patch_proposal_ref"])
+        )
+        validation_payload = self.services.artifacts.read_json(state["patch_validation_ref"])
+        errors = tuple(str(item) for item in validation_payload.get("errors", []))
+        context = self.services.context.compile_patch_repair(
+            Path(state["sandbox_path"]),
+            task,
+            proposal,
+            errors,
+        )
+        context_ref = self.services.artifacts.write_text(
+            f"tasks/{task.task_id}/patch-repair-context.md",
+            context,
+            "text/markdown",
+        )
+        request = ModelRequest(
+            role="implementer",
+            system_prompt=PATCH_REPAIR_SYSTEM_PROMPT,
+            user_prompt=context,
+            response_schema=PatchProposal.model_json_schema(),
+            max_output_tokens=12_000,
+            metadata={
+                "task_id": task.task_id,
+                "scope_hash": state["scope_hash"],
+                "base_sha": task.manifest.base_sha,
+                "patch_applicability_repair": "true",
+            },
+        )
+        try:
+            structured = invoke_structured(
+                self.services.provider,
+                request,
+                PatchProposal,
+                repair_guidance=PATCH_REPAIR_REPAIR_GUIDANCE,
+                max_repair_attempts=1,
+            )
+        except StructuredOutputError as exc:
+            validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/patch-repair-model-validation.json",
+                exc.diagnostics,
+            )
+            return {
+                "status": TaskStatus.FAILED.value,
+                "patch_repair_used": True,
+                "patch_repair_needed": False,
+                "patch_repair_context_ref": context_ref.uri,
+                "patch_repair_validation_ref": validation_ref.uri,
+                "safe_errors": [f"patch_repair:{exc.code}"],
+                "events": [self._event("patch_repair", f"failed safely: {exc.code}")],
+            }
+
+        repaired = structured.value
+        if (
+            repaired.changed_paths != proposal.changed_paths
+            or repaired.requested_test_profiles != proposal.requested_test_profiles
+        ):
+            validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/patch-repair-model-validation.json",
+                {
+                    **structured.diagnostics,
+                    "scope_drift": True,
+                    "previous_changed_paths": list(proposal.changed_paths),
+                    "repaired_changed_paths": list(repaired.changed_paths),
+                    "previous_requested_test_profiles": list(
+                        proposal.requested_test_profiles
+                    ),
+                    "repaired_requested_test_profiles": list(
+                        repaired.requested_test_profiles
+                    ),
+                },
+            )
+            return {
+                "status": TaskStatus.BLOCKED.value,
+                "patch_repair_used": True,
+                "patch_repair_needed": False,
+                "patch_repair_context_ref": context_ref.uri,
+                "patch_repair_validation_ref": validation_ref.uri,
+                "safe_errors": ["patch_repair:scope_drift"],
+                "events": [self._event("patch_repair", "rejected scope drift")],
+            }
+
+        validation_ref = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/patch-repair-model-validation.json",
+            structured.diagnostics,
+        )
+        proposal_ref = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/patch-proposal-repair.json",
+            repaired.model_dump(mode="json"),
+        )
+        patch_ref = self.services.artifacts.write_text(
+            f"tasks/{task.task_id}/proposed-repair.patch",
+            repaired.unified_diff,
+            "text/x-diff",
+        )
+        schema_note = " with schema repair" if structured.repair_used else ""
+        return {
+            "status": TaskStatus.PLANNING.value,
+            "patch_repair_used": True,
+            "patch_repair_needed": False,
+            "patch_repair_context_ref": context_ref.uri,
+            "patch_repair_validation_ref": validation_ref.uri,
+            "patch_repair_proposal_ref": proposal_ref.uri,
+            "patch_repair_ref": patch_ref.uri,
+            "patch_proposal_ref": proposal_ref.uri,
+            "patch_ref": patch_ref.uri,
+            "events": [
+                self._event(
+                    "patch_repair",
+                    f"produced one bounded applicability repair{schema_note}",
+                )
+            ],
+        }
 
     def apply_patch(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
@@ -543,9 +702,16 @@ class SafeModeGraph:
             "scope_approval_ref": state.get("scope_approval_ref"),
             "implementer_context_ref": state.get("implementer_context_ref"),
             "implementer_validation_ref": state.get("implementer_validation_ref"),
+            "initial_patch_proposal_ref": state.get("initial_patch_proposal_ref"),
+            "initial_patch_ref": state.get("initial_patch_ref"),
             "patch_proposal_ref": state.get("patch_proposal_ref"),
             "patch_ref": state.get("patch_ref"),
             "patch_validation_ref": state.get("patch_validation_ref"),
+            "patch_repair_used": state.get("patch_repair_used", False),
+            "patch_repair_context_ref": state.get("patch_repair_context_ref"),
+            "patch_repair_validation_ref": state.get("patch_repair_validation_ref"),
+            "patch_repair_proposal_ref": state.get("patch_repair_proposal_ref"),
+            "patch_repair_ref": state.get("patch_repair_ref"),
             "rollback_checkpoint_ref": state.get("rollback_checkpoint_ref"),
             "patch_apply_ref": state.get("patch_apply_ref"),
             "tests_ref": state.get("tests_ref"),
@@ -592,7 +758,13 @@ class SafeModeGraph:
 
     @staticmethod
     def route_after_patch_validation(state: SafeGraphState) -> str:
+        if state.get("patch_repair_needed"):
+            return "repair_patch"
         return "finalize" if state.get("safe_errors") else "apply_patch"
+
+    @staticmethod
+    def route_after_patch_repair(state: SafeGraphState) -> str:
+        return "finalize" if state.get("safe_errors") else "validate_patch"
 
     @staticmethod
     def route_after_apply(state: SafeGraphState) -> str:
@@ -612,11 +784,26 @@ isolated Git sandbox. Return exactly one PatchProposal JSON object. Produce a mi
 text-only git-style unified diff that changes only human-approved paths using only the
 approved create/modify operations. Do not delete, rename, copy, modify symlinks, emit binary
 patches, run commands, stage, commit, push, create a pull request, merge, or deploy. Preserve
-all unresolved questions as assumptions instead of expanding scope."""
+all unresolved questions as assumptions instead of expanding scope. Every unchanged/context
+line in each hunk must be copied exactly from the supplied base file state; never invent an
+existing heading, anchor, function body, or assertion."""
 
 IMPLEMENTER_REPAIR_GUIDANCE = """Keep changed_paths identical to the ordered file paths in
 the unified diff. Use only approved test profile IDs. The patch must end with a newline and
-contain diff --git, ---/+++, and @@ hunk headers for each file."""
+contain diff --git, ---/+++, and @@ hunk headers for each file. Unchanged and removed lines
+must exactly match supplied base-file text."""
+
+PATCH_REPAIR_SYSTEM_PROMPT = """You are a bounded patch applicability repairer. The previous
+proposal was already inside the human-approved scope but deterministic git apply --check
+rejected its hunk context. Return exactly one corrected PatchProposal. Preserve the same
+changed paths, operations, requested test profiles, task intent, and semantic changes. Repair
+only stale, invented, or inaccurate hunk anchors and line context using the exact supplied
+base-file state. Do not broaden scope or add publication actions."""
+
+PATCH_REPAIR_REPAIR_GUIDANCE = """Preserve changed_paths and requested_test_profiles exactly.
+Return a raw git-style unified_diff without Markdown fences. Every unchanged or removed hunk
+line must be copied exactly from the supplied base-file state. Do not invent existing text.
+The repaired patch must remain inside the already-approved paths and operations."""
 
 SAFE_REVIEWER_SYSTEM_PROMPT = """You are an independent Safe Mode reviewer. Return exactly
 one SafeReviewResult JSON object. Review the original requirement, approved scope, actual
