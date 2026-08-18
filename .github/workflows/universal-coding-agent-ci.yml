@@ -51,10 +51,12 @@ jobs:
           bash -n scripts/qualify-safe-host-provider.sh
           bash -n scripts/safe-approve-resume.sh
           bash -n scripts/safe-workflow.sh
+          bash -n scripts/safe-patch-diagnose.sh
           bash scripts/observe-project.sh --help >/dev/null
           bash scripts/safe-smoke.sh --help >/dev/null
           bash scripts/qualify-safe-host-provider.sh --help >/dev/null
           bash scripts/safe-approve-resume.sh --help >/dev/null
+          bash scripts/safe-patch-diagnose.sh --help >/dev/null
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
