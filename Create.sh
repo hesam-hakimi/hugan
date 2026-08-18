@@ -1,99 +1,134 @@
-bash -lc '
-set -Eeuo pipefail
-
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-STATE_ROOT="/home/tag5916/.uca-project-runs/uca-observe-20260818T023011Z-1221115"
+TASK_FILE="$HOME/phase2c-evidence-closure.md"
 
-.venv/bin/python - "$STATE_ROOT" <<'"'"'PY'"'"'
-import json
-import sys
-from pathlib import Path
+cat > "$TASK_FILE" <<'EOF'
+# Objective
 
-state_root = Path(sys.argv[1])
-run_summary = json.loads(
-    (state_root / "run-summary.json").read_text(encoding="utf-8")
-)
+Perform a read-only Phase 2C evidence and acceptance-contract closure.
 
-task_id = run_summary["task_id"]
-task_root = state_root / "artifacts" / "tasks" / task_id
+The purpose of this task is not to implement code. It is to replace generic
+blockers with exact repository evidence, exact missing contracts, and exact
+acceptance criteria.
 
-def load_json(name: str) -> dict:
-    path = task_root / name
-    if not path.is_file():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+# Fixed architecture decision
 
-plan = load_json("phase-plan.json")
-review = load_json("review.json")
-report = load_json("final-report.json")
-planner_validation = load_json("planner-model-validation.json")
-reviewer_validation = load_json("reviewer-model-validation.json")
+Cross-ProductGroup unit, contract, and CI tests must use deterministic
+synthetic or mock data.
 
-result = {
-    "task_id": task_id,
-    "base_sha": report.get("base_sha"),
-    "final_status": report.get("status"),
-    "reviewer_verdict": review.get("verdict"),
-    "safe_errors": report.get("safe_errors", []),
-    "planner_schema_repair_used": planner_validation.get("repair_used"),
-    "reviewer_schema_repair_used": reviewer_validation.get("repair_used"),
-    "phase": {
-        "phase_id": plan.get("phase_id"),
-        "title": plan.get("title"),
-        "objective": plan.get("objective"),
-        "blockers": plan.get("blockers", []),
-        "architecture_decisions_required": plan.get(
-            "architecture_decisions_required", []
-        ),
-        "final_acceptance_criteria": plan.get(
-            "final_acceptance_criteria", []
-        ),
-    },
-    "slices": [
-        {
-            "slice_id": item.get("slice_id"),
-            "title": item.get("title"),
-            "objective": item.get("objective"),
-            "dependencies": item.get("dependencies", []),
-            "external_dependencies": item.get(
-                "external_dependencies", []
-            ),
-            "expected_paths": item.get("expected_paths", []),
-            "acceptance_criteria": item.get(
-                "acceptance_criteria", []
-            ),
-            "recommended_checks": item.get(
-                "recommended_checks", []
-            ),
-            "stop_conditions": item.get("stop_conditions", []),
-        }
-        for item in plan.get("slices", [])
-    ],
-    "review": {
-        "requirement_findings": review.get(
-            "requirement_findings", []
-        ),
-        "scope_findings": review.get("scope_findings", []),
-        "security_findings": review.get(
-            "security_findings", []
-        ),
-        "test_findings": review.get("test_findings", []),
-        "required_actions": review.get("required_actions", []),
-        "confidence": review.get("confidence"),
-    },
-    "source_repository_preserved": True,
-    "publication_action_performed": report.get(
-        "commit_push_pr_merge_deploy"
-    ),
-}
+Live governed data may be used only by a separate, optional, read-only,
+environment-gated integration qualification profile. Live data must not be a
+prerequisite for unit tests or the standard CI acceptance gate.
 
-output = json.dumps(result, indent=2, ensure_ascii=False)
-summary_path = state_root / "phase2c-decision-summary.json"
-summary_path.write_text(output, encoding="utf-8")
+# Required investigation
 
-print(output)
-print()
-print(f"PHASE2C_DECISION_SUMMARY={summary_path}")
-PY
-'
+1. Locate authoritative repository evidence for the canonical hierarchy:
+
+   ProductGroup → Schema → Dataset → Field
+
+2. Locate the authoritative contract for mandatory schema membership:
+
+   - whether every Dataset must have a schema_id;
+   - whether every Schema must belong to a ProductGroup;
+   - how missing, unknown, duplicate, or cross-ProductGroup references behave.
+
+3. Locate the authoritative registry-version contract:
+
+   - what constitutes registry identity;
+   - whether identity includes the full snapshot content;
+   - which changes require a new version identity;
+   - how stale or conflicting snapshots are rejected.
+
+4. Locate the contract and existing tests for:
+
+   - field governance;
+   - field classification;
+   - metadata-classification deferral;
+   - unsupported or deferred governance values.
+
+5. Locate the contract and existing tests for:
+
+   - cross-ProductGroup relationships;
+   - allowed versus rejected relationship behavior;
+   - same-ProductGroup and cross-ProductGroup cases;
+   - security and authorization implications.
+
+6. Locate the contract and existing tests for:
+
+   - registry-cache concurrency;
+   - snapshot publication;
+   - stale cache behavior;
+   - simultaneous readers and writers;
+   - deterministic cache invalidation.
+
+7. Locate the public API security and compatibility evidence relevant to
+   Phase 2C.
+
+8. Inspect these files when present and identify the exact symbols and tests:
+
+   - test_registry_hierarchy_contract.py
+   - test_registry_contract.py
+
+9. For every requirement, classify it as exactly one of:
+
+   - CONFIRMED
+   - PARTIALLY_CONFIRMED
+   - MISSING
+   - CONTRADICTED
+   - EXPLICITLY_DEFERRED
+
+10. Every confirmed or partially confirmed claim must include an exact
+    repository-relative file path and, where possible, a line range or symbol.
+
+11. Verify that every expected implementation or test path actually exists.
+    Do not output a guessed path as an existing path.
+
+12. Clearly distinguish:
+
+    - existing paths;
+    - proposed future paths;
+    - missing authoritative documents;
+    - unresolved architecture decisions.
+
+13. Map every requested Phase 2C focus area to one of:
+
+    - an implementation slice;
+    - a test-only slice;
+    - a documentation/contract slice;
+    - an explicit blocker;
+    - an explicit deferral.
+
+# Required output
+
+Return an evidence-backed Phase 2C plan containing:
+
+- exact confirmed contracts;
+- exact missing contracts;
+- repository-relative evidence paths;
+- internal slice dependencies;
+- external prerequisites;
+- test-only remediation slices;
+- production-code remediation slices, only where evidence proves they are needed;
+- explicit stop conditions;
+- final acceptance criteria;
+- independent reviewer findings;
+- explicit confirmation that no repository change occurred.
+
+# Constraints
+
+- Observe only.
+- Do not modify, create, delete, or rename files.
+- Do not stage, commit, push, create or edit a pull request, merge, or deploy.
+- Do not invent contracts.
+- Do not treat a proposed path as an existing path.
+- Missing evidence must remain visible as a blocker.
+- Preserve the original repository branch, HEAD, Git status, and worktree inventory.
+EOF
+
+bash scripts/observe-project.sh \
+  --skip-install \
+  --repository /app1/tag5916/projects/kmai-td-genie \
+  --ref phase2/semantic-plan-contract-validator \
+  --task-file "$TASK_FILE" \
+  --title "Phase 2C authoritative evidence closure" \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py
