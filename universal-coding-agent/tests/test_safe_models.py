@@ -131,3 +131,19 @@ def test_patch_proposal_requires_git_style_headers_and_exact_paths() -> None:
             unified_diff=proposal.unified_diff,
             changed_paths=("other.py",),
         )
+
+
+def test_patch_proposal_ignores_marker_like_hunk_content() -> None:
+    proposal = PatchProposal(
+        summary="Valid diff whose hunk content resembles file markers.",
+        unified_diff=(
+            "diff --git a/contracts.txt b/contracts.txt\n"
+            "--- a/contracts.txt\n"
+            "+++ b/contracts.txt\n"
+            "@@ -1,2 +1,2 @@\n"
+            "--- old SQL-style comment\n"
+            "+++ new SQL-style comment\n"
+        ),
+        changed_paths=("contracts.txt",),
+    )
+    assert proposal.changed_paths == ("contracts.txt",)
