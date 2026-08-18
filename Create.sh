@@ -11,7 +11,7 @@ OBSERVE_TASK_ID="uca-observe-20260818T130108Z-1594237"
 HOST_CLIENT="/app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py"
 HOST_PYTHON="/app1/tag5916/projects/kmai-td-genie/.venv/bin/python"
 
-WORK_ROOT="$HOME/.uca-phase2c-safe-scope"
+WORK_ROOT="$HOME/.uca-phase2c-safe-scope-v2"
 TASK_FILE="$WORK_ROOT/phase2c-safe-task.md"
 SCOPE_FILE="$WORK_ROOT/approved-scope.json"
 POLICY_FILE="$WORK_ROOT/trusted-policy.json"
@@ -34,10 +34,9 @@ import hashlib
 import json
 import subprocess
 import sys
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
 from universal_coding_agent.core.models import PhasePlan
-
 
 observe_root = Path(sys.argv[1]).resolve()
 observe_task_id = sys.argv[2]
@@ -50,17 +49,15 @@ host_python = str(Path(sys.argv[8]).resolve())
 
 task_root = observe_root / "artifacts" / "tasks" / observe_task_id
 
-plan_path = task_root / "phase-plan.json"
-report_path = task_root / "final-report.json"
-summary_path = observe_root / "run-summary.json"
-
-for required in (plan_path, report_path, summary_path):
-    if not required.is_file():
-        raise SystemExit(f"REQUIRED_OBSERVE_ARTIFACT_MISSING={required}")
-
-plan_payload = json.loads(plan_path.read_text(encoding="utf-8"))
-report_payload = json.loads(report_path.read_text(encoding="utf-8"))
-summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
+plan_payload = json.loads(
+    (task_root / "phase-plan.json").read_text(encoding="utf-8")
+)
+report_payload = json.loads(
+    (task_root / "final-report.json").read_text(encoding="utf-8")
+)
+summary_payload = json.loads(
+    (observe_root / "run-summary.json").read_text(encoding="utf-8")
+)
 
 phase_plan = PhasePlan.model_validate(plan_payload)
 
@@ -70,9 +67,6 @@ base_sha = str(
     or ""
 ).strip()
 
-if not base_sha:
-    raise SystemExit("BASE_SHA_MISSING")
-
 plan_hash = str(summary_payload.get("plan_hash") or "").strip()
 
 if not plan_hash:
@@ -80,90 +74,57 @@ if not plan_hash:
         phase_plan.model_dump_json().encode("utf-8")
     ).hexdigest()
 
+if not base_sha:
+    raise SystemExit("BASE_SHA_MISSING")
+
 if len(plan_hash) != 64:
     raise SystemExit(f"PLAN_HASH_INVALID={plan_hash}")
 
-def git(*arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    completed = subprocess.run(
-        ["git", "-C", str(repository), *arguments],
+
+def git(*args: str, check: bool = True):
+    result = subprocess.run(
+        ["git", "-C", str(repository), *args],
         check=False,
         capture_output=True,
         text=True,
     )
-    if check and completed.returncode != 0:
+    if check and result.returncode != 0:
         raise SystemExit(
-            "GIT_COMMAND_FAILED="
-            + " ".join(arguments)
+            "GIT_FAILED="
+            + " ".join(args)
             + "\n"
-            + completed.stderr.strip()
+            + result.stderr.strip()
         )
-    return completed
+    return result
 
 
-resolved_ref = git("rev-parse", f"{ref}^{{commit}}").stdout.strip()
+resolved = git("rev-parse", f"{ref}^{{commit}}").stdout.strip()
 
-if resolved_ref != base_sha:
+if resolved != base_sha:
     raise SystemExit(
         "BASE_SHA_MISMATCH\n"
-        f"OBSERVED_BASE_SHA={base_sha}\n"
-        f"CURRENT_REF_SHA={resolved_ref}"
+        f"EXPECTED={base_sha}\n"
+        f"ACTUAL={resolved}"
     )
 
 
-modify_paths = (
+approved_paths = (
     "kmai-td-genie/test/test_registry_contract.py",
     "kmai-td-genie/test/test_registry_cache.py",
     "kmai-td-genie/docs/adr/"
     "0002-phase2c-governed-semantic-plan-validator.md",
 )
 
-create_paths = (
-    "kmai-td-genie/docs/phase2c/safe_mode_scope.md",
-)
+for path in approved_paths:
+    exists = git(
+        "cat-file",
+        "-e",
+        f"{base_sha}:{path}",
+        check=False,
+    ).returncode == 0
 
-expected_scope = {
-    *(f"MODIFY {path}" for path in modify_paths),
-    *(f"CREATE {path}" for path in create_paths),
-}
-
-if len(phase_plan.slices) != 1:
-    raise SystemExit(
-        f"EXPECTED_ONE_SLICE_FOUND={len(phase_plan.slices)}"
-    )
-
-planned_scope = set(phase_plan.slices[0].included_scope)
-
-missing_from_plan = expected_scope - planned_scope
-if missing_from_plan:
-    raise SystemExit(
-        "EXPECTED_SCOPE_NOT_PRESENT_IN_PLAN="
-        + json.dumps(sorted(missing_from_plan))
-    )
-
-
-def exists_at_base(path: str) -> bool:
-    return (
-        git(
-            "cat-file",
-            "-e",
-            f"{base_sha}:{path}",
-            check=False,
-        ).returncode
-        == 0
-    )
-
-
-for path in modify_paths:
-    if not exists_at_base(path):
-        raise SystemExit(f"MODIFY_PATH_NOT_FOUND_AT_BASE={path}")
-
-for path in create_paths:
-    if exists_at_base(path):
-        raise SystemExit(f"CREATE_PATH_ALREADY_EXISTS_AT_BASE={path}")
-
-    parent = PurePosixPath(path).parent.as_posix()
-    if not exists_at_base(parent):
-        raise SystemExit(f"CREATE_PARENT_NOT_FOUND_AT_BASE={parent}")
+    if not exists:
+        raise SystemExit(f"APPROVED_PATH_NOT_FOUND_AT_BASE={path}")
 
 
 scope = {
@@ -172,37 +133,30 @@ scope = {
     "plan_hash": plan_hash,
     "allowed_changes": [
         {
-            "path": modify_paths[0],
+            "path": approved_paths[0],
             "operation": "modify",
             "purpose": (
-                "Add deterministic contract coverage for canonical full "
-                "snapshot identity, field-governance deferral, and related "
-                "registry invariants."
+                "Add deterministic contract coverage for canonical "
+                "full-snapshot identity and approved field-governance "
+                "deferral behavior."
             ),
         },
         {
-            "path": modify_paths[1],
+            "path": approved_paths[1],
             "operation": "modify",
             "purpose": (
-                "Add deterministic synthetic tests for atomic snapshot "
-                "publication, stale-writer rejection, cache identity, and "
-                "deterministic cache invalidation."
+                "Add deterministic synthetic contract tests for atomic "
+                "snapshot publication, stale-writer rejection, cache "
+                "identity, and stale-cache invalidation."
             ),
         },
         {
-            "path": modify_paths[2],
+            "path": approved_paths[2],
             "operation": "modify",
             "purpose": (
-                "Record the seven approved Phase 2C architecture and "
-                "contract decisions as the authoritative design boundary."
-            ),
-        },
-        {
-            "path": create_paths[0],
-            "operation": "create",
-            "purpose": (
-                "Document the exact first Safe Mode scope, prerequisites, "
-                "stop conditions, exclusions, and follow-up slices."
+                "Record the seven approved Phase 2C contracts and the "
+                "exact Safe Mode scope, prerequisites, exclusions, "
+                "stop conditions, and follow-up rules."
             ),
         },
     ],
@@ -217,47 +171,50 @@ scope = {
         "credentials",
     ],
     "test_profiles": [
-        "phase2c-contract-tests",
+        "phase2c-contract-tests"
     ],
     "acceptance_criteria": [
         (
-            "The ADR records all seven user-approved Phase 2C architecture "
-            "and contract decisions without altering production source code."
+            "Only the three explicitly approved existing files change."
         ),
         (
-            "Field-governance and metadata-classification enforcement are "
-            "explicitly deferred while valid metadata preservation and "
-            "malformed-value rejection remain documented and testable."
+            "The ADR records all seven approved Phase 2C architecture "
+            "and contract decisions."
         ),
         (
-            "Registry snapshot identity tests prove equal canonical content "
-            "has equal identity, ordering-only changes do not alter identity, "
-            "and semantic changes produce a new identity."
+            "The ADR explicitly records the Safe Mode scope, external "
+            "prerequisite, exclusions, stop conditions, and later "
+            "cross-ProductGroup test slice."
         ),
         (
-            "Registry-cache tests use deterministic synthetic data and cover "
-            "atomic publication, no partially visible state, stale-writer "
-            "rejection, and deterministic stale-cache invalidation."
+            "Field-governance and metadata-classification enforcement "
+            "remain explicitly deferred in Phase 2C."
         ),
         (
-            "Cross-ProductGroup relationship rules are documented as an "
-            "approved contract and dedicated relationship tests are identified "
-            "as a later bounded slice."
+            "Canonical snapshot identity contract tests use deterministic "
+            "synthetic data and validate semantic-versus-ordering changes."
         ),
         (
-            "Only the four approved documentation and test paths change."
+            "Registry-cache contract tests cover atomic publication, "
+            "stale-writer rejection, cache identity, and deterministic "
+            "stale-cache invalidation where supported by existing public "
+            "interfaces."
         ),
         (
-            "The two approved focused test files pass without live data."
+            "Focused tests pass without live data."
+        ),
+        (
+            "No production source code changes."
         ),
     ],
     "max_patch_bytes": 250000,
-    "max_changed_files": 4,
+    "max_changed_files": 3,
 }
+
 
 pytest_code = (
     "import sys; "
-    "sys.path[:0] = ["
+    "sys.path[:0]=["
     "'kmai-td-genie/src/backend',"
     "'kmai-td-genie/src'"
     "]; "
@@ -287,154 +244,138 @@ policy = {
     ],
 }
 
+
 task_text = f"""# Objective
 
-Implement the first approved Phase 2C documentation-and-contract-test slice.
+Implement the first real Phase 2C documentation-and-contract-test Safe Mode
+slice.
 
-This task is bound to:
+The previous read-only scope design proposed a fourth CREATE path under
+`kmai-td-genie/docs/phase2c`, but deterministic preflight proved that parent
+directory does not exist at Base SHA `{base_sha}`.
 
-- Base SHA: `{base_sha}`
-- Observe plan hash: `{plan_hash}`
-- Exact approved file manifest: `{scope_file}`
+Human scope has therefore been intentionally NARROWED to three existing files.
+Do not create the missing directory and do not propose a substitute path.
 
-# Approved external prerequisite
+# Frozen identity
 
-The user has explicitly approved all seven Phase 2C architecture and contract
-decisions below. This approval is the external prerequisite for this slice.
+Base SHA: `{base_sha}`
 
-## Decision 1 — deterministic test data
+Observe Plan Hash: `{plan_hash}`
 
-Unit, contract, and standard CI tests use deterministic synthetic or mock data.
-Live governed data is not a dependency of this slice.
+# Seven approved Phase 2C decisions
 
-## Decision 2 — optional live-data qualification
+1. Unit, contract, and standard CI tests use deterministic synthetic or mock
+   data. Live governed data is not required.
 
-Live governed data may be used only by a separate, optional, read-only,
-environment-gated integration qualification profile.
+2. Live governed data may be used only by a separate optional read-only
+   environment-gated integration qualification profile.
 
-## Decision 3 — field-governance deferral
+3. Field governance and classification enforcement are explicitly deferred
+   in Phase 2C. Classification may be absent, null, or unknown. Valid metadata
+   is preserved and serialized. Classification does not grant authorization.
+   Malformed governance/classification values are rejected.
 
-Field governance and classification enforcement are explicitly deferred in
-Phase 2C.
+4. Registry snapshots are immutable and publication is atomic. Readers see
+   either the complete old snapshot or complete new snapshot, never partial
+   state.
 
-Classification metadata may be absent, null, or unknown. Valid metadata is
-preserved and serialized. Phase 2C does not grant authorization from
-classification metadata. Malformed governance or classification values are
-rejected.
+5. Stale writers are rejected by version conflict. Cache identity contains
+   registry version or snapshot identity, and new publication deterministically
+   invalidates stale cache entries.
 
-## Decision 4 — immutable and atomic snapshots
+6. Registry identity is derived from canonical full snapshot content.
+   Semantic ProductGroup, Schema, Dataset, Field, or Relationship changes
+   create a new identity. Ordering-only differences do not. Equal canonical
+   content has equal identity.
 
-Registry snapshots are immutable. Publication is atomic. A reader sees either
-the complete previous snapshot or the complete new snapshot and never observes
-partially published state.
+7. Cross-ProductGroup relationships are explicit. Both endpoints must exist.
+   Relationships do not expand authorization. Dataset authorization remains
+   independent. Unknown endpoints are rejected.
 
-## Decision 5 — stale-writer and cache contract
+# Exact approved changes
 
-Stale writers are rejected using a version conflict. Cache identity includes
-registry version or snapshot identity. Publishing a new snapshot
-deterministically invalidates stale cache entries.
+MODIFY `{approved_paths[0]}`
 
-## Decision 6 — canonical full-snapshot identity
+MODIFY `{approved_paths[1]}`
 
-Registry identity is derived from canonical full snapshot content.
+MODIFY `{approved_paths[2]}`
 
-Semantic changes to ProductGroup, Schema, Dataset, Field, or Relationship
-produce a new identity. Ordering-only changes do not. Equal canonical content
-produces equal identity. Stale or conflicting snapshots are rejected.
+No other path is authorized.
 
-## Decision 7 — explicit cross-ProductGroup relationships
+# Documentation requirement
 
-Cross-ProductGroup relationships are explicit. Both endpoints must exist.
-Relationships do not expand authorization. Each Dataset remains independently
-authorized. Unknown endpoints are rejected.
+Use the existing ADR:
 
-# Exact included scope
+`{approved_paths[2]}`
 
-- MODIFY `{modify_paths[0]}`
-- MODIFY `{modify_paths[1]}`
-- MODIFY `{modify_paths[2]}`
-- CREATE `{create_paths[0]}`
+to document:
 
-# Required implementation
+- all seven approved decisions;
+- exact three-file Safe Mode scope;
+- external prerequisite;
+- no internal dependency;
+- excluded scope;
+- stop conditions;
+- production-code follow-up rule;
+- later dedicated cross-ProductGroup relationship-test slice.
 
-1. Update the existing ADR to record the seven decisions as the authoritative
-   Phase 2C contract boundary.
+Do not create a separate Safe Mode scope document.
 
-2. Create `safe_mode_scope.md` describing:
+# Contract-test requirement
 
-   - the approved external prerequisite;
-   - no internal slice dependency;
-   - exact file scope;
-   - acceptance criteria;
-   - excluded scope;
-   - stop conditions;
-   - production-code follow-up rules;
-   - the later dedicated cross-ProductGroup test slice.
+Update only the two approved existing test files.
 
-3. Update `test_registry_contract.py` using existing repository conventions and
-   deterministic synthetic fixtures to cover only contracts supported by the
-   existing public test interfaces, including canonical snapshot identity and
-   the approved field-governance deferral behavior.
+Use repository conventions and deterministic synthetic fixtures.
 
-4. Update `test_registry_cache.py` using existing repository conventions and
-   deterministic synthetic fixtures to cover atomic publication, stale-writer
-   rejection, cache identity, and stale-cache invalidation where existing
-   public interfaces support those contracts.
-
-5. Do not weaken or delete existing assertions.
+Do not weaken or delete existing assertions.
 
 # Internal dependencies
 
 None.
 
-# External dependencies
+# External prerequisite
 
-- The seven user-approved Phase 2C decisions written above.
-- Repository evidence at Base SHA `{base_sha}`.
-- Observe PhasePlan hash `{plan_hash}`.
+The seven user-approved Phase 2C decisions above.
 
 # Stop conditions
 
-Stop and do not expand scope when any of the following occurs:
+Stop without expanding scope if:
 
-- any approved MODIFY path is missing;
-- the approved CREATE path already exists;
-- implementing a contract requires changing production source code;
-- a test requires live data, deployment access, credentials, or environment
-  configuration;
-- the approved contract conflicts with an existing authoritative repository
-  decision that cannot be reconciled within the approved documentation files;
-- a deterministic contract test exposes a production implementation gap;
-- any path outside the four-file manifest would need to change.
+- any approved file is absent;
+- a contract requires production source changes;
+- a test requires live data, credentials, deployment, or environment changes;
+- the approved contract contradicts an authoritative repository contract;
+- a deterministic test proves a production implementation gap;
+- any fourth file would need to change.
 
-When a contract test exposes a production-code gap, preserve that fact in the
-test and review artifacts. Do not add production code to this patch.
+If a test proves a production gap, leave that failure as evidence for a later
+separately approved production-code slice.
 
-# Explicitly excluded
+# Explicit exclusions
 
 - all production source code;
-- deployment scripts;
-- authentication code;
+- all files outside the three approved paths;
+- deployment;
+- authentication;
 - environment configuration;
-- credentials and secrets;
-- live-data dependencies;
-- Git stage, commit, push, pull request, merge, and deployment;
+- credentials;
+- live data;
+- Git stage/commit/push/PR/merge;
+- deployment;
 - automatic scope expansion.
-
-# Test policy
-
-Run only the operator-owned `phase2c-contract-tests` profile.
 
 # Completion rule
 
-The patch may be retained only when:
+Retain the sandbox patch only when:
 
-- all changes remain inside the exact four-file scope;
-- the focused tests pass;
-- the independent reviewer returns exactly `PASS`;
-- the source repository remains unchanged;
-- no Git publication operation occurs.
+- exact scope is preserved;
+- focused tests pass;
+- independent reviewer returns exactly PASS;
+- source repository remains unchanged;
+- no publication action occurs.
 """
+
 
 task_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -450,21 +391,21 @@ policy_file.write_text(
 
 task_file.write_text(task_text, encoding="utf-8")
 
-print("PHASE2C_SAFE_PREFLIGHT_OK")
+print("PHASE2C_SAFE_SCOPE_V2_PREFLIGHT_OK")
 print(f"BASE_SHA={base_sha}")
 print(f"PLAN_HASH={plan_hash}")
 print(f"TASK_FILE={task_file}")
 print(f"SCOPE_FILE={scope_file}")
 print(f"POLICY_FILE={policy_file}")
-print("APPROVED_PATHS:")
+print("APPROVED_CHANGES:")
 for item in scope["allowed_changes"]:
     print(
-        f"- {item['operation'].upper()} "
-        f"{item['path']}"
+        f"- {item['operation'].upper()} {item['path']}"
     )
 PY
 
-RUN_ID="phase2c-safe-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+
+RUN_ID="phase2c-safe-v2-$(date -u +%Y%m%dT%H%M%SZ)-$$"
 STATE_ROOT="$HOME/.uca-safe-runs/$RUN_ID"
 TASK_ID="$RUN_ID-task"
 THREAD_ID="$RUN_ID-thread"
@@ -490,7 +431,7 @@ CLI=(
   --task-file "$TASK_FILE" \
   --scope-file "$SCOPE_FILE" \
   --policy-file "$POLICY_FILE" \
-  --title "Phase 2C documentation and contract-test slice" \
+  --title "Phase 2C first real Safe Mode slice" \
   --task-id "$TASK_ID" \
   --thread-id "$THREAD_ID" \
   > "$WORK_ROOT/safe-start.json"
@@ -498,6 +439,7 @@ CLI=(
 "${CLI[@]}" safe-status \
   --thread-id "$THREAD_ID" \
   > "$WORK_ROOT/safe-status.json"
+
 
 .venv/bin/python - \
   "$WORK_ROOT/safe-status.json" \
@@ -512,25 +454,25 @@ import json
 import sys
 from pathlib import Path
 
-status_path = Path(sys.argv[1])
+status_file = Path(sys.argv[1])
 state_root = sys.argv[2]
 task_id = sys.argv[3]
 thread_id = sys.argv[4]
 scope_file = sys.argv[5]
 policy_file = sys.argv[6]
 
-payload = json.loads(status_path.read_text(encoding="utf-8"))
+payload = json.loads(status_file.read_text(encoding="utf-8"))
+
 values = payload.get("values", {})
 next_nodes = payload.get("next", [])
+task = values.get("task", {})
+manifest = task.get("manifest", {})
 
 if next_nodes != ["scope_approval"]:
     raise SystemExit(
         "SAFE_SCOPE_APPROVAL_INTERRUPT_NOT_REACHED="
         + json.dumps(next_nodes)
     )
-
-task = values.get("task", {})
-manifest = task.get("manifest", {})
 
 print()
 print("============================================================")
@@ -547,22 +489,22 @@ print(f"SCOPE_HASH={values.get('scope_hash')}")
 print(f"SCOPE_FILE={scope_file}")
 print(f"POLICY_FILE={policy_file}")
 print()
+
 print("ALLOWED_CHANGES:")
 for item in manifest.get("allowed_changes", []):
     print(
         f"- {str(item.get('operation')).upper()} "
         f"{item.get('path')}"
     )
+
 print()
 print("TEST_PROFILES:")
 for profile in manifest.get("test_profiles", []):
     print(f"- {profile}")
-print()
-print("ACCEPTANCE_CRITERIA:")
-for criterion in manifest.get("acceptance_criteria", []):
-    print(f"- {criterion}")
+
 print()
 print("NO PATCH HAS BEEN GENERATED OR APPLIED.")
+print("NO IMPLEMENTER HAS RUN YET.")
 print("SOURCE REPOSITORY HAS NOT BEEN MODIFIED.")
 print("============================================================")
 PY
