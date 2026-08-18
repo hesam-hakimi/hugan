@@ -1,178 +1,291 @@
-& {
-    $ErrorActionPreference = 'Stop'
+set -Eeuo pipefail
 
-    $hf1Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
-    $hf1Vsce = 'C:\Users\tag5916\AppData\Roaming\npm\vsce.cmd'
-    $hf1ExpectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
-    $hf1ExpectedBranch = 'hotfix/hf1-oracle-fresh-consumer'
+cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-    Set-Location -LiteralPath $hf1Root
+STATE_ROOT="/home/tag5916/.uca-safe-runs/phase2c-safe-v2-20260818T134704Z-369751"
+TASK_ID="phase2c-safe-v2-20260818T134704Z-369751-task"
+THREAD_ID="phase2c-safe-v2-20260818T134704Z-369751-thread"
 
-    if ((git rev-parse HEAD).Trim() -ne $hf1ExpectedHead) {
-        throw 'Unexpected HF1 HEAD.'
-    }
+REPOSITORY="/app1/tag5916/projects/kmai-td-genie"
 
-    if ((git branch --show-current).Trim() -ne $hf1ExpectedBranch) {
-        throw 'Unexpected HF1 branch.'
-    }
+HOST_CLIENT="/app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py"
+HOST_PYTHON="/app1/tag5916/projects/kmai-td-genie/.venv/bin/python"
 
-    if (@(git diff --cached --name-only).Count -ne 0) {
-        throw 'Staged files detected.'
-    }
+EXPECTED_BASE_SHA="effd7ba7306021aa3561f2dcf3908a035511fd57"
+EXPECTED_PLAN_HASH="e63f879d68804971a0f778b27d61c2352bf762ad0da7df8de751c9ea438a2da9"
+EXPECTED_SCOPE_HASH="10dbb2e06d388df9f484f11b7c483f939303ad0f407d7bf78cee113a72de4715"
 
-    $hf1BeforeStatus = @(git status --porcelain=v1 --untracked-files=all)
+export UCA_HOST_CLIENT_PATH="$HOST_CLIENT"
+export UCA_HOST_PYTHON="$HOST_PYTHON"
 
-    if ($hf1BeforeStatus.Count -ne 27) {
-        throw "Expected exactly 27 changed files; observed $($hf1BeforeStatus.Count)."
-    }
+PROVIDER_FACTORY="universal_coding_agent.providers.host_subprocess:create_provider"
 
-    git diff --check
-    if ($LASTEXITCODE -ne 0) {
-        throw 'git diff --check failed.'
-    }
+# ------------------------------------------------------------
+# 1. Re-check the frozen approval state
+# ------------------------------------------------------------
 
-    if (-not (Test-Path -LiteralPath $hf1Vsce -PathType Leaf)) {
-        throw 'Global vsce.cmd not found.'
-    }
+.venv/bin/python -m universal_coding_agent.cli \
+  --state-root "$STATE_ROOT" \
+  --provider-factory "$PROVIDER_FACTORY" \
+  --allow-local-sources \
+  safe-status \
+  --thread-id "$THREAD_ID" \
+  > "$STATE_ROOT/pre-approval-status.json"
 
-    if (-not (Test-Path -LiteralPath '.vscodeignore' -PathType Leaf)) {
-        throw '.vscodeignore is missing; stop rather than changing package selection.'
-    }
+export PRE_APPROVAL_STATUS="$STATE_ROOT/pre-approval-status.json"
+export EXPECTED_BASE_SHA
+export EXPECTED_PLAN_HASH
+export EXPECTED_SCOPE_HASH
 
-    $hf1Temp = Join-Path $env:TEMP (
-        'HF1_TEST_PACKAGE_SAFE_{0}' -f (Get-Date -Format 'yyyyMMdd_HHmmss')
+.venv/bin/python - <<'PY'
+import json
+import os
+
+with open(os.environ["PRE_APPROVAL_STATUS"], encoding="utf-8") as f:
+    payload = json.load(f)
+
+values = payload.get("values", {})
+manifest = values.get("task", {}).get("manifest", {})
+next_nodes = payload.get("next", [])
+
+assert values.get("status") == "awaiting_scope_approval", values.get("status")
+assert next_nodes == ["scope_approval"], next_nodes
+assert manifest.get("base_sha") == os.environ["EXPECTED_BASE_SHA"]
+assert manifest.get("plan_hash") == os.environ["EXPECTED_PLAN_HASH"]
+assert values.get("scope_hash") == os.environ["EXPECTED_SCOPE_HASH"]
+assert not values.get("patch_proposal_ref")
+
+paths = [
+    (str(x.get("operation")).lower(), x.get("path"))
+    for x in manifest.get("allowed_changes", [])
+]
+
+expected = [
+    ("modify", "kmai-td-genie/test/test_registry_contract.py"),
+    ("modify", "kmai-td-genie/test/test_registry_cache.py"),
+    (
+        "modify",
+        "kmai-td-genie/docs/adr/"
+        "0002-phase2c-governed-semantic-plan-validator.md",
+    ),
+]
+
+assert paths == expected, paths
+
+print("PHASE2C_APPROVAL_PREFLIGHT_PASS")
+print("BASE_SHA=" + manifest["base_sha"])
+print("PLAN_HASH=" + manifest["plan_hash"])
+print("SCOPE_HASH=" + values["scope_hash"])
+PY
+
+# ------------------------------------------------------------
+# 2. Freeze SOURCE repository state before approval
+# ------------------------------------------------------------
+
+git -C "$REPOSITORY" rev-parse HEAD \
+  > "$STATE_ROOT/source-head-before-approval.txt"
+
+git -C "$REPOSITORY" rev-parse --abbrev-ref HEAD \
+  > "$STATE_ROOT/source-branch-before-approval.txt"
+
+git -C "$REPOSITORY" status --porcelain=v1 -uall \
+  > "$STATE_ROOT/source-status-before-approval.txt"
+
+git -C "$REPOSITORY" worktree list --porcelain \
+  > "$STATE_ROOT/source-worktrees-before-approval.txt"
+
+echo "SOURCE_BASELINE_CAPTURED"
+
+# ------------------------------------------------------------
+# 3. HUMAN APPROVAL — continue the frozen Safe Mode task
+# ------------------------------------------------------------
+
+echo "PHASE2C_SCOPE_APPROVED_BY_USER"
+
+.venv/bin/python -m universal_coding_agent.cli \
+  --state-root "$STATE_ROOT" \
+  --provider-factory "$PROVIDER_FACTORY" \
+  --allow-local-sources \
+  safe-resume \
+  --thread-id "$THREAD_ID" \
+  --decision approve \
+  > "$STATE_ROOT/approval-run-result.json"
+
+# ------------------------------------------------------------
+# 4. Capture SOURCE state after execution
+# ------------------------------------------------------------
+
+git -C "$REPOSITORY" rev-parse HEAD \
+  > "$STATE_ROOT/source-head-after-approval.txt"
+
+git -C "$REPOSITORY" rev-parse --abbrev-ref HEAD \
+  > "$STATE_ROOT/source-branch-after-approval.txt"
+
+git -C "$REPOSITORY" status --porcelain=v1 -uall \
+  > "$STATE_ROOT/source-status-after-approval.txt"
+
+git -C "$REPOSITORY" worktree list --porcelain \
+  > "$STATE_ROOT/source-worktrees-after-approval.txt"
+
+SOURCE_PRESERVED=YES
+
+cmp -s \
+  "$STATE_ROOT/source-head-before-approval.txt" \
+  "$STATE_ROOT/source-head-after-approval.txt" \
+  || SOURCE_PRESERVED=NO
+
+cmp -s \
+  "$STATE_ROOT/source-branch-before-approval.txt" \
+  "$STATE_ROOT/source-branch-after-approval.txt" \
+  || SOURCE_PRESERVED=NO
+
+cmp -s \
+  "$STATE_ROOT/source-status-before-approval.txt" \
+  "$STATE_ROOT/source-status-after-approval.txt" \
+  || SOURCE_PRESERVED=NO
+
+cmp -s \
+  "$STATE_ROOT/source-worktrees-before-approval.txt" \
+  "$STATE_ROOT/source-worktrees-after-approval.txt" \
+  || SOURCE_PRESERVED=NO
+
+export SOURCE_PRESERVED
+export STATE_ROOT
+export TASK_ID
+
+# ------------------------------------------------------------
+# 5. Print one concise final decision report
+# ------------------------------------------------------------
+
+.venv/bin/python - <<'PY'
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+from pathlib import Path
+
+state_root = Path(os.environ["STATE_ROOT"])
+task_id = os.environ["TASK_ID"]
+
+task_root = state_root / "artifacts" / "tasks" / task_id
+sandbox = state_root / "sandboxes" / task_id / "repo"
+
+def load(name):
+    path = task_root / name
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+report = load("safe-final-report.json")
+implementer = load("implementer-model-validation.json")
+patch_validation = load("patch-validation.json")
+tests = load("test-results.json")
+review = load("safe-review.json")
+
+def first_model(payload):
+    attempts = payload.get("attempts", [])
+    if not attempts:
+        return None
+    return attempts[-1].get("actual_model")
+
+def git_status(path):
+    if not path.is_dir():
+        return ["SANDBOX_NOT_FOUND"]
+    result = subprocess.run(
+        ["git", "-C", str(path), "status", "--porcelain=v1", "-uall"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.splitlines()
+
+print()
+print("============================================================")
+print("PHASE2C FIRST REAL SAFE MODE — FINAL RESULT")
+print("============================================================")
+
+print("FINAL_STATUS=" + str(report.get("status")))
+print("REVIEWER_VERDICT=" + str(report.get("reviewer_verdict")))
+print("SAFE_ERRORS=" + json.dumps(report.get("safe_errors", [])))
+print("SCOPE_APPROVED=" + str(report.get("scope_approved")))
+print("ROLLED_BACK=" + str(report.get("rolled_back")))
+print(
+    "SANDBOX_PATCH_RETAINED="
+    + str(report.get("sandbox_patch_retained"))
+)
+
+print()
+print(
+    "IMPLEMENTER_ACTUAL_MODEL="
+    + str(first_model(implementer))
+)
+print(
+    "IMPLEMENTER_SCHEMA_REPAIR_USED="
+    + str(implementer.get("repair_used"))
+)
+
+print()
+print(
+    "PATCH_VALID="
+    + str(patch_validation.get("valid"))
+)
+print(
+    "PATCH_CHANGED_PATHS="
+    + json.dumps(patch_validation.get("changed_paths", []))
+)
+print(
+    "PATCH_ERRORS="
+    + json.dumps(patch_validation.get("errors", []))
+)
+
+print()
+print("TEST_RESULTS:")
+for item in tests.get("results", []):
+    print(
+        "- "
+        + str(item.get("profile_id"))
+        + " passed="
+        + str(item.get("passed"))
+        + " returncode="
+        + str(item.get("returncode"))
     )
 
-    [void](New-Item -ItemType Directory -Path $hf1Temp)
+print()
+print(
+    "REVIEW_CONFIDENCE="
+    + str(review.get("confidence"))
+)
+print("REVIEW_REQUIRED_ACTIONS:")
+for item in review.get("required_actions", []):
+    print("- " + str(item))
+if not review.get("required_actions"):
+    print("- None")
 
-    $hf1Ignore = Join-Path $hf1Temp 'hf1-test.vscodeignore'
-    $hf1IgnoreLines = @(
-        Get-Content -LiteralPath '.vscodeignore'
-    ) + @(
-        ''
-        '# Temporary HF1 test-package exclusions'
-        '.tsbuildinfo.test'
-        '*.tsbuildinfo'
-        '*.tsbuildinfo.*'
-        'tsconfig.test.json'
-    )
+print()
+print(
+    "SOURCE_REPOSITORY_PRESERVED="
+    + os.environ["SOURCE_PRESERVED"]
+)
 
-    [System.IO.File]::WriteAllLines(
-        $hf1Ignore,
-        [string[]]$hf1IgnoreLines,
-        [System.Text.UTF8Encoding]::new($false)
-    )
+print("SANDBOX_STATUS:")
+status = git_status(sandbox)
+if status:
+    for line in status:
+        print("- " + line)
+else:
+    print("- CLEAN")
 
-    $hf1Vsix = Join-Path $hf1Temp 'databricks-etl-copilot-hf1-test-safe.vsix'
-    $hf1Log = Join-Path $hf1Temp 'vsce-package.log'
+print()
+print("FINAL_REPORT=" + str(task_root / "safe-final-report.json"))
+print("PATCH=" + str(task_root / "proposed.patch"))
+print("TEST_RESULTS_FILE=" + str(task_root / "test-results.json"))
+print("REVIEW_FILE=" + str(task_root / "safe-review.json"))
+print("SANDBOX=" + str(sandbox))
+print("============================================================")
+PY
 
-    $hf1HadCI = Test-Path Env:CI
-    $hf1OldCI = $env:CI
-    $env:CI = 'true'
-
-    try {
-        & $hf1Vsce package `
-            --out $hf1Vsix `
-            --ignoreFile $hf1Ignore *> $hf1Log
-
-        $hf1PackageExit = $LASTEXITCODE
-    }
-    finally {
-        if ($hf1HadCI) {
-            $env:CI = $hf1OldCI
-        }
-        else {
-            Remove-Item Env:CI -ErrorAction SilentlyContinue
-        }
-    }
-
-    Get-Content -LiteralPath $hf1Log
-
-    if ($hf1PackageExit -ne 0) {
-        throw "VSCE packaging failed with exit $hf1PackageExit."
-    }
-
-    if (-not (Test-Path -LiteralPath $hf1Vsix -PathType Leaf)) {
-        throw 'VSIX was not created.'
-    }
-
-    $hf1AfterStatus = @(git status --porcelain=v1 --untracked-files=all)
-
-    if (($hf1BeforeStatus -join "`n") -cne ($hf1AfterStatus -join "`n")) {
-        Write-Host 'Before status:'
-        $hf1BeforeStatus
-        Write-Host 'After status:'
-        $hf1AfterStatus
-        throw 'Repository state changed during packaging.'
-    }
-
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-    $hf1Archive = [System.IO.Compression.ZipFile]::OpenRead($hf1Vsix)
-
-    try {
-        $hf1Entries = @(
-            $hf1Archive.Entries |
-                ForEach-Object { $_.FullName.Replace('\', '/') }
-        )
-    }
-    finally {
-        $hf1Archive.Dispose()
-    }
-
-    $hf1Required = @(
-        'extension/package.json'
-        'extension/out/extension.js'
-        'extension/out/sttm-runtime.js'
-    )
-
-    foreach ($hf1RequiredEntry in $hf1Required) {
-        if ($hf1Entries -notcontains $hf1RequiredEntry) {
-            throw "Required VSIX entry missing: $hf1RequiredEntry"
-        }
-    }
-
-    if (@($hf1Entries | Where-Object {
-        $_ -like 'extension/resources/copilot/*'
-    }).Count -eq 0) {
-        throw 'Required Copilot resources are missing.'
-    }
-
-    $hf1ForbiddenPatterns = @(
-        '^extension/(?:\.git|\.github|\.vscode-test)(?:/|$)'
-        '^extension/docs/eval(?:/|$)'
-        '^extension/src/test(?:/|$)'
-        '^extension/out/test(?:/|$)'
-        '^extension/(?:AGENT|AGENTS)\.md$'
-        '^extension/(?:.*\/)?[^\/]*\.tsbuildinfo(?:\..*)?$'
-        '^extension/tsconfig\.test\.json$'
-        '^extension/.*\.log$'
-        '^extension/.*\.vsix$'
-    )
-
-    $hf1ForbiddenEntries = @(
-        foreach ($hf1Entry in $hf1Entries) {
-            foreach ($hf1Pattern in $hf1ForbiddenPatterns) {
-                if ($hf1Entry -match $hf1Pattern) {
-                    $hf1Entry
-                    break
-                }
-            }
-        }
-    ) | Sort-Object -Unique
-
-    if ($hf1ForbiddenEntries.Count -ne 0) {
-        Write-Host 'Forbidden package entries detected:'
-        $hf1ForbiddenEntries | ForEach-Object { Write-Host "  $_" }
-        throw 'HF1 safe VSIX content check failed. Do not install this package.'
-    }
-
-    $hf1Hash = (Get-FileHash -LiteralPath $hf1Vsix -Algorithm SHA256).Hash
-
-    Write-Host ''
-    Write-Host "VSIX: $hf1Vsix"
-    Write-Host "SHA-256: $hf1Hash"
-    Write-Host "Files inside VSIX: $($hf1Entries.Count)"
-    Write-Host 'Repository source state: UNCHANGED'
-    Write-Host 'HF1_TEST_VSIX_CREATED_CONTENTS_CHECKED'
-}
+if [[ "$SOURCE_PRESERVED" != "YES" ]]; then
+  echo "CRITICAL_SOURCE_PRESERVATION_FAILURE"
+  exit 10
+fi
