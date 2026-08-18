@@ -29,7 +29,11 @@ class SafeTestRunner:
             profile = profiles.get(profile_id)
             if profile is None:
                 raise ValueError(f"unknown test profile: {profile_id}")
-            cwd = root if profile.cwd == "." else (root / normalize_repository_path(profile.cwd)).resolve()
+            cwd = (
+                root
+                if profile.cwd == "."
+                else (root / normalize_repository_path(profile.cwd)).resolve()
+            )
             if cwd != root and root not in cwd.parents:
                 raise ValueError("test working directory escapes sandbox")
             if not cwd.is_dir():
