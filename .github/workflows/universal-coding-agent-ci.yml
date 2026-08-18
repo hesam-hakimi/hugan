@@ -47,7 +47,9 @@ jobs:
           bash -n scripts/bootstrap-smoke.sh
           bash -n scripts/qualify-host-provider.sh
           bash -n scripts/observe-project.sh
+          bash -n scripts/safe-smoke.sh
           bash scripts/observe-project.sh --help >/dev/null
+          bash scripts/safe-smoke.sh --help >/dev/null
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
@@ -87,3 +89,12 @@ jobs:
           --phase-id "CI read-only qualification"
           --focus "repository structure and test evidence"
           --state-root "${{ runner.temp }}/uca-project-observe"
+
+      - name: Run Safe Mode approval, patch, test, review, and rollback foundation
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: >-
+          bash scripts/safe-smoke.sh
+          --state-root "${{ runner.temp }}/uca-safe-smoke"
