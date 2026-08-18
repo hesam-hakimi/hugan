@@ -1,82 +1,319 @@
-& {
-    $ErrorActionPreference = 'Stop'
+LOCAL_HOTFIX_HF1_INDEPENDENT_READ_ONLY_AUDIT
 
-    $hf1Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
-    $hf1Npm  = 'C:\Program Files\nodejs\npm.cmd'
+Perform an independent, adversarial, read-only audit of the completed LOCAL_HOTFIX_HF1 implementation.
 
-    Set-Location -LiteralPath $hf1Root
+This is a new review session. Treat every implementation report and validation claim as an assertion requiring verification against the live repository. Do not rely on conclusions from the implementation chat.
 
-    $hf1Id = [Guid]::NewGuid().ToString('N')
-    $hf1Stdout = Join-Path $env:TEMP "hf1-unit-$hf1Id.out.log"
-    $hf1Stderr = Join-Path $env:TEMP "hf1-unit-$hf1Id.err.log"
+1. Absolute operating boundary
 
-    $hf1Process = Start-Process `
-        -FilePath $hf1Npm `
-        -ArgumentList @('run', 'test:unit') `
-        -WorkingDirectory $hf1Root `
-        -RedirectStandardOutput $hf1Stdout `
-        -RedirectStandardError $hf1Stderr `
-        -NoNewWindow `
-        -Wait `
-        -PassThru
+Canonical audit root:
 
-    $hf1Text = @(
-        if (Test-Path -LiteralPath $hf1Stdout) {
-            Get-Content -LiteralPath $hf1Stdout -Raw
-        }
-        if (Test-Path -LiteralPath $hf1Stderr) {
-            Get-Content -LiteralPath $hf1Stderr -Raw
-        }
-    ) -join [Environment]::NewLine
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1
 
-    $hf1Clean = [regex]::Replace(
-        $hf1Text,
-        '\x1B\[[0-?]*[ -/]*[@-~]',
-        ''
-    )
+Expected identity:
 
-    $hf1ExpectedFailures = @(
-        'passes against the committed Phase H baseline report',
-        'allows deterministic v3 baseline reports without prompt telemetry',
-        'excludes dev logs, eval outputs, generated packages, and test artifacts from VSIX candidate',
-        'maintainer delivery prompt references real repo-local agents',
-        'repo customization assets use valid frontmatter and agent file naming',
-        'source tree uses standard AGENTS.md guidance instead of module AGENT.md files'
-    )
+* Origin: https://github.com/TD-Universe/agentic_etl.git
+* Branch: hotfix/hf1-oracle-fresh-consumer
+* HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+* Staged paths: 0
 
-    $hf1Summaries = [regex]::Matches(
-        $hf1Clean,
-        '(?m)^\s*(\d+)\s+failing\b'
-    )
+The etl-framework-adb workspace folder is read-only reference evidence.
 
-    if ($hf1Summaries.Count -eq 0) {
-        $hf1Clean -split "`r?`n" | Select-Object -Last 250
-        throw 'Could not locate the Mocha failing-count summary.'
-    }
+No real affected consumer repository or sample files were supplied. Report:
 
-    $hf1FailureCount = [int]$hf1Summaries[
-        $hf1Summaries.Count - 1
-    ].Groups[1].Value
+REAL_CONSUMER_E2E: NOT EXECUTED — SAMPLE UNAVAILABLE
 
-    Write-Host "Full-unit process exit: $($hf1Process.ExitCode)"
-    Write-Host "Mocha failure count: $hf1FailureCount"
+Prohibited actions:
 
-    if ($hf1FailureCount -ne 6) {
-        $hf1Clean -split "`r?`n" | Select-Object -Last 250
-        throw "Expected exactly 6 baseline failures; observed $hf1FailureCount."
-    }
+* Do not create, edit, delete, rename, move, format, or generate any file.
+* Do not run compile, lint, tests, build, package, install, download, deploy, or VSIX commands.
+* Do not run any Git-mutating command.
+* Do not click or recommend Keep or Undo.
+* Do not modify the original etl_framework_extension worktree.
+* Do not write to etl-framework-adb or any consumer repository.
+* Do not create an audit report file; report only in Chat.
 
-    foreach ($hf1Expected in $hf1ExpectedFailures) {
-        if (-not $hf1Clean.Contains($hf1Expected)) {
-            $hf1Clean -split "`r?`n" | Select-Object -Last 250
-            throw "Expected baseline failure missing: $hf1Expected"
-        }
+Before running commands, make one consolidated permission request covering the bounded read-only command family:
 
-        Write-Host "CONFIRMED: $hf1Expected"
-    }
+* git status, git diff, git show, git ls-files, git rev-parse, git remote
+* rg
+* Get-Content
+* Get-ChildItem
+* Test-Path
+* Get-Item
+* Get-FileHash
 
-    Remove-Item -LiteralPath $hf1Stdout, $hf1Stderr -Force
+After that consolidated approval, do not request command permission repeatedly. Never request edit permission.
 
-    Write-Host ''
-    Write-Host 'HF1_EXTERNAL_VALIDATION_PASS'
-}
+Capture the hashes of all 27 authorized files at audit start and compare them again at audit end. Any start/end difference is an automatic audit failure.
+
+2. Exact authorized inventory
+
+The live changed set, including untracked files, must be exactly these 27 paths.
+
+New files — exactly 5
+
+1. src/core/framework/TrustedFrameworkDefinitionResolver.ts
+2. src/core/trusted/WriteAuthorization.ts
+3. src/test/helpers/mintTestWriteAuthorization.ts
+4. src/test/suite/trustedFrameworkDefinitionResolver.test.ts
+5. src/test/suite/hf1OracleFreshConsumer.test.ts
+
+Modified files — exactly 22
+
+1. src/core/framework/FrameworkDiscoveryService.ts
+2. src/core/readiness/JobKnowledgeContract.ts
+3. src/core/readiness/ReadinessProfileCatalog.ts
+4. src/core/readiness/JobDevelopmentReadinessEvaluator.ts
+5. src/validation/PreWriteValidationPipeline.ts
+6. src/tools/TrustedWriteApprovalStore.ts
+7. src/tools/EtlActionToolService.ts
+8. src/writers/RepoWriter.ts
+9. src/core/trusted/index.ts
+10. src/chat/WriteCoordinator.ts
+11. src/chat/DeployCoordinator.ts
+12. src/test/testPatterns.ts
+13. src/test/suite/repoWriterWorkspaceSelection.test.ts
+14. src/test/suite/jobDevelopmentReadiness.test.ts
+15. src/test/suite/onboardingWriteApproval.test.ts
+16. src/test/suite/createPreviewFlow.test.ts
+17. src/test/suite/writeFlow.test.ts
+18. src/test/suite/extension.test.ts
+19. src/test/suite/phase6WriteDeployRun.test.ts
+20. src/test/suite/runtimeCreateFlow.test.ts
+21. package.json
+22. src/test/suite/etlActionTools.test.ts
+
+Fail the audit if:
+
+* any authorized path is unchanged or absent;
+* any additional tracked, staged, or non-ignored untracked path exists;
+* the inventory is not exactly 5 new plus 22 modified;
+* git diff --check reports an error.
+
+Local ignored node_modules/ is toolchain material and is not part of the source inventory.
+
+3. Supplied external-validation evidence
+
+The human-operated PowerShell validation reported:
+
+* Actual changed files: 27
+* Authorized but unchanged: 0
+* Compile exit: 0
+* Lint exit: 0
+* Focused HF1 tests: 80 passing, exit 0
+* Full-unit process exit: 1
+* Mocha failure count: exactly 6
+* All six failures matched the pre-existing clean-HEAD baseline:
+    1. passes against the committed Phase H baseline report
+    2. allows deterministic v3 baseline reports without prompt telemetry
+    3. excludes dev logs, eval outputs, generated packages, and test artifacts from VSIX candidate
+    4. maintainer delivery prompt references real repo-local agents
+    5. repo customization assets use valid frontmatter and agent file naming
+    6. source tree uses standard AGENTS.md guidance instead of module AGENT.md files
+* Final marker: HF1_EXTERNAL_VALIDATION_PASS
+
+Inspect whether the current source state is consistent with this evidence, but do not claim that you independently executed these commands.
+
+4. Audit the framework trust boundary
+
+Verify from implementation—not comments alone—that:
+
+1. Resolution precedence is deterministic and fail-closed:
+    * valid explicitly configured resource-scoped framework root;
+    * otherwise an explicitly present multi-root workspace folder named etl-framework-adb;
+    * otherwise unavailable.
+2. An invalid configured root never silently falls back to another candidate.
+3. Paths are canonicalized using resolved/real filesystem identity.
+4. Arbitrary repository scanning, packaged-reference trust, filename-only trust, and documentation-only trust are not used as successful framework verification.
+5. Oracle compatibility is verified through executable or structured framework evidence. Documentation may only corroborate that evidence.
+6. Missing framework and present-but-incompatible framework produce distinct machine-readable blockers:
+    * FRAMEWORK_DEFINITION_UNAVAILABLE
+    * ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING
+7. The fingerprint is deterministic, binds the complete verified definition set using sorted relative paths and file-content hashes, and includes a count/domain guard.
+8. Definition changes invalidate cached resolution and approval state.
+9. Framework identity and fingerprint are bound into the trusted approval manifest and final runtime write authorization.
+10. The trusted framework root is on the write deny-list and can never become a consumer write destination.
+
+Report any symlink, junction, reparse-point, case-normalization, cache-staleness, partial-read, or time-of-check/time-of-use weakness.
+
+5. Audit Oracle destination validation
+
+Trace the complete call path from artifact validation through prewrite readiness.
+
+Verify that:
+
+* requirement.requiredWhen is actually honored.
+* db_data_out and db_ctrl_out use their real module delivery controls rather than a fabricated generic table/path requirement.
+* Trusted Oracle delivery definitions are required before the blocker is suppressed.
+* A valid trusted Oracle definition suppresses the incorrect missing_target_location.
+* An incomplete delivery-control pair remains blocked and names the missing definition.
+* Missing framework provenance does not invent a framework verdict.
+* Blocking phases fail closed before rendering or writing.
+* No credentials, database names, connection strings, hostnames, or production values are invented.
+
+6. Audit fresh-consumer classification
+
+Verify an exact typed decision equivalent to:
+
+* CREATE_NEW_JOB
+* UPDATE_EXISTING_REPO
+* BLOCKED
+
+CREATE_NEW_JOB must be reachable only when all required conditions hold:
+
+* explicit user-selected workspace;
+* directory exists;
+* canonical path is contained;
+* not extension source, extension installation, framework root, external path, excluded root, or ambiguous root;
+* valid fresh repository;
+* no existing job_conf/;
+* no existing env_conf/.
+
+Verify that:
+
+* no marker file is automatically created;
+* no job_conf/ or env_conf/ is created before approved write;
+* unselected, inferred, external, installation, framework, ambiguous, and unknown targets are blocked;
+* free-form diagnostic reason is not used as a security decision or checksum identity.
+
+7. Audit every write route
+
+Trace all production call sites and prove that these three routes cannot bypass approval:
+
+1. EtlActionToolService.writeToWorkspace
+2. WriteCoordinator.writeArtifactsWithSummary
+3. DeployCoordinator local-write step 1
+
+Every route must enforce:
+
+Validation → immutable preview/path manifest → explicit approval → one-time authorization → runtime-reverified write
+
+Verify specifically:
+
+* hasOnboarding === false cannot bypass approval.
+* Missing previewId returns a preview and performs zero writes.
+* The second invocation must bind the returned preview ID.
+* /write requires preview and trusted confirmation.
+* Local /deploy write requires the same gate; deploy-level approval alone is insufficient.
+* Declining approval performs zero writes/publish actions.
+* No auto-approval, default authorization, feature-flag bypass, or test-only production escape exists.
+
+8. Audit WriteAuthorization security
+
+Verify that:
+
+* authorization uses a module-private brand/unique symbol;
+* arbitrary production callers cannot construct or mint it;
+* the test helper does not weaken the production boundary;
+* successful authorization is minted only after trusted preview approval;
+* it is one-time and rejects stale, expired, consumed, cast-like, forged, wrong-workspace, wrong-target, wrong-decision, wrong-artifact-type, changed-path, changed-byte, changed-framework-identity, and changed-fingerprint cases;
+* runtime immediately re-verifies workspace identity, target type, target decision, artifact paths, content hashes, framework identity, and fingerprint before writing;
+* performWrite has no alternate reachable route without valid authorization.
+
+Review Repair 1 in src/tools/EtlActionToolService.ts:
+
+* optional approvedManifest.targetDecision must be explicitly checked;
+* absent or blank values must return a normal fail-closed response with zero writes;
+* no non-null assertion, cast, fallback, fabricated preview ID, or automatic approval may be used;
+* the narrowed string alone may reach the required-string parameter;
+* existing expiry, checksum, and one-time-consumption checks must remain intact.
+
+9. Audit consumer-artifact invariance
+
+Verify that the hotfix preserves the existing consumer output contract:
+
+* exactly 12 preview artifacts;
+* identical artifact paths;
+* identical ordering;
+* identical generated bytes;
+* no thirteenth artifact;
+* no marker file;
+* no automatic job_conf/ or env_conf/;
+* framework identity/fingerprint exists only in internal validation/approval state and never in consumer artifact contents.
+
+Do not accept a source-text assertion as the sole proof for a critical invariant. Evaluate the executable test assertions and the production data flow.
+
+10. Audit tests and public surface
+
+Verify that tests materially cover:
+
+* configured valid framework root;
+* multi-root framework resolution;
+* unavailable framework;
+* invalid configured root with no fallback;
+* incompatible/missing Oracle definition;
+* trusted Oracle validation success;
+* fresh CREATE_NEW_JOB;
+* blocked external/unselected/source/install/framework targets;
+* 12-artifact invariance;
+* framework drift after preview;
+* all three former write bypasses;
+* runtime authorization forgery and mutation cases;
+* Repair 1 missing/blank target-decision rejection.
+
+Identify:
+
+* critical paths tested only through source-text scans;
+* vacuous tests;
+* mocks that bypass the real security boundary;
+* assertions that could pass without executing the intended production branch;
+* unnecessary public exports;
+* import cycles or layering violations;
+* unreachable failure codes or excessive API exposure.
+
+11. No-touch verification
+
+Confirm that none of these were changed by HF1:
+
+* original etl_framework_extension worktree;
+* etl-framework-adb;
+* any consumer repository;
+* all S-A/S-B files;
+* .github/**;
+* resources/prompts/**;
+* docs/eval/**;
+* .vscode-test/**;
+* AGENT.md or AGENTS.md;
+* Phase-H baseline files;
+* package-lock.json.
+
+12. Required report
+
+Produce a concise but evidence-backed report containing:
+
+1. Repository identity and exact inventory result.
+2. Start/end hash comparison.
+3. Severity-ranked findings: CRITICAL, HIGH, MEDIUM, LOW, INFO.
+4. Requirement-by-requirement verdict for Sections 4–11.
+5. Exact file and line citations for every finding.
+6. Any untested or unverifiable claim.
+7. If repair is required, the smallest exact file scope and behavior to repair—but do not edit it.
+8. Separate external-validation evidence from checks you performed yourself.
+
+PASS is allowed only if there is no unresolved CRITICAL or HIGH finding, no unauthorized drift, and every security boundary is substantiated by live source evidence.
+
+Finish with exactly one of these markers:
+
+LOCAL_HOTFIX_HF1_INDEPENDENT_AUDIT_PASS
+
+or:
+
+LOCAL_HOTFIX_HF1_INDEPENDENT_AUDIT_FAIL
+
+Immediately before the marker, print:
+
+* REPOSITORY_IDENTITY_MATCH: YES|NO
+* AUTHORIZED_CHANGESET_EXACTLY_27: YES|NO
+* UNAUTHORIZED_DRIFT_DETECTED: YES|NO
+* START_END_AUDIT_HASHES_MATCH: YES|NO
+* FRAMEWORK_TRUST_BOUNDARY_ACCEPTABLE: YES|NO
+* ORACLE_VALIDATION_ACCEPTABLE: YES|NO
+* FRESH_CONSUMER_CLASSIFICATION_ACCEPTABLE: YES|NO
+* ALL_WRITE_BYPASSES_CLOSED: YES|NO
+* WRITE_AUTHORIZATION_RUNTIME_SAFE: YES|NO
+* CONSUMER_ARTIFACT_CONTRACT_PRESERVED: YES|NO
+* EXTERNAL_VALIDATION_EVIDENCE_ACCEPTED: YES|NO
+* REAL_CONSUMER_E2E: NOT EXECUTED — SAMPLE UNAVAILABLE
+* SAFE_TO_KEEP_HF1: YES|NO
+* SAFE_TO_PACKAGE_HF1: NO
