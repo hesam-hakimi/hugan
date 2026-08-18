@@ -8,6 +8,7 @@ from universal_coding_agent.core.safe_models import (
     ApprovedChangeManifest,
     ChangeOperation,
     ChangeScopeEntry,
+    PatchProposal,
     SafeModePolicy,
     SafeTaskRequest,
     TestProfile,
@@ -93,4 +94,40 @@ def test_safe_task_requires_human_approval_and_known_profiles() -> None:
             ),
             manifest=_manifest(),
             policy=SafeModePolicy(),
+        )
+
+
+def test_patch_proposal_requires_git_style_headers_and_exact_paths() -> None:
+    with pytest.raises(ValidationError, match="git-style"):
+        PatchProposal(
+            summary="Malformed ordinary unified diff.",
+            unified_diff=(
+                "--- app.py\n"
+                "+++ app.py\n"
+                "@@ -1 +1 @@\n"
+                "-RETURN_VALUE = 42\n"
+                "+RETURN_VALUE = 43\n"
+            ),
+            changed_paths=("app.py",),
+        )
+
+    proposal = PatchProposal(
+        summary="Valid git-style patch.",
+        unified_diff=(
+            "diff --git a/app.py b/app.py\n"
+            "--- a/app.py\n"
+            "+++ b/app.py\n"
+            "@@ -1 +1 @@\n"
+            "-RETURN_VALUE = 42\n"
+            "+RETURN_VALUE = 43\n"
+        ),
+        changed_paths=("app.py",),
+    )
+    assert proposal.changed_paths == ("app.py",)
+
+    with pytest.raises(ValidationError, match="changed_paths"):
+        PatchProposal(
+            summary="Mismatched path declaration.",
+            unified_diff=proposal.unified_diff,
+            changed_paths=("other.py",),
         )
