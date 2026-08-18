@@ -1,0 +1,39 @@
+& {
+    $ErrorActionPreference = 'SilentlyContinue'
+
+    $hf1Candidates = @(
+        'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1\node_modules\.bin\vsce.cmd',
+        'C:\repos\etl-extension\etl_fw2\etl_framework_extension\node_modules\.bin\vsce.cmd',
+        (Join-Path $env:APPDATA 'npm\vsce.cmd'),
+        (Join-Path $env:ProgramFiles 'nodejs\vsce.cmd')
+    )
+
+    $hf1Command = Get-Command `
+        -Name 'vsce.cmd' `
+        -CommandType Application `
+        -ErrorAction SilentlyContinue
+
+    if ($null -ne $hf1Command) {
+        $hf1Candidates += $hf1Command.Source
+    }
+
+    $hf1Found = @(
+        $hf1Candidates |
+            Where-Object {
+                $_ -and (Test-Path -LiteralPath $_ -PathType Leaf)
+            } |
+            Select-Object -Unique
+    )
+
+    if ($hf1Found.Count -eq 0) {
+        Write-Host 'VSCE_TOOL_NOT_FOUND'
+    }
+    else {
+        foreach ($hf1Path in $hf1Found) {
+            Write-Host "FOUND: $hf1Path"
+            & $hf1Path --version
+        }
+
+        Write-Host 'VSCE_TOOL_FOUND'
+    }
+}
