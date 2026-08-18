@@ -1,201 +1,110 @@
-IMPORTANT INPUT LIMITATION
+DO NOT IMPLEMENT YET. Revise and freeze the LOCAL_HOTFIX_HF1 plan using read-only inspection only.
 
-No affected consumer repository or sample files were provided with the blocker report.
+Resolve all of the following before requesting authorization again:
 
-Do not use, modify, or infer behavior from any unrelated consumer repository.
+1. Reconcile the exact edit inventory.
 
-For automated verification, create only deterministic synthetic test fixtures representing:
+You stated “2 new + 3 modified” test files, but the coverage table also modifies createPreviewFlow.test.ts. List every new and modified file exactly once and provide correct totals. No unlisted file may be changed after authorization.
 
-1. An explicitly selected, valid but empty fresh consumer workspace.
-2. No pre-existing job_conf/ or env_conf/ directories.
-3. Oracle outputs using db_data_out and db_ctrl_out.
-4. A trusted read-only etl-framework-adb repository available as an explicit multi-root workspace folder.
-5. Missing, invalid, changed, and unavailable framework-definition cases.
+2. Make fresh-consumer classification explicit and machine-readable.
 
-Synthetic fixtures must contain no credentials, connection strings, business data, hostnames, or invented production configuration values. They must exist only inside the authorized extension test surface or test-managed temporary directories.
-
-The implementation must not create marker files or configuration directories inside a real consumer repository.
-
-Report real-consumer end-to-end verification as NOT EXECUTED — SAMPLE UNAVAILABLE. This limitation must not be reported as a hotfix test failure if all deterministic framework-side tests pass.
-
-
-LOCAL_HOTFIX_HF1 — TRUSTED FRAMEWORK RESOLUTION AND FRESH-CONSUMER WRITE GATE
-
-This task fixes a production Extension defect that blocks both:
-
-* etl_validate_artifacts
-* etl_write_to_workspace
-
-for a valid, explicitly selected fresh consumer ETL workspace using Oracle delivery controls.
-
-This is an Extension-source hotfix. Do not run it in the S-A/S-B implementation worktree or any chat with an unaccepted S-B review card.
-
-Problem statement
-
-The current Extension conflates two different states:
-
-1. The selected consumer workspace is valid but has no existing job_conf/ or env_conf/ because the requested operation is CREATE_NEW_JOB.
-2. The local validator lacks the trusted Oracle framework definitions for db_data_out and db_ctrl_out.
-
-The current generic blocker, “Confirm destination schema/table or database delivery controls,” is insufficient because it does not distinguish those states.
-
-A packaged reference is documentation and read-only guidance only. It must never be treated as an authoritative framework definition source or cause Oracle validation to pass.
-
-Read-only discovery first
-
-This request authorizes read-only inspection only.
-
-Before editing any file or running a mutating command:
-
-1. Map the actual implementation of:
-    * consumer workspace selection and classification;
-    * fresh-repository capability checks;
-    * framework repository resolution;
-    * packaged-reference fallback;
-    * destination-delivery-control validation;
-    * preview manifest creation;
-    * guarded write and pre-write revalidation;
-    * relevant unit/integration tests.
-2. Identify the smallest exact source and test file set required.
-3. Identify the existing configuration naming convention for a user-configured framework-root setting, if one exists.
-4. Return a concise implementation plan with:
-    * exact files to change;
-    * exact files not to change;
-    * validation commands;
-    * expected test coverage;
-    * whether a trusted framework identity/version/manifest can already be captured.
-5. Do not edit, create, delete, package, install, download, or run a write-capable command yet.
-
-Then request exactly this approval token and stop:
-
-APPLY_LOCAL_HOTFIX_HF1
-
-Required hotfix behavior after approval
-
-After receiving APPLY_LOCAL_HOTFIX_HF1, implement only the approved minimal change set.
-
-A. Trusted framework-definition resolver
-
-Add or repair a deterministic resolver with this precedence:
-
-1. An explicitly configured and validated framework root, if the Extension already supports a setting for it or adds one using the established configuration convention.
-2. An explicitly present and validated etl-framework-adb folder in the current VS Code multi-root workspace.
-3. No authoritative framework source.
-
-Requirements:
-
-* Never scan arbitrary folders to guess a framework.
-* Never use an unselected workspace folder.
-* Never use the Extension source, installation directory, consumer workspace, or an external path as an implicit fallback.
-* Resolve and canonicalize the framework root before use.
-* Read the framework only; never modify it.
-* Verify the expected framework identity and required Oracle module definitions.
-* Record framework source identity, source kind, canonical root, and a deterministic version or manifest fingerprint in the validation/preview state.
-* If the framework source or its required module definitions change after preview, pre-write revalidation must block and require a new preview.
-* If the framework is absent, return one actionable machine-readable blocker such as FRAMEWORK_DEFINITION_UNAVAILABLE.
-* If the framework exists but Oracle definitions are missing, return a distinct blocker such as ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING.
-* The packaged reference may explain how to fix the issue, but may never validate Oracle controls or turn a block into a pass.
-
-B. Fresh consumer workspace classification
-
-A selected, contained, valid consumer repository with no matching job_conf/ or env_conf/ must be eligible for:
+An explicitly selected, repository-contained, valid fresh consumer with no job_conf/ and no env_conf/ must produce an exact typed decision value:
 
 CREATE_NEW_JOB
 
-It must not be classified as unknown merely because the requested job does not exist yet.
+A free-form reason such as explicit_fresh_consumer is insufficient by itself. Show the exact type, field, and downstream branch that consume CREATE_NEW_JOB. Existing unselected, external, installation, extension-source, and unknown targets must remain blocked. No marker or configuration directory may be created automatically.
 
-Requirements:
+3. Close every write bypass.
 
-* Keep explicit workspace selection mandatory.
-* Keep path containment and target classification fail-closed.
-* Extension source, installation directory, unselected roots, external paths, and unknown targets remain blocked.
-* Do not create etl-workspace.json automatically merely to pass capability checks.
-* Do not require a user to manually create job_conf/ or env_conf/.
-* If an official consumer marker is part of the existing contract, it may be included only as an exact previewed artifact and written only through the normal approved manifest flow.
-* Missing business/environment values remain explicit unresolved decisions; do not invent them.
+Prove that every write entry point, including the current hasOnboarding === false path, follows exactly:
 
-C. Preserve the guarded-write contract
+validation → immutable preview/path manifest → explicit approval → write
 
-The sequence remains:
+performWrite must not be directly reachable without a valid approval bound to:
 
-select consumer workspace
-→ classify target
-→ resolve trusted framework definitions
-→ resolve/canonicalize inputs
-→ validate
-→ build immutable artifact manifest
-→ preview
-→ explicit approval
-→ one-time guarded write
+* selected workspace identity
+* target type
+* selected artifact types
+* exact artifact paths and content hashes
+* trusted framework identity
+* trusted framework fingerprint
 
-Requirements:
+Add negative tests for every previously bypassing route.
 
-* Activation and preview write no consumer files.
-* Validation, preview, approval, and write must consume the same immutable artifact-path manifest.
-* Do not recompute output paths independently at write time.
-* Preview must bind workspace identity, framework fingerprint, artifact paths, artifact bytes/hashes, dispositions, approval expiry, and one-time consumption.
-* Any drift in workspace identity, framework identity, framework fingerprint, input files, target paths, or artifact hashes requires a new preview.
-* Do not bypass destination validation.
-* Do not allow Oracle output merely because a user manually copied rendered files.
-* Do not weaken collision protection or overwrite handling.
+4. Avoid incorrect layering or circular dependencies.
 
-D. Required tests
+TrustedFrameworkDefinitionResolver must not depend on the approval-store layer merely to obtain SHA-256 functionality if that creates reversed layering or a circular import. Use node:crypto directly or an already-existing lower-level utility. Do not add another source file unless it is explicitly disclosed in the revised edit inventory.
 
-Add or update executable tests proving:
+5. Define trusted Oracle verification precisely.
 
-1. A fresh, explicitly selected valid consumer workspace with no job configuration reaches CREATE_NEW_JOB.
-2. An unselected, external, installation, or Extension-source root remains blocked.
-3. A multi-root workspace containing validated etl-framework-adb resolves authoritative Oracle definitions.
-4. An explicitly configured valid framework root resolves authoritative Oracle definitions.
-5. A missing framework root produces FRAMEWORK_DEFINITION_UNAVAILABLE and no write.
-6. A framework missing Oracle delivery modules produces ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING and no write.
-7. Packaged reference fallback remains guidance-only and cannot validate Oracle controls.
-8. A valid Oracle framework source permits deterministic validation of db_data_out and db_ctrl_out.
-9. Framework-source drift after preview blocks write and requires a new preview.
-10. The same immutable path manifest is used by validation, preview, approval, and write.
-11. Preview remains write-free.
-12. The exact existing 12-artifact preview remains unchanged except where the hotfix deliberately adds required framework provenance to internal state, not consumer artifact content.
+State the exact framework definition files and semantic evidence used to verify db_data_out and db_ctrl_out. Checking only a folder name, filename, module-name constant, or packaged fallback is insufficient.
 
-E. Strict scope exclusions
+The fingerprint must cover the complete verified definition set using deterministic sorted relative paths and content hashes.
 
-Do not:
+Resolver precedence must remain:
 
-* modify the consumer repository;
-* manually create consumer job_conf/ or env_conf/;
-* manually copy rendered configuration files;
-* add a hand-written workspace marker outside the approved manifest flow;
-* modify the ETL framework repository;
-* modify S-A or S-B files;
-* run Git mutations;
-* install dependencies;
-* download VS Code, Databricks tooling, or packages;
-* package or publish a VSIX;
-* run network-dependent integration;
-* weaken or bypass validation;
-* alter unrelated settings behavior.
+explicit validated configuration → explicitly present validated multi-root etl-framework-adb → unavailable
 
-Use local tests and local dependencies only.
+No recursive machine scan, repository guessing, or packaged-reference trust is permitted.
 
-Final report
+6. Clarify the configuration contract.
 
-Report:
+Confirm that databricks-etl-copilot.frameworkRepositoryPath:
 
-1. Root cause, separated into framework-resolution and fresh-consumer classification defects.
-2. Exact files changed and why.
-3. Framework resolver precedence and trust boundary.
-4. How Oracle validation behaves for every source state.
-5. How a fresh consumer is classified.
-6. Preview/write manifest binding evidence.
-7. Tests and exit codes.
-8. Any unrelated failures, separately.
-9. Whether a patch package/build is ready for a separate authorized phase.
+* defaults to an empty string
+* is read using the selected workspace/resource scope
+* is canonicalized using realpath
+* must resolve to a validated framework root
+* never causes writes to the framework repository
+* cannot silently fall back after an invalid explicitly configured value
 
-Finish with exactly one marker:
+7. Preserve the consumer artifact contract exactly.
 
-LOCAL_HOTFIX_HF1_COMPLETE
+The existing set, paths, ordering, and bytes of all 12 consumer preview artifacts must remain unchanged. Framework provenance may be added only to the internal validation/approval manifest and must not become a thirteenth consumer artifact or alter generated consumer content.
 
-or:
+8. Make validation commands Windows PowerShell-compatible.
 
-LOCAL_HOTFIX_HF1_BLOCKED
+Do not use POSIX syntax such as:
 
-Do not package, install, deploy, or test a VSIX in this task.
+MOCHA_GREP=”…” npm run test:unit
+
+Use PowerShell syntax and remove the temporary environment variable afterward, for example:
+
+$env:MOCHA_GREP = ‘HF1|Trusted framework|RepoWriter workspace selection|Job development readiness’
+npm run test:unit
+$hf1TestExit = $LASTEXITCODE
+Remove-Item Env:MOCHA_GREP -ErrorAction SilentlyContinue
+if ($hf1TestExit -ne 0) { exit $hf1TestExit }
+
+9. Perform a read-only dependency preflight now.
+
+Report whether node_modules, TypeScript, ESLint, Mocha, and every required local test dependency are already available in etl_framework_extension_hf1.
+
+Do not install, copy, link, or download dependencies. If the required local toolchain is unavailable, report:
+
+HF1_VALIDATION_TOOLCHAIN_UNAVAILABLE
+
+and identify the missing components before implementation authorization.
+
+10. Keep the evidence limitation explicit.
+
+Real-consumer verification remains:
+
+NOT EXECUTED — SAMPLE UNAVAILABLE
+
+Synthetic tests must not be described as production-consumer validation.
+
+Return:
+
+* corrected root-cause-to-change mapping
+* exact final new-file list
+* exact final modified-file list
+* exact no-touch list
+* exact PowerShell validation commands
+* dependency-preflight result
+* final test matrix
+* confirmation that no mutation occurred
+
+Then stop and request the same single authorization token:
+
+APPLY_LOCAL_HOTFIX_HF1
