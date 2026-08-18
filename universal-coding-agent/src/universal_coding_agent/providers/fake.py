@@ -12,6 +12,7 @@ from universal_coding_agent.core.models import (
     ReviewVerdict,
     SlicePlan,
 )
+from universal_coding_agent.core.safe_models import PatchProposal
 
 
 class FakeModelProvider:
@@ -49,10 +50,25 @@ class FakeModelProvider:
                 ),
                 final_acceptance_criteria=("Independent reviewer returns a verdict",),
             ).model_dump(mode="json")
+        elif request.role == "implementer":
+            payload = PatchProposal(
+                summary="Update the fixture answer inside the approved path.",
+                unified_diff=(
+                    "diff --git a/app.py b/app.py\n"
+                    "--- a/app.py\n"
+                    "+++ b/app.py\n"
+                    "@@ -1,2 +1,2 @@\n"
+                    " def answer():\n"
+                    "-    return 42\n"
+                    "+    return 43\n"
+                ),
+                changed_paths=("app.py",),
+                requested_test_profiles=("python-check",),
+            ).model_dump(mode="json")
         elif request.role == "reviewer":
             payload = ReviewResult(
                 verdict=ReviewVerdict.PASS,
-                requirement_findings=("The plan is bounded and read-only.",),
+                requirement_findings=("The plan or patch is bounded and evidence-backed.",),
                 confidence="high",
             ).model_dump(mode="json")
         else:
