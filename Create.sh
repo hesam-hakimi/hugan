@@ -1,134 +1,320 @@
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-TASK_FILE="$HOME/phase2c-evidence-closure.md"
+.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
 
-cat > "$TASK_FILE" <<'EOF'
-# Objective
+STATE_ROOT = Path(
+    "/home/tag5916/.uca-project-runs/"
+    "uca-observe-20260818T031615Z-1276240"
+)
+TASK_ID = "uca-observe-20260818T031615Z-1276240"
 
-Perform a read-only Phase 2C evidence and acceptance-contract closure.
+TASK_ROOT = STATE_ROOT / "artifacts" / "tasks" / TASK_ID
+SANDBOX = STATE_ROOT / "sandboxes" / TASK_ID / "repo"
 
-The purpose of this task is not to implement code. It is to replace generic
-blockers with exact repository evidence, exact missing contracts, and exact
-acceptance criteria.
 
-# Fixed architecture decision
+def load_json(name: str) -> dict:
+    path = TASK_ROOT / name
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
 
-Cross-ProductGroup unit, contract, and CI tests must use deterministic
-synthetic or mock data.
 
-Live governed data may be used only by a separate, optional, read-only,
-environment-gated integration qualification profile. Live data must not be a
-prerequisite for unit tests or the standard CI acceptance gate.
+def add_items(lines: list[str], values: list | tuple, empty: str = "None") -> None:
+    if not values:
+        lines.append(f"- {empty}")
+        return
 
-# Required investigation
+    for value in values:
+        lines.append(f"- {value}")
 
-1. Locate authoritative repository evidence for the canonical hierarchy:
 
-   ProductGroup → Schema → Dataset → Field
+plan = load_json("phase-plan.json")
+review = load_json("review.json")
+report = load_json("final-report.json")
+planner_validation = load_json("planner-model-validation.json")
+reviewer_validation = load_json("reviewer-model-validation.json")
 
-2. Locate the authoritative contract for mandatory schema membership:
+repository_url = report.get("repository", {}).get("url", "")
+repo_name = Path(repository_url.rstrip("/")).name
+if repo_name.endswith(".git"):
+    repo_name = repo_name[:-4]
 
-   - whether every Dataset must have a schema_id;
-   - whether every Schema must belong to a ProductGroup;
-   - how missing, unknown, duplicate, or cross-ProductGroup references behave.
 
-3. Locate the authoritative registry-version contract:
+def inspect_expected_path(raw_path: str) -> tuple[str, str]:
+    raw_path = raw_path.strip()
+    relative = Path(raw_path)
 
-   - what constitutes registry identity;
-   - whether identity includes the full snapshot content;
-   - which changes require a new version identity;
-   - how stale or conflicting snapshots are rejected.
+    candidates = [SANDBOX / relative]
 
-4. Locate the contract and existing tests for:
+    # Some model outputs include the repository folder name.
+    if relative.parts and relative.parts[0] == repo_name:
+        candidates.append(SANDBOX / Path(*relative.parts[1:]))
 
-   - field governance;
-   - field classification;
-   - metadata-classification deferral;
-   - unsupported or deferred governance values.
+    for candidate in candidates:
+        if candidate.exists():
+            try:
+                resolved = str(candidate.relative_to(SANDBOX))
+            except ValueError:
+                resolved = str(candidate)
+            return "EXISTS", resolved
 
-5. Locate the contract and existing tests for:
+    return "NOT_FOUND", raw_path
 
-   - cross-ProductGroup relationships;
-   - allowed versus rejected relationship behavior;
-   - same-ProductGroup and cross-ProductGroup cases;
-   - security and authorization implications.
 
-6. Locate the contract and existing tests for:
+comparison_pairs = [
+    ("source-head-before.txt", "source-head-after.txt"),
+    ("source-branch-before.txt", "source-branch-after.txt"),
+    ("source-status-before.txt", "source-status-after.txt"),
+    ("source-worktrees-before.txt", "source-worktrees-after.txt"),
+]
 
-   - registry-cache concurrency;
-   - snapshot publication;
-   - stale cache behavior;
-   - simultaneous readers and writers;
-   - deterministic cache invalidation.
+source_repository_preserved = True
+for before_name, after_name in comparison_pairs:
+    before = STATE_ROOT / before_name
+    after = STATE_ROOT / after_name
+    if not before.is_file() or not after.is_file():
+        source_repository_preserved = False
+        break
+    if before.read_bytes() != after.read_bytes():
+        source_repository_preserved = False
+        break
 
-7. Locate the public API security and compatibility evidence relevant to
-   Phase 2C.
 
-8. Inspect these files when present and identify the exact symbols and tests:
+lines: list[str] = []
 
-   - test_registry_hierarchy_contract.py
-   - test_registry_contract.py
+lines.extend(
+    [
+        "# Phase 2C Evidence Closure — Decision Report",
+        "",
+        "## Run identity",
+        "",
+        f"- Task ID: `{TASK_ID}`",
+        f"- Repository: `{repository_url}`",
+        f"- Base ref: `{report.get('repository', {}).get('base_ref')}`",
+        f"- Base SHA: `{report.get('base_sha')}`",
+        f"- Final status: **{report.get('status')}**",
+        f"- Reviewer verdict: **{review.get('verdict')}**",
+        f"- Planner schema repair used: "
+        f"**{planner_validation.get('repair_used', False)}**",
+        f"- Reviewer schema repair used: "
+        f"**{reviewer_validation.get('repair_used', False)}**",
+        f"- Safe errors: `{report.get('safe_errors', [])}`",
+        f"- Source repository preserved: "
+        f"**{source_repository_preserved}**",
+        f"- Publication action performed: "
+        f"**{report.get('commit_push_pr_merge_deploy')}**",
+        "",
+        "## Phase",
+        "",
+        f"- Phase ID: `{plan.get('phase_id')}`",
+        f"- Title: {plan.get('title')}",
+        f"- Objective: {plan.get('objective')}",
+        "",
+        "## Phase blockers",
+        "",
+    ]
+)
 
-9. For every requirement, classify it as exactly one of:
+add_items(lines, plan.get("blockers", []))
 
-   - CONFIRMED
-   - PARTIALLY_CONFIRMED
-   - MISSING
-   - CONTRADICTED
-   - EXPLICITLY_DEFERRED
+lines.extend(
+    [
+        "",
+        "## Architecture decisions required",
+        "",
+    ]
+)
+add_items(lines, plan.get("architecture_decisions_required", []))
 
-10. Every confirmed or partially confirmed claim must include an exact
-    repository-relative file path and, where possible, a line range or symbol.
+lines.extend(
+    [
+        "",
+        "## Confirmed evidence returned by Planner",
+        "",
+    ]
+)
 
-11. Verify that every expected implementation or test path actually exists.
-    Do not output a guessed path as an existing path.
+evidence = plan.get("evidence", [])
+if not evidence:
+    lines.append("- No structured evidence items were returned.")
+else:
+    for item in evidence:
+        path = item.get("path", "")
+        line_start = item.get("line_start")
+        line_end = item.get("line_end")
 
-12. Clearly distinguish:
+        location = path
+        if line_start:
+            location += f":{line_start}"
+            if line_end and line_end != line_start:
+                location += f"-{line_end}"
 
-    - existing paths;
-    - proposed future paths;
-    - missing authoritative documents;
-    - unresolved architecture decisions.
+        lines.extend(
+            [
+                f"### `{location}`",
+                "",
+                f"- Kind: `{item.get('kind')}`",
+                f"- Confidence: `{item.get('confidence')}`",
+                f"- Summary: {item.get('summary')}",
+                "",
+            ]
+        )
 
-13. Map every requested Phase 2C focus area to one of:
+lines.extend(
+    [
+        "## Planned slices",
+        "",
+    ]
+)
 
-    - an implementation slice;
-    - a test-only slice;
-    - a documentation/contract slice;
-    - an explicit blocker;
-    - an explicit deferral.
+for index, item in enumerate(plan.get("slices", []), start=1):
+    lines.extend(
+        [
+            f"### {index}. `{item.get('slice_id')}` — {item.get('title')}",
+            "",
+            f"**Objective:** {item.get('objective')}",
+            "",
+            "**Internal dependencies:**",
+            "",
+        ]
+    )
+    add_items(lines, item.get("dependencies", []))
 
-# Required output
+    lines.extend(
+        [
+            "",
+            "**External dependencies:**",
+            "",
+        ]
+    )
+    add_items(lines, item.get("external_dependencies", []))
 
-Return an evidence-backed Phase 2C plan containing:
+    lines.extend(
+        [
+            "",
+            "**Expected paths — verified against the Sandbox:**",
+            "",
+        ]
+    )
 
-- exact confirmed contracts;
-- exact missing contracts;
-- repository-relative evidence paths;
-- internal slice dependencies;
-- external prerequisites;
-- test-only remediation slices;
-- production-code remediation slices, only where evidence proves they are needed;
-- explicit stop conditions;
-- final acceptance criteria;
-- independent reviewer findings;
-- explicit confirmation that no repository change occurred.
+    expected_paths = item.get("expected_paths", [])
+    if not expected_paths:
+        lines.append("- None")
+    else:
+        for raw_path in expected_paths:
+            status, resolved = inspect_expected_path(raw_path)
+            lines.append(f"- **{status}** — `{resolved}`")
 
-# Constraints
+    lines.extend(
+        [
+            "",
+            "**Acceptance criteria:**",
+            "",
+        ]
+    )
+    add_items(lines, item.get("acceptance_criteria", []))
 
-- Observe only.
-- Do not modify, create, delete, or rename files.
-- Do not stage, commit, push, create or edit a pull request, merge, or deploy.
-- Do not invent contracts.
-- Do not treat a proposed path as an existing path.
-- Missing evidence must remain visible as a blocker.
-- Preserve the original repository branch, HEAD, Git status, and worktree inventory.
-EOF
+    lines.extend(
+        [
+            "",
+            "**Recommended checks:**",
+            "",
+        ]
+    )
+    add_items(lines, item.get("recommended_checks", []))
 
-bash scripts/observe-project.sh \
-  --skip-install \
-  --repository /app1/tag5916/projects/kmai-td-genie \
-  --ref phase2/semantic-plan-contract-validator \
-  --task-file "$TASK_FILE" \
-  --title "Phase 2C authoritative evidence closure" \
-  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py
+    lines.extend(
+        [
+            "",
+            "**Stop conditions:**",
+            "",
+        ]
+    )
+    add_items(lines, item.get("stop_conditions", []))
+
+    lines.append("")
+
+lines.extend(
+    [
+        "## Final acceptance criteria",
+        "",
+    ]
+)
+add_items(lines, plan.get("final_acceptance_criteria", []))
+
+review_sections = [
+    ("Requirement findings", "requirement_findings"),
+    ("Scope findings", "scope_findings"),
+    ("Security findings", "security_findings"),
+    ("Test findings", "test_findings"),
+    ("Required actions", "required_actions"),
+]
+
+lines.extend(
+    [
+        "",
+        "## Independent review",
+        "",
+        f"- Verdict: **{review.get('verdict')}**",
+        f"- Confidence: **{review.get('confidence')}**",
+        "",
+    ]
+)
+
+for title, field in review_sections:
+    lines.extend([f"### {title}", ""])
+    add_items(lines, review.get(field, []))
+    lines.append("")
+
+blockers = plan.get("blockers", [])
+required_actions = review.get("required_actions", [])
+
+lines.extend(
+    [
+        "## Safe Mode gate decision",
+        "",
+    ]
+)
+
+if blockers:
+    lines.extend(
+        [
+            "**SAFE MODE NOT YET AUTHORIZED**",
+            "",
+            "The Phase Plan still contains explicit blockers. These blockers "
+            "must be closed, explicitly deferred, or converted into bounded "
+            "documentation/test slices before source modification is approved.",
+        ]
+    )
+elif required_actions:
+    lines.extend(
+        [
+            "**SAFE MODE REQUIRES A BOUNDED SCOPE APPROVAL**",
+            "",
+            "No phase blocker remains, but Reviewer-required actions must be "
+            "converted into exact files, tests, acceptance criteria, and "
+            "allowed paths before implementation.",
+        ]
+    )
+else:
+    lines.extend(
+        [
+            "**READY FOR SAFE MODE SCOPE DESIGN**",
+            "",
+            "No explicit phase blocker or mandatory Reviewer action remains. "
+            "The next step is to create the first bounded implementation scope.",
+        ]
+    )
+
+output_path = STATE_ROOT / "phase2c-evidence-closure-report.md"
+output_path.write_text(
+    "\n".join(lines).rstrip() + "\n",
+    encoding="utf-8",
+)
+
+print("\n".join(lines))
+print()
+print(f"PHASE2C_EVIDENCE_REPORT={output_path}")
+PY
