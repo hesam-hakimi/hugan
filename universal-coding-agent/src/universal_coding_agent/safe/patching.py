@@ -113,7 +113,13 @@ class SafePatchEngine:
             try:
                 result = self._git(
                     root,
-                    ["apply", "--check", "--whitespace=error", "--recount", str(patch_path)],
+                    [
+                        "apply",
+                        "--check",
+                        "--whitespace=error",
+                        "--recount",
+                        str(patch_path),
+                    ],
                     check=False,
                 )
                 if result.returncode != 0:
@@ -248,7 +254,9 @@ def parse_unified_diff(value: str) -> tuple[tuple[str, ...], dict[str, ChangeOpe
     if not value.endswith("\n"):
         raise ValueError("unified diff must end with a newline")
     if any(marker in value for marker in _FORBIDDEN_MARKERS):
-        raise ValueError("patch contains a forbidden binary, rename, copy, delete, or symlink marker")
+        raise ValueError(
+            "patch contains a forbidden binary, rename, copy, delete, or symlink marker"
+        )
 
     lines = value.splitlines()
     if not lines or not lines[0].startswith("diff --git "):
