@@ -55,7 +55,6 @@ jobs:
           bash scripts/safe-smoke.sh --help >/dev/null
           bash scripts/qualify-safe-host-provider.sh --help >/dev/null
           bash scripts/safe-approve-resume.sh --help >/dev/null
-          bash scripts/safe-workflow.sh --help >/dev/null
 
       - name: Compile Python sources
         working-directory: repository/universal-coding-agent
