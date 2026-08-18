@@ -1,146 +1,103 @@
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-TASK_FILE="$HOME/phase2c-safe-scope-design.md"
+STATE_ROOT="/home/tag5916/.uca-project-runs/uca-observe-20260818T130108Z-1594237"
+TASK_ID="uca-observe-20260818T130108Z-1594237"
+TASK_ROOT="$STATE_ROOT/artifacts/tasks/$TASK_ID"
 
-cat > "$TASK_FILE" <<'EOF'
-# Objective
+python - <<'PY'
+import json
+from pathlib import Path
 
-Design the exact, bounded, file-level Safe Mode scope for the first real
-Phase 2C AskTD remediation slice.
+state_root = Path("/home/tag5916/.uca-project-runs/uca-observe-20260818T130108Z-1594237")
+task_id = "uca-observe-20260818T130108Z-1594237"
+task_root = state_root / "artifacts" / "tasks" / task_id
 
-This is a read-only scope-design task. Do not implement or modify anything.
+phase_plan = json.loads((task_root / "phase-plan.json").read_text(encoding="utf-8"))
+review = json.loads((task_root / "review.json").read_text(encoding="utf-8"))
+final_report = json.loads((task_root / "final-report.json").read_text(encoding="utf-8"))
 
-# Seven approved architecture and contract decisions
+print("\n=== RUN SUMMARY ===")
+print("phase_id:", phase_plan.get("phase_id"))
+print("title:", phase_plan.get("title"))
+print("final_status:", final_report.get("status"))
+print("reviewer_verdict:", review.get("verdict"))
+print("slice_count:", len(phase_plan.get("slices", [])))
 
-1. Unit, contract, and standard CI tests must use deterministic synthetic
-   or mock data.
+print("\n=== PHASE BLOCKERS ===")
+for x in phase_plan.get("blockers", []):
+    print("-", x)
+if not phase_plan.get("blockers"):
+    print("- None")
 
-2. Live governed data may be used only in a separate, optional, read-only,
-   environment-gated integration profile. It must not be required by the
-   standard CI acceptance gate.
+print("\n=== ARCHITECTURE DECISIONS REQUIRED ===")
+for x in phase_plan.get("architecture_decisions_required", []):
+    print("-", x)
+if not phase_plan.get("architecture_decisions_required"):
+    print("- None")
 
-3. Field governance and classification enforcement are explicitly deferred
-   in Phase 2C:
-   - classification metadata may be absent, null, or unknown;
-   - valid metadata must be preserved and serialized;
-   - Phase 2C must not grant authorization based on classification metadata;
-   - malformed governance or classification values must be rejected.
+for i, s in enumerate(phase_plan.get("slices", []), start=1):
+    print(f"\n=== SLICE {i} ===")
+    print("slice_id:", s.get("slice_id"))
+    print("title:", s.get("title"))
+    print("objective:", s.get("objective"))
 
-4. Registry snapshots are immutable and publication must be atomic:
-   - readers see either the complete previous snapshot or the complete new
-     snapshot;
-   - readers must never observe partially published state.
+    print("\n[included_scope]")
+    for x in s.get("included_scope", []):
+        print("-", x)
+    if not s.get("included_scope"):
+        print("- None")
 
-5. Stale registry writers must be rejected using a version conflict:
-   - cache identity must include registry version or snapshot identity;
-   - publication of a new snapshot must deterministically invalidate stale
-     cache entries.
+    print("\n[expected_paths]")
+    for x in s.get("expected_paths", []):
+        print("-", x)
+    if not s.get("expected_paths"):
+        print("- None")
 
-6. Registry identity must be derived from canonical full snapshot content:
-   - semantic changes to ProductGroup, Schema, Dataset, Field, or Relationship
-     require a new identity;
-   - ordering-only differences must not create a new identity;
-   - equal canonical content must produce equal identity;
-   - stale or conflicting snapshots must be rejected.
+    print("\n[acceptance_criteria]")
+    for x in s.get("acceptance_criteria", []):
+        print("-", x)
+    if not s.get("acceptance_criteria"):
+        print("- None")
 
-7. Cross-ProductGroup relationships must be explicit:
-   - both endpoints must exist;
-   - the relationship must not expand authorization;
-   - authorization for each Dataset remains independently enforced;
-   - relationships with unknown endpoints must be rejected.
+    print("\n[recommended_checks]")
+    for x in s.get("recommended_checks", []):
+        print("-", x)
+    if not s.get("recommended_checks"):
+        print("- None")
 
-# Process rule
+    print("\n[excluded_scope]")
+    for x in s.get("excluded_scope", []):
+        print("-", x)
+    if not s.get("excluded_scope"):
+        print("- None")
 
-Production source code must not be placed in the first Safe Mode scope.
+    print("\n[dependencies]")
+    for x in s.get("dependencies", []):
+        print("-", x)
+    if not s.get("dependencies"):
+        print("- None")
 
-Production code may be proposed later only when an approved contract test
-demonstrates a real implementation gap.
+    print("\n[external_dependencies]")
+    for x in s.get("external_dependencies", []):
+        print("-", x)
+    if not s.get("external_dependencies"):
+        print("- None")
 
-# Required investigation
+    print("\n[stop_conditions]")
+    for x in s.get("stop_conditions", []):
+        print("-", x)
+    if not s.get("stop_conditions"):
+        print("- None")
 
-1. Inspect repository instructions, ADRs, architecture documents, current
-   contracts, tests, fixtures, and test configuration.
+print("\n=== REVIEW REQUIRED ACTIONS ===")
+for x in review.get("required_actions", []):
+    print("-", x)
+if not review.get("required_actions"):
+    print("- None")
 
-2. Identify the smallest coherent documentation-and-test-only slice that
-   begins closing these currently missing or partial areas:
-
-   - field-governance and metadata-classification deferral;
-   - registry-cache concurrency and stale-cache behavior;
-   - full snapshot registry identity;
-   - explicit cross-ProductGroup relationship behavior.
-
-3. Reuse existing test and documentation conventions.
-
-4. Identify exact repository-relative paths.
-
-5. For every proposed path, determine one exact operation:
-
-   - MODIFY, only when the file currently exists;
-   - CREATE, only when the file currently does not exist and its parent
-     directory and naming convention are supported by repository evidence.
-
-6. Do not guess paths.
-
-7. Do not include production source paths.
-
-8. Limit the first slice to at most four changed files.
-
-9. Identify exact focused-test commands using the repository's existing test
-   runner and configuration.
-
-10. Identify dependencies and stop conditions.
-
-# Required PhasePlan output
-
-Return exactly one bounded slice.
-
-For the slice:
-
-- `included_scope` must contain entries in one of these exact forms:
-
-  - `MODIFY path/to/file`
-  - `CREATE path/to/file`
-
-- `expected_paths` must contain the raw repository-relative paths without
-  the MODIFY or CREATE prefix.
-
-- `acceptance_criteria` must be deterministic and testable.
-
-- `recommended_checks` must contain exact commands or exact test targets.
-
-- `excluded_scope` must explicitly exclude production source code, deployment,
-  authentication, environment configuration, Git publication, and live-data
-  dependencies.
-
-- Any missing exact file location or missing authoritative contract must remain
-  visible as a blocker.
-
-# Evidence requirements
-
-Every path and operation must be supported by repository evidence.
-
-For an existing file, include the exact path and relevant symbol or line range.
-
-For a new file, include evidence for:
-
-- the existing parent directory;
-- the repository naming convention;
-- the closest analogous test or document.
-
-# Constraints
-
-- Observe only.
-- Do not modify, create, delete, or rename files.
-- Do not stage, commit, push, create or edit a pull request, merge, or deploy.
-- Do not invent contracts.
-- Do not infer that a proposed file already exists.
-- Preserve the original branch, HEAD, Git status, and worktree inventory.
-EOF
-
-bash scripts/observe-project.sh \
-  --skip-install \
-  --repository /app1/tag5916/projects/kmai-td-genie \
-  --ref phase2/semantic-plan-contract-validator \
-  --task-file "$TASK_FILE" \
-  --title "Phase 2C exact Safe Mode scope design" \
-  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py
+print("\n=== REVIEW REQUIREMENT FINDINGS ===")
+for x in review.get("requirement_findings", []):
+    print("-", x)
+if not review.get("requirement_findings"):
+    print("- None")
+PY
