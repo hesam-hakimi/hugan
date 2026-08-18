@@ -1,3 +1,24 @@
+IMPORTANT INPUT LIMITATION
+
+No affected consumer repository or sample files were provided with the blocker report.
+
+Do not use, modify, or infer behavior from any unrelated consumer repository.
+
+For automated verification, create only deterministic synthetic test fixtures representing:
+
+1. An explicitly selected, valid but empty fresh consumer workspace.
+2. No pre-existing job_conf/ or env_conf/ directories.
+3. Oracle outputs using db_data_out and db_ctrl_out.
+4. A trusted read-only etl-framework-adb repository available as an explicit multi-root workspace folder.
+5. Missing, invalid, changed, and unavailable framework-definition cases.
+
+Synthetic fixtures must contain no credentials, connection strings, business data, hostnames, or invented production configuration values. They must exist only inside the authorized extension test surface or test-managed temporary directories.
+
+The implementation must not create marker files or configuration directories inside a real consumer repository.
+
+Report real-consumer end-to-end verification as NOT EXECUTED — SAMPLE UNAVAILABLE. This limitation must not be reported as a hotfix test failure if all deterministic framework-side tests pass.
+
+
 LOCAL_HOTFIX_HF1 — TRUSTED FRAMEWORK RESOLUTION AND FRESH-CONSUMER WRITE GATE
 
 This task fixes a production Extension defect that blocks both:
