@@ -114,3 +114,28 @@ def test_patch_engine_rejects_delete_and_binary_markers(tmp_path: Path) -> None:
     result = SafePatchEngine().validate(root, manifest, delete)
     assert result.valid is False
     assert any("forbidden" in error for error in result.errors)
+
+
+def test_patch_engine_surfaces_bounded_git_apply_diagnostics(tmp_path: Path) -> None:
+    root, base_sha = _repository(tmp_path)
+    mismatched = PatchProposal(
+        summary="Use stale context so git apply rejects the patch.",
+        unified_diff=(
+            "diff --git a/app.py b/app.py\n"
+            "--- a/app.py\n"
+            "+++ b/app.py\n"
+            "@@ -1,2 +1,2 @@\n"
+            " def answer():\n"
+            "-    return 99\n"
+            "+    return 43\n"
+        ),
+        changed_paths=("app.py",),
+    )
+
+    result = SafePatchEngine().validate(root, _manifest(base_sha), mismatched)
+
+    assert result.valid is False
+    error = "\n".join(result.errors)
+    assert "git apply --check rejected the proposed patch" in error
+    assert "app.py" in error
+    assert len(error) < 5_000
