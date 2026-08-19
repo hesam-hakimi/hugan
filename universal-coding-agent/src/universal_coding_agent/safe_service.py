@@ -14,7 +14,7 @@ from universal_coding_agent.core.safe_models import SafeTaskRequest
 from universal_coding_agent.orchestration.safe_graph import SafeGraphServices, SafeModeGraph
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
-from universal_coding_agent.safe.patching import SafePatchEngine
+from universal_coding_agent.safe.patching import SafeEditEngine, SafePatchEngine
 from universal_coding_agent.safe.testing import SafeTestRunner
 from universal_coding_agent.sandbox.git import GitSandboxManager
 from universal_coding_agent.storage.artifacts import ArtifactStore
@@ -47,6 +47,7 @@ class SafeAgentService:
             indexer=RepositoryIndexer(),
             context=SafeContextCompiler(),
             artifacts=artifacts,
+            edit_engine=SafeEditEngine(),
             patch_engine=SafePatchEngine(),
             test_runner=SafeTestRunner(),
         )
