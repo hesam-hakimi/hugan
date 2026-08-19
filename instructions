@@ -1,9 +1,9 @@
 # salected files
 
+- universal-coding-agent/src/universal_coding_agent/safe/model_line_addressing.py
 - universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
-- universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2_sharded.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
-- universal-coding-agent/tests/test_sharded_line_edit_protocol.py
+- universal-coding-agent/tests/test_model_line_addressing.py
 
 Cmd 1
 
@@ -16,18 +16,18 @@ Cmd 2
 ```bash
 set -Eeuo pipefail
 for FILE in \
+  src/universal_coding_agent/safe/model_line_addressing.py \
   src/universal_coding_agent/context/sharded_line_edit_compiler.py \
-  src/universal_coding_agent/orchestration/safe_graph_v2_sharded.py \
   src/universal_coding_agent/safe_service.py \
-  tests/test_sharded_line_edit_protocol.py
+  tests/test_model_line_addressing.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
-from universal_coding_agent.orchestration.safe_graph_v2_sharded import ShardedLineAddressedSafeModeGraph
+from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
-print("SHARDED_V2_IMPORT_PREFLIGHT_PASS")
+print("MODEL_LINE_REF_PREFLIGHT_PASS")
 PY
 ```
 
@@ -58,7 +58,7 @@ export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 Cmd 7
 
 ```bash
-STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
+STATE_ROOT="$HOME/.uca-safe-host-runs/model-line-ref-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
 bash scripts/qualify-line-addressed-host-provider.sh \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
@@ -71,7 +71,7 @@ Cmd 8
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
-PHASE2C_STATE_ROOT="$HOME/.uca-safe-runs/phase2c-line-addressed-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
+PHASE2C_STATE_ROOT="$HOME/.uca-safe-runs/phase2c-model-line-ref-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
 printf '%s\n' "$PHASE2C_STATE_ROOT" > "$HOME/.uca-phase2c-line-addressed-v2-current"
 bash scripts/safe-workflow.sh start \
   --state-root "$PHASE2C_STATE_ROOT" \
@@ -82,7 +82,7 @@ bash scripts/safe-workflow.sh start \
   --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
-  --title "Phase 2C real Safe Mode - file-sharded line-addressed structured edits v2"
+  --title "Phase 2C real Safe Mode - compact model line refs v2"
 ```
 
 Cmd 9
@@ -101,32 +101,4 @@ PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
 FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-final-report.json -print -quit)"
 test -n "$FINAL_REPORT"
 .venv/bin/python -m json.tool "$FINAL_REPORT"
-```
-
-Cmd 11
-
-```bash
-set -Eeuo pipefail
-PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
-FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-final-report.json -print -quit)"
-TASK_ROOT="$(dirname "$FINAL_REPORT")"
-VALIDATION="$TASK_ROOT/implementer-model-validation.json"
-test -f "$VALIDATION"
-.venv/bin/python - "$VALIDATION" "$TASK_ROOT" <<'PY'
-import json
-import sys
-from pathlib import Path
-validation_path = Path(sys.argv[1])
-task_root = Path(sys.argv[2])
-payload = json.loads(validation_path.read_text(encoding="utf-8"))
-print("SHARD_FAILURE=")
-print(json.dumps(payload.get("failure"), indent=2, ensure_ascii=False))
-print("SHARDS=")
-print(json.dumps(payload.get("shards", []), indent=2, ensure_ascii=False))
-print("ATTEMPTS=")
-print(json.dumps(payload.get("attempts", []), indent=2, ensure_ascii=False))
-for path in sorted(task_root.glob("edit-proposal-rejected-*.json")):
-    print(f"REJECTED_PROPOSAL={path}")
-    print(path.read_text(encoding="utf-8"))
-PY
 ```
