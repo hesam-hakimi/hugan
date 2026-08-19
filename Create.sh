@@ -1,4 +1,20 @@
+set -Eeuo pipefail
+
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-bash scripts/safe-workflow.sh approve \
-  --context-file /home/tag5916/.uca-safe-runs/phase2c-structured-v1-20260819T111710Z/safe-workflow-context.json
+echo "=== COMPILE ==="
+.venv/bin/python -m compileall -q src tests
+
+echo "=== LINT ==="
+.venv/bin/ruff check .
+
+echo "=== TESTS ==="
+.venv/bin/python -m pytest -q
+
+echo "=== SAFE MODE SMOKE ==="
+bash scripts/safe-smoke.sh
+
+echo
+echo "============================================"
+echo "STRUCTURED_EDIT_ANCHOR_REPAIR_LOCAL_GATES_OK"
+echo "============================================"
