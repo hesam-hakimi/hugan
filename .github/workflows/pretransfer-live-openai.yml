@@ -96,13 +96,27 @@ jobs:
           if [[ -f "$STATE_ROOT/hard-summary.json" ]]; then
             cat "$STATE_ROOT/hard-summary.json" >> "$GITHUB_STEP_SUMMARY"
           fi
+          echo "=== HARD CDC TEST RESULTS ==="
+          find "$STATE_ROOT" -type f -name test-results.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== HARD CDC EDIT PROPOSALS ==="
+          find "$STATE_ROOT" -type f -name edit-proposal.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== HARD CDC PATCHES ==="
+          find "$STATE_ROOT" -type f -name proposed.patch -print \
+            -exec sed -n '1,400p' {} \; || true
           exit "$RC"
 
-      - name: Upload hard CDC reasoning summary
+      - name: Upload hard CDC reasoning diagnostics
         if: env.OPENAI_API_KEY != '' && always() && steps.hard.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: uca-pretransfer-hard-cdc-summary
-          path: ${{ runner.temp }}/uca-pretransfer-hard-cdc/hard-summary.json
-          if-no-files-found: error
+          name: uca-pretransfer-hard-cdc-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/hard-summary.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/test-results.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/edit-proposal.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/proposed.patch
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-final-report.json
+          if-no-files-found: warn
           retention-days: 14
