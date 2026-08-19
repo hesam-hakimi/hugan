@@ -91,9 +91,12 @@ echo "UCA_OPENAI_MODEL=$UCA_OPENAI_MODEL"
 Cmd 8
 
 ```bash
-LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-$(date -u +%Y%m%dT%H%M%SZ)"
+LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-preflight-$(date -u +%Y%m%dT%H%M%SZ)"
+LIVE_RC=0
 UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 \
-PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT"
+PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT" || LIVE_RC=$?
+.venv/bin/python -m json.tool "$LIVE_STATE_ROOT/live-summary.json"
+test "$LIVE_RC" -eq 0
 ```
 
 Cmd 9
