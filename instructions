@@ -119,6 +119,12 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.h
   --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
 test -f "$HARD_STATE_ROOT/hard-summary.json"
 .venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
+find "$HARD_STATE_ROOT" -type f -name test-results.json -print \
+  -exec .venv/bin/python -m json.tool {} \; || true
+find "$HARD_STATE_ROOT" -type f -name edit-proposal.json -print \
+  -exec .venv/bin/python -m json.tool {} \; || true
+find "$HARD_STATE_ROOT" -type f -name proposed.patch -print \
+  -exec sed -n '1,400p' {} \; || true
 test "$HARD_RC" -eq 0
 ```
 
