@@ -70,8 +70,8 @@ class SafePatchEngine:
                 errors=(str(exc),),
             )
 
-        if tuple(proposal.changed_paths) != changed_paths:
-            errors.append("proposal changed_paths do not exactly match the patch")
+        if set(proposal.changed_paths) != set(changed_paths):
+            errors.append("proposal changed_paths do not exactly match the patch path set")
         if len(changed_paths) > manifest.max_changed_files:
             errors.append("patch exceeds max_changed_files")
 
