@@ -235,7 +235,10 @@ def test_safe_graph_repairs_missing_exact_anchor_once_with_frozen_file_context(
     def implementer(request):
         implementer_requests.append(request)
         if request.metadata.get("edit_repair") == "true":
-            assert "exact replacement anchor in app.py must occur once; found 0" in request.user_prompt
+            assert (
+                "exact replacement anchor in app.py must occur once; found 0"
+                in request.user_prompt
+            )
             assert "def answer():\n    return 42\n" in request.user_prompt
             return _structured_payload(
                 old_text="def answer():\n    return 42\n",
