@@ -182,7 +182,11 @@ class SafeContextCompiler:
                 continue
             if line_numbers:
                 bounded = self._with_line_numbers(bounded)
-            suffix = "\n[FILE CONTENT TRUNCATED BY DETERMINISTIC CONTEXT BUDGET]" if truncated else ""
+            suffix = (
+                "\n[FILE CONTENT TRUNCATED BY DETERMINISTIC CONTEXT BUDGET]"
+                if truncated
+                else ""
+            )
             output.append(
                 f"## {entry.path}\nOperation: {entry.operation.value}\n"
                 f"SHA256: {content_sha}\nTruncated: {str(truncated).lower()}\n"
