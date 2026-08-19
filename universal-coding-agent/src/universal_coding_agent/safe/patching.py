@@ -266,7 +266,7 @@ class SafeEditEngine:
             spans.append((start, start + len(replacement.old_text), replacement))
 
         ordered = sorted(spans, key=lambda item: item[0])
-        for previous, current in zip(ordered, ordered[1:]):
+        for previous, current in zip(ordered, ordered[1:], strict=False):
             if previous[1] > current[0]:
                 raise ValueError(f"structured replacements overlap in {path}")
         return spans
