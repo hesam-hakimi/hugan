@@ -217,7 +217,7 @@ def hard_reference_files() -> dict[str, str]:
 
 def hard_test_script() -> str:
     return dedent(
-        r'''\
+        r'''
         import copy
         import os
         import sys
