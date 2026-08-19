@@ -11,7 +11,7 @@ from universal_coding_agent.safety.sanitizer import sanitize_text
 
 
 class LineAddressedContextCompiler(SafeContextCompiler):
-    """Compile protocol-v2 contexts with deterministic line IDs instead of old-text copying."""
+    """Compile protocol-v2 contexts with deterministic line IDs."""
 
     def compile_implementer(
         self,
@@ -34,24 +34,28 @@ class LineAddressedContextCompiler(SafeContextCompiler):
             self._line_addressed_file_state(root, task),
             "# Mandatory structured-edit protocol v2",
             (
-                "Return exactly one JSON object matching StructuredEditProposal. Do not emit a "
-                "unified diff, Git patch syntax, shell commands, or Git commands. For each approved "
-                "modify path, use TextReplacement.old_text only as one deterministic line-address "
-                "token copied exactly from the supplied file state. Never place source text itself "
-                "in old_text. Supported tokens are: "
+                "Return exactly one JSON object matching StructuredEditProposal. "
+                "Do not emit a unified diff, Git patch syntax, shell commands, or "
+                "Git commands. For each approved modify path, use "
+                "TextReplacement.old_text only as one deterministic line-address "
+                "token copied exactly from the supplied file state. Never place "
+                "source text itself in old_text. Supported tokens are: "
                 "@range:<LINE_ID>..<LINE_ID> to replace whole inclusive lines; "
-                "@before:<LINE_ID> to insert complete lines immediately before one line; and "
-                "@after:<LINE_ID> to insert complete lines immediately after one line. "
-                "A LINE_ID has the exact form L000123-0123456789abcdef and must be copied from the "
-                "file state above. new_text is the exact replacement or inserted text. Range edits "
-                "replace complete lines, so preserve the existing final line ending. Insertions must "
-                "contain complete lines and end with the file line ending. Use non-overlapping line "
-                "ranges and do not issue two insertions at the same boundary. For approved create "
-                "operations, use FileEdit.content with the complete UTF-8 text. Change only approved "
-                "paths and operations. Do not delete, rename, copy, modify symlinks, stage, commit, "
-                "push, create a pull request, merge, deploy, or run commands. The control plane "
-                "verifies line number plus fingerprint against the frozen Base SHA before any write; "
-                "Git, not the model, generates the canonical patch."
+                "@before:<LINE_ID> to insert complete lines immediately before one "
+                "line; and @after:<LINE_ID> to insert complete lines immediately "
+                "after one line. A LINE_ID has the exact form "
+                "L000123-0123456789abcdef and must be copied from the file state "
+                "above. new_text is the exact replacement or inserted text. Range "
+                "edits replace complete lines, so preserve the existing final line "
+                "ending. Insertions must contain complete lines and end with the "
+                "file line ending. Use non-overlapping line ranges and do not issue "
+                "two insertions at the same boundary. For approved create "
+                "operations, use FileEdit.content with the complete UTF-8 text. "
+                "Change only approved paths and operations. Do not delete, rename, "
+                "copy, modify symlinks, stage, commit, push, create a pull request, "
+                "merge, deploy, or run commands. The control plane verifies line "
+                "number plus fingerprint against the frozen Base SHA before any "
+                "write; Git, not the model, generates the canonical patch."
             ),
         ]
         return self._bound("\n\n".join(sections), self.implementer_char_budget)
@@ -103,8 +107,12 @@ class LineAddressedContextCompiler(SafeContextCompiler):
             lines = bounded.splitlines(keepends=True)
             rendered = []
             for index, value in enumerate(lines, start=1):
-                body = value[:-2] if value.endswith("\r\n") else (
-                    value[:-1] if value.endswith(("\n", "\r")) else value
+                body = (
+                    value[:-2]
+                    if value.endswith("\r\n")
+                    else value[:-1]
+                    if value.endswith(("\n", "\r"))
+                    else value
                 )
                 rendered.append(f"{line_id(index, value)} | {body}")
             suffix = (
