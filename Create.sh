@@ -1,12 +1,4 @@
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-.venv/bin/python -m compileall -q src tests && \
-.venv/bin/ruff check \
-  src/universal_coding_agent/core/safe_models.py \
-  src/universal_coding_agent/safe/patching.py \
-  tests/test_safe_models.py \
-  tests/test_safe_patching.py && \
-.venv/bin/python -m pytest -q \
-  tests/test_safe_models.py \
-  tests/test_safe_patching.py \
-  tests/test_safe_graph.py
+bash scripts/safe-workflow.sh approve \
+  --context-file /home/tag5916/.uca-safe-runs/phase2c-safe-v6-20260819T025907Z/safe-workflow-context.json
