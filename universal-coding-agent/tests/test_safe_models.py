@@ -133,6 +133,59 @@ def test_patch_proposal_requires_git_style_headers_and_exact_paths() -> None:
         )
 
 
+def test_patch_proposal_accepts_reordered_changed_paths_but_not_missing_paths() -> None:
+    diff = (
+        "diff --git a/first.py b/first.py\n"
+        "--- a/first.py\n"
+        "+++ b/first.py\n"
+        "@@ -1 +1 @@\n"
+        "-VALUE = 1\n"
+        "+VALUE = 2\n"
+        "diff --git a/second.py b/second.py\n"
+        "--- a/second.py\n"
+        "+++ b/second.py\n"
+        "@@ -1 +1 @@\n"
+        "-VALUE = 3\n"
+        "+VALUE = 4\n"
+    )
+
+    proposal = PatchProposal(
+        summary="Same exact path set in a different declaration order.",
+        unified_diff=diff,
+        changed_paths=("second.py", "first.py"),
+    )
+    assert set(proposal.changed_paths) == {"first.py", "second.py"}
+
+    with pytest.raises(ValidationError, match="changed_paths"):
+        PatchProposal(
+            summary="Missing one diff path.",
+            unified_diff=diff,
+            changed_paths=("first.py",),
+        )
+
+
+def test_patch_proposal_rejects_duplicate_diff_sections() -> None:
+    with pytest.raises(ValidationError, match="duplicate file sections"):
+        PatchProposal(
+            summary="Duplicate section for one file.",
+            unified_diff=(
+                "diff --git a/app.py b/app.py\n"
+                "--- a/app.py\n"
+                "+++ b/app.py\n"
+                "@@ -1 +1 @@\n"
+                "-VALUE = 1\n"
+                "+VALUE = 2\n"
+                "diff --git a/app.py b/app.py\n"
+                "--- a/app.py\n"
+                "+++ b/app.py\n"
+                "@@ -2 +2 @@\n"
+                "-OTHER = 3\n"
+                "+OTHER = 4\n"
+            ),
+            changed_paths=("app.py",),
+        )
+
+
 def test_patch_proposal_ignores_marker_like_hunk_content() -> None:
     proposal = PatchProposal(
         summary="Valid diff whose hunk content resembles file markers.",
