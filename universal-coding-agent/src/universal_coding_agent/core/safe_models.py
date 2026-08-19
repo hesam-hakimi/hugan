@@ -204,7 +204,15 @@ class PatchProposal(FrozenSafeModel):
             "Do not use Markdown fences."
         ),
     )
-    changed_paths: tuple[str, ...] = Field(min_length=1, max_length=64)
+    changed_paths: tuple[str, ...] = Field(
+        min_length=1,
+        max_length=64,
+        description=(
+            "Unique repository-relative paths changed by unified_diff. This declaration "
+            "must contain exactly the same path set as the diff --git headers. Ordering is "
+            "not security-significant; unified_diff header order is authoritative."
+        ),
+    )
     requested_test_profiles: tuple[str, ...] = ()
     assumptions: tuple[str, ...] = ()
 
@@ -282,9 +290,11 @@ class PatchProposal(FrozenSafeModel):
                 raise ValueError(f"unified_diff has an invalid new-file marker for {path}")
             parsed_paths.append(path)
 
-        if tuple(parsed_paths) != self.changed_paths:
+        if len(parsed_paths) != len(set(parsed_paths)):
+            raise ValueError("unified_diff must not contain duplicate file sections")
+        if set(parsed_paths) != set(self.changed_paths):
             raise ValueError(
-                "changed_paths must exactly match the ordered paths in unified_diff headers"
+                "changed_paths must contain exactly the paths in unified_diff headers"
             )
         return self
 
