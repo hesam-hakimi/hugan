@@ -9,15 +9,17 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.models import ModelRequest, RepositorySpec
 from universal_coding_agent.core.safe_models import (
     ApprovedChangeManifest,
     ChangeOperation,
     ChangeScopeEntry,
     SafeModePolicy,
     SafeTaskRequest,
+    StructuredEditProposal,
     TestProfile,
 )
+from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 
@@ -35,6 +37,25 @@ def run_live_suite(
         raise ValueError("min_success_rate must be between 0 and 1")
 
     state_root.mkdir(parents=True, exist_ok=True)
+    provider_preflight = _provider_preflight(provider)
+    if not provider_preflight["ok"]:
+        summary = {
+            "provider": "openai_responses",
+            "model": provider.model,
+            "runs": runs,
+            "attempted_runs": 0,
+            "completed": 0,
+            "blocked_or_failed": 0,
+            "source_mutations": 0,
+            "success_rate": 0.0,
+            "min_success_rate": min_success_rate,
+            "qualified": False,
+            "provider_preflight": provider_preflight,
+            "records": [],
+        }
+        _write_summary(state_root, summary)
+        return summary
+
     records: list[dict[str, Any]] = []
     for run_number in range(1, runs + 1):
         records.append(_run_once(state_root / f"run-{run_number:02d}", provider, run_number))
@@ -47,19 +68,91 @@ def run_live_suite(
         "provider": "openai_responses",
         "model": provider.model,
         "runs": runs,
+        "attempted_runs": len(records),
         "completed": completed,
         "blocked_or_failed": runs - completed,
         "source_mutations": source_mutations,
         "success_rate": success_rate,
         "min_success_rate": min_success_rate,
         "qualified": qualified,
+        "provider_preflight": provider_preflight,
         "records": records,
     }
+    _write_summary(state_root, summary)
+    return summary
+
+
+def _provider_preflight(provider: OpenAIResponsesProvider) -> dict[str, Any]:
+    stages: list[dict[str, Any]] = []
+    text_request = ModelRequest(
+        role="pretransfer_text_probe",
+        system_prompt="Return exactly the requested text.",
+        user_prompt="Return exactly UCA_OPENAI_PROVIDER_OK.",
+        max_output_tokens=128,
+    )
+    try:
+        response = provider.invoke(text_request)
+    except ModelProviderError as exc:
+        return _preflight_failure("text_response", exc, stages)
+    stages.append(
+        {
+            "stage": "text_response",
+            "ok": True,
+            "actual_model": response.actual_model,
+            "finish_reason": response.finish_reason,
+        }
+    )
+
+    schema_request = ModelRequest(
+        role="pretransfer_structured_schema_probe",
+        system_prompt=(
+            "Return exactly one StructuredEditProposal JSON object matching the supplied schema."
+        ),
+        user_prompt=(
+            "Return a minimal preflight proposal that modifies app.py. Use summary 'preflight', "
+            "operation 'modify', old_text '@range:A000001..A000001', new_text 'VALUE = 43\\n', "
+            "requested_test_profiles ['live-check'], and no assumptions."
+        ),
+        response_schema=StructuredEditProposal.model_json_schema(),
+        max_output_tokens=2_048,
+    )
+    try:
+        response = provider.invoke(schema_request)
+    except ModelProviderError as exc:
+        return _preflight_failure("structured_schema", exc, stages)
+    stages.append(
+        {
+            "stage": "structured_schema",
+            "ok": True,
+            "actual_model": response.actual_model,
+            "finish_reason": response.finish_reason,
+            "structured_object": isinstance(response.structured, dict),
+        }
+    )
+    return {"ok": True, "stages": stages}
+
+
+def _preflight_failure(
+    stage: str,
+    exc: ModelProviderError,
+    stages: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "failed_stage": stage,
+        "error": {
+            "code": exc.code,
+            "message": str(exc)[:2_000],
+        },
+        "stages": stages,
+    }
+
+
+def _write_summary(state_root: Path, summary: dict[str, Any]) -> None:
     (state_root / "live-summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    return summary
 
 
 def _run_once(
