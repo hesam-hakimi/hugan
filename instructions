@@ -103,6 +103,7 @@ LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-strict-schema-$(date -u +%Y%
 LIVE_RC=0
 UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 \
 PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT" || LIVE_RC=$?
+test -f "$LIVE_STATE_ROOT/live-summary.json"
 .venv/bin/python -m json.tool "$LIVE_STATE_ROOT/live-summary.json"
 test "$LIVE_RC" -eq 0
 ```
@@ -115,6 +116,7 @@ HARD_RC=0
 UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 \
 PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning \
   --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
+test -f "$HARD_STATE_ROOT/hard-summary.json"
 .venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
 test "$HARD_RC" -eq 0
 ```
