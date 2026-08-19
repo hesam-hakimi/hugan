@@ -11,6 +11,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
+- universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
 
@@ -36,6 +37,7 @@ for FILE in \
   src/universal_coding_agent/testlab/hard_reasoning.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
+  tests/test_hard_reasoning_lab.py \
   scripts/pretransfer-test-lab.sh \
   scripts/pretransfer-live-openai.sh
 do
