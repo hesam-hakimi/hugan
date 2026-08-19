@@ -31,7 +31,10 @@ def test_pretransfer_success_scenarios(
     for path, expected in result.expected_files.items():
         assert (result.sandbox / path).read_text(encoding="utf-8") == expected
         if path in scenario.initial_files:
-            assert (result.source / path).read_text(encoding="utf-8") == scenario.initial_files[path]
+            assert (
+                (result.source / path).read_text(encoding="utf-8")
+                == scenario.initial_files[path]
+            )
         else:
             assert not (result.source / path).exists()
 
