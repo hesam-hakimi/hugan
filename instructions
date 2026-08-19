@@ -83,7 +83,8 @@ Cmd 7
 
 ```bash
 export UCA_OPENAI_MODEL="${UCA_OPENAI_MODEL:-gpt-5.6}"
-test -n "${OPENAI_API_KEY:-}" || { echo "OPENAI_API_KEY_NOT_SET"; exit 1; }
+test -n "${AZURE_OPENAI_API_KEY:-}" || { echo "AZURE_OPENAI_API_KEY_NOT_SET"; exit 1; }
+export OPENAI_API_KEY="$AZURE_OPENAI_API_KEY"
 echo "UCA_OPENAI_MODEL=$UCA_OPENAI_MODEL"
 ```
 

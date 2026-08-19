@@ -23,7 +23,7 @@ jobs:
   live-pretransfer:
     runs-on: ubuntu-24.04
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
       UCA_OPENAI_MODEL: ${{ inputs.model || vars.UCA_OPENAI_MODEL || 'gpt-5.6' }}
       UCA_LIVE_RUNS: ${{ inputs.runs || vars.UCA_LIVE_RUNS || '1' }}
       UCA_LIVE_MIN_SUCCESS_RATE: "1.0"
@@ -52,7 +52,7 @@ jobs:
         if: env.OPENAI_API_KEY == ''
         run: |
           echo "PRETRANSFER_LIVE_OPENAI_SKIPPED_NO_SECRET"
-          echo "### Live OpenAI qualification skipped: OPENAI_API_KEY secret is not configured." >> "$GITHUB_STEP_SUMMARY"
+          echo "### Live OpenAI qualification skipped: AZURE_OPENAI_API_KEY secret is not configured." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run live OpenAI pre-transfer qualification
         id: live
