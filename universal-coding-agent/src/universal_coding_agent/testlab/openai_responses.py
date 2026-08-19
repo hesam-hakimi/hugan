@@ -18,6 +18,21 @@ from universal_coding_agent.safety.sanitizer import sanitize_text
 
 Transport = Callable[[dict[str, Any]], dict[str, Any]]
 _SCHEMA_NAME = re.compile(r"[^A-Za-z0-9_-]+")
+_SCHEMA_GENERATION_ONLY_KEYWORDS = frozenset(
+    {
+        "default",
+        "examples",
+        "format",
+        "maxItems",
+        "maxLength",
+        "maximum",
+        "minItems",
+        "minLength",
+        "minimum",
+        "multipleOf",
+        "pattern",
+    }
+)
 
 
 class OpenAIResponsesProvider:
@@ -94,7 +109,7 @@ class OpenAIResponsesProvider:
                 "format": {
                     "type": "json_schema",
                     "name": _schema_name(request.role),
-                    "schema": request.response_schema,
+                    "schema": _openai_strict_schema(request.response_schema),
                     "strict": True,
                 }
             }
@@ -167,7 +182,7 @@ class OpenAIResponsesProvider:
 
         request = urllib.request.Request(
             self.endpoint,
-            data=json.dumps(payload, separators=(",", ":")).encode("utf-8"),
+            data=json.dumps(payload, separators=(",", ":")).encode(),
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
@@ -211,6 +226,39 @@ class OpenAIResponsesProvider:
                 "OpenAI Responses API response was not one JSON object",
             )
         return decoded
+
+
+def _openai_strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Lower a Pydantic schema to the strict Structured Outputs generation subset.
+
+    Core Pydantic validation remains authoritative after the model response. This adapter only
+    changes the provider-facing generation grammar: object fields are made explicit/required,
+    additional properties are forbidden, and validation-only constraints/defaults that are not
+    needed to describe the JSON shape are removed.
+    """
+
+    lowered = _lower_schema_node(schema)
+    if not isinstance(lowered, dict):
+        raise TypeError("response schema must lower to one JSON object")
+    return lowered
+
+
+def _lower_schema_node(value: Any) -> Any:
+    if isinstance(value, list):
+        return [_lower_schema_node(item) for item in value]
+    if not isinstance(value, dict):
+        return value
+
+    lowered = {
+        key: _lower_schema_node(item)
+        for key, item in value.items()
+        if key not in _SCHEMA_GENERATION_ONLY_KEYWORDS
+    }
+    properties = lowered.get("properties")
+    if isinstance(properties, dict):
+        lowered["required"] = list(properties)
+        lowered["additionalProperties"] = False
+    return lowered
 
 
 def _schema_name(role: str) -> str:
