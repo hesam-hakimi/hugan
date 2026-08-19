@@ -14,10 +14,13 @@ from universal_coding_agent.core.safe_models import (
 from universal_coding_agent.safe.patching import EditApplyResult, SafeEditEngine, status_path
 
 _FINGERPRINT_LENGTH = 16
-_LINE_ID = r"L(?P<line>[1-9][0-9]{0,5})-(?P<fingerprint>[0-9a-f]{16})"
-_RANGE = re.compile(rf"^@range:(?P<start>{_LINE_ID})\.\.(?P<end>{_LINE_ID})$")
-_BEFORE = re.compile(rf"^@before:(?P<anchor>{_LINE_ID})$")
-_AFTER = re.compile(rf"^@after:(?P<anchor>{_LINE_ID})$")
+_LINE_TOKEN = r"L[1-9][0-9]{0,5}-[0-9a-f]{16}"
+_LINE_ID = re.compile(
+    r"^L(?P<line>[1-9][0-9]{0,5})-(?P<fingerprint>[0-9a-f]{16})$"
+)
+_RANGE = re.compile(rf"^@range:(?P<start>{_LINE_TOKEN})\.\.(?P<end>{_LINE_TOKEN})$")
+_BEFORE = re.compile(rf"^@before:(?P<anchor>{_LINE_TOKEN})$")
+_AFTER = re.compile(rf"^@after:(?P<anchor>{_LINE_TOKEN})$")
 
 
 @dataclass(frozen=True)
@@ -198,7 +201,12 @@ class LineAddressedEditEngine(SafeEditEngine):
         )
 
     @classmethod
-    def _resolve_replacements(cls, path: str, content: str, replacements) -> tuple[_ResolvedReplacement, ...]:
+    def _resolve_replacements(
+        cls,
+        path: str,
+        content: str,
+        replacements,
+    ) -> tuple[_ResolvedReplacement, ...]:
         lines = content.splitlines(keepends=True)
         if not lines:
             raise ValueError(f"line-addressed modify target is empty: {path}")
@@ -238,7 +246,8 @@ class LineAddressedEditEngine(SafeEditEngine):
                 expected_eol = cls._ending(lines[end.line - 1])
                 if expected_eol and not replacement.new_text.endswith(expected_eol):
                     raise ValueError(
-                        f"line-addressed replacement must preserve the ending of the final line in {path}: {token}"
+                        "line-addressed replacement must preserve the ending of the final "
+                        f"line in {path}: {token}"
                     )
                 resolved.append(
                     _ResolvedReplacement(
@@ -278,7 +287,7 @@ class LineAddressedEditEngine(SafeEditEngine):
 
     @staticmethod
     def _parse_address(value: str) -> _Address:
-        match = re.fullmatch(_LINE_ID, value)
+        match = _LINE_ID.fullmatch(value)
         if match is None:
             raise ValueError("invalid line address")
         return _Address(line=int(match.group("line")), fingerprint=match.group("fingerprint"))
