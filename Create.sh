@@ -1,12 +1,12 @@
-cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
+STATE_ROOT="$HOME/.uca-safe-runs/phase2c-safe-v5-$(date -u +%Y%m%dT%H%M%SZ)"
 
-.venv/bin/python -m compileall -q src tests && \
-.venv/bin/ruff check \
-  src/universal_coding_agent/context/safe_compiler.py \
-  src/universal_coding_agent/safe/patching.py \
-  src/universal_coding_agent/orchestration/safe_graph.py \
-  tests/test_safe_graph.py && \
-.venv/bin/python -m pytest -q \
-  tests/test_safe_models.py \
-  tests/test_safe_patching.py \
-  tests/test_safe_graph.py
+bash scripts/safe-workflow.sh start \
+  --state-root "$STATE_ROOT" \
+  --repository /app1/tag5916/projects/kmai-td-genie \
+  --ref phase2/semantic-plan-contract-validator \
+  --task-file /app1/tag5916/.uca-phase2c-safe-scope-v2/phase2c-safe-task.md \
+  --scope-file /app1/tag5916/.uca-phase2c-safe-scope-v2/approved-scope.json \
+  --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --title "Phase 2C first real Safe Mode slice"
