@@ -1,14 +1,7 @@
-cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
+For complex questions that require deep reasoning or a large context window, I use GPT-5.6 Sol or Opus 5.
+For planning, I use GPT-5.6 Terra.
+For documentation, I use Sonnet 5.
+For simpler coding tasks and running tests, I use Codex 5.3.
+For simple yes/no questions, I use Gemini 3 Flash.
 
-STATE_ROOT="$HOME/.uca-safe-runs/phase2c-safe-v4-$(date -u +%Y%m%dT%H%M%SZ)"
-
-bash scripts/safe-workflow.sh start \
-  --state-root "$STATE_ROOT" \
-  --repository /app1/tag5916/projects/kmai-td-genie \
-  --ref phase2/semantic-plan-contract-validator \
-  --task-file /app1/tag5916/.uca-phase2c-safe-scope-v2/phase2c-safe-task.md \
-  --scope-file /app1/tag5916/.uca-phase2c-safe-scope-v2/approved-scope.json \
-  --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
-  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
-  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
-  --title "Phase 2C first real Safe Mode slice"
+Since I am currently building three projects end-to-end from the ground up, I expect my token usage to remain relatively high over the next two months.
