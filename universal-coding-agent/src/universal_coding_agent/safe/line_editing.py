@@ -139,7 +139,10 @@ class LineAddressedEditEngine(SafeEditEngine):
                     errors.append(f"create parent escapes sandbox: {edit.path}")
                 elif not parent.is_dir():
                     errors.append(f"create parent directory does not exist: {edit.path}")
-                elif self._contains_symlink_component(root, parent.relative_to(root).as_posix()):
+                elif self._contains_symlink_component(
+                    root,
+                    parent.relative_to(root).as_posix(),
+                ):
                     errors.append(f"create parent contains a symlink component: {edit.path}")
 
         return EditValidationResult(
@@ -156,7 +159,10 @@ class LineAddressedEditEngine(SafeEditEngine):
     ) -> EditApplyResult:
         validation = self.validate(sandbox, manifest, proposal)
         if not validation.valid:
-            raise ValueError("line-addressed edit validation failed: " + "; ".join(validation.errors))
+            message = "line-addressed edit validation failed: " + "; ".join(
+                validation.errors
+            )
+            raise ValueError(message)
 
         root = sandbox.resolve()
         rendered: list[tuple[Path, bytes]] = []
@@ -228,7 +234,8 @@ class LineAddressedEditEngine(SafeEditEngine):
             after_match = _AFTER.fullmatch(token)
             if not (range_match or before_match or after_match):
                 raise ValueError(
-                    f"invalid line-address token in {path}: expected @range, @before, or @after"
+                    f"invalid line-address token in {path}: expected @range, "
+                    "@before, or @after"
                 )
 
             if range_match:
@@ -242,12 +249,14 @@ class LineAddressedEditEngine(SafeEditEngine):
                 end_offset = offsets[end.line]
                 original = content[start_offset:end_offset]
                 if replacement.new_text == original:
-                    raise ValueError(f"line-addressed replacement is a no-op in {path}: {token}")
+                    raise ValueError(
+                        f"line-addressed replacement is a no-op in {path}: {token}"
+                    )
                 expected_eol = cls._ending(lines[end.line - 1])
                 if expected_eol and not replacement.new_text.endswith(expected_eol):
                     raise ValueError(
-                        "line-addressed replacement must preserve the ending of the final "
-                        f"line in {path}: {token}"
+                        "line-addressed replacement must preserve the ending of the "
+                        f"final line in {path}: {token}"
                     )
                 resolved.append(
                     _ResolvedReplacement(
@@ -266,10 +275,13 @@ class LineAddressedEditEngine(SafeEditEngine):
             cls._verify_address(path, lines, address)
             if not replacement.new_text:
                 raise ValueError(f"line-addressed insertion is empty in {path}: {token}")
-            expected_eol = cls._ending(lines[address.line - 1]) or cls._dominant_ending(lines)
+            expected_eol = cls._ending(lines[address.line - 1])
+            if not expected_eol:
+                expected_eol = cls._dominant_ending(lines)
             if expected_eol and not replacement.new_text.endswith(expected_eol):
                 raise ValueError(
-                    f"line-addressed insertion must end with the file line ending in {path}: {token}"
+                    "line-addressed insertion must end with the file line ending "
+                    f"in {path}: {token}"
                 )
             point = offsets[address.line - 1] if before_match else offsets[address.line]
             resolved.append(
@@ -290,7 +302,10 @@ class LineAddressedEditEngine(SafeEditEngine):
         match = _LINE_ID.fullmatch(value)
         if match is None:
             raise ValueError("invalid line address")
-        return _Address(line=int(match.group("line")), fingerprint=match.group("fingerprint"))
+        return _Address(
+            line=int(match.group("line")),
+            fingerprint=match.group("fingerprint"),
+        )
 
     @staticmethod
     def _verify_address(path: str, lines: list[str], address: _Address) -> None:
@@ -316,7 +331,8 @@ class LineAddressedEditEngine(SafeEditEngine):
                     conflict = left.start < right.end and right.start < left.end
                 if conflict:
                     raise ValueError(
-                        f"line-addressed edits overlap or have ambiguous ordering in {path}"
+                        "line-addressed edits overlap or have ambiguous ordering "
+                        f"in {path}"
                     )
 
     @staticmethod
