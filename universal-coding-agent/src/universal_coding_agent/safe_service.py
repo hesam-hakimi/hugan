@@ -20,7 +20,9 @@ from universal_coding_agent.orchestration.safe_graph_v2_sharded import (
 )
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
-from universal_coding_agent.safe.line_editing import LineAddressedEditEngine
+from universal_coding_agent.safe.model_line_addressing import (
+    ModelFacingLineAddressedEditEngine,
+)
 from universal_coding_agent.safe.patching import SafeEditEngine, SafePatchEngine
 from universal_coding_agent.safe.testing import SafeTestRunner
 from universal_coding_agent.sandbox.git import GitSandboxManager
@@ -49,7 +51,7 @@ class SafeAgentService:
         protocol = os.environ.get("UCA_SAFE_EDIT_PROTOCOL", "v1").strip().lower()
         if protocol in {"v2", "v2-line-addressed", "line-addressed"}:
             context = ShardedLineAddressedContextCompiler()
-            edit_engine = LineAddressedEditEngine()
+            edit_engine = ModelFacingLineAddressedEditEngine()
             graph_type = ShardedLineAddressedSafeModeGraph
         elif protocol == "v1":
             context = SafeContextCompiler()
