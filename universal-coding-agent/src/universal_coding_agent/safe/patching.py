@@ -184,7 +184,11 @@ class SafeEditEngine:
             self.restore(sandbox, manifest, proposal.changed_paths)
             raise RuntimeError("structured edits changed paths outside the proposal")
 
-        diff_check = self._git(root, ["diff", "--check"], check=False)
+        diff_check = self._git(
+            root,
+            ["-c", "core.whitespace=cr-at-eol", "diff", "--check"],
+            check=False,
+        )
         if diff_check.returncode != 0:
             self.restore(sandbox, manifest, proposal.changed_paths)
             raise RuntimeError("structured edits failed git diff --check")
@@ -433,7 +437,11 @@ class SafePatchEngine:
         if actual_paths != tuple(sorted(changed_paths)):
             errors.append("materialized worktree paths do not exactly match the canonical patch")
 
-        diff_check = self._git(root, ["diff", "--check"], check=False)
+        diff_check = self._git(
+            root,
+            ["-c", "core.whitespace=cr-at-eol", "diff", "--check"],
+            check=False,
+        )
         if diff_check.returncode != 0:
             errors.append("materialized worktree failed git diff --check")
 
@@ -558,7 +566,11 @@ class SafePatchEngine:
         finally:
             patch_path.unlink(missing_ok=True)
 
-        diff_check = self._git(root, ["diff", "--check"], check=False)
+        diff_check = self._git(
+            root,
+            ["-c", "core.whitespace=cr-at-eol", "diff", "--check"],
+            check=False,
+        )
         if diff_check.returncode != 0:
             raise RuntimeError("applied patch failed git diff --check")
 
