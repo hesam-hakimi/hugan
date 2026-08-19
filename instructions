@@ -35,8 +35,9 @@ done
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
-from universal_coding_agent.testlab.synthetic import success_scenarios
+from universal_coding_agent.testlab.synthetic import failure_scenarios, success_scenarios
 assert success_scenarios()
+assert failure_scenarios()
 print("PRETRANSFER_LAB_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -56,7 +57,7 @@ Cmd 4
 Cmd 5
 
 ```bash
-PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/manual-$(date -u +%Y%m%dT%H%M%SZ)"
+PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/synthetic-guardrails-$(date -u +%Y%m%dT%H%M%SZ)"
 PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
 ```
 
