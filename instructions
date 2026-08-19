@@ -1,5 +1,6 @@
 # salected files
 
+- universal-coding-agent/pyproject.toml
 - universal-coding-agent/src/universal_coding_agent/safe/model_line_addressing.py
 - universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
@@ -26,6 +27,7 @@ Cmd 2
 ```bash
 set -Eeuo pipefail
 for FILE in \
+  pyproject.toml \
   src/universal_coding_agent/safe/model_line_addressing.py \
   src/universal_coding_agent/context/sharded_line_edit_compiler.py \
   src/universal_coding_agent/safe_service.py \
