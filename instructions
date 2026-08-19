@@ -46,16 +46,22 @@ Cmd 4
 Cmd 5
 
 ```bash
-env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
+env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q tests/test_model_line_addressing.py
 ```
 
 Cmd 6
 
 ```bash
-export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
 ```
 
 Cmd 7
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+```
+
+Cmd 8
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/model-line-ref-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -67,7 +73,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --skip-quality
 ```
 
-Cmd 8
+Cmd 9
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -85,7 +91,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - compact model line refs v2"
 ```
 
-Cmd 9
+Cmd 10
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -94,7 +100,7 @@ bash scripts/safe-workflow.sh approve \
   --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 10
+Cmd 11
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
