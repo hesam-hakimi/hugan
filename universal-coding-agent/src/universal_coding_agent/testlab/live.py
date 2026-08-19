@@ -85,7 +85,7 @@ def _run_once(
 
     manifest = ApprovedChangeManifest(
         base_sha=base_sha,
-        plan_hash=hashlib.sha256(f"live-{run_number}".encode("utf-8")).hexdigest(),
+        plan_hash=hashlib.sha256(f"live-{run_number}".encode()).hexdigest(),
         allowed_changes=(
             ChangeScopeEntry(
                 path="app.py",
