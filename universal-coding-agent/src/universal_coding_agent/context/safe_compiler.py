@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 from universal_coding_agent.core.models import ProjectManifest
@@ -16,10 +17,10 @@ class SafeContextCompiler:
     def __init__(
         self,
         *,
-        implementer_char_budget: int = 120_000,
-        reviewer_char_budget: int = 100_000,
+        implementer_char_budget: int = 240_000,
+        reviewer_char_budget: int = 120_000,
         patch_repair_char_budget: int = 180_000,
-        max_chars_per_file: int = 24_000,
+        max_chars_per_file: int = 70_000,
         patch_repair_max_chars_per_file: int = 60_000,
     ) -> None:
         self.implementer_char_budget = implementer_char_budget
@@ -47,14 +48,19 @@ class SafeContextCompiler:
             safe_json(task.manifest.model_dump(mode="json")),
             "# Exact allowed file state",
             self._allowed_file_state(root, task),
-            "# Mandatory output contract",
+            "# Mandatory structured-edit contract",
             (
-                "Return exactly one JSON object matching PatchProposal. The unified_diff must "
-                "be a git-style text patch. Change only approved paths and operations. Do not "
-                "rename, delete, copy, modify symlinks, emit binary patches, stage, commit, push, "
-                "create a pull request, merge, deploy, or run commands. Every unchanged/context "
-                "line in every hunk must be copied exactly from the supplied base file state; do "
-                "not invent an anchor line or an existing heading."
+                "Return exactly one JSON object matching StructuredEditProposal. Do not emit a "
+                "unified diff, diff --git headers, ---/+++ markers, @@ hunks, Markdown patch "
+                "fences, shell commands, or Git commands. For each modified file, return one "
+                "FileEdit containing one or more non-overlapping exact text replacements. Each "
+                "old_text must be copied verbatim from the supplied base-file state and must be "
+                "specific enough to occur exactly once in that file. new_text is the exact text "
+                "that should replace that anchor. For an approved create operation, return the "
+                "complete UTF-8 text content. Change only approved paths and operations. Do not "
+                "delete, rename, copy, modify symlinks, stage, commit, push, create a pull "
+                "request, merge, deploy, or run commands. The tool, not the model, will apply the "
+                "structured edits and ask Git to generate the canonical patch."
             ),
         ]
         return self._bound("\n\n".join(sections), self.implementer_char_budget)
@@ -66,13 +72,13 @@ class SafeContextCompiler:
         proposal: PatchProposal,
         validation_errors: tuple[str, ...],
     ) -> str:
+        """Legacy raw-patch repair context retained for old persisted runs only."""
+
         sections = [
-            "# Bounded patch applicability repair",
+            "# Legacy bounded patch applicability repair",
             (
-                "The previous PatchProposal was schema-valid and stayed inside the approved "
-                "file manifest, but deterministic git apply --check rejected it. Repair only "
-                "patch applicability. Preserve the original task intent, exact changed_paths, "
-                "approved operations, requested test profiles, and semantic changes."
+                "This context exists only for compatibility with persisted pre-structured-edit "
+                "runs. New Safe Mode runs do not ask a model to author or repair Git patches."
             ),
             "# Original safe task",
             task.objective,
@@ -91,16 +97,6 @@ class SafeContextCompiler:
                 max_chars_per_file=self.patch_repair_max_chars_per_file,
                 line_numbers=True,
             ),
-            "# Repair contract",
-            (
-                "Return exactly one PatchProposal JSON object. Do not add or remove changed "
-                "paths. Do not change create/modify operations. Do not broaden the task. Do not "
-                "add Markdown fences to unified_diff. Use exact current base-file text for all "
-                "unchanged and removed hunk lines. If an earlier hunk relied on invented or stale "
-                "context, replace that context with exact lines from the supplied file state. "
-                "Hunk line numbers may be recalculated, but correctness is determined by exact "
-                "context and later git apply --check."
-            ),
         ]
         return self._bound("\n\n".join(sections), self.patch_repair_char_budget)
 
@@ -117,9 +113,9 @@ class SafeContextCompiler:
             task.objective,
             "# Approved change manifest",
             safe_json(task.manifest.model_dump(mode="json")),
-            "# Proposed patch summary",
+            "# Tool-generated patch summary",
             proposal.summary,
-            "# Applied unified diff",
+            "# Canonical Git diff generated from the materialized sandbox",
             f"```diff\n{proposal.unified_diff}\n```",
             "# Actual changed paths",
             safe_json(list(actual_changed_paths)),
@@ -130,8 +126,10 @@ class SafeContextCompiler:
             "# Review rules",
             (
                 "Independently verify requirement satisfaction, exact scope, security boundaries, "
-                "test evidence, and compatibility. PASS only when the patch is fully acceptable. "
-                "Use PASS_WITH_CONDITIONS, BLOCKED, or FAIL when any follow-up is required."
+                "test evidence, and compatibility. The implementer supplied structured edits; "
+                "the Git diff above was generated deterministically by the tool from the sandbox. "
+                "PASS only when the result is fully acceptable. Use PASS_WITH_CONDITIONS, "
+                "BLOCKED, or FAIL when any follow-up is required."
             ),
         ]
         return self._bound("\n\n".join(sections), self.reviewer_char_budget)
@@ -148,10 +146,11 @@ class SafeContextCompiler:
         limit = max_chars_per_file or self.max_chars_per_file
         output: list[str] = []
         for entry in task.manifest.allowed_changes:
-            path = (repository_root / entry.path).resolve()
-            if path != repository_root and repository_root not in path.parents:
+            path = repository_root / entry.path
+            resolved = path.resolve()
+            if resolved != repository_root and repository_root not in resolved.parents:
                 raise ValueError("approved file escapes repository")
-            if path.is_symlink():
+            if self._contains_symlink_component(repository_root, entry.path):
                 output.append(f"## {entry.path}\nSYMLINK_REJECTED")
                 continue
             if not path.exists():
@@ -163,20 +162,42 @@ class SafeContextCompiler:
                 output.append(f"## {entry.path}\nState: NOT_A_REGULAR_FILE")
                 continue
             try:
-                content = path.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                output.append(f"## {entry.path}\nState: UNREADABLE")
+                payload = path.read_bytes()
+                content = payload.decode("utf-8")
+            except (OSError, UnicodeDecodeError):
+                output.append(f"## {entry.path}\nState: NOT_READABLE_UTF8_TEXT")
                 continue
-            bounded = sanitize_text(content[:limit])
+
+            bounded_raw = content[:limit]
+            bounded = sanitize_text(bounded_raw)
+            content_sha = hashlib.sha256(payload).hexdigest()
             truncated = len(content) > limit
+            redacted = bounded != bounded_raw
+            if redacted:
+                output.append(
+                    f"## {entry.path}\nOperation: {entry.operation.value}\n"
+                    f"SHA256: {content_sha}\nState: CONTENT_REDACTED_FOR_SAFETY\n"
+                    "Exact model-authored replacements are not permitted for redacted content."
+                )
+                continue
             if line_numbers:
                 bounded = self._with_line_numbers(bounded)
-            suffix = "\n[FILE CONTENT TRUNCATED BY REPAIR BUDGET]" if truncated else ""
+            suffix = "\n[FILE CONTENT TRUNCATED BY DETERMINISTIC CONTEXT BUDGET]" if truncated else ""
             output.append(
                 f"## {entry.path}\nOperation: {entry.operation.value}\n"
+                f"SHA256: {content_sha}\nTruncated: {str(truncated).lower()}\n"
                 f"```text\n{bounded}{suffix}\n```"
             )
         return "\n\n".join(output)
+
+    @staticmethod
+    def _contains_symlink_component(root: Path, relative: str) -> bool:
+        cursor = root
+        for part in Path(relative).parts:
+            cursor = cursor / part
+            if cursor.is_symlink():
+                return True
+        return False
 
     @staticmethod
     def _with_line_numbers(value: str) -> str:
