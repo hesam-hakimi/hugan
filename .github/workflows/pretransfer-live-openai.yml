@@ -27,6 +27,8 @@ jobs:
       UCA_OPENAI_MODEL: ${{ inputs.model || vars.UCA_OPENAI_MODEL || 'gpt-5.6' }}
       UCA_LIVE_RUNS: ${{ inputs.runs || vars.UCA_LIVE_RUNS || '1' }}
       UCA_LIVE_MIN_SUCCESS_RATE: "1.0"
+      UCA_HARD_LIVE_RUNS: "1"
+      UCA_HARD_LIVE_MIN_SUCCESS_RATE: "1.0"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -76,5 +78,31 @@ jobs:
         with:
           name: uca-pretransfer-live-summary
           path: ${{ runner.temp }}/uca-pretransfer-live/live-summary.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run hard CDC reasoning qualification
+        id: hard
+        if: env.OPENAI_API_KEY != ''
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-hard-cdc"
+          set +e
+          python -m universal_coding_agent.testlab.hard_reasoning \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/hard-summary.json" ]]; then
+            cat "$STATE_ROOT/hard-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload hard CDC reasoning summary
+        if: env.OPENAI_API_KEY != '' && always() && steps.hard.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-pretransfer-hard-cdc-summary
+          path: ${{ runner.temp }}/uca-pretransfer-hard-cdc/hard-summary.json
           if-no-files-found: error
           retention-days: 14
