@@ -1,5 +1,12 @@
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-bash scripts/safe-implementer-diagnose.sh \
-  --state-root /home/tag5916/.uca-safe-runs/phase2c-safe-v5-20260819T021443Z \
-  --task-id safe-20260819T021449Z-1950491-task
+.venv/bin/python -m compileall -q src tests && \
+.venv/bin/ruff check \
+  src/universal_coding_agent/core/safe_models.py \
+  src/universal_coding_agent/safe/patching.py \
+  tests/test_safe_models.py \
+  tests/test_safe_patching.py && \
+.venv/bin/python -m pytest -q \
+  tests/test_safe_models.py \
+  tests/test_safe_patching.py \
+  tests/test_safe_graph.py
