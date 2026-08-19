@@ -4,6 +4,10 @@
 - universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/tests/test_model_line_addressing.py
+- universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
+- universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
+- universal-coding-agent/tests/test_pretransfer_lab.py
+- universal-coding-agent/scripts/pretransfer-test-lab.sh
 
 Cmd 1
 
@@ -19,7 +23,11 @@ for FILE in \
   src/universal_coding_agent/safe/model_line_addressing.py \
   src/universal_coding_agent/context/sharded_line_edit_compiler.py \
   src/universal_coding_agent/safe_service.py \
-  tests/test_model_line_addressing.py
+  tests/test_model_line_addressing.py \
+  src/universal_coding_agent/testlab/__init__.py \
+  src/universal_coding_agent/testlab/synthetic.py \
+  tests/test_pretransfer_lab.py \
+  scripts/pretransfer-test-lab.sh
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
@@ -27,7 +35,9 @@ done
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
-print("MODEL_LINE_REF_PREFLIGHT_PASS")
+from universal_coding_agent.testlab.synthetic import success_scenarios
+assert success_scenarios()
+print("PRETRANSFER_LAB_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -46,7 +56,7 @@ Cmd 4
 Cmd 5
 
 ```bash
-env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q tests/test_model_line_addressing.py
+PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh
 ```
 
 Cmd 6
@@ -64,7 +74,7 @@ export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 Cmd 8
 
 ```bash
-STATE_ROOT="$HOME/.uca-safe-host-runs/model-line-ref-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
+STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
 bash scripts/qualify-line-addressed-host-provider.sh \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
@@ -77,7 +87,7 @@ Cmd 9
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
-PHASE2C_STATE_ROOT="$HOME/.uca-safe-runs/phase2c-model-line-ref-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
+PHASE2C_STATE_ROOT="$HOME/.uca-safe-runs/phase2c-pretransfer-lab-v2-$(date -u +%Y%m%dT%H%M%SZ)"
 printf '%s\n' "$PHASE2C_STATE_ROOT" > "$HOME/.uca-phase2c-line-addressed-v2-current"
 bash scripts/safe-workflow.sh start \
   --state-root "$PHASE2C_STATE_ROOT" \
@@ -88,7 +98,7 @@ bash scripts/safe-workflow.sh start \
   --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
-  --title "Phase 2C real Safe Mode - compact model line refs v2"
+  --title "Phase 2C real Safe Mode - pre-transfer qualified line-addressed v2"
 ```
 
 Cmd 10
