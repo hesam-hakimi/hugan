@@ -102,3 +102,31 @@ FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-fi
 test -n "$FINAL_REPORT"
 .venv/bin/python -m json.tool "$FINAL_REPORT"
 ```
+
+Cmd 11
+
+```bash
+set -Eeuo pipefail
+PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
+FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-final-report.json -print -quit)"
+TASK_ROOT="$(dirname "$FINAL_REPORT")"
+VALIDATION="$TASK_ROOT/implementer-model-validation.json"
+test -f "$VALIDATION"
+.venv/bin/python - "$VALIDATION" "$TASK_ROOT" <<'PY'
+import json
+import sys
+from pathlib import Path
+validation_path = Path(sys.argv[1])
+task_root = Path(sys.argv[2])
+payload = json.loads(validation_path.read_text(encoding="utf-8"))
+print("SHARD_FAILURE=")
+print(json.dumps(payload.get("failure"), indent=2, ensure_ascii=False))
+print("SHARDS=")
+print(json.dumps(payload.get("shards", []), indent=2, ensure_ascii=False))
+print("ATTEMPTS=")
+print(json.dumps(payload.get("attempts", []), indent=2, ensure_ascii=False))
+for path in sorted(task_root.glob("edit-proposal-rejected-*.json")):
+    print(f"REJECTED_PROPOSAL={path}")
+    print(path.read_text(encoding="utf-8"))
+PY
+```
