@@ -1,0 +1,44 @@
+# salected files
+
+- universal-coding-agent/src/universal_coding_agent/safe/line_editing.py
+- universal-coding-agent/src/universal_coding_agent/context/line_edit_compiler.py
+- universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2.py
+- universal-coding-agent/src/universal_coding_agent/safe_service.py
+- universal-coding-agent/tests/test_line_edit_protocol.py
+
+Cmd 1
+
+```bash
+cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
+.venv/bin/python -m compileall -q src tests
+```
+
+Cmd 2
+
+```bash
+.venv/bin/ruff check .
+```
+
+Cmd 3
+
+```bash
+.venv/bin/python -m pytest -q
+```
+
+Cmd 4
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+```
+
+Cmd 5
+
+```bash
+STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-$(date -u +%Y%m%dT%H%M%SZ)"
+bash scripts/qualify-safe-host-provider.sh \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --state-root "$STATE_ROOT" \
+  --skip-install \
+  --skip-quality
+```
