@@ -13,6 +13,7 @@ from universal_coding_agent.context.safe_compiler import SafeContextCompiler
 from universal_coding_agent.context.sharded_line_edit_compiler import (
     ShardedLineAddressedContextCompiler,
 )
+from universal_coding_agent.core.safe_models import SafeTaskRequest
 from universal_coding_agent.orchestration.safe_graph import SafeGraphServices, SafeModeGraph
 from universal_coding_agent.orchestration.safe_graph_v2_sharded import (
     ShardedLineAddressedSafeModeGraph,
@@ -82,7 +83,7 @@ class SafeAgentService:
     def close(self) -> None:
         self.connection.close()
 
-    def run(self, task) -> dict[str, Any]:
+    def run(self, task: SafeTaskRequest) -> dict[str, Any]:
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
