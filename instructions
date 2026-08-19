@@ -65,7 +65,8 @@ PY
 Cmd 3
 
 ```bash
-.venv/bin/python -m compileall -q src tests
+.venv/bin/python -m compileall -q src tests && \
+.venv/bin/python -m pytest -q tests/test_hard_reasoning_lab.py
 ```
 
 Cmd 4
