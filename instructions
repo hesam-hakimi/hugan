@@ -43,11 +43,13 @@ done
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
+from universal_coding_agent.testlab.live import run_live_suite
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 from universal_coding_agent.testlab.synthetic import failure_scenarios, success_scenarios
 assert success_scenarios()
 assert failure_scenarios()
 assert OpenAIResponsesProvider
+assert run_live_suite
 print("PRETRANSFER_LAB_IMPORT_PREFLIGHT_PASS")
 PY
 ```
