@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from universal_coding_agent.core.models import ModelRequest
 from universal_coding_agent.providers.base import ModelProviderError
+from universal_coding_agent.testlab.live import _provider_preflight
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 
 
@@ -105,3 +108,99 @@ def test_openai_testlab_provider_rejects_non_json_structured_output() -> None:
         )
 
     assert exc_info.value.code == "openai_invalid_structured_output"
+
+
+def test_live_provider_preflight_checks_text_and_real_structured_schema() -> None:
+    payloads = []
+
+    def transport(payload):
+        payloads.append(payload)
+        if len(payloads) == 1:
+            text = "UCA_OPENAI_PROVIDER_OK"
+        else:
+            text = json.dumps(
+                {
+                    "summary": "preflight",
+                    "edits": [
+                        {
+                            "path": "app.py",
+                            "operation": "modify",
+                            "replacements": [
+                                {
+                                    "old_text": "@range:A000001..A000001",
+                                    "new_text": "VALUE = 43\n",
+                                }
+                            ],
+                            "content": None,
+                        }
+                    ],
+                    "requested_test_profiles": ["live-check"],
+                    "assumptions": [],
+                }
+            )
+        return {
+            "id": f"resp_{len(payloads)}",
+            "status": "completed",
+            "model": "test-model",
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": text}],
+                }
+            ],
+        }
+
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        transport=transport,
+    )
+
+    result = _provider_preflight(provider)
+
+    assert result["ok"] is True
+    assert [stage["stage"] for stage in result["stages"]] == [
+        "text_response",
+        "structured_schema",
+    ]
+    assert "text" not in payloads[0]
+    assert payloads[1]["text"]["format"]["type"] == "json_schema"
+
+
+def test_live_provider_preflight_reports_safe_structured_http_failure() -> None:
+    calls = 0
+
+    def transport(_payload):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return {
+                "id": "resp_text",
+                "status": "completed",
+                "model": "test-model",
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [
+                            {"type": "output_text", "text": "UCA_OPENAI_PROVIDER_OK"}
+                        ],
+                    }
+                ],
+            }
+        raise ModelProviderError(
+            "openai_http_error",
+            "OpenAI Responses API HTTP 400: invalid schema",
+        )
+
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        transport=transport,
+    )
+
+    result = _provider_preflight(provider)
+
+    assert result["ok"] is False
+    assert result["failed_stage"] == "structured_schema"
+    assert result["error"]["code"] == "openai_http_error"
+    assert "invalid schema" in result["error"]["message"]
