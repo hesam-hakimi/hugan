@@ -60,9 +60,15 @@ jobs:
         working-directory: universal-coding-agent
         run: |
           STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-live"
+          set +e
           bash scripts/pretransfer-live-openai.sh "$STATE_ROOT"
+          RC=$?
+          set -e
           echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
-          cat "$STATE_ROOT/live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$STATE_ROOT/live-summary.json" ]]; then
+            cat "$STATE_ROOT/live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
 
       - name: Upload live qualification summary
         if: env.OPENAI_API_KEY != '' && always()
