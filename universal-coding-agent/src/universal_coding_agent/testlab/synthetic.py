@@ -322,8 +322,11 @@ def success_scenarios() -> tuple[SyntheticScenario, ...]:
         ),
         SyntheticScenario(
             scenario_id="create-file",
-            title="Approved file creation",
-            initial_files={"README.md": "# Fixture\n"},
+            title="Approved file creation with existing parent",
+            initial_files={
+                "README.md": "# Fixture\n",
+                "generated/.keep": "",
+            },
             changes=(
                 SyntheticChange(
                     path="generated/result.txt",
@@ -383,6 +386,19 @@ def failure_scenarios() -> tuple[SyntheticScenario, ...]:
             ),
             expected_status="blocked",
             expected_safe_error="edit:shard_validation_failed",
+        ),
+        SyntheticScenario(
+            scenario_id="create-missing-parent",
+            title="Create under a missing parent fails closed",
+            initial_files={"README.md": "# Fixture\n"},
+            changes=(
+                SyntheticChange(
+                    path="generated/result.txt",
+                    operation=ChangeOperation.CREATE,
+                    new_text="must not be created\n",
+                ),
+            ),
+            expected_status="blocked",
         ),
         SyntheticScenario(
             scenario_id="test-failure",
