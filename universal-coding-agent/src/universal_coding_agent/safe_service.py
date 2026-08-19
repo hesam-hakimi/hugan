@@ -9,11 +9,14 @@ from typing import Any
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
+from universal_coding_agent.context.line_edit_compiler import LineAddressedContextCompiler
 from universal_coding_agent.context.safe_compiler import SafeContextCompiler
 from universal_coding_agent.core.safe_models import SafeTaskRequest
 from universal_coding_agent.orchestration.safe_graph import SafeGraphServices, SafeModeGraph
+from universal_coding_agent.orchestration.safe_graph_v2 import LineAddressedSafeModeGraph
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
+from universal_coding_agent.safe.line_editing import LineAddressedEditEngine
 from universal_coding_agent.safe.patching import SafeEditEngine, SafePatchEngine
 from universal_coding_agent.safe.testing import SafeTestRunner
 from universal_coding_agent.sandbox.git import GitSandboxManager
@@ -38,6 +41,21 @@ class SafeAgentService:
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
         state_root.mkdir(parents=True, exist_ok=True)
         artifacts = ArtifactStore(state_root / "artifacts")
+
+        protocol = os.environ.get("UCA_SAFE_EDIT_PROTOCOL", "v1").strip().lower()
+        if protocol in {"v2", "v2-line-addressed", "line-addressed"}:
+            context = LineAddressedContextCompiler()
+            edit_engine = LineAddressedEditEngine()
+            graph_type = LineAddressedSafeModeGraph
+        elif protocol == "v1":
+            context = SafeContextCompiler()
+            edit_engine = SafeEditEngine()
+            graph_type = SafeModeGraph
+        else:
+            raise ValueError(
+                "UCA_SAFE_EDIT_PROTOCOL must be v1 or v2-line-addressed"
+            )
+
         services = SafeGraphServices(
             provider=provider,
             sandbox=GitSandboxManager(
@@ -45,9 +63,9 @@ class SafeAgentService:
                 allow_local_sources=allow_local_sources,
             ),
             indexer=RepositoryIndexer(),
-            context=SafeContextCompiler(),
+            context=context,
             artifacts=artifacts,
-            edit_engine=SafeEditEngine(),
+            edit_engine=edit_engine,
             patch_engine=SafePatchEngine(),
             test_runner=SafeTestRunner(),
         )
@@ -55,7 +73,7 @@ class SafeAgentService:
             state_root / "safe-checkpoints.sqlite",
             check_same_thread=False,
         )
-        graph = SafeModeGraph(services).build(checkpointer=SqliteSaver(connection))
+        graph = graph_type(services).build(checkpointer=SqliteSaver(connection))
         return cls(graph=graph, connection=connection, artifacts=artifacts)
 
     def close(self) -> None:
