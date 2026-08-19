@@ -14,10 +14,8 @@ from universal_coding_agent.core.safe_models import (
 from universal_coding_agent.safe.patching import EditApplyResult, SafeEditEngine, status_path
 
 _FINGERPRINT_LENGTH = 16
-_LINE_TOKEN = r"L[1-9][0-9]{0,5}-[0-9a-f]{16}"
-_LINE_ID = re.compile(
-    r"^L(?P<line>[1-9][0-9]{0,5})-(?P<fingerprint>[0-9a-f]{16})$"
-)
+_LINE_TOKEN = r"L[0-9]{6}-[0-9a-f]{16}"
+_LINE_ID = re.compile(r"^L(?P<line>[0-9]{6})-(?P<fingerprint>[0-9a-f]{16})$")
 _RANGE = re.compile(rf"^@range:(?P<start>{_LINE_TOKEN})\.\.(?P<end>{_LINE_TOKEN})$")
 _BEFORE = re.compile(rf"^@before:(?P<anchor>{_LINE_TOKEN})$")
 _AFTER = re.compile(rf"^@after:(?P<anchor>{_LINE_TOKEN})$")
