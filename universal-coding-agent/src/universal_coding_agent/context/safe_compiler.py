@@ -7,6 +7,7 @@ from universal_coding_agent.core.models import ProjectManifest
 from universal_coding_agent.core.safe_models import (
     PatchProposal,
     SafeTaskRequest,
+    StructuredEditProposal,
     TestExecutionResult,
     safe_json,
 )
@@ -19,14 +20,18 @@ class SafeContextCompiler:
         *,
         implementer_char_budget: int = 240_000,
         reviewer_char_budget: int = 120_000,
+        edit_repair_char_budget: int = 220_000,
         patch_repair_char_budget: int = 180_000,
         max_chars_per_file: int = 70_000,
+        edit_repair_max_chars_per_file: int = 140_000,
         patch_repair_max_chars_per_file: int = 60_000,
     ) -> None:
         self.implementer_char_budget = implementer_char_budget
         self.reviewer_char_budget = reviewer_char_budget
+        self.edit_repair_char_budget = edit_repair_char_budget
         self.patch_repair_char_budget = patch_repair_char_budget
         self.max_chars_per_file = max_chars_per_file
+        self.edit_repair_max_chars_per_file = edit_repair_max_chars_per_file
         self.patch_repair_max_chars_per_file = patch_repair_max_chars_per_file
 
     def compile_implementer(
@@ -64,6 +69,56 @@ class SafeContextCompiler:
             ),
         ]
         return self._bound("\n\n".join(sections), self.implementer_char_budget)
+
+    def compile_edit_repair(
+        self,
+        root: Path,
+        task: SafeTaskRequest,
+        proposal: StructuredEditProposal,
+        validation_errors: tuple[str, ...],
+    ) -> str:
+        """Compile one bounded semantic-anchor repair with exact frozen file state."""
+
+        failed_paths = self._paths_from_validation_errors(
+            proposal.changed_paths,
+            validation_errors,
+        )
+        sections = [
+            "# Bounded structured-edit anchor repair",
+            (
+                "The initial StructuredEditProposal was schema-valid, but deterministic edit "
+                "validation rejected one or more exact replacement anchors. This is the only "
+                "semantic edit-repair attempt. The control plane will still require exact unique "
+                "anchors and will fail closed if the repaired proposal is not deterministically "
+                "applicable."
+            ),
+            "# Original safe task",
+            task.objective,
+            "# Frozen human-approved change manifest",
+            safe_json(task.manifest.model_dump(mode="json")),
+            "# Deterministic edit-validation errors",
+            safe_json(list(validation_errors)),
+            "# Rejected structured-edit proposal",
+            safe_json(proposal.model_dump(mode="json")),
+            "# Exact frozen base-file state for paths requiring anchor repair",
+            self._allowed_file_state(
+                root,
+                task,
+                max_chars_per_file=self.edit_repair_max_chars_per_file,
+                only_paths=set(failed_paths),
+            ),
+            "# Mandatory repair contract",
+            (
+                "Return exactly one StructuredEditProposal JSON object. Preserve the exact set of "
+                "edited paths, operations, requested test profiles, and substantive requested "
+                "changes from the rejected proposal. Do not add, remove, or substitute files. "
+                "Correct only the semantic edit anchors/replacements necessary to make the edits "
+                "deterministically applicable. Every old_text must be copied verbatim from the "
+                "exact frozen base-file state above and must occur exactly once. Do not emit Git "
+                "patch syntax, Markdown patch fences, commands, or publication actions."
+            ),
+        ]
+        return self._bound("\n\n".join(sections), self.edit_repair_char_budget)
 
     def compile_patch_repair(
         self,
@@ -141,11 +196,14 @@ class SafeContextCompiler:
         *,
         max_chars_per_file: int | None = None,
         line_numbers: bool = False,
+        only_paths: set[str] | None = None,
     ) -> str:
         repository_root = root.resolve()
         limit = max_chars_per_file or self.max_chars_per_file
         output: list[str] = []
         for entry in task.manifest.allowed_changes:
+            if only_paths is not None and entry.path not in only_paths:
+                continue
             path = repository_root / entry.path
             resolved = path.resolve()
             if resolved != repository_root and repository_root not in resolved.parents:
@@ -193,6 +251,18 @@ class SafeContextCompiler:
                 f"```text\n{bounded}{suffix}\n```"
             )
         return "\n\n".join(output)
+
+    @staticmethod
+    def _paths_from_validation_errors(
+        changed_paths: tuple[str, ...],
+        validation_errors: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        matched = tuple(
+            path
+            for path in changed_paths
+            if any(path in error for error in validation_errors)
+        )
+        return matched or changed_paths
 
     @staticmethod
     def _contains_symlink_component(root: Path, relative: str) -> bool:
