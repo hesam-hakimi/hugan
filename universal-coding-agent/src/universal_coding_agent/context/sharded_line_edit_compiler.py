@@ -4,7 +4,11 @@ from pathlib import Path
 
 from universal_coding_agent.context.line_edit_compiler import LineAddressedContextCompiler
 from universal_coding_agent.core.models import ProjectManifest
-from universal_coding_agent.core.safe_models import SafeTaskRequest, StructuredEditProposal, safe_json
+from universal_coding_agent.core.safe_models import (
+    SafeTaskRequest,
+    StructuredEditProposal,
+    safe_json,
+)
 
 
 class ShardedLineAddressedContextCompiler(LineAddressedContextCompiler):
