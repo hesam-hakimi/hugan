@@ -125,6 +125,7 @@ def test_safe_graph_requires_approval_and_retains_only_passing_change(tmp_path: 
         assert report["model_authored_patch"] is False
         assert report["canonical_patch_generated_by"] == "git"
         assert report["structured_edit_protocol"] == "v1"
+        assert report["edit_repair_used"] is False
         assert report["stage_commit_push_pr_merge_deploy"] is False
 
         edit_proposal = service.artifacts.read_json(report["edit_proposal_ref"])
@@ -187,6 +188,7 @@ def test_safe_graph_repairs_structured_edit_schema_without_requesting_patch_synt
         report = service.artifacts.read_json(final["final_report_ref"])
         assert report["model_authored_patch"] is False
         assert report["patch_repair_used"] is False
+        assert report["edit_repair_used"] is False
     finally:
         service.close()
 
@@ -224,10 +226,21 @@ def test_safe_graph_git_generates_valid_patch_for_markdown_like_insertions(tmp_p
         service.close()
 
 
-def test_safe_graph_blocks_missing_exact_anchor_without_mutating_sandbox(tmp_path: Path) -> None:
+def test_safe_graph_repairs_missing_exact_anchor_once_with_frozen_file_context(
+    tmp_path: Path,
+) -> None:
     source, base_sha = _source(tmp_path)
+    implementer_requests = []
 
-    def implementer(_request):
+    def implementer(request):
+        implementer_requests.append(request)
+        if request.metadata.get("edit_repair") == "true":
+            assert "exact replacement anchor in app.py must occur once; found 0" in request.user_prompt
+            assert "def answer():\n    return 42\n" in request.user_prompt
+            return _structured_payload(
+                old_text="def answer():\n    return 42\n",
+                new_text="def answer():\n    return 43\n",
+            )
         return _structured_payload(old_text="return 99", new_text="return 43")
 
     state_root = tmp_path / "state"
@@ -236,15 +249,105 @@ def test_safe_graph_blocks_missing_exact_anchor_without_mutating_sandbox(tmp_pat
         FakeModelProvider(handlers={"implementer": implementer}),
         allow_local_sources=True,
     )
-    task = _task(source, base_sha, "safe-task-missing-anchor")
+    task = _task(source, base_sha, "safe-task-anchor-repair")
+    try:
+        service.run(task)
+        final = service.resume(task.thread_id, True)
+        assert final["status"] == "completed"
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["edit_repair_used"] is True
+        assert report["initial_edit_proposal_ref"] != report["edit_proposal_ref"]
+        assert report["edit_repair_context_ref"]
+        assert report["edit_repair_validation_ref"]
+        assert report["edit_repair_proposal_ref"] == report["edit_proposal_ref"]
+        assert sum(
+            request.metadata.get("edit_repair") == "true"
+            for request in implementer_requests
+        ) == 1
+        sandbox = state_root / "sandboxes" / task.task_id / "repo"
+        assert "return 43" in (sandbox / "app.py").read_text(encoding="utf-8")
+        assert "return 42" in (source / "app.py").read_text(encoding="utf-8")
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_blocks_after_one_failed_exact_anchor_repair_without_mutation(
+    tmp_path: Path,
+) -> None:
+    source, base_sha = _source(tmp_path)
+    implementer_requests = []
+
+    def implementer(request):
+        implementer_requests.append(request)
+        return _structured_payload(old_text="return 99", new_text="return 43")
+
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(handlers={"implementer": implementer}),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-anchor-repair-exhausted")
     try:
         service.run(task)
         final = service.resume(task.thread_id, True)
         assert final["status"] == "blocked"
         assert "edit:validation_failed" in final["safe_errors"]
         assert final.get("patch_ref") is None
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["edit_repair_used"] is True
+        assert report["edit_repair_proposal_ref"]
+        assert sum(
+            request.metadata.get("edit_repair") == "true"
+            for request in implementer_requests
+        ) == 1
         sandbox = state_root / "sandboxes" / task.task_id / "repo"
         assert "return 42" in (sandbox / "app.py").read_text(encoding="utf-8")
+        assert _git(sandbox, "status", "--porcelain") == ""
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_does_not_repair_non_anchor_scope_validation_failure(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+    implementer_requests = []
+
+    def implementer(request):
+        implementer_requests.append(request)
+        return {
+            "summary": "Attempt an unapproved path.",
+            "edits": [
+                {
+                    "path": "other.py",
+                    "operation": "modify",
+                    "replacements": [
+                        {"old_text": "old", "new_text": "new"}
+                    ],
+                    "content": None,
+                }
+            ],
+            "requested_test_profiles": ["python-check"],
+            "assumptions": [],
+        }
+
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(handlers={"implementer": implementer}),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-no-scope-repair")
+    try:
+        service.run(task)
+        final = service.resume(task.thread_id, True)
+        assert final["status"] == "blocked"
+        assert "edit:validation_failed" in final["safe_errors"]
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["edit_repair_used"] is False
+        assert len(implementer_requests) == 1
+        sandbox = state_root / "sandboxes" / task.task_id / "repo"
         assert _git(sandbox, "status", "--porcelain") == ""
         assert _git(source, "status", "--porcelain") == ""
     finally:
