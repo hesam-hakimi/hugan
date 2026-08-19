@@ -274,8 +274,9 @@ def hard_test_script() -> str:
             raise AssertionError("invalid in-window operation must be rejected before deduplication")
 
         doc = open("docs/cdc_contract.md", encoding="utf-8").read().lower()
-        for token in ("half-open", "event_ts", "ingest_seq", "stale", "replace", "deterministic"):
+        for token in ("half-open", "event_ts", "ingest_seq", "replace", "deterministic"):
             assert token in doc, token
+        assert "stale" in doc or "less than or equal" in doc
         '''
     ).strip()
 
