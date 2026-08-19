@@ -11,7 +11,6 @@ from universal_coding_agent.core.safe_models import SafeTaskRequest, StructuredE
 from universal_coding_agent.orchestration.safe_graph import SafeGraphState
 from universal_coding_agent.orchestration.safe_graph_v2 import (
     LINE_ADDRESSED_IMPLEMENTER_REPAIR_GUIDANCE,
-    LINE_ADDRESSED_IMPLEMENTER_SYSTEM_PROMPT,
     LineAddressedSafeModeGraph,
 )
 from universal_coding_agent.orchestration.structured_output import (
@@ -374,7 +373,8 @@ class ShardedLineAddressedSafeModeGraph(LineAddressedSafeModeGraph):
                 )
             if edit.operation is not target_operation:
                 errors.append(
-                    f"file shard operation is {edit.operation.value}, expected {target_operation.value}"
+                    "file shard operation is "
+                    f"{edit.operation.value}, expected {target_operation.value}"
                 )
         validation = self.services.edit_engine.validate(root, task.manifest, proposal)
         errors.extend(validation.errors)
