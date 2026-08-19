@@ -2,19 +2,18 @@ set -Eeuo pipefail
 
 cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 
-echo "=== COMPILE ==="
-.venv/bin/python -m compileall -q src tests
+STATE_ROOT="$HOME/.uca-safe-runs/phase2c-structured-anchor-v1-$(date -u +%Y%m%dT%H%M%SZ)"
 
-echo "=== LINT ==="
-.venv/bin/ruff check .
-
-echo "=== TESTS ==="
-.venv/bin/python -m pytest -q
-
-echo "=== SAFE MODE SMOKE ==="
-bash scripts/safe-smoke.sh
+bash scripts/safe-workflow.sh start \
+  --state-root "$STATE_ROOT" \
+  --repository /app1/tag5916/projects/kmai-td-genie \
+  --ref phase2/semantic-plan-contract-validator \
+  --task-file /app1/tag5916/.uca-phase2c-safe-scope-v2/phase2c-safe-task.md \
+  --scope-file /app1/tag5916/.uca-phase2c-safe-scope-v2/approved-scope.json \
+  --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --title "Phase 2C structured-edit Safe Mode with bounded anchor repair"
 
 echo
-echo "============================================"
-echo "STRUCTURED_EDIT_ANCHOR_REPAIR_LOCAL_GATES_OK"
-echo "============================================"
+echo "PHASE2C_STATE_ROOT=$STATE_ROOT"
