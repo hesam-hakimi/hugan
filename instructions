@@ -5,6 +5,8 @@
 - universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/tests/test_line_edit_protocol.py
+- universal-coding-agent/tests/conftest.py
+- universal-coding-agent/scripts/qualify-line-addressed-host-provider.sh
 
 Cmd 1
 
@@ -22,7 +24,7 @@ Cmd 2
 Cmd 3
 
 ```bash
-.venv/bin/python -m pytest -q
+env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
 ```
 
 Cmd 4
@@ -35,7 +37,7 @@ Cmd 5
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-$(date -u +%Y%m%dT%H%M%SZ)"
-bash scripts/qualify-safe-host-provider.sh \
+bash scripts/qualify-line-addressed-host-provider.sh \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
   --state-root "$STATE_ROOT" \
