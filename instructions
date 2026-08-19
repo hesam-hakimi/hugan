@@ -2,9 +2,12 @@
 
 - universal-coding-agent/src/universal_coding_agent/safe/line_editing.py
 - universal-coding-agent/src/universal_coding_agent/context/line_edit_compiler.py
+- universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2.py
+- universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2_sharded.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/tests/test_line_edit_protocol.py
+- universal-coding-agent/tests/test_sharded_line_edit_protocol.py
 - universal-coding-agent/tests/conftest.py
 - universal-coding-agent/scripts/qualify-line-addressed-host-provider.sh
 
@@ -36,7 +39,7 @@ export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 Cmd 5
 
 ```bash
-STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-$(date -u +%Y%m%dT%H%M%SZ)"
+STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
 bash scripts/qualify-line-addressed-host-provider.sh \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
