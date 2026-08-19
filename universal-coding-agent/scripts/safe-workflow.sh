@@ -39,9 +39,9 @@ Usage:
     bash scripts/safe-workflow.sh approve --context-file PATH
     bash scripts/safe-workflow.sh reject  --context-file PATH
 
-The wrapper writes a durable context JSON file under STATE_ROOT. Subsequent
-commands need only that context file. It never stages, commits, pushes, creates
-a pull request, merges, or deploys.
+The wrapper writes durable run context under STATE_ROOT. Subsequent commands
+need only that context file. It never stages, commits, pushes, creates a pull
+request, merges, or deploys.
 USAGE
 }
 
@@ -85,6 +85,7 @@ load_context() {
   THREAD_ID="$(json_get "$CONTEXT_FILE" thread_id)"
   REPOSITORY="$(json_get "$CONTEXT_FILE" repository)"
   SCOPE_FILE="$(json_get "$CONTEXT_FILE" scope_file)"
+  POLICY_FILE="$(json_get "$CONTEXT_FILE" policy_file)"
   HOST_CLIENT="$(json_get "$CONTEXT_FILE" host_client)"
   HOST_PYTHON="$(json_get "$CONTEXT_FILE" host_python)"
   PROVIDER_FACTORY="$(json_get "$CONTEXT_FILE" provider_factory)"
@@ -164,8 +165,11 @@ def status_lines(path: Path) -> list[str]:
     )
     return [line for line in result.stdout.splitlines() if line.strip()]
 
+
 report = load("safe-final-report.json")
 implementer = load("implementer-model-validation.json")
+edit_validation = load("edit-validation.json")
+edit_apply = load("edit-apply.json")
 validation = load("patch-validation.json")
 tests = load("test-results.json")
 review = load("safe-review.json")
@@ -178,10 +182,17 @@ print("FINAL_STATUS=" + str(report.get("status")))
 print("REVIEWER_VERDICT=" + str(report.get("reviewer_verdict")))
 print("SAFE_ERRORS=" + json.dumps(report.get("safe_errors", [])))
 print("SCOPE_APPROVED=" + str(report.get("scope_approved")))
+print("STRUCTURED_EDIT_PROTOCOL=" + str(report.get("structured_edit_protocol")))
+print("MODEL_AUTHORED_PATCH=" + str(report.get("model_authored_patch")))
+print("CANONICAL_PATCH_GENERATED_BY=" + str(report.get("canonical_patch_generated_by")))
 print("ROLLED_BACK=" + str(report.get("rolled_back")))
 print("SANDBOX_PATCH_RETAINED=" + str(report.get("sandbox_patch_retained")))
 print("IMPLEMENTER_ACTUAL_MODEL=" + str(model(implementer)))
 print("IMPLEMENTER_SCHEMA_REPAIR_USED=" + str(implementer.get("repair_used")))
+print("EDIT_VALID=" + str(edit_validation.get("valid")))
+print("EDIT_CHANGED_PATHS=" + json.dumps(edit_validation.get("changed_paths", [])))
+print("EDIT_ERRORS=" + json.dumps(edit_validation.get("errors", [])))
+print("EDIT_APPLIED_PATHS=" + json.dumps(edit_apply.get("changed_paths", [])))
 print("PATCH_VALID=" + str(validation.get("valid")))
 print("PATCH_CHANGED_PATHS=" + json.dumps(validation.get("changed_paths", [])))
 print("PATCH_ERRORS=" + json.dumps(validation.get("errors", [])))
@@ -210,6 +221,9 @@ for line in lines:
 if not lines:
     print("- CLEAN")
 print("FINAL_REPORT=" + str(task_root / "safe-final-report.json"))
+print("EDIT_PROPOSAL=" + str(task_root / "edit-proposal.json"))
+print("EDIT_VALIDATION=" + str(task_root / "edit-validation.json"))
+print("EDIT_APPLY=" + str(task_root / "edit-apply.json"))
 print("PATCH=" + str(task_root / "proposed.patch"))
 print("PATCH_VALIDATION=" + str(task_root / "patch-validation.json"))
 print("TEST_RESULTS_FILE=" + str(task_root / "test-results.json"))
@@ -334,8 +348,8 @@ if values.get("status") != "awaiting_scope_approval":
     raise SystemExit("SAFE_STATUS_NOT_AWAITING_SCOPE_APPROVAL=" + repr(values.get("status")))
 if next_nodes != ["scope_approval"]:
     raise SystemExit("SAFE_SCOPE_APPROVAL_INTERRUPT_NOT_REACHED=" + repr(next_nodes))
-if values.get("patch_proposal_ref"):
-    raise SystemExit("PATCH_ALREADY_GENERATED_UNEXPECTEDLY")
+if values.get("edit_proposal_ref") or values.get("patch_proposal_ref"):
+    raise SystemExit("IMPLEMENTATION_ARTIFACT_ALREADY_GENERATED_UNEXPECTEDLY")
 
 context = {
     "state_root": os.environ["UCA_SAFE_WORKFLOW_STATE_ROOT"],
@@ -373,7 +387,7 @@ for item in manifest.get("allowed_changes", []):
 print("TEST_PROFILES:")
 for profile in manifest.get("test_profiles", []):
     print("- " + str(profile))
-print("NO PATCH HAS BEEN GENERATED OR APPLIED.")
+print("NO EDITS OR PATCH HAVE BEEN GENERATED OR APPLIED.")
 print("NO IMPLEMENTER HAS RUN YET.")
 print("============================================================")
 print()
@@ -430,8 +444,10 @@ import json
 import os
 from pathlib import Path
 
+from universal_coding_agent.core.safe_models import ApprovedChangeManifest
+
 status = json.loads(Path(os.environ["UCA_SAFE_WORKFLOW_STATUS_FILE"]).read_text(encoding="utf-8"))
-scope = json.loads(Path(os.environ["UCA_SAFE_WORKFLOW_SCOPE_FILE"]).read_text(encoding="utf-8"))
+raw_scope = json.loads(Path(os.environ["UCA_SAFE_WORKFLOW_SCOPE_FILE"]).read_text(encoding="utf-8"))
 values = status.get("values", {})
 manifest = values.get("task", {}).get("manifest", {})
 
@@ -439,8 +455,8 @@ if values.get("status") != "awaiting_scope_approval":
     raise SystemExit("SAFE_STATUS_NOT_AWAITING_SCOPE_APPROVAL")
 if status.get("next") != ["scope_approval"]:
     raise SystemExit("SAFE_SCOPE_APPROVAL_INTERRUPT_NOT_REACHED")
-if values.get("patch_proposal_ref"):
-    raise SystemExit("PATCH_ALREADY_GENERATED_UNEXPECTEDLY")
+if values.get("edit_proposal_ref") or values.get("patch_proposal_ref"):
+    raise SystemExit("IMPLEMENTATION_ARTIFACT_ALREADY_GENERATED_UNEXPECTEDLY")
 if manifest.get("base_sha") != os.environ["UCA_SAFE_WORKFLOW_EXPECTED_BASE_SHA"]:
     raise SystemExit("BASE_SHA_MISMATCH")
 if manifest.get("plan_hash") != os.environ["UCA_SAFE_WORKFLOW_EXPECTED_PLAN_HASH"]:
@@ -448,20 +464,14 @@ if manifest.get("plan_hash") != os.environ["UCA_SAFE_WORKFLOW_EXPECTED_PLAN_HASH
 if values.get("scope_hash") != os.environ["UCA_SAFE_WORKFLOW_EXPECTED_SCOPE_HASH"]:
     raise SystemExit("SCOPE_HASH_MISMATCH")
 
-keys = (
-    "manifest_version",
-    "base_sha",
-    "plan_hash",
-    "allowed_changes",
-    "denied_prefixes",
-    "test_profiles",
-    "acceptance_criteria",
-    "max_patch_bytes",
-    "max_changed_files",
-)
-for key in keys:
-    if manifest.get(key) != scope.get(key):
-        raise SystemExit("SCOPE_FILE_STATE_MISMATCH=" + key)
+normalized_scope = ApprovedChangeManifest.model_validate(raw_scope).model_dump(mode="json")
+if manifest != normalized_scope:
+    differing = sorted(
+        key
+        for key in set(manifest) | set(normalized_scope)
+        if manifest.get(key) != normalized_scope.get(key)
+    )
+    raise SystemExit("SCOPE_FILE_STATE_MISMATCH=" + ",".join(differing))
 
 print("SAFE_WORKFLOW_APPROVAL_PREFLIGHT_PASS")
 PY
