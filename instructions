@@ -8,6 +8,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
@@ -32,6 +33,7 @@ for FILE in \
   src/universal_coding_agent/testlab/synthetic.py \
   src/universal_coding_agent/testlab/openai_responses.py \
   src/universal_coding_agent/testlab/live.py \
+  src/universal_coding_agent/testlab/hard_reasoning.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   scripts/pretransfer-test-lab.sh \
@@ -43,6 +45,7 @@ done
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
+from universal_coding_agent.testlab.hard_reasoning import run_hard_suite
 from universal_coding_agent.testlab.live import run_live_suite
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 from universal_coding_agent.testlab.synthetic import failure_scenarios, success_scenarios
@@ -50,6 +53,7 @@ assert success_scenarios()
 assert failure_scenarios()
 assert OpenAIResponsesProvider
 assert run_live_suite
+assert run_hard_suite
 print("PRETRANSFER_LAB_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -102,10 +106,22 @@ test "$LIVE_RC" -eq 0
 Cmd 9
 
 ```bash
-export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-$(date -u +%Y%m%dT%H%M%SZ)"
+HARD_RC=0
+UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 \
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning \
+  --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
+.venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
+test "$HARD_RC" -eq 0
 ```
 
 Cmd 10
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+```
+
+Cmd 11
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -117,7 +133,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --skip-quality
 ```
 
-Cmd 11
+Cmd 12
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -135,7 +151,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - pre-transfer qualified line-addressed v2"
 ```
 
-Cmd 12
+Cmd 13
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -144,7 +160,7 @@ bash scripts/safe-workflow.sh approve \
   --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 13
+Cmd 14
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
