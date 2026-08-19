@@ -14,28 +14,48 @@ cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
 Cmd 2
 
 ```bash
-.venv/bin/python -m compileall -q src tests
+set -Eeuo pipefail
+for FILE in \
+  src/universal_coding_agent/context/sharded_line_edit_compiler.py \
+  src/universal_coding_agent/orchestration/safe_graph_v2_sharded.py \
+  src/universal_coding_agent/safe_service.py \
+  tests/test_sharded_line_edit_protocol.py
+do
+  test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
+done
+.venv/bin/python - <<'PY'
+from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
+from universal_coding_agent.orchestration.safe_graph_v2_sharded import ShardedLineAddressedSafeModeGraph
+from universal_coding_agent.safe_service import SafeAgentService
+print("SHARDED_V2_IMPORT_PREFLIGHT_PASS")
+PY
 ```
 
 Cmd 3
 
 ```bash
-.venv/bin/ruff check .
+.venv/bin/python -m compileall -q src tests
 ```
 
 Cmd 4
 
 ```bash
-env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
+.venv/bin/ruff check .
 ```
 
 Cmd 5
 
 ```bash
-export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
 ```
 
 Cmd 6
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+```
+
+Cmd 7
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/line-addressed-v2-sharded-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -47,7 +67,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --skip-quality
 ```
 
-Cmd 7
+Cmd 8
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -65,7 +85,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - file-sharded line-addressed structured edits v2"
 ```
 
-Cmd 8
+Cmd 9
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -74,7 +94,7 @@ bash scripts/safe-workflow.sh approve \
   --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 9
+Cmd 10
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
