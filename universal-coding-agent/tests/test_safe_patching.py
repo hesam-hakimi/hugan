@@ -83,6 +83,56 @@ def test_patch_engine_validates_applies_and_rolls_back(tmp_path: Path) -> None:
     assert engine.status_lines(root) == ()
 
 
+def test_patch_engine_accepts_reordered_changed_path_declaration(tmp_path: Path) -> None:
+    root, _ = _repository(tmp_path)
+    (root / "other.py").write_text("VALUE = 1\n", encoding="utf-8")
+    _git(root, "add", "other.py")
+    _git(root, "commit", "-m", "add other")
+    base_sha = _git(root, "rev-parse", "HEAD")
+
+    manifest = ApprovedChangeManifest(
+        base_sha=base_sha,
+        plan_hash="b" * 64,
+        allowed_changes=(
+            ChangeScopeEntry(
+                path="app.py",
+                operation=ChangeOperation.MODIFY,
+                purpose="Change app.",
+            ),
+            ChangeScopeEntry(
+                path="other.py",
+                operation=ChangeOperation.MODIFY,
+                purpose="Change other.",
+            ),
+        ),
+        acceptance_criteria=("Both approved files change.",),
+    )
+    proposal = PatchProposal(
+        summary="Change two approved files.",
+        unified_diff=(
+            "diff --git a/app.py b/app.py\n"
+            "--- a/app.py\n"
+            "+++ b/app.py\n"
+            "@@ -1,2 +1,2 @@\n"
+            " def answer():\n"
+            "-    return 42\n"
+            "+    return 43\n"
+            "diff --git a/other.py b/other.py\n"
+            "--- a/other.py\n"
+            "+++ b/other.py\n"
+            "@@ -1 +1 @@\n"
+            "-VALUE = 1\n"
+            "+VALUE = 2\n"
+        ),
+        changed_paths=("other.py", "app.py"),
+    )
+
+    validation = SafePatchEngine().validate(root, manifest, proposal)
+
+    assert validation.valid is True
+    assert validation.changed_paths == ("app.py", "other.py")
+
+
 def test_patch_engine_rejects_out_of_scope_path(tmp_path: Path) -> None:
     root, base_sha = _repository(tmp_path)
     (root / "other.py").write_text("def answer():\n    return 42\n", encoding="utf-8")
