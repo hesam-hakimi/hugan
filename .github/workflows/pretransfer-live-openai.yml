@@ -73,7 +73,7 @@ jobs:
           exit "$RC"
 
       - name: Upload live qualification summary
-        if: env.OPENAI_API_KEY != '' && always()
+        if: env.OPENAI_API_KEY != '' && always() && steps.live.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: uca-pretransfer-live-summary
