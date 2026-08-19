@@ -6,6 +6,7 @@ from pathlib import Path
 from universal_coding_agent.context.sharded_line_edit_compiler import (
     ShardedLineAddressedContextCompiler,
 )
+from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.safe_models import (
     ApprovedChangeManifest,
     ChangeOperation,
@@ -15,7 +16,6 @@ from universal_coding_agent.core.safe_models import (
     StructuredEditProposal,
     TextReplacement,
 )
-from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.safe.model_line_addressing import (
     ModelFacingLineAddressedEditEngine,
 )
