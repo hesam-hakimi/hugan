@@ -56,7 +56,8 @@ Cmd 4
 Cmd 5
 
 ```bash
-PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh
+PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/manual-$(date -u +%Y%m%dT%H%M%SZ)"
+PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
 ```
 
 Cmd 6
