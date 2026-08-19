@@ -1,2 +1,5 @@
-bash scripts/safe-result.sh \
-  --context-file /home/tag5916/.uca-safe-runs/phase2c-safe-v5-20260819T021443Z/safe-workflow-context.json
+cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
+
+bash scripts/safe-implementer-diagnose.sh \
+  --state-root /home/tag5916/.uca-safe-runs/phase2c-safe-v5-20260819T021443Z \
+  --task-id safe-20260819T021449Z-1950491-task
