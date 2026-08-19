@@ -43,8 +43,14 @@ class SafeGraphState(TypedDict, total=False):
     scope_approval_ref: str
     implementer_context_ref: str
     implementer_validation_ref: str
+    initial_edit_proposal_ref: str
+    initial_edit_validation_ref: str
     edit_proposal_ref: str
     edit_validation_ref: str
+    edit_repair_context_ref: str
+    edit_repair_validation_ref: str
+    edit_repair_proposal_ref: str
+    edit_repair_used: bool
     edit_apply_ref: str
     edits_applied: bool
     patch_proposal_ref: str
@@ -142,6 +148,7 @@ class SafeModeGraph:
             "status": TaskStatus.VALIDATING.value,
             "scope_ref": scope_ref.uri,
             "scope_hash": task.manifest.canonical_hash(),
+            "edit_repair_used": False,
             "edits_applied": False,
             "patch_applied": False,
             "events": [self._event("validate", f"validated safe task {task.task_id}")],
@@ -288,6 +295,7 @@ class SafeModeGraph:
             "status": TaskStatus.PLANNING.value,
             "implementer_context_ref": context_ref.uri,
             "implementer_validation_ref": validation_ref.uri,
+            "initial_edit_proposal_ref": proposal_ref.uri,
             "edit_proposal_ref": proposal_ref.uri,
             "events": [
                 self._event("implementer", f"proposed structured edits{repair_note}")
@@ -304,17 +312,122 @@ class SafeModeGraph:
             task.manifest,
             proposal,
         )
-        validation_ref = self.services.artifacts.write_json(
+        initial_validation_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/edit-validation.json",
             validation.model_dump(mode="json"),
         )
+        validation_ref = initial_validation_ref
+        repair_context_ref = None
+        repair_validation_ref = None
+        repair_proposal_ref = None
+        edit_repair_used = False
+
         if not validation.valid:
-            return {
-                "status": TaskStatus.BLOCKED.value,
-                "edit_validation_ref": validation_ref.uri,
-                "safe_errors": ["edit:validation_failed"],
-                "events": [self._event("edit_validation", "rejected")],
-            }
+            if not self._edit_validation_is_repairable(validation.errors):
+                return {
+                    "status": TaskStatus.BLOCKED.value,
+                    "initial_edit_validation_ref": initial_validation_ref.uri,
+                    "edit_validation_ref": initial_validation_ref.uri,
+                    "safe_errors": ["edit:validation_failed"],
+                    "events": [self._event("edit_validation", "rejected")],
+                }
+
+            edit_repair_used = True
+            repair_context = self.services.context.compile_edit_repair(
+                Path(state["sandbox_path"]),
+                task,
+                proposal,
+                validation.errors,
+            )
+            repair_context_ref = self.services.artifacts.write_text(
+                f"tasks/{task.task_id}/edit-repair-context.md",
+                repair_context,
+                "text/markdown",
+            )
+            repair_request = ModelRequest(
+                role="implementer",
+                system_prompt=EDIT_REPAIR_SYSTEM_PROMPT,
+                user_prompt=repair_context,
+                response_schema=StructuredEditProposal.model_json_schema(),
+                max_output_tokens=16_000,
+                metadata={
+                    "task_id": task.task_id,
+                    "scope_hash": state["scope_hash"],
+                    "base_sha": task.manifest.base_sha,
+                    "structured_edit_protocol": "v1",
+                    "edit_repair": "true",
+                },
+            )
+            try:
+                repaired_structured = invoke_structured(
+                    self.services.provider,
+                    repair_request,
+                    StructuredEditProposal,
+                    repair_guidance=EDIT_REPAIR_GUIDANCE,
+                )
+            except StructuredOutputError as exc:
+                repair_validation_ref = self.services.artifacts.write_json(
+                    f"tasks/{task.task_id}/edit-repair-model-validation.json",
+                    exc.diagnostics,
+                )
+                return {
+                    "status": TaskStatus.FAILED.value,
+                    "initial_edit_validation_ref": initial_validation_ref.uri,
+                    "edit_validation_ref": initial_validation_ref.uri,
+                    "edit_repair_context_ref": repair_context_ref.uri,
+                    "edit_repair_validation_ref": repair_validation_ref.uri,
+                    "edit_repair_used": True,
+                    "safe_errors": [f"edit_repair:{exc.code}"],
+                    "events": [
+                        self._event("edit_repair", f"failed safely: {exc.code}")
+                    ],
+                }
+
+            repaired = repaired_structured.value
+            repair_validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/edit-repair-model-validation.json",
+                repaired_structured.diagnostics,
+            )
+            repair_proposal_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/edit-proposal-repaired.json",
+                repaired.model_dump(mode="json"),
+            )
+            if not self._same_edit_contract(proposal, repaired):
+                return {
+                    "status": TaskStatus.BLOCKED.value,
+                    "initial_edit_validation_ref": initial_validation_ref.uri,
+                    "edit_validation_ref": initial_validation_ref.uri,
+                    "edit_repair_context_ref": repair_context_ref.uri,
+                    "edit_repair_validation_ref": repair_validation_ref.uri,
+                    "edit_repair_proposal_ref": repair_proposal_ref.uri,
+                    "edit_repair_used": True,
+                    "safe_errors": ["edit_repair:contract_drift"],
+                    "events": [self._event("edit_repair", "rejected contract drift")],
+                }
+
+            repaired_validation = self.services.edit_engine.validate(
+                Path(state["sandbox_path"]),
+                task.manifest,
+                repaired,
+            )
+            validation_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/edit-validation-repaired.json",
+                repaired_validation.model_dump(mode="json"),
+            )
+            if not repaired_validation.valid:
+                return {
+                    "status": TaskStatus.BLOCKED.value,
+                    "initial_edit_validation_ref": initial_validation_ref.uri,
+                    "edit_validation_ref": validation_ref.uri,
+                    "edit_repair_context_ref": repair_context_ref.uri,
+                    "edit_repair_validation_ref": repair_validation_ref.uri,
+                    "edit_repair_proposal_ref": repair_proposal_ref.uri,
+                    "edit_repair_used": True,
+                    "safe_errors": ["edit:validation_failed"],
+                    "events": [self._event("edit_repair", "single repair rejected")],
+                }
+            proposal = repaired
+            validation = repaired_validation
 
         checkpoint_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/rollback-checkpoint.json",
@@ -334,13 +447,23 @@ class SafeModeGraph:
                 proposal,
             )
         except (OSError, ValueError, RuntimeError) as exc:
-            return {
+            response: dict[str, Any] = {
                 "status": TaskStatus.FAILED.value,
+                "initial_edit_validation_ref": initial_validation_ref.uri,
                 "edit_validation_ref": validation_ref.uri,
                 "rollback_checkpoint_ref": checkpoint_ref.uri,
+                "edit_repair_used": edit_repair_used,
                 "safe_errors": [f"edit_apply:{type(exc).__name__}"],
                 "events": [self._event("edit_apply", "failed safely")],
             }
+            if repair_context_ref is not None:
+                response["edit_repair_context_ref"] = repair_context_ref.uri
+            if repair_validation_ref is not None:
+                response["edit_repair_validation_ref"] = repair_validation_ref.uri
+            if repair_proposal_ref is not None:
+                response["edit_repair_proposal_ref"] = repair_proposal_ref.uri
+            return response
+
         apply_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/edit-apply.json",
             {
@@ -348,17 +471,31 @@ class SafeModeGraph:
                 "status_lines": list(result.status_lines),
             },
         )
-        return {
+        response = {
             "status": TaskStatus.CHECKING.value,
+            "initial_edit_validation_ref": initial_validation_ref.uri,
             "edit_validation_ref": validation_ref.uri,
             "rollback_checkpoint_ref": checkpoint_ref.uri,
             "edit_apply_ref": apply_ref.uri,
+            "edit_repair_used": edit_repair_used,
             "edits_applied": True,
             "patch_applied": True,
             "events": [
-                self._event("edit_apply", "materialized approved structured edits in sandbox")
+                self._event(
+                    "edit_apply",
+                    "materialized approved structured edits in sandbox"
+                    + (" after one bounded anchor repair" if edit_repair_used else ""),
+                )
             ],
         }
+        if repair_context_ref is not None:
+            response["edit_repair_context_ref"] = repair_context_ref.uri
+        if repair_validation_ref is not None:
+            response["edit_repair_validation_ref"] = repair_validation_ref.uri
+        if repair_proposal_ref is not None:
+            response["edit_repair_proposal_ref"] = repair_proposal_ref.uri
+            response["edit_proposal_ref"] = repair_proposal_ref.uri
+        return response
 
     def validate_patch(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
@@ -593,8 +730,14 @@ class SafeModeGraph:
             "implementer_context_ref": state.get("implementer_context_ref"),
             "implementer_validation_ref": state.get("implementer_validation_ref"),
             "structured_edit_protocol": "v1",
+            "initial_edit_proposal_ref": state.get("initial_edit_proposal_ref"),
+            "initial_edit_validation_ref": state.get("initial_edit_validation_ref"),
             "edit_proposal_ref": state.get("edit_proposal_ref"),
             "edit_validation_ref": state.get("edit_validation_ref"),
+            "edit_repair_used": bool(state.get("edit_repair_used", False)),
+            "edit_repair_context_ref": state.get("edit_repair_context_ref"),
+            "edit_repair_validation_ref": state.get("edit_repair_validation_ref"),
+            "edit_repair_proposal_ref": state.get("edit_repair_proposal_ref"),
             "edit_apply_ref": state.get("edit_apply_ref"),
             "model_authored_patch": False,
             "canonical_patch_generated_by": "git",
@@ -658,6 +801,29 @@ class SafeModeGraph:
         return "review" if state.get("tests_ref") else "finalize"
 
     @staticmethod
+    def _edit_validation_is_repairable(errors: tuple[str, ...]) -> bool:
+        if not errors:
+            return False
+        prefixes = (
+            "duplicate exact replacement anchor in ",
+            "exact replacement anchor in ",
+            "structured replacements overlap in ",
+        )
+        return all(error.startswith(prefixes) for error in errors)
+
+    @staticmethod
+    def _same_edit_contract(
+        original: StructuredEditProposal,
+        repaired: StructuredEditProposal,
+    ) -> bool:
+        original_operations = {item.path: item.operation for item in original.edits}
+        repaired_operations = {item.path: item.operation for item in repaired.edits}
+        return (
+            original_operations == repaired_operations
+            and set(original.requested_test_profiles) == set(repaired.requested_test_profiles)
+        )
+
+    @staticmethod
     def _event(stage: str, summary: str) -> dict[str, str]:
         return {"stage": stage, "summary": summary[:1000]}
 
@@ -676,6 +842,20 @@ inside the approved path/operation manifest and use only approved test profile I
 unified_diff, diff --git, ---/+++, @@ hunks, Markdown patch fences, or commands. For modify edits,
 old_text must be an exact unique substring from the supplied base-file state and replacements
 within one file must not overlap."""
+
+EDIT_REPAIR_SYSTEM_PROMPT = """You are performing the single bounded semantic-anchor repair
+for an already human-approved Safe Mode task. Return exactly one StructuredEditProposal JSON
+object. Preserve the exact set of edited paths, operations, requested test profiles, and intended
+changes. Correct only invalid or overlapping exact text anchors using the frozen base-file state
+provided in the repair context. Every old_text must be copied verbatim and occur exactly once.
+Never add or remove files, broaden scope, emit Git patch syntax, run commands, or perform any
+publication action."""
+
+EDIT_REPAIR_GUIDANCE = """Return only StructuredEditProposal JSON. Preserve the exact path and
+operation map and the same requested test-profile set as the rejected proposal. Correct only
+replacement anchors/replacement text needed for deterministic applicability. Each old_text must
+be copied verbatim from the supplied frozen file state and occur exactly once. Do not emit Git
+patch syntax or commands."""
 
 SAFE_REVIEWER_SYSTEM_PROMPT = """You are an independent Safe Mode reviewer. Return exactly
 one SafeReviewResult JSON object. Review the original requirement, approved scope, the canonical
