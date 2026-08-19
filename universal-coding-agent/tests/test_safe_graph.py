@@ -80,7 +80,28 @@ def _task(source: Path, base_sha: str, task_id: str) -> SafeTaskRequest:
     )
 
 
-def test_safe_graph_requires_approval_and_retains_only_passing_patch(tmp_path: Path) -> None:
+def _structured_payload(*, old_text: str, new_text: str) -> dict:
+    return {
+        "summary": "Change the approved fixture answer.",
+        "edits": [
+            {
+                "path": "app.py",
+                "operation": "modify",
+                "replacements": [
+                    {
+                        "old_text": old_text,
+                        "new_text": new_text,
+                    }
+                ],
+                "content": None,
+            }
+        ],
+        "requested_test_profiles": ["python-check"],
+        "assumptions": [],
+    }
+
+
+def test_safe_graph_requires_approval_and_retains_only_passing_change(tmp_path: Path) -> None:
     source, base_sha = _source(tmp_path)
     state_root = tmp_path / "state"
     service = SafeAgentService.create(
@@ -101,7 +122,15 @@ def test_safe_graph_requires_approval_and_retains_only_passing_patch(tmp_path: P
         assert final["rolled_back"] is False
         report = service.artifacts.read_json(final["final_report_ref"])
         assert report["sandbox_patch_retained"] is True
+        assert report["model_authored_patch"] is False
+        assert report["canonical_patch_generated_by"] == "git"
+        assert report["structured_edit_protocol"] == "v1"
         assert report["stage_commit_push_pr_merge_deploy"] is False
+
+        edit_proposal = service.artifacts.read_json(report["edit_proposal_ref"])
+        assert edit_proposal["edits"][0]["path"] == "app.py"
+        canonical_patch = service.artifacts.read_text(report["patch_ref"])
+        assert canonical_patch.startswith("diff --git a/app.py b/app.py\n")
 
         sandbox = state_root / "sandboxes" / task.task_id / "repo"
         assert "return 43" in (sandbox / "app.py").read_text(encoding="utf-8")
@@ -112,31 +141,23 @@ def test_safe_graph_requires_approval_and_retains_only_passing_patch(tmp_path: P
         service.close()
 
 
-def test_safe_graph_repairs_non_git_style_patch_before_validation(tmp_path: Path) -> None:
+def test_safe_graph_repairs_structured_edit_schema_without_requesting_patch_syntax(
+    tmp_path: Path,
+) -> None:
     source, base_sha = _source(tmp_path)
 
     def implementer(request):
         if request.metadata.get("schema_repair") == "true":
-            return {
-                "summary": "Change the approved fixture answer.",
-                "unified_diff": (
-                    "diff --git a/app.py b/app.py\n"
-                    "--- a/app.py\n"
-                    "+++ b/app.py\n"
-                    "@@ -1,2 +1,2 @@\n"
-                    " def answer():\n"
-                    "-    return 42\n"
-                    "+    return 43\n"
-                ),
-                "changed_paths": ["app.py"],
-                "requested_test_profiles": ["python-check"],
-                "assumptions": [],
-            }
+            return _structured_payload(
+                old_text="def answer():\n    return 42\n",
+                new_text="def answer():\n    return 43\n",
+            )
         return {
-            "summary": "Change the approved fixture answer.",
+            "summary": "Old raw patch shape must be rejected.",
             "unified_diff": (
-                "--- app.py\n"
-                "+++ app.py\n"
+                "diff --git a/app.py b/app.py\n"
+                "--- a/app.py\n"
+                "+++ b/app.py\n"
                 "@@ -1,2 +1,2 @@\n"
                 " def answer():\n"
                 "-    return 42\n"
@@ -153,58 +174,35 @@ def test_safe_graph_repairs_non_git_style_patch_before_validation(tmp_path: Path
         FakeModelProvider(handlers={"implementer": implementer}),
         allow_local_sources=True,
     )
-    task = _task(source, base_sha, "safe-task-format-repair")
+    task = _task(source, base_sha, "safe-task-structured-repair")
     try:
         service.run(task)
         final = service.resume(task.thread_id, True)
         assert final["status"] == "completed"
-        assert final["reviewer_verdict"] == "PASS"
         validation = service.artifacts.read_json(final["implementer_validation_ref"])
         assert validation["repair_used"] is True
         assert len(validation["attempts"]) == 2
         assert validation["attempts"][0]["schema_valid"] is False
         assert validation["attempts"][1]["schema_valid"] is True
-        proposal = service.artifacts.read_json(final["patch_proposal_ref"])
-        assert proposal["unified_diff"].startswith("diff --git a/app.py b/app.py\n")
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["model_authored_patch"] is False
+        assert report["patch_repair_used"] is False
     finally:
         service.close()
 
 
-def test_safe_graph_repairs_git_applicability_once(tmp_path: Path) -> None:
+def test_safe_graph_git_generates_valid_patch_for_markdown_like_insertions(tmp_path: Path) -> None:
     source, base_sha = _source(tmp_path)
 
-    def implementer(request):
-        if request.metadata.get("patch_applicability_repair") == "true":
-            return {
-                "summary": "Repair the approved fixture patch context.",
-                "unified_diff": (
-                    "diff --git a/app.py b/app.py\n"
-                    "--- a/app.py\n"
-                    "+++ b/app.py\n"
-                    "@@ -1,2 +1,2 @@\n"
-                    " def answer():\n"
-                    "-    return 42\n"
-                    "+    return 43\n"
-                ),
-                "changed_paths": ["app.py"],
-                "requested_test_profiles": ["python-check"],
-                "assumptions": [],
-            }
-        return {
-            "summary": "Change the approved fixture answer using stale context.",
-            "unified_diff": (
-                "diff --git a/app.py b/app.py\n"
-                "--- a/app.py\n"
-                "+++ b/app.py\n"
-                "@@ -1,2 +1,2 @@\n"
-                " def answer():\n"
-                "-    return 41\n"
-                "+    return 43\n"
+    def implementer(_request):
+        return _structured_payload(
+            old_text="def answer():\n    return 42\n",
+            new_text=(
+                "## Amendment (2026-08-07): generated as file content\n"
+                "def answer():\n"
+                "    return 43\n"
             ),
-            "changed_paths": ["app.py"],
-            "requested_test_profiles": ["python-check"],
-            "assumptions": [],
-        }
+        )
 
     state_root = tmp_path / "state"
     service = SafeAgentService.create(
@@ -212,22 +210,43 @@ def test_safe_graph_repairs_git_applicability_once(tmp_path: Path) -> None:
         FakeModelProvider(handlers={"implementer": implementer}),
         allow_local_sources=True,
     )
-    task = _task(source, base_sha, "safe-task-applicability-repair")
+    task = _task(source, base_sha, "safe-task-markdown-content")
     try:
         service.run(task)
         final = service.resume(task.thread_id, True)
         assert final["status"] == "completed"
-        assert final["reviewer_verdict"] == "PASS"
-        assert final["patch_repair_used"] is True
-        report = service.artifacts.read_json(final["final_report_ref"])
-        assert report["patch_repair_used"] is True
-        assert report["initial_patch_ref"].endswith("/proposed.patch")
-        assert report["patch_repair_ref"].endswith("/proposed-repair.patch")
-        repaired_validation = service.artifacts.read_json(final["patch_validation_ref"])
-        assert repaired_validation["valid"] is True
+        patch = service.artifacts.read_text(final["patch_ref"])
+        assert "+## Amendment (2026-08-07): generated as file content" in patch
+        validation = service.artifacts.read_json(final["patch_validation_ref"])
+        assert validation["valid"] is True
+        assert not validation["errors"]
+    finally:
+        service.close()
+
+
+def test_safe_graph_blocks_missing_exact_anchor_without_mutating_sandbox(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+
+    def implementer(_request):
+        return _structured_payload(old_text="return 99", new_text="return 43")
+
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(handlers={"implementer": implementer}),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-missing-anchor")
+    try:
+        service.run(task)
+        final = service.resume(task.thread_id, True)
+        assert final["status"] == "blocked"
+        assert "edit:validation_failed" in final["safe_errors"]
+        assert final.get("patch_ref") is None
         sandbox = state_root / "sandboxes" / task.task_id / "repo"
-        assert "return 43" in (sandbox / "app.py").read_text(encoding="utf-8")
-        assert "return 42" in (source / "app.py").read_text(encoding="utf-8")
+        assert "return 42" in (sandbox / "app.py").read_text(encoding="utf-8")
+        assert _git(sandbox, "status", "--porcelain") == ""
+        assert _git(source, "status", "--porcelain") == ""
     finally:
         service.close()
 
@@ -258,5 +277,6 @@ def test_safe_graph_rolls_back_when_reviewer_has_conditions(tmp_path: Path) -> N
         sandbox = state_root / "sandboxes" / task.task_id / "repo"
         assert "return 42" in (sandbox / "app.py").read_text(encoding="utf-8")
         assert _git(sandbox, "status", "--porcelain") == ""
+        assert _git(source, "status", "--porcelain") == ""
     finally:
         service.close()
