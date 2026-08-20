@@ -83,6 +83,36 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Run product foundation live qualification
+        id: product
+        if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-product-foundation-live"
+          set +e
+          python -m universal_coding_agent.testlab.product_foundation_live \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/product-foundation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/product-foundation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload product foundation live diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.product.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-product-foundation-live-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-product-foundation-live/product-foundation-live-summary.json
+            ${{ runner.temp }}/uca-product-foundation-live/workspace/artifacts/requirements/**
+            ${{ runner.temp }}/uca-product-foundation-live/workspace/artifacts/programs/**
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Run hard CDC reasoning qualification
         id: hard
         if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
@@ -191,9 +221,11 @@ jobs:
         if: ${{ always() && env.OPENAI_API_KEY != '' }}
         run: |
           echo "LIVE_OUTCOME=${{ steps.live.outcome }}"
+          echo "PRODUCT_OUTCOME=${{ steps.product.outcome }}"
           echo "HARD_OUTCOME=${{ steps.hard.outcome }}"
           echo "PRODUCTION_LARGE_OUTCOME=${{ steps.large.outcome }}"
           test "${{ steps.live.outcome }}" = "success"
+          test "${{ steps.product.outcome }}" = "success"
           test "${{ steps.hard.outcome }}" = "success"
           test "${{ steps.large.outcome }}" = "success"
           echo "PRETRANSFER_ALL_LIVE_QUALIFICATIONS_PASS"

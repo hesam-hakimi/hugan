@@ -22,6 +22,7 @@ env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   --junitxml "$STATE_ROOT/pretransfer-junit.xml"
 

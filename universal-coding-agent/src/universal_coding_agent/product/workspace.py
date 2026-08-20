@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from universal_coding_agent.core.models import ProjectManifest
+from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.context_documents import ContextDocumentService
 from universal_coding_agent.product.models import ContextDocument, ContextScope, DocumentRole
 from universal_coding_agent.product.program_orchestrator import ProgramOrchestrator
@@ -17,6 +18,7 @@ from universal_coding_agent.storage.artifacts import ArtifactStore
 @dataclass
 class ProductWorkspace:
     root: Path
+    provider: ModelProvider
     artifacts: ArtifactStore
     documents: ContextDocumentService
     search: SearchService
@@ -42,6 +44,7 @@ class ProductWorkspace:
         )
         return cls(
             root=root,
+            provider=provider,
             artifacts=artifacts,
             documents=documents,
             search=search,
@@ -85,3 +88,16 @@ class ProductWorkspace:
         namespace: str = "repository",
     ) -> int:
         return self.search.index_repository(root, manifest, namespace=namespace)
+
+    def discovered_safe(
+        self,
+        *,
+        state_root: Path | None = None,
+        allow_local_sources: bool = False,
+    ) -> DiscoveredSafeAgentService:
+        return DiscoveredSafeAgentService.create(
+            state_root or (self.root / "safe"),
+            self.provider,
+            allow_local_sources=allow_local_sources,
+            control=self.control,
+        )

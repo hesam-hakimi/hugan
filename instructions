@@ -15,6 +15,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution_production.py
+- universal-coding-agent/src/universal_coding_agent/testlab/product_foundation_live.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
@@ -33,6 +34,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
+- universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
 
 Cmd 1
@@ -61,6 +63,7 @@ for FILE in \
   src/universal_coding_agent/testlab/hard_reasoning.py \
   src/universal_coding_agent/testlab/large_solution.py \
   src/universal_coding_agent/testlab/large_solution_production.py \
+  src/universal_coding_agent/testlab/product_foundation_live.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_hard_reasoning_lab.py \
@@ -79,6 +82,7 @@ for FILE in \
   src/universal_coding_agent/product/controlled_safe_graph.py \
   src/universal_coding_agent/product/workspace.py \
   tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py \
   tests/test_safe_control.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
@@ -88,9 +92,10 @@ from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentSe
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
-assert SafeAgentService and SolutionDiscoveryService
+assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 print("PRODUCT_FOUNDATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -101,6 +106,7 @@ Cmd 3
 .venv/bin/python -m compileall -q src tests && \
 .venv/bin/python -m pytest -q \
   tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
@@ -155,6 +161,19 @@ test "$LIVE_RC" -eq 0
 Cmd 9
 
 ```bash
+PRODUCT_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-product-foundation-$(date -u +%Y%m%dT%H%M%SZ)"
+PRODUCT_RC=0
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.product_foundation_live \
+  --state-root "$PRODUCT_STATE_ROOT" || PRODUCT_RC=$?
+test -f "$PRODUCT_STATE_ROOT/product-foundation-live-summary.json"
+.venv/bin/python -m json.tool "$PRODUCT_STATE_ROOT/product-foundation-live-summary.json"
+test "$PRODUCT_RC" -eq 0
+echo "PRODUCT_FOUNDATION_LIVE_QUALIFICATION_PASS"
+```
+
+Cmd 10
+
+```bash
 HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
 HARD_RC=0
 UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
@@ -167,7 +186,7 @@ test "$HARD_RC" -eq 0
 echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
 ```
 
-Cmd 10
+Cmd 11
 
 ```bash
 LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -183,13 +202,13 @@ test "$LARGE_RC" -eq 0
 echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
 ```
 
-Cmd 11
+Cmd 12
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 ```
 
-Cmd 12
+Cmd 13
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -199,7 +218,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --state-root "$STATE_ROOT" --skip-install --skip-quality
 ```
 
-Cmd 13
+Cmd 14
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -217,7 +236,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - product foundation pre-transfer qualified"
 ```
 
-Cmd 14
+Cmd 15
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -225,7 +244,7 @@ PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
 bash scripts/safe-workflow.sh approve --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 15
+Cmd 16
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"

@@ -13,6 +13,7 @@ from universal_coding_agent.core.safe_models import (
     SafeTaskRequest,
     safe_json,
 )
+from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.safety.sanitizer import sanitize_text
@@ -35,11 +36,13 @@ class DiscoveredSafeAgentService:
     Discovery runs in its own isolated clone and never receives write authority. The resulting
     impact plan is converted into a frozen ApprovedChangeManifest whose Base SHA is the exact
     discovery checkout. Safe Mode then clones again and fails closed if the requested ref moved.
+    A shared TaskControlService may be supplied so UI/program controls operate on this exact task.
     """
 
     state_root: Path
     provider: ModelProvider
     allow_local_sources: bool = False
+    control: TaskControlService | None = None
 
     @classmethod
     def create(
@@ -48,11 +51,13 @@ class DiscoveredSafeAgentService:
         provider: ModelProvider,
         *,
         allow_local_sources: bool = False,
+        control: TaskControlService | None = None,
     ) -> DiscoveredSafeAgentService:
         return cls(
             state_root=state_root.resolve(),
             provider=provider,
             allow_local_sources=allow_local_sources,
+            control=control,
         )
 
     def start(
@@ -188,11 +193,7 @@ class DiscoveredSafeAgentService:
                 "solution_discovery_provenance_ref": provenance_ref.uri,
             },
         )
-        safe = SafeAgentService.create(
-            self.state_root,
-            self.provider,
-            allow_local_sources=self.allow_local_sources,
-        )
+        safe = self._safe_service()
         try:
             state = safe.run(task)
         finally:
@@ -212,26 +213,47 @@ class DiscoveredSafeAgentService:
         }
 
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
-        safe = SafeAgentService.create(
-            self.state_root,
-            self.provider,
-            allow_local_sources=self.allow_local_sources,
-        )
+        safe = self._safe_service()
         try:
             return safe.resume(thread_id, approved)
         finally:
             safe.close()
 
+    def pause(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
+        safe = self._safe_service()
+        try:
+            return safe.pause(thread_id, reason=reason)
+        finally:
+            safe.close()
+
+    def cancel(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
+        safe = self._safe_service()
+        try:
+            return safe.cancel(thread_id, reason=reason)
+        finally:
+            safe.close()
+
+    def resume_control(self, thread_id: str, *, action: str = "resume") -> dict[str, Any]:
+        safe = self._safe_service()
+        try:
+            return safe.resume_control(thread_id, action=action)
+        finally:
+            safe.close()
+
     def state(self, thread_id: str) -> dict[str, Any]:
-        safe = SafeAgentService.create(
-            self.state_root,
-            self.provider,
-            allow_local_sources=self.allow_local_sources,
-        )
+        safe = self._safe_service()
         try:
             return safe.state(thread_id)
         finally:
             safe.close()
+
+    def _safe_service(self) -> SafeAgentService:
+        return SafeAgentService.create(
+            self.state_root,
+            self.provider,
+            allow_local_sources=self.allow_local_sources,
+            control=self.control,
+        )
 
     @staticmethod
     def _validate_test_profiles(
