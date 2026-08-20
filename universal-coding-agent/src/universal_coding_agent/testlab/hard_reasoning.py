@@ -121,18 +121,60 @@ def hard_reference_files() -> dict[str, str]:
             from typing import Any
 
 
+            _RESERVED_PAYLOAD_FIELDS = {
+                "key",
+                "event_ts",
+                "ingest_seq",
+                "_event_ts",
+                "_ingest_seq",
+            }
+
+
             def _incoming_version(event: dict[str, Any]) -> tuple[str, int]:
                 return str(event["event_ts"]), int(event["ingest_seq"])
 
 
-            def _stored_version(row: dict[str, Any]) -> tuple[str, int]:
+            def version_of(row: dict[str, Any]) -> tuple[str, int]:
                 return str(row["_event_ts"]), int(row["_ingest_seq"])
 
 
-            def version_of(row: dict[str, Any]) -> tuple[str, int]:
-                if "_event_ts" in row and "_ingest_seq" in row:
-                    return _stored_version(row)
-                return _incoming_version(row)
+            def _canonical_value(value: Any) -> tuple[Any, ...]:
+                if isinstance(value, dict):
+                    items = [
+                        (_canonical_value(key), _canonical_value(item))
+                        for key, item in value.items()
+                    ]
+                    return ("dict", tuple(sorted(items, key=repr)))
+                if isinstance(value, list):
+                    return ("list", tuple(_canonical_value(item) for item in value))
+                if isinstance(value, tuple):
+                    return ("tuple", tuple(_canonical_value(item) for item in value))
+                if isinstance(value, (set, frozenset)):
+                    items = [_canonical_value(item) for item in value]
+                    return ("set", tuple(sorted(items, key=repr)))
+                return (
+                    type(value).__module__,
+                    type(value).__qualname__,
+                    repr(value),
+                )
+
+
+            def _event_semantics(event: dict[str, Any]) -> tuple[Any, ...]:
+                return (
+                    str(event["op"]),
+                    _canonical_value(event.get("payload")),
+                )
+
+
+            def _normalized_event(event: dict[str, Any]) -> dict[str, Any]:
+                version = _incoming_version(event)
+                return {
+                    "key": str(event["key"]),
+                    "event_ts": version[0],
+                    "ingest_seq": version[1],
+                    "op": str(event["op"]),
+                    "payload": event.get("payload"),
+                }
 
 
             def in_window(event: dict[str, Any], start: str, end: str) -> bool:
@@ -148,25 +190,30 @@ def hard_reference_files() -> dict[str, str]:
 
 
             def choose_latest(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+                groups: dict[
+                    tuple[str, tuple[str, int]],
+                    tuple[tuple[Any, ...], dict[str, Any]],
+                ] = {}
                 for event in events:
                     validate_event(event)
-
-                latest: dict[str, dict[str, Any]] = {}
-                for event in events:
-                    key = str(event["key"])
-                    candidate = dict(event)
-                    current = latest.get(key)
+                    group_key = (str(event["key"]), _incoming_version(event))
+                    semantics = _event_semantics(event)
+                    current = groups.get(group_key)
                     if current is None:
-                        latest[key] = candidate
-                        continue
-                    candidate_version = _incoming_version(candidate)
-                    current_version = _incoming_version(current)
-                    if candidate_version > current_version:
-                        latest[key] = candidate
-                    elif candidate_version == current_version and candidate != current:
+                        groups[group_key] = (semantics, _normalized_event(event))
+                    elif current[0] != semantics:
                         raise ValueError(
                             "conflicting CDC events share the same key and version"
                         )
+
+                latest: dict[str, dict[str, Any]] = {}
+                for (key, version), (_, event) in sorted(
+                    groups.items(),
+                    key=lambda item: (item[0][0], item[0][1]),
+                ):
+                    current = latest.get(key)
+                    if current is None or version > _incoming_version(current):
+                        latest[key] = event
                 return [latest[key] for key in sorted(latest)]
 
 
@@ -175,18 +222,12 @@ def hard_reference_files() -> dict[str, str]:
                 events: list[dict[str, Any]],
             ) -> list[dict[str, Any]]:
                 state = {str(row["key"]): dict(row) for row in existing}
-                reserved = {
-                    "key",
-                    "event_ts",
-                    "ingest_seq",
-                    "_event_ts",
-                    "_ingest_seq",
-                }
-                for event in choose_latest(events):
+                for event in events:
+                    validate_event(event)
                     key = str(event["key"])
                     current = state.get(key)
                     candidate_version = _incoming_version(event)
-                    if current is not None and candidate_version <= _stored_version(current):
+                    if current is not None and candidate_version <= version_of(current):
                         continue
 
                     if event["op"] == "delete":
@@ -197,7 +238,7 @@ def hard_reference_files() -> dict[str, str]:
                     payload = {
                         field: value
                         for field, value in event["payload"].items()
-                        if field not in reserved
+                        if field not in _RESERVED_PAYLOAD_FIELDS
                     }
                     state[key] = {
                         **payload,
@@ -239,10 +280,15 @@ def hard_reference_files() -> dict[str, str]:
             # Incremental CDC Contract
 
             - The event window is half-open: `[window_start, window_end)`.
-            - Eligible events are validated before deduplication.
-            - Per key, the maximum `(event_ts, ingest_seq)` incoming version wins.
-            - Conflicting events with the same key and identical version are rejected.
-            - Exact duplicate equal-version events may collapse to one candidate.
+            - Every eligible event is validated before deduplication.
+            - All eligible same-key/same-version groups are conflict-checked before selection,
+              including versions that do not win.
+            - Per key, the maximum normalized `(event_ts, ingest_seq)` incoming version wins.
+            - Equal-version equivalence uses normalized operation and payload semantics only;
+              unrelated event fields do not create a conflict.
+            - Conflicting operation or payload semantics at one key/version are rejected
+              regardless of input order.
+            - Equivalent duplicates may collapse, including nested mapping-order differences.
             - Stored-state comparisons use only `(_event_ts, _ingest_seq)`.
             - Business payload fields named `event_ts` or `ingest_seq` are not version metadata.
             - Candidate versions less than or equal to stored versions are stale and ignored.
@@ -258,6 +304,7 @@ def hard_test_script() -> str:
     return dedent(
         r'''
         import copy
+        import itertools
         import os
         import sys
 
@@ -338,6 +385,8 @@ def hard_test_script() -> str:
                 "op": "upsert",
                 "payload": {
                     "key": "HACK",
+                    "event_ts": "2099-12-31T23:59:59Z",
+                    "ingest_seq": 777777,
                     "_event_ts": "BAD",
                     "_ingest_seq": 999,
                     "balance": 200,
@@ -385,8 +434,7 @@ def hard_test_script() -> str:
             "op": "upsert",
             "payload": {"value": 1},
         }
-        lower = run_incremental([], [lower_event], start, end)
-        assert lower == [
+        assert run_incremental([], [lower_event], start, end) == [
             {"key": "L", "value": 1, "_event_ts": start, "_ingest_seq": 1}
         ]
 
@@ -474,54 +522,74 @@ def hard_test_script() -> str:
             }
         ]
 
-        conflict_a = {
+        high = {
+            "key": "T",
+            "event_ts": "2026-08-19T10:58:00Z",
+            "ingest_seq": 1,
+            "op": "upsert",
+            "payload": {"value": 9},
+        }
+        low_a = {
             "key": "T",
             "event_ts": "2026-08-19T10:50:00Z",
             "ingest_seq": 3,
             "op": "upsert",
             "payload": {"value": 1},
         }
-        conflict_b = {
+        low_b = {
             "key": "T",
             "event_ts": "2026-08-19T10:50:00Z",
             "ingest_seq": 3,
             "op": "delete",
             "payload": {},
         }
-        for tied_events in (
-            [conflict_a, conflict_b],
-            [conflict_b, conflict_a],
-        ):
+        for permutation in itertools.permutations([high, low_a, low_b]):
             try:
-                run_incremental([], tied_events, start, end)
+                run_incremental([], list(permutation), start, end)
             except ValueError:
                 pass
             else:
                 raise AssertionError(
-                    "conflicting equal-version events must reject in either order"
+                    "a conflicting lower equal-version group must reject "
+                    "even when a higher version wins"
                 )
 
-        duplicate = {
-            "key": "U",
+        equivalent_a = {
+            "key": 123,
             "event_ts": "2026-08-19T10:55:00Z",
-            "ingest_seq": 4,
+            "ingest_seq": "5",
             "op": "upsert",
-            "payload": {"value": 9},
+            "payload": {
+                "nested": {"a": 1, "b": [2, 3]},
+                "value": 9,
+            },
+            "trace_id": "first",
         }
-        duplicate_result = run_incremental(
-            [],
-            [duplicate, copy.deepcopy(duplicate)],
-            start,
-            end,
-        )
-        assert duplicate_result == [
+        equivalent_b = {
+            "key": "123",
+            "event_ts": "2026-08-19T10:55:00Z",
+            "ingest_seq": 5,
+            "op": "upsert",
+            "payload": {
+                "value": 9,
+                "nested": {"b": [2, 3], "a": 1},
+            },
+            "trace_id": "second",
+        }
+        expected_equivalent = [
             {
-                "key": "U",
+                "key": "123",
+                "nested": {"a": 1, "b": [2, 3]},
                 "value": 9,
                 "_event_ts": "2026-08-19T10:55:00Z",
-                "_ingest_seq": 4,
+                "_ingest_seq": 5,
             }
         ]
+        for equivalent_order in (
+            [equivalent_a, equivalent_b],
+            [equivalent_b, equivalent_a],
+        ):
+            assert run_incremental([], equivalent_order, start, end) == expected_equivalent
 
         doc = open("docs/cdc_contract.md", encoding="utf-8").read().lower()
         for token in (
@@ -531,6 +599,9 @@ def hard_test_script() -> str:
             "replace",
             "deterministic",
             "conflict",
+            "all eligible",
+            "operation",
+            "payload",
         ):
             assert token in doc, token
         assert "stale" in doc or "less than or equal" in doc
@@ -669,11 +740,19 @@ def _run_hard_once(
             "Use a half-open [window_start, window_end) event window.",
             "Ignore out-of-window events before validating operations.",
             "Reject every invalid in-window operation before per-key deduplication.",
-            "Choose maximum (event_ts, ingest_seq) per key independent of input order.",
             (
-                "Reject conflicting same-key events with identical (event_ts, ingest_seq) "
-                "regardless of input order; exact duplicate events may collapse."
+                "Conflict-scan every eligible same-key/same-version group before max "
+                "selection, including versions that do not win."
             ),
+            (
+                "Tie equivalence is based only on normalized operation and payload "
+                "semantics; unrelated event fields do not create a conflict."
+            ),
+            (
+                "Nested mapping-order differences are semantically equivalent; conflicting "
+                "operation or payload semantics must reject regardless of input order."
+            ),
+            "Choose maximum normalized (event_ts, ingest_seq) per key after conflict checks.",
             "Candidate versions less than or equal to stored state must not mutate it.",
             "Stored-state comparisons always use _event_ts and _ingest_seq metadata.",
             "Business event_ts/ingest_seq fields in stored rows are never version metadata.",
@@ -706,19 +785,25 @@ def _run_hard_once(
             "coherent change satisfying every acceptance criterion. The current code and "
             "documentation intentionally contain interacting mistakes. Preserve public "
             "function names and signatures. event_ts values are canonical UTC ISO-8601 "
-            "strings. Filter the half-open window first; validate every remaining operation "
-            "before deduplication; then choose each key's maximum (event_ts, ingest_seq) "
-            "candidate. The result must be independent of input order: if two same-key events "
-            "share an identical version but conflict in operation or payload, reject the tie "
-            "deterministically in either order; exact duplicate events may collapse. Compare "
-            "incoming versions only with the existing row's (_event_ts, _ingest_seq) envelope "
-            "metadata, even when stored business data also contains fields named event_ts or "
-            "ingest_seq. A winning delete removes only a strictly older stored row. A winning "
-            "upsert replaces business payload, discards omitted legacy fields, and must strip "
-            "payload attempts to persist key, event_ts, ingest_seq, _event_ts, or _ingest_seq "
-            "as envelope/version fields. Emit deterministic key ordering and do not mutate "
-            "caller inputs. Correct the documentation. Use only model-facing line references "
-            "from assigned file shards and do not modify any path outside approved scope."
+            "strings. Filter the half-open window first and validate every remaining "
+            "operation. Before choosing any per-key winner, scan every eligible normalized "
+            "(key, event_ts, ingest_seq) group—including versions below the eventual maximum. "
+            "For each group, normalize key with str(key), event_ts with str(event_ts), and "
+            "ingest_seq with int(ingest_seq). Define tie equivalence only by normalized op "
+            "plus payload semantics: nested mapping order and unrelated event fields such "
+            "as tracing metadata must not create conflicts. If one normalized key/version "
+            "group contains different operation or payload semantics, reject deterministically "
+            "regardless of input order; equivalent duplicates may collapse. Only after all "
+            "groups pass this conflict scan, choose each key's maximum normalized version. "
+            "Compare incoming versions only with the existing row's (_event_ts, _ingest_seq) "
+            "envelope metadata, even when stored business data also contains fields named "
+            "event_ts or ingest_seq. A winning delete removes only a strictly older stored "
+            "row. A winning upsert replaces business payload, discards omitted legacy fields, "
+            "and strips payload attempts to persist key, event_ts, ingest_seq, _event_ts, or "
+            "_ingest_seq as envelope/version fields. Emit deterministic key ordering and do "
+            "not mutate caller inputs. Correct the documentation. Use only model-facing line "
+            "references from assigned file shards and do not modify any path outside approved "
+            "scope."
         ),
         repository=RepositorySpec(url=str(source), base_ref="main"),
         manifest=manifest,
