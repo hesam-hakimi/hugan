@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import copy
 import hashlib
 import json
 import os
@@ -177,6 +176,137 @@ def active_files() -> dict[str, str]:
             User-facing HTTP handlers live under apps/api and delegate to services.
             Services coordinate domain rules, security entitlements, audit, and repositories.
             Legacy, batch, analytics, examples, and migration utilities are not runtime request paths.
+            '''
+        ),
+    }
+
+
+def reference_changed_files() -> dict[str, str]:
+    return {
+        "security/entitlements.py": dedent(
+            '''\
+            from __future__ import annotations
+
+
+            def require_manager_override_permission(actor_roles: list[str]) -> None:
+                if "manager" not in actor_roles:
+                    raise PermissionError("manager role required")
+            '''
+        ),
+        "domain/risk_rules.py": dedent(
+            '''\
+            from __future__ import annotations
+
+
+            def validate_credit_limit_override(amount: int, expires_at: str) -> None:
+                if amount <= 0:
+                    raise ValueError("override amount must be positive")
+                if not expires_at:
+                    raise ValueError("expires_at is required")
+            '''
+        ),
+        "repositories/customer_state.py": dedent(
+            '''\
+            from __future__ import annotations
+
+
+            class CustomerStateRepository:
+                def __init__(self, base_limits: dict[str, int]) -> None:
+                    self._base_limits = dict(base_limits)
+                    self._overrides: dict[str, dict[str, object]] = {}
+
+                def get_base_limit(self, customer_id: str) -> int:
+                    return self._base_limits[customer_id]
+
+                def save_credit_limit_override(
+                    self,
+                    customer_id: str,
+                    amount: int,
+                    expires_at: str,
+                ) -> dict[str, object]:
+                    record: dict[str, object] = {
+                        "customer_id": customer_id,
+                        "amount": amount,
+                        "expires_at": expires_at,
+                    }
+                    self._overrides[customer_id] = dict(record)
+                    return dict(record)
+
+                def get_credit_limit_override(
+                    self,
+                    customer_id: str,
+                ) -> dict[str, object] | None:
+                    record = self._overrides.get(customer_id)
+                    return dict(record) if record is not None else None
+            '''
+        ),
+        "audit/activity_log.py": dedent(
+            '''\
+            from __future__ import annotations
+
+
+            def record_credit_limit_override(
+                events: list[dict[str, object]],
+                customer_id: str,
+                amount: int,
+                expires_at: str,
+            ) -> None:
+                events.append(
+                    {
+                        "event_type": "credit_limit_override_created",
+                        "customer_id": customer_id,
+                        "amount": amount,
+                        "expires_at": expires_at,
+                    }
+                )
+            '''
+        ),
+        "services/customer_account_service.py": dedent(
+            '''\
+            from __future__ import annotations
+
+            from audit.activity_log import record_credit_limit_override
+            from domain.risk_rules import validate_credit_limit_override
+            from repositories.customer_state import CustomerStateRepository
+            from security.entitlements import require_manager_override_permission
+
+
+            class CustomerAccountService:
+                def __init__(
+                    self,
+                    repository: CustomerStateRepository,
+                    audit_events: list[dict[str, object]],
+                ) -> None:
+                    self.repository = repository
+                    self.audit_events = audit_events
+
+                def create_credit_limit_override(
+                    self,
+                    actor_roles: list[str],
+                    customer_id: str,
+                    amount: int,
+                    expires_at: str,
+                ) -> dict[str, object]:
+                    require_manager_override_permission(actor_roles)
+                    validate_credit_limit_override(amount, expires_at)
+                    record = self.repository.save_credit_limit_override(
+                        customer_id,
+                        amount,
+                        expires_at,
+                    )
+                    record_credit_limit_override(
+                        self.audit_events,
+                        customer_id,
+                        amount,
+                        expires_at,
+                    )
+                    return record
+
+                def effective_credit_limit(self, customer_id: str, as_of: str) -> int:
+                    override = self.repository.get_credit_limit_override(customer_id)
+                    if override is not None and as_of < str(override["expires_at"]):
+                        return int(override["amount"])
+                    return self.repository.get_base_limit(customer_id)
             '''
         ),
     }
