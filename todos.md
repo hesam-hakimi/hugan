@@ -1,272 +1,569 @@
-We are continuing the AskTD Phase 2C acceptance workflow.
+LOCAL_HOTFIX_HF1_V2_REPAIR_4 — CLOSE FINAL QA WRITE/ROOT BLOCKERS
 
-PR #11 (Phase 2A) and PR #12 (Phase 2B) have now been processed through their review/merge sequence.
+Implement the bounded Repair 4 derived from the completed read-only scope discovery.
 
-The Phase 2C implementation has already been independently inspected and all eight remediation requirements R1-R8 were found:
+Authoritative discovery result:
 
-FIXED_AND_COVERED
+REPAIR_4_SCOPE_FROZEN: YES
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_DISCOVERY_COMPLETE
 
-with the focused Phase 2A/2B/2C test suite:
+This task fixes exactly:
 
-141 passed
+1. CRITICAL — sample_repo can be accepted as a writable consumer root.
+2. HIGH — UnitTestCoordinator.handleWrite() bypasses the trusted preview/approval/write-authorization boundary and consumerRoot containment.
 
-Do NOT redesign or remediate Phase 2C logic unless integration evidence proves an actual regression.
+The discovery separately concluded:
 
-Current observed state
+FRAMEWORK_BINDING_REPAIR_NOT_REQUIRED
 
-Phase 2C PR:
+Do not modify framework-manifest binding in this task.
 
-#14
+⸻
 
-Head branch:
+1. EXACT AUTHORIZED FILES
 
-phase2/semantic-plan-contract-validator
+Modify only these four production files:
 
-GitHub currently still shows its base as:
+src/writers/RepoWriter.ts
+src/chat/UnitTestCoordinator.ts
+src/services/unitTesting/UnitTestGenerationTypes.ts
+src/chat/ETLChatParticipant.ts
 
-phase2/service-version-boundary
+Modify only these two test files:
 
-and reports a merge conflict involving:
+src/test/suite/repoWriterWorkspaceSelection.test.ts
+src/test/suite/unitTestGeneration.test.ts
 
-kmai-td-genie/docs/adr/README.md
+No new files are authorized.
 
-The PR remains Draft.
+No other file may be edited.
 
-Objective
+If another file becomes necessary, STOP before editing and return:
 
-Safely bring the Phase 2C branch onto the now-integrated current main, resolve only integration conflicts, and verify that the accepted Phase 2C behavior remains unchanged.
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_AMENDMENT_REQUIRED
 
-This operation must NOT:
+⸻
 
-* start Phase 2D;
-* add provider abstractions;
-* implement Databricks;
-* implement Genie;
-* implement Collibra;
-* add Redis or Event Hubs;
-* change authorization scope;
-* redesign Phase 2C;
-* merge PR #14.
+2. FINDING A — BLOCK sample_repo
 
-Step 1 — Verify upstream state before mutation
+The discovery confirmed the canonical write-root classification is:
 
-Fetch remote refs.
+RepoWriter.getDefaultExclusionReason(...)
 
-Verify and report:
+with the existing protected/reference/source-root set.
 
-* origin/main HEAD SHA;
-* whether PR #11 content is present in origin/main;
-* whether PR #12 content is present in origin/main;
-* current Phase 2C branch HEAD;
-* current working-tree status in the dedicated Phase 2C worktree;
-* whether the Phase 2C branch is pushed and synchronized with origin.
+Implement the smallest repair:
 
-If PR #12 is NOT actually present in origin/main, STOP WITHOUT CHANGING ANYTHING and report:
+* add sample_repo to the existing protected source/reference-root set;
+* route it through the already-correct BLOCKED behavior;
+* do not invent a second classifier;
+* do not alter the valid single-folder fresh-consumer path.
 
-PHASE_2C_INTEGRATION_BLOCKED_PHASE_2B_NOT_IN_MAIN
+Required behavior:
 
-Do not guess from GitHub UI labels alone.
+only workspace folder = sample_repo
+→ BLOCKED
+→ workspacePath undefined
+→ no consumer write possible
 
-Step 2 — Preserve safety
+while:
 
-Work only in the existing dedicated Phase 2C worktree/branch:
+one legitimate empty consumer folder
+→ CREATE_NEW_JOB
 
-phase2/semantic-plan-contract-validator
+must remain green.
 
-Do not touch the primary asktd_v2 checkout.
+Do not use fuzzy substring matching for sample_repo.
 
-The Phase 2C worktree must be clean before beginning.
+Use the same normalization/case convention already used by the existing protected-root names.
 
-If it is not clean, STOP and report the existing changes.
+⸻
 
-Before changing history, record:
+3. UNIT TEST COORDINATOR — REMOVE DIRECT WRITE
 
-* current Phase 2C HEAD SHA;
-* current origin/main SHA;
-* git status;
-* merge-base.
+The discovery confirmed:
 
-Do not delete backup refs or historical branches.
+UnitTestCoordinator.handleWrite()
 
-Step 3 — Rebase Phase 2C onto current main
+currently performs a direct filesystem write without:
 
-Once Phase 2A and 2B are confirmed present in origin/main, rebase the Phase 2C branch onto current:
+* immutable preview;
+* explicit approval;
+* WriteAuthorization;
+* approved manifest;
+* consumerRoot containment equivalent to the other write routes.
 
-origin/main
+This route must be brought under the SAME trusted write architecture already used elsewhere.
 
-The goal is for PR #14 to contain only the Phase 2C delta relative to integrated main.
+Do NOT create a new authorization implementation.
 
-Do not manually copy Phase 2A/2B commits.
+Reuse the existing trusted preview/approval/write primitives.
 
-Do not squash or rewrite Phase 2C semantics unnecessarily.
+Required lifecycle:
 
-Step 4 — Resolve conflicts minimally
+generate
+→ user requests write
+→ resolve canonical consumerRoot
+→ validate artifact/path
+→ immutable preview
+→ return approval-required response
+→ zero filesystem writes
+next turn with approved preview
+→ verify same consumerRoot
+→ verify same artifact path/bytes
+→ consume one-time authorization
+→ containment-safe write
+→ exactly one filesystem write
 
-If conflicts occur, inspect both sides and resolve them according to the now-integrated repository state.
+A consumed/replayed approval must not write again.
 
-The currently known conflict is:
+⸻
 
-kmai-td-genie/docs/adr/README.md
+4. PERSIST PREVIEW IDENTITY BETWEEN TURNS
 
-For this file:
+The discovery confirmed the unit-test flow is multi-turn and the persisted:
 
-* preserve all already-integrated Phase 2A and Phase 2B ADR entries from main;
-* preserve/add the Phase 2C ADR entry;
-* do not remove unrelated ADR entries;
-* do not rewrite historical ADR content;
-* make the smallest deterministic reconciliation necessary.
+UnitTestEvidenceSummary
 
-If ANY source-code or test conflict appears, do not blindly choose ours/theirs.
+currently cannot carry the preview/approval identity required for the next turn.
 
-Inspect the conflict and preserve:
+Modify:
 
-1. accepted Phase 2A contracts;
-2. accepted Phase 2B service/version/cache behavior;
-3. Phase 2C R1-R8 behavior already independently verified.
+src/services/unitTesting/UnitTestGenerationTypes.ts
 
-If resolving a source/test conflict requires a semantic design decision rather than a mechanical integration, STOP and report it instead of inventing a decision.
+only as minimally required to carry the trusted preview identity between turns.
 
-Step 5 — Run focused Phase 2C regression
+Requirements:
 
-After successful rebase/conflict resolution, run the exact focused suite used by the previous audit:
+* add only the minimum optional field needed;
+* do not store a fabricated WriteAuthorization object;
+* do not persist a privileged runtime capability;
+* persist only the identifier/state needed to resume the real approval flow;
+* preserve backwards compatibility for summaries created before the field existed.
 
-PYTHONDONTWRITEBYTECODE=1 python -m pytest \
-  test/test_registry_cache.py \
-  test/test_registry_contract.py \
-  test/test_registry_hierarchy_contract.py \
-  test/test_semantic_plan_contract.py \
-  -p no:cacheprovider -q -c /dev/null
+The actual authorization must still be minted/verified through the trusted approval mechanism.
 
-Expected baseline:
+⸻
 
-141 passed
+5. INJECT THE EXISTING WRITE DEPENDENCIES
 
-If the count changes, explain exactly why.
+Modify:
 
-R1-R8 must remain behaviorally satisfied.
+src/chat/ETLChatParticipant.ts
 
-Step 6 — Verify MetadataRegistryService integration
+only as needed to construct UnitTestCoordinator with the same trusted write dependencies already used by the normal write path.
 
-Locate the existing tests covering MetadataRegistryService interaction with:
+Reuse the existing RepoWriter instance used by the surrounding participant/write flow.
 
-* registry_contract.py;
-* registry_cache.py;
-* semantic-plan validation / validate_governed_semantic_plan_for_service.
+Do not silently construct a second independent workspace resolver.
 
-Run the smallest existing applicable service/integration test set.
+Do not add a separate write store or authorization subsystem.
 
-Do not create new tests unless an actual uncovered regression is demonstrated.
+The UnitTestCoordinator must use the same canonical consumer-root semantics as the rest of HF1 V2.
 
-Step 7 — Run required acceptance regression gates
+Existing unrelated construction sites must remain unchanged unless TypeScript requires a compatible optional/default parameter.
 
-Using the repository’s existing environment and instructions only:
+⸻
 
-* full backend test suite;
-* configured coverage gate;
-* golden baseline tests if they are part of ADR 0002 validation evidence;
-* git diff --check;
-* existing tracked-file secret/security scan if a repository-supported command already exists.
+6. REMOVE FIRST-FOLDER FALLBACK
 
-Do not install or upgrade dependencies.
+The existing UnitTestCoordinator path must no longer end with or semantically perform:
 
-Do not rewrite baselines simply to make tests pass.
+workspaceFolders[0]
 
-If a test fails, determine whether it is:
+as a write-root fallback.
 
-* Phase 2C regression;
-* pre-existing unrelated failure;
-* environment/tooling failure.
+Required behavior:
 
-Do not broaden scope automatically.
+Zero workspace folders
 
-Step 8 — Verify resulting PR delta
+BLOCKED
+zero writes
 
-Compare the rebased Phase 2C branch to origin/main.
+One valid consumer folder
 
-Verify:
+canonical consumerRoot
 
-* Phase 2A/2B commits are no longer presented as Phase 2C-specific changes;
-* only intended Phase 2C changes remain;
-* no unrelated files entered the diff;
-* docs/adr/README.md contains the complete integrated ADR index;
-* R1-R8 implementation remains intact.
+One prohibited root, including sample_repo
 
-Step 9 — Push safely
+BLOCKED
+zero writes
 
-If and only if:
+Multiple folders without explicit safe selection
 
-* rebase completed successfully;
-* conflicts were mechanically resolved;
-* focused tests pass;
-* required regression gates have acceptable results;
-* no unintended changes exist;
+ambiguous / BLOCKED
+zero writes
 
-push the updated Phase 2C branch to:
+Never infer:
 
-origin/phase2/semantic-plan-contract-validator
+first folder = consumer
 
-Because rebase changes commit history, use the repository-approved safe history-update method, preferably:
+and never infer:
 
-git push --force-with-lease
+the non-extension/non-framework folder = consumer
 
-Never use plain --force.
+⸻
 
-Do NOT merge PR #14.
+7. REUSE CONSUMER PATH CONTAINMENT
 
-Do NOT mark it Ready for Review.
+Do not retain the current narrow filename-regex check as the security boundary.
 
-Step 10 — PR base
+UnitTestCoordinator writes must reuse the existing production consumer path-safety contract.
 
-After the branch is successfully rebased onto integrated main, determine whether PR #14’s base automatically updates to main.
+At minimum reject:
 
-If GitHub still lists the obsolete Phase 2B branch as its base, retarget PR #14 only to:
+* absolute paths;
+* drive-qualified paths;
+* .. traversal;
+* normalized paths escaping consumerRoot;
+* sibling-root escape;
+* extension-resource root;
+* framework/reference/source roots.
 
-main
+Immediately before the filesystem write, prove:
 
-only after confirming that main contains the accepted Phase 2A and Phase 2B content.
+final target is inside canonical consumerRoot
 
-Do not change any other PR.
+The exact artifact path approved in Preview must be the path written after Approval.
 
-Final report
+Do not recompute a different write path later.
 
-Save outside the repository as:
+⸻
 
-/tmp/ASKTD_PHASE_2C_INTEGRATION_2026-08-20.md
+8. FIRST TURN MUST WRITE NOTHING
 
-Include:
+Rewrite the unit-test write behavior so the first write request returns a Preview/Approval-required result.
 
-1. Pre-Integration Evidence
-2. Confirmation Phase 2A/2B Are in Main
-3. Rebase Result
-4. Conflict Resolution
-5. Focused R1-R8 Regression
-6. MetadataRegistryService Integration Tests
-7. Full Regression / Coverage / Golden / Safety Gates
-8. Final Diff Against Main
-9. PR #14 Current Base / Head / Draft / Checks
-10. Independent Acceptance Readiness
-11. Recommended Single Next Action
+Assert and implement:
 
-Use exactly one final verdict:
+first write request:
+preview generated
+preview identity persisted
+filesystem write count = 0
+result != written
 
-* PHASE_2C_INTEGRATION_READY_FOR_FINAL_ACCEPTANCE
-* PHASE_2C_INTEGRATION_HAS_REGRESSION
-* PHASE_2C_INTEGRATION_BLOCKED
-* PHASE_2C_INTEGRATION_INSUFFICIENT_EVIDENCE
+No directory or test file may be created on the first turn.
 
-At the end report:
+No approval prompt must be bypassed.
 
-* old Phase 2C SHA;
-* new Phase 2C SHA;
-* origin/main SHA used as base;
-* files changed specifically during conflict resolution;
-* focused test result;
-* full regression result;
-* whether PR #14 was retargeted;
-* whether branch was pushed.
+⸻
 
-Do not mark PR #14 Ready for Review.
-Do not merge PR #14.
-Do not start Phase 2D.
+9. APPROVED SECOND TURN
 
-Then STOP.
+With the same generated test evidence and valid approved preview:
+
+second write request:
+authorization verifies
+consumerRoot unchanged
+artifact relative path unchanged
+artifact bytes unchanged
+exactly one write
+result = written/success according to existing contract
+
+Use the exact existing approved-write mechanism.
+
+Do not:
+
+* auto-approve;
+* forge preview IDs;
+* forge WriteAuthorization;
+* call fs.writeFile directly before authorization;
+* bypass the approval store.
+
+⸻
+
+10. REPLAY MUST FAIL
+
+A third attempt using the consumed approval must:
+
+perform zero new writes
+not return a successful written result
+
+Do not mint a replacement approval automatically.
+
+⸻
+
+11. FRAMEWORK BINDING — NO CHANGE
+
+The discovery concluded:
+
+FRAMEWORK_BINDING_REPAIR_NOT_REQUIRED
+
+Reason:
+
+* gated EtlActionToolService write re-runs prewrite readiness/authority validation before authorization;
+* a degraded framework authority blocks before stale approval can be consumed;
+* inline WriteCoordinator/DeployCoordinator authorizations are single-shot and have no meaningful drift window.
+
+Therefore do NOT modify:
+
+TrustedWriteApprovalStore.ts
+WriteAuthorization.ts
+TrustedFrameworkDefinitionResolver.ts
+framework contract JSON
+
+in Repair 4.
+
+Record the theoretical long-lived framework-authority manifest binding issue as existing LOW follow-up debt only.
+
+⸻
+
+12. REQUIRED TEST — sample_repo
+
+In:
+
+src/test/suite/repoWriterWorkspaceSelection.test.ts
+
+add a behavioral regression test beside the existing extension/reference-root exclusion coverage.
+
+Prove:
+
+workspaceFolders = [sample_repo]
+
+returns:
+
+workspacePath === undefined
+reason === single_workspace_folder_excluded
+targetDecision === BLOCKED
+
+or the exact equivalent live contract values.
+
+Also preserve the existing test proving a legitimate fresh single-folder consumer still reaches:
+
+CREATE_NEW_JOB
+
+No source-text-only assertion is sufficient.
+
+⸻
+
+13. REQUIRED UNITTESTCOORDINATOR TEST MATRIX
+
+In:
+
+src/test/suite/unitTestGeneration.test.ts
+
+update/add behavioral coverage for the actual production UnitTestCoordinator route.
+
+Required:
+
+T1 — first call preview only
+
+* generated unit-test evidence exists;
+* request write;
+* preview returned/persisted;
+* write count = 0.
+
+T2 — approved second call
+
+* identical artifact;
+* approved preview;
+* exactly one workspace.fs.writeFile;
+* exact destination URI is under canonical consumerRoot.
+
+T3 — approval replay
+
+* reuse consumed approval;
+* write count remains 1;
+* result is rejected/not-written.
+
+T4 — multi-root ambiguity
+
+Place an apparently eligible folder at index 0 deliberately.
+
+With multiple folders and no explicit safe consumer selection:
+
+* BLOCKED;
+* zero writes.
+
+This must fail a naive workspaceFolders[0] implementation.
+
+T5 — prohibited sole root
+
+Use sample_repo or another exact protected reference root as the only folder:
+
+* BLOCKED;
+* zero writes.
+
+T6 — absolute path escape
+
+* rejected;
+* zero writes.
+
+T7 — traversal escape
+
+Example:
+
+../outside.py
+
+* rejected;
+* zero writes.
+
+T8 — sibling-root escape
+
+* rejected;
+* zero writes.
+
+T9 — every attempted write inside consumerRoot
+
+Capture every actual write URI and assert canonical containment beneath the resolved consumerRoot.
+
+T10 — normal run/cancel regression
+
+Existing run/cancel behavior in this test file must remain green.
+
+Use real production coordinator behavior, not source-text scans.
+
+⸻
+
+14. TEST QUALITY
+
+Tests must be discriminating.
+
+They should fail if any of these regressions are reintroduced:
+
+sample_repo becomes writable
+workspaceFolders[0] fallback
+direct UnitTestCoordinator fs.writeFile
+write before approval
+approval replay
+path traversal
+sibling-root escape
+write outside consumerRoot
+
+Mocks must not bypass the production authorization path.
+
+Do not make private test-only backdoors.
+
+⸻
+
+15. DO NOT CHANGE THE FIVE HISTORICAL FAILURES
+
+Do not touch:
+
+* EvalGating baseline failures;
+* Copilot workflow customization failures;
+* their source assets;
+* Phase-H baselines.
+
+Expected full-unit baseline after Repair 4 remains:
+
+exactly 5 historical failures
+no HF1 V2 regression
+
+⸻
+
+16. VALIDATION
+
+Run, when native tooling is available:
+
+npm run compile
+npm run lint
+
+Then run targeted tests covering:
+
+RepoWriter workspace selection
+UnitTestCoordinator / unit test generation
+HF1
+Trusted framework
+fresh consumer
+single-folder
+WriteAuthorization
+
+Then run full unit suite.
+
+Success criteria:
+
+compile: PASS
+lint: PASS
+targeted Repair-4 tests: PASS
+HF1 V2 focused tests: PASS
+full unit: exactly 5 historical failures
+new HF1 V2 regressions: NONE
+
+Do not regenerate baselines.
+
+If native execution is unavailable, report exact commands for external validation and do not fabricate results.
+
+⸻
+
+17. END-STATE SCOPE PROOF
+
+At completion confirm:
+
+Production files changed during Repair 4:
+
+src/writers/RepoWriter.ts
+src/chat/UnitTestCoordinator.ts
+src/services/unitTesting/UnitTestGenerationTypes.ts
+src/chat/ETLChatParticipant.ts
+
+Test files changed:
+
+src/test/suite/repoWriterWorkspaceSelection.test.ts
+src/test/suite/unitTestGeneration.test.ts
+
+New files:
+
+0
+
+No seventh file may change.
+
+If any other file changes, Repair 4 is incomplete.
+
+Confirm:
+
+* staged count = 0;
+* no Git mutation;
+* no package/install/download;
+* no VSIX build;
+* no consumer repository write;
+* no original repository modification;
+* no framework repository modification.
+
+⸻
+
+18. FINAL REPORT
+
+Return:
+
+1. Exact six-file Repair-4 diff inventory.
+2. sample_repo classification before/after.
+3. UnitTestCoordinator write route before/after.
+4. How preview identity is persisted.
+5. How existing trusted authorization is reused.
+6. How consumerRoot is resolved.
+7. How path containment is enforced.
+8. Evidence first call writes zero.
+9. Evidence approved call writes exactly once.
+10. Evidence replay fails.
+11. Evidence multi-root cannot use first-folder fallback.
+12. Evidence sample_repo cannot become consumerRoot.
+13. Evidence path escape fails.
+14. Framework-binding non-change confirmation.
+15. Compile/lint/test results.
+16. Historical-five separation.
+17. Remaining LOW framework-binding debt.
+18. Exact scope proof.
+
+Finish with exactly one:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_VALIDATED
+
+or:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+
+or:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_AMENDMENT_REQUIRED
+
+or:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_4_BLOCKED
+
+Do not Keep.
+Do not commit.
+Do not push.
+Do not package.
+Do not install a VSIX.
+Stop after the Repair-4 report.
