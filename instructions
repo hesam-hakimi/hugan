@@ -8,6 +8,7 @@
 - universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
 - universal-coding-agent/src/universal_coding_agent/cli.py
 - universal-coding-agent/src/universal_coding_agent/web/__init__.py
+- universal-coding-agent/src/universal_coding_agent/web/app.py
 - universal-coding-agent/tests/test_model_line_addressing.py
 - universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
@@ -58,6 +59,7 @@ for FILE in \
   src/universal_coding_agent/discovered_safe_service.py \
   src/universal_coding_agent/cli.py \
   src/universal_coding_agent/web/__init__.py \
+  src/universal_coding_agent/web/app.py \
   tests/test_model_line_addressing.py \
   src/universal_coding_agent/testlab/__init__.py \
   src/universal_coding_agent/testlab/synthetic.py \
@@ -97,9 +99,11 @@ from universal_coding_agent.product import ContextDocumentService, ProductWorksp
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
+from universal_coding_agent.web import ProductWebRuntime, create_product_app
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
+assert ProductWebRuntime and create_product_app
 print("PRODUCT_FOUNDATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
