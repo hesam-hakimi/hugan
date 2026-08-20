@@ -6,6 +6,7 @@
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/src/universal_coding_agent/solution_discovery.py
 - universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
+- universal-coding-agent/src/universal_coding_agent/cli.py
 - universal-coding-agent/tests/test_model_line_addressing.py
 - universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
@@ -38,6 +39,7 @@ for FILE in \
   src/universal_coding_agent/safe_service.py \
   src/universal_coding_agent/solution_discovery.py \
   src/universal_coding_agent/discovered_safe_service.py \
+  src/universal_coding_agent/cli.py \
   tests/test_model_line_addressing.py \
   src/universal_coding_agent/testlab/__init__.py \
   src/universal_coding_agent/testlab/synthetic.py \
