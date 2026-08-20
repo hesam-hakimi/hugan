@@ -56,6 +56,7 @@ def _provider() -> FakeModelProvider:
             if answered
             else [
                 {
+                    "decision_key": "authorization_role",
                     "question": "Which role may export customers?",
                     "severity": "blocking",
                     "rationale": "Authorization behavior changes the security boundary.",
@@ -210,7 +211,9 @@ def test_requirement_alignment_blocks_on_missing_information_then_freezes_contra
             objective="Add customer export with authorization and auditing.",
         )
         assert first.contract.status is RequirementStatus.NEEDS_CLARIFICATION
-        assert first.contract.clarifications[0].severity.value == "blocking"
+        question = first.contract.clarifications[0]
+        assert question.severity.value == "blocking"
+        assert question.decision_key == "authorization_role"
         with pytest.raises(ValueError, match="clarification"):
             workspace.requirements.approve(first.contract)
 
@@ -218,7 +221,7 @@ def test_requirement_alignment_blocks_on_missing_information_then_freezes_contra
             alignment_id="customer-export",
             title="Customer export",
             objective="Add customer export with authorization and auditing.",
-            answers={"Q-001": "manager-only"},
+            answers={"authorization_role": "manager-only"},
             previous=first.contract,
         )
         assert second.contract.status is RequirementStatus.READY_FOR_APPROVAL
@@ -232,6 +235,167 @@ def test_requirement_alignment_blocks_on_missing_information_then_freezes_contra
         assert [item.criterion_id for item in approved.contract.acceptance_criteria] == [
             "AC-001",
             "AC-002",
+        ]
+    finally:
+        workspace.close()
+
+
+def test_requirement_alignment_accepts_legacy_question_id_answers(tmp_path: Path) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "state", _provider())
+    try:
+        first = workspace.requirements.analyze(
+            alignment_id="legacy-answer",
+            title="Customer export",
+            objective="Add customer export with authorization and auditing.",
+        )
+        second = workspace.requirements.analyze(
+            alignment_id="legacy-answer",
+            title="Customer export",
+            objective="Add customer export with authorization and auditing.",
+            answers={"Q-001": "manager-only"},
+            previous=first.contract,
+        )
+        assert second.contract.status is RequirementStatus.READY_FOR_APPROVAL
+        assert second.contract.clarifications[0].decision_key == "authorization_role"
+    finally:
+        workspace.close()
+
+
+def test_rephrased_clarification_reuses_stable_decision_key(tmp_path: Path) -> None:
+    calls = 0
+
+    def requirement_alignment(request):
+        nonlocal calls
+        calls += 1
+        question = (
+            "Which role may export customers?"
+            if calls == 1
+            else "Which entitlement is authorized to download the customer CSV?"
+        )
+        return {
+            "title": "Customer export",
+            "objective": "Add a governed customer export.",
+            "requirements": [
+                {
+                    "statement": "Only an approved role can export customers.",
+                    "category": "security",
+                    "evidence_refs": ["security/entitlements.py"],
+                }
+            ],
+            "acceptance_criteria": [
+                {
+                    "statement": "Unauthorized callers are rejected.",
+                    "requirement_indexes": [0],
+                }
+            ],
+            "constraints": [],
+            "exclusions": [],
+            "assumptions": [],
+            "clarifications": [
+                {
+                    "decision_key": "authorization_role",
+                    "question": question,
+                    "severity": "blocking",
+                    "rationale": "This changes the security boundary.",
+                    "options": ["manager-only"],
+                    "recommended_answer": "manager-only",
+                    "evidence_refs": ["security/entitlements.py"],
+                }
+            ],
+        }
+
+    workspace = ProductWorkspace.create(
+        tmp_path / "state",
+        FakeModelProvider(handlers={"requirement_alignment": requirement_alignment}),
+    )
+    try:
+        first = workspace.requirements.analyze(
+            alignment_id="stable-decision",
+            title="Customer export",
+            objective="Add a governed customer export.",
+        )
+        second = workspace.requirements.analyze(
+            alignment_id="stable-decision",
+            title="Customer export",
+            objective="Add a governed customer export.",
+            answers={"authorization_role": "manager-only"},
+            previous=first.contract,
+        )
+        assert second.contract.status is RequirementStatus.READY_FOR_APPROVAL
+        assert len(second.contract.clarifications) == 1
+        assert second.contract.clarifications[0].question_id == "Q-001"
+        assert second.contract.clarifications[0].decision_key == "authorization_role"
+    finally:
+        workspace.close()
+
+
+def test_new_decision_key_remains_blocking_after_prior_answer(tmp_path: Path) -> None:
+    calls = 0
+
+    def requirement_alignment(_request):
+        nonlocal calls
+        calls += 1
+        clarifications = [
+            {
+                "decision_key": "authorization_role",
+                "question": "Which role may export customers?",
+                "severity": "blocking",
+                "rationale": "This changes the security boundary.",
+                "options": ["manager-only"],
+                "recommended_answer": "manager-only",
+                "evidence_refs": [],
+            }
+        ]
+        if calls > 1:
+            clarifications.append(
+                {
+                    "decision_key": "retention_policy",
+                    "question": "How long must generated exports be retained?",
+                    "severity": "material",
+                    "rationale": "Retention changes data lifecycle behavior.",
+                    "options": ["no-storage", "24-hours"],
+                    "recommended_answer": "no-storage",
+                    "evidence_refs": [],
+                }
+            )
+        return {
+            "title": "Customer export",
+            "objective": "Add a governed customer export.",
+            "requirements": [
+                {
+                    "statement": "Export access is governed.",
+                    "category": "security",
+                    "evidence_refs": [],
+                }
+            ],
+            "acceptance_criteria": [],
+            "constraints": [],
+            "exclusions": [],
+            "assumptions": [],
+            "clarifications": clarifications,
+        }
+
+    workspace = ProductWorkspace.create(
+        tmp_path / "state",
+        FakeModelProvider(handlers={"requirement_alignment": requirement_alignment}),
+    )
+    try:
+        first = workspace.requirements.analyze(
+            alignment_id="new-decision",
+            title="Customer export",
+            objective="Add a governed customer export.",
+        )
+        second = workspace.requirements.analyze(
+            alignment_id="new-decision",
+            title="Customer export",
+            objective="Add a governed customer export.",
+            answers={"authorization_role": "manager-only"},
+            previous=first.contract,
+        )
+        assert second.contract.status is RequirementStatus.NEEDS_CLARIFICATION
+        assert [item.decision_key for item in second.contract.clarifications] == [
+            "authorization_role",
+            "retention_policy",
         ]
     finally:
         workspace.close()
@@ -251,7 +415,7 @@ def test_program_orchestration_is_phased_documented_pausable_and_hash_bound(
             alignment_id="customer-export",
             title="Customer export",
             objective="Add customer export with authorization and auditing.",
-            answers={"Q-001": "manager-only"},
+            answers={"authorization_role": "manager-only"},
             previous=first.contract,
         )
         approved = workspace.requirements.approve(aligned.contract)

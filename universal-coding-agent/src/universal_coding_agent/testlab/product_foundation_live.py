@@ -54,11 +54,12 @@ def run_product_foundation_live(
             filename="product-order.md",
             content=(
                 "# Customer Export Order\n"
-                "Build a CSV export for active customers only. Exclude email and phone.\n"
-                "Every successful export must emit exactly one audit event.\n"
-                "The authorization role is intentionally unspecified and requires "
-                "a user decision.\n"
-                "Do not change legacy batch export code.\n"
+                "Implement the export through the existing apps/api/customer_export.py entry "
+                "point. Use the repository's existing active-customer predicate, CSV schema, "
+                "and audit contract. Exclude email and phone. Every successful export must "
+                "emit exactly one audit event. The only intentionally missing business "
+                "decision is which authorization role may invoke the export. Do not infer "
+                "that role. Do not change legacy batch export code.\n"
             ),
             role=DocumentRole.REQUIREMENT,
             scope=ContextScope.PROGRAM,
@@ -82,14 +83,15 @@ def run_product_foundation_live(
             base_sha=base_sha,
         )
         workspace.index_repository(source, manifest)
-        search_hits = workspace.search.search("customer export audit", top_k=10)
+        search_hits = workspace.search.search("customer export audit active schema", top_k=12)
         if not search_hits:
             raise RuntimeError("product search returned no evidence")
 
         objective = (
-            "Implement the customer export order across the active application. This is a large "
-            "change and must be delivered in multiple reviewable phases. Authorization is a "
-            "security boundary and is intentionally missing from the request; do not infer it."
+            "Implement the attached customer export order using the existing application entry "
+            "point and repository contracts. This is a multi-phase change. All technical "
+            "contracts are present in the repository; only the authorization role is intentionally "
+            "unspecified and must be clarified rather than inferred."
         )
         alignment = workspace.requirements.analyze(
             alignment_id="customer-export-live",
@@ -104,41 +106,60 @@ def run_product_foundation_live(
                 ClarificationSeverity.MATERIAL,
             }
         )
-        if (
-            alignment.contract.status is not RequirementStatus.NEEDS_CLARIFICATION
-            or not initial_questions
-        ):
-            raise RuntimeError("ambiguous security requirement was not surfaced for clarification")
+        if alignment.contract.status is not RequirementStatus.NEEDS_CLARIFICATION:
+            raise RuntimeError("ambiguous security requirement was not blocked")
+        authorization_questions = tuple(
+            item
+            for item in initial_questions
+            if "author" in item.decision_key or "role" in item.decision_key
+        )
+        if len(authorization_questions) != 1:
+            keys = [item.decision_key for item in initial_questions]
+            raise RuntimeError(
+                "live fixture expected exactly one authorization decision; "
+                f"received {keys!r}"
+            )
+        authorization = authorization_questions[0]
+        unexpected = [
+            item.decision_key
+            for item in initial_questions
+            if item.decision_key != authorization.decision_key
+        ]
+        if unexpected:
+            raise RuntimeError(
+                "repository contracts should resolve all non-user decisions; "
+                f"unexpected={unexpected!r}"
+            )
 
-        answers: dict[str, str] = {}
-        current = alignment
-        for _ in range(3):
+        answers = {
+            authorization.decision_key: (
+                "Use the existing manager role. Enforce it at apps/api/customer_export.py "
+                "before customer data is read or CSV content is returned."
+            )
+        }
+        aligned = workspace.requirements.analyze(
+            alignment_id="customer-export-live",
+            title="Governed customer export",
+            objective=objective,
+            answers=answers,
+            previous=alignment.contract,
+        )
+        if aligned.contract.status is not RequirementStatus.READY_FOR_APPROVAL:
             unresolved = [
-                item
-                for item in current.contract.clarifications
+                item.decision_key
+                for item in aligned.contract.clarifications
                 if item.severity in {
                     ClarificationSeverity.BLOCKING,
                     ClarificationSeverity.MATERIAL,
                 }
+                and item.decision_key not in answers
                 and item.question_id not in answers
             ]
-            if not unresolved:
-                break
-            for item in unresolved:
-                answers[item.question_id] = (
-                    item.recommended_answer
-                    or (item.options[0] if item.options else "manager-only")
-                )
-            current = workspace.requirements.analyze(
-                alignment_id="customer-export-live",
-                title="Governed customer export",
-                objective=objective,
-                answers=answers,
-                previous=current.contract,
+            raise RuntimeError(
+                "requirement alignment did not converge after concrete user answer; "
+                f"unresolved={unresolved!r}"
             )
-        if current.contract.status is not RequirementStatus.READY_FOR_APPROVAL:
-            raise RuntimeError("requirement alignment did not converge after bounded clarification")
-        approved = workspace.requirements.approve(current.contract)
+        approved = workspace.requirements.approve(aligned.contract)
         if approved.contract.status is not RequirementStatus.APPROVED:
             raise RuntimeError("requirement contract was not frozen as approved")
 
@@ -196,6 +217,7 @@ def run_product_foundation_live(
                 "source_preserved": source_preserved,
                 "search_hits": len(search_hits),
                 "initial_clarification_count": len(initial_questions),
+                "authorization_decision_key": authorization.decision_key,
                 "requirement_version": approved.contract.version,
                 "requirement_hash": approved.requirement_hash,
                 "program_phase_count": len(plan.phases),
@@ -224,18 +246,40 @@ def run_product_foundation_live(
 
 def _write_source(source: Path) -> None:
     files = {
+        "apps/api/customer_export.py": (
+            "from services.customer_export import export_customers\n\n"
+            "def download_customer_export(*, actor, customers, audit_events):\n"
+            "    return export_customers(actor=actor, customers=customers, "
+            "audit_events=audit_events)\n"
+        ),
         "services/customer_export.py": (
-            "def export_customers(*, active_only: bool = True):\n"
+            "def export_customers(*, actor, customers, audit_events):\n"
             "    raise NotImplementedError\n"
         ),
         "security/entitlements.py": (
+            "MANAGER_ROLE = 'manager'\n\n"
             "def require_role(roles: list[str], role: str) -> None:\n"
             "    if role not in roles:\n"
             "        raise PermissionError(role)\n"
         ),
+        "domain/customer_status.py": (
+            "def is_active_customer(customer: dict) -> bool:\n"
+            "    return customer.get('status') == 'active' and customer.get('closed_at') is None\n"
+        ),
         "audit/activity_log.py": (
             "def append_event(events: list[dict], event: dict) -> None:\n"
             "    events.append(dict(event))\n"
+        ),
+        "docs/customer_export_schema.md": (
+            "# Customer export CSV contract\n"
+            "Encoding: UTF-8. Include a header row. Columns in exact order: "
+            "customer_id,full_name,status. Email and phone are excluded.\n"
+        ),
+        "docs/customer_export_audit.md": (
+            "# Customer export audit contract\n"
+            "After a CSV is generated successfully, emit exactly one customer_export_completed "
+            "event with actor_id, request_id, and row_count. Failed exports emit no success "
+            "event. Audit append failure makes the export fail closed.\n"
         ),
         "docs/pii_policy.md": (
             "# Export PII policy\nCustomer exports must exclude email and phone fields.\n"

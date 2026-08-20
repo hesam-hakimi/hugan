@@ -9,6 +9,8 @@ from pydantic import Field, model_validator
 
 from universal_coding_agent.core.models import FrozenModel, PhasePlan, SlicePlan
 
+_DECISION_KEY_PATTERN = r"^[a-z][a-z0-9_]{2,63}$"
+
 
 class DocumentRole(StrEnum):
     REQUIREMENT = "requirement"
@@ -81,6 +83,7 @@ class DraftAcceptanceCriterion(FrozenModel):
 
 
 class DraftClarification(FrozenModel):
+    decision_key: str = Field(pattern=_DECISION_KEY_PATTERN)
     question: str = Field(min_length=1, max_length=2000)
     severity: ClarificationSeverity
     rationale: str = Field(min_length=1, max_length=2000)
@@ -99,6 +102,13 @@ class RequirementDraft(FrozenModel):
     assumptions: tuple[str, ...] = ()
     clarifications: tuple[DraftClarification, ...] = ()
 
+    @model_validator(mode="after")
+    def validate_clarification_keys(self) -> RequirementDraft:
+        keys = [item.decision_key for item in self.clarifications]
+        if len(keys) != len(set(keys)):
+            raise ValueError("clarification decision keys must be unique")
+        return self
+
 
 class RequirementItem(FrozenModel):
     requirement_id: str = Field(pattern=r"^R-[0-9]{3}$")
@@ -115,6 +125,7 @@ class AcceptanceCriterion(FrozenModel):
 
 class ClarificationQuestion(FrozenModel):
     question_id: str = Field(pattern=r"^Q-[0-9]{3}$")
+    decision_key: str = Field(pattern=_DECISION_KEY_PATTERN)
     question: str = Field(min_length=1, max_length=2000)
     severity: ClarificationSeverity
     rationale: str = Field(min_length=1, max_length=2000)
@@ -136,6 +147,13 @@ class RequirementContract(FrozenModel):
     clarifications: tuple[ClarificationQuestion, ...] = ()
     answers: dict[str, str] = Field(default_factory=dict)
     status: RequirementStatus
+
+    @model_validator(mode="after")
+    def validate_clarification_keys(self) -> RequirementContract:
+        keys = [item.decision_key for item in self.clarifications]
+        if len(keys) != len(set(keys)):
+            raise ValueError("contract clarification decision keys must be unique")
+        return self
 
     def canonical_hash(self) -> str:
         payload = self.model_dump(mode="json", exclude={"status"})
