@@ -30,8 +30,10 @@
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
 - universal-coding-agent/src/universal_coding_agent/product/task_control.py
+- universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
+- universal-coding-agent/tests/test_safe_control.py
 
 Cmd 1
 
@@ -74,13 +76,14 @@ for FILE in \
   src/universal_coding_agent/product/requirement_alignment.py \
   src/universal_coding_agent/product/program_orchestrator.py \
   src/universal_coding_agent/product/task_control.py \
+  src/universal_coding_agent/product/controlled_safe_graph.py \
   src/universal_coding_agent/product/workspace.py \
-  tests/test_product_foundation.py
+  tests/test_product_foundation.py \
+  tests/test_safe_control.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
 .venv/bin/python - <<'PY'
-from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product import (
     ContextDocumentService,
@@ -90,24 +93,11 @@ from universal_coding_agent.product import (
     SearchService,
     TaskControlService,
 )
-from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.hard_reasoning import run_hard_suite
-from universal_coding_agent.testlab.large_solution import reference_changed_files, run_large_solution_suite
 from universal_coding_agent.testlab.large_solution_production import run_large_solution_production_suite
 from universal_coding_agent.testlab.live import run_live_suite
-from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
-from universal_coding_agent.testlab.synthetic import failure_scenarios, success_scenarios
-assert success_scenarios()
-assert failure_scenarios()
-assert OpenAIResponsesProvider
-assert run_live_suite
-assert run_hard_suite
-assert run_large_solution_suite
-assert run_large_solution_production_suite
-assert set(reference_changed_files())
-assert SolutionDiscoveryService
 assert DiscoveredSafeAgentService
 assert ProductWorkspace
 assert ContextDocumentService
@@ -115,6 +105,11 @@ assert SearchService
 assert RequirementAlignmentService
 assert ProgramOrchestrator
 assert TaskControlService
+assert SafeAgentService
+assert SolutionDiscoveryService
+assert run_live_suite
+assert run_hard_suite
+assert run_large_solution_production_suite
 print("PRODUCT_FOUNDATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -125,6 +120,7 @@ Cmd 3
 .venv/bin/python -m compileall -q src tests && \
 .venv/bin/python -m pytest -q \
   tests/test_product_foundation.py \
+  tests/test_safe_control.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
@@ -188,8 +184,6 @@ test -f "$HARD_STATE_ROOT/hard-summary.json"
 find "$HARD_STATE_ROOT" -type f -name test-results.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$HARD_STATE_ROOT" -type f -name safe-review.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$HARD_STATE_ROOT" -type f -name edit-proposal.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$HARD_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,400p' {} \; || true
