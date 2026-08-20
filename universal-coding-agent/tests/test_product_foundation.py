@@ -14,6 +14,7 @@ from universal_coding_agent.product.models import (
     ControlState,
     DocumentRole,
     PhaseResult,
+    ProgramPlanDraft,
     ProgramStatus,
     RequirementStatus,
 )
@@ -126,6 +127,22 @@ def _manifest(root: Path) -> ProjectManifest:
         files=tuple(files),
         language_counts={"python": 2},
     )
+
+
+def _approved_requirement(workspace: ProductWorkspace, alignment_id: str):
+    first = workspace.requirements.analyze(
+        alignment_id=alignment_id,
+        title="Customer export",
+        objective="Add customer export with authorization and auditing.",
+    )
+    aligned = workspace.requirements.analyze(
+        alignment_id=alignment_id,
+        title="Customer export",
+        objective="Add customer export with authorization and auditing.",
+        answers={"authorization_role": "manager-only"},
+        previous=first.contract,
+    )
+    return workspace.requirements.approve(aligned.contract)
 
 
 def test_text_documents_are_immutable_searchable_and_role_scoped(tmp_path: Path) -> None:
@@ -264,7 +281,7 @@ def test_requirement_alignment_accepts_legacy_question_id_answers(tmp_path: Path
 def test_rephrased_clarification_reuses_stable_decision_key(tmp_path: Path) -> None:
     calls = 0
 
-    def requirement_alignment(request):
+    def requirement_alignment(_request):
         nonlocal calls
         calls += 1
         question = (
@@ -401,24 +418,99 @@ def test_new_decision_key_remains_blocking_after_prior_answer(tmp_path: Path) ->
         workspace.close()
 
 
+def test_program_plan_draft_rejects_unknown_phase_dependency() -> None:
+    with pytest.raises(ValueError, match="unknown dependencies"):
+        ProgramPlanDraft.model_validate(
+            {
+                "title": "Program",
+                "objective": "Deliver safely.",
+                "phases": [
+                    {
+                        "phase_id": "phase-1",
+                        "title": "First",
+                        "objective": "First phase.",
+                        "dependencies": ["phase-missing"],
+                    }
+                ],
+                "definition_of_done": [],
+            }
+        )
+
+
+def test_program_planner_repairs_cross_phase_slice_dependencies(tmp_path: Path) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "state", _provider())
+    try:
+        approved = _approved_requirement(workspace, "planner-repair")
+
+        def program_planner(request):
+            repaired = request.metadata.get("schema_repair") == "true"
+            return {
+                "title": "Customer export delivery",
+                "objective": "Deliver in two phases.",
+                "phases": [
+                    {
+                        "phase_id": "phase-1",
+                        "title": "Contract",
+                        "objective": "Freeze authorization contract.",
+                        "dependencies": [],
+                        "slices": [
+                            {
+                                "slice_id": "P1-S1",
+                                "title": "Contract slice",
+                                "objective": "Freeze the contract.",
+                                "dependencies": [],
+                            }
+                        ],
+                    },
+                    {
+                        "phase_id": "phase-2",
+                        "title": "Implementation",
+                        "objective": "Implement approved behavior.",
+                        "dependencies": ["phase-1"],
+                        "slices": [
+                            {
+                                "slice_id": "P2-S1",
+                                "title": "Implementation slice",
+                                "objective": "Implement against the prior contract.",
+                                "dependencies": [] if repaired else ["P1-S1"],
+                                "external_dependencies": (
+                                    ["phase:phase-1"] if repaired else []
+                                ),
+                            }
+                        ],
+                    },
+                ],
+                "definition_of_done": ["Both phases complete."],
+            }
+
+        workspace.programs.provider = FakeModelProvider(
+            handlers={"program_planner": program_planner}
+        )
+        plan = workspace.programs.create_program(
+            program_id="program-repair",
+            requirement=approved.contract,
+            requirement_hash=approved.requirement_hash,
+        )
+        second_slice = plan.phases[1].slices[0]
+        assert second_slice.dependencies == ()
+        assert second_slice.external_dependencies == ("phase:phase-1",)
+        validation = workspace.artifacts.read_json(
+            "artifact://programs/program-repair/program-planner-validation.json"
+        )
+        assert validation["repair_used"] is True
+        assert len(validation["attempts"]) == 2
+        assert validation["attempts"][0]["schema_valid"] is False
+        assert validation["attempts"][1]["schema_valid"] is True
+    finally:
+        workspace.close()
+
+
 def test_program_orchestration_is_phased_documented_pausable_and_hash_bound(
     tmp_path: Path,
 ) -> None:
     workspace = ProductWorkspace.create(tmp_path / "state", _provider())
     try:
-        first = workspace.requirements.analyze(
-            alignment_id="customer-export",
-            title="Customer export",
-            objective="Add customer export with authorization and auditing.",
-        )
-        aligned = workspace.requirements.analyze(
-            alignment_id="customer-export",
-            title="Customer export",
-            objective="Add customer export with authorization and auditing.",
-            answers={"authorization_role": "manager-only"},
-            previous=first.contract,
-        )
-        approved = workspace.requirements.approve(aligned.contract)
+        approved = _approved_requirement(workspace, "customer-export")
         plan = workspace.programs.create_program(
             program_id="program-customer-export",
             requirement=approved.contract,

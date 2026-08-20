@@ -5,7 +5,10 @@ import sqlite3
 from pathlib import Path
 
 from universal_coding_agent.core.models import ModelRequest
-from universal_coding_agent.orchestration.structured_output import invoke_structured
+from universal_coding_agent.orchestration.structured_output import (
+    StructuredOutputError,
+    invoke_structured,
+)
 from universal_coding_agent.product.models import (
     ControlAction,
     ControlEntityType,
@@ -30,11 +33,23 @@ requirement into the smallest coherent phases that can be delivered and reviewed
 Use explicit phase dependencies, acceptance criteria, expected components, and stop
 conditions. Do not invent business requirements. Preserve security, compatibility, data
 migration, testing, documentation, and rollback concerns when the approved contract requires
-them. Do not write code or claim execution has happened."""
+them. Do not write code or claim execution has happened.
+
+Dependency levels are strict and must never be mixed:
+- ProgramPhase.dependencies contains only exact phase_id values declared in this program.
+- SlicePlan.dependencies contains only exact slice_id values declared inside that same phase.
+- A slice must never place a phase_id or a slice_id from another phase in SlicePlan.dependencies.
+- Prior-phase contracts, outputs, decisions, or prerequisites belong in
+  SlicePlan.external_dependencies as descriptive stable references, while ordering between
+  phases belongs in ProgramPhase.dependencies.
+If a phase contains one slice, that slice normally has an empty dependencies array."""
 
 _PROGRAM_REPAIR_GUIDANCE = """Preserve the proposed program while correcting JSON structure.
-Every dependency must be an exact phase_id declared in the same response. Remove dependency
-cycles and keep at least one phase."""
+For ProgramPhase.dependencies, use only exact phase_id values declared in the same response.
+For each SlicePlan.dependencies, use only exact slice_id values declared inside that same phase.
+Move all cross-phase slice prerequisites to SlicePlan.external_dependencies and express phase
+ordering in ProgramPhase.dependencies. Never replace a cross-phase slice ID with a phase ID
+inside SlicePlan.dependencies. Remove dependency cycles and keep at least one phase."""
 
 
 class ProgramOrchestrator:
@@ -117,12 +132,19 @@ class ProgramOrchestrator:
             max_output_tokens=8000,
             metadata={"program_id": program_id, "requirement_hash": requirement_hash},
         )
-        structured = invoke_structured(
-            self.provider,
-            request,
-            ProgramPlanDraft,
-            repair_guidance=_PROGRAM_REPAIR_GUIDANCE,
-        )
+        try:
+            structured = invoke_structured(
+                self.provider,
+                request,
+                ProgramPlanDraft,
+                repair_guidance=_PROGRAM_REPAIR_GUIDANCE,
+            )
+        except StructuredOutputError as exc:
+            self.artifacts.write_json(
+                f"programs/{program_id}/program-planner-validation.json",
+                exc.diagnostics,
+            )
+            raise
         self.artifacts.write_json(
             f"programs/{program_id}/program-planner-validation.json",
             structured.diagnostics,

@@ -216,6 +216,40 @@ class ProgramPhase(FrozenModel):
         return self
 
 
+def _validate_program_phase_graph(phases: tuple[ProgramPhase, ...]) -> None:
+    phase_ids = [phase.phase_id for phase in phases]
+    if not phase_ids:
+        raise ValueError("program requires at least one phase")
+    if len(phase_ids) != len(set(phase_ids)):
+        raise ValueError("phase IDs must be unique")
+    known = set(phase_ids)
+    dependency_map = {phase.phase_id: set(phase.dependencies) for phase in phases}
+    for phase in phases:
+        unknown = dependency_map[phase.phase_id] - known
+        if unknown:
+            raise ValueError(
+                f"phase {phase.phase_id} has unknown dependencies: {sorted(unknown)}"
+            )
+        if phase.phase_id in phase.dependencies:
+            raise ValueError(f"phase {phase.phase_id} cannot depend on itself")
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(phase_id: str) -> None:
+        if phase_id in visiting:
+            raise ValueError("phase dependency graph contains a cycle")
+        if phase_id in visited:
+            return
+        visiting.add(phase_id)
+        for dependency in dependency_map[phase_id]:
+            visit(dependency)
+        visiting.remove(phase_id)
+        visited.add(phase_id)
+
+    for phase_id in phase_ids:
+        visit(phase_id)
+
+
 class ProgramPlan(FrozenModel):
     program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
     title: str = Field(min_length=1, max_length=200)
@@ -226,37 +260,7 @@ class ProgramPlan(FrozenModel):
 
     @model_validator(mode="after")
     def validate_phase_graph(self) -> ProgramPlan:
-        phase_ids = [phase.phase_id for phase in self.phases]
-        if not phase_ids:
-            raise ValueError("program requires at least one phase")
-        if len(phase_ids) != len(set(phase_ids)):
-            raise ValueError("phase IDs must be unique")
-        known = set(phase_ids)
-        dependency_map = {phase.phase_id: set(phase.dependencies) for phase in self.phases}
-        for phase in self.phases:
-            unknown = dependency_map[phase.phase_id] - known
-            if unknown:
-                raise ValueError(
-                    f"phase {phase.phase_id} has unknown dependencies: {sorted(unknown)}"
-                )
-            if phase.phase_id in phase.dependencies:
-                raise ValueError(f"phase {phase.phase_id} cannot depend on itself")
-        visiting: set[str] = set()
-        visited: set[str] = set()
-
-        def visit(phase_id: str) -> None:
-            if phase_id in visiting:
-                raise ValueError("phase dependency graph contains a cycle")
-            if phase_id in visited:
-                return
-            visiting.add(phase_id)
-            for dependency in dependency_map[phase_id]:
-                visit(dependency)
-            visiting.remove(phase_id)
-            visited.add(phase_id)
-
-        for phase_id in phase_ids:
-            visit(phase_id)
+        _validate_program_phase_graph(self.phases)
         return self
 
     def canonical_hash(self) -> str:
@@ -269,6 +273,11 @@ class ProgramPlanDraft(FrozenModel):
     objective: str = Field(min_length=1, max_length=8000)
     phases: tuple[ProgramPhase, ...]
     definition_of_done: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_phase_graph(self) -> ProgramPlanDraft:
+        _validate_program_phase_graph(self.phases)
+        return self
 
 
 class PhaseResult(FrozenModel):
