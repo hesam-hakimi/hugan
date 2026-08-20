@@ -19,6 +19,7 @@
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
 - universal-coding-agent/tests/test_sharded_dependency_contracts.py
+- universal-coding-agent/tests/test_discovered_safe_service.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
 
@@ -52,6 +53,7 @@ for FILE in \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_sharded_dependency_contracts.py \
+  tests/test_discovered_safe_service.py \
   scripts/pretransfer-test-lab.sh \
   scripts/pretransfer-live-openai.sh
 do
@@ -88,9 +90,10 @@ Cmd 3
 .venv/bin/python -m pytest -q \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
+  tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "DEPENDENCY_CONTRACT_SHARD_PREFLIGHT_PASS"
+echo "DISCOVERED_SAFE_PREFLIGHT_PASS"
 ```
 
 Cmd 4
