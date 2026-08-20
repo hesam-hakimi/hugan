@@ -85,31 +85,12 @@ do
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
-from universal_coding_agent.product import (
-    ContextDocumentService,
-    ProductWorkspace,
-    ProgramOrchestrator,
-    RequirementAlignmentService,
-    SearchService,
-    TaskControlService,
-)
+from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
-from universal_coding_agent.testlab.hard_reasoning import run_hard_suite
-from universal_coding_agent.testlab.large_solution_production import run_large_solution_production_suite
-from universal_coding_agent.testlab.live import run_live_suite
-assert DiscoveredSafeAgentService
-assert ProductWorkspace
-assert ContextDocumentService
-assert SearchService
-assert RequirementAlignmentService
-assert ProgramOrchestrator
-assert TaskControlService
-assert SafeAgentService
-assert SolutionDiscoveryService
-assert run_live_suite
-assert run_hard_suite
-assert run_large_solution_production_suite
+assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
+assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
+assert SafeAgentService and SolutionDiscoveryService
 print("PRODUCT_FOUNDATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -126,7 +107,7 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "PRODUCT_FOUNDATION_DETERMINISTIC_PREFLIGHT_PASS"
+echo "PRODUCT_FOUNDATION_SAFE_CONTROL_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -164,8 +145,8 @@ Cmd 8
 ```bash
 LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-strict-schema-$(date -u +%Y%m%dT%H%M%SZ)"
 LIVE_RC=0
-UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 \
-PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT" || LIVE_RC=$?
+UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT" || LIVE_RC=$?
 test -f "$LIVE_STATE_ROOT/live-summary.json"
 .venv/bin/python -m json.tool "$LIVE_STATE_ROOT/live-summary.json"
 test "$LIVE_RC" -eq 0
@@ -176,17 +157,12 @@ Cmd 9
 ```bash
 HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
 HARD_RC=0
-UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 \
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning \
-  --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
+UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
 test -f "$HARD_STATE_ROOT/hard-summary.json"
 .venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
-find "$HARD_STATE_ROOT" -type f -name test-results.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$HARD_STATE_ROOT" -type f -name safe-review.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$HARD_STATE_ROOT" -type f -name proposed.patch -print \
-  -exec sed -n '1,400p' {} \; || true
+find "$HARD_STATE_ROOT" -type f -name test-results.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$HARD_STATE_ROOT" -type f -name safe-review.json -print -exec .venv/bin/python -m json.tool {} \; || true
 test "$HARD_RC" -eq 0
 echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
 ```
@@ -196,21 +172,13 @@ Cmd 10
 ```bash
 LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
 LARGE_RC=0
-UCA_LARGE_SOLUTION_RUNS=1 UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE=1.0 \
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.large_solution_production \
-  --state-root "$LARGE_STATE_ROOT" || LARGE_RC=$?
+UCA_LARGE_SOLUTION_RUNS=1 UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.large_solution_production --state-root "$LARGE_STATE_ROOT" || LARGE_RC=$?
 test -f "$LARGE_STATE_ROOT/large-solution-summary.json"
 .venv/bin/python -m json.tool "$LARGE_STATE_ROOT/large-solution-summary.json"
-find "$LARGE_STATE_ROOT" -type f -name solution-discovery-failure.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$LARGE_STATE_ROOT" -type f \( -name discovery-plan.json -o -name solution-impact-plan.json \) -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$LARGE_STATE_ROOT" -type f -name test-results.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print \
-  -exec .venv/bin/python -m json.tool {} \; || true
-find "$LARGE_STATE_ROOT" -type f -name proposed.patch -print \
-  -exec sed -n '1,500p' {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name solution-discovery-failure.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name test-results.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print -exec .venv/bin/python -m json.tool {} \; || true
 test "$LARGE_RC" -eq 0
 echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
 ```
@@ -228,9 +196,7 @@ STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%
 bash scripts/qualify-line-addressed-host-provider.sh \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
-  --state-root "$STATE_ROOT" \
-  --skip-install \
-  --skip-quality
+  --state-root "$STATE_ROOT" --skip-install --skip-quality
 ```
 
 Cmd 13
@@ -256,8 +222,7 @@ Cmd 14
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
-bash scripts/safe-workflow.sh approve \
-  --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
+bash scripts/safe-workflow.sh approve --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
 Cmd 15

@@ -68,7 +68,10 @@ def _task(source: Path, base_sha: str, task_id: str) -> SafeTaskRequest:
                     argv=(
                         sys.executable,
                         "-c",
-                        "from pathlib import Path; assert 'return 43' in Path('app.py').read_text()",
+                        (
+                            "from pathlib import Path; "
+                            "assert 'return 43' in Path('app.py').read_text()"
+                        ),
                     ),
                 ),
             )
