@@ -228,17 +228,19 @@ def run_product_foundation_live(
             }
         )
     except Exception as exc:
-        summary.update(
-            {
-                "qualified": False,
-                "failure_type": type(exc).__name__,
-                "failure": str(exc)[:4000],
-                "source_preserved": (
-                    _git(source, "rev-parse", "HEAD") == base_sha
-                    and _git(source, "status", "--porcelain") == ""
-                ),
-            }
-        )
+        failure: dict[str, Any] = {
+            "qualified": False,
+            "failure_type": type(exc).__name__,
+            "failure": str(exc)[:4000],
+            "source_preserved": (
+                _git(source, "rev-parse", "HEAD") == base_sha
+                and _git(source, "status", "--porcelain") == ""
+            ),
+        }
+        diagnostics = getattr(exc, "diagnostics", None)
+        if isinstance(diagnostics, dict):
+            failure["failure_diagnostics"] = diagnostics
+        summary.update(failure)
     finally:
         workspace.close()
     return _finish(state_root, summary)
