@@ -1,0 +1,227 @@
+from __future__ import annotations
+
+import hashlib
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.safe_models import (
+    ApprovedChangeManifest,
+    ChangeScopeEntry,
+    SafeModePolicy,
+    SafeTaskRequest,
+    safe_json,
+)
+from universal_coding_agent.providers.base import ModelProvider
+from universal_coding_agent.safe_service import SafeAgentService
+from universal_coding_agent.sandbox.git import GitSandboxManager
+from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.storage.artifacts import ArtifactStore
+
+
+class DiscoveredSafeStartError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class DiscoveredSafeAgentService:
+    """Discover a bounded change scope before entering the existing Safe approval gate.
+
+    Discovery runs in its own isolated clone and never receives write authority. The resulting
+    impact plan is converted into a frozen ApprovedChangeManifest whose Base SHA is the exact
+    discovery checkout. Safe Mode then clones again and fails closed if the requested ref moved.
+    """
+
+    state_root: Path
+    provider: ModelProvider
+    allow_local_sources: bool = False
+
+    @classmethod
+    def create(
+        cls,
+        state_root: Path,
+        provider: ModelProvider,
+        *,
+        allow_local_sources: bool = False,
+    ) -> DiscoveredSafeAgentService:
+        return cls(
+            state_root=state_root.resolve(),
+            provider=provider,
+            allow_local_sources=allow_local_sources,
+        )
+
+    def start(
+        self,
+        *,
+        task_id: str,
+        thread_id: str,
+        title: str,
+        objective: str,
+        repository: RepositorySpec,
+        policy: SafeModePolicy,
+        test_profiles: tuple[str, ...],
+        acceptance_criteria: tuple[str, ...] = (),
+    ) -> dict[str, Any]:
+        requested_profiles = self._validate_test_profiles(policy, test_profiles)
+        criteria = acceptance_criteria or (objective,)
+        self.state_root.mkdir(parents=True, exist_ok=True)
+        artifacts = ArtifactStore(self.state_root / "artifacts")
+        sandbox_manager = GitSandboxManager(
+            self.state_root,
+            allow_local_sources=self.allow_local_sources,
+        )
+        discovery_sandbox_id = f"{task_id}-discovery"
+        try:
+            sandbox = sandbox_manager.prepare(discovery_sandbox_id, repository)
+        except (OSError, ValueError, RuntimeError) as exc:
+            raise DiscoveredSafeStartError(
+                f"discovery sandbox failed safely: {type(exc).__name__}"
+            ) from exc
+
+        discovery = SolutionDiscoveryService(self.provider).discover(
+            Path(sandbox.path),
+            repository,
+            base_sha=sandbox.base_sha,
+            objective=objective,
+        )
+        checks = sandbox_manager.read_only_git_checks(Path(sandbox.path))
+        if not all(bool(item.get("passed")) for item in checks):
+            raise DiscoveredSafeStartError("discovery changed or invalidated its read-only sandbox")
+
+        task_root = f"tasks/{task_id}"
+        snapshot_ref = artifacts.write_json(
+            f"{task_root}/solution-discovery-snapshot.json",
+            discovery.snapshot.model_dump(mode="json"),
+        )
+        plan_ref = artifacts.write_json(
+            f"{task_root}/solution-impact-plan.json",
+            discovery.plan.model_dump(mode="json"),
+        )
+        diagnostics_ref = artifacts.write_json(
+            f"{task_root}/solution-discovery-model-validation.json",
+            discovery.diagnostics,
+        )
+        checks_ref = artifacts.write_json(
+            f"{task_root}/solution-discovery-read-only-checks.json",
+            {"checks": checks},
+        )
+
+        plan_hash = hashlib.sha256(
+            safe_json(discovery.plan.model_dump(mode="json")).encode("utf-8")
+        ).hexdigest()
+        manifest = ApprovedChangeManifest(
+            base_sha=sandbox.base_sha,
+            plan_hash=plan_hash,
+            allowed_changes=tuple(
+                ChangeScopeEntry(
+                    path=change.path,
+                    operation=change.operation,
+                    purpose=change.rationale,
+                )
+                for change in discovery.plan.changes
+            ),
+            test_profiles=requested_profiles,
+            acceptance_criteria=criteria,
+            max_changed_files=len(discovery.plan.changes),
+        )
+        proposed_scope_ref = artifacts.write_json(
+            f"{task_root}/discovered-change-manifest.json",
+            manifest.model_dump(mode="json"),
+        )
+        provenance_ref = artifacts.write_json(
+            f"{task_root}/solution-discovery-provenance.json",
+            {
+                "base_sha": sandbox.base_sha,
+                "plan_hash": plan_hash,
+                "scope_hash": manifest.canonical_hash(),
+                "discovery_sandbox_id": discovery_sandbox_id,
+                "discovery_sandbox_path": sandbox.path,
+                "snapshot_ref": snapshot_ref.uri,
+                "plan_ref": plan_ref.uri,
+                "diagnostics_ref": diagnostics_ref.uri,
+                "read_only_checks_ref": checks_ref.uri,
+                "proposed_scope_ref": proposed_scope_ref.uri,
+                "test_profiles": list(requested_profiles),
+                "edit_authority_granted": False,
+            },
+        )
+
+        task = SafeTaskRequest(
+            task_id=task_id,
+            thread_id=thread_id,
+            title=title,
+            objective=objective,
+            repository=repository,
+            manifest=manifest,
+            policy=policy,
+            metadata={
+                "scope_source": "solution_discovery",
+                "solution_discovery_plan_ref": plan_ref.uri,
+                "solution_discovery_provenance_ref": provenance_ref.uri,
+            },
+        )
+        safe = SafeAgentService.create(
+            self.state_root,
+            self.provider,
+            allow_local_sources=self.allow_local_sources,
+        )
+        try:
+            state = safe.run(task)
+        finally:
+            safe.close()
+
+        return {
+            "state": state,
+            "base_sha": sandbox.base_sha,
+            "plan_hash": plan_hash,
+            "scope_hash": manifest.canonical_hash(),
+            "snapshot_ref": snapshot_ref.uri,
+            "plan_ref": plan_ref.uri,
+            "diagnostics_ref": diagnostics_ref.uri,
+            "read_only_checks_ref": checks_ref.uri,
+            "proposed_scope_ref": proposed_scope_ref.uri,
+            "provenance_ref": provenance_ref.uri,
+        }
+
+    def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
+        safe = SafeAgentService.create(
+            self.state_root,
+            self.provider,
+            allow_local_sources=self.allow_local_sources,
+        )
+        try:
+            return safe.resume(thread_id, approved)
+        finally:
+            safe.close()
+
+    def state(self, thread_id: str) -> dict[str, Any]:
+        safe = SafeAgentService.create(
+            self.state_root,
+            self.provider,
+            allow_local_sources=self.allow_local_sources,
+        )
+        try:
+            return safe.state(thread_id)
+        finally:
+            safe.close()
+
+    @staticmethod
+    def _validate_test_profiles(
+        policy: SafeModePolicy,
+        requested: tuple[str, ...],
+    ) -> tuple[str, ...]:
+        if not requested:
+            raise DiscoveredSafeStartError(
+                "discovered Safe Mode requires at least one explicit trusted test profile"
+            )
+        if len(requested) != len(set(requested)):
+            raise DiscoveredSafeStartError("requested test profiles must be unique")
+        available = policy.profile_map()
+        unknown = [profile_id for profile_id in requested if profile_id not in available]
+        if unknown:
+            raise DiscoveredSafeStartError(
+                "requested test profiles are not present in trusted policy: "
+                + ", ".join(unknown)
+            )
+        return requested
