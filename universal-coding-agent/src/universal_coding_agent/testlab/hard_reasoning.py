@@ -118,6 +118,7 @@ def hard_reference_files() -> dict[str, str]:
             '''\
             from __future__ import annotations
 
+            from collections.abc import Mapping
             from typing import Any
 
 
@@ -139,12 +140,12 @@ def hard_reference_files() -> dict[str, str]:
 
 
             def _canonical_value(value: Any) -> tuple[Any, ...]:
-                if isinstance(value, dict):
+                if isinstance(value, Mapping):
                     items = [
                         (_canonical_value(key), _canonical_value(item))
                         for key, item in value.items()
                     ]
-                    return ("dict", tuple(sorted(items, key=repr)))
+                    return ("mapping", tuple(sorted(items, key=repr)))
                 if isinstance(value, list):
                     return ("list", tuple(_canonical_value(item) for item in value))
                 if isinstance(value, tuple):
@@ -185,8 +186,8 @@ def hard_reference_files() -> dict[str, str]:
                 operation = event.get("op")
                 if operation not in {"upsert", "delete"}:
                     raise ValueError("invalid CDC operation")
-                if operation == "upsert" and not isinstance(event.get("payload"), dict):
-                    raise ValueError("upsert payload must be a dictionary")
+                if operation == "upsert" and not isinstance(event.get("payload"), Mapping):
+                    raise ValueError("upsert payload must be a mapping")
 
 
             def choose_latest(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -281,11 +282,15 @@ def hard_reference_files() -> dict[str, str]:
 
             - The event window is half-open: `[window_start, window_end)`.
             - Every eligible event is validated before deduplication.
+            - Operation tokens are exact lowercase `upsert` or `delete`; no trimming or
+              case-folding is performed by any public entry point.
             - All eligible same-key/same-version groups are conflict-checked before selection,
               including versions that do not win.
             - Per key, the maximum normalized `(event_ts, ingest_seq)` incoming version wins.
-            - Equal-version equivalence uses normalized operation and payload semantics only;
+            - Equal-version equivalence uses exact operation and recursive payload semantics only;
               unrelated event fields do not create a conflict.
+            - Every nested Mapping is compared order-insensitively while list and tuple order
+              remains significant.
             - Conflicting operation or payload semantics at one key/version are rejected
               regardless of input order.
             - Equivalent duplicates may collapse, including nested mapping-order differences.
@@ -307,12 +312,38 @@ def hard_test_script() -> str:
         import itertools
         import os
         import sys
+        from collections import OrderedDict, UserDict
+        from collections.abc import Mapping
 
         sys.path.insert(0, os.getcwd())
+        from cdc_engine import apply_events, choose_latest, validate_event
         from pipeline import run_incremental
 
         start = "2026-08-19T10:00:00Z"
         end = "2026-08-19T11:00:00Z"
+
+        def semantic(value):
+            if isinstance(value, Mapping):
+                items = [
+                    (semantic(key), semantic(item))
+                    for key, item in value.items()
+                ]
+                return ("mapping", tuple(sorted(items, key=repr)))
+            if isinstance(value, list):
+                return ("list", tuple(semantic(item) for item in value))
+            if isinstance(value, tuple):
+                return ("tuple", tuple(semantic(item) for item in value))
+            if isinstance(value, (set, frozenset)):
+                return ("set", tuple(sorted((semantic(item) for item in value), key=repr)))
+            return (type(value).__module__, type(value).__qualname__, repr(value))
+
+        def assert_value_error(callable_):
+            try:
+                callable_()
+            except ValueError:
+                return
+            raise AssertionError("expected ValueError")
+
         existing = [
             {
                 "key": "A",
@@ -560,7 +591,12 @@ def hard_test_script() -> str:
             "ingest_seq": "5",
             "op": "upsert",
             "payload": {
-                "nested": {"a": 1, "b": [2, 3]},
+                "nested": UserDict(
+                    {
+                        "a": 1,
+                        "b": OrderedDict((("x", 2), ("y", 3))),
+                    }
+                ),
                 "value": 9,
             },
             "trace_id": "first",
@@ -572,24 +608,83 @@ def hard_test_script() -> str:
             "op": "upsert",
             "payload": {
                 "value": 9,
-                "nested": {"b": [2, 3], "a": 1},
+                "nested": OrderedDict(
+                    (
+                        ("b", UserDict({"y": 3, "x": 2})),
+                        ("a", 1),
+                    )
+                ),
             },
             "trace_id": "second",
         }
         expected_equivalent = [
             {
                 "key": "123",
-                "nested": {"a": 1, "b": [2, 3]},
+                "nested": {"a": 1, "b": {"x": 2, "y": 3}},
                 "value": 9,
                 "_event_ts": "2026-08-19T10:55:00Z",
                 "_ingest_seq": 5,
             }
         ]
+        semantic_results = []
         for equivalent_order in (
             [equivalent_a, equivalent_b],
             [equivalent_b, equivalent_a],
         ):
-            assert run_incremental([], equivalent_order, start, end) == expected_equivalent
+            collapsed = choose_latest(equivalent_order)
+            assert len(collapsed) == 1
+            assert semantic(collapsed[0]["payload"]) == semantic(
+                expected_equivalent[0]
+                | {
+                    "key": None,
+                    "_event_ts": None,
+                    "_ingest_seq": None,
+                }
+            ) or semantic(collapsed[0]["payload"]) == semantic(
+                {
+                    "nested": {"a": 1, "b": {"x": 2, "y": 3}},
+                    "value": 9,
+                }
+            )
+            equivalent_result = run_incremental([], equivalent_order, start, end)
+            assert semantic(equivalent_result) == semantic(expected_equivalent)
+            semantic_results.append(semantic(equivalent_result))
+        assert semantic_results[0] == semantic_results[1]
+
+        exact_operation = {
+            "key": "OP",
+            "event_ts": "2026-08-19T10:25:00Z",
+            "ingest_seq": 1,
+            "op": "upsert",
+            "payload": {"value": 7},
+        }
+        validate_event(exact_operation)
+        assert len(choose_latest([exact_operation])) == 1
+        assert apply_events([], [exact_operation]) == [
+            {
+                "key": "OP",
+                "value": 7,
+                "_event_ts": "2026-08-19T10:25:00Z",
+                "_ingest_seq": 1,
+            }
+        ]
+        assert run_incremental([], [exact_operation], start, end) == [
+            {
+                "key": "OP",
+                "value": 7,
+                "_event_ts": "2026-08-19T10:25:00Z",
+                "_ingest_seq": 1,
+            }
+        ]
+
+        for invalid_operation in ("UPSERT", " upsert ", "DELETE", " delete "):
+            invalid = dict(exact_operation, op=invalid_operation)
+            assert_value_error(lambda invalid=invalid: validate_event(invalid))
+            assert_value_error(lambda invalid=invalid: choose_latest([invalid]))
+            assert_value_error(lambda invalid=invalid: apply_events([], [invalid]))
+            assert_value_error(
+                lambda invalid=invalid: run_incremental([], [invalid], start, end)
+            )
 
         doc = open("docs/cdc_contract.md", encoding="utf-8").read().lower()
         for token in (
@@ -740,12 +835,21 @@ def _run_hard_once(
             "Ignore out-of-window events before validating operations.",
             "Reject every invalid in-window operation before per-key deduplication.",
             (
+                "Accept operations only as exact lowercase 'upsert' or 'delete' strings at "
+                "run_incremental, validate_event, choose_latest, and apply_events; do not trim "
+                "or case-fold operation values."
+            ),
+            (
                 "Conflict-scan every eligible same-key/same-version group before max "
                 "selection, including versions that do not win."
             ),
             (
-                "Tie equivalence is based only on normalized operation and payload "
+                "Tie equivalence is based only on the exact operation and recursive payload "
                 "semantics; unrelated event fields do not create a conflict."
+            ),
+            (
+                "Treat every nested collections.abc.Mapping as order-insensitive for semantic "
+                "comparison; preserve order significance for lists and tuples."
             ),
             (
                 "Nested mapping-order differences are semantically equivalent; conflicting "
@@ -784,25 +888,28 @@ def _run_hard_once(
             "coherent change satisfying every acceptance criterion. The current code and "
             "documentation intentionally contain interacting mistakes. Preserve public "
             "function names and signatures. event_ts values are canonical UTC ISO-8601 "
-            "strings. Filter the half-open window first and validate every remaining "
-            "operation. Before choosing any per-key winner, scan every eligible normalized "
-            "(key, event_ts, ingest_seq) group—including versions below the eventual maximum. "
-            "For each group, normalize key with str(key), event_ts with str(event_ts), and "
-            "ingest_seq with int(ingest_seq). Define tie equivalence only by normalized op "
-            "plus payload semantics: nested mapping order and unrelated event fields such "
-            "as tracing metadata must not create conflicts. If one normalized key/version "
-            "group contains different operation or payload semantics, reject deterministically "
-            "regardless of input order; equivalent duplicates may collapse. Only after all "
-            "groups pass this conflict scan, choose each key's maximum normalized version. "
-            "Compare incoming versions only with the existing row's (_event_ts, _ingest_seq) "
-            "envelope metadata, even when stored business data also contains fields named "
-            "event_ts or ingest_seq. A winning delete removes only a strictly older stored "
-            "row. A winning upsert replaces business payload, discards omitted legacy fields, "
-            "and strips payload attempts to persist key, event_ts, ingest_seq, _event_ts, or "
-            "_ingest_seq as envelope/version fields. Emit deterministic key ordering and do "
-            "not mutate caller inputs. Correct the documentation. Use only model-facing line "
-            "references from assigned file shards and do not modify any path outside approved "
-            "scope."
+            "strings. Operation values are strict protocol tokens: accept only the exact "
+            "lowercase strings 'upsert' and 'delete' in every preserved public entry point; "
+            "do not trim whitespace or perform case folding. Filter the half-open window first "
+            "and validate every remaining operation. Before choosing any per-key winner, scan "
+            "every eligible normalized (key, event_ts, ingest_seq) group—including versions "
+            "below the eventual maximum. For each group, normalize key with str(key), event_ts "
+            "with str(event_ts), and ingest_seq with int(ingest_seq). Define tie equivalence "
+            "only by the exact operation plus recursive payload semantics: every nested "
+            "collections.abc.Mapping is order-insensitive, lists and tuples remain "
+            "order-sensitive, and unrelated event fields such as tracing metadata must not "
+            "create conflicts. If one normalized key/version group contains different "
+            "operation or payload semantics, reject deterministically regardless of input "
+            "order; equivalent duplicates may collapse. Only after all groups pass this "
+            "conflict scan, choose each key's maximum normalized version. Compare incoming "
+            "versions only with the existing row's (_event_ts, _ingest_seq) envelope metadata, "
+            "even when stored business data also contains fields named event_ts or ingest_seq. "
+            "A winning delete removes only a strictly older stored row. A winning upsert "
+            "replaces business payload, discards omitted legacy fields, and strips payload "
+            "attempts to persist key, event_ts, ingest_seq, _event_ts, or _ingest_seq as "
+            "envelope/version fields. Emit deterministic key ordering and do not mutate caller "
+            "inputs. Correct the documentation. Use only model-facing line references from "
+            "assigned file shards and do not modify any path outside approved scope."
         ),
         repository=RepositorySpec(url=str(source), base_ref="main"),
         manifest=manifest,

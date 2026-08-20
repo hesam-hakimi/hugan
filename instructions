@@ -97,7 +97,7 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "DISCOVERY_PLAN_CORRECTION_LINT_FIXED_PREFLIGHT_PASS"
+echo "HARD_CDC_MAPPING_OPERATION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -145,7 +145,7 @@ test "$LIVE_RC" -eq 0
 Cmd 9
 
 ```bash
-HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-semantic-doc-$(date -u +%Y%m%dT%H%M%SZ)"
+HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-operation-$(date -u +%Y%m%dT%H%M%SZ)"
 HARD_RC=0
 UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 \
 PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning \
@@ -161,7 +161,7 @@ find "$HARD_STATE_ROOT" -type f -name edit-proposal.json -print \
 find "$HARD_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,400p' {} \; || true
 test "$HARD_RC" -eq 0
-echo "HARD_CDC_SEMANTIC_DOC_QUALIFICATION_PASS"
+echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
 ```
 
 Cmd 10
