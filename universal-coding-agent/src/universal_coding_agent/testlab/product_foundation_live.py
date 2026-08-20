@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -57,7 +56,8 @@ def run_product_foundation_live(
                 "# Customer Export Order\n"
                 "Build a CSV export for active customers only. Exclude email and phone.\n"
                 "Every successful export must emit exactly one audit event.\n"
-                "The authorization role is intentionally unspecified and requires a user decision.\n"
+                "The authorization role is intentionally unspecified and requires "
+                "a user decision.\n"
                 "Do not change legacy batch export code.\n"
             ),
             role=DocumentRole.REQUIREMENT,

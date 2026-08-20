@@ -113,7 +113,7 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "PRODUCT_FOUNDATION_SAFE_CONTROL_PREFLIGHT_PASS"
+echo "PRODUCT_FOUNDATION_LIVE_LINT_FIXED_PREFLIGHT_PASS"
 ```
 
 Cmd 4
