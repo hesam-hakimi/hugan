@@ -1,270 +1,74 @@
-We are continuing the existing AskTD / askAlpha / KMAI project.
+LOCAL_HOTFIX_HF1_V2_EXTERNAL_VALIDATION_REPAIR_1 — TEST-STUB SIGNATURE FIX
 
-This task is DISCOVERY / VERIFICATION ONLY.
+External validation stopped at compile with exactly two TypeScript diagnostics, both in the already-authorized test file:
 
-Do not redesign the architecture and do not implement fixes in this operation.
+src/test/suite/hf1OracleFreshConsumer.test.ts:215:7
+TS2322
+src/test/suite/hf1OracleFreshConsumer.test.ts:218:7
+TS2322
 
-Objective
+The assignments to:
 
-Determine the actual current repository state of Program Phase 2C and identify exactly what, if anything, still prevents final independent Phase 2C acceptance.
+vscodeTestStub.workspace.fs.createDirectory
+vscodeTestStub.workspace.fs.writeFile
 
-Phase 2D must NOT begin.
+use function signatures that are incompatible with the existing VS Code test-stub contract.
 
-Repository identity
+Scope
 
-Expected application repository:
+Modify ONLY:
 
-TD-Enterprise/kmai-td-genie
+src/test/suite/hf1OracleFreshConsumer.test.ts
 
-The historically referenced development branch is asktd_v2, but do not assume that this is still the active continuation branch.
+This file is already inside the authorized HF1-V2 edit universe.
 
-First report:
+Do not modify production code.
 
-* repository identity;
-* current branch;
-* HEAD SHA;
-* upstream/tracking branch if any;
-* working-tree status;
-* existing staged, unstaged, and untracked changes.
+Do not modify the shared VS Code stub unless read-only inspection proves the test cannot be corrected locally. If another file is truly required, STOP before editing and report:
 
-Do not checkout, switch, reset, clean, stash, pull, merge, rebase, commit, push, or otherwise change Git state.
+LOCAL_HOTFIX_HF1_V2_SCOPE_AMENDMENT_REQUIRED
 
-If unrelated local modifications already exist, preserve them untouched and list them in the report.
+Required repair
 
-Authoritative Phase 2C scope
+1. Inspect the exact declared types of:
 
-Phase 2C consists of:
+vscodeTestStub.workspace.fs.createDirectory
+vscodeTestStub.workspace.fs.writeFile
 
-* canonical ProductGroup -> Schema -> Dataset -> Field hierarchy;
-* governed metadata relationships;
-* Governed Semantic Plan;
-* deterministic semantic-plan validator;
-* binding plans to an authoritative registry_version;
-* compatibility with the accepted Phase 2A / Phase 2B contracts.
+and the repository’s existing tests that override these methods.
 
-Audit the actual implementation against the following eight remediation requirements.
+2. Align the two HF1 test overrides with the established stub convention.
+3. Preserve the purpose of the tests:
+    * detect whether an unexpected filesystem write is attempted;
+    * capture/inspect the requested URI/path where required;
+    * prove fresh-consumer classification/preview performs zero writes;
+    * do not make the assertion vacuous.
+4. Do NOT solve the error with:
+    * as any;
+    * as unknown as ...;
+    * non-null assertions;
+    * disabling TypeScript;
+    * @ts-ignore;
+    * @ts-expect-error;
+    * weakening production interfaces;
+    * removing the write-detection assertions.
+5. If the existing stub type intentionally exposes parameterless functions, use a locally type-compatible strategy such as optional/rest arguments only if that matches existing repository test conventions and still observes the real arguments passed at runtime.
 
-R1 — Canonical hierarchy cannot be bypassed
+Do not guess the signature; derive it from live source evidence.
 
-Every canonical governed Dataset must resolve to exactly one Schema.
+6. Review both tests after the repair and prove they would fail if production attempted the forbidden filesystem operation.
+7. Do not run package, Git, VSIX, install, network, or consumer-write actions.
+8. Native compile/tests do not need to be run from this Copilot session if process execution remains unavailable. Do not fabricate results.
 
-Every Schema must resolve to exactly one Product Group.
+Return:
 
-Therefore every canonical Dataset must resolve to exactly one Product Group.
+* exact root cause;
+* existing stub signature;
+* before/after test override;
+* why the assertion remains discriminating;
+* exact file changed;
+* confirmation that no production file changed.
 
-A canonical dataset with missing/null Schema must not silently bypass hierarchy validation.
+Finish with:
 
-Do not infer Schema or Product Group from dataset/table names.
-
-R2 — Legacy hierarchy-less input must be adapted before canonical validation
-
-If compatibility with legacy hierarchy-less metadata is still required, verify that it is converted through an explicit deterministic compatibility/adaptation boundary before canonical validation.
-
-A deterministic unassigned hierarchy is acceptable only if that is the implemented compatibility contract.
-
-Legacy compatibility must not weaken the canonical model itself.
-
-R3 — registry_version represents the complete governed semantic snapshot
-
-Verify that registry_version changes when governed semantic content changes, including applicable:
-
-* Product Groups;
-* Schemas;
-* Datasets;
-* Fields;
-* Relationships;
-* owners / roles / sources;
-* intents / questions;
-* lifecycle-relevant governed content.
-
-It must be deterministic:
-
-* across processes/checkouts;
-* independent of collection ordering;
-* based on canonical stable content/IDs;
-* independent of paths, timestamps, and environment-only values.
-
-It must not merely hash historical seed/input bytes while ignoring constructed governed content.
-
-R4 — Explicit Product Group / Schema scope cannot contradict selected datasets
-
-If a Governed Semantic Plan explicitly declares Product Group or Schema scope, verify that the deterministic validator derives the actual hierarchy from selected datasets and rejects contradictory explicit scope.
-
-It must not trust a caller-supplied scope merely because the IDs independently exist.
-
-R5 — Fields, grain fields, and time fields belong to selected datasets
-
-Verify that every selected field referenced by the semantic plan belongs to one of the selected datasets.
-
-Apply the same rule to:
-
-* grain fields;
-* time fields / time-window fields;
-* any other structural field references used by Phase 2C.
-
-Existence elsewhere in the registry is insufficient.
-
-R6 — Cross-ProductGroup relationships are explicitly governed
-
-Cross-Schema and Cross-ProductGroup relationships may be structurally valid only when an explicit governed RelationshipRecord connects the relevant endpoints.
-
-Verify that:
-
-* no relationship is inferred from similar field/table names;
-* endpoint datasets and fields exist;
-* cross-ProductGroup use requires an explicit governed relationship;
-* dedicated positive and negative tests exist for cross-ProductGroup behavior.
-
-Relationship existence must not grant authorization to either side.
-
-R7 — Classification metadata is not authorization
-
-PII, PCI, security/sensitivity classification, data type, key indicators, and similar attributes are governance metadata.
-
-Verify that Phase 2C preserves authoritative classification values where supplied but does not translate them implicitly into user authorization grants.
-
-Do not implement future fine-grained authorization as part of this audit.
-
-R8 — Registry-cache concurrency test/contract
-
-Inspect the previously reported Phase 2B/2C registry-cache concurrency test or contract issue.
-
-Determine:
-
-* whether it is already resolved;
-* whether implementation and tests currently agree;
-* what the intended contract actually is based on repository evidence;
-* whether any remaining failure represents a production defect, a test defect, or an unresolved contract decision.
-
-Do not choose a new concurrency semantic if repository evidence is contradictory. Report the contradiction instead.
-
-Verification discipline
-
-For each R1-R8, assign exactly one verdict:
-
-* FIXED_AND_COVERED
-* IMPLEMENTED_BUT_TEST_GAP
-* PARTIALLY_FIXED
-* OPEN
-* NOT_APPLICABLE_WITH_EVIDENCE
-* INSUFFICIENT_EVIDENCE
-
-Do not mark an item fixed merely because a test has a matching name.
-
-Inspect the actual implementation and the important assertions.
-
-For every item provide:
-
-1. exact implementation file path(s);
-2. relevant class/function/symbol names;
-3. exact test file path(s);
-4. important test names;
-5. short explanation of the code behavior;
-6. current verdict;
-7. minimum change required if the verdict is not FIXED_AND_COVERED.
-
-Tests
-
-Run only existing, relevant Phase 2A / 2B / 2C tests needed to verify these contracts.
-
-Prefer focused tests first.
-
-Where possible, prevent discovery from dirtying the repository with caches or bytecode, for example by using the repository’s supported equivalents of:
-
-PYTHONDONTWRITEBYTECODE=1
-
-and disabling pytest cache generation if pytest is used.
-
-Do not:
-
-* install or upgrade dependencies;
-* rewrite snapshots/baselines;
-* auto-format files;
-* generate code;
-* change configuration;
-* update lock files.
-
-If a required test cannot safely be run in the existing environment, report exactly why instead of changing the environment.
-
-Also identify the appropriate parent/compatibility tests that must pass before final Phase 2C acceptance.
-
-Documentation-versus-code reconciliation
-
-Inspect relevant repository Phase 2C documentation/audit evidence if present.
-
-Explicitly report any case where:
-
-* documentation says an item is open but code has already fixed it;
-* documentation says an item is complete but code/tests do not prove it;
-* test expectations contradict documented contracts;
-* current code introduces behavior outside Phase 2C scope.
-
-Actual current code and executable tests are the primary evidence for implementation state.
-
-Do not silently rewrite documentation.
-
-Out of scope
-
-Do NOT implement or design:
-
-* Phase 2D recipes;
-* Phase 2C.5/provider abstractions;
-* DataSourceAdapter;
-* DataGovernanceProvider;
-* ExecutionProvider;
-* Databricks integration;
-* Unity Catalog integration;
-* Collibra integration;
-* Genie integration;
-* fine-grained dataset/column/row authorization;
-* Redis;
-* Event Hubs;
-* new runtime infrastructure;
-* deployment changes;
-* unrelated refactoring.
-
-Do not modify production/application source or tests.
-
-Required final report
-
-Produce a Markdown report with these sections:
-
-1. Repository Evidence
-2. Executive Verdict
-3. Phase 2C Remediation Matrix
-4. Detailed Evidence R1-R8
-5. Test Execution Results
-6. Documentation vs Code Mismatches
-7. Remaining Minimum Remediation
-8. Independent Acceptance Readiness
-9. Recommended Next Step
-
-The Executive Verdict must contain exactly one of:
-
-* PHASE_2C_READY_FOR_INDEPENDENT_ACCEPTANCE
-* PHASE_2C_NOT_READY_FOR_INDEPENDENT_ACCEPTANCE
-* PHASE_2C_STATUS_INSUFFICIENT_EVIDENCE
-
-If Phase 2C is not ready, give the smallest bounded set of changes necessary for final acceptance. Do not implement them.
-
-If it is ready, identify the exact independent acceptance tests/audit that should be run next. Do not start Phase 2D.
-
-Output file
-
-Save the report as:
-
-ASKTD_PHASE_2C_DISCOVERY_VERIFICATION_2026-08-20.md
-
-Prefer saving it outside the Git worktree (for example under /tmp) so the repository remains unchanged.
-
-If the environment cannot save outside the repository, do not create a repository file merely to satisfy this instruction; instead return the complete Markdown in the agent response and clearly state that no repository file was written.
-
-At completion, report:
-
-* saved report path, if created;
-* repository branch and HEAD SHA;
-* whether the Git working tree changed during this audit.
-
-Then STOP.
-
-Do not remediate anything in this operation.
+LOCAL_HOTFIX_HF1_V2_REPAIR_1_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
