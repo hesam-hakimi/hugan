@@ -1,74 +1,117 @@
-LOCAL_HOTFIX_HF1_V2_EXTERNAL_VALIDATION_REPAIR_1 — TEST-STUB SIGNATURE FIX
+LOCAL_HOTFIX_HF1_V2_REPAIR_2
 
-External validation stopped at compile with exactly two TypeScript diagnostics, both in the already-authorized test file:
+We have completed external validation after Repair 1.
 
-src/test/suite/hf1OracleFreshConsumer.test.ts:215:7
-TS2322
-src/test/suite/hf1OracleFreshConsumer.test.ts:218:7
-TS2322
+Current verified state:
+- npm run compile: PASS, exit 0
+- npm run lint: PASS, exit 0
+- Focused HF1 V2 tests: 85 passing, 1 failing
+- Production code must NOT be changed in this repair.
 
-The assignments to:
+The single failing test is:
 
-vscodeTestStub.workspace.fs.createDirectory
-vscodeTestStub.workspace.fs.writeFile
+Trusted framework definition resolver
+Framework contract resolution
+"packaged contract unreachable anywhere on disk and no source configured yields FRAMEWORK_DEFINITION_UNAVAILABLE"
 
-use function signatures that are incompatible with the existing VS Code test-stub contract.
+Observed runtime failure:
 
-Scope
+TypeError: Cannot set property existsSync of #<Object> which has only a getter
 
-Modify ONLY:
+The failure originates from the test helper:
+withContractFileHidden(...)
+inside:
+src/test/suite/trustedFrameworkDefinitionResolver.test.ts
 
-src/test/suite/hf1OracleFreshConsumer.test.ts
+This is a TEST HARNESS problem, not a production resolver defect.
 
-This file is already inside the authorized HF1-V2 edit universe.
+TASK
 
-Do not modify production code.
+Repair only the failing test/helper so it can simulate the packaged contract being unavailable without mutating a read-only ES/CommonJS namespace export.
 
-Do not modify the shared VS Code stub unless read-only inspection proves the test cannot be corrected locally. If another file is truly required, STOP before editing and report:
+STRICT SCOPE
 
-LOCAL_HOTFIX_HF1_V2_SCOPE_AMENDMENT_REQUIRED
+You MAY modify only:
 
-Required repair
+src/test/suite/trustedFrameworkDefinitionResolver.test.ts
 
-1. Inspect the exact declared types of:
+Do NOT modify:
+- TrustedFrameworkDefinitionResolver.ts
+- FrameworkDiscoveryService.ts
+- package.json
+- packaged framework contract JSON
+- production resolver logic
+- any other source or test file
 
-vscodeTestStub.workspace.fs.createDirectory
-vscodeTestStub.workspace.fs.writeFile
+REQUIREMENTS
 
-and the repository’s existing tests that override these methods.
+1. Inspect the actual import style and implementation of withContractFileHidden(...).
 
-2. Align the two HF1 test overrides with the established stub convention.
-3. Preserve the purpose of the tests:
-    * detect whether an unexpected filesystem write is attempted;
-    * capture/inspect the requested URI/path where required;
-    * prove fresh-consumer classification/preview performs zero writes;
-    * do not make the assertion vacuous.
-4. Do NOT solve the error with:
-    * as any;
-    * as unknown as ...;
-    * non-null assertions;
-    * disabling TypeScript;
-    * @ts-ignore;
-    * @ts-expect-error;
-    * weakening production interfaces;
-    * removing the write-detection assertions.
-5. If the existing stub type intentionally exposes parameterless functions, use a locally type-compatible strategy such as optional/rest arguments only if that matches existing repository test conventions and still observes the real arguments passed at runtime.
+2. Do not assign directly to:
+   fs.existsSync
+or any other getter-only module namespace property.
 
-Do not guess the signature; derive it from live source evidence.
+3. Use the smallest existing repo-compatible mocking/stubbing technique available.
 
-6. Review both tests after the repair and prove they would fail if production attempted the forbidden filesystem operation.
-7. Do not run package, Git, VSIX, install, network, or consumer-write actions.
-8. Native compile/tests do not need to be run from this Copilot session if process execution remains unavailable. Do not fabricate results.
+Preferred order:
+   a. dependency/function injection already supported by the resolver/test
+   b. sinon.stub(...) on a mutable object if already used in this repo
+   c. require("fs") mutable CommonJS object only if compatible with the current module/runtime
+   d. a test-local wrapper/injected filesystem adapter
 
-Return:
+Do NOT introduce a production seam merely for this test unless absolutely necessary.
 
-* exact root cause;
-* existing stub signature;
-* before/after test override;
-* why the assertion remains discriminating;
-* exact file changed;
-* confirmation that no production file changed.
+4. Preserve the semantic intent of the test exactly:
+   - no configured framework source
+   - packaged contract appears unavailable
+   - resolver returns FRAMEWORK_DEFINITION_UNAVAILABLE
+   - no fallback to unrelated workspace folders
+   - no filesystem write or mutation
 
-Finish with:
+5. The mock must always be restored in finally/afterEach so later tests cannot inherit modified filesystem behavior.
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_1_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+6. Do not weaken, skip, remove, or change the assertion.
+
+7. Do not use:
+   - as any
+   - as never
+   - @ts-ignore
+   - @ts-expect-error
+   - Object.defineProperty on Node's fs module namespace
+   - global permanent monkey-patching
+
+8. After the repair, run:
+
+npm run compile
+npm run lint
+
+Then run the same focused HF1 V2 test command used in the previous external validation.
+
+Expected result:
+
+Focused HF1 V2 tests:
+86 passing
+0 failing
+
+If compile/lint/focused tests pass, STOP.
+
+Do NOT run the full-unit suite yet.
+Do NOT package or install a VSIX.
+Do NOT commit, push, merge, or perform any Git mutation.
+
+Report:
+- exact root cause
+- exact lines changed
+- mocking/stubbing mechanism used
+- proof cleanup/restoration occurs
+- compile result
+- lint result
+- focused-test result
+
+Finish with exactly:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_2_VALIDATED
+
+or, if anything remains failing:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_2_BLOCKED
