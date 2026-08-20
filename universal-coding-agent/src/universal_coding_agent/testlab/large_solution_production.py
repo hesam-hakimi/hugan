@@ -11,6 +11,7 @@ from typing import Any
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
+from universal_coding_agent.safety.sanitizer import sanitize_text
 from universal_coding_agent.testlab.large_solution import (
     EXPECTED_SCOPE,
     OBJECTIVE,
@@ -220,6 +221,19 @@ def _failed_record(root: Path, run_number: int, exc: Exception) -> dict[str, Any
             source_preserved = _git(source, "status", "--porcelain") == ""
         except (OSError, subprocess.SubprocessError):
             source_preserved = False
+
+    task_id = f"large-solution-production-{run_number:02d}-task"
+    failure_path = (
+        root
+        / "safe-state"
+        / "artifacts"
+        / "tasks"
+        / task_id
+        / "solution-discovery-failure.json"
+    )
+    failure = _read_json_if_exists(failure_path)
+    error_code = getattr(exc, "code", type(exc).__name__)
+    error_message = sanitize_text(str(exc))[:2000]
     return {
         "run": run_number,
         "status": "failed",
@@ -229,6 +243,11 @@ def _failed_record(root: Path, run_number: int, exc: Exception) -> dict[str, Any
         "discovery_scope_exact": False,
         "source_preserved": source_preserved,
         "error_type": type(exc).__name__,
+        "error_code": str(error_code),
+        "error_message": error_message,
+        "failure_artifact_present": bool(failure),
+        "failure_artifact_code": failure.get("code"),
+        "failure_artifact_message": failure.get("message"),
     }
 
 
@@ -244,6 +263,15 @@ def _read_json(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"expected JSON object: {path}")
     return payload
+
+
+def _read_json_if_exists(path: Path) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    try:
+        return _read_json(path)
+    except (OSError, ValueError, json.JSONDecodeError):
+        return {}
 
 
 def _git(cwd: Path, *args: str) -> str:

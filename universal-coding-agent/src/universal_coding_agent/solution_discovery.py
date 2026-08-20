@@ -111,7 +111,15 @@ class SolutionDiscoveryResult:
 
 
 class SolutionDiscoveryError(RuntimeError):
-    pass
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        diagnostics: dict[str, Any] | None = None,
+    ) -> None:
+        self.code = code
+        self.diagnostics = diagnostics or {}
+        super().__init__(message)
 
 
 class SolutionArchitectureAnalyzer:
@@ -336,6 +344,40 @@ class SolutionDiscoveryContextCompiler:
         marker = "\n\n[discovery context truncated by deterministic character budget]"
         return value[: self.char_budget - len(marker)] + marker
 
+    def compile_plan_correction(
+        self,
+        base_context: str,
+        snapshot: DiscoverySnapshot,
+        rejected_plan: SolutionImpactPlan,
+        errors: tuple[str, ...],
+    ) -> str:
+        tail = "\n\n".join(
+            (
+                "# Deterministic plan-boundary validation failure",
+                "\n".join(f"- {item}" for item in errors),
+                "# Exact bounded candidate allowlist",
+                "\n".join(f"- {path}" for path in snapshot.candidate_paths),
+                "# Rejected schema-valid plan",
+                sanitize_text(rejected_plan.model_dump_json(indent=2)),
+                "# Single bounded plan-boundary correction",
+                (
+                    "Correct only the deterministic boundary violations above. Keep the same "
+                    "requirement and use only existing paths copied exactly from the candidate "
+                    "allowlist. Every change and every evidence_path must be inside that "
+                    "allowlist. Use only operation 'modify'. Preserve valid dependency evidence "
+                    "and the smallest coherent runtime scope. Return exactly one "
+                    "SolutionImpactPlan JSON object. This is the only plan-boundary correction "
+                    "attempt."
+                ),
+            )
+        )
+        separator = "\n\n"
+        available = self.char_budget - len(tail) - len(separator)
+        if available <= 0:
+            return tail[: self.char_budget]
+        prefix = base_context[:available]
+        return prefix + separator + tail
+
     def _snippets(self, root: Path, candidates: tuple[DiscoveryCandidate, ...]) -> str:
         root = root.resolve()
         output: list[str] = []
@@ -384,11 +426,12 @@ class SolutionDiscoveryService:
         )
         snapshot = self.analyzer.build_snapshot(objective, manifest)
         context = self.compiler.compile(root, snapshot)
+        response_schema = self._bounded_plan_schema(snapshot)
         request = ModelRequest(
             role="solution_discovery",
             system_prompt=SOLUTION_DISCOVERY_SYSTEM_PROMPT,
             user_prompt=context,
-            response_schema=SolutionImpactPlan.model_json_schema(),
+            response_schema=response_schema,
             max_output_tokens=8_000,
             metadata={"base_sha": base_sha},
         )
@@ -400,23 +443,136 @@ class SolutionDiscoveryService:
                 repair_guidance=SOLUTION_DISCOVERY_REPAIR_GUIDANCE,
             )
         except StructuredOutputError as exc:
-            raise SolutionDiscoveryError(f"solution discovery failed safely: {exc.code}") from exc
+            diagnostics = {
+                "role": "solution_discovery",
+                "plan_validation_correction_used": False,
+                "structured_output": exc.diagnostics,
+            }
+            raise SolutionDiscoveryError(
+                exc.code,
+                f"solution discovery failed safely: {exc.code}",
+                diagnostics,
+            ) from exc
 
         plan = structured.value
-        self._validate_plan(root, snapshot, plan)
+        initial_errors = self._plan_validation_errors(root, snapshot, plan)
+        diagnostics = dict(structured.diagnostics)
+        diagnostics.update(
+            {
+                "plan_validation_correction_used": False,
+                "initial_plan_validation_errors": list(initial_errors),
+                "final_plan_validation_errors": list(initial_errors),
+            }
+        )
+        if not initial_errors:
+            return SolutionDiscoveryResult(
+                manifest=manifest,
+                snapshot=snapshot,
+                plan=plan,
+                diagnostics=diagnostics,
+            )
+
+        correction_request = ModelRequest(
+            role="solution_discovery",
+            system_prompt=SOLUTION_DISCOVERY_BOUNDARY_CORRECTION_SYSTEM_PROMPT,
+            user_prompt=self.compiler.compile_plan_correction(
+                context,
+                snapshot,
+                plan,
+                initial_errors,
+            ),
+            response_schema=response_schema,
+            max_output_tokens=8_000,
+            metadata={
+                "base_sha": base_sha,
+                "plan_validation_correction": "true",
+            },
+        )
+        try:
+            corrected = invoke_structured(
+                self.provider,
+                correction_request,
+                SolutionImpactPlan,
+                repair_guidance=SOLUTION_DISCOVERY_BOUNDARY_CORRECTION_REPAIR_GUIDANCE,
+            )
+        except StructuredOutputError as exc:
+            diagnostics.update(
+                {
+                    "plan_validation_correction_used": True,
+                    "correction_structured_output": exc.diagnostics,
+                }
+            )
+            raise SolutionDiscoveryError(
+                "plan_validation_correction_structured_failed",
+                "solution discovery plan-boundary correction failed safely: " + exc.code,
+                diagnostics,
+            ) from exc
+
+        corrected_plan = corrected.value
+        final_errors = self._plan_validation_errors(root, snapshot, corrected_plan)
+        diagnostics.update(
+            {
+                "plan_validation_correction_used": True,
+                "correction_structured_output": corrected.diagnostics,
+                "final_plan_validation_errors": list(final_errors),
+            }
+        )
+        if final_errors:
+            diagnostics["rejected_initial_plan"] = plan.model_dump(mode="json")
+            diagnostics["rejected_corrected_plan"] = corrected_plan.model_dump(mode="json")
+            raise SolutionDiscoveryError(
+                "plan_validation_failed",
+                "solution discovery plan validation failed safely after one correction: "
+                + "; ".join(final_errors),
+                diagnostics,
+            )
+
         return SolutionDiscoveryResult(
             manifest=manifest,
             snapshot=snapshot,
-            plan=plan,
-            diagnostics=structured.diagnostics,
+            plan=corrected_plan,
+            diagnostics=diagnostics,
         )
 
     @staticmethod
-    def _validate_plan(
+    def _bounded_plan_schema(snapshot: DiscoverySnapshot) -> dict[str, Any]:
+        schema = SolutionImpactPlan.model_json_schema()
+        impact_change = schema.get("$defs", {}).get("ImpactChange")
+        if not isinstance(impact_change, dict):
+            raise SolutionDiscoveryError(
+                "bounded_schema_invalid",
+                "solution discovery schema is missing ImpactChange definition",
+            )
+        properties = impact_change.get("properties")
+        if not isinstance(properties, dict):
+            raise SolutionDiscoveryError(
+                "bounded_schema_invalid",
+                "solution discovery schema is missing ImpactChange properties",
+            )
+        candidates = list(snapshot.candidate_paths)
+        path_schema = properties.get("path")
+        if isinstance(path_schema, dict):
+            path_schema["enum"] = candidates
+        properties["operation"] = {
+            "default": ChangeOperation.MODIFY.value,
+            "enum": [ChangeOperation.MODIFY.value],
+            "title": "Operation",
+            "type": "string",
+        }
+        evidence_schema = properties.get("evidence_paths")
+        if isinstance(evidence_schema, dict):
+            evidence_schema["items"] = {
+                "enum": candidates,
+                "type": "string",
+            }
+        return schema
+
+    @staticmethod
+    def _plan_validation_errors(
         root: Path,
         snapshot: DiscoverySnapshot,
         plan: SolutionImpactPlan,
-    ) -> None:
+    ) -> tuple[str, ...]:
         root = root.resolve()
         candidates = set(snapshot.candidate_paths)
         errors: list[str] = []
@@ -436,8 +592,22 @@ class SolutionDiscoveryService:
                     errors.append(
                         f"evidence path is outside bounded discovery candidates: {evidence}"
                     )
+        return tuple(errors)
+
+    @classmethod
+    def _validate_plan(
+        cls,
+        root: Path,
+        snapshot: DiscoverySnapshot,
+        plan: SolutionImpactPlan,
+    ) -> None:
+        errors = cls._plan_validation_errors(root, snapshot, plan)
         if errors:
-            raise SolutionDiscoveryError("; ".join(errors))
+            raise SolutionDiscoveryError(
+                "plan_validation_failed",
+                "; ".join(errors),
+                {"final_plan_validation_errors": list(errors)},
+            )
 
 
 SOLUTION_DISCOVERY_SYSTEM_PROMPT = """You are the solution-level impact planner for a bounded
@@ -453,3 +623,14 @@ or shell commands. Do not invent paths."""
 SOLUTION_DISCOVERY_REPAIR_GUIDANCE = """Return one valid SolutionImpactPlan JSON object only.
 Keep every change path inside the supplied bounded candidate set, use only operation 'modify', keep
 paths unique, and provide concrete dependency evidence for the smallest coherent runtime scope."""
+
+SOLUTION_DISCOVERY_BOUNDARY_CORRECTION_SYSTEM_PROMPT = """You are a bounded solution-plan
+boundary corrector. The previous plan was schema-valid but failed deterministic candidate-boundary
+validation. Correct only those boundary violations. You have no authority to add paths outside the
+supplied candidate allowlist or to change operation away from 'modify'. Return exactly one
+SolutionImpactPlan JSON object and no Markdown."""
+
+SOLUTION_DISCOVERY_BOUNDARY_CORRECTION_REPAIR_GUIDANCE = """Return one corrected
+SolutionImpactPlan JSON object only. Every change path and evidence_path must be copied exactly
+from the supplied candidate allowlist. Preserve valid facts and dependency evidence. Do not invent
+paths, create files, widen the scope, or emit code, patches, Markdown, or commands."""

@@ -18,6 +18,7 @@ from universal_coding_agent.providers.fake import FakeModelProvider
 from universal_coding_agent.solution_discovery import (
     ImpactChange,
     ImpactConfidence,
+    SolutionDiscoveryError,
     SolutionImpactPlan,
 )
 
@@ -336,6 +337,67 @@ def test_discovered_safe_completes_after_approval_with_dependency_contracts(
         "implementer",
         "reviewer",
     ]
+
+
+def test_discovered_safe_persists_discovery_failure_diagnostics(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    source, source_sha = _repository(tmp_path)
+    state_root = tmp_path / "state"
+    calls: list[str] = []
+
+    def invalid_discovery(request):
+        calls.append(str(request.metadata.get("plan_validation_correction", "false")))
+        return SolutionImpactPlan(
+            summary="Return an invalid out-of-bound path.",
+            components=("invented",),
+            changes=(
+                ImpactChange(
+                    path="invented/not_real.py",
+                    component="invented",
+                    confidence=ImpactConfidence.LOW,
+                    rationale="This must fail closed.",
+                ),
+            ),
+        ).model_dump(mode="json")
+
+    provider = FakeModelProvider({"solution_discovery": invalid_discovery})
+    monkeypatch.setenv("UCA_SAFE_EDIT_PROTOCOL", "v2-line-addressed")
+    service = DiscoveredSafeAgentService.create(
+        state_root,
+        provider,
+        allow_local_sources=True,
+    )
+
+    with pytest.raises(SolutionDiscoveryError) as captured:
+        service.start(
+            task_id="discovered-safe-failure-task",
+            thread_id="discovered-safe-failure-thread",
+            title="Discovery failure diagnostics",
+            objective="Use only the active credit-limit runtime path.",
+            repository=RepositorySpec(url=str(source), base_ref="main"),
+            policy=_policy(),
+            test_profiles=("active-contract",),
+        )
+
+    assert captured.value.code == "plan_validation_failed"
+    assert calls == ["false", "true"]
+    failure_path = (
+        state_root
+        / "artifacts"
+        / "tasks"
+        / "discovered-safe-failure-task"
+        / "solution-discovery-failure.json"
+    )
+    failure = json.loads(failure_path.read_text(encoding="utf-8"))
+    assert failure["code"] == "plan_validation_failed"
+    assert failure["edit_authority_granted"] is False
+    assert failure["base_sha"] == source_sha
+    assert all(item["passed"] for item in failure["read_only_checks"])
+    assert failure["diagnostics"]["plan_validation_correction_used"] is True
+    assert _git(source, "rev-parse", "HEAD") == source_sha
+    assert _git(source, "status", "--porcelain") == ""
 
 
 def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(

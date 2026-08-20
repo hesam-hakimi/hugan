@@ -16,7 +16,11 @@ from universal_coding_agent.core.safe_models import (
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.sandbox.git import GitSandboxManager
-from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.safety.sanitizer import sanitize_text
+from universal_coding_agent.solution_discovery import (
+    SolutionDiscoveryError,
+    SolutionDiscoveryService,
+)
 from universal_coding_agent.storage.artifacts import ArtifactStore
 
 
@@ -72,6 +76,7 @@ class DiscoveredSafeAgentService:
             allow_local_sources=self.allow_local_sources,
         )
         discovery_sandbox_id = f"{task_id}-discovery"
+        task_root = f"tasks/{task_id}"
         try:
             sandbox = sandbox_manager.prepare(discovery_sandbox_id, repository)
         except (OSError, ValueError, RuntimeError) as exc:
@@ -79,17 +84,39 @@ class DiscoveredSafeAgentService:
                 f"discovery sandbox failed safely: {type(exc).__name__}"
             ) from exc
 
-        discovery = SolutionDiscoveryService(self.provider).discover(
-            Path(sandbox.path),
-            repository,
-            base_sha=sandbox.base_sha,
-            objective=objective,
-        )
+        try:
+            discovery = SolutionDiscoveryService(self.provider).discover(
+                Path(sandbox.path),
+                repository,
+                base_sha=sandbox.base_sha,
+                objective=objective,
+            )
+        except SolutionDiscoveryError as exc:
+            checks = sandbox_manager.read_only_git_checks(Path(sandbox.path))
+            failure_ref = artifacts.write_json(
+                f"{task_root}/solution-discovery-failure.json",
+                {
+                    "code": exc.code,
+                    "message": sanitize_text(str(exc))[:4000],
+                    "diagnostics": exc.diagnostics,
+                    "base_sha": sandbox.base_sha,
+                    "discovery_sandbox_id": discovery_sandbox_id,
+                    "discovery_sandbox_path": sandbox.path,
+                    "read_only_checks": checks,
+                    "edit_authority_granted": False,
+                },
+            )
+            exc.diagnostics["failure_ref"] = failure_ref.uri
+            if not all(bool(item.get("passed")) for item in checks):
+                raise DiscoveredSafeStartError(
+                    "discovery failed and invalidated its read-only sandbox"
+                ) from exc
+            raise
+
         checks = sandbox_manager.read_only_git_checks(Path(sandbox.path))
         if not all(bool(item.get("passed")) for item in checks):
             raise DiscoveredSafeStartError("discovery changed or invalidated its read-only sandbox")
 
-        task_root = f"tasks/{task_id}"
         snapshot_ref = artifacts.write_json(
             f"{task_root}/solution-discovery-snapshot.json",
             discovery.snapshot.model_dump(mode="json"),

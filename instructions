@@ -97,7 +97,7 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "HARD_CDC_SEMANTIC_DOC_PREFLIGHT_PASS"
+echo "DISCOVERY_PLAN_CORRECTION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -112,7 +112,7 @@ Cmd 5
 PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/synthetic-guardrails-$(date -u +%Y%m%dT%H%M%SZ)"
 PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
 test -f "$PRETRANSFER_STATE_ROOT/pretransfer-junit.xml"
-echo "DISCOVERED_SAFE_PRETRANSFER_GATE_PASS"
+echo "DISCOVERY_FAILURE_DIAGNOSTICS_GATE_PASS"
 ```
 
 Cmd 6
@@ -167,13 +167,15 @@ echo "HARD_CDC_SEMANTIC_DOC_QUALIFICATION_PASS"
 Cmd 10
 
 ```bash
-LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-$(date -u +%Y%m%dT%H%M%SZ)"
+LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
 LARGE_RC=0
 UCA_LARGE_SOLUTION_RUNS=1 UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE=1.0 \
 PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.large_solution_production \
   --state-root "$LARGE_STATE_ROOT" || LARGE_RC=$?
 test -f "$LARGE_STATE_ROOT/large-solution-summary.json"
 .venv/bin/python -m json.tool "$LARGE_STATE_ROOT/large-solution-summary.json"
+find "$LARGE_STATE_ROOT" -type f -name solution-discovery-failure.json -print \
+  -exec .venv/bin/python -m json.tool {} \; || true
 find "$LARGE_STATE_ROOT" -type f \( -name discovery-plan.json -o -name solution-impact-plan.json \) -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$LARGE_STATE_ROOT" -type f -name test-results.json -print \

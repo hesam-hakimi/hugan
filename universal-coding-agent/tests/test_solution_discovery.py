@@ -91,6 +91,48 @@ def _fixture(tmp_path: Path) -> tuple[Path, str]:
     return root, _git(root, "rev-parse", "HEAD")
 
 
+def _valid_plan() -> dict:
+    return SolutionImpactPlan(
+        summary="Modify the active runtime service and security gate.",
+        components=("services", "security"),
+        changes=(
+            ImpactChange(
+                path="services/customer_account_service.py",
+                operation=ChangeOperation.MODIFY,
+                component="services",
+                confidence=ImpactConfidence.HIGH,
+                rationale="The active API imports this service.",
+                evidence_paths=("apps/api/customer_limits.py",),
+            ),
+            ImpactChange(
+                path="security/entitlements.py",
+                operation=ChangeOperation.MODIFY,
+                component="security",
+                confidence=ImpactConfidence.HIGH,
+                rationale="The active service imports the authorization gate.",
+                evidence_paths=("services/customer_account_service.py",),
+            ),
+        ),
+        rejected_candidates=("legacy/credit_limit_override.py",),
+    ).model_dump(mode="json")
+
+
+def _invalid_plan() -> dict:
+    return SolutionImpactPlan(
+        summary="Invent one invalid path.",
+        components=("invented",),
+        changes=(
+            ImpactChange(
+                path="invented/not_real.py",
+                operation=ChangeOperation.MODIFY,
+                component="invented",
+                confidence=ImpactConfidence.LOW,
+                rationale="This path is outside the bounded candidate set.",
+            ),
+        ),
+    ).model_dump(mode="json")
+
+
 def test_architecture_analyzer_expands_active_dependency_neighborhood(tmp_path: Path) -> None:
     root, base_sha = _fixture(tmp_path)
     manifest = RepositoryIndexer().build_manifest(
@@ -123,33 +165,7 @@ def test_architecture_analyzer_expands_active_dependency_neighborhood(tmp_path: 
 
 def test_solution_discovery_returns_bounded_existing_scope(tmp_path: Path) -> None:
     root, base_sha = _fixture(tmp_path)
-
-    def handler(_request):
-        return SolutionImpactPlan(
-            summary="Modify the active runtime service and its supporting components.",
-            components=("services", "security", "audit", "repositories"),
-            changes=(
-                ImpactChange(
-                    path="services/customer_account_service.py",
-                    operation=ChangeOperation.MODIFY,
-                    component="services",
-                    confidence=ImpactConfidence.HIGH,
-                    rationale="The active API imports this service.",
-                    evidence_paths=("apps/api/customer_limits.py",),
-                ),
-                ImpactChange(
-                    path="security/entitlements.py",
-                    operation=ChangeOperation.MODIFY,
-                    component="security",
-                    confidence=ImpactConfidence.HIGH,
-                    rationale="The active service imports the authorization gate.",
-                    evidence_paths=("services/customer_account_service.py",),
-                ),
-            ),
-            rejected_candidates=("legacy/credit_limit_override.py",),
-        ).model_dump(mode="json")
-
-    provider = FakeModelProvider({"solution_discovery": handler})
+    provider = FakeModelProvider({"solution_discovery": lambda _request: _valid_plan()})
     result = SolutionDiscoveryService(provider).discover(
         root,
         RepositorySpec(url=str(root), base_ref="main"),
@@ -162,27 +178,85 @@ def test_solution_discovery_returns_bounded_existing_scope(tmp_path: Path) -> No
         "security/entitlements.py",
     ]
     assert "legacy/credit_limit_override.py" in result.plan.rejected_candidates
+    assert result.diagnostics["plan_validation_correction_used"] is False
+
+
+def test_solution_discovery_schema_is_bounded_to_candidate_paths(tmp_path: Path) -> None:
+    root, base_sha = _fixture(tmp_path)
+
+    def handler(request):
+        impact = request.response_schema["$defs"]["ImpactChange"]["properties"]
+        allowed_paths = impact["path"]["enum"]
+        assert "services/customer_account_service.py" in allowed_paths
+        assert "invented/not_real.py" not in allowed_paths
+        assert impact["operation"]["enum"] == ["modify"]
+        assert impact["evidence_paths"]["items"]["enum"] == allowed_paths
+        return _valid_plan()
+
+    provider = FakeModelProvider({"solution_discovery": handler})
+    SolutionDiscoveryService(provider).discover(
+        root,
+        RepositorySpec(url=str(root), base_ref="main"),
+        base_sha=base_sha,
+        objective="Add a manager-authorized customer credit-limit override with auditing.",
+    )
+
+
+def test_solution_discovery_corrects_one_schema_valid_boundary_failure(tmp_path: Path) -> None:
+    root, base_sha = _fixture(tmp_path)
+    calls: list[str] = []
+
+    def handler(request):
+        correction = request.metadata.get("plan_validation_correction") == "true"
+        calls.append("correction" if correction else "initial")
+        return _valid_plan() if correction else _invalid_plan()
+
+    provider = FakeModelProvider({"solution_discovery": handler})
+    result = SolutionDiscoveryService(provider).discover(
+        root,
+        RepositorySpec(url=str(root), base_ref="main"),
+        base_sha=base_sha,
+        objective="Add a manager-authorized customer credit-limit override with auditing.",
+    )
+
+    assert calls == ["initial", "correction"]
+    assert result.diagnostics["plan_validation_correction_used"] is True
+    assert result.diagnostics["initial_plan_validation_errors"]
+    assert result.diagnostics["final_plan_validation_errors"] == []
+    assert {change.path for change in result.plan.changes} == {
+        "services/customer_account_service.py",
+        "security/entitlements.py",
+    }
+
+
+def test_solution_discovery_fails_closed_after_one_invalid_boundary_correction(
+    tmp_path: Path,
+) -> None:
+    root, base_sha = _fixture(tmp_path)
+    calls: list[str] = []
+
+    def handler(request):
+        calls.append(str(request.metadata.get("plan_validation_correction", "false")))
+        return _invalid_plan()
+
+    provider = FakeModelProvider({"solution_discovery": handler})
+    with pytest.raises(SolutionDiscoveryError) as captured:
+        SolutionDiscoveryService(provider).discover(
+            root,
+            RepositorySpec(url=str(root), base_ref="main"),
+            base_sha=base_sha,
+            objective="Add a manager-authorized customer credit-limit override with auditing.",
+        )
+
+    assert captured.value.code == "plan_validation_failed"
+    assert calls == ["false", "true"]
+    assert captured.value.diagnostics["plan_validation_correction_used"] is True
+    assert captured.value.diagnostics["final_plan_validation_errors"]
 
 
 def test_solution_discovery_rejects_path_outside_bounded_candidates(tmp_path: Path) -> None:
     root, base_sha = _fixture(tmp_path)
-
-    def handler(_request):
-        return SolutionImpactPlan(
-            summary="Invent an invalid path.",
-            components=("invented",),
-            changes=(
-                ImpactChange(
-                    path="invented/not_real.py",
-                    operation=ChangeOperation.MODIFY,
-                    component="invented",
-                    confidence=ImpactConfidence.LOW,
-                    rationale="This path does not exist and must be rejected.",
-                ),
-            ),
-        ).model_dump(mode="json")
-
-    provider = FakeModelProvider({"solution_discovery": handler})
+    provider = FakeModelProvider({"solution_discovery": lambda _request: _invalid_plan()})
     with pytest.raises(SolutionDiscoveryError, match="outside bounded discovery candidates"):
         SolutionDiscoveryService(provider).discover(
             root,
