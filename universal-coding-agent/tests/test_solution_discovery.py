@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,15 @@ from universal_coding_agent.solution_discovery import (
     SolutionDiscoveryError,
     SolutionDiscoveryService,
     SolutionImpactPlan,
+)
+from universal_coding_agent.testlab.large_solution import (
+    EXPECTED_SCOPE,
+    OBJECTIVE,
+    active_files,
+    build_large_solution,
+    decoy_files,
+    hidden_integration_test,
+    reference_changed_files,
 )
 
 
@@ -180,3 +190,43 @@ def test_solution_discovery_rejects_path_outside_bounded_candidates(tmp_path: Pa
             base_sha=base_sha,
             objective="Add a manager-authorized customer credit-limit override with auditing.",
         )
+
+
+def test_large_solution_candidate_retrieval_keeps_active_chain_and_decoys(tmp_path: Path) -> None:
+    base_sha = build_large_solution(tmp_path)
+    root = tmp_path / "source"
+    manifest = RepositoryIndexer().build_manifest(
+        root,
+        repository_url=str(root),
+        base_ref="main",
+        base_sha=base_sha,
+    )
+    snapshot = SolutionArchitectureAnalyzer().build_snapshot(OBJECTIVE, manifest)
+    candidates = set(snapshot.candidate_paths)
+
+    assert len(manifest.files) >= 180
+    assert EXPECTED_SCOPE <= candidates
+    assert "apps/api/customer_limits.py" in candidates
+    assert "legacy/credit_limit_override.py" in candidates
+    assert "batch/credit_limit_override_job.py" in candidates
+    assert "analytics/credit_limit_override_metrics.py" in candidates
+
+
+def test_large_solution_hidden_contract_has_known_valid_solution(tmp_path: Path) -> None:
+    root = tmp_path / "source"
+    root.mkdir()
+    files = {**active_files(), **decoy_files(), **reference_changed_files()}
+    assert set(reference_changed_files()) == EXPECTED_SCOPE
+    for relative, content in files.items():
+        target = root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "-c", hidden_integration_test()],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
