@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -17,11 +17,7 @@ from pydantic import BaseModel, Field
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.product.context_documents import DocumentValidationError
-from universal_coding_agent.product.models import (
-    ContextScope,
-    DocumentRole,
-    RequirementContract,
-)
+from universal_coding_agent.product.models import ContextScope, DocumentRole, RequirementContract
 from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
@@ -88,7 +84,10 @@ class ProductWebRuntime:
     state_root: Path
     allow_local_sources: bool = False
     executor: ThreadPoolExecutor = field(
-        default_factory=lambda: ThreadPoolExecutor(max_workers=1, thread_name_prefix="uca-web")
+        default_factory=lambda: ThreadPoolExecutor(
+            max_workers=1,
+            thread_name_prefix="uca-web",
+        )
     )
     _runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _lock: threading.RLock = field(default_factory=threading.RLock)
@@ -138,16 +137,24 @@ class ProductWebRuntime:
         return self.task_status(task_id)
 
     def pause_task(self, task_id: str, reason: str = "") -> dict[str, Any]:
+        self._require_run(task_id)
         self.workspace.control.pause_task(task_id, reason=reason)
         return self.task_status(task_id)
 
     def resume_task(self, task_id: str) -> dict[str, Any]:
+        self._require_run(task_id)
         self.workspace.control.resume_task(task_id)
         return self.task_status(task_id)
 
     def cancel_task(self, task_id: str, reason: str = "") -> dict[str, Any]:
+        self._require_run(task_id)
         self.workspace.control.cancel_task(task_id, reason=reason)
         return self.task_status(task_id)
+
+    def _require_run(self, task_id: str) -> None:
+        with self._lock:
+            if task_id not in self._runs:
+                raise KeyError(task_id)
 
     def _start_safe_worker(
         self,
@@ -172,7 +179,10 @@ class ProductWebRuntime:
                 thread_id=thread_id,
                 title=request.title,
                 objective=request.objective,
-                repository=RepositorySpec(url=request.repository, base_ref=request.ref),
+                repository=RepositorySpec(
+                    url=request.repository,
+                    base_ref=request.ref,
+                ),
                 policy=request.policy,
                 test_profiles=request.test_profiles,
                 acceptance_criteria=request.acceptance_criteria,
@@ -184,7 +194,7 @@ class ProductWebRuntime:
                 busy=False,
                 result=result,
             )
-        except Exception as exc:  # execution errors are surfaced as bounded task state
+        except Exception as exc:  # execution errors become bounded task state
             self._set_run(
                 task_id,
                 status="failed",
@@ -239,15 +249,24 @@ def create_product_app(
 
     @app.exception_handler(DocumentValidationError)
     async def document_error(_request: Request, exc: DocumentValidationError):
-        return JSONResponse(status_code=400, content={"detail": str(exc)})
+        return JSONResponse(
+            status_code=400,
+            content={"detail": str(exc)},
+        )
 
     @app.exception_handler(KeyError)
     async def key_error(_request: Request, exc: KeyError):
-        return JSONResponse(status_code=404, content={"detail": str(exc.args[0])})
+        return JSONResponse(
+            status_code=404,
+            content={"detail": str(exc.args[0])},
+        )
 
     @app.exception_handler(ValueError)
     async def value_error(_request: Request, exc: ValueError):
-        return JSONResponse(status_code=400, content={"detail": sanitize_text(str(exc))[:2000]})
+        return JSONResponse(
+            status_code=400,
+            content={"detail": sanitize_text(str(exc))[:2000]},
+        )
 
     @app.get("/api/health")
     def health() -> dict[str, Any]:
@@ -264,9 +283,14 @@ def create_product_app(
         return {"hits": [item.model_dump(mode="json") for item in hits]}
 
     @app.get("/api/documents")
-    def list_documents(scope_id: str | None = Query(default=None)) -> dict[str, Any]:
+    def list_documents(scope_id: str | None = None) -> dict[str, Any]:
         documents = runtime.workspace.documents.list(scope_id=scope_id)
-        return {"documents": [item.model_dump(mode="json") for item in documents]}
+        return {
+            "documents": [
+                item.model_dump(mode="json")
+                for item in documents
+            ]
+        }
 
     @app.post("/api/documents", status_code=201)
     def upload_document(request: DocumentUploadRequest) -> dict[str, Any]:
@@ -310,12 +334,18 @@ def create_product_app(
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/approve")
-    def approve_program(program_id: str, request: ProgramApproveRequest) -> dict[str, Any]:
+    def approve_program(
+        program_id: str,
+        request: ProgramApproveRequest,
+    ) -> dict[str, Any]:
         runtime.workspace.programs.approve_program(program_id, request.plan_hash)
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/pause")
-    def pause_program(program_id: str, request: ControlRequest) -> dict[str, Any]:
+    def pause_program(
+        program_id: str,
+        request: ControlRequest,
+    ) -> dict[str, Any]:
         runtime.workspace.programs.pause(program_id, reason=request.reason)
         runtime.workspace.programs.ready_phases(program_id)
         return _program_snapshot(runtime.workspace, program_id)
@@ -326,14 +356,20 @@ def create_product_app(
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/cancel")
-    def cancel_program(program_id: str, request: ControlRequest) -> dict[str, Any]:
+    def cancel_program(
+        program_id: str,
+        request: ControlRequest,
+    ) -> dict[str, Any]:
         runtime.workspace.programs.cancel(program_id, reason=request.reason)
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/tasks/safe", status_code=202)
     def start_safe_task(request: SafeTaskStartRequest) -> dict[str, Any]:
         if not request.test_profiles:
-            raise HTTPException(status_code=422, detail="at least one trusted test profile is required")
+            raise HTTPException(
+                status_code=422,
+                detail="at least one trusted test profile is required",
+            )
         return runtime.start_safe_task(request)
 
     @app.get("/api/tasks/{task_id}")
@@ -341,7 +377,10 @@ def create_product_app(
         return runtime.task_status(task_id)
 
     @app.post("/api/tasks/{task_id}/scope-decision", status_code=202)
-    def scope_decision(task_id: str, request: ScopeDecisionRequest) -> dict[str, Any]:
+    def scope_decision(
+        task_id: str,
+        request: ScopeDecisionRequest,
+    ) -> dict[str, Any]:
         return runtime.scope_decision(task_id, request.approved)
 
     @app.post("/api/tasks/{task_id}/pause")
@@ -358,8 +397,13 @@ def create_product_app(
 
     resolved_ui = ui_dist.resolve() if ui_dist is not None else None
     if resolved_ui is not None and resolved_ui.is_dir():
-        app.mount("/", StaticFiles(directory=resolved_ui, html=True), name="ui")
+        app.mount(
+            "/",
+            StaticFiles(directory=resolved_ui, html=True),
+            name="ui",
+        )
     else:
+
         @app.get("/")
         def api_root() -> dict[str, str]:
             return {
@@ -380,7 +424,10 @@ def is_loopback_host(host: str) -> bool:
         return False
 
 
-def _program_snapshot(workspace: ProductWorkspace, program_id: str) -> dict[str, Any]:
+def _program_snapshot(
+    workspace: ProductWorkspace,
+    program_id: str,
+) -> dict[str, Any]:
     plan = workspace.programs.plan(program_id)
     return {
         "program_id": program_id,
@@ -391,7 +438,10 @@ def _program_snapshot(workspace: ProductWorkspace, program_id: str) -> dict[str,
             {
                 "phase_id": phase.phase_id,
                 "title": phase.title,
-                "status": workspace.programs.phase_status(program_id, phase.phase_id).value,
+                "status": workspace.programs.phase_status(
+                    program_id,
+                    phase.phase_id,
+                ).value,
                 "dependencies": list(phase.dependencies),
             }
             for phase in plan.phases

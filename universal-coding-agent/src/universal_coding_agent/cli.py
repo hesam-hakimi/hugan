@@ -84,6 +84,16 @@ def parser() -> argparse.ArgumentParser:
 
     safe_status = sub.add_parser("safe-status")
     safe_status.add_argument("--thread-id", required=True)
+
+    serve = sub.add_parser("serve", help="run the local UCA Product Control API and UI")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--ui-dist", type=Path, default=Path("web/dist"))
+    serve.add_argument(
+        "--allow-remote-ui",
+        action="store_true",
+        help="explicitly allow binding the UI/API to a non-loopback address",
+    )
     return root
 
 
@@ -97,6 +107,8 @@ def main(argv: list[str] | None = None) -> int:
         print("AGENT_MODEL_PROVIDER_OK")
         return 0
 
+    if arguments.command == "serve":
+        return _run_server(arguments, provider)
     if arguments.command in {"safe", "safe-auto", "safe-resume", "safe-status"}:
         return _run_safe(arguments, provider)
     return _run_observe(arguments, provider)
@@ -192,6 +204,31 @@ def _run_discovered_safe(arguments: argparse.Namespace, provider) -> int:
         acceptance_criteria=criteria,
     )
     print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
+def _run_server(arguments: argparse.Namespace, provider) -> int:
+    import uvicorn
+
+    from universal_coding_agent.product.workspace import ProductWorkspace
+    from universal_coding_agent.web.app import ProductWebRuntime, create_product_app, is_loopback_host
+
+    if not is_loopback_host(arguments.host) and not arguments.allow_remote_ui:
+        raise ValueError(
+            "refusing non-loopback UI bind; pass --allow-remote-ui only behind approved access controls"
+        )
+    if arguments.port < 1 or arguments.port > 65535:
+        raise ValueError("port must be between 1 and 65535")
+
+    state_root = arguments.state_root.resolve()
+    workspace = ProductWorkspace.create(state_root / "product", provider)
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=state_root / "web-runtime",
+        allow_local_sources=arguments.allow_local_sources,
+    )
+    app = create_product_app(runtime, ui_dist=arguments.ui_dist)
+    uvicorn.run(app, host=arguments.host, port=arguments.port, log_level="info")
     return 0
 
 
