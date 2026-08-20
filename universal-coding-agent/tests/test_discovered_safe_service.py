@@ -66,8 +66,11 @@ def _repository(tmp_path: Path) -> tuple[Path, str]:
     return root, _git(root, "rev-parse", "HEAD")
 
 
-def _provider() -> FakeModelProvider:
-    def discover(_request):
+def _provider() -> tuple[FakeModelProvider, list[str]]:
+    calls: list[str] = []
+
+    def discover(request):
+        calls.append(request.role)
         return SolutionImpactPlan(
             summary="Use the active service and domain rule, not legacy code.",
             components=("services", "domain"),
@@ -90,7 +93,7 @@ def _provider() -> FakeModelProvider:
             rejected_candidates=("legacy/credit_limit_override.py",),
         ).model_dump(mode="json")
 
-    return FakeModelProvider({"solution_discovery": discover})
+    return FakeModelProvider({"solution_discovery": discover}), calls
 
 
 def _policy() -> SafeModePolicy:
@@ -111,7 +114,7 @@ def test_discovered_safe_stops_at_existing_scope_approval_before_implementation(
     source, source_sha = _repository(tmp_path)
     source_status = _git(source, "status", "--porcelain")
     state_root = tmp_path / "state"
-    provider = _provider()
+    provider, calls = _provider()
     monkeypatch.setenv("UCA_SAFE_EDIT_PROTOCOL", "v2-line-addressed")
     service = DiscoveredSafeAgentService.create(
         state_root,
@@ -155,14 +158,14 @@ def test_discovered_safe_stops_at_existing_scope_approval_before_implementation(
     )
     assert provenance["edit_authority_granted"] is False
     assert provenance["base_sha"] == source_sha
-    assert [request.role for request in provider.requests] == ["solution_discovery"]
+    assert calls == ["solution_discovery"]
 
 
 def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(
     tmp_path: Path,
 ) -> None:
     source, _ = _repository(tmp_path)
-    provider = _provider()
+    provider, calls = _provider()
     service = DiscoveredSafeAgentService.create(
         tmp_path / "state",
         provider,
@@ -180,4 +183,4 @@ def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(
             test_profiles=("invented-profile",),
         )
 
-    assert provider.requests == []
+    assert calls == []
