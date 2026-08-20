@@ -23,6 +23,15 @@
 - universal-coding-agent/tests/test_discovered_safe_service.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
+- universal-coding-agent/src/universal_coding_agent/product/__init__.py
+- universal-coding-agent/src/universal_coding_agent/product/models.py
+- universal-coding-agent/src/universal_coding_agent/product/context_documents.py
+- universal-coding-agent/src/universal_coding_agent/product/search_service.py
+- universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
+- universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
+- universal-coding-agent/src/universal_coding_agent/product/task_control.py
+- universal-coding-agent/src/universal_coding_agent/product/workspace.py
+- universal-coding-agent/tests/test_product_foundation.py
 
 Cmd 1
 
@@ -57,13 +66,30 @@ for FILE in \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   scripts/pretransfer-test-lab.sh \
-  scripts/pretransfer-live-openai.sh
+  scripts/pretransfer-live-openai.sh \
+  src/universal_coding_agent/product/__init__.py \
+  src/universal_coding_agent/product/models.py \
+  src/universal_coding_agent/product/context_documents.py \
+  src/universal_coding_agent/product/search_service.py \
+  src/universal_coding_agent/product/requirement_alignment.py \
+  src/universal_coding_agent/product/program_orchestrator.py \
+  src/universal_coding_agent/product/task_control.py \
+  src/universal_coding_agent/product/workspace.py \
+  tests/test_product_foundation.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.context.sharded_line_edit_compiler import ShardedLineAddressedContextCompiler
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
+from universal_coding_agent.product import (
+    ContextDocumentService,
+    ProductWorkspace,
+    ProgramOrchestrator,
+    RequirementAlignmentService,
+    SearchService,
+    TaskControlService,
+)
 from universal_coding_agent.safe.model_line_addressing import ModelFacingLineAddressedEditEngine
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
@@ -83,7 +109,13 @@ assert run_large_solution_production_suite
 assert set(reference_changed_files())
 assert SolutionDiscoveryService
 assert DiscoveredSafeAgentService
-print("PRETRANSFER_LAB_IMPORT_PREFLIGHT_PASS")
+assert ProductWorkspace
+assert ContextDocumentService
+assert SearchService
+assert RequirementAlignmentService
+assert ProgramOrchestrator
+assert TaskControlService
+print("PRODUCT_FOUNDATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -92,12 +124,13 @@ Cmd 3
 ```bash
 .venv/bin/python -m compileall -q src tests && \
 .venv/bin/python -m pytest -q \
+  tests/test_product_foundation.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "HARD_CDC_MAPPING_OPERATION_PREFLIGHT_PASS"
+echo "PRODUCT_FOUNDATION_DETERMINISTIC_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -109,10 +142,10 @@ Cmd 4
 Cmd 5
 
 ```bash
-PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/synthetic-guardrails-$(date -u +%Y%m%dT%H%M%SZ)"
+PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/product-foundation-$(date -u +%Y%m%dT%H%M%SZ)"
 PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
 test -f "$PRETRANSFER_STATE_ROOT/pretransfer-junit.xml"
-echo "DISCOVERY_FAILURE_DIAGNOSTICS_GATE_PASS"
+echo "PRETRANSFER_PRODUCT_FOUNDATION_GATE_PASS"
 ```
 
 Cmd 6
@@ -145,7 +178,7 @@ test "$LIVE_RC" -eq 0
 Cmd 9
 
 ```bash
-HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-operation-$(date -u +%Y%m%dT%H%M%SZ)"
+HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
 HARD_RC=0
 UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 \
 PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning \
@@ -221,7 +254,7 @@ bash scripts/safe-workflow.sh start \
   --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
   --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
   --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
-  --title "Phase 2C real Safe Mode - pre-transfer qualified line-addressed v2"
+  --title "Phase 2C real Safe Mode - product foundation pre-transfer qualified"
 ```
 
 Cmd 14
