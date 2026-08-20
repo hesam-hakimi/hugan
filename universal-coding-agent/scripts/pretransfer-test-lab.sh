@@ -16,6 +16,7 @@ env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_model_line_addressing.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
+  tests/test_discovered_safe_service.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_hard_reasoning_lab.py \
