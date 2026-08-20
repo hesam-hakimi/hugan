@@ -424,7 +424,10 @@ class SolutionDiscoveryService:
             if change.operation is not ChangeOperation.MODIFY:
                 errors.append(f"create is not enabled for discovery scope: {change.path}")
             if change.path not in candidates:
-                errors.append(f"proposed path is outside bounded discovery candidates: {change.path}")
+                errors.append(
+                    "proposed path is outside bounded discovery candidates: "
+                    f"{change.path}"
+                )
             target = (root / change.path).resolve()
             if root not in target.parents or not target.is_file():
                 errors.append(f"proposed path is not an existing contained file: {change.path}")
