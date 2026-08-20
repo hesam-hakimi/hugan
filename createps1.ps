@@ -3,16 +3,43 @@
 
     $v2Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2'
     $npm = 'C:\Program Files\nodejs\npm.cmd'
+    $expectedBranch = 'hotfix/hf1-oracle-fresh-consumer-v2'
+    $expectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
 
     Set-Location -LiteralPath $v2Root
 
-    # ---------------------------------------------------------
-    # 1. Safely remove only the known zero-byte stray
-    # ---------------------------------------------------------
+    # =========================================================
+    # 1. Repository identity
+    # =========================================================
+
+    $branch = (git branch --show-current).Trim()
+    $head = (git rev-parse HEAD).Trim()
+
+    if ($branch -ne $expectedBranch) {
+        throw "Unexpected branch: $branch"
+    }
+
+    if ($head -ne $expectedHead) {
+        throw "Unexpected HEAD: $head"
+    }
+
+    if (@(git diff --cached --name-only).Count -ne 0) {
+        throw 'Unexpected staged paths detected.'
+    }
+
+    Write-Host "Branch: $branch"
+    Write-Host "HEAD:   $head"
+    Write-Host 'Staged: 0'
+
+    # =========================================================
+    # 2. Safely remove only compile_output.txt if it is the
+    #    known zero-byte untracked stray
+    # =========================================================
 
     $stray = Join-Path $v2Root 'compile_output.txt'
 
     if (Test-Path -LiteralPath $stray) {
+
         $item = Get-Item -LiteralPath $stray
 
         if ($item.PSIsContainer) {
@@ -20,55 +47,97 @@
         }
 
         if ($item.Length -ne 0) {
-            throw "compile_output.txt is not empty; size=$($item.Length). Do not delete it."
+            throw "compile_output.txt is not zero-byte. Size: $($item.Length). Do not delete it."
         }
 
-        $tracked = @(git ls-files --error-unmatch -- 'compile_output.txt' 2>$null)
-        if ($LASTEXITCODE -eq 0 -or $tracked.Count -ne 0) {
+        # Safe tracked check — no --error-unmatch
+        $trackedMatch = @(
+            git ls-files -- 'compile_output.txt'
+        )
+
+        if ($trackedMatch.Count -ne 0) {
             throw 'compile_output.txt is tracked. Do not delete it.'
         }
 
-        $staged = @(git diff --cached --name-only -- 'compile_output.txt')
-        if ($staged.Count -ne 0) {
+        $stagedMatch = @(
+            git diff --cached --name-only -- 'compile_output.txt'
+        )
+
+        if ($stagedMatch.Count -ne 0) {
             throw 'compile_output.txt is staged. Do not delete it.'
         }
 
+        $untrackedMatch = @(
+            git ls-files --others --exclude-standard -- 'compile_output.txt'
+        )
+
+        if ($untrackedMatch.Count -ne 1) {
+            throw "compile_output.txt is not uniquely confirmed as untracked. Observed matches: $($untrackedMatch.Count)"
+        }
+
         Remove-Item -LiteralPath $stray -Force
+
         Write-Host 'Removed verified zero-byte untracked compile_output.txt'
     }
+    else {
+        Write-Host 'compile_output.txt already absent — nothing to remove.'
+    }
 
-    # ---------------------------------------------------------
-    # 2. Compile
-    # ---------------------------------------------------------
+    # =========================================================
+    # 3. Capture source state BEFORE validation
+    # =========================================================
+
+    $beforeStatus = @(
+        git status --porcelain=v1 --untracked-files=all
+    )
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Pre-validation git diff --check failed.'
+    }
+
+    # =========================================================
+    # 4. Compile
+    # =========================================================
 
     Write-Host ''
     Write-Host '========== COMPILE =========='
 
     & $npm run compile
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Repair 3 compile failed.'
+    $compileExit = $LASTEXITCODE
+
+    Write-Host "Compile exit: $compileExit"
+
+    if ($compileExit -ne 0) {
+        throw 'HF1 V2 Repair 3 compile failed.'
     }
 
-    # ---------------------------------------------------------
-    # 3. Lint
-    # ---------------------------------------------------------
+    # =========================================================
+    # 5. Lint
+    # =========================================================
 
     Write-Host ''
     Write-Host '========== LINT =========='
 
     & $npm run lint
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Repair 3 lint failed.'
+    $lintExit = $LASTEXITCODE
+
+    Write-Host "Lint exit: $lintExit"
+
+    if ($lintExit -ne 0) {
+        throw 'HF1 V2 Repair 3 lint failed.'
     }
 
-    # ---------------------------------------------------------
-    # 4. Focus exactly the repaired areas + HF1 V2
-    # ---------------------------------------------------------
+    # =========================================================
+    # 6. Focused Repair 3 + HF1 V2 tests
+    # =========================================================
 
     Write-Host ''
     Write-Host '========== FOCUSED REPAIR 3 + HF1 V2 =========='
 
-    $oldGrep = $env:MOCHA_GREP
+    $previousGrep = $env:MOCHA_GREP
+
     $env:MOCHA_GREP = @(
         'Phase 6 Agent Router And Create Flow',
         'non-onboarding writes require',
@@ -85,21 +154,23 @@
         $focusedExit = $LASTEXITCODE
     }
     finally {
-        if ($null -eq $oldGrep) {
+        if ($null -eq $previousGrep) {
             Remove-Item Env:MOCHA_GREP -ErrorAction SilentlyContinue
         }
         else {
-            $env:MOCHA_GREP = $oldGrep
+            $env:MOCHA_GREP = $previousGrep
         }
     }
 
+    Write-Host "Focused tests exit: $focusedExit"
+
     if ($focusedExit -ne 0) {
-        throw 'Repair 3 focused validation failed.'
+        throw 'HF1 V2 Repair 3 focused tests failed.'
     }
 
-    # ---------------------------------------------------------
-    # 5. Full regression
-    # ---------------------------------------------------------
+    # =========================================================
+    # 7. Full unit regression
+    # =========================================================
 
     Write-Host ''
     Write-Host '========== FULL UNIT REGRESSION =========='
@@ -108,9 +179,9 @@
     $stdout = Join-Path $env:TEMP "hf1-v2-r3-$id.out.log"
     $stderr = Join-Path $env:TEMP "hf1-v2-r3-$id.err.log"
 
-    $p = Start-Process `
+    $process = Start-Process `
         -FilePath $npm `
-        -ArgumentList @('run','test:unit') `
+        -ArgumentList @('run', 'test:unit') `
         -WorkingDirectory $v2Root `
         -RedirectStandardOutput $stdout `
         -RedirectStandardError $stderr `
@@ -119,8 +190,13 @@
         -PassThru
 
     $text = @(
-        if (Test-Path $stdout) { Get-Content $stdout -Raw }
-        if (Test-Path $stderr) { Get-Content $stderr -Raw }
+        if (Test-Path -LiteralPath $stdout) {
+            Get-Content -LiteralPath $stdout -Raw
+        }
+
+        if (Test-Path -LiteralPath $stderr) {
+            Get-Content -LiteralPath $stderr -Raw
+        }
     ) -join [Environment]::NewLine
 
     $clean = [regex]::Replace(
@@ -129,25 +205,33 @@
         ''
     )
 
-    $matches = [regex]::Matches(
+    $failureMatches = [regex]::Matches(
         $clean,
         '(?m)^\s*(\d+)\s+failing\b'
     )
 
-    $failureCount = if ($matches.Count -eq 0) {
-        0
+    if ($failureMatches.Count -eq 0) {
+        $failureCount = 0
     }
     else {
-        [int]$matches[$matches.Count - 1].Groups[1].Value
+        $failureCount = [int]$failureMatches[
+            $failureMatches.Count - 1
+        ].Groups[1].Value
     }
 
-    Write-Host "Full-unit process exit: $($p.ExitCode)"
+    Write-Host "Full-unit process exit: $($process.ExitCode)"
     Write-Host "Failure count: $failureCount"
 
     $clean -split "`r?`n" |
         Select-String 'passing|pending|failing' |
         Select-Object -Last 10 |
-        ForEach-Object { Write-Host $_ }
+        ForEach-Object {
+            Write-Host $_
+        }
+
+    # =========================================================
+    # 8. Exactly five historical failures must remain
+    # =========================================================
 
     $expectedFive = @(
         'passes against the committed Phase H baseline report',
@@ -158,57 +242,99 @@
     )
 
     if ($failureCount -ne 5) {
-        $clean -split "`r?`n" | Select-Object -Last 300
-        throw "Expected exactly 5 historical failures after Repair 3; observed $failureCount."
+        Write-Host ''
+        Write-Host 'Unexpected full-unit result. Last output:'
+        $clean -split "`r?`n" |
+            Select-Object -Last 300 |
+            ForEach-Object { Write-Host $_ }
+
+        throw "Expected exactly 5 historical failures; observed $failureCount."
     }
 
     foreach ($expected in $expectedFive) {
+
         if (-not $clean.Contains($expected)) {
-            throw "Expected historical failure missing or changed: $expected"
+            throw "Historical baseline failure missing or changed: $expected"
         }
 
         Write-Host "BASELINE CONFIRMED: $expected"
     }
 
-    # The two stale HF1 V2 failures must now be gone.
+    # =========================================================
+    # 9. The two stale HF1 V2 failures MUST be gone
+    # =========================================================
+
     $removedFailures = @(
         'default v3 workspace context selects ETL asset repo instead of extension repo',
         'non-onboarding writes follow the existing path without preview/approval'
     )
 
     foreach ($removed in $removedFailures) {
+
         if ($clean.Contains($removed)) {
             throw "Stale HF1 V2 failure still exists: $removed"
         }
     }
 
-    Remove-Item $stdout,$stderr -Force -ErrorAction SilentlyContinue
+    Write-Host 'NEW HF1 V2 FAILURES: NONE'
 
-    # ---------------------------------------------------------
-    # 6. Final repository integrity
-    # ---------------------------------------------------------
+    # =========================================================
+    # 10. Repository state must not drift during validation
+    # =========================================================
+
+    $afterStatus = @(
+        git status --porcelain=v1 --untracked-files=all
+    )
+
+    if (
+        [string]::Join("`n", $beforeStatus) -cne
+        [string]::Join("`n", $afterStatus)
+    ) {
+        Write-Host 'Status before validation:'
+        $beforeStatus
+
+        Write-Host 'Status after validation:'
+        $afterStatus
+
+        throw 'Repository state changed during validation.'
+    }
 
     if (@(git diff --cached --name-only).Count -ne 0) {
-        throw 'Unexpected staged changes detected.'
+        throw 'Staged paths appeared during validation.'
     }
 
     git diff --check
+
     if ($LASTEXITCODE -ne 0) {
-        throw 'git diff --check failed.'
+        throw 'Final git diff --check failed.'
     }
 
     if (Test-Path -LiteralPath $stray) {
-        throw 'compile_output.txt unexpectedly exists after cleanup.'
+        throw 'compile_output.txt unexpectedly exists after validation.'
     }
 
+    # =========================================================
+    # 11. Clean only our temp logs
+    # =========================================================
+
+    Remove-Item `
+        -LiteralPath $stdout, $stderr `
+        -Force `
+        -ErrorAction SilentlyContinue
+
+    # =========================================================
+    # SUCCESS
+    # =========================================================
+
     Write-Host ''
-    Write-Host '=============================================='
+    Write-Host '================================================'
     Write-Host 'HF1_V2_REPAIR_3_EXTERNAL_VALIDATION_PASS'
-    Write-Host '=============================================='
+    Write-Host '================================================'
     Write-Host 'Compile: PASS'
     Write-Host 'Lint: PASS'
     Write-Host 'Focused Repair 3 / HF1 V2 tests: PASS'
     Write-Host 'Full unit: exactly 5 historical failures'
     Write-Host 'New HF1 V2 regressions: NONE'
+    Write-Host 'Repository state changed by validation: NO'
     Write-Host 'Staged paths: 0'
 }
