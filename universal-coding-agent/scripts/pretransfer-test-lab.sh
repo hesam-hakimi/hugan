@@ -24,6 +24,7 @@ env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_product_foundation.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
+  tests/test_requirement_draft_repair.py \
   --junitxml "$STATE_ROOT/pretransfer-junit.xml"
 
 echo "PRETRANSFER_LAB_PASS"

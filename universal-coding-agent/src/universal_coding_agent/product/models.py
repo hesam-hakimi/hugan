@@ -109,6 +109,24 @@ class RequirementDraft(FrozenModel):
             raise ValueError("clarification decision keys must be unique")
         return self
 
+    @model_validator(mode="after")
+    def validate_acceptance_references(self) -> RequirementDraft:
+        requirement_count = len(self.requirements)
+        for criterion_index, criterion in enumerate(self.acceptance_criteria):
+            invalid = sorted(
+                {
+                    index
+                    for index in criterion.requirement_indexes
+                    if index < 0 or index >= requirement_count
+                }
+            )
+            if invalid:
+                raise ValueError(
+                    "acceptance criterion "
+                    f"{criterion_index} references unknown requirement indexes: {invalid}"
+                )
+        return self
+
 
 class RequirementItem(FrozenModel):
     requirement_id: str = Field(pattern=r"^R-[0-9]{3}$")

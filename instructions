@@ -36,6 +36,7 @@
 - universal-coding-agent/tests/test_product_foundation.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
+- universal-coding-agent/tests/test_requirement_draft_repair.py
 
 Cmd 1
 
@@ -83,7 +84,8 @@ for FILE in \
   src/universal_coding_agent/product/workspace.py \
   tests/test_product_foundation.py \
   tests/test_product_workspace_control.py \
-  tests/test_safe_control.py
+  tests/test_safe_control.py \
+  tests/test_requirement_draft_repair.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
@@ -108,12 +110,13 @@ Cmd 3
   tests/test_product_foundation.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
+  tests/test_requirement_draft_repair.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "PROGRAM_DEPENDENCY_REPAIR_PREFLIGHT_PASS"
+echo "REQUIREMENT_CROSS_REFERENCE_REPAIR_PREFLIGHT_PASS"
 ```
 
 Cmd 4
