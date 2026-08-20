@@ -29,6 +29,8 @@ jobs:
       UCA_LIVE_MIN_SUCCESS_RATE: "1.0"
       UCA_HARD_LIVE_RUNS: "1"
       UCA_HARD_LIVE_MIN_SUCCESS_RATE: "1.0"
+      UCA_LARGE_SOLUTION_RUNS: "1"
+      UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE: "1.0"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -118,5 +120,47 @@ jobs:
             ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/edit-proposal.json
             ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/proposed.patch
             ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-final-report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Run large solution discovery and implementation qualification
+        id: large
+        if: env.OPENAI_API_KEY != '' && steps.hard.outcome == 'success'
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-large-solution"
+          set +e
+          python -m universal_coding_agent.testlab.large_solution \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/large-solution-summary.json" ]]; then
+            cat "$STATE_ROOT/large-solution-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "=== LARGE SOLUTION DISCOVERY PLAN ==="
+          find "$STATE_ROOT" -type f -name discovery-plan.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== LARGE SOLUTION TEST RESULTS ==="
+          find "$STATE_ROOT" -type f -name test-results.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== LARGE SOLUTION PATCHES ==="
+          find "$STATE_ROOT" -type f -name proposed.patch -print \
+            -exec sed -n '1,500p' {} \; || true
+          exit "$RC"
+
+      - name: Upload large solution diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.large.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-pretransfer-large-solution-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-pretransfer-large-solution/large-solution-summary.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-snapshot.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-plan.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/test-results.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/edit-proposal.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/proposed.patch
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-final-report.json
           if-no-files-found: warn
           retention-days: 14
