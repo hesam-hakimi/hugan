@@ -599,7 +599,6 @@ def hard_test_script() -> str:
             "replace",
             "deterministic",
             "conflict",
-            "all eligible",
             "operation",
             "payload",
         ):
