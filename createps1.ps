@@ -1,107 +1,407 @@
-
 & {
     $ErrorActionPreference = 'Stop'
 
-    $sourceRepo = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension'
-    $newClone   = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2'
+    $v2Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2'
+    $dependencySource = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension\node_modules'
+    $expectedBranch = 'hotfix/hf1-oracle-fresh-consumer-v2'
+    $expectedHead = 'b2e44c3a1a051aa7fa6008831d225bc06d22e847'
+    $npm = 'C:\Program Files\nodejs\npm.cmd'
 
-    $sourceBranch = 'feature/v3-agentic-redesign'
-    $hotfixBranch = 'hotfix/hf1-oracle-fresh-consumer-v2'
-    $originUrl     = 'https://github.com/TD-Universe/agentic_etl.git'
+    Set-Location -LiteralPath $v2Root
 
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        throw 'Git is not available.'
+    # ---------------------------------------------------------
+    # 1. Repository identity
+    # ---------------------------------------------------------
+
+    $observedHead = (git rev-parse HEAD).Trim()
+    $observedBranch = (git branch --show-current).Trim()
+
+    if ($observedHead -ne $expectedHead) {
+        throw "Unexpected HEAD: $observedHead"
     }
 
-    if (-not (Test-Path -LiteralPath $sourceRepo -PathType Container)) {
-        throw "Source repository not found: $sourceRepo"
+    if ($observedBranch -ne $expectedBranch) {
+        throw "Unexpected branch: $observedBranch"
     }
 
-    if (Test-Path -LiteralPath $newClone) {
-        throw "New HF1 clone already exists. Do not delete it: $newClone"
+    if (@(git diff --cached --name-only).Count -ne 0) {
+        throw 'Staged files detected.'
     }
 
-    Write-Host 'Checking committed source branch...'
+    Write-Host "Branch: $observedBranch"
+    Write-Host "HEAD:   $observedHead"
+    Write-Host 'Staged: 0'
 
-    $sourceHead = (
-        git -C $sourceRepo rev-parse "$sourceBranch"
-    ).Trim()
+    # ---------------------------------------------------------
+    # 2. Capture implementation surface before validation
+    # ---------------------------------------------------------
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Unable to resolve $sourceBranch"
-    }
+    $modifiedBefore = @(
+        git diff --name-only
+    ) | ForEach-Object {
+        $_.Trim().Replace('\','/')
+    } | Where-Object { $_ }
 
-    Write-Host "Source branch: $sourceBranch"
-    Write-Host "Source HEAD:   $sourceHead"
+    $untrackedBefore = @(
+        git ls-files --others --exclude-standard
+    ) | ForEach-Object {
+        $_.Trim().Replace('\','/')
+    } | Where-Object { $_ }
 
-    $originalWorktreesBefore = @(
-        git -C $sourceRepo worktree list --porcelain |
-        Select-String '^worktree '
-    ).Count
-
-    Write-Host "Original worktree count: $originalWorktreesBefore"
+    $changedBefore = @(
+        $modifiedBefore
+        $untrackedBefore
+    ) | Sort-Object -Unique
 
     Write-Host ''
-    Write-Host 'Creating isolated clean clone...'
+    Write-Host "Changed paths before validation: $($changedBefore.Count)"
 
-    git clone `
-        --local `
-        --no-hardlinks `
-        --branch $sourceBranch `
-        --single-branch `
-        -- `
-        $sourceRepo `
-        $newClone
+    $hashesBefore = @{}
 
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Local clone failed.'
+    foreach ($relativePath in $changedBefore) {
+        $absolutePath = Join-Path $v2Root $relativePath
+
+        if (Test-Path -LiteralPath $absolutePath -PathType Leaf) {
+            $hashesBefore[$relativePath] = (
+                Get-FileHash `
+                    -LiteralPath $absolutePath `
+                    -Algorithm SHA256
+            ).Hash
+        }
     }
 
-    git -C $newClone remote set-url origin $originUrl
+    git diff --check
 
     if ($LASTEXITCODE -ne 0) {
-        throw 'Unable to set GitHub origin.'
+        throw 'git diff --check failed.'
     }
 
-    git -C $newClone switch -c $hotfixBranch $sourceHead
+    # ---------------------------------------------------------
+    # 3. Prepare existing LOCAL dependencies only
+    # ---------------------------------------------------------
 
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Unable to create the new HF1 hotfix branch.'
+    $v2NodeModules = Join-Path $v2Root 'node_modules'
+
+    if (-not (Test-Path -LiteralPath $v2NodeModules -PathType Container)) {
+
+        if (-not (Test-Path -LiteralPath $dependencySource -PathType Container)) {
+            throw "Existing local dependency source unavailable: $dependencySource"
+        }
+
+        Write-Host ''
+        Write-Host 'Copying existing local node_modules — NO NETWORK / NO INSTALL...'
+
+        & robocopy.exe `
+            $dependencySource `
+            $v2NodeModules `
+            /E `
+            /COPY:DAT `
+            /DCOPY:DAT `
+            /R:1 `
+            /W:1 `
+            /XJ `
+            /NFL `
+            /NDL `
+            /NJH `
+            /NJS `
+            /NP
+
+        $copyExit = $LASTEXITCODE
+
+        if ($copyExit -ge 8) {
+            throw "node_modules local copy failed: robocopy exit $copyExit"
+        }
+    }
+    else {
+        Write-Host ''
+        Write-Host 'Existing V2 node_modules found — reusing it.'
     }
 
-    $cloneStatus = @(
-        git -C $newClone status --porcelain=v1 --untracked-files=all
+    # ---------------------------------------------------------
+    # 4. Required local toolchain
+    # ---------------------------------------------------------
+
+    $requiredTools = @(
+        'node_modules\.bin\tsc.cmd',
+        'node_modules\.bin\eslint.cmd',
+        'node_modules\.bin\mocha.cmd'
     )
 
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Unable to verify clone status.'
+    foreach ($tool in $requiredTools) {
+        $toolPath = Join-Path $v2Root $tool
+
+        if (-not (Test-Path -LiteralPath $toolPath -PathType Leaf)) {
+            throw "Required local tool missing: $tool"
+        }
     }
 
-    if ($cloneStatus.Count -ne 0) {
-        throw "New clone is unexpectedly dirty:`n$($cloneStatus -join "`n")"
+    if (-not (Test-Path -LiteralPath $npm -PathType Leaf)) {
+        throw "npm.cmd unavailable: $npm"
     }
 
-    $cloneHead = (git -C $newClone rev-parse HEAD).Trim()
-    $cloneBranch = (git -C $newClone branch --show-current).Trim()
-    $cloneOrigin = (git -C $newClone remote get-url origin).Trim()
-
-    $originalWorktreesAfter = @(
-        git -C $sourceRepo worktree list --porcelain |
-        Select-String '^worktree '
-    ).Count
-
-    if ($originalWorktreesAfter -ne $originalWorktreesBefore) {
-        throw 'Original repository worktree inventory changed unexpectedly.'
-    }
+    # ---------------------------------------------------------
+    # 5. Compile
+    # ---------------------------------------------------------
 
     Write-Host ''
-    Write-Host '========================================'
-    Write-Host 'HF1_V2_CLEAN_BRANCH_READY'
-    Write-Host '========================================'
-    Write-Host "Clone:   $newClone"
-    Write-Host "Branch:  $cloneBranch"
-    Write-Host "HEAD:    $cloneHead"
-    Write-Host "Origin:  $cloneOrigin"
-    Write-Host "Status:  CLEAN"
-    Write-Host "Original worktrees unchanged: $originalWorktreesAfter"
+    Write-Host '========== COMPILE =========='
+
+    & $npm run compile
+
+    $compileExit = $LASTEXITCODE
+
+    Write-Host "Compile exit: $compileExit"
+
+    if ($compileExit -ne 0) {
+        throw 'HF1 V2 compile failed.'
+    }
+
+    # ---------------------------------------------------------
+    # 6. Lint
+    # ---------------------------------------------------------
+
+    Write-Host ''
+    Write-Host '========== LINT =========='
+
+    & $npm run lint
+
+    $lintExit = $LASTEXITCODE
+
+    Write-Host "Lint exit: $lintExit"
+
+    if ($lintExit -ne 0) {
+        throw 'HF1 V2 lint failed.'
+    }
+
+    # ---------------------------------------------------------
+    # 7. Focused HF1 V2 tests
+    # ---------------------------------------------------------
+
+    Write-Host ''
+    Write-Host '========== FOCUSED HF1 V2 TESTS =========='
+
+    $oldMochaGrep = $env:MOCHA_GREP
+
+    $env:MOCHA_GREP = @(
+        'HF1',
+        'Trusted framework',
+        'packaged contract',
+        'fresh consumer',
+        'CREATE_NEW_JOB',
+        'single-folder',
+        'consumerRoot',
+        'RepoWriter workspace selection',
+        'Job development readiness',
+        'WriteAuthorization',
+        'ETL action'
+    ) -join '|'
+
+    try {
+        & $npm run test:unit
+        $focusedExit = $LASTEXITCODE
+    }
+    finally {
+        if ($null -eq $oldMochaGrep) {
+            Remove-Item Env:MOCHA_GREP -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:MOCHA_GREP = $oldMochaGrep
+        }
+    }
+
+    Write-Host "Focused tests exit: $focusedExit"
+
+    if ($focusedExit -ne 0) {
+        throw 'HF1 V2 focused tests failed.'
+    }
+
+    # ---------------------------------------------------------
+    # 8. Full unit suite — capture without PowerShell stderr issue
+    # ---------------------------------------------------------
+
+    Write-Host ''
+    Write-Host '========== FULL UNIT SUITE =========='
+
+    $validationId = [Guid]::NewGuid().ToString('N')
+    $stdoutLog = Join-Path $env:TEMP "hf1-v2-full-$validationId.out.log"
+    $stderrLog = Join-Path $env:TEMP "hf1-v2-full-$validationId.err.log"
+
+    $fullProcess = Start-Process `
+        -FilePath $npm `
+        -ArgumentList @('run','test:unit') `
+        -WorkingDirectory $v2Root `
+        -RedirectStandardOutput $stdoutLog `
+        -RedirectStandardError $stderrLog `
+        -NoNewWindow `
+        -Wait `
+        -PassThru
+
+    $fullText = @(
+        if (Test-Path -LiteralPath $stdoutLog) {
+            Get-Content -LiteralPath $stdoutLog -Raw
+        }
+
+        if (Test-Path -LiteralPath $stderrLog) {
+            Get-Content -LiteralPath $stderrLog -Raw
+        }
+    ) -join [Environment]::NewLine
+
+    $cleanFullText = [regex]::Replace(
+        $fullText,
+        '\x1B\[[0-?]*[ -/]*[@-~]',
+        ''
+    )
+
+    $summaryMatches = [regex]::Matches(
+        $cleanFullText,
+        '(?m)^\s*(\d+)\s+failing\b'
+    )
+
+    $failureCount = 0
+
+    if ($summaryMatches.Count -gt 0) {
+        $failureCount = [int]$summaryMatches[
+            $summaryMatches.Count - 1
+        ].Groups[1].Value
+    }
+
+    Write-Host "Full-unit process exit: $($fullProcess.ExitCode)"
+    Write-Host "Full-unit failure count: $failureCount"
+
+    $cleanFullText `
+        -split "`r?`n" |
+        Select-String 'passing|pending|failing' |
+        Select-Object -Last 10 |
+        ForEach-Object {
+            Write-Host $_
+        }
+
+    # Five unrelated historical failures MUST remain identifiable.
+    $requiredHistoricalFailures = @(
+        'passes against the committed Phase H baseline report',
+        'allows deterministic v3 baseline reports without prompt telemetry',
+        'maintainer delivery prompt references real repo-local agents',
+        'repo customization assets use valid frontmatter and agent file naming',
+        'source tree uses standard AGENTS.md guidance instead of module AGENT.md files'
+    )
+
+    foreach ($knownFailure in $requiredHistoricalFailures) {
+        if (-not $cleanFullText.Contains($knownFailure)) {
+            throw "Historical failure identity unexpectedly missing: $knownFailure"
+        }
+
+        Write-Host "BASELINE CONFIRMED: $knownFailure"
+    }
+
+    # Package-asset failure MAY disappear because HF1 V2 explicitly repairs
+    # package hygiene. Therefore 5 or 6 failures are acceptable.
+    if ($failureCount -lt 5 -or $failureCount -gt 6) {
+        $cleanFullText -split "`r?`n" | Select-Object -Last 300
+        throw "Unexpected full-unit failure count: $failureCount"
+    }
+
+    if ($failureCount -eq 6) {
+        $packageFailure =
+            'excludes dev logs, eval outputs, generated packages, and test artifacts from VSIX candidate'
+
+        if (-not $cleanFullText.Contains($packageFailure)) {
+            throw 'Six failures remain, but the sixth is not the known package-asset baseline failure.'
+        }
+
+        Write-Host 'Package-asset baseline failure: STILL PRESENT'
+    }
+    else {
+        Write-Host 'Package-asset baseline failure: RESOLVED BY AUTHORIZED V2 PACKAGE HYGIENE'
+    }
+
+    # ---------------------------------------------------------
+    # 9. Verify validation did not mutate implementation
+    # ---------------------------------------------------------
+
+    $modifiedAfter = @(
+        git diff --name-only
+    ) | ForEach-Object {
+        $_.Trim().Replace('\','/')
+    } | Where-Object { $_ }
+
+    $untrackedAfter = @(
+        git ls-files --others --exclude-standard
+    ) | ForEach-Object {
+        $_.Trim().Replace('\','/')
+    } | Where-Object { $_ }
+
+    $changedAfter = @(
+        $modifiedAfter
+        $untrackedAfter
+    ) | Sort-Object -Unique
+
+    if (
+        [string]::Join("`n",$changedBefore) -cne
+        [string]::Join("`n",$changedAfter)
+    ) {
+        Write-Host 'Before:'
+        $changedBefore
+        Write-Host 'After:'
+        $changedAfter
+
+        throw 'Changed-path inventory drifted during validation.'
+    }
+
+    $mutatedByValidation = @()
+
+    foreach ($relativePath in $hashesBefore.Keys) {
+        $absolutePath = Join-Path $v2Root $relativePath
+
+        if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
+            $mutatedByValidation += "$relativePath [MISSING]"
+            continue
+        }
+
+        $afterHash = (
+            Get-FileHash `
+                -LiteralPath $absolutePath `
+                -Algorithm SHA256
+        ).Hash
+
+        if ($afterHash -ne $hashesBefore[$relativePath]) {
+            $mutatedByValidation += $relativePath
+        }
+    }
+
+    if ($mutatedByValidation.Count -ne 0) {
+        throw "Validation mutated implementation files:`n$($mutatedByValidation -join "`n")"
+    }
+
+    if (@(git diff --cached --name-only).Count -ne 0) {
+        throw 'Staged files appeared during validation.'
+    }
+
+    git diff --check
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Final git diff --check failed.'
+    }
+
+    # ---------------------------------------------------------
+    # 10. Cleanup only our external-validation logs
+    # ---------------------------------------------------------
+
+    Remove-Item `
+        -LiteralPath $stdoutLog,$stderrLog `
+        -Force `
+        -ErrorAction SilentlyContinue
+
+    Write-Host ''
+    Write-Host '============================================='
+    Write-Host 'HF1_V2_EXTERNAL_VALIDATION_PASS'
+    Write-Host '============================================='
+    Write-Host "Changed paths: $($changedAfter.Count)"
+    Write-Host 'Compile: PASS'
+    Write-Host 'Lint: PASS'
+    Write-Host 'Focused HF1 V2 tests: PASS'
+    Write-Host "Full-unit known baseline failures: $failureCount"
+    Write-Host 'New full-unit regressions: NONE'
+    Write-Host 'Implementation bytes changed by validation: NO'
+    Write-Host 'Staged paths: 0'
+    Write-Host 'Network/install/download: NONE'
 }
