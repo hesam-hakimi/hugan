@@ -156,10 +156,17 @@ def hard_reference_files() -> dict[str, str]:
                     key = str(event["key"])
                     candidate = dict(event)
                     current = latest.get(key)
-                    if current is None or _incoming_version(candidate) > _incoming_version(
-                        current
-                    ):
+                    if current is None:
                         latest[key] = candidate
+                        continue
+                    candidate_version = _incoming_version(candidate)
+                    current_version = _incoming_version(current)
+                    if candidate_version > current_version:
+                        latest[key] = candidate
+                    elif candidate_version == current_version and candidate != current:
+                        raise ValueError(
+                            "conflicting CDC events share the same key and version"
+                        )
                 return [latest[key] for key in sorted(latest)]
 
 
@@ -167,11 +174,15 @@ def hard_reference_files() -> dict[str, str]:
                 existing: list[dict[str, Any]],
                 events: list[dict[str, Any]],
             ) -> list[dict[str, Any]]:
-                for event in events:
-                    validate_event(event)
-
                 state = {str(row["key"]): dict(row) for row in existing}
-                for event in events:
+                reserved = {
+                    "key",
+                    "event_ts",
+                    "ingest_seq",
+                    "_event_ts",
+                    "_ingest_seq",
+                }
+                for event in choose_latest(events):
                     key = str(event["key"])
                     current = state.get(key)
                     candidate_version = _incoming_version(event)
@@ -186,14 +197,7 @@ def hard_reference_files() -> dict[str, str]:
                     payload = {
                         field: value
                         for field, value in event["payload"].items()
-                        if field
-                        not in {
-                            "key",
-                            "event_ts",
-                            "ingest_seq",
-                            "_event_ts",
-                            "_ingest_seq",
-                        }
+                        if field not in reserved
                     }
                     state[key] = {
                         **payload,
@@ -237,6 +241,8 @@ def hard_reference_files() -> dict[str, str]:
             - The event window is half-open: `[window_start, window_end)`.
             - Eligible events are validated before deduplication.
             - Per key, the maximum `(event_ts, ingest_seq)` incoming version wins.
+            - Conflicting events with the same key and identical version are rejected.
+            - Exact duplicate equal-version events may collapse to one candidate.
             - Stored-state comparisons use only `(_event_ts, _ingest_seq)`.
             - Business payload fields named `event_ts` or `ingest_seq` are not version metadata.
             - Candidate versions less than or equal to stored versions are stale and ignored.
@@ -372,20 +378,14 @@ def hard_test_script() -> str:
         assert existing == existing_before
         assert events == events_before
 
-        lower = run_incremental(
-            [],
-            [
-                {
-                    "key": "L",
-                    "event_ts": start,
-                    "ingest_seq": 1,
-                    "op": "upsert",
-                    "payload": {"value": 1},
-                }
-            ],
-            start,
-            end,
-        )
+        lower_event = {
+            "key": "L",
+            "event_ts": start,
+            "ingest_seq": 1,
+            "op": "upsert",
+            "payload": {"value": 1},
+        }
+        lower = run_incremental([], [lower_event], start, end)
         assert lower == [
             {"key": "L", "value": 1, "_event_ts": start, "_ingest_seq": 1}
         ]
@@ -474,26 +474,52 @@ def hard_test_script() -> str:
             }
         ]
 
-        protected_again = run_incremental(
-            protected,
-            [
-                {
-                    "key": "F",
-                    "event_ts": "2026-08-19T10:46:00Z",
-                    "ingest_seq": 1,
-                    "op": "upsert",
-                    "payload": {"balance": 701},
-                }
-            ],
+        conflict_a = {
+            "key": "T",
+            "event_ts": "2026-08-19T10:50:00Z",
+            "ingest_seq": 3,
+            "op": "upsert",
+            "payload": {"value": 1},
+        }
+        conflict_b = {
+            "key": "T",
+            "event_ts": "2026-08-19T10:50:00Z",
+            "ingest_seq": 3,
+            "op": "delete",
+            "payload": {},
+        }
+        for tied_events in (
+            [conflict_a, conflict_b],
+            [conflict_b, conflict_a],
+        ):
+            try:
+                run_incremental([], tied_events, start, end)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(
+                    "conflicting equal-version events must reject in either order"
+                )
+
+        duplicate = {
+            "key": "U",
+            "event_ts": "2026-08-19T10:55:00Z",
+            "ingest_seq": 4,
+            "op": "upsert",
+            "payload": {"value": 9},
+        }
+        duplicate_result = run_incremental(
+            [],
+            [duplicate, copy.deepcopy(duplicate)],
             start,
             end,
         )
-        assert protected_again == [
+        assert duplicate_result == [
             {
-                "key": "F",
-                "balance": 701,
-                "_event_ts": "2026-08-19T10:46:00Z",
-                "_ingest_seq": 1,
+                "key": "U",
+                "value": 9,
+                "_event_ts": "2026-08-19T10:55:00Z",
+                "_ingest_seq": 4,
             }
         ]
 
@@ -504,6 +530,7 @@ def hard_test_script() -> str:
             "ingest_seq",
             "replace",
             "deterministic",
+            "conflict",
         ):
             assert token in doc, token
         assert "stale" in doc or "less than or equal" in doc
@@ -643,6 +670,10 @@ def _run_hard_once(
             "Ignore out-of-window events before validating operations.",
             "Reject every invalid in-window operation before per-key deduplication.",
             "Choose maximum (event_ts, ingest_seq) per key independent of input order.",
+            (
+                "Reject conflicting same-key events with identical (event_ts, ingest_seq) "
+                "regardless of input order; exact duplicate events may collapse."
+            ),
             "Candidate versions less than or equal to stored state must not mutate it.",
             "Stored-state comparisons always use _event_ts and _ingest_seq metadata.",
             "Business event_ts/ingest_seq fields in stored rows are never version metadata.",
@@ -677,15 +708,17 @@ def _run_hard_once(
             "function names and signatures. event_ts values are canonical UTC ISO-8601 "
             "strings. Filter the half-open window first; validate every remaining operation "
             "before deduplication; then choose each key's maximum (event_ts, ingest_seq) "
-            "candidate. Compare incoming versions only with the existing row's "
-            "(_event_ts, _ingest_seq) envelope metadata, even when stored business data also "
-            "contains fields named event_ts or ingest_seq. A winning delete removes only a "
-            "strictly older stored row. A winning upsert replaces business payload, discards "
-            "omitted legacy fields, and must strip payload attempts to persist key, event_ts, "
-            "ingest_seq, _event_ts, or _ingest_seq as envelope/version fields. Emit "
-            "deterministic key ordering and do not mutate caller inputs. Correct the "
-            "documentation. Use only model-facing line references from assigned file shards "
-            "and do not modify any path outside approved scope."
+            "candidate. The result must be independent of input order: if two same-key events "
+            "share an identical version but conflict in operation or payload, reject the tie "
+            "deterministically in either order; exact duplicate events may collapse. Compare "
+            "incoming versions only with the existing row's (_event_ts, _ingest_seq) envelope "
+            "metadata, even when stored business data also contains fields named event_ts or "
+            "ingest_seq. A winning delete removes only a strictly older stored row. A winning "
+            "upsert replaces business payload, discards omitted legacy fields, and must strip "
+            "payload attempts to persist key, event_ts, ingest_seq, _event_ts, or _ingest_seq "
+            "as envelope/version fields. Emit deterministic key ordering and do not mutate "
+            "caller inputs. Correct the documentation. Use only model-facing line references "
+            "from assigned file shards and do not modify any path outside approved scope."
         ),
         repository=RepositorySpec(url=str(source), base_ref="main"),
         manifest=manifest,
