@@ -1,161 +1,107 @@
+
 & {
     $ErrorActionPreference = 'Stop'
 
-    $hf1Root = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1'
-    Set-Location -LiteralPath $hf1Root
+    $sourceRepo = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension'
+    $newClone   = 'C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2'
 
-    $hf1BeforeStatus = @(git status --porcelain=v1 --untracked-files=all)
+    $sourceBranch = 'feature/v3-agentic-redesign'
+    $hotfixBranch = 'hotfix/hf1-oracle-fresh-consumer-v2'
+    $originUrl     = 'https://github.com/TD-Universe/agentic_etl.git'
+
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        throw 'Git is not available.'
+    }
+
+    if (-not (Test-Path -LiteralPath $sourceRepo -PathType Container)) {
+        throw "Source repository not found: $sourceRepo"
+    }
+
+    if (Test-Path -LiteralPath $newClone) {
+        throw "New HF1 clone already exists. Do not delete it: $newClone"
+    }
+
+    Write-Host 'Checking committed source branch...'
+
+    $sourceHead = (
+        git -C $sourceRepo rev-parse "$sourceBranch"
+    ).Trim()
+
     if ($LASTEXITCODE -ne 0) {
-        throw 'Unable to capture repository state.'
+        throw "Unable to resolve $sourceBranch"
     }
 
-    $hf1SourceVsix = Get-ChildItem -LiteralPath $env:TEMP `
-        -Directory `
-        -Filter 'HF1_TEST_PACKAGE_*' |
-        ForEach-Object {
-            Get-ChildItem -LiteralPath $_.FullName `
-                -File `
-                -Filter 'databricks-etl-copilot-hf1-test.vsix' `
-                -ErrorAction SilentlyContinue
-        } |
-        Sort-Object LastWriteTimeUtc -Descending |
-        Select-Object -First 1
+    Write-Host "Source branch: $sourceBranch"
+    Write-Host "Source HEAD:   $sourceHead"
 
-    if ($null -eq $hf1SourceVsix) {
-        throw 'The previously generated HF1 test VSIX was not found.'
-    }
+    $originalWorktreesBefore = @(
+        git -C $sourceRepo worktree list --porcelain |
+        Select-String '^worktree '
+    ).Count
 
-    $hf1SafeDirectory = Join-Path `
-        $env:TEMP `
-        ('HF1_TEST_PACKAGE_SANITIZED_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
-
-    New-Item -ItemType Directory -Path $hf1SafeDirectory |
-        Out-Null
-
-    $hf1SafeVsix = Join-Path `
-        $hf1SafeDirectory `
-        'databricks-etl-copilot-hf1-test-sanitized.vsix'
-
-    Copy-Item `
-        -LiteralPath $hf1SourceVsix.FullName `
-        -Destination $hf1SafeVsix
-
-    Add-Type -AssemblyName System.IO.Compression
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-    $hf1Archive = [System.IO.Compression.ZipFile]::Open(
-        $hf1SafeVsix,
-        [System.IO.Compression.ZipArchiveMode]::Update
-    )
-
-    try {
-        foreach ($hf1EntryName in @(
-            'extension/.tsbuildinfo.test',
-            'extension/tsconfig.test.json'
-        )) {
-            $hf1Entry = $hf1Archive.GetEntry($hf1EntryName)
-
-            if ($null -ne $hf1Entry) {
-                Write-Host "REMOVING FROM TEMP VSIX: $hf1EntryName"
-                $hf1Entry.Delete()
-            }
-        }
-    }
-    finally {
-        $hf1Archive.Dispose()
-    }
-
-    $hf1Archive = [System.IO.Compression.ZipFile]::OpenRead($hf1SafeVsix)
-
-    try {
-        $hf1Entries = @(
-            $hf1Archive.Entries |
-            ForEach-Object {
-                $_.FullName.Replace('\', '/')
-            }
-        )
-    }
-    finally {
-        $hf1Archive.Dispose()
-    }
-
-    foreach ($hf1RequiredEntry in @(
-        'extension/package.json',
-        'extension/out/extension.js',
-        'extension/out/sttm-runtime.js'
-    )) {
-        if ($hf1Entries -notcontains $hf1RequiredEntry) {
-            throw "Required VSIX entry is missing: $hf1RequiredEntry"
-        }
-    }
-
-    $hf1CopilotResources = @(
-        $hf1Entries |
-        Where-Object {
-            $_ -match '^extension/resources/copilot/.+'
-        }
-    )
-
-    if ($hf1CopilotResources.Count -eq 0) {
-        throw 'Required Copilot resources are missing.'
-    }
-
-    $hf1ForbiddenPatterns = @(
-        '^extension/(?:\.git|\.github|\.vscode-test)(?:/|$)',
-        '^extension/docs/eval(?:/|$)',
-        '^extension/src/test(?:/|$)',
-        '^extension/out/test(?:/|$)',
-        '^extension/(?:.*/)?(?:AGENT|AGENTS)\.md$',
-        '^extension/(?:.*/)?[^/]*\.tsbuildinfo(?:\..*)?$',
-        '^extension/(?:.*/)?tsconfig\.test\.json$',
-        '^extension/.*\.log$',
-        '^extension/.*\.vsix$'
-    )
-
-    $hf1ForbiddenEntries = @(
-        foreach ($hf1Entry in $hf1Entries) {
-            foreach ($hf1Pattern in $hf1ForbiddenPatterns) {
-                if ($hf1Entry -match $hf1Pattern) {
-                    $hf1Entry
-                    break
-                }
-            }
-        }
-    ) | Sort-Object -Unique
-
-    if ($hf1ForbiddenEntries.Count -ne 0) {
-        Write-Host 'Forbidden entries remain:'
-
-        $hf1ForbiddenEntries |
-            ForEach-Object {
-                Write-Host "  $_"
-            }
-
-        throw 'Sanitized HF1 VSIX content check failed. Do not install it.'
-    }
-
-    $hf1AfterStatus = @(git status --porcelain=v1 --untracked-files=all)
-    if ($LASTEXITCODE -ne 0) {
-        throw 'Unable to verify final repository state.'
-    }
-
-    if (
-        [string]::Join("`n", $hf1BeforeStatus) -cne
-        [string]::Join("`n", $hf1AfterStatus)
-    ) {
-        throw 'Repository state changed while sanitizing the VSIX.'
-    }
-
-    $hf1Hash = (
-        Get-FileHash `
-            -LiteralPath $hf1SafeVsix `
-            -Algorithm SHA256
-    ).Hash
+    Write-Host "Original worktree count: $originalWorktreesBefore"
 
     Write-Host ''
-    Write-Host "SAFE TEST VSIX: $hf1SafeVsix"
-    Write-Host "SHA-256: $hf1Hash"
-    Write-Host "Files inside VSIX: $($hf1Entries.Count)"
-    Write-Host 'Repository source state: UNCHANGED'
-    Write-Host 'HF1_TEST_VSIX_SANITIZED_CONTENTS_CHECKED'
+    Write-Host 'Creating isolated clean clone...'
+
+    git clone `
+        --local `
+        --no-hardlinks `
+        --branch $sourceBranch `
+        --single-branch `
+        -- `
+        $sourceRepo `
+        $newClone
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Local clone failed.'
+    }
+
+    git -C $newClone remote set-url origin $originUrl
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to set GitHub origin.'
+    }
+
+    git -C $newClone switch -c $hotfixBranch $sourceHead
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to create the new HF1 hotfix branch.'
+    }
+
+    $cloneStatus = @(
+        git -C $newClone status --porcelain=v1 --untracked-files=all
+    )
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Unable to verify clone status.'
+    }
+
+    if ($cloneStatus.Count -ne 0) {
+        throw "New clone is unexpectedly dirty:`n$($cloneStatus -join "`n")"
+    }
+
+    $cloneHead = (git -C $newClone rev-parse HEAD).Trim()
+    $cloneBranch = (git -C $newClone branch --show-current).Trim()
+    $cloneOrigin = (git -C $newClone remote get-url origin).Trim()
+
+    $originalWorktreesAfter = @(
+        git -C $sourceRepo worktree list --porcelain |
+        Select-String '^worktree '
+    ).Count
+
+    if ($originalWorktreesAfter -ne $originalWorktreesBefore) {
+        throw 'Original repository worktree inventory changed unexpectedly.'
+    }
+
+    Write-Host ''
+    Write-Host '========================================'
+    Write-Host 'HF1_V2_CLEAN_BRANCH_READY'
+    Write-Host '========================================'
+    Write-Host "Clone:   $newClone"
+    Write-Host "Branch:  $cloneBranch"
+    Write-Host "HEAD:    $cloneHead"
+    Write-Host "Origin:  $cloneOrigin"
+    Write-Host "Status:  CLEAN"
+    Write-Host "Original worktrees unchanged: $originalWorktreesAfter"
 }
