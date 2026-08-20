@@ -1,569 +1,553 @@
-LOCAL_HOTFIX_HF1_V2_REPAIR_4 — CLOSE FINAL QA WRITE/ROOT BLOCKERS
+LOCAL_HOTFIX_HF1_V2_FINAL_REAUDIT — INDEPENDENT READ-ONLY POST-REPAIR-4 AUDIT
 
-Implement the bounded Repair 4 derived from the completed read-only scope discovery.
+Perform a fresh independent adversarial read-only re-audit of the complete current HF1 V2 candidate after Repair 4.
 
-Authoritative discovery result:
+The previous independent audit is historical evidence only. It audited older bytes and returned FAIL.
 
-REPAIR_4_SCOPE_FROZEN: YES
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_DISCOVERY_COMPLETE
+Repair 4 subsequently changed the candidate, so you must independently inspect the current bytes and issue a new verdict.
 
-This task fixes exactly:
+Do not trust the Repair-4 implementation report as audit evidence.
 
-1. CRITICAL — sample_repo can be accepted as a writable consumer root.
-2. HIGH — UnitTestCoordinator.handleWrite() bypasses the trusted preview/approval/write-authorization boundary and consumerRoot containment.
-
-The discovery separately concluded:
-
-FRAMEWORK_BINDING_REPAIR_NOT_REQUIRED
-
-Do not modify framework-manifest binding in this task.
+Do not edit, create, delete, format, stage, commit, package, install, download, or mutate anything.
 
 ⸻
 
-1. EXACT AUTHORIZED FILES
+1. Audit target
 
-Modify only these four production files:
+Canonical repository:
 
-src/writers/RepoWriter.ts
-src/chat/UnitTestCoordinator.ts
-src/services/unitTesting/UnitTestGenerationTypes.ts
-src/chat/ETLChatParticipant.ts
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Modify only these two test files:
+Expected branch:
 
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-src/test/suite/unitTestGeneration.test.ts
+hotfix/hf1-oracle-fresh-consumer-v2
 
-No new files are authorized.
+Expected base HEAD:
 
-No other file may be edited.
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-If another file becomes necessary, STOP before editing and return:
+Expected origin:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_AMENDMENT_REQUIRED
+https://github.com/TD-Universe/agentic_etl.git
 
-⸻
-
-2. FINDING A — BLOCK sample_repo
-
-The discovery confirmed the canonical write-root classification is:
-
-RepoWriter.getDefaultExclusionReason(...)
-
-with the existing protected/reference/source-root set.
-
-Implement the smallest repair:
-
-* add sample_repo to the existing protected source/reference-root set;
-* route it through the already-correct BLOCKED behavior;
-* do not invent a second classifier;
-* do not alter the valid single-folder fresh-consumer path.
-
-Required behavior:
-
-only workspace folder = sample_repo
-→ BLOCKED
-→ workspacePath undefined
-→ no consumer write possible
-
-while:
-
-one legitimate empty consumer folder
-→ CREATE_NEW_JOB
-
-must remain green.
-
-Do not use fuzzy substring matching for sample_repo.
-
-Use the same normalization/case convention already used by the existing protected-root names.
-
-⸻
-
-3. UNIT TEST COORDINATOR — REMOVE DIRECT WRITE
-
-The discovery confirmed:
-
-UnitTestCoordinator.handleWrite()
-
-currently performs a direct filesystem write without:
-
-* immutable preview;
-* explicit approval;
-* WriteAuthorization;
-* approved manifest;
-* consumerRoot containment equivalent to the other write routes.
-
-This route must be brought under the SAME trusted write architecture already used elsewhere.
-
-Do NOT create a new authorization implementation.
-
-Reuse the existing trusted preview/approval/write primitives.
-
-Required lifecycle:
-
-generate
-→ user requests write
-→ resolve canonical consumerRoot
-→ validate artifact/path
-→ immutable preview
-→ return approval-required response
-→ zero filesystem writes
-next turn with approved preview
-→ verify same consumerRoot
-→ verify same artifact path/bytes
-→ consume one-time authorization
-→ containment-safe write
-→ exactly one filesystem write
-
-A consumed/replayed approval must not write again.
-
-⸻
-
-4. PERSIST PREVIEW IDENTITY BETWEEN TURNS
-
-The discovery confirmed the unit-test flow is multi-turn and the persisted:
-
-UnitTestEvidenceSummary
-
-currently cannot carry the preview/approval identity required for the next turn.
-
-Modify:
-
-src/services/unitTesting/UnitTestGenerationTypes.ts
-
-only as minimally required to carry the trusted preview identity between turns.
-
-Requirements:
-
-* add only the minimum optional field needed;
-* do not store a fabricated WriteAuthorization object;
-* do not persist a privileged runtime capability;
-* persist only the identifier/state needed to resume the real approval flow;
-* preserve backwards compatibility for summaries created before the field existed.
-
-The actual authorization must still be minted/verified through the trusted approval mechanism.
-
-⸻
-
-5. INJECT THE EXISTING WRITE DEPENDENCIES
-
-Modify:
-
-src/chat/ETLChatParticipant.ts
-
-only as needed to construct UnitTestCoordinator with the same trusted write dependencies already used by the normal write path.
-
-Reuse the existing RepoWriter instance used by the surrounding participant/write flow.
-
-Do not silently construct a second independent workspace resolver.
-
-Do not add a separate write store or authorization subsystem.
-
-The UnitTestCoordinator must use the same canonical consumer-root semantics as the rest of HF1 V2.
-
-Existing unrelated construction sites must remain unchanged unless TypeScript requires a compatible optional/default parameter.
-
-⸻
-
-6. REMOVE FIRST-FOLDER FALLBACK
-
-The existing UnitTestCoordinator path must no longer end with or semantically perform:
-
-workspaceFolders[0]
-
-as a write-root fallback.
-
-Required behavior:
-
-Zero workspace folders
-
-BLOCKED
-zero writes
-
-One valid consumer folder
-
-canonical consumerRoot
-
-One prohibited root, including sample_repo
-
-BLOCKED
-zero writes
-
-Multiple folders without explicit safe selection
-
-ambiguous / BLOCKED
-zero writes
-
-Never infer:
-
-first folder = consumer
-
-and never infer:
-
-the non-extension/non-framework folder = consumer
-
-⸻
-
-7. REUSE CONSUMER PATH CONTAINMENT
-
-Do not retain the current narrow filename-regex check as the security boundary.
-
-UnitTestCoordinator writes must reuse the existing production consumer path-safety contract.
-
-At minimum reject:
-
-* absolute paths;
-* drive-qualified paths;
-* .. traversal;
-* normalized paths escaping consumerRoot;
-* sibling-root escape;
-* extension-resource root;
-* framework/reference/source roots.
-
-Immediately before the filesystem write, prove:
-
-final target is inside canonical consumerRoot
-
-The exact artifact path approved in Preview must be the path written after Approval.
-
-Do not recompute a different write path later.
-
-⸻
-
-8. FIRST TURN MUST WRITE NOTHING
-
-Rewrite the unit-test write behavior so the first write request returns a Preview/Approval-required result.
-
-Assert and implement:
-
-first write request:
-preview generated
-preview identity persisted
-filesystem write count = 0
-result != written
-
-No directory or test file may be created on the first turn.
-
-No approval prompt must be bypassed.
-
-⸻
-
-9. APPROVED SECOND TURN
-
-With the same generated test evidence and valid approved preview:
-
-second write request:
-authorization verifies
-consumerRoot unchanged
-artifact relative path unchanged
-artifact bytes unchanged
-exactly one write
-result = written/success according to existing contract
-
-Use the exact existing approved-write mechanism.
-
-Do not:
-
-* auto-approve;
-* forge preview IDs;
-* forge WriteAuthorization;
-* call fs.writeFile directly before authorization;
-* bypass the approval store.
-
-⸻
-
-10. REPLAY MUST FAIL
-
-A third attempt using the consumed approval must:
-
-perform zero new writes
-not return a successful written result
-
-Do not mint a replacement approval automatically.
-
-⸻
-
-11. FRAMEWORK BINDING — NO CHANGE
-
-The discovery concluded:
-
-FRAMEWORK_BINDING_REPAIR_NOT_REQUIRED
-
-Reason:
-
-* gated EtlActionToolService write re-runs prewrite readiness/authority validation before authorization;
-* a degraded framework authority blocks before stale approval can be consumed;
-* inline WriteCoordinator/DeployCoordinator authorizations are single-shot and have no meaningful drift window.
-
-Therefore do NOT modify:
-
-TrustedWriteApprovalStore.ts
-WriteAuthorization.ts
-TrustedFrameworkDefinitionResolver.ts
-framework contract JSON
-
-in Repair 4.
-
-Record the theoretical long-lived framework-authority manifest binding issue as existing LOW follow-up debt only.
-
-⸻
-
-12. REQUIRED TEST — sample_repo
-
-In:
-
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-
-add a behavioral regression test beside the existing extension/reference-root exclusion coverage.
-
-Prove:
-
-workspaceFolders = [sample_repo]
-
-returns:
-
-workspacePath === undefined
-reason === single_workspace_folder_excluded
-targetDecision === BLOCKED
-
-or the exact equivalent live contract values.
-
-Also preserve the existing test proving a legitimate fresh single-folder consumer still reaches:
-
-CREATE_NEW_JOB
-
-No source-text-only assertion is sufficient.
-
-⸻
-
-13. REQUIRED UNITTESTCOORDINATOR TEST MATRIX
-
-In:
-
-src/test/suite/unitTestGeneration.test.ts
-
-update/add behavioral coverage for the actual production UnitTestCoordinator route.
-
-Required:
-
-T1 — first call preview only
-
-* generated unit-test evidence exists;
-* request write;
-* preview returned/persisted;
-* write count = 0.
-
-T2 — approved second call
-
-* identical artifact;
-* approved preview;
-* exactly one workspace.fs.writeFile;
-* exact destination URI is under canonical consumerRoot.
-
-T3 — approval replay
-
-* reuse consumed approval;
-* write count remains 1;
-* result is rejected/not-written.
-
-T4 — multi-root ambiguity
-
-Place an apparently eligible folder at index 0 deliberately.
-
-With multiple folders and no explicit safe consumer selection:
-
-* BLOCKED;
-* zero writes.
-
-This must fail a naive workspaceFolders[0] implementation.
-
-T5 — prohibited sole root
-
-Use sample_repo or another exact protected reference root as the only folder:
-
-* BLOCKED;
-* zero writes.
-
-T6 — absolute path escape
-
-* rejected;
-* zero writes.
-
-T7 — traversal escape
-
-Example:
-
-../outside.py
-
-* rejected;
-* zero writes.
-
-T8 — sibling-root escape
-
-* rejected;
-* zero writes.
-
-T9 — every attempted write inside consumerRoot
-
-Capture every actual write URI and assert canonical containment beneath the resolved consumerRoot.
-
-T10 — normal run/cancel regression
-
-Existing run/cancel behavior in this test file must remain green.
-
-Use real production coordinator behavior, not source-text scans.
-
-⸻
-
-14. TEST QUALITY
-
-Tests must be discriminating.
-
-They should fail if any of these regressions are reintroduced:
-
-sample_repo becomes writable
-workspaceFolders[0] fallback
-direct UnitTestCoordinator fs.writeFile
-write before approval
-approval replay
-path traversal
-sibling-root escape
-write outside consumerRoot
-
-Mocks must not bypass the production authorization path.
-
-Do not make private test-only backdoors.
-
-⸻
-
-15. DO NOT CHANGE THE FIVE HISTORICAL FAILURES
-
-Do not touch:
-
-* EvalGating baseline failures;
-* Copilot workflow customization failures;
-* their source assets;
-* Phase-H baselines.
-
-Expected full-unit baseline after Repair 4 remains:
-
-exactly 5 historical failures
-no HF1 V2 regression
-
-⸻
-
-16. VALIDATION
-
-Run, when native tooling is available:
-
-npm run compile
-npm run lint
-
-Then run targeted tests covering:
-
-RepoWriter workspace selection
-UnitTestCoordinator / unit test generation
-HF1
-Trusted framework
-fresh consumer
-single-folder
-WriteAuthorization
-
-Then run full unit suite.
-
-Success criteria:
-
-compile: PASS
-lint: PASS
-targeted Repair-4 tests: PASS
-HF1 V2 focused tests: PASS
-full unit: exactly 5 historical failures
-new HF1 V2 regressions: NONE
-
-Do not regenerate baselines.
-
-If native execution is unavailable, report exact commands for external validation and do not fabricate results.
-
-⸻
-
-17. END-STATE SCOPE PROOF
-
-At completion confirm:
-
-Production files changed during Repair 4:
-
-src/writers/RepoWriter.ts
-src/chat/UnitTestCoordinator.ts
-src/services/unitTesting/UnitTestGenerationTypes.ts
-src/chat/ETLChatParticipant.ts
-
-Test files changed:
-
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-src/test/suite/unitTestGeneration.test.ts
-
-New files:
+Expected staged count:
 
 0
 
-No seventh file may change.
-
-If any other file changes, Repair 4 is incomplete.
-
-Confirm:
-
-* staged count = 0;
-* no Git mutation;
-* no package/install/download;
-* no VSIX build;
-* no consumer repository write;
-* no original repository modification;
-* no framework repository modification.
+Do not assume the current changed-path count. Enumerate it independently.
 
 ⸻
 
-18. FINAL REPORT
+2. Supplied external validation evidence
 
-Return:
+Treat the following only as external evidence to reconcile with live source:
 
-1. Exact six-file Repair-4 diff inventory.
-2. sample_repo classification before/after.
-3. UnitTestCoordinator write route before/after.
-4. How preview identity is persisted.
-5. How existing trusted authorization is reused.
-6. How consumerRoot is resolved.
-7. How path containment is enforced.
-8. Evidence first call writes zero.
-9. Evidence approved call writes exactly once.
-10. Evidence replay fails.
-11. Evidence multi-root cannot use first-folder fallback.
-12. Evidence sample_repo cannot become consumerRoot.
-13. Evidence path escape fails.
-14. Framework-binding non-change confirmation.
-15. Compile/lint/test results.
-16. Historical-five separation.
-17. Remaining LOW framework-binding debt.
-18. Exact scope proof.
-
-Finish with exactly one:
+Repair 4 reported:
 
 LOCAL_HOTFIX_HF1_V2_REPAIR_4_VALIDATED
 
+and:
+
+Compile: PASS
+Lint: PASS
+Repair-4 required tests: PASS
+Full unit:
+1867 passing
+5 pending
+5 failing
+
+The five remaining failures were reported as exactly the historical unrelated set:
+
+1. EvalGating — committed Phase-H baseline
+2. EvalGating — deterministic v3 baseline without prompt telemetry
+3. Copilot workflow customization — repo-local agents
+4. Copilot workflow customization — frontmatter / naming
+5. Copilot workflow customization — AGENTS.md guidance
+
+No HF1 V2 regression was reported.
+
+Do not claim you independently executed those commands.
+
+⸻
+
+3. One consolidated read-only authorization
+
+Before inspection, ask once for permission to perform the complete bounded read-only audit using commands equivalent to:
+
+git status
+git diff
+git diff --check
+git rev-parse
+git remote
+git ls-files
+git show
+rg
+Get-Content
+Get-Item
+Get-ChildItem
+Test-Path
+Get-FileHash
+
+No edits.
+
+No compile/test/package/install commands.
+
+No Git mutation.
+
+No network.
+
+⸻
+
+4. Audit-byte immutability
+
+At the audit start:
+
+* record repository identity;
+* enumerate every modified/untracked candidate path;
+* record full SHA-256 for every candidate file;
+* record staged count.
+
+At audit end repeat all four.
+
+Any candidate-byte difference during the audit is an automatic FAIL.
+
+Report the exact current candidate changed-path count rather than relying on any historical count.
+
+⸻
+
+5. Re-audit the two previous blocking findings
+
+A. Previous CRITICAL — sample_repo
+
+Independently prove:
+
+sole workspace folder = sample_repo
+→ BLOCKED
+→ workspacePath undefined
+→ cannot become consumerRoot
+→ zero write capability
+
+Inspect the actual root-classification implementation.
+
+Confirm:
+
+* exact-match/canonical root-name handling;
+* no fuzzy substring behavior;
+* legitimate similarly named consumer roots are not accidentally blocked;
+* a legitimate fresh single consumer folder still reaches CREATE_NEW_JOB.
+
+A source-text check alone is insufficient; inspect behavioral tests and runtime call path.
+
+B. Previous HIGH — UnitTestCoordinator direct write
+
+Trace the entire current production route:
+
+UnitTestCoordinator.handleWrite()
+→ consumerRoot resolution
+→ artifact/path validation
+→ immutable preview
+→ approval
+→ trusted authorization
+→ containment re-check
+→ filesystem write
+
+Prove there is no remaining direct-write route around this sequence.
+
+Verify:
+
+* first write request performs zero filesystem writes;
+* preview identity survives the multi-turn flow;
+* approval is real, not auto-minted;
+* approved second turn performs exactly one write;
+* approval is marked consumed;
+* replay performs zero additional writes;
+* multi-root ambiguity fails closed;
+* no workspaceFolders[0] fallback survives;
+* prohibited single roots remain blocked.
+
+⸻
+
+6. UnitTestCoordinator path containment
+
+This was part of the previous HIGH finding.
+
+Independently verify that the route now rejects:
+
+absolute paths
+drive-qualified paths
+.. traversal
+normalized consumerRoot escape
+sibling-root escape
+extension-resource root
+framework/reference/source root
+
+Immediately before workspace.fs.writeFile, the final target must still be proven inside the canonical approved consumerRoot.
+
+The path written after approval must be the same artifact identity previewed before approval.
+
+Fail if UnitTestCoordinator retains only a filename regex as its effective security boundary.
+
+⸻
+
+7. Preview identity persistence
+
+Inspect the added optional persisted field in the unit-test evidence/summary contract.
+
+Verify:
+
+* it stores only an opaque preview/approval identifier;
+* no WriteAuthorization capability is persisted;
+* no privileged runtime object is serialized;
+* old summaries without the field remain compatible;
+* a consumed preview cannot silently become usable again;
+* successful write clears or consumes the persisted identity as intended.
+
+⸻
+
+8. Dependency injection
+
+Inspect the ETLChatParticipant → UnitTestCoordinator construction.
+
+Confirm:
+
+* the existing shared RepoWriter / trusted approval infrastructure is reused;
+* there is no second independent write-authority store;
+* there is no separately constructed root resolver that could disagree with the rest of the extension;
+* unrelated coordinator construction sites retain compatible behavior.
+
+⸻
+
+9. Re-audit normal QA topology
+
+The required normal user topology remains:
+
+VS Code
+└── exactly one consumer folder
+
+QA must require:
+
+NO etl-framework-adb
+NO framework source
+NO frameworkRepositoryPath
+NO extension source
+NO second workspace folder
+
+Verify:
+
+one legitimate empty consumer
+→ CREATE_NEW_JOB
+one legitimate existing consumer
+→ UPDATE_EXISTING_REPO
+sample_repo/reference/source/install root
+→ BLOCKED
+zero workspace folders
+→ BLOCKED
+multiple folders without explicit safe selection
+→ ambiguous / BLOCKED
+
+Never permit first-folder fallback.
+
+⸻
+
+10. Packaged framework contract
+
+Reconfirm that normal QA Oracle validation resolves the trusted packaged contract from the installed Extension resources without framework source.
+
+Verify:
+
+* packaged contract is authoritative machine metadata, not documentation;
+* closed schema;
+* expected contract identity/version;
+* fingerprint/integrity behavior;
+* no source code/credentials/business data/developer paths;
+* db_data_out / db_ctrl_out semantics available;
+* missing authority and missing Oracle semantics remain distinct failures.
+
+⸻
+
+11. Installed-extension resource resolution
+
+Reconfirm the packaged contract can be resolved from an installed VSIX.
+
+Any process.cwd() fallback or development-checkout candidate must not become necessary for normal installed operation.
+
+If a cwd fallback remains only as a non-winning development fallback, classify it appropriately and demonstrate why installed-extension resource resolution wins.
+
+⸻
+
+12. Oracle validation
+
+The previous independent audit could not finish a dedicated second adversarial pass.
+
+Complete it now from live source.
+
+Verify:
+
+* requirement.requiredWhen semantics;
+* Oracle delivery-control recognition;
+* valid Oracle control does not produce generic missing_target_location;
+* missing authority → FRAMEWORK_DEFINITION_UNAVAILABLE;
+* authority missing Oracle semantics → ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING;
+* incomplete controls fail closed;
+* no invented database/consumer value;
+* blocking readiness prevents write.
+
+⸻
+
+13. All production write routes
+
+Perform a repo-wide search for actual filesystem consumer writes.
+
+Do not assume there are only four.
+
+Enumerate all production routes capable of:
+
+workspace.fs.writeFile
+workspace.fs.createDirectory
+or equivalent consumer-workspace mutation
+
+For every real consumer artifact write route, determine whether it is:
+
+* protected by trusted preview/approval/authorization; or
+* non-consumer/internal and legitimately outside this contract.
+
+The known relevant routes include:
+
+EtlActionToolService.writeToWorkspace
+WriteCoordinator.writeArtifactsWithSummary
+DeployCoordinator local-write
+UnitTestCoordinator.handleWrite
+
+PASS requires no reachable unapproved consumer write route.
+
+⸻
+
+14. WriteAuthorization
+
+Reconfirm runtime rejection of:
+
+forged authorization
+stale approval
+expired approval
+consumed approval
+wrong consumerRoot
+wrong target
+wrong targetDecision
+changed artifact types
+changed relative path
+changed bytes
+wrong framework state where applicable
+
+Verify concurrent/replayed consumption cannot produce two writes.
+
+⸻
+
+15. Framework-binding LOW debt
+
+Repair 4 deliberately did not modify framework-manifest binding.
+
+Re-evaluate the actual current risk.
+
+The current design reportedly revalidates framework authority immediately before gated write, preventing stale authority from reaching the write.
+
+Determine whether this remains:
+
+LOW / INFO follow-up debt
+
+or whether there is a reachable security/reliability sequence that elevates it.
+
+Do not fail the audit merely because framework identity is not directly embedded in the manifest if equivalent fail-closed revalidation removes any exploitable write path.
+
+But report the exact limitation.
+
+⸻
+
+16. Consumer artifact invariance
+
+Independently verify or refute:
+
+12 consumer artifacts
+same set
+same relative paths
+same ordering
+same bytes for equivalent input
+
+The packaged framework contract must not become artifact 13.
+
+Framework provenance must not leak into generated consumer bytes.
+
+Do not accept an implementation report as proof.
+
+Use current executable tests/data flow as evidence.
+
+⸻
+
+17. Package hygiene
+
+Verify checked-in packaging config is sufficient for a normal clean VSIX build.
+
+Required runtime content:
+
+package.json
+out/extension.js
+out/sttm-runtime.js
+resources/copilot/**
+resources/framework/contracts/oracle-delivery-controls.v1.json
+required runtime/media
+
+Forbidden test/dev content includes applicable forms of:
+
+.tsbuildinfo.test
+*.tsbuildinfo
+*.tsbuildinfo.*
+tsconfig.test.json
+src/test/**
+out/test/**
+docs/eval/**
+.vscode-test/**
+*.log
+*.vsix
+
+Manual ZIP surgery must NOT be required for the QA build.
+
+⸻
+
+18. Test quality
+
+Independently inspect whether Repair 4 tests are actually discriminating.
+
+Specifically prove tests would fail if each regression were reintroduced:
+
+sample_repo writable
+workspaceFolders[0] fallback
+UnitTestCoordinator direct write
+write before approval
+approval replay
+absolute path escape
+.. traversal
+sibling-root escape
+write outside consumerRoot
+
+Review any test-only mocks or hooks for vacuity or state leakage.
+
+⸻
+
+19. Historical five
+
+Confirm the five remaining full-suite failures remain independent from current HF1 V2 candidate changes.
+
+Do not repair them.
+
+⸻
+
+20. Maintainer multi-root observability debt
+
+Recheck the previously identified UX/observability issue:
+
+ambiguity may be surfaced while a degraded V3 planning flow continues with workspaceRoot: undefined.
+
+It is not a release blocker unless it creates:
+
+* unauthorized write;
+* root substitution;
+* path escape;
+* normal QA failure;
+* approval bypass.
+
+Otherwise preserve it as separate follow-up debt.
+
+⸻
+
+21. No-touch proof
+
+Verify no HF1 V2 work touched:
+
+original etl_framework_extension repository
+etl-framework-adb
+consumer repositories
+S-A/S-B work
+Phase-H baseline reports
+resources/prompts/**
+.github/**
+AGENT.md / AGENTS.md
+package-lock.json
+
+except exact files legitimately part of the candidate where applicable.
+
+⸻
+
+22. PASS criteria
+
+A PASS requires:
+
+* zero unresolved CRITICAL;
+* zero unresolved HIGH;
+* repository/candidate bytes stable;
+* no unauthorized path drift;
+* normal QA single-folder flow safe;
+* no runtime framework-source requirement;
+* all consumer write routes gated;
+* UnitTestCoordinator containment safe;
+* sample_repo blocked;
+* trusted authorization safe;
+* QA packaging configuration usable without manual sanitization.
+
+MEDIUM/LOW/INFO findings may remain only if they are explicitly non-blocking and do not invalidate QA use.
+
+⸻
+
+23. Required final report
+
+Return:
+
+1. identity + exact candidate inventory;
+2. start/end hash proof;
+3. severity-ranked findings;
+4. sample_repo verdict;
+5. UnitTestCoordinator trusted-write verdict;
+6. UnitTestCoordinator containment verdict;
+7. all-production-write-route inventory;
+8. single-folder QA verdict;
+9. packaged-contract/Oracle verdict;
+10. consumer artifact invariance verdict;
+11. package-hygiene verdict;
+12. test-quality verdict;
+13. framework-binding residual debt;
+14. maintainer observability debt;
+15. historical-five separation;
+16. any smallest remaining repair scope, without editing.
+
+Finish exactly:
+
+REPOSITORY_IDENTITY_MATCH: YES|NO
+CANDIDATE_BYTES_STABLE_DURING_AUDIT: YES|NO
+UNAUTHORIZED_PATH_DRIFT: YES|NO
+SAMPLE_REPO_BLOCKED_AS_CONSUMER_ROOT: YES|NO
+UNIT_TEST_COORDINATOR_TRUSTED_WRITE_SAFE: YES|NO
+UNIT_TEST_COORDINATOR_CONTAINMENT_SAFE: YES|NO
+ALL_CONSUMER_WRITE_ROUTES_GATED: YES|NO
+NORMAL_QA_SINGLE_FOLDER_MODEL_SAFE: YES|NO
+QA_REQUIRES_FRAMEWORK_SOURCE: YES|NO
+PACKAGED_CONTRACT_TRUST_BOUNDARY_SAFE: YES|NO
+INSTALLED_EXTENSION_RESOURCE_LOADING_SAFE: YES|NO
+ORACLE_VALIDATION_SAFE: YES|NO
+FRESH_CONSUMER_CLASSIFICATION_SAFE: YES|NO
+WRITE_AUTHORIZATION_RUNTIME_SAFE: YES|NO
+APPROVAL_DRIFT_BINDING_SAFE: YES|NO
+CONSUMER_ARTIFACT_CONTRACT_PRESERVED: YES|NO
+PACKAGE_HYGIENE_READY_FOR_QA_VSIX: YES|NO
+HF1_V2_TEST_QUALITY_ACCEPTABLE: YES|NO
+FIVE_HISTORICAL_FAILURES_UNRELATED: YES|NO
+REAL_CONSUMER_E2E: NOT EXECUTED — SAMPLE UNAVAILABLE
+SAFE_TO_BUILD_QA_VSIX: YES|NO
+SAFE_TO_COMMIT_HF1_V2: NO
+
+Then exactly one final marker:
+
+LOCAL_HOTFIX_HF1_V2_FINAL_REAUDIT_PASS
+
 or:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+LOCAL_HOTFIX_HF1_V2_FINAL_REAUDIT_FAIL
 
-or:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_AMENDMENT_REQUIRED
-
-or:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_BLOCKED
-
-Do not Keep.
-Do not commit.
-Do not push.
-Do not package.
-Do not install a VSIX.
-Stop after the Repair-4 report.
+No text after the marker.
