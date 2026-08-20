@@ -130,7 +130,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Run large solution discovery and implementation qualification
+      - name: Run production discovered Safe large solution qualification
         id: large
         if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
         continue-on-error: true
@@ -138,7 +138,7 @@ jobs:
         run: |
           STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-large-solution"
           set +e
-          python -m universal_coding_agent.testlab.large_solution \
+          python -m universal_coding_agent.testlab.large_solution_production \
             --state-root "$STATE_ROOT"
           RC=$?
           set -e
@@ -146,29 +146,37 @@ jobs:
           if [[ -f "$STATE_ROOT/large-solution-summary.json" ]]; then
             cat "$STATE_ROOT/large-solution-summary.json" >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo "=== LARGE SOLUTION DISCOVERY PLAN ==="
-          find "$STATE_ROOT" -type f -name discovery-plan.json -print \
+          echo "=== PRODUCTION LARGE SOLUTION DISCOVERY PLAN ==="
+          find "$STATE_ROOT" -type f \( \
+              -name discovery-plan.json -o -name solution-impact-plan.json \
+            \) -print -exec python -m json.tool {} \; || true
+          echo "=== PRODUCTION LARGE SOLUTION PROVENANCE ==="
+          find "$STATE_ROOT" -type f -name solution-discovery-provenance.json -print \
             -exec python -m json.tool {} \; || true
-          echo "=== LARGE SOLUTION TEST RESULTS ==="
+          echo "=== PRODUCTION LARGE SOLUTION TEST RESULTS ==="
           find "$STATE_ROOT" -type f -name test-results.json -print \
             -exec python -m json.tool {} \; || true
-          echo "=== LARGE SOLUTION REVIEW ==="
+          echo "=== PRODUCTION LARGE SOLUTION REVIEW ==="
           find "$STATE_ROOT" -type f -name safe-review.json -print \
             -exec python -m json.tool {} \; || true
-          echo "=== LARGE SOLUTION PATCHES ==="
+          echo "=== PRODUCTION LARGE SOLUTION PATCHES ==="
           find "$STATE_ROOT" -type f -name proposed.patch -print \
             -exec sed -n '1,500p' {} \; || true
           exit "$RC"
 
-      - name: Upload large solution diagnostics
+      - name: Upload production large solution diagnostics
         if: env.OPENAI_API_KEY != '' && always() && steps.large.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
-          name: uca-pretransfer-large-solution-diagnostics
+          name: uca-pretransfer-production-large-solution-diagnostics
           path: |
             ${{ runner.temp }}/uca-pretransfer-large-solution/large-solution-summary.json
             ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-snapshot.json
             ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-plan.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-discovery-snapshot.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-impact-plan.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-discovery-provenance.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovered-change-manifest.json
             ${{ runner.temp }}/uca-pretransfer-large-solution/**/test-results.json
             ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-review.json
             ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-reviewer-context.md
@@ -184,7 +192,7 @@ jobs:
         run: |
           echo "LIVE_OUTCOME=${{ steps.live.outcome }}"
           echo "HARD_OUTCOME=${{ steps.hard.outcome }}"
-          echo "LARGE_OUTCOME=${{ steps.large.outcome }}"
+          echo "PRODUCTION_LARGE_OUTCOME=${{ steps.large.outcome }}"
           test "${{ steps.live.outcome }}" = "success"
           test "${{ steps.hard.outcome }}" = "success"
           test "${{ steps.large.outcome }}" = "success"
