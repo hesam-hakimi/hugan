@@ -1,212 +1,272 @@
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_DISCOVERY — READ ONLY
+We are continuing the AskTD Phase 2C acceptance workflow.
 
-The final independent HF1 V2 audit returned FAIL.
+PR #11 (Phase 2A) and PR #12 (Phase 2B) have now been processed through their review/merge sequence.
 
-Do NOT repair anything yet.
+The Phase 2C implementation has already been independently inspected and all eight remediation requirements R1-R8 were found:
 
-Perform a narrowly bounded read-only discovery to freeze the exact Repair-4 implementation and test surface.
+FIXED_AND_COVERED
 
-No file may be created, edited, deleted, formatted, staged, committed, packaged, installed, or otherwise mutated.
+with the focused Phase 2A/2B/2C test suite:
 
-Confirmed blocking findings
+141 passed
 
-Finding A — CRITICAL
+Do NOT redesign or remediate Phase 2C logic unless integration evidence proves an actual regression.
 
-A workspace folder named/reference-classified as:
+Current observed state
 
-sample_repo
+Phase 2C PR:
 
-can currently resolve as UPDATE_EXISTING_REPO instead of BLOCKED.
+#14
 
-The independent audit identified the likely production location as:
+Head branch:
 
-src/writers/RepoWriter.ts
+phase2/semantic-plan-contract-validator
 
-and specifically recommended adding sample_repo to the protected/reference/source-root classification rather than weakening the single-folder consumer model.
+GitHub currently still shows its base as:
 
-Finding B — HIGH
+phase2/service-version-boundary
 
-A fourth production write route exists:
+and reports a merge conflict involving:
 
-UnitTestCoordinator.handleWrite()
+kmai-td-genie/docs/adr/README.md
 
-The audit found that this route:
+The PR remains Draft.
 
-* bypasses the trusted preview/approval/WriteAuthorization gate;
-* is not bound to an immutable approved manifest;
-* does not enforce consumerRoot containment using the same authoritative path contract;
-* uses a narrower filename check instead;
-* contains or reaches a workspaceFolders[0]-style write-root fallback.
+Objective
 
-Likely production file:
+Safely bring the Phase 2C branch onto the now-integrated current main, resolve only integration conflicts, and verify that the accepted Phase 2C behavior remains unchanged.
 
-src/chat/UnitTestCoordinator.ts
+This operation must NOT:
 
-The other three production write routes are already correctly gated and must not be redesigned.
+* start Phase 2D;
+* add provider abstractions;
+* implement Databricks;
+* implement Genie;
+* implement Collibra;
+* add Redis or Event Hubs;
+* change authorization scope;
+* redesign Phase 2C;
+* merge PR #14.
 
-Finding C — MEDIUM contract gap
+Step 1 — Verify upstream state before mutation
 
-The audit reported that the approval manifest binds:
+Fetch remote refs.
 
-* consumer root / destination identity;
-* target;
-* targetDecision;
-* artifact types;
-* paths;
-* content hashes;
+Verify and report:
 
-but does not explicitly bind:
+* origin/main HEAD SHA;
+* whether PR #11 content is present in origin/main;
+* whether PR #12 content is present in origin/main;
+* current Phase 2C branch HEAD;
+* current working-tree status in the dedicated Phase 2C worktree;
+* whether the Phase 2C branch is pushed and synchronized with origin.
 
-* framework authority source kind;
-* framework contract/framework identity;
-* framework fingerprint.
+If PR #12 is NOT actually present in origin/main, STOP WITHOUT CHANGING ANYTHING and report:
 
-Determine whether this finding is accurate in the live source and identify the exact smallest file set required to close it.
+PHASE_2C_INTEGRATION_BLOCKED_PHASE_2B_NOT_IN_MAIN
 
-Do not assume a change is required until source evidence confirms the gap.
+Do not guess from GitHub UI labels alone.
 
-Required discovery
+Step 2 — Preserve safety
 
-1. sample_repo
+Work only in the existing dedicated Phase 2C worktree/branch:
 
-Locate:
+phase2/semantic-plan-contract-validator
 
-* exact root-classification implementation;
-* exact list/set of protected framework/reference/source root names;
-* all direct consumers of that classification;
-* existing tests covering extension/reference/framework roots;
-* exact existing test file where a sample_repo BLOCKED assertion belongs.
+Do not touch the primary asktd_v2 checkout.
 
-Determine whether adding sample_repo is sufficient or whether a broader semantic classifier already exists and should be used instead.
+The Phase 2C worktree must be clean before beginning.
 
-Do not broaden the production design unnecessarily.
+If it is not clean, STOP and report the existing changes.
 
-2. UnitTestCoordinator write path
+Before changing history, record:
 
-Trace end to end:
+* current Phase 2C HEAD SHA;
+* current origin/main SHA;
+* git status;
+* merge-base.
 
-UnitTestCoordinator.handleWrite()
-→ workspace-root resolution
-→ artifact/path construction
-→ overwrite checks
-→ filesystem write
+Do not delete backup refs or historical branches.
 
-Identify:
+Step 3 — Rebase Phase 2C onto current main
 
-* every production function/file in this route;
-* whether it can reuse the existing trusted preview/approval APIs without creating another authorization implementation;
-* the exact existing function that should replace its current root-selection fallback;
-* the exact existing containment/path validator that should be reused;
-* every existing test file exercising UnitTestCoordinator writes;
-* the exact tests required for:
-    * preview only / zero write;
-    * explicit approval;
-    * exactly one write;
-    * consumed approval rejection;
-    * ambiguous multi-root rejection;
-    * no workspaceFolders[0] fallback;
-    * consumerRoot escape rejection.
+Once Phase 2A and 2B are confirmed present in origin/main, rebase the Phase 2C branch onto current:
 
-Do not invent a second write-authorization mechanism.
+origin/main
 
-3. Framework authority binding
+The goal is for PR #14 to contain only the Phase 2C delta relative to integrated main.
 
-Inspect the current definitions and flow for:
+Do not manually copy Phase 2A/2B commits.
 
-* preview manifest;
-* TrustedWriteApprovalStore;
-* WriteAuthorization;
-* manifest checksum/canonicalization;
-* framework source kind;
-* framework identity;
-* framework fingerprint.
+Do not squash or rewrite Phase 2C semantics unnecessarily.
 
-Answer exactly:
+Step 4 — Resolve conflicts minimally
 
-A. Are source kind, identity, and fingerprint already indirectly or directly included in the immutable checksum?
+If conflicts occur, inspect both sides and resolve them according to the now-integrated repository state.
 
-B. Are they reverified immediately before the write?
+The currently known conflict is:
 
-C. Could the framework authority change while artifact bytes remain identical and the old approval still be accepted?
+kmai-td-genie/docs/adr/README.md
 
-D. If repair is required, list the exact files and tests needed.
+For this file:
 
-E. If the audit finding is not materially exploitable because equivalent values are already cryptographically bound elsewhere, show the exact evidence and recommend whether to leave it as documented LOW debt or repair it.
+* preserve all already-integrated Phase 2A and Phase 2B ADR entries from main;
+* preserve/add the Phase 2C ADR entry;
+* do not remove unrelated ADR entries;
+* do not rewrite historical ADR content;
+* make the smallest deterministic reconciliation necessary.
 
-Test-quality requirements
+If ANY source-code or test conflict appears, do not blindly choose ours/theirs.
 
-For each blocking finding, identify behavioral tests that would have failed before the repair.
+Inspect the conflict and preserve:
 
-Do not propose source-text-only tests as the primary proof.
+1. accepted Phase 2A contracts;
+2. accepted Phase 2B service/version/cache behavior;
+3. Phase 2C R1-R8 behavior already independently verified.
 
-The Repair-4 test plan must prove:
+If resolving a source/test conflict requires a semantic design decision rather than a mechanical integration, STOP and report it instead of inventing a decision.
 
-1. sample_repo is BLOCKED as the sole open folder.
-2. A legitimate fresh single-folder consumer still reaches CREATE_NEW_JOB.
-3. UnitTestCoordinator first call produces preview and zero writes.
-4. Approved second call performs exactly one write.
-5. Approval replay fails.
-6. Multi-root ambiguity fails closed.
-7. No first-folder fallback.
-8. Absolute/traversal/sibling-root escape is rejected.
-9. UnitTestCoordinator cannot write outside consumerRoot.
-10. Framework source-kind/fingerprint drift invalidates approval, if Finding C is confirmed as a real gap.
+Step 5 — Run focused Phase 2C regression
 
-No-touch requirements
+After successful rebase/conflict resolution, run the exact focused suite used by the previous audit:
 
-Do not modify anything during this discovery.
+PYTHONDONTWRITEBYTECODE=1 python -m pytest \
+  test/test_registry_cache.py \
+  test/test_registry_contract.py \
+  test/test_registry_hierarchy_contract.py \
+  test/test_semantic_plan_contract.py \
+  -p no:cacheprovider -q -c /dev/null
 
-Do not inspect or change:
+Expected baseline:
 
-* historical Phase-H failures beyond confirming they are unrelated;
-* etl-framework-adb except if absolutely necessary for read-only contract context;
-* consumer repositories;
-* original etl_framework_extension;
-* S-A/S-B work;
-* package/VSIX artifacts.
+141 passed
 
-Required response
+If the count changes, explain exactly why.
 
-Return:
+R1-R8 must remain behaviorally satisfied.
 
-A. Exact production repair inventory
+Step 6 — Verify MetadataRegistryService integration
 
-For each file:
+Locate the existing tests covering MetadataRegistryService interaction with:
 
-* exact path;
-* finding addressed;
-* exact function/type affected;
-* why modification is necessary.
+* registry_contract.py;
+* registry_cache.py;
+* semantic-plan validation / validate_governed_semantic_plan_for_service.
 
-B. Exact test repair inventory
+Run the smallest existing applicable service/integration test set.
 
-List every exact test path required.
+Do not create new tests unless an actual uncovered regression is demonstrated.
 
-Do not use approximate names.
+Step 7 — Run required acceptance regression gates
 
-C. Framework-binding verdict
+Using the repository’s existing environment and instructions only:
 
-Exactly one:
+* full backend test suite;
+* configured coverage gate;
+* golden baseline tests if they are part of ADR 0002 validation evidence;
+* git diff --check;
+* existing tracked-file secret/security scan if a repository-supported command already exists.
 
-FRAMEWORK_BINDING_REPAIR_REQUIRED
+Do not install or upgrade dependencies.
 
-or:
+Do not rewrite baselines simply to make tests pass.
 
-FRAMEWORK_BINDING_REPAIR_NOT_REQUIRED
+If a test fails, determine whether it is:
 
-with evidence.
+* Phase 2C regression;
+* pre-existing unrelated failure;
+* environment/tooling failure.
 
-D. Scope totals
+Do not broaden scope automatically.
 
-Return:
+Step 8 — Verify resulting PR delta
 
-* production files to modify: <count>
-* test files to modify: <count>
-* new files required: <count>
+Compare the rebased Phase 2C branch to origin/main.
 
-No implementation is authorized.
+Verify:
 
-Finish exactly:
+* Phase 2A/2B commits are no longer presented as Phase 2C-specific changes;
+* only intended Phase 2C changes remain;
+* no unrelated files entered the diff;
+* docs/adr/README.md contains the complete integrated ADR index;
+* R1-R8 implementation remains intact.
 
-REPAIR_4_SCOPE_FROZEN: YES|NO
-LOCAL_HOTFIX_HF1_V2_REPAIR_4_SCOPE_DISCOVERY_COMPLETE
+Step 9 — Push safely
+
+If and only if:
+
+* rebase completed successfully;
+* conflicts were mechanically resolved;
+* focused tests pass;
+* required regression gates have acceptable results;
+* no unintended changes exist;
+
+push the updated Phase 2C branch to:
+
+origin/phase2/semantic-plan-contract-validator
+
+Because rebase changes commit history, use the repository-approved safe history-update method, preferably:
+
+git push --force-with-lease
+
+Never use plain --force.
+
+Do NOT merge PR #14.
+
+Do NOT mark it Ready for Review.
+
+Step 10 — PR base
+
+After the branch is successfully rebased onto integrated main, determine whether PR #14’s base automatically updates to main.
+
+If GitHub still lists the obsolete Phase 2B branch as its base, retarget PR #14 only to:
+
+main
+
+only after confirming that main contains the accepted Phase 2A and Phase 2B content.
+
+Do not change any other PR.
+
+Final report
+
+Save outside the repository as:
+
+/tmp/ASKTD_PHASE_2C_INTEGRATION_2026-08-20.md
+
+Include:
+
+1. Pre-Integration Evidence
+2. Confirmation Phase 2A/2B Are in Main
+3. Rebase Result
+4. Conflict Resolution
+5. Focused R1-R8 Regression
+6. MetadataRegistryService Integration Tests
+7. Full Regression / Coverage / Golden / Safety Gates
+8. Final Diff Against Main
+9. PR #14 Current Base / Head / Draft / Checks
+10. Independent Acceptance Readiness
+11. Recommended Single Next Action
+
+Use exactly one final verdict:
+
+* PHASE_2C_INTEGRATION_READY_FOR_FINAL_ACCEPTANCE
+* PHASE_2C_INTEGRATION_HAS_REGRESSION
+* PHASE_2C_INTEGRATION_BLOCKED
+* PHASE_2C_INTEGRATION_INSUFFICIENT_EVIDENCE
+
+At the end report:
+
+* old Phase 2C SHA;
+* new Phase 2C SHA;
+* origin/main SHA used as base;
+* files changed specifically during conflict resolution;
+* focused test result;
+* full regression result;
+* whether PR #14 was retargeted;
+* whether branch was pushed.
+
+Do not mark PR #14 Ready for Review.
+Do not merge PR #14.
+Do not start Phase 2D.
+
+Then STOP.
