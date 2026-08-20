@@ -121,10 +121,18 @@ def hard_reference_files() -> dict[str, str]:
             from typing import Any
 
 
+            def _incoming_version(event: dict[str, Any]) -> tuple[str, int]:
+                return str(event["event_ts"]), int(event["ingest_seq"])
+
+
+            def _stored_version(row: dict[str, Any]) -> tuple[str, int]:
+                return str(row["_event_ts"]), int(row["_ingest_seq"])
+
+
             def version_of(row: dict[str, Any]) -> tuple[str, int]:
-                return str(row.get("event_ts", row.get("_event_ts"))), int(
-                    row.get("ingest_seq", row.get("_ingest_seq", 0))
-                )
+                if "_event_ts" in row and "_ingest_seq" in row:
+                    return _stored_version(row)
+                return _incoming_version(row)
 
 
             def in_window(event: dict[str, Any], start: str, end: str) -> bool:
@@ -132,16 +140,25 @@ def hard_reference_files() -> dict[str, str]:
 
 
             def validate_event(event: dict[str, Any]) -> None:
-                if event.get("op") not in {"upsert", "delete"}:
+                operation = event.get("op")
+                if operation not in {"upsert", "delete"}:
                     raise ValueError("invalid CDC operation")
+                if operation == "upsert" and not isinstance(event.get("payload"), dict):
+                    raise ValueError("upsert payload must be a dictionary")
 
 
             def choose_latest(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+                for event in events:
+                    validate_event(event)
+
                 latest: dict[str, dict[str, Any]] = {}
                 for event in events:
                     key = str(event["key"])
                     candidate = dict(event)
-                    if key not in latest or version_of(candidate) > version_of(latest[key]):
+                    current = latest.get(key)
+                    if current is None or _incoming_version(candidate) > _incoming_version(
+                        current
+                    ):
                         latest[key] = candidate
                 return [latest[key] for key in sorted(latest)]
 
@@ -150,25 +167,39 @@ def hard_reference_files() -> dict[str, str]:
                 existing: list[dict[str, Any]],
                 events: list[dict[str, Any]],
             ) -> list[dict[str, Any]]:
+                for event in events:
+                    validate_event(event)
+
                 state = {str(row["key"]): dict(row) for row in existing}
                 for event in events:
                     key = str(event["key"])
                     current = state.get(key)
-                    if current is not None and version_of(event) <= version_of(current):
+                    candidate_version = _incoming_version(event)
+                    if current is not None and candidate_version <= _stored_version(current):
                         continue
+
                     if event["op"] == "delete":
-                        state.pop(key, None)
+                        if current is not None:
+                            del state[key]
                         continue
+
                     payload = {
-                        name: value
-                        for name, value in dict(event["payload"]).items()
-                        if name not in {"key", "_event_ts", "_ingest_seq"}
+                        field: value
+                        for field, value in event["payload"].items()
+                        if field
+                        not in {
+                            "key",
+                            "event_ts",
+                            "ingest_seq",
+                            "_event_ts",
+                            "_ingest_seq",
+                        }
                     }
                     state[key] = {
-                        "key": key,
                         **payload,
-                        "_event_ts": str(event["event_ts"]),
-                        "_ingest_seq": int(event["ingest_seq"]),
+                        "key": key,
+                        "_event_ts": candidate_version[0],
+                        "_ingest_seq": candidate_version[1],
                     }
                 return [state[key] for key in sorted(state)]
             '''
@@ -205,7 +236,9 @@ def hard_reference_files() -> dict[str, str]:
 
             - The event window is half-open: `[window_start, window_end)`.
             - Eligible events are validated before deduplication.
-            - Per key, the maximum `(event_ts, ingest_seq)` version wins.
+            - Per key, the maximum `(event_ts, ingest_seq)` incoming version wins.
+            - Stored-state comparisons use only `(_event_ts, _ingest_seq)`.
+            - Business payload fields named `event_ts` or `ingest_seq` are not version metadata.
             - Candidate versions less than or equal to stored versions are stale and ignored.
             - Deletes apply only when their winning candidate version is newer.
             - Upserts replace business payload; reserved metadata comes from the event envelope.
@@ -228,53 +261,250 @@ def hard_test_script() -> str:
         start = "2026-08-19T10:00:00Z"
         end = "2026-08-19T11:00:00Z"
         existing = [
-            {"key": "A", "balance": 900, "legacy": "remove-me", "_event_ts": "2026-08-19T09:00:00Z", "_ingest_seq": 5},
-            {"key": "B", "balance": 500, "_event_ts": "2026-08-19T10:30:00Z", "_ingest_seq": 8},
-            {"key": "D", "balance": 100, "legacy": "old", "_event_ts": "2026-08-19T08:00:00Z", "_ingest_seq": 1},
+            {
+                "key": "A",
+                "balance": 900,
+                "legacy": "remove-me",
+                "_event_ts": "2026-08-19T09:00:00Z",
+                "_ingest_seq": 5,
+            },
+            {
+                "key": "B",
+                "balance": 500,
+                "_event_ts": "2026-08-19T10:30:00Z",
+                "_ingest_seq": 8,
+            },
+            {
+                "key": "D",
+                "balance": 100,
+                "legacy": "old",
+                "_event_ts": "2026-08-19T08:00:00Z",
+                "_ingest_seq": 1,
+            },
         ]
         events = [
-            {"key": "A", "event_ts": "2026-08-19T10:10:00Z", "ingest_seq": 4, "op": "upsert", "payload": {"balance": 1100, "segment": "new"}},
-            {"key": "A", "event_ts": "2026-08-19T10:10:00Z", "ingest_seq": 2, "op": "upsert", "payload": {"balance": 1000}},
-            {"key": "B", "event_ts": "2026-08-19T10:20:00Z", "ingest_seq": 99, "op": "delete", "payload": {}},
-            {"key": "B", "event_ts": "2026-08-19T10:30:00Z", "ingest_seq": 8, "op": "upsert", "payload": {"balance": 999}},
-            {"key": "C", "event_ts": "2026-08-19T10:15:00Z", "ingest_seq": 1, "op": "upsert", "payload": {"balance": 300}},
-            {"key": "C", "event_ts": "2026-08-19T10:15:00Z", "ingest_seq": 2, "op": "delete", "payload": {}},
-            {"key": "D", "event_ts": "2026-08-19T10:40:00Z", "ingest_seq": 1, "op": "upsert", "payload": {"key": "HACK", "_event_ts": "BAD", "_ingest_seq": 999, "balance": 200}},
-            {"key": "E", "event_ts": "2026-08-19T11:00:00Z", "ingest_seq": 1, "op": "corrupt", "payload": {}},
+            {
+                "key": "A",
+                "event_ts": "2026-08-19T10:10:00Z",
+                "ingest_seq": 4,
+                "op": "upsert",
+                "payload": {"balance": 1100, "segment": "new"},
+            },
+            {
+                "key": "A",
+                "event_ts": "2026-08-19T10:10:00Z",
+                "ingest_seq": 2,
+                "op": "upsert",
+                "payload": {"balance": 1000},
+            },
+            {
+                "key": "B",
+                "event_ts": "2026-08-19T10:20:00Z",
+                "ingest_seq": 99,
+                "op": "delete",
+                "payload": {},
+            },
+            {
+                "key": "B",
+                "event_ts": "2026-08-19T10:30:00Z",
+                "ingest_seq": 8,
+                "op": "upsert",
+                "payload": {"balance": 999},
+            },
+            {
+                "key": "C",
+                "event_ts": "2026-08-19T10:15:00Z",
+                "ingest_seq": 1,
+                "op": "upsert",
+                "payload": {"balance": 300},
+            },
+            {
+                "key": "C",
+                "event_ts": "2026-08-19T10:15:00Z",
+                "ingest_seq": 2,
+                "op": "delete",
+                "payload": {},
+            },
+            {
+                "key": "D",
+                "event_ts": "2026-08-19T10:40:00Z",
+                "ingest_seq": 1,
+                "op": "upsert",
+                "payload": {
+                    "key": "HACK",
+                    "_event_ts": "BAD",
+                    "_ingest_seq": 999,
+                    "balance": 200,
+                },
+            },
+            {
+                "key": "E",
+                "event_ts": "2026-08-19T11:00:00Z",
+                "ingest_seq": 1,
+                "op": "corrupt",
+                "payload": {},
+            },
         ]
         existing_before = copy.deepcopy(existing)
         events_before = copy.deepcopy(events)
         result = run_incremental(existing, events, start, end)
         assert result == [
-            {"key": "A", "balance": 1100, "segment": "new", "_event_ts": "2026-08-19T10:10:00Z", "_ingest_seq": 4},
-            {"key": "B", "balance": 500, "_event_ts": "2026-08-19T10:30:00Z", "_ingest_seq": 8},
-            {"key": "D", "balance": 200, "_event_ts": "2026-08-19T10:40:00Z", "_ingest_seq": 1},
+            {
+                "key": "A",
+                "balance": 1100,
+                "segment": "new",
+                "_event_ts": "2026-08-19T10:10:00Z",
+                "_ingest_seq": 4,
+            },
+            {
+                "key": "B",
+                "balance": 500,
+                "_event_ts": "2026-08-19T10:30:00Z",
+                "_ingest_seq": 8,
+            },
+            {
+                "key": "D",
+                "balance": 200,
+                "_event_ts": "2026-08-19T10:40:00Z",
+                "_ingest_seq": 1,
+            },
         ]
         assert existing == existing_before
         assert events == events_before
 
-        lower = run_incremental([], [
-            {"key": "L", "event_ts": start, "ingest_seq": 1, "op": "upsert", "payload": {"value": 1}}
-        ], start, end)
-        assert lower == [{"key": "L", "value": 1, "_event_ts": start, "_ingest_seq": 1}]
+        lower = run_incremental(
+            [],
+            [
+                {
+                    "key": "L",
+                    "event_ts": start,
+                    "ingest_seq": 1,
+                    "op": "upsert",
+                    "payload": {"value": 1},
+                }
+            ],
+            start,
+            end,
+        )
+        assert lower == [
+            {"key": "L", "value": 1, "_event_ts": start, "_ingest_seq": 1}
+        ]
 
-        fresh_delete = run_incremental(existing, [
-            {"key": "B", "event_ts": "2026-08-19T10:31:00Z", "ingest_seq": 1, "op": "delete", "payload": {}}
-        ], start, end)
+        fresh_delete = run_incremental(
+            existing,
+            [
+                {
+                    "key": "B",
+                    "event_ts": "2026-08-19T10:31:00Z",
+                    "ingest_seq": 1,
+                    "op": "delete",
+                    "payload": {},
+                }
+            ],
+            start,
+            end,
+        )
         assert [row["key"] for row in fresh_delete] == ["A", "D"]
 
         try:
-            run_incremental([], [
-                {"key": "X", "event_ts": "2026-08-19T10:05:00Z", "ingest_seq": 1, "op": "corrupt", "payload": {}},
-                {"key": "X", "event_ts": "2026-08-19T10:06:00Z", "ingest_seq": 2, "op": "upsert", "payload": {"value": 2}},
-            ], start, end)
+            run_incremental(
+                [],
+                [
+                    {
+                        "key": "X",
+                        "event_ts": "2026-08-19T10:05:00Z",
+                        "ingest_seq": 1,
+                        "op": "corrupt",
+                        "payload": {},
+                    },
+                    {
+                        "key": "X",
+                        "event_ts": "2026-08-19T10:06:00Z",
+                        "ingest_seq": 2,
+                        "op": "upsert",
+                        "payload": {"value": 2},
+                    },
+                ],
+                start,
+                end,
+            )
         except ValueError:
             pass
         else:
-            raise AssertionError("invalid in-window operation must be rejected before deduplication")
+            raise AssertionError(
+                "invalid in-window operation must be rejected before deduplication"
+            )
+
+        stored_with_business_version_fields = [
+            {
+                "key": "F",
+                "balance": 10,
+                "event_ts": "2099-01-01T00:00:00Z",
+                "ingest_seq": 999999,
+                "_event_ts": "2026-08-19T10:00:00Z",
+                "_ingest_seq": 1,
+            }
+        ]
+        protected = run_incremental(
+            stored_with_business_version_fields,
+            [
+                {
+                    "key": "F",
+                    "event_ts": "2026-08-19T10:45:00Z",
+                    "ingest_seq": 2,
+                    "op": "upsert",
+                    "payload": {
+                        "balance": 700,
+                        "event_ts": "2099-12-31T23:59:59Z",
+                        "ingest_seq": 777777,
+                        "_event_ts": "BAD",
+                        "_ingest_seq": 888888,
+                    },
+                }
+            ],
+            start,
+            end,
+        )
+        assert protected == [
+            {
+                "key": "F",
+                "balance": 700,
+                "_event_ts": "2026-08-19T10:45:00Z",
+                "_ingest_seq": 2,
+            }
+        ]
+
+        protected_again = run_incremental(
+            protected,
+            [
+                {
+                    "key": "F",
+                    "event_ts": "2026-08-19T10:46:00Z",
+                    "ingest_seq": 1,
+                    "op": "upsert",
+                    "payload": {"balance": 701},
+                }
+            ],
+            start,
+            end,
+        )
+        assert protected_again == [
+            {
+                "key": "F",
+                "balance": 701,
+                "_event_ts": "2026-08-19T10:46:00Z",
+                "_ingest_seq": 1,
+            }
+        ]
 
         doc = open("docs/cdc_contract.md", encoding="utf-8").read().lower()
-        for token in ("half-open", "event_ts", "ingest_seq", "replace", "deterministic"):
+        for token in (
+            "half-open",
+            "event_ts",
+            "ingest_seq",
+            "replace",
+            "deterministic",
+        ):
             assert token in doc, token
         assert "stale" in doc or "less than or equal" in doc
         '''
@@ -414,9 +644,14 @@ def _run_hard_once(
             "Reject every invalid in-window operation before per-key deduplication.",
             "Choose maximum (event_ts, ingest_seq) per key independent of input order.",
             "Candidate versions less than or equal to stored state must not mutate it.",
+            "Stored-state comparisons always use _event_ts and _ingest_seq metadata.",
+            "Business event_ts/ingest_seq fields in stored rows are never version metadata.",
             "Apply deletes only when the winning candidate is newer than stored state.",
             "Upserts replace business payload instead of merging omitted legacy fields.",
-            "Payload cannot override key, _event_ts, or _ingest_seq envelope metadata.",
+            (
+                "Payload cannot persist or override key, event_ts, ingest_seq, "
+                "_event_ts, or _ingest_seq version/envelope fields."
+            ),
             "Return deterministic key order without mutating caller-owned inputs.",
             "Update docs/cdc_contract.md to match the implemented contract.",
             "Do not add dependencies, new files, clocks, randomness, or network access.",
@@ -436,18 +671,21 @@ def _run_hard_once(
         thread_id=f"pretransfer-hard-{run_number:02d}-thread",
         title=f"Hard CDC analysis qualification {run_number}",
         objective=(
-            "Analyze the three approved files as one CDC contract and make the smallest coherent "
-            "change satisfying every acceptance criterion. The current code and documentation "
-            "intentionally contain interacting mistakes. Preserve public function names and "
-            "signatures. event_ts values are canonical UTC ISO-8601 strings. Filter the half-open "
-            "window first; validate every remaining operation before deduplication; then choose "
-            "each key's maximum (event_ts, ingest_seq) candidate. Compare it with the existing "
-            "row's (_event_ts, _ingest_seq) version so stale or equal events cannot mutate state. "
-            "A winning delete removes only a strictly older stored row. A winning upsert replaces "
-            "business payload, discards omitted legacy fields, and cannot let payload data override "
-            "key or version metadata. Emit deterministic key ordering and do not mutate caller "
-            "inputs. Correct the documentation. Use only model-facing line references from the "
-            "assigned file shards and do not modify any path outside approved scope."
+            "Analyze the three approved files as one CDC contract and make the smallest "
+            "coherent change satisfying every acceptance criterion. The current code and "
+            "documentation intentionally contain interacting mistakes. Preserve public "
+            "function names and signatures. event_ts values are canonical UTC ISO-8601 "
+            "strings. Filter the half-open window first; validate every remaining operation "
+            "before deduplication; then choose each key's maximum (event_ts, ingest_seq) "
+            "candidate. Compare incoming versions only with the existing row's "
+            "(_event_ts, _ingest_seq) envelope metadata, even when stored business data also "
+            "contains fields named event_ts or ingest_seq. A winning delete removes only a "
+            "strictly older stored row. A winning upsert replaces business payload, discards "
+            "omitted legacy fields, and must strip payload attempts to persist key, event_ts, "
+            "ingest_seq, _event_ts, or _ingest_seq as envelope/version fields. Emit "
+            "deterministic key ordering and do not mutate caller inputs. Correct the "
+            "documentation. Use only model-facing line references from assigned file shards "
+            "and do not modify any path outside approved scope."
         ),
         repository=RepositorySpec(url=str(source), base_ref="main"),
         manifest=manifest,
@@ -461,7 +699,9 @@ def _run_hard_once(
         service.run(task)
         next_nodes = service.state(task.thread_id)["next"]
         if next_nodes != ["scope_approval"]:
-            raise RuntimeError(f"hard live run did not reach scope approval: {next_nodes!r}")
+            raise RuntimeError(
+                f"hard live run did not reach scope approval: {next_nodes!r}"
+            )
         final = service.resume(task.thread_id, True)
         report = service.artifacts.read_json(final["final_report_ref"])
     finally:
