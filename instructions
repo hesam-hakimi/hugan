@@ -160,6 +160,7 @@ find "$LARGE_STATE_ROOT" -type f -name test-results.json -print \
 find "$LARGE_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,500p' {} \; || true
 test "$LARGE_RC" -eq 0
+echo "LARGE_SOLUTION_LOCAL_QUALIFICATION_PASS"
 ```
 
 Cmd 11
