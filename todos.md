@@ -1,325 +1,270 @@
-LOCAL_HOTFIX_HF1_V2_ARCHITECTURE_AMENDMENT_1 — SINGLE-FOLDER QA/USER PATH MODEL
+We are continuing the existing AskTD / askAlpha / KMAI project.
 
-This amendment is authoritative and must be incorporated into the currently executing LOCAL_HOTFIX_HF1_V2 implementation before continuing.
+This task is DISCOVERY / VERIFICATION ONLY.
 
-Do not restart the implementation and do not discard the already-created in-scope resolver/package changes.
+Do not redesign the architecture and do not implement fixes in this operation.
 
-The previous V2 requirements remain valid except where this amendment explicitly refines the runtime path model.
+Objective
 
-IMPORTANT PRODUCT CONSTRAINT
+Determine the actual current repository state of Program Phase 2C and identify exactly what, if anything, still prevents final independent Phase 2C acceptance.
 
-Normal QA testers and end users will have exactly ONE consumer workspace folder open.
+Phase 2D must NOT begin.
 
-They will NOT have:
+Repository identity
 
-- etl-framework-adb
-- extension source
-- framework source
-- neighboring development repositories
-- frameworkRepositoryPath configured
+Expected application repository:
 
-The normal production runtime must therefore be designed around a single consumer workspace root plus packaged Extension resources.
+TD-Enterprise/kmai-td-genie
 
-==================================================
-1. THREE ROOT TYPES — NEVER MIX THEM
-==================================================
+The historically referenced development branch is asktd_v2, but do not assume that this is still the active continuation branch.
 
-Model these concepts separately:
+First report:
 
-A. consumerRoot
+* repository identity;
+* current branch;
+* HEAD SHA;
+* upstream/tracking branch if any;
+* working-tree status;
+* existing staged, unstaged, and untracked changes.
 
-The only filesystem root under which generated consumer ETL artifacts may be read/written.
+Do not checkout, switch, reset, clean, stash, pull, merge, rebase, commit, push, or otherwise change Git state.
 
-For normal QA/user operation:
+If unrelated local modifications already exist, preserve them untouched and list them in the report.
 
-workspaceFolders.length === 1
-→ canonicalize that exact selected workspace folder
-→ validate/classify it
-→ consumerRoot
+Authoritative Phase 2C scope
 
-B. extensionResourceRoot
+Phase 2C consists of:
 
-The installed Extension package root.
+* canonical ProductGroup -> Schema -> Dataset -> Field hierarchy;
+* governed metadata relationships;
+* Governed Semantic Plan;
+* deterministic semantic-plan validator;
+* binding plans to an authoritative registry_version;
+* compatibility with the accepted Phase 2A / Phase 2B contracts.
 
-This owns:
+Audit the actual implementation against the following eight remediation requirements.
 
-resources/framework/contracts/oracle-delivery-controls.v1.json
+R1 — Canonical hierarchy cannot be bypassed
 
-and other packaged runtime resources.
+Every canonical governed Dataset must resolve to exactly one Schema.
 
-It is NEVER a consumer write target.
+Every Schema must resolve to exactly one Product Group.
 
-C. maintainerFrameworkRoot
+Therefore every canonical Dataset must resolve to exactly one Product Group.
 
-Optional maintainer/development source evidence only.
+A canonical dataset with missing/null Schema must not silently bypass hierarchy validation.
 
-It may originate from:
+Do not infer Schema or Product Group from dataset/table names.
 
-- explicitly configured frameworkRepositoryPath; or
-- explicitly opened etl-framework-adb in a maintainer multi-root workspace.
+R2 — Legacy hierarchy-less input must be adapted before canonical validation
 
-It must never be required in normal QA/user mode.
+If compatibility with legacy hierarchy-less metadata is still required, verify that it is converted through an explicit deterministic compatibility/adaptation boundary before canonical validation.
 
-Do not use one root as a fallback for another.
+A deterministic unassigned hierarchy is acceptable only if that is the implemented compatibility contract.
 
-==================================================
-2. NORMAL QA/USER WORKSPACE MODEL
-==================================================
+Legacy compatibility must not weaken the canonical model itself.
 
-The primary production path is:
+R3 — registry_version represents the complete governed semantic snapshot
 
-exactly one workspace folder
-→ canonicalize
-→ validate as consumer root
-→ consumerRoot
+Verify that registry_version changes when governed semantic content changes, including applicable:
 
-Normal QA/user logic must NOT:
+* Product Groups;
+* Schemas;
+* Datasets;
+* Fields;
+* Relationships;
+* owners / roles / sources;
+* intents / questions;
+* lifecycle-relevant governed content.
 
-- scan workspace folders looking for etl-framework-adb;
-- scan sibling folders;
-- scan parent directories;
-- infer framework repositories;
-- use process.cwd();
-- use Extension source as a consumer root;
-- select workspaceFolders[0] without first enforcing the single-folder contract;
-- require a second workspace folder.
+It must be deterministic:
 
-If:
+* across processes/checkouts;
+* independent of collection ordering;
+* based on canonical stable content/IDs;
+* independent of paths, timestamps, and environment-only values.
 
-workspaceFolders.length === 0
+It must not merely hash historical seed/input bytes while ignoring constructed governed content.
 
-return a typed blocked/missing-workspace result.
+R4 — Explicit Product Group / Schema scope cannot contradict selected datasets
 
-If:
+If a Governed Semantic Plan explicitly declares Product Group or Schema scope, verify that the deterministic validator derives the actual hierarchy from selected datasets and rejects contradictory explicit scope.
 
-workspaceFolders.length > 1
+It must not trust a caller-supplied scope merely because the IDs independently exist.
 
-normal user mode must fail closed as an ambiguous consumer selection unless there is already an explicit consumer-resource selection mechanism proven by the repository contract.
+R5 — Fields, grain fields, and time fields belong to selected datasets
 
-Do NOT silently choose the first folder.
+Verify that every selected field referenced by the semantic plan belongs to one of the selected datasets.
 
-Maintainer multi-root behavior is separate and must not alter this production rule.
+Apply the same rule to:
 
-==================================================
-3. FRAMEWORK AUTHORITY IS NOT PART OF CONSUMER PATH RESOLUTION
-==================================================
+* grain fields;
+* time fields / time-window fields;
+* any other structural field references used by Phase 2C.
 
-In normal QA/user mode:
+Existence elsewhere in the registry is insufficient.
 
-consumerRoot
-and
-framework authority
+R6 — Cross-ProductGroup relationships are explicitly governed
 
-must be resolved independently.
+Cross-Schema and Cross-ProductGroup relationships may be structurally valid only when an explicit governed RelationshipRecord connects the relevant endpoints.
 
-Expected normal topology:
+Verify that:
 
-workspace:
-    consumerRoot only
+* no relationship is inferred from similar field/table names;
+* endpoint datasets and fields exist;
+* cross-ProductGroup use requires an explicit governed relationship;
+* dedicated positive and negative tests exist for cross-ProductGroup behavior.
 
-installed extension:
-    extensionResourceRoot
-        → packaged trusted framework contract
+Relationship existence must not grant authorization to either side.
 
-Therefore:
+R7 — Classification metadata is not authorization
 
-consumerRoot resolution must succeed even when no etl-framework-adb exists anywhere in the workspace.
+PII, PCI, security/sensitivity classification, data type, key indicators, and similar attributes are governance metadata.
 
-Oracle validation then uses:
+Verify that Phase 2C preserves authoritative classification values where supplied but does not translate them implicitly into user authorization grants.
 
-packaged_contract
+Do not implement future fine-grained authorization as part of this audit.
 
-from extensionResourceRoot.
+R8 — Registry-cache concurrency test/contract
 
-Do not make consumer classification dependent on framework source discovery.
+Inspect the previously reported Phase 2B/2C registry-cache concurrency test or contract issue.
 
-==================================================
-4. FRESH CONSUMER MODEL
-==================================================
+Determine:
 
-A single explicitly opened consumer folder may be a valid fresh target even when none of these exist:
+* whether it is already resolved;
+* whether implementation and tests currently agree;
+* what the intended contract actually is based on repository evidence;
+* whether any remaining failure represents a production defect, a test defect, or an unresolved contract decision.
 
-job_conf/
-env_conf/
-workspace marker
+Do not choose a new concurrency semantic if repository evidence is contradictory. Report the contradiction instead.
 
-Classification must be:
+Verification discipline
 
-single canonical workspace folder
-+ contained and valid consumer target
-+ not Extension installation/source
-+ not maintainer framework source
-+ not prohibited/external root
-+ no existing ETL job layout
-=
-CREATE_NEW_JOB
+For each R1-R8, assign exactly one verdict:
 
-Do not create job_conf/, env_conf/, markers, or any other consumer file during classification, validation, or preview.
+* FIXED_AND_COVERED
+* IMPLEMENTED_BUT_TEST_GAP
+* PARTIALLY_FIXED
+* OPEN
+* NOT_APPLICABLE_WITH_EVIDENCE
+* INSUFFICIENT_EVIDENCE
 
-Only the approved write may create the previewed directories/files.
+Do not mark an item fixed merely because a test has a matching name.
 
-==================================================
-5. ARTIFACT PATH MODEL
-==================================================
+Inspect the actual implementation and the important assertions.
 
-The immutable manifest must store consumer artifact paths as canonical relative paths rooted at consumerRoot.
+For every item provide:
 
-Example:
+1. exact implementation file path(s);
+2. relevant class/function/symbol names;
+3. exact test file path(s);
+4. important test names;
+5. short explanation of the code behavior;
+6. current verdict;
+7. minimum change required if the verdict is not FIXED_AND_COVERED.
 
-job_conf/imsbf/job-name.conf
+Tests
 
-Do not persist developer-machine absolute paths as artifact identity.
+Run only existing, relevant Phase 2A / 2B / 2C tests needed to verify these contracts.
 
-For every artifact:
+Prefer focused tests first.
 
-relativePath
-→ normalize
-→ reject absolute paths
-→ reject drive-qualified paths
-→ reject traversal (`..`)
-→ reject paths escaping consumerRoot
-→ resolve against the exact canonical consumerRoot
-→ verify containment
+Where possible, prevent discovery from dirtying the repository with caches or bytecode, for example by using the repository’s supported equivalents of:
 
-At write time:
+PYTHONDONTWRITEBYTECODE=1
 
-the same manifest relative path
-+ the same canonical consumerRoot
+and disabling pytest cache generation if pytest is used.
 
-must reproduce the target.
+Do not:
 
-Do not independently recompute an alternate artifact path.
+* install or upgrade dependencies;
+* rewrite snapshots/baselines;
+* auto-format files;
+* generate code;
+* change configuration;
+* update lock files.
 
-==================================================
-6. APPROVAL PATH BINDING
-==================================================
+If a required test cannot safely be run in the existing environment, report exactly why instead of changing the environment.
 
-Bind the approval to:
+Also identify the appropriate parent/compatibility tests that must pass before final Phase 2C acceptance.
 
-- canonical consumerRoot identity;
-- targetDecision;
-- selected artifact types;
-- exact normalized relative artifact paths;
-- exact content hashes;
-- framework source kind;
-- framework/contract identity;
-- framework fingerprint.
+Documentation-versus-code reconciliation
 
-Before writing, recompute only the containment-safe absolute target from:
+Inspect relevant repository Phase 2C documentation/audit evidence if present.
 
-consumerRoot + approved relativePath
+Explicitly report any case where:
 
-and compare all bound claims.
+* documentation says an item is open but code has already fixed it;
+* documentation says an item is complete but code/tests do not prove it;
+* test expectations contradict documented contracts;
+* current code introduces behavior outside Phase 2C scope.
 
-Any consumerRoot change must invalidate approval.
+Actual current code and executable tests are the primary evidence for implementation state.
 
-Any artifact relative-path change must invalidate approval.
+Do not silently rewrite documentation.
 
-==================================================
-7. NEVER WRITE OUTSIDE consumerRoot
-==================================================
+Out of scope
 
-RepoWriter / final write boundary must prove for every artifact:
+Do NOT implement or design:
 
-target is a descendant of consumerRoot
+* Phase 2D recipes;
+* Phase 2C.5/provider abstractions;
+* DataSourceAdapter;
+* DataGovernanceProvider;
+* ExecutionProvider;
+* Databricks integration;
+* Unity Catalog integration;
+* Collibra integration;
+* Genie integration;
+* fine-grained dataset/column/row authorization;
+* Redis;
+* Event Hubs;
+* new runtime infrastructure;
+* deployment changes;
+* unrelated refactoring.
 
-after canonicalization.
+Do not modify production/application source or tests.
 
-Explicitly deny:
+Required final report
 
-- extensionResourceRoot;
-- Extension installation/source;
-- maintainerFrameworkRoot;
-- etl-framework-adb;
-- sibling workspace roots;
-- parent directories;
-- arbitrary absolute paths;
-- external paths.
+Produce a Markdown report with these sections:
 
-No write must be possible to the packaged contract or framework source.
+1. Repository Evidence
+2. Executive Verdict
+3. Phase 2C Remediation Matrix
+4. Detailed Evidence R1-R8
+5. Test Execution Results
+6. Documentation vs Code Mismatches
+7. Remaining Minimum Remediation
+8. Independent Acceptance Readiness
+9. Recommended Next Step
 
-==================================================
-8. MAINTAINER MODE
-==================================================
+The Executive Verdict must contain exactly one of:
 
-Maintainer/development mode may still use a multi-root workspace containing:
+* PHASE_2C_READY_FOR_INDEPENDENT_ACCEPTANCE
+* PHASE_2C_NOT_READY_FOR_INDEPENDENT_ACCEPTANCE
+* PHASE_2C_STATUS_INSUFFICIENT_EVIDENCE
 
-- consumer test workspace
-- etl-framework-adb
+If Phase 2C is not ready, give the smallest bounded set of changes necessary for final acceptance. Do not implement them.
 
-but framework-source discovery must not determine consumerRoot.
+If it is ready, identify the exact independent acceptance tests/audit that should be run next. Do not start Phase 2D.
 
-If multi-root is used for maintainer verification, the consumer target must be explicitly identified through an existing safe selection mechanism.
+Output file
 
-Never infer:
+Save the report as:
 
-“the folder that is not etl-framework-adb must be the consumer.”
+ASKTD_PHASE_2C_DISCOVERY_VERIFICATION_2026-08-20.md
 
-Normal QA/user behavior remains single-folder-first.
+Prefer saving it outside the Git worktree (for example under /tmp) so the repository remains unchanged.
 
-==================================================
-9. REQUIRED TESTS FOR THIS AMENDMENT
-==================================================
+If the environment cannot save outside the repository, do not create a repository file merely to satisfy this instruction; instead return the complete Markdown in the agent response and clearly state that no repository file was written.
 
-Add behavioral tests proving:
+At completion, report:
 
-1. exactly one consumer workspace folder → selected consumerRoot;
-2. zero workspace folders → blocked;
-3. multiple folders without explicit consumer selection → blocked/ambiguous;
-4. the first-folder fallback is never used;
-5. a fresh single-folder consumer with no job_conf/env_conf → CREATE_NEW_JOB;
-6. no marker/directory/file created during classification;
-7. normal QA works with zero etl-framework-adb folders;
-8. packaged framework contract resolves independently from consumerRoot;
-9. artifact manifest stores relative paths, not machine-specific absolute paths;
-10. absolute artifact path input is rejected;
-11. `..` traversal is rejected;
-12. sibling-root escape is rejected;
-13. canonical containment is rechecked before write;
-14. consumerRoot change after preview invalidates approval;
-15. relative artifact-path change after preview invalidates approval;
-16. extensionResourceRoot can never be a write root;
-17. maintainerFrameworkRoot can never be a write root;
-18. consumer artifacts remain the same 12 paths/bytes/order.
+* saved report path, if created;
+* repository branch and HEAD SHA;
+* whether the Git working tree changed during this audit.
 
-Use actual production path APIs rather than source-text-only assertions for these critical behaviors.
+Then STOP.
 
-==================================================
-10. REVIEW CURRENT IMPLEMENTATION BEFORE CONTINUING
-==================================================
-
-Before continuing edits:
-
-- inspect all already-created/edited V2 changes;
-- identify whether any current code assumes framework source is another workspace folder;
-- identify whether any current code couples framework discovery to consumerRoot selection;
-- correct that design within the existing authorized edit universe before proceeding.
-
-Do not undo valid packaged-contract or maintainer-override work.
-
-If this amendment requires an existing file outside the already-authorized HF1-V2 edit universe, STOP before editing it and report:
-
-LOCAL_HOTFIX_HF1_V2_SCOPE_AMENDMENT_REQUIRED
-
-with exact path and reason.
-
-==================================================
-11. REQUIRED ACKNOWLEDGEMENT
-==================================================
-
-Before resuming implementation, report briefly:
-
-NORMAL_QA_WORKSPACE_MODEL: SINGLE_CONSUMER_FOLDER
-CONSUMER_ROOT_SOURCE: EXPLICIT_SINGLE_WORKSPACE_FOLDER
-PACKAGED_CONTRACT_SOURCE: EXTENSION_RESOURCE_ROOT
-FRAMEWORK_SOURCE_REQUIRED_FOR_QA: NO
-FIRST_FOLDER_FALLBACK_ALLOWED: NO
-MULTI_ROOT_IMPLICIT_CONSUMER_SELECTION_ALLOWED: NO
-ARTIFACT_IDENTITY: CONSUMER_RELATIVE_PATH
-WRITE_OUTSIDE_CONSUMER_ROOT_ALLOWED: NO
-
-Then continue the existing LOCAL_HOTFIX_HF1_V2 implementation under this amended architecture.
-
-Do not Keep.
-Do not commit.
-Do not package.
+Do not remediate anything in this operation.
