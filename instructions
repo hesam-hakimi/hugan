@@ -99,6 +99,7 @@ Cmd 5
 PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/synthetic-guardrails-$(date -u +%Y%m%dT%H%M%SZ)"
 PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
 test -f "$PRETRANSFER_STATE_ROOT/pretransfer-junit.xml"
+echo "DEPENDENCY_CONTRACT_PRETRANSFER_GATE_PASS"
 ```
 
 Cmd 6
