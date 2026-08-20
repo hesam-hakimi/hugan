@@ -1,8 +1,9 @@
-from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.fake import FakeModelProvider
 
 
 def test_product_workspace_discovered_safe_shares_task_control(tmp_path):
+    from universal_coding_agent.product.workspace import ProductWorkspace
+
     workspace = ProductWorkspace.create(tmp_path / "workspace", FakeModelProvider())
     try:
         discovered = workspace.discovered_safe(
@@ -12,3 +13,12 @@ def test_product_workspace_discovered_safe_shares_task_control(tmp_path):
         assert discovered.control is workspace.control
     finally:
         workspace.close()
+
+
+def test_product_public_exports_are_cycle_safe_after_safe_service_import():
+    from universal_coding_agent.safe_service import SafeAgentService
+    from universal_coding_agent.product import ProductWorkspace, TaskControlService
+
+    assert SafeAgentService is not None
+    assert ProductWorkspace.__name__ == "ProductWorkspace"
+    assert TaskControlService.__name__ == "TaskControlService"

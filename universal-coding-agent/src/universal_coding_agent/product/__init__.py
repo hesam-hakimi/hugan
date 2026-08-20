@@ -1,17 +1,43 @@
 from __future__ import annotations
 
-from universal_coding_agent.product.context_documents import ContextDocumentService
-from universal_coding_agent.product.program_orchestrator import ProgramOrchestrator
-from universal_coding_agent.product.requirement_alignment import RequirementAlignmentService
-from universal_coding_agent.product.search_service import SearchService
-from universal_coding_agent.product.task_control import TaskControlService
-from universal_coding_agent.product.workspace import ProductWorkspace
+from importlib import import_module
+from typing import Any
 
-__all__ = [
-    "ContextDocumentService",
-    "ProgramOrchestrator",
-    "ProductWorkspace",
-    "RequirementAlignmentService",
-    "SearchService",
-    "TaskControlService",
-]
+_EXPORTS = {
+    "ContextDocumentService": (
+        "universal_coding_agent.product.context_documents",
+        "ContextDocumentService",
+    ),
+    "ProgramOrchestrator": (
+        "universal_coding_agent.product.program_orchestrator",
+        "ProgramOrchestrator",
+    ),
+    "ProductWorkspace": (
+        "universal_coding_agent.product.workspace",
+        "ProductWorkspace",
+    ),
+    "RequirementAlignmentService": (
+        "universal_coding_agent.product.requirement_alignment",
+        "RequirementAlignmentService",
+    ),
+    "SearchService": (
+        "universal_coding_agent.product.search_service",
+        "SearchService",
+    ),
+    "TaskControlService": (
+        "universal_coding_agent.product.task_control",
+        "TaskControlService",
+    ),
+}
+
+__all__ = list(_EXPORTS)
+
+
+def __getattr__(name: str) -> Any:
+    target = _EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name, attribute_name = target
+    value = getattr(import_module(module_name), attribute_name)
+    globals()[name] = value
+    return value
