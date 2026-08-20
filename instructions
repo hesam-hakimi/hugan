@@ -136,6 +136,8 @@ test -f "$HARD_STATE_ROOT/hard-summary.json"
 .venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
 find "$HARD_STATE_ROOT" -type f -name test-results.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
+find "$HARD_STATE_ROOT" -type f -name safe-review.json -print \
+  -exec .venv/bin/python -m json.tool {} \; || true
 find "$HARD_STATE_ROOT" -type f -name edit-proposal.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$HARD_STATE_ROOT" -type f -name proposed.patch -print \
@@ -156,6 +158,8 @@ test -f "$LARGE_STATE_ROOT/large-solution-summary.json"
 find "$LARGE_STATE_ROOT" -type f -name discovery-plan.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$LARGE_STATE_ROOT" -type f -name test-results.json -print \
+  -exec .venv/bin/python -m json.tool {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$LARGE_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,500p' {} \; || true
