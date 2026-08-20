@@ -196,6 +196,9 @@ def _policy() -> SafeModePolicy:
 def _behavior_policy(tmp_path: Path) -> SafeModePolicy:
     checker = tmp_path / "active_contract_check.py"
     checker.write_text(
+        "import os\n"
+        "import sys\n\n"
+        "sys.path.insert(0, os.getcwd())\n\n"
         "from domain.limit_rules import validate_override\n"
         "from services.limit_service import create_override\n\n"
         "create_override(5, '2027-01-01T00:00:00Z')\n"
