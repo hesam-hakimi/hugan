@@ -86,7 +86,7 @@ echo "LARGE_SOLUTION_FIXTURE_PREFLIGHT_PASS"
 Cmd 4
 
 ```bash
-.venv/bin/ruff check .
+.venv/bin/ruff check . && echo "RUFF_PASS"
 ```
 
 Cmd 5
