@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -44,12 +45,12 @@ def _repository(tmp_path: Path) -> tuple[Path, str]:
     )
     (root / "services" / "limit_service.py").write_text(
         "from domain.limit_rules import validate_override\n\n"
-        "def create_override(amount: int) -> None:\n"
+        "def create_override(amount: int, expires_at: str) -> None:\n"
         "    validate_override(amount)\n",
         encoding="utf-8",
     )
     (root / "domain" / "limit_rules.py").write_text(
-        "def validate_override(amount: int) -> None:\n"
+        "def validate_override(amount: int, expires_at: str) -> None:\n"
         "    return None\n",
         encoding="utf-8",
     )
@@ -66,34 +67,119 @@ def _repository(tmp_path: Path) -> tuple[Path, str]:
     return root, _git(root, "rev-parse", "HEAD")
 
 
+def _discovery_plan() -> dict:
+    return SolutionImpactPlan(
+        summary="Use the active service and domain rule, not legacy code.",
+        components=("services", "domain"),
+        changes=(
+            ImpactChange(
+                path="services/limit_service.py",
+                component="services",
+                confidence=ImpactConfidence.HIGH,
+                rationale="The active API imports this runtime service.",
+                evidence_paths=("apps/api/limits.py",),
+            ),
+            ImpactChange(
+                path="domain/limit_rules.py",
+                component="domain",
+                confidence=ImpactConfidence.HIGH,
+                rationale="The active runtime service imports this domain rule.",
+                evidence_paths=("services/limit_service.py",),
+            ),
+        ),
+        rejected_candidates=("legacy/credit_limit_override.py",),
+    ).model_dump(mode="json")
+
+
 def _provider() -> tuple[FakeModelProvider, list[str]]:
     calls: list[str] = []
 
     def discover(request):
         calls.append(request.role)
-        return SolutionImpactPlan(
-            summary="Use the active service and domain rule, not legacy code.",
-            components=("services", "domain"),
-            changes=(
-                ImpactChange(
-                    path="services/limit_service.py",
-                    component="services",
-                    confidence=ImpactConfidence.HIGH,
-                    rationale="The active API imports this runtime service.",
-                    evidence_paths=("apps/api/limits.py",),
-                ),
-                ImpactChange(
-                    path="domain/limit_rules.py",
-                    component="domain",
-                    confidence=ImpactConfidence.HIGH,
-                    rationale="The active runtime service imports this domain rule.",
-                    evidence_paths=("services/limit_service.py",),
-                ),
-            ),
-            rejected_candidates=("legacy/credit_limit_override.py",),
-        ).model_dump(mode="json")
+        return _discovery_plan()
 
     return FakeModelProvider({"solution_discovery": discover}), calls
+
+
+def _full_provider() -> tuple[FakeModelProvider, list[str]]:
+    calls: list[str] = []
+
+    def discover(request):
+        calls.append(request.role)
+        return _discovery_plan()
+
+    def implement(request):
+        calls.append(request.role)
+        target_path = str(request.metadata.get("target_path"))
+        if target_path == "services/limit_service.py":
+            assert (
+                "def validate_override(amount: int, expires_at: str) -> None:"
+                in request.user_prompt
+            )
+            address = _address_for_line(
+                request.user_prompt,
+                "    validate_override(amount)",
+            )
+            new_text = "    validate_override(amount, expires_at)\n"
+        elif target_path == "domain/limit_rules.py":
+            address = _address_for_line(request.user_prompt, "    return None")
+            new_text = (
+                "    if amount <= 0:\n"
+                "        raise ValueError(\"amount must be positive\")\n"
+            )
+        else:
+            raise AssertionError(f"unexpected implementer target: {target_path}")
+        return {
+            "summary": f"Implement approved contract in {target_path}.",
+            "edits": [
+                {
+                    "path": target_path,
+                    "operation": "modify",
+                    "replacements": [
+                        {
+                            "old_text": f"@range:{address}..{address}",
+                            "new_text": new_text,
+                        }
+                    ],
+                    "content": None,
+                }
+            ],
+            "requested_test_profiles": ["active-contract"],
+            "assumptions": [],
+        }
+
+    def review(request):
+        calls.append(request.role)
+        return {
+            "verdict": "PASS",
+            "requirement_findings": [],
+            "scope_findings": [],
+            "security_findings": [],
+            "test_findings": [],
+            "required_actions": [],
+            "confidence": "high",
+        }
+
+    return (
+        FakeModelProvider(
+            {
+                "solution_discovery": discover,
+                "implementer": implement,
+                "reviewer": review,
+            }
+        ),
+        calls,
+    )
+
+
+def _address_for_line(prompt: str, source_line: str) -> str:
+    match = re.search(
+        rf"(?m)^(A[0-9]{{6}}) \| {re.escape(source_line)}$",
+        prompt,
+    )
+    if match is None:
+        raise AssertionError(f"model line ref not found for: {source_line!r}")
+    return match.group(1)
 
 
 def _policy() -> SafeModePolicy:
@@ -102,6 +188,30 @@ def _policy() -> SafeModePolicy:
             TestProfile(
                 profile_id="active-contract",
                 argv=(sys.executable, "-c", "print('fixed trusted profile')"),
+            ),
+        )
+    )
+
+
+def _behavior_policy(tmp_path: Path) -> SafeModePolicy:
+    checker = tmp_path / "active_contract_check.py"
+    checker.write_text(
+        "from domain.limit_rules import validate_override\n"
+        "from services.limit_service import create_override\n\n"
+        "create_override(5, '2027-01-01T00:00:00Z')\n"
+        "try:\n"
+        "    validate_override(0, '2027-01-01T00:00:00Z')\n"
+        "except ValueError:\n"
+        "    pass\n"
+        "else:\n"
+        "    raise AssertionError('non-positive amount must be rejected')\n",
+        encoding="utf-8",
+    )
+    return SafeModePolicy(
+        profiles=(
+            TestProfile(
+                profile_id="active-contract",
+                argv=(sys.executable, str(checker)),
             ),
         )
     )
@@ -159,6 +269,70 @@ def test_discovered_safe_stops_at_existing_scope_approval_before_implementation(
     assert provenance["edit_authority_granted"] is False
     assert provenance["base_sha"] == source_sha
     assert calls == ["solution_discovery"]
+
+
+def test_discovered_safe_completes_after_approval_with_dependency_contracts(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    source, source_sha = _repository(tmp_path)
+    state_root = tmp_path / "state"
+    provider, calls = _full_provider()
+    monkeypatch.setenv("UCA_SAFE_EDIT_PROTOCOL", "v2-line-addressed")
+    service = DiscoveredSafeAgentService.create(
+        state_root,
+        provider,
+        allow_local_sources=True,
+    )
+
+    service.start(
+        task_id="discovered-safe-e2e-task",
+        thread_id="discovered-safe-e2e-thread",
+        title="Discovered Safe end to end",
+        objective=(
+            "Use the active service and domain rule so credit-limit overrides validate both the "
+            "amount and expires_at contract, and reject non-positive amounts."
+        ),
+        repository=RepositorySpec(url=str(source), base_ref="main"),
+        policy=_behavior_policy(tmp_path),
+        test_profiles=("active-contract",),
+        acceptance_criteria=(
+            "The service passes amount and expires_at to the active domain validator.",
+            "The active domain validator rejects non-positive amounts.",
+        ),
+    )
+    before = service.state("discovered-safe-e2e-thread")
+    assert before["next"] == ["scope_approval"]
+    assert before["values"].get("edit_proposal_ref") is None
+
+    final = service.resume("discovered-safe-e2e-thread", True)
+    task_root = state_root / "artifacts" / "tasks" / "discovered-safe-e2e-task"
+    report = json.loads((task_root / "safe-final-report.json").read_text(encoding="utf-8"))
+    tests = json.loads((task_root / "test-results.json").read_text(encoding="utf-8"))
+    sandbox = state_root / "sandboxes" / "discovered-safe-e2e-task" / "repo"
+
+    assert final["status"] == "completed"
+    assert report["status"] == "completed"
+    assert report["reviewer_verdict"] == "PASS"
+    assert report["safe_errors"] == []
+    assert report["source_repository_modified"] is False
+    assert report["sandbox_patch_retained"] is True
+    assert tests["scope_intact"] is True
+    assert all(item["passed"] for item in tests["results"])
+    assert "validate_override(amount, expires_at)" in (
+        sandbox / "services" / "limit_service.py"
+    ).read_text(encoding="utf-8")
+    assert "amount <= 0" in (sandbox / "domain" / "limit_rules.py").read_text(
+        encoding="utf-8"
+    )
+    assert _git(source, "rev-parse", "HEAD") == source_sha
+    assert _git(source, "status", "--porcelain") == ""
+    assert calls == [
+        "solution_discovery",
+        "implementer",
+        "implementer",
+        "reviewer",
+    ]
 
 
 def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(
