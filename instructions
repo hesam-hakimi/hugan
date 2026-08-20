@@ -182,7 +182,7 @@ find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print \
 find "$LARGE_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,500p' {} \; || true
 test "$LARGE_RC" -eq 0
-echo "PRODUCTION_DISCOVERED_SAFE_LARGE_SOLUTION_PASS"
+echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
 ```
 
 Cmd 11
