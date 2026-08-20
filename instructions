@@ -97,7 +97,7 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "DISCOVERY_PLAN_CORRECTION_PREFLIGHT_PASS"
+echo "DISCOVERY_PLAN_CORRECTION_LINT_FIXED_PREFLIGHT_PASS"
 ```
 
 Cmd 4

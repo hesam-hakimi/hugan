@@ -15,8 +15,8 @@ from universal_coding_agent.core.safe_models import (
 )
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
-from universal_coding_agent.sandbox.git import GitSandboxManager
 from universal_coding_agent.safety.sanitizer import sanitize_text
+from universal_coding_agent.sandbox.git import GitSandboxManager
 from universal_coding_agent.solution_discovery import (
     SolutionDiscoveryError,
     SolutionDiscoveryService,
