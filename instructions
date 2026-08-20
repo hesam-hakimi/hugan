@@ -14,6 +14,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
+- universal-coding-agent/src/universal_coding_agent/testlab/large_solution_production.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
@@ -48,6 +49,7 @@ for FILE in \
   src/universal_coding_agent/testlab/live.py \
   src/universal_coding_agent/testlab/hard_reasoning.py \
   src/universal_coding_agent/testlab/large_solution.py \
+  src/universal_coding_agent/testlab/large_solution_production.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_hard_reasoning_lab.py \
@@ -67,6 +69,7 @@ from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.hard_reasoning import run_hard_suite
 from universal_coding_agent.testlab.large_solution import reference_changed_files, run_large_solution_suite
+from universal_coding_agent.testlab.large_solution_production import run_large_solution_production_suite
 from universal_coding_agent.testlab.live import run_live_suite
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 from universal_coding_agent.testlab.synthetic import failure_scenarios, success_scenarios
@@ -76,6 +79,7 @@ assert OpenAIResponsesProvider
 assert run_live_suite
 assert run_hard_suite
 assert run_large_solution_suite
+assert run_large_solution_production_suite
 assert set(reference_changed_files())
 assert SolutionDiscoveryService
 assert DiscoveredSafeAgentService
@@ -162,14 +166,14 @@ test "$HARD_RC" -eq 0
 Cmd 10
 
 ```bash
-LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-large-solution-$(date -u +%Y%m%dT%H%M%SZ)"
+LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-$(date -u +%Y%m%dT%H%M%SZ)"
 LARGE_RC=0
 UCA_LARGE_SOLUTION_RUNS=1 UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE=1.0 \
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.large_solution \
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.large_solution_production \
   --state-root "$LARGE_STATE_ROOT" || LARGE_RC=$?
 test -f "$LARGE_STATE_ROOT/large-solution-summary.json"
 .venv/bin/python -m json.tool "$LARGE_STATE_ROOT/large-solution-summary.json"
-find "$LARGE_STATE_ROOT" -type f -name discovery-plan.json -print \
+find "$LARGE_STATE_ROOT" -type f \( -name discovery-plan.json -o -name solution-impact-plan.json \) -print \
   -exec .venv/bin/python -m json.tool {} \; || true
 find "$LARGE_STATE_ROOT" -type f -name test-results.json -print \
   -exec .venv/bin/python -m json.tool {} \; || true
@@ -178,7 +182,7 @@ find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print \
 find "$LARGE_STATE_ROOT" -type f -name proposed.patch -print \
   -exec sed -n '1,500p' {} \; || true
 test "$LARGE_RC" -eq 0
-echo "LARGE_SOLUTION_LOCAL_QUALIFICATION_PASS"
+echo "PRODUCTION_DISCOVERED_SAFE_LARGE_SOLUTION_PASS"
 ```
 
 Cmd 11
