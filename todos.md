@@ -1,526 +1,240 @@
-We are continuing the existing AskTD / askAlpha / KMAI project.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2_DISCOVERY — READ ONLY
 
-Program Phase 2C is formally closed:
+Repair 5 has reached a validated partial state but ended with:
 
-PHASE_2C_POST_MERGE_CLOSURE_PASS
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
 
-The read-only Phase 2C.5 discovery concluded:
+Do NOT edit anything yet.
 
-PHASE_2C5_FOUNDATION_READY_FOR_BOUNDED_IMPLEMENTATION
+Preserve all current Repair-5 candidate bytes exactly as they are.
 
-This task is a BOUNDED IMPLEMENTATION of the minimum provider-abstraction foundation required before Phase 2D.
+Do not Keep, Undo, Revert, Discard, Clean, stage, commit, package, install, download, or mutate any file.
 
-Do NOT start Phase 2D recipe implementation.
+The current externally relevant implementation evidence is:
 
-⸻
+- production compile: PASS
+- lint: PASS
+- focused Repair-5/HF1/Phase-6 matrix: 278 passing
+- full unit: 1890 passing, 5 pending, exactly 5 failing
+- the five failures are the protected historical failures
+- staged files: 0
+- new files: 0
+- framework binding unchanged
+- etl-framework-adb unchanged
+- 10 files currently changed
+- ArtifactActionCoordinator.ts was authorized but remained byte-identical
 
-1. Critical repository rule
+The verifier reported four remaining concerns:
 
-The existing primary checkout asktd_v2 is stale and does not contain the integrated Phase 2A/2B/2C implementation.
+1. dangling-link handling
+2. POSIX case-sensitive containment
+3. broader competing-route suppression
+4. unique temporary Explain fixtures
 
-Do NOT implement this work on asktd_v2.
+Your task is ONLY to determine the exact nature and minimum scope of these four items.
 
-First verify current:
+==================================================
+1. CLASSIFY EACH ITEM BEFORE REQUESTING ANY EDIT
+==================================================
 
-origin/main
+For each of the four findings classify it exactly as one of:
 
-contains the formally accepted Phase 2C implementation.
+PRODUCTION_SECURITY_DEFECT
+PRODUCTION_CORRECTNESS_DEFECT
+TEST_HARNESS_DEFECT
+TEST_COVERAGE_GAP
+PORTABILITY_HARDENING
+NON_BLOCKING_DEBT
+FALSE_POSITIVE
+AMBIGUOUS
 
-Then create a new dedicated branch/worktree from the exact current origin/main.
+Do not assume that a verifier-requested test implies a production defect.
 
-Suggested branch name:
+For every item provide live-source evidence.
 
-phase2/provider-abstraction-foundation
+==================================================
+2. DANGLING-LINK HANDLING
+==================================================
 
-Use the repository’s normal safe worktree/branch workflow.
+Determine exactly what "dangling-link handling" refers to.
 
-Before mutation record:
+Trace:
 
-* repository identity;
-* origin/main SHA;
-* new branch;
-* worktree path;
-* clean working-tree status.
+- which repaired route encounters symlinks/junctions/reparse points;
+- whether PathValidator / isInsideRoot / canonicalization currently resolves them;
+- whether a dangling symbolic link could cause:
+  - consumerRoot escape,
+  - source/reference-root substitution,
+  - unauthorized write,
+  - write outside the approved relative path,
+  - or merely a clean filesystem error.
 
-If Phase 2C is not present in origin/main, STOP.
+Identify:
 
-⸻
+- exact production function;
+- exact current behavior;
+- actual security impact;
+- exact test needed.
 
-2. Discovery findings to preserve
+Do not propose a platform-specific workaround unless the live production behavior requires it.
 
-The prior repository audit found:
+==================================================
+3. POSIX CASE-SENSITIVE CONTAINMENT
+==================================================
 
-Execution seam — already exists
+Determine whether current containment logic incorrectly assumes Windows case-insensitivity on POSIX.
 
-Existing abstraction:
+Inspect the exact implementation used by all Repair-5 write routes.
 
-contracts/tool_base.py::DatabaseTool
+Answer:
 
-with existing concrete implementations and configuration-based selection in the application.
+A. Does Windows behavior remain correct?
 
-Do not create a competing ExecutionProvider hierarchy merely to rename an existing abstraction.
+B. On Linux/macOS, could:
 
-Treat the existing DatabaseTool boundary as satisfying the execution-provider architectural seam unless implementation evidence encountered during this task proves otherwise.
+/ConsumerRoot/file
+and
+/consumerroot/file
 
-Governance seam — already exists
+be incorrectly treated as the same root?
 
-Existing abstraction/substance:
+C. Could that cause a real root escape or false acceptance?
 
-MetadataRegistryService
+D. Is the bug in shared PathValidator/isInsideRoot infrastructure or only in Repair-5 test code?
 
-operating on canonical:
+E. Would fixing it require modifying an already-protected shared file outside the current scope?
 
-RegistrySnapshot
+Do not edit shared PathValidator or root utilities in this discovery.
 
-Do not introduce a duplicate metadata-provider layer merely for naming symmetry.
+==================================================
+4. BROADER COMPETING-ROUTE SUPPRESSION
+==================================================
 
-Preserve canonical Phase 2C metadata:
+Clarify exactly what "competing route" means.
 
-ProductGroup
-  -> Schema
-    -> Dataset
-      -> Field
-Relationship
-RegistryVersion
-...
+Identify any scenario where more than one write-capable route could respond to the same user action or conversational state.
 
-Future Unity Catalog / Collibra providers must eventually map into this canonical model, but they are NOT implemented now.
+For every claimed competing route show:
 
-Authorization seam — already exists
+- entry point;
+- activation condition;
+- whether both can be reachable in the same request;
+- whether either can write;
+- whether preview state from one route can be consumed by another;
+- whether route confusion can bypass approval;
+- whether the issue is merely UX/routing ambiguity.
 
-Existing scope model:
+Do not broaden Repair 5 into unrelated routing redesign.
 
-EffectivePermissions
+If the concern is not capable of causing an unauthorized consumer mutation, classify it accordingly.
 
-with current entity-level allowlists and fail-closed behavior.
+==================================================
+5. UNIQUE TEMPORARY EXPLAIN FIXTURES
+==================================================
 
-Extend/reuse this model.
+Determine whether this is:
 
-Do not create a parallel AuthorizationScope model.
+- a production problem,
+- test isolation problem,
+- parallel-test collision,
+- stale temporary directory reuse,
+- or simply a verifier-hardening request.
 
-Do not implement dataset-, column-, or row-level authorization in this task.
+Inspect current Explain tests and temp-directory construction.
 
-Data-source seam — actual missing foundation
+Prove whether two tests/runs can collide on the same path and contaminate one another.
 
-Existing:
+If the issue is test-only, do not propose a production change.
 
-SqlDataStore
+Identify the exact existing test file that should be changed.
 
-already exposes an adapter-shaped API but has no declared provider-neutral contract.
+No new test file unless strictly necessary.
 
-The prior audit found direct SqlDataStore construction/coupling in Orchestrator at approximately three construction points and two direct type hints.
+==================================================
+6. RECHECK THE CURRENT REPAIR-5 CONTRACT
+==================================================
 
-This is the main implementation target.
+Do a read-only confirmation that the current candidate already provides:
 
-⸻
+- Explain trusted preview/approval/write lifecycle;
+- Explain root/path/content drift protection;
+- Explain replay rejection;
+- Artifact Reuse preview → approval → create/patch;
+- Artifact Reuse replay rejection;
+- RepoContext trusted inline authorization;
+- RepoContext manifest hashes the actual bytes written;
+- canonical RepoWriter root classification;
+- current extension-source checkout blocked as a consumer root;
+- no first-folder consumer-write fallback in repaired routes;
+- no remaining REPAIR_5_REQUIRED write route from the previous exhaustive sweep.
 
-3. Objective
+If any of these is actually incomplete, report it separately as a regression from the just-completed implementation.
 
-Introduce the smallest provider-neutral data-source contract so that core orchestration depends on an abstraction rather than directly depending on SqlDataStore.
+==================================================
+7. EXACT SCOPE REQUEST
+==================================================
 
-Current behavior must remain unchanged.
+For every item that truly requires a change, return:
 
-Target conceptual dependency:
+- exact file path;
+- production vs test;
+- exact function/test affected;
+- smallest change required;
+- why the currently authorized 11-file universe cannot solve it;
+- whether the file was already part of the previously protected/no-touch set.
 
-Orchestrator
-    |
-    v
-DataSourceAdapter
-    |
-    v
-SqlDataStore   # current concrete implementation
+Do not give approximate paths.
 
-Do NOT rename SqlDataStore merely for aesthetic consistency.
+Do not request a file merely for convenience.
 
-Do NOT rewrite its working SQL implementation.
+==================================================
+8. SCOPE MINIMIZATION RULE
+==================================================
 
-⸻
+Prefer:
 
-4. DataSourceAdapter contract
+0 additional files
 
-Inspect the actual public API currently required from SqlDataStore by its consumers.
+if the remaining items can be addressed inside existing authorized files.
 
-Define the smallest typed interface/protocol/ABC representing only the behavior actually required by the orchestration/core layer.
+If an additional file is genuinely necessary, request only that exact file.
 
-Prefer a lightweight Python Protocol if compatible with the repository’s typing/version conventions.
+If a shared security primitive outside current scope must change, explicitly flag:
 
-Do not expose SQL Server-specific concepts in the contract unless they are genuinely required by current callers.
+SHARED_SECURITY_PRIMITIVE_SCOPE_REQUIRED
 
-The contract should represent capabilities, not a future Databricks design.
+and stop before implementation.
 
-Examples of candidate capabilities may include current operations such as:
+==================================================
+9. REQUIRED FINAL REPORT
+==================================================
 
-* executing an approved read query;
-* retrieving result rows;
-* connection/query lifecycle behavior;
-* timeout/cancellation if already exposed;
+Return a four-row matrix:
 
-but derive the exact interface from existing code.
+Finding
+Classification
+Production impact
+Security impact
+Exact file(s) required
+Already authorized? YES|NO
+Repair required? YES|NO
+Release blocking? YES|NO
 
-Do not invent unused methods.
+Then return:
 
-⸻
+CURRENT_REPAIR_5_BYTES_PRESERVED: YES|NO
+CURRENT_COMPILE_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
+CURRENT_LINT_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
+CURRENT_FULL_UNIT_BASELINE: 1890_PASSING_5_PENDING_5_HISTORICAL_FAILING
+DANGLING_LINK_REPAIR_REQUIRED: YES|NO
+POSIX_CASE_CONTAINMENT_REPAIR_REQUIRED: YES|NO
+COMPETING_ROUTE_REPAIR_REQUIRED: YES|NO
+EXPLAIN_FIXTURE_REPAIR_REQUIRED: YES|NO
+ADDITIONAL_PRODUCTION_FILES_REQUIRED: <count>
+ADDITIONAL_TEST_FILES_REQUIRED: <count>
+SHARED_SECURITY_PRIMITIVE_SCOPE_REQUIRED: YES|NO
+REPAIR_5_AMENDMENT_2_SCOPE_FROZEN: YES|NO
 
-5. Preserve SqlDataStore behavior
+Finish exactly:
 
-Make existing SqlDataStore satisfy the new contract with the minimum possible change.
-
-Prefer structural typing where possible so implementation changes are minimal.
-
-Do not:
-
-* rewrite SQL connection handling;
-* change SQL generation;
-* change SQL safety;
-* change retry semantics;
-* change authorization;
-* change result shape;
-* change environment/config behavior.
-
-Existing behavior must remain byte-for-byte/semantically equivalent where practical.
-
-⸻
-
-6. Remove core Orchestrator coupling
-
-Inspect every direct:
-
-SqlDataStore(...)
-
-construction and direct SqlDataStore type annotation in the orchestration/core path.
-
-Replace those dependencies with the new adapter contract through the smallest safe injection/factory seam.
-
-Important:
-
-Do not introduce a dependency-injection framework.
-
-Reuse existing configuration/factory construction patterns if present.
-
-A simple explicit constructor/factory boundary is preferred.
-
-The runtime default must continue to construct/use the existing SQL implementation.
-
-There must be no behavior change for existing users.
-
-⸻
-
-7. Configuration
-
-Do NOT introduce speculative provider configuration if current code does not need it.
-
-If a source/provider selector already exists, reuse it.
-
-If one minimal selector is genuinely required to remove the direct construction coupling, add only the smallest backward-compatible configuration required.
-
-Default behavior must remain the current SQL path.
-
-Do not add config values for:
-
-* Databricks;
-* Unity Catalog;
-* Collibra;
-* Genie.
-
-No future provider should be selectable until it actually exists.
-
-⸻
-
-8. ExecutionProvider compatibility proof
-
-Do not add a new ExecutionProvider hierarchy unless repository evidence proves the discovery result was incorrect.
-
-Instead add/extend tests that demonstrate:
-
-* the core execution path depends on the existing DatabaseTool abstraction rather than one hard-coded concrete execution provider where applicable;
-* current configuration still selects the current implementation;
-* behavior remains unchanged.
-
-If an unavoidable gap is found, STOP and report it before broadening scope.
-
-⸻
-
-9. DataGovernanceProvider compatibility proof
-
-Do not wrap MetadataRegistryService in a meaningless forwarding class merely to create a name called DataGovernanceProvider.
-
-Instead verify through tests/types that semantic planning/core code consumes canonical registry/service contracts rather than provider-specific Unity/Collibra structures.
-
-If a lightweight Protocol is useful at an actual dependency boundary, it may be added only if it removes real coupling.
-
-Do not add:
-
-* UnityCatalogProvider;
-* CollibraProvider;
-* provider stubs.
-
-⸻
-
-10. AuthorizationScope compatibility proof
-
-Reuse EffectivePermissions.
-
-If necessary, make only additive typing/documentation changes proving that it can later support additional optional scope dimensions.
-
-Current behavior remains:
-
-allowed_entities
-
-or its existing equivalent.
-
-Do not implement:
-
-* allowed_datasets;
-* allowed_columns;
-* row_scope;
-
-unless those fields already exist and only need preservation.
-
-Do not change authorization decisions.
-
-⸻
-
-11. Contract tests
-
-Add focused tests proving the architecture seam rather than testing hypothetical providers.
-
-At minimum verify:
-
-Data-source contract
-
-* current SqlDataStore satisfies/implements DataSourceAdapter;
-* orchestrator/core accepts a test/fake adapter without constructing SqlDataStore;
-* normal default runtime still selects/uses current SQL behavior;
-* no SQL Server-specific concrete type is required by core orchestration after the seam.
-
-Governance boundary
-
-* canonical registry service remains the metadata contract used by Phase 2C planning/validation;
-* no external-provider-specific structure enters semantic planning.
-
-Execution boundary
-
-* existing DatabaseTool abstraction remains the execution-provider seam;
-* existing concrete selection behavior is unchanged.
-
-Authorization
-
-* existing EffectivePermissions behavior remains fail-closed/entity-scoped;
-* introducing the provider seam does not bypass authorization.
-
-Prefer focused contract tests over broad mocking.
-
-⸻
-
-12. Dependency-direction acceptance requirement
-
-After implementation, the intended direction must be demonstrably:
-
-Core / Orchestrator
-        |
-        +--> DataSourceAdapter
-        |       |
-        |       +--> SqlDataStore
-        |
-        +--> MetadataRegistryService / canonical registry boundary
-        |
-        +--> DatabaseTool execution abstraction
-        |
-        +--> EffectivePermissions authorization boundary
-
-Core planning/orchestration must not newly import:
-
-* Databricks SDK;
-* Unity Catalog models;
-* Collibra clients;
-* Genie clients.
-
-⸻
-
-13. Explicit out of scope
-
-Do NOT implement:
-
-* Databricks SQL adapter;
-* Databricks authentication;
-* Unity Catalog provider;
-* Collibra provider;
-* Genie provider;
-* provider stubs with NotImplementedError;
-* SQL dialect abstraction for Databricks;
-* cross-source joins;
-* new query recipes;
-* KPI/glossary functionality;
-* Phase 2D recipe pilot;
-* Redis;
-* Event Hubs;
-* fine-grained authorization;
-* deployment/infrastructure changes;
-* frontend changes;
-* broad orchestrator redesign.
-
-Also do not address unrelated existing items such as:
-
-* hard-coded dbo.* semantic models;
-* literal T-SQL in existing recipe code;
-* broader planner migration to the governed registry;
-
-unless required to make this very small abstraction compile/test.
-
-Those belong to later bounded work and must not expand this change.
-
-⸻
-
-14. Test gates
-
-Run focused tests for every changed component first.
-
-Then run:
-
-1. Phase 2A/2B/2C focused regression;
-2. MetadataRegistryService integration tests;
-3. relevant authorization tests;
-4. relevant SQL datastore/orchestrator tests;
-5. full backend regression;
-6. configured coverage gate;
-7. golden baseline;
-8. git diff --check.
-
-Do not regenerate golden baselines.
-
-Do not install or upgrade dependencies.
-
-Classify any failure before changing additional code.
-
-⸻
-
-15. Diff discipline
-
-Before finishing, inspect the complete diff against the origin/main SHA from which the branch was created.
-
-The diff must contain only the bounded Phase 2C.5 foundation.
-
-Specifically confirm:
-
-* no Phase 2D implementation;
-* no Databricks/UC/Collibra/Genie code;
-* no unrelated refactor;
-* no infrastructure changes;
-* no frontend changes;
-* no hidden behavior changes to existing SQL execution.
-
-⸻
-
-16. Documentation
-
-Add one small architecture/ADR note only if consistent with the repository’s existing ADR conventions.
-
-It should record that:
-
-* the current SQL data path is now behind DataSourceAdapter;
-* DatabaseTool satisfies the execution-provider seam;
-* MetadataRegistryService satisfies the current governance-provider seam;
-* EffectivePermissions is the extensible authorization-scope foundation;
-* future providers must map into canonical AskTD contracts;
-* no Databricks/Genie/Collibra/Unity implementation was added.
-
-Do not rewrite the enterprise architecture documents.
-
-⸻
-
-17. Stop conditions
-
-STOP instead of making an architecture decision if implementation reveals that:
-
-* removing SqlDataStore coupling requires redesigning SQL semantics;
-* an existing abstraction contradicts the approved provider-agnostic architecture;
-* a new provider-specific choice is required;
-* Phase 2C behavior must change;
-* fine-grained authorization becomes necessary.
-
-Report the exact blocker.
-
-⸻
-
-18. Final verdict
-
-Return exactly one:
-
-PHASE_2C5_IMPLEMENTATION_READY_FOR_INDEPENDENT_REVIEW
-
-or
-
-PHASE_2C5_IMPLEMENTATION_HAS_BLOCKERS
-
-or
-
-PHASE_2C5_IMPLEMENTATION_INSUFFICIENT_EVIDENCE
-
-READY requires:
-
-* bounded implementation complete;
-* existing behavior preserved;
-* contract tests pass;
-* Phase 2A/2B/2C regressions pass;
-* full regression/coverage/golden gates acceptable;
-* diff is scoped;
-* no future provider implementation entered the change.
-
-⸻
-
-19. Git behavior
-
-Implementation may modify files in the new dedicated Phase 2C.5 worktree.
-
-Do NOT:
-
-* merge;
-* deploy;
-* modify main;
-* modify asktd_v2;
-* start Phase 2D.
-
-Do not push automatically unless the normal project workflow explicitly requires a pushed branch for review.
-
-If a push is needed, ask before pushing.
-
-⸻
-
-Required report
-
-Save outside the Git worktree:
-
-/tmp/ASKTD_PHASE_2C5_PROVIDER_ABSTRACTION_IMPLEMENTATION_2026-08-21.md
-
-Include:
-
-1. Repository / Branch Evidence
-2. Discovery Findings Revalidated
-3. DataSourceAdapter Implementation
-4. Orchestrator Decoupling
-5. Existing ExecutionProvider Mapping
-6. Existing GovernanceProvider Mapping
-7. AuthorizationScope Mapping
-8. Configuration Impact
-9. Contract Tests
-10. Regression / Coverage / Golden Results
-11. Diff Against Main
-12. Files Changed
-13. Explicit Out-of-Scope Confirmation
-14. Remaining Risks / Decisions
-15. Final Verdict
-16. Recommended Next Action
-
-At completion report:
-
-* branch;
-* base SHA;
-* current HEAD;
-* files changed;
-* tests;
-* coverage;
-* golden baseline;
-* repository pushed: Yes/No;
-* Phase 2D started: No.
-
-Then STOP.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2_DISCOVERY_COMPLETE
