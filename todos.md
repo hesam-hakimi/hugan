@@ -1,497 +1,411 @@
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2 — IMPLEMENT FINAL CONTAINMENT HARDENING
+We are remediating the existing AskTD Phase 2C.5 provider-abstraction implementation after an independent review.
 
-Continue the SAME existing Repair-5 task.
+The independent verdict was:
 
-Authoritative read-only discovery completed with:
+PHASE_2C5_INDEPENDENT_REVIEW_FAIL
 
-CURRENT_REPAIR_5_BYTES_PRESERVED: YES
-CURRENT_COMPILE_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
-CURRENT_LINT_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
-CURRENT_FULL_UNIT_BASELINE: 1890_PASSING_5_PENDING_5_HISTORICAL_FAILING
-DANGLING_LINK_REPAIR_REQUIRED: YES
-POSIX_CASE_CONTAINMENT_REPAIR_REQUIRED: YES
-COMPETING_ROUTE_REPAIR_REQUIRED: NO
-EXPLAIN_FIXTURE_REPAIR_REQUIRED: YES
-ADDITIONAL_PRODUCTION_FILES_REQUIRED: 0
-ADDITIONAL_TEST_FILES_REQUIRED: 0
-SHARED_SECURITY_PRIMITIVE_SCOPE_REQUIRED: NO
-REPAIR_5_AMENDMENT_2_SCOPE_FROZEN: YES
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2_DISCOVERY_COMPLETE
+The regression suite is green, but the reviewer identified one HIGH architectural issue plus two related contract/test-quality issues.
 
-Do NOT restart Repair 5.
+This is a BOUNDED REMEDIATION.
 
-Do NOT undo, revert, discard, reconstruct, or replace already-valid Repair-5 work.
+Do NOT redesign the application.
 
-This amendment completes the remaining verified defects inside the already-authorized 11-file universe.
+Do NOT commit, push, create a PR, merge, deploy, or start Phase 2D.
+
+Work only in the existing Phase 2C.5 worktree/branch:
+
+phase2/provider-abstraction-foundation
+
+Preserve all existing uncommitted implementation changes.
 
 ⸻
 
-1. EXACT FILES AUTHORIZED FOR THIS AMENDMENT
+1. Independent review findings to remediate
 
-Modify only these three already-authorized files:
+The independent reviewer reported:
 
-src/writers/RepoWriter.ts
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-src/test/suite/configExplain.test.ts
+HIGH — Core dependency inversion is incomplete
 
-All other existing Repair-5 candidate files must remain byte-identical during this amendment.
+orchestrator.py still imports and constructs SqlDataStore.
 
-No new files.
+Therefore:
 
-If any fourth file is required, STOP before editing and return:
+Orchestrator
+   -> SqlDataStore
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
+still exists in production code even though DataSourceAdapter was introduced.
 
-⸻
+The required architecture is:
 
-2. FINDING A — DANGLING LINK CONTAINMENT
+Composition Root / Runtime Wiring
+        |
+        +--> SqlDataStore
+        |
+        v
+Orchestrator
+        |
+        v
+DataSourceAdapter
 
-The read-only discovery classified this as:
+Orchestrator must not know the concrete SqlDataStore type.
 
-PRODUCTION_SECURITY_DEFECT
+Contract surface is broader than necessary
 
-Current behavior:
+The new DataSourceAdapter Protocol contains API details/parameters that are not actually required by the core orchestration dependency.
 
-* PathValidator provides lexical validation.
-* RepoWriter’s physical containment resolution walks upward using existence checks.
-* existsSync follows links.
-* For a dangling symlink, existsSync returns false.
-* The resolver may therefore skip the dangling filesystem object and canonicalize an ancestor instead.
-* A path such as:
-    consumerRoot/docs/file.md
-    → symlink to
-    outside/missing.md
-    can potentially pass containment even though the subsequent filesystem write follows the link outside consumerRoot.
+The contract must be derived strictly from real Orchestrator/core usage.
 
-This can affect all repaired routes that depend on the shared RepoWriter physical containment behavior.
+Do not design it for hypothetical Databricks or future providers.
 
-⸻
+Fake-adapter substitution test is insufficient
 
-3. REQUIRED DANGLING-LINK REPAIR
-
-Repair only the shared physical containment implementation already located in:
-
-src/writers/RepoWriter.ts
-
-Specifically harden the existing:
-
-resolveContainedWorkspacePath(...)
-
-or the exact current equivalent identified by live source.
-
-Requirements:
-
-1. The ancestor walk must detect filesystem objects themselves, including symbolic links/reparse entries, rather than treating a dangling link as nonexistent merely because its target cannot be resolved.
-2. Use an lstat-aware existence/object check for the ancestor walk.
-3. If the candidate path or an ancestor contains a symlink/reparse object whose resolved target cannot be safely canonicalized, FAIL CLOSED.
-4. A dangling link must never be skipped in favor of canonicalizing its parent.
-5. If realpath of the encountered link fails, the destination is invalid.
-6. If a link resolves outside canonical consumerRoot, the destination is invalid.
-7. Do not follow the unsafe path into the write.
-8. Preserve valid in-root symlink behavior only when the resolved physical destination is still contained under the canonical consumerRoot.
-9. Do not weaken the existing lexical/path-shape validation.
-10. Do not modify PathValidator.ts.
+The existing fake-adapter test does not actually exercise the injected factory/composition path strongly enough to prove that Orchestrator can operate without constructing SqlDataStore.
 
 ⸻
 
-4. DANGLING-LINK SECURITY INVARIANT
+2. First verify the findings
 
-Immediately before a write is considered safe:
+Before editing:
 
-logical approved relative path
-+
-canonical consumerRoot
-+
-physical filesystem topology
+1. inspect the complete Phase 2C.5 diff;
+2. locate every SqlDataStore import, type annotation, constructor call, and concrete-type check in orchestrator.py;
+3. identify which are actually part of the orchestration/core dependency;
+4. identify the current runtime composition entry point(s), factory/helper modules, or application bootstrap that already construct dependencies.
 
-must all resolve to a physical destination contained under the same consumerRoot.
+Report the exact evidence before modifying.
 
-A dangling link or unresolved reparse/symlink target must produce a blocked/fail-closed result.
-
-Never interpret:
-
-cannot realpath link
-
-as:
-
-ignore link and continue with parent
+Do not assume the best composition root from this prompt alone.
 
 ⸻
 
-5. FINDING B — POSIX CASE-SENSITIVE CONTAINMENT
+3. Remove concrete SqlDataStore dependency from Orchestrator
 
-The read-only discovery classified this as:
+The final production orchestrator.py must not import SqlDataStore solely to construct or type-check its data source.
 
-PRODUCTION_SECURITY_DEFECT
-
-Current behavior in RepoWriter’s physical containment comparison:
-
-normalized paths are lowercased unconditionally
-
-That is acceptable for the normal Windows path-identity model but incorrect on a case-sensitive POSIX filesystem.
-
-Example:
-
-/ConsumerRoot/file
-/consumerroot/file
-
-must not automatically be treated as the same physical root on Linux/macOS.
-
-⸻
-
-6. REQUIRED PLATFORM-SENSITIVE NORMALIZATION
-
-Modify the existing RepoWriter path normalization/comparison logic only.
-
-Required behavior:
-
-Windows
-
-Case-insensitive comparison remains supported.
-
-Equivalent casing variations may normalize for comparison.
-
-Non-Windows / POSIX
-
-Preserve path case.
-
-Do NOT lowercase canonical filesystem paths.
-
-A case-distinct sibling must not be accepted as a descendant.
-
-Use the runtime platform identity already available in Node, e.g. the established repo convention around:
-
-process.platform === 'win32'
-
-or the exact existing platform helper if one is already used in this file.
-
-Do not introduce a second platform abstraction merely for this repair.
-
-⸻
-
-7. POSIX SECURITY INVARIANT
-
-On a case-sensitive platform:
-
-/consumerRoot
-
-must NOT contain:
-
-/ConsumerRoot/outside
-
-merely because their lowercase strings match.
-
-Physical containment must respect the filesystem’s path identity semantics.
-
-⸻
-
-8. REQUIRED REPOWRITER REGRESSION TESTS
-
-Modify:
-
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-
-Add behavioral regression coverage for both production security defects.
-
-T1 — dangling in-root final-file link to outside missing target
-
-Construct the equivalent topology:
-
-consumerRoot/
-  docs/
-    file.md -> outsideRoot/missing.md
-
-Attempt to resolve/write the logical consumer path.
-
-Assert:
-
-* destination is rejected;
-* outside file is not created;
-* resolver does not skip the dangling link and accept its parent;
-* consumerRoot containment fails closed.
-
-Exercise the real shared RepoWriter containment implementation.
-
-Do not merely assert source text contains lstat.
-
-T2 — dangling link ancestor
-
-Also cover a dangling symlink/reparse entry in an ancestor directory position if the actual resolver permits such a path shape.
-
-Assert fail closed.
-
-T3 — valid physical path regression
-
-A normal non-linked in-root destination remains accepted.
-
-T4 — valid in-root link, if supported by current contract
-
-If the product currently permits a symlink whose physical destination remains inside consumerRoot, verify it remains contained and safe.
-
-Do not add this behavior if current contract intentionally rejects all links.
-
-Follow live-source behavior.
-
-T5 — POSIX case-distinct sibling
-
-On a case-sensitive platform, prove that a case-distinct sibling/root cannot pass physical containment solely because lowercased strings match.
-
-Do not weaken the test on Windows.
-
-If a real cross-platform filesystem fixture cannot deterministically demonstrate POSIX semantics on the Windows developer machine, use the smallest existing injectable/platform-test seam that exercises the actual RepoWriter normalization/comparison function.
-
-Do NOT alter production behavior merely to make the test injectable.
-
-Do NOT silently skip the security assertion without an equivalent deterministic unit-level proof.
-
-T6 — Windows regression
-
-Confirm Windows case-insensitive behavior remains unchanged.
-
-⸻
-
-9. LINK TEST ENVIRONMENT DISCIPLINE
-
-Symlink creation may have host-specific restrictions.
-
-Tests must remain deterministic.
+Move concrete SQL-store creation to the smallest existing composition/runtime wiring boundary supported by repository evidence.
 
 Preferred order:
 
-1. Use actual filesystem symlinks where supported in the test environment.
-2. Reuse an existing filesystem/test seam if the repository already has one.
-3. If a host cannot create the required symlink due to permissions, use a narrowly scoped test double around filesystem metadata resolution that still exercises the real RepoWriter containment algorithm.
+1. reuse an existing application composition/factory/bootstrap module if one already exists;
+2. otherwise introduce one small dedicated factory/composition helper outside orchestrator.py.
 
-Do not:
+Do NOT add a DI framework, plugin system, service locator, or global registry.
 
-* disable the test globally;
-* mark the security test permanently pending;
-* weaken it into a source-text assertion;
-* require administrator privileges as the only test strategy.
+The concrete default may still be:
 
-Always restore any filesystem stub in finally / teardown.
+SqlDataStore
 
-⸻
+but only the outer composition layer should know that.
 
-10. FINDING C — COMPETING ROUTES
+Example conceptual shape:
 
-Discovery classified this as:
+def build_default_data_source(auth_context) -> DataSourceAdapter:
+    return SqlDataStore(auth_context=auth_context)
 
-NON_BLOCKING_DEBT
+and:
 
-No Repair-5 change is authorized for this item.
+Orchestrator(..., data_source_factory=...)
 
-Do not modify routing precedence.
+or another equivalent minimal pattern supported by the existing code.
 
-Do not modify ETLChatParticipant for this finding.
-
-Record as follow-up debt only.
-
-Reason established by discovery:
-
-* only one route dispatches per request;
-* route-owned approval IDs cannot be cross-consumed;
-* WriteAuthorization rejects wrong/mismatched preview state;
-* no approval bypass was found;
-* issue is conversational precedence/stale-state UX, not unauthorized write capability.
+Do not force this exact signature if repository evidence supports a simpler existing pattern.
 
 ⸻
 
-11. FINDING D — EXPLAIN TEMP FIXTURE ISOLATION
+4. Eliminate concrete type checks from core
 
-Discovery classified this as:
+Search for logic such as:
 
-TEST_HARNESS_DEFECT
+isinstance(x, SqlDataStore)
 
-Production impact:
+or equivalent concrete checks in core orchestration.
 
-NONE
+Replace them only where required with capability/contract-based behavior.
 
-Repair only:
+Do not add fake marker methods merely to avoid a type check.
 
-src/test/suite/configExplain.test.ts
-
-Current problem:
-
-* tests use fixed paths under os.tmpdir();
-* concurrent runs may collide;
-* a crashed run may leave stale files/links;
-* one test teardown may remove another run’s fixture;
-* stale state can contaminate evidence.
+If some behavior genuinely cannot be expressed through the current adapter contract without changing semantics, STOP and report it rather than inventing a new architecture.
 
 ⸻
 
-12. REQUIRED EXPLAIN FIXTURE REPAIR
+5. Minimize DataSourceAdapter
 
-Replace fixed shared temp roots with unique per-test/per-run fixtures using an equivalent of:
+Re-derive the Protocol from actual production consumers.
 
-fs.mkdtempSync(...)
+For every Protocol member answer:
 
-under the platform temporary directory.
+Which current core production call requires this member?
 
-Requirements:
+Remove any method/property/argument that exists only:
 
-* each test gets a unique base directory;
-* derive Explain consumer/output roots beneath that unique base;
-* cleanup only that test’s own base;
-* teardown must be resilient;
-* no stale fixture is reused;
-* no global/fixed temp root shared between parallel runs;
-* no production code change.
+* for hypothetical future providers;
+* because SqlDataStore happens to expose it;
+* for tests only;
+* for SQL Server implementation convenience that core does not consume.
 
-Do not create a new test file.
+The Protocol should represent the minimum orchestration-required capability.
 
-⸻
+Do not expose:
 
-13. PRESERVE CURRENT REPAIR-5 CONTRACT
+* SQL Server connection objects;
+* implementation-specific clients;
+* vendor SDK types;
+* speculative Databricks concepts.
 
-Before completing this amendment, confirm the already-implemented Repair-5 behavior remains intact:
-
-* Explain trusted preview → approval → write;
-* Explain root/path/content drift rejection;
-* Explain replay rejection;
-* Artifact Reuse preview → approval → create/patch;
-* Artifact Reuse replay rejection;
-* RepoContext trusted inline authorization;
-* RepoContext manifest hashes actual bytes written;
-* canonical RepoWriter root classification;
-* actual HF1 V2 extension checkout BLOCKED as consumer root;
-* sample_repo BLOCKED;
-* no first-folder write-root fallback in repaired consumer write routes;
-* no remaining REPAIR_5_REQUIRED write route from the exhaustive sweep.
-
-Do not redesign any of these.
+If a SQL-shaped parameter is genuinely part of the existing application abstraction, it may remain, but document why the core actually requires it.
 
 ⸻
 
-14. EXACT SCOPE PROOF
+6. Preserve existing SQL behavior
 
-This amendment should modify exactly:
+Do not change:
 
-src/writers/RepoWriter.ts
-src/test/suite/repoWriterWorkspaceSelection.test.ts
-src/test/suite/configExplain.test.ts
+* SQL text;
+* query recipes;
+* SQL safety;
+* authorization;
+* connection handling;
+* retry behavior;
+* timeouts;
+* result shapes;
+* current source-selection behavior;
+* default Azure SQL/SQL Server runtime behavior.
 
-or fewer if one authorized test file proves unnecessary.
-
-No other candidate byte may change.
-
-At end report:
-
-* files changed during Amendment 2;
-* all other Repair-5 candidate hashes unchanged;
-* new files = 0;
-* staged count = 0.
+This remediation is dependency-direction work only.
 
 ⸻
 
-15. VALIDATION
+7. Strengthen the substitution test
 
-Using only existing local dependencies, run:
+Add or correct a test that exercises the actual production injection/factory path.
 
-npm run compile
-npm run lint
+The test must prove all of the following:
 
-Run focused tests covering:
+1. a fake DataSourceAdapter can be supplied through the supported production seam;
+2. representative Orchestrator behavior uses that fake;
+3. the real SqlDataStore constructor is NOT invoked;
+4. no database connection is attempted;
+5. the fake receives the expected calls;
+6. observable Orchestrator behavior remains correct.
 
-* RepoWriter workspace selection;
-* dangling-link containment;
-* POSIX case-sensitive containment;
-* Explain;
-* Repair 5;
-* HF1;
-* Artifact Reuse;
-* RepoContext;
-* UnitTestCoordinator;
-* WriteAuthorization.
+A strong pattern is acceptable where the test temporarily makes the concrete SqlDataStore construction fail loudly and proves the injected path still succeeds.
 
-Then run the full unit suite.
+Do not overmock the Orchestrator method being tested.
 
-Expected:
+⸻
 
-compile: PASS
-lint: PASS
-focused Repair-5/HF1 tests: PASS
-full unit: exactly 5 historical failures
-new HF1 V2 regressions: NONE
+8. Add a dependency-direction regression test
+
+Add a lightweight test/static assertion ensuring core orchestrator.py does not regress back to a direct concrete SqlDataStore dependency.
+
+Prefer checking behavior/import structure using repository-supported techniques.
+
+Do not create a fragile test based only on formatting or exact line text if an AST/import-level or structural test is straightforward.
+
+The intent to protect is:
+
+Orchestrator depends on DataSourceAdapter, not SqlDataStore.
+
+⸻
+
+9. Re-review the other three seams
+
+Do NOT alter them unless this remediation proves necessary.
+
+Preserve:
+
+* DatabaseTool as the existing execution-provider seam;
+* MetadataRegistryService / RegistrySnapshot as the governance boundary;
+* EffectivePermissions as the authorization-scope foundation.
+
+Do not introduce duplicate wrappers or renamed abstractions.
+
+⸻
+
+10. Explicitly remain out of scope
+
+Do NOT add:
+
+* Databricks adapter;
+* Databricks authentication;
+* Unity Catalog provider;
+* Collibra provider;
+* Genie provider;
+* future-provider stubs;
+* SQL dialect abstraction;
+* provider selector config for nonexistent providers;
+* cross-source joins;
+* Phase 2D recipes;
+* KPI/glossary functionality;
+* Redis;
+* Event Hubs;
+* fine-grained authorization;
+* deployment changes;
+* frontend changes;
+* broad Orchestrator redesign.
+
+⸻
+
+11. ADR consistency
+
+Update the Phase 2C.5 ADR only if needed to accurately describe the corrected dependency direction.
+
+It must not claim that Orchestrator is decoupled if it still imports/constructs the concrete store.
+
+The ADR should describe the actual final structure.
+
+⸻
+
+12. Run focused remediation tests first
+
+Run:
+
+* provider-abstraction contract tests;
+* Orchestrator-adjacent tests;
+* SQL datastore tests;
+* new substitution/dependency-direction tests.
+
+Inspect assertions, not just pass counts.
+
+⸻
+
+13. Run all existing acceptance gates again
+
+After the remediation:
+
+1. Phase 2A/2B/2C focused regression;
+2. MetadataRegistryService integration tests;
+3. authorization regressions;
+4. SQL datastore/orchestrator-adjacent regressions;
+5. golden baseline;
+6. full backend regression;
+7. configured coverage gate;
+8. git diff --check.
+
+Historical pre-remediation results were:
+
+* Phase 2A/2B/2C: 142 passed
+* MetadataRegistryService: 11 passed
+* authorization: 61 passed
+* SQL/orchestrator adjacent: 118 passed
+* golden: 10 passed
+* full backend: 886 passed, 3 skipped
+* coverage: 86.64%
+
+Investigate legitimate count changes instead of forcing these exact totals.
 
 Do not regenerate baselines.
 
-⸻
-
-16. FINAL PHYSICAL-CONTAINMENT ADVERSARIAL CHECK
-
-Before declaring Repair 5 complete, explicitly reason through and/or test:
-
-1. normal in-root file;
-2. .. traversal;
-3. absolute path;
-4. sibling-root path;
-5. symlink from in-root file to outside existing file;
-6. symlink from in-root file to outside missing/dangling target;
-7. linked ancestor directory escaping root;
-8. case-distinct sibling on POSIX;
-9. case variation on Windows;
-10. normal valid consumer destination after all hardening.
-
-There must be no path where an approved logical artifact can physically write outside canonical consumerRoot.
+Do not install/upgrade dependencies.
 
 ⸻
 
-17. FINAL WRITE-ROUTE SWEEP
+14. Final dependency audit
 
-Repeat the exhaustive read-only write-route sweep.
+Before finishing, explicitly search production code and report:
 
-There must be:
+Orchestrator
 
-REPAIR_5_REQUIRED routes: 0
+* direct SqlDataStore import: Yes/No
+* direct SqlDataStore(...) construction: Yes/No
+* SqlDataStore concrete type annotation: Yes/No
+* concrete isinstance(..., SqlDataStore) dependency: Yes/No
 
-Competing-route UX debt may remain NON_BLOCKING_DEBT.
+For a successful remediation, all core dependency answers above should be No, unless a clearly justified non-core compatibility case is identified and explained.
 
-Do not convert it into a blocker unless new evidence demonstrates an actual approval/root/write bypass.
+Outer composition layer
+
+Report exactly where the default concrete SqlDataStore is now constructed.
+
+That location must be outside the core Orchestrator dependency.
 
 ⸻
 
-18. FINAL REPORT
+15. Diff audit
 
-Return:
+Inspect the complete diff against the original Phase 2C.5 base SHA.
 
-1. Dangling-link root cause and exact fix.
-2. Why lstat-aware handling closes the dangling-link escape.
-3. POSIX case root cause and exact platform-sensitive fix.
-4. Windows behavior preservation.
-5. Physical containment regression matrix.
-6. Explain fixture isolation repair.
-7. Confirmation competing routes remain non-blocking and untouched.
-8. Current Repair-5 lifecycle preservation.
-9. Compile result.
-10. Lint result.
-11. Focused test result.
-12. Full-unit result.
-13. Exhaustive write-route sweep result.
-14. Exact changed-file scope.
-15. Staged/new-file count.
-16. Historical-five separation.
+Classify every changed file.
 
-Finish exactly one:
+Confirm:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_VALIDATED
+* changes remain Phase 2C.5 only;
+* no unrelated cleanup entered;
+* no future-provider implementation entered;
+* the remediation did not broaden scope.
+
+⸻
+
+16. Final verdict
+
+Return exactly one:
+
+PHASE_2C5_REMEDIATION_READY_FOR_RE_REVIEW
 
 or
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+PHASE_2C5_REMEDIATION_HAS_BLOCKERS
 
 or
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
+PHASE_2C5_REMEDIATION_INSUFFICIENT_EVIDENCE
 
-or
+READY requires:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_BLOCKED
+* Orchestrator no longer constructs/imports the concrete SQL store at the core seam;
+* Protocol is minimal and justified by actual consumers;
+* substitution test proves the production injection path;
+* dependency-direction regression protection exists;
+* behavior remains unchanged;
+* all relevant regression gates pass;
+* no scope expansion occurred.
 
-Do not Keep.
-Do not commit.
-Do not push.
-Do not package.
-Do not install a VSIX.
-Stop after the final report.
+⸻
+
+17. Do not finalize Git workflow
+
+Do NOT:
+
+* commit;
+* push;
+* create PR;
+* merge;
+* deploy.
+
+The corrected implementation must undergo another independent read-only review first.
+
+⸻
+
+Required report
+
+Save outside the worktree:
+
+/tmp/ASKTD_PHASE_2C5_REMEDIATION_2026-08-21.md
+
+Include:
+
+1. Independent Review Findings Reproduced
+2. Root Cause
+3. Concrete Dependency Removal
+4. Composition Root / Factory Result
+5. DataSourceAdapter Contract Reduction
+6. Substitution Test Improvement
+7. Dependency-Direction Regression Test
+8. Other Existing Provider Seams
+9. ADR Changes
+10. Validation Results
+11. Full Diff Inventory
+12. Scope Audit
+13. Remaining Findings
+14. Final Verdict
+15. Recommended Next Action
+
+At completion report:
+
+* Repository files changed by remediation: list
+* Git commit created: No
+* Branch pushed: No
+* PR created: No
+* Phase 2D started: No
+
+Then STOP.
