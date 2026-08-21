@@ -1,910 +1,558 @@
-LOCAL_HOTFIX_HF1_V2_REPAIR_5 — CLOSE ALL REMAINING CONSUMER WRITE ROUTES
+We are performing the FINAL INDEPENDENT ACCEPTANCE AUDIT for AskTD Program Phase 2C.
 
-Implement the bounded Repair 5 using the authoritative completed scope discovery:
+This is a READ-ONLY ACCEPTANCE REVIEW.
 
-ALL_LIVE_CONSUMER_WRITE_ROUTES_ENUMERATED: YES
-ADDITIONAL_UNGATED_WRITE_ROUTE_BEYOND_AUDIT_TWO: YES
-EXPLAIN_WRITE_REPAIR_REQUIRED: YES
-ARTIFACT_REUSE_WRITE_REPAIR_REQUIRED: YES
-FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: NO
-REPAIR_5_SCOPE_FROZEN: YES
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_DISCOVERY_COMPLETE
+Do not modify code, tests, documentation, configuration, Git state, or PR state.
 
-This Repair closes exactly three remaining consumer-workspace write findings:
+Do not fix anything during this audit.
 
-A. ExplainCoordinator.handleSaveExplain()
-B. Artifact Reuse preview/apply-create/apply-patch flow
-C. RepoContextInitializer / initializeRepoContext consumer write
+Do not start Phase 2D.
 
-Do not redesign the already-secure HF1 V2 routes.
+⸻
 
-Do not change framework-binding behavior.
+1. Current known state
 
-==================================================
-0. ONE CONSOLIDATED AUTHORIZATION REQUEST
-==================================================
+Repository:
 
-Before the first edit or mutating validation command, request one consolidated authorization covering:
+TD-Enterprise/kmai-td-genie
 
-- edits only to the nine authorized files listed below;
-- local compile/lint/tests using already-installed dependencies;
-- read-only inspection needed to verify the implementation;
-- no Git mutation;
-- no install/download;
-- no VSIX packaging/install;
-- no consumer repository mutation outside test-managed temporary fixtures.
+Phase 2C PR:
 
-Ask for exactly:
+#14
 
-APPLY_LOCAL_HOTFIX_HF1_V2_REPAIR_5
+Expected head branch:
 
-After receiving it, do not repeatedly request conversational authorization for operations already inside this bounded batch.
+phase2/semantic-plan-contract-validator
 
-Host-enforced permission dialogs must not be bypassed.
+Expected PR base:
 
-==================================================
-1. EXACT AUTHORIZED PRODUCTION FILES
-==================================================
+main
 
-Repair 5 may modify only these six production files:
+The Phase 2C branch was recently rebased onto the integrated main after Phase 2A and Phase 2B were merged.
 
-1.
-src/chat/ExplainCoordinator.ts
+The most recently reported rebased Phase 2C HEAD was approximately:
 
-2.
-src/chat/ArtifactReuseConversationCoordinator.ts
+1c09f41
 
-3.
-src/chat/ETLChatParticipant.ts
+Do not trust that SHA blindly. Verify the actual current local and remote HEAD.
 
-4.
-src/core/artifacts/ArtifactActionCoordinator.ts
+Previous independent discovery found all Phase 2C remediation requirements R1-R8:
 
-5.
-src/extension.ts
+FIXED_AND_COVERED
 
-6.
-src/customization/RepoContextInitializer.ts
+Previous focused regression:
 
-No other production file may be modified.
+141 passed
 
-IMPORTANT:
-ArtifactActionCoordinator.ts was included by discovery because approval identity may need to be threaded through dispatch.
+Previous post-rebase validation reported:
 
-Before editing it, confirm from live source that the edit is actually required.
+* focused Phase 2C suite: 141/141 passed
+* full backend suite: 877 passed
+* coverage: approximately 86.5%
+* golden baseline: 10/10
+* git diff --check: clean
 
-If it is not required, leave it byte-identical.
+This audit must independently verify the current state rather than simply accepting those reports.
 
-Do not edit a file merely because it appears in the allowed set.
+⸻
 
-==================================================
-2. EXACT AUTHORIZED TEST FILES
-==================================================
+2. Audit objective
 
-Modify only these three test files:
+Determine whether Phase 2C now satisfies all code, test, integration, compatibility, and repository-state requirements for a final acceptance:
 
-1.
-src/test/suite/configExplain.test.ts
+PASS
 
-2.
-src/test/suite/artifactReuseConversation.test.ts
+The audit must answer:
 
-3.
-src/test/suite/repoContextInit.test.ts
+Is Phase 2C technically ready to be marked Ready for Review and proceed through normal PR approval/merge, without additional Phase 2C remediation?
 
-Do not create a new test file.
+⸻
 
-==================================================
-3. NO NEW FILES
-==================================================
+3. Repository and PR identity verification
 
-NEW FILES AUTHORIZED:
+Before evaluating implementation, verify:
 
-0
+* repository identity;
+* current Phase 2C worktree path;
+* branch name;
+* local HEAD SHA;
+* remote branch HEAD SHA;
+* origin/main SHA;
+* branch ahead/behind state relative to remote;
+* working-tree status;
+* staged files;
+* unstaged files;
+* untracked files.
 
-If implementation genuinely requires another production or test file, STOP before editing it and report:
+Verify that:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
+* PR #14 head is phase2/semantic-plan-contract-validator;
+* PR #14 base is now main;
+* Phase 2A is present in main;
+* Phase 2B is present in main;
+* Phase 2C is additive to integrated main;
+* PR #14 does not still structurally depend on unmerged PR #11 or #12.
 
-==================================================
-4. REUSE EXISTING TRUSTED INFRASTRUCTURE
-==================================================
+If GitHub credentials/API access are unavailable, use local/remote Git evidence and clearly identify the GitHub fields that could not be independently observed.
 
-Do not create:
+Do not alter the PR.
 
-- another root classifier;
-- another approval store;
-- another WriteAuthorization implementation;
-- another security state machine.
+⸻
 
-Reuse the existing trusted HF1 V2 infrastructure:
+4. Phase 2C authoritative acceptance requirements
 
-RepoWriter
-RepoWriter.resolveWorkspacePath()
-PathValidator
-TrustedWriteApprovalStore
-requestWriteAuthorization(...)
-requestInlineWriteAuthorization(...)
-WriteAuthorization
-existing manifest/checksum primitives
-existing markConsumed/fail state transitions
+Audit all eight requirements independently.
 
-The design principle for every consumer write remains:
+Use one of these verdicts for each:
 
-resolve canonical consumerRoot
-→ reject prohibited/reference/source roots
-→ validate contained relative artifact path
-→ immutable preview
-→ explicit approval
-→ trusted one-time authorization
-→ immediate containment re-check
-→ exactly one filesystem mutation
+* PASS
+* FAIL
+* INSUFFICIENT_EVIDENCE
 
-==================================================
-5. NORMAL QA ROOT CONTRACT
-==================================================
+R1 — Canonical hierarchy cannot be bypassed
 
-For all three repaired flows:
+Verify:
 
-exactly one legitimate consumer folder
-→ canonical consumerRoot
-
-zero workspace folders
-→ BLOCKED
-
-one prohibited/reference/source/install root
-→ BLOCKED
-
-sample_repo as sole root
-→ BLOCKED
-
-multiple folders without explicit safe selection
-→ ambiguous / BLOCKED
-
-Never use:
-
-workspaceFolders[0]
-workspaceFolders?.[0]
-
-as a consumer-write root.
-
-Never infer:
-
-"the folder that is not extension/framework must be consumer"
-
-All root decisions must reuse RepoWriter.resolveWorkspacePath() or an exact trusted delegation to it.
-
-==================================================
-6. FINDING A — EXPLAIN SAVE
-==================================================
-
-Repair:
-
-ExplainCoordinator.handleSaveExplain()
-
-Current problem:
-
-- naive first-folder root selection;
-- no protected-root classification;
-- direct write;
-- no trusted preview/approval/WriteAuthorization lifecycle.
-
-Required final behavior:
-
-FIRST SAVE REQUEST
-
-resolve canonical consumerRoot
-→ validate destination/path
-→ construct immutable manifest
-→ requestWriteAuthorization(...)
-→ preview record created
-→ persist opaque preview ID
-→ return approval-required state
-→ zero filesystem writes
-
-SECOND TURN WITH APPROVED PREVIEW
-
-same canonical consumerRoot
-+ same relative path
-+ same bytes/content
-+ valid approved preview
-→ authorization accepted
-→ immediately re-check containment
-→ exactly one write
-→ mark approval consumed
-→ clear persisted pending preview identity
-
-REPLAY
-
-same consumed preview
-→ rejected
-→ zero additional writes
-
-CANCEL / DECLINE
-
-→ zero writes
-
-==================================================
-7. EXPLAIN STATE
-==================================================
-
-Inside:
-
-src/chat/ExplainCoordinator.ts
-
-the discovery authorized adding exactly the minimum optional state to ExplainOutput:
-
-pendingWriteApprovalId?: string
-
-or the exact equivalent naming already established by the implementation.
+ProductGroup -> Schema -> Dataset -> Field
 
 Requirements:
 
-- opaque string only;
-- optional;
-- backwards-compatible;
-- no WriteAuthorization object;
-- no approval-store record;
-- no privileged runtime capability;
-- no writer instance.
+* every canonical Dataset resolves to exactly one Schema;
+* every Schema resolves to exactly one Product Group;
+* canonical datasets cannot silently use schema_id=None;
+* hierarchy is validated by stable IDs;
+* dataset/table names are not used to infer hierarchy.
 
-Do not persist anything more powerful than the preview/approval identity required to resume the trusted lifecycle.
+⸻
 
-==================================================
-8. EXPLAIN PATH SAFETY
-==================================================
+R2 — Legacy hierarchy-less input is adapted before canonical validation
 
-Explain save must reject:
+Verify:
 
-- absolute paths;
-- drive-qualified paths;
-- `..` traversal;
-- normalized consumerRoot escape;
-- sibling-root escape;
-- extension root;
-- framework/reference root;
-- sample_repo.
+* legacy compatibility occurs at an explicit adapter boundary;
+* deterministic fallback hierarchy is used where required;
+* canonical validation is not weakened;
+* canonical hierarchy-less datasets cannot bypass validation.
 
-Immediately before the real write:
+⸻
 
-final target must still be a descendant of the same canonical consumerRoot approved in Preview.
+R3 — registry_version identifies the complete governed snapshot
 
-The approved relative path must be the path written.
+Verify that version identity covers applicable governed content including:
 
-Do not independently reconstruct a different destination after approval.
+* Product Groups;
+* Schemas;
+* Datasets;
+* Fields;
+* Relationships;
+* owners;
+* roles;
+* sources;
+* intents/questions;
+* other lifecycle-relevant semantic records.
 
-==================================================
-9. FINDING B — ARTIFACT REUSE
-==================================================
+Verify that it is:
 
-Repair the flow:
+* deterministic;
+* order-independent;
+* based on canonical semantic content;
+* independent of file path;
+* independent of runtime timestamp;
+* independent of machine/environment-specific values.
 
-ArtifactReuseConversationCoordinator
-→ ArtifactActionCoordinator
-→ NewArtifactWriter / ArtifactPatchApplier
+Confirm the historical seed-byte-only defect is no longer present.
 
-The low-level writers and PathValidator are already trusted/contained.
+⸻
 
-Do NOT modify:
+R4 — Explicit scope cannot contradict dataset-derived hierarchy
 
-NewArtifactWriter.ts
-ArtifactPatchApplier.ts
-PathValidator.ts
-RepoWriter.ts
-TrustedWriteApprovalStore.ts
-WriteAuthorization.ts
+Verify the deterministic semantic-plan validator derives hierarchy from selected datasets and rejects contradictory:
 
-The defect is above them:
+* schema_refs;
+* product_group_refs.
 
-- root selected naively before session creation;
-- root persisted without canonical consumer classification;
-- conversational confirmation is weaker than trusted authorization;
-- no immutable one-time approval binding;
-- no root/path/content drift protection equivalent to HF1 V2.
+Caller-declared scope must not override actual dataset hierarchy.
 
-==================================================
-10. ARTIFACT REUSE ROOT RESOLUTION
-==================================================
+⸻
 
-At:
+R5 — Fields / grain / time references belong to selected datasets
 
-ETLChatParticipant.startArtifactReuseSession(...)
+Verify:
 
-replace naive workspaceFolders[0]-style root selection with the canonical RepoWriter resolution.
+* selected fields belong to selected datasets;
+* grain fields belong to selected datasets;
+* time fields belong to selected datasets;
+* existence in a candidate or unrelated dataset is insufficient;
+* relationship endpoints referenced by the plan are constrained to selected scope where required.
 
-Before ArtifactReuseSessionState is created:
+⸻
 
-resolve canonical root.
+R6 — Cross-ProductGroup relationships require explicit governance
 
-If resolution is:
+Verify:
 
-BLOCKED
-ambiguous
-no_workspace
-prohibited/reference/source root
+* relationships are represented by explicit governed RelationshipRecords;
+* relationships are never inferred from similar names;
+* source/target dataset and field endpoints are validated;
+* cross-Schema relationships are explicitly governed;
+* cross-ProductGroup relationships are explicitly governed;
+* positive and negative tests exist;
+* relationship existence does not grant authorization.
 
-then do not create a writable Artifact Reuse session.
+⸻
 
-No consumer mutation may later occur from an unresolved or prohibited root.
+R7 — Classification metadata is not authorization
 
-==================================================
-11. ARTIFACT REUSE STATE
-==================================================
+Verify that:
 
-Inside:
+* PII;
+* PCI;
+* security/sensitivity classification;
+* key indicators;
+* business metadata;
 
-ArtifactReuseConversationCoordinator.ts
+remain governance/classification metadata.
 
-add only the minimum optional opaque identity:
+They must not implicitly create user authorization.
 
-pendingWriteApprovalId?: string
+Do not require implementation of future fine-grained authorization.
 
-to ArtifactReuseSessionState.
+⸻
 
-Same restrictions as Explain:
+R8 — Registry cache concurrency contract is resolved
 
-- opaque identifier only;
-- optional;
-- no privileged capability;
-- no raw authorization object;
-- no approval-store record;
-- backwards compatible.
+Verify implementation, ADR/documentation, and tests agree on:
 
-==================================================
-12. ARTIFACT REUSE PREVIEW/APPLY LIFECYCLE
-==================================================
+* bounded capacity;
+* deterministic FIFO semantics;
+* thread safety;
+* idempotent registration;
+* conflicting-version handling;
+* deterministic eviction metrics/counts under the ratified concurrent test.
 
-The conversational flow already has natural preview/apply turns.
+Confirm this is no longer an unresolved production or contract defect.
 
-Integrate those turns with the trusted approval store.
+⸻
 
-PREVIEW TURN
+5. Inspect exact implementation and test evidence
 
-- canonical consumerRoot already resolved;
-- patch/create plan computed;
-- artifact path/content/operation captured;
-- construct trusted immutable manifest;
-- call requestWriteAuthorization(...)
-- create preview record;
-- persist pendingWriteApprovalId;
-- render preview;
-- zero filesystem mutations.
+For every R1-R8 report:
 
-APPLY_PATCH / APPLY_CREATE TURN
+* implementation file;
+* relevant symbol/function/class;
+* test file;
+* important test names;
+* behavior observed;
+* verdict.
 
-- use stored opaque preview identity;
-- re-resolve/re-verify consumerRoot;
-- verify operation;
-- verify relative path;
-- verify content/patch identity;
-- verify approval;
-- immediately re-check containment;
-- perform exactly intended mutation;
-- mark consumed;
-- clear pending preview identity.
+Do not rely on test names alone.
 
-REPLAY
+Read the important assertions and implementation paths.
 
-→ rejected
-→ zero additional mutations.
+⸻
 
-CANCEL
+6. Phase 2A / Phase 2B compatibility
 
-→ zero mutations.
+Verify Phase 2C has not broken accepted parent behavior.
 
-==================================================
-13. ARTIFACTACTIONCOORDINATOR
-==================================================
+At minimum inspect/run existing tests covering:
 
-If required by the real call graph, thread the opaque preview ID / resolved authorization information through:
+Phase 2A
 
-src/core/artifacts/ArtifactActionCoordinator.ts
+* registry contract/schema-version compatibility;
+* strict canonical validation;
+* existing runtime compatibility.
 
-only as necessary to reach the existing apply dispatch.
+Phase 2B
 
-Do not put approval logic into NewArtifactWriter or ArtifactPatchApplier.
+* MetadataRegistryService;
+* RegistrySnapshotCache;
+* version lookup;
+* retention;
+* invalidation;
+* metrics;
+* immutable/deep-copy behavior;
+* strict-off behavior;
+* concurrency behavior.
 
-Do not invent a second authorization state machine.
+Confirm Phase 2C did not regress the parent contracts.
 
-If live source proves no ArtifactActionCoordinator change is needed, leave this file untouched and explain why in the final report.
+⸻
 
-==================================================
-14. ARTIFACT REUSE DRIFT CHECKS
-==================================================
+7. MetadataRegistryService wiring
 
-Between Preview and Apply, reject:
+Explicitly verify the service-level path connecting:
 
-consumerRoot drift
-relative path drift
-operation drift
-artifact content drift
-patch drift
-target drift
-consumed/replayed preview
-expired/stale approval
+MetadataRegistryService
+→ RegistrySnapshot
+→ registry/cache/version boundary
+→ Governed Semantic Plan validation
 
-No stale preview may apply a different create or patch operation.
+Locate and run the existing integration/service tests that exercise this wiring.
 
-==================================================
-15. FINDING C — REPO CONTEXT INITIALIZER
-==================================================
+Confirm Phase 2C is not proven only through isolated unit tests.
 
-Repair the consumer-write route:
+If the repository has no service-level coverage for an important required path, report that as an acceptance finding rather than automatically writing a new test.
 
-RepoContextInitializer.initialize(...)
+⸻
 
-reached through both identified call sites:
+8. Focused Phase 2C regression
 
-- extension command path
-- ETLChatParticipant command path
+Run the existing focused suite:
 
-This is a distinct consumer-write feature and is in scope even though it shares ScaffoldedAssetWriter with separately excluded Copilot workflow customization code.
+PYTHONDONTWRITEBYTECODE=1 python -m pytest \
+  test/test_registry_cache.py \
+  test/test_registry_contract.py \
+  test/test_registry_hierarchy_contract.py \
+  test/test_semantic_plan_contract.py \
+  -p no:cacheprovider -q -c /dev/null
 
-Do NOT modify the excluded Copilot workflow customization family.
+Expected historical baseline:
 
-Do NOT touch the three historical Copilot customization failures.
+141 passed
 
-==================================================
-16. REPO CONTEXT ROOT SELECTION
-==================================================
+Report actual result.
 
-Both callers must resolve the target through the same canonical RepoWriter consumer-root contract.
+If the count differs, investigate and explain.
 
-Remove any naive:
+Do not modify tests.
 
-workspaceFolders[0]
+⸻
 
-or QuickPick result that is accepted without canonical root classification.
+9. Full backend regression and coverage
 
-If the selected candidate is:
+Run the repository-supported full backend suite exactly according to repository instructions.
 
-sample_repo
-framework/reference/source/install root
-ambiguous
-invalid/external
+Verify:
 
-→ BLOCKED
-→ zero writes.
+* test pass/fail/skip totals;
+* coverage;
+* required coverage threshold;
+* whether any failures are Phase 2C related;
+* whether skipped tests are expected/pre-existing.
 
-For multi-root selection:
+Historical post-rebase evidence reported approximately:
 
-a UI-selected folder still must pass canonical RepoWriter classification before it can become consumerRoot.
+877 passed
 
-Selection does not itself make a root trusted.
+and approximately:
 
-==================================================
-17. REPO CONTEXT AUTHORIZATION MODEL
-==================================================
+86.5% coverage
 
-The discovery concluded this flow is synchronous:
+Do not treat those numbers as mandatory if current repository evidence legitimately differs.
 
-preview
-→ modal confirmation
-→ initialize/write
+The important requirement is a clean acceptable repository gate with coverage above the repository-required threshold.
 
-within one invocation.
+⸻
 
-Therefore use the existing:
+10. Golden baseline
 
-requestInlineWriteAuthorization(...)
+Run the existing applicable offline/golden baseline defined by the repository/ADR.
 
-or the exact existing single-shot trusted helper designed for this shape.
+Verify that Phase 2C did not change expected existing application behavior unexpectedly.
 
-Replace the current:
+Report exact result.
 
-{ approved: boolean }
+Do not regenerate or update golden baselines.
 
-or equivalent plain-boolean security gate.
+⸻
 
-RepoContextInitializer.initialize() must consume a resolved trusted authorization shape rather than trusting a caller-provided boolean.
+11. Static / repository hygiene gates
 
-Do not allow:
+Run existing safe checks including:
 
-initialize(..., { approved: true })
+* git diff --check;
+* repository-supported tracked-file secret scan, if available;
+* any Phase 2C-required static validation already defined by repository instructions.
 
-to become a writable capability.
+Do not install new scanners or dependencies.
 
-==================================================
-18. REPO CONTEXT WRITE SAFETY
-==================================================
+⸻
 
-Before ScaffoldedAssetWriter writes:
+12. Diff audit against current main
 
-- consumerRoot must be canonical and approved;
-- generated relative path must be validated;
-- final target containment must be rechecked;
-- protected/reference/source roots must remain blocked;
-- approval must bind the exact write;
-- one user approval must authorize only the intended operation.
+Inspect:
 
-No raw boolean approval.
+origin/main...phase2/semantic-plan-contract-validator
 
-No first-folder fallback.
+Confirm the PR contains only intended Phase 2C changes.
 
-No cross-root write.
+Specifically check:
 
-==================================================
-19. EXTENSION COMMAND
-==================================================
+* no duplicate Phase 2A implementation;
+* no duplicate Phase 2B implementation;
+* no Databricks implementation;
+* no Genie implementation;
+* no Collibra implementation;
+* no Redis/Event Hubs work;
+* no Phase 2D recipes;
+* no fine-grained authorization implementation;
+* no unrelated refactoring;
+* no accidental local artifacts;
+* no deployment/runtime infrastructure changes outside Phase 2C.
 
-Modify:
+Confirm docs/adr/README.md is reconciled with the integrated ADR history.
 
-src/extension.ts
+⸻
 
-only for the identified initializeRepoContext command route.
+13. Documentation consistency
 
-Responsibilities:
+Review:
 
-- canonical root resolution;
-- fail-closed behavior;
-- trusted inline preview/approval flow;
-- pass trusted resolved authorization to RepoContextInitializer.
+* Phase 2C ADR;
+* registry/cache ADR where relevant;
+* Phase 2C code;
+* Phase 2C tests.
 
-Do not modify unrelated extension activation or command behavior.
+Identify any material documentation-versus-code mismatch.
 
-==================================================
-20. ETLCHATPARTICIPANT
-==================================================
+Important:
 
-Modify:
+The PR description may still contain historical wording such as:
 
-src/chat/ETLChatParticipant.ts
+* BLOCKED BY PR #12
+* TRANSITIVELY BLOCKED BY PR #11
+* DO NOT MERGE
 
-only for:
+Those statements may now be stale because PR #11 and PR #12 have been integrated.
 
-A. Artifact Reuse session root selection.
+Classify stale PR-description text separately from implementation defects.
 
-B. RepoContext initialization command root selection / trusted authorization integration.
+Do not edit the PR description in this audit.
 
-Do not modify unrelated routing/planning behavior.
+⸻
 
-Do not repair the existing non-blocking multi-root observability debt in this task.
+14. Security / scope boundary
 
-==================================================
-21. DO NOT FOLD THESE INTO RENDEREDARTIFACTS
-==================================================
+Verify Phase 2C still respects these architectural boundaries:
 
-Discovery confirmed there is no literal "12 artifact" constant.
+* metadata does not grant authorization;
+* deterministic validation does not execute SQL;
+* deterministic validation does not call an LLM;
+* deterministic validation does not execute tools;
+* Phase 2C does not introduce provider coupling;
+* Phase 2C does not implement Phase 2D recipe execution.
 
-The governed /create artifact shape is represented by RenderedArtifacts.
+⸻
 
-Explain output, Artifact Reuse generated/modified artifacts, and RepoContext output are separately generated consumer-workspace artifacts.
+15. Final acceptance decision
 
-Do NOT fold them into:
+Return exactly ONE final verdict:
 
-RenderedArtifacts
-buildWriteManifestFiles
-/create artifact ordering
+PASS
 
-Do not make them an artificial "13th artifact".
+PHASE_2C_FINAL_INDEPENDENT_ACCEPTANCE_PASS
 
-Each receives the smallest independent trusted authorization adapter while reusing the same underlying security infrastructure.
+Use only if:
 
-==================================================
-22. CONFIGEXPLAIN TESTS
-==================================================
+* R1-R8 all PASS;
+* parent compatibility is acceptable;
+* service integration is acceptable;
+* focused tests pass;
+* full regression/coverage gate passes;
+* golden baseline passes;
+* repository hygiene passes;
+* current diff is Phase 2C-only;
+* no remaining technical Phase 2C blocker exists.
 
-In:
+FAIL
 
-src/test/suite/configExplain.test.ts
+PHASE_2C_FINAL_INDEPENDENT_ACCEPTANCE_FAIL
 
-extend the existing Explain command suite.
+Use if a concrete implementation, regression, contract, test, or integration defect remains.
 
-Required behavioral tests:
+INSUFFICIENT
 
-E1 — first save request:
-preview/approval required
-zero writes
+PHASE_2C_FINAL_INDEPENDENT_ACCEPTANCE_INSUFFICIENT_EVIDENCE
 
-E2 — approved second request:
-exactly one write
-inside canonical consumerRoot
+Use only if an essential acceptance gate cannot actually be verified.
 
-E3 — replay:
-zero additional writes
+⸻
 
-E4 — decline/cancel:
-zero writes
+16. Important distinction: technical acceptance vs PR workflow
 
-E5 — sole sample_repo/reference root:
-BLOCKED
-zero writes
+Do not fail technical Phase 2C acceptance merely because:
 
-E6 — multi-root with no explicit safe selection:
-BLOCKED
-zero writes
+* PR #14 is still Draft;
+* no reviewer has approved it yet;
+* the PR description contains stale stack wording;
+* GitHub CI has not yet run on the newly retargeted PR.
 
-E7 — no first-folder fallback:
-put an attractive folder at index 0
-still BLOCKED if selection is ambiguous
+Those are PR/workflow states.
 
-E8 — absolute path rejected
+However, clearly list them under:
 
-E9 — traversal rejected
+Post-Acceptance PR Actions
 
-E10 — sibling-root escape rejected
+The acceptance verdict should answer whether the Phase 2C implementation itself is technically ready to proceed to normal PR review.
 
-E11 — re-verify containment immediately before write
+⸻
 
-Use real production behavior.
+17. Required output report
 
-Use existing mintTestWriteAuthorization test infrastructure only as intended.
+Save the Markdown report outside the Git worktree as:
 
-Do not fabricate a production WriteAuthorization object.
+/tmp/ASKTD_PHASE_2C_FINAL_INDEPENDENT_ACCEPTANCE_2026-08-21.md
 
-==================================================
-23. ARTIFACT REUSE TESTS
-==================================================
+Use these sections:
 
-In:
+1. Repository / Branch / PR Evidence
+2. Executive Acceptance Verdict
+3. R1-R8 Acceptance Matrix
+4. Detailed R1-R8 Evidence
+5. Phase 2A Compatibility
+6. Phase 2B Compatibility
+7. MetadataRegistryService Integration Evidence
+8. Focused Test Results
+9. Full Regression and Coverage
+10. Golden Baseline
+11. Static / Hygiene Gates
+12. Diff Against Main
+13. Documentation vs Code
+14. Security and Phase Boundary Review
+15. Remaining Technical Blockers
+16. Post-Acceptance PR Actions
+17. Final Recommendation
 
-src/test/suite/artifactReuseConversation.test.ts
+If PASS, Post-Acceptance PR Actions should state the precise safe sequence, expected to be approximately:
 
-required behavioral tests:
+1. update stale PR #14 description if appropriate;
+2. allow/trigger PR CI against main;
+3. mark PR #14 Ready for Review;
+4. obtain required independent approval;
+5. confirm all required checks are green;
+6. merge PR #14;
+7. confirm Phase 2C exists in main;
+8. only then consider the planned provider-abstraction foundation before Phase 2D.
 
-A1 — preview produces zero writes
+Do NOT perform those actions.
 
-A2 — approved create performs exactly one contained write
+⸻
 
-A3 — approved patch performs exactly intended contained mutation
+18. Mutation prohibition
 
-A4 — replay cannot apply again
+This audit is strictly read-only.
 
-A5 — cancel performs zero mutations
+Do not:
 
-A6 — sample_repo/reference root BLOCKED
+* edit files;
+* commit;
+* push;
+* force-push;
+* rebase;
+* merge;
+* change PR base;
+* edit PR description;
+* mark Ready for Review;
+* approve;
+* deploy;
+* start Phase 2D.
 
-A7 — framework/source/install root BLOCKED
+At completion explicitly report:
 
-A8 — multi-root ambiguity BLOCKED
+* Repository files changed: No
+* Git state changed: No
+* PR state changed: No
+* Phase 2D started: No
 
-A9 — no first-folder fallback
-
-A10 — consumerRoot drift after preview rejected
-
-A11 — relative path drift rejected
-
-A12 — content/create drift rejected
-
-A13 — patch drift rejected
-
-A14 — absolute path escape rejected
-
-A15 — traversal rejected
-
-A16 — sibling-root escape rejected
-
-A17 — every actual mutation remains inside canonical consumerRoot
-
-Exercise the real conversational coordinator and existing low-level writers.
-
-==================================================
-24. REPO CONTEXT TESTS
-==================================================
-
-In:
-
-src/test/suite/repoContextInit.test.ts
-
-update existing initialize() call sites for the trusted authorization contract.
-
-Required behavioral coverage:
-
-R1 — preview/confirmation + valid trusted inline authorization permits exactly intended initialization write
-
-R2 — no approval → zero writes
-
-R3 — plain `{ approved: true }`-style capability no longer authorizes a write
-
-R4 — sample_repo sole root BLOCKED
-
-R5 — framework/reference/source root BLOCKED
-
-R6 — multi-root selected candidate still must pass root classification
-
-R7 — no first-folder fallback
-
-R8 — traversal/escape rejected
-
-R9 — final write contained in canonical consumerRoot
-
-R10 — existing status/non-writing behavior remains green
-
-If command-registration behavior in extension.ts requires additional testing, add the assertion inside this existing file or an already-existing relevant routing suite only if necessary.
-
-Do NOT create a new test file.
-
-==================================================
-25. COPILOT WORKFLOW CUSTOMIZATION — EXPLICIT NO TOUCH
-==================================================
-
-Do not modify the separately identified Copilot workflow customization family, including behavior responsible for the historical three customization failures.
-
-Do not modify their customization assets.
-
-Do not fix their failures.
-
-Finding C is RepoContext initialization, not authorization to redesign the broader customization system.
-
-==================================================
-26. FRAMEWORK BINDING — NO CHANGE
-==================================================
-
-Discovery returned:
-
-FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: NO
-
-Do not modify:
-
-TrustedFrameworkDefinitionResolver.ts
-TrustedWriteApprovalStore.ts
-WriteAuthorization.ts
-framework contract JSON
-resources/framework/**
-
-unless this task later proves a compile-level signature adaptation is impossible without scope amendment.
-
-If so, STOP and request scope amendment rather than editing.
-
-==================================================
-27. EXACT REPAIR-5 SCOPE
-==================================================
-
-Maximum authorized production files:
-
-src/chat/ExplainCoordinator.ts
-src/chat/ArtifactReuseConversationCoordinator.ts
-src/chat/ETLChatParticipant.ts
-src/core/artifacts/ArtifactActionCoordinator.ts
-src/extension.ts
-src/customization/RepoContextInitializer.ts
-
-Maximum authorized test files:
-
-src/test/suite/configExplain.test.ts
-src/test/suite/artifactReuseConversation.test.ts
-src/test/suite/repoContextInit.test.ts
-
-New files:
-
-0
-
-State/type edits are contained inside already-listed production files.
-
-No tenth file may change.
-
-==================================================
-28. VALIDATION
-==================================================
-
-Run using existing local dependencies only:
-
-npm run compile
-npm run lint
-
-Then run targeted tests covering:
-
-Explain
-Artifact Reuse
-RepoContextInitializer
-HF1
-RepoWriter workspace selection
-UnitTestCoordinator
-WriteAuthorization
-Trusted framework
-fresh consumer
-single-folder
-
-Then run the full unit suite.
-
-Expected result:
-
-compile: PASS
-lint: PASS
-Repair-5 targeted tests: PASS
-HF1 V2 focused tests: PASS
-full unit: exactly 5 historical failures
-new HF1 V2 regressions: NONE
-
-Do not regenerate baselines.
-
-Do not repair the historical five.
-
-If native commands are unavailable, provide exact external validation commands and do not fabricate results.
-
-==================================================
-29. FINAL WRITE-ROUTE SWEEP
-==================================================
-
-After implementation, perform a read-only repo-wide sweep again for production filesystem mutations.
-
-Confirm each live consumer write route is now either:
-
-TRUSTED_CONSUMER_WRITE
-
-or legitimately:
-
-INTERNAL_NON_CONSUMER_WRITE
-
-No:
-
-REPAIR_5_REQUIRED
-
-route may remain.
-
-Specifically prove no reachable consumer-write route still uses:
-
-workspaceFolders[0]
-workspaceFolders?.[0]
-
-as an unvalidated write root.
-
-Do not modify additional files discovered during this final sweep.
-
-If another live ungated consumer write is found, STOP and return:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
-
-==================================================
-30. END-STATE PROOF
-==================================================
-
-Report:
-
-- exact Repair-5 files actually changed;
-- files allowed but left untouched;
-- no new files;
-- staged count;
-- no Git mutation;
-- no dependency install/download;
-- no VSIX build/install;
-- no consumer repository write outside test-managed temp fixtures;
-- no original repository modification;
-- no etl-framework-adb modification;
-- no historical baseline modification.
-
-==================================================
-31. REQUIRED FINAL REPORT
-==================================================
-
-Return:
-
-1. Exact Repair-5 file inventory.
-2. Explain write before/after.
-3. Artifact Reuse write before/after.
-4. RepoContext initialize before/after.
-5. Root-resolution behavior for all three.
-6. Preview/approval state design.
-7. One-time authorization/replay behavior.
-8. Path/root/content drift protection.
-9. Containment proof.
-10. Test matrix and results.
-11. Full unit result.
-12. Final exhaustive write-route inventory.
-13. Confirmation no additional ungated consumer write remains.
-14. Historical-five separation.
-15. Framework-binding no-change confirmation.
-16. Exact scope/no-touch proof.
-
-Finish with exactly one:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_VALIDATED
-
-or:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
-
-or:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
-
-or:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_BLOCKED
-
-Do not Keep.
-Do not commit.
-Do not push.
-Do not package.
-Do not install a VSIX.
-Stop after the final Repair-5 report.
+Then STOP.
