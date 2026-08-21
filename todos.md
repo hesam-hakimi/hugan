@@ -1,204 +1,135 @@
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_DISCOVERY — READ ONLY
+LOCAL_HOTFIX_HF1_V2_REPAIR_5 — CLOSE ALL REMAINING CONSUMER WRITE ROUTES
 
-The post-Repair-4 independent re-audit returned FAIL.
+Implement the bounded Repair 5 using the authoritative completed scope discovery:
 
-Do NOT implement anything yet.
+ALL_LIVE_CONSUMER_WRITE_ROUTES_ENUMERATED: YES
+ADDITIONAL_UNGATED_WRITE_ROUTE_BEYOND_AUDIT_TWO: YES
+EXPLAIN_WRITE_REPAIR_REQUIRED: YES
+ARTIFACT_REUSE_WRITE_REPAIR_REQUIRED: YES
+FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: NO
+REPAIR_5_SCOPE_FROZEN: YES
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_DISCOVERY_COMPLETE
 
-Perform a narrowly bounded, exhaustive, read-only discovery to freeze the exact Repair-5 scope.
+This Repair closes exactly three remaining consumer-workspace write findings:
 
-No file may be created, edited, deleted, formatted, staged, committed, packaged, installed, or otherwise mutated.
+A. ExplainCoordinator.handleSaveExplain()
+B. Artifact Reuse preview/apply-create/apply-patch flow
+C. RepoContextInitializer / initializeRepoContext consumer write
 
-⸻
+Do not redesign the already-secure HF1 V2 routes.
 
-1. CURRENT CONFIRMED STATE
+Do not change framework-binding behavior.
 
-Repair 4 is considered successfully implemented and validated.
+==================================================
+0. ONE CONSOLIDATED AUTHORIZATION REQUEST
+==================================================
 
-The independent re-audit confirmed the following previous blockers are closed:
+Before the first edit or mutating validation command, request one consolidated authorization covering:
 
-* sample_repo is BLOCKED as a consumerRoot.
-* UnitTestCoordinator direct write is eliminated.
-* UnitTestCoordinator containment is enforced.
-* preview identity persistence is opaque-only.
-* shared RepoWriter/write infrastructure is reused.
-* normal QA single-folder topology is safe for the repaired RepoWriter path.
-* packaged framework contract is trusted.
-* installed-extension resource resolution works.
-* Oracle validation fails closed.
-* WriteAuthorization rejects forgery/replay on routes that use it.
-* package hygiene is clean.
-* historical five failures remain unrelated.
+- edits only to the nine authorized files listed below;
+- local compile/lint/tests using already-installed dependencies;
+- read-only inspection needed to verify the implementation;
+- no Git mutation;
+- no install/download;
+- no VSIX packaging/install;
+- no consumer repository mutation outside test-managed temporary fixtures.
 
-Do NOT reopen or redesign these areas unless one of the newly discovered routes directly requires reuse of their existing APIs.
+Ask for exactly:
 
-The independent re-audit ended with:
+APPLY_LOCAL_HOTFIX_HF1_V2_REPAIR_5
 
-ALL_WRITE_ROUTES_ENUMERATED_AND_GATED: NO
-SAFE_TO_BUILD_QA_VSIX: NO
-SAFE_TO_COMMIT_HF1_V2: NO
-LOCAL_HOTFIX_HF1_V2_FINAL_REAUDIT_FAIL
+After receiving it, do not repeatedly request conversational authorization for operations already inside this bounded batch.
 
-⸻
+Host-enforced permission dialogs must not be bypassed.
 
-2. NEW HIGH FINDING A — ExplainCoordinator
+==================================================
+1. EXACT AUTHORIZED PRODUCTION FILES
+==================================================
 
-The audit identified a live reachable consumer-write route:
+Repair 5 may modify only these six production files:
 
-ExplainCoordinator.handleSaveExplain()
+1.
+src/chat/ExplainCoordinator.ts
 
-The audit observed that this route:
+2.
+src/chat/ArtifactReuseConversationCoordinator.ts
 
-* writes generated explain output;
-* derives a workspace root through an equivalent of workspaceFolders[0];
-* does not use RepoWriter.resolveWorkspacePath();
-* does not apply the HF1-V2 source/reference-root exclusion policy;
-* does not use the trusted Preview → Approval → WriteAuthorization lifecycle.
+3.
+src/chat/ETLChatParticipant.ts
 
-Trace this route completely from the user/chat action to the filesystem mutation.
+4.
+src/core/artifacts/ArtifactActionCoordinator.ts
 
-Determine:
+5.
+src/extension.ts
 
-A. Exact production files and functions involved.
+6.
+src/customization/RepoContextInitializer.ts
 
-B. Exact current root-selection logic.
+No other production file may be modified.
 
-C. Whether the output is a consumer workspace artifact.
+IMPORTANT:
+ArtifactActionCoordinator.ts was included by discovery because approval identity may need to be threaded through dispatch.
 
-D. Whether any existing confirmation/approval mechanism exists.
+Before editing it, confirm from live source that the edit is actually required.
 
-E. Whether that mechanism is equivalent to the trusted HF1-V2 write gate or is weaker.
+If it is not required, leave it byte-identical.
 
-F. The smallest way to reuse the existing:
+Do not edit a file merely because it appears in the allowed set.
 
-* canonical consumerRoot resolution;
-* path containment;
-* preview manifest;
-* TrustedWriteApprovalStore;
-* WriteAuthorization;
-* one-time consumption.
+==================================================
+2. EXACT AUTHORIZED TEST FILES
+==================================================
 
-G. Whether a preview ID must persist across turns, and if so which existing state object should carry only the opaque identifier.
+Modify only these three test files:
 
-H. Exact current test files exercising:
+1.
+src/test/suite/configExplain.test.ts
 
-* save explain;
-* cancel;
-* overwrite;
-* workspace selection;
-* filesystem writes.
+2.
+src/test/suite/artifactReuseConversation.test.ts
 
-Do not propose direct first-folder selection as acceptable.
+3.
+src/test/suite/repoContextInit.test.ts
 
-⸻
+Do not create a new test file.
 
-3. NEW FINDING B — Artifact Reuse write chain
+==================================================
+3. NO NEW FILES
+==================================================
 
-The audit identified another live write chain:
+NEW FILES AUTHORIZED:
 
-ArtifactReuseConversationCoordinator
-→ ArtifactActionCoordinator
-→ NewArtifactWriter / ArtifactPatchApplier
+0
 
-The audit reported that:
+If implementation genuinely requires another production or test file, STOP before editing it and report:
 
-* ETLChatParticipant passes a workspaceRoot derived from an equivalent of workspaceFolders[0];
-* that root is threaded into ArtifactActionInput / session state;
-* NewArtifactWriter and ArtifactPatchApplier perform real writes;
-* PathValidator provides relative/traversal protection;
-* but the root itself is not classified through RepoWriter’s consumer-root exclusion rules;
-* sample_repo or another reference/source root can therefore be selected by first-folder fallback;
-* the conversational preview/apply flow is not independently proven equivalent to the HF1-V2 trusted WriteAuthorization gate.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
 
-Trace the complete runtime route.
+==================================================
+4. REUSE EXISTING TRUSTED INFRASTRUCTURE
+==================================================
 
-Determine:
+Do not create:
 
-A. Exact production files and functions.
+- another root classifier;
+- another approval store;
+- another WriteAuthorization implementation;
+- another security state machine.
 
-B. Exact point where workspaceRoot is first chosen.
+Reuse the existing trusted HF1 V2 infrastructure:
 
-C. Every place the root is persisted or propagated.
+RepoWriter
+RepoWriter.resolveWorkspacePath()
+PathValidator
+TrustedWriteApprovalStore
+requestWriteAuthorization(...)
+requestInlineWriteAuthorization(...)
+WriteAuthorization
+existing manifest/checksum primitives
+existing markConsumed/fail state transitions
 
-D. Every real filesystem write performed by:
-
-* NewArtifactWriter;
-* ArtifactPatchApplier;
-* any sibling writer in the same flow.
-
-E. Existing preview/apply/confirmation semantics.
-
-F. Whether the current preview identity is immutably bound to:
-
-* consumerRoot;
-* relative artifact path;
-* artifact bytes/hash;
-* target/operation;
-* one-time consumption.
-
-G. Whether the flow can reuse the existing trusted HF1-V2 approval primitives instead of maintaining a parallel authorization mechanism.
-
-H. Exact test files covering:
-
-* new artifact write;
-* patch/apply;
-* preview;
-* cancel/reject;
-* replay;
-* multi-root workspace;
-* path traversal;
-* root selection.
-
-⸻
-
-4. EXHAUSTIVE WRITE-ROUTE SWEEP
-
-Before freezing Repair 5, perform a repo-wide read-only inventory of every production filesystem mutation capable of writing into a workspace.
-
-Search for and trace equivalent usages of:
-
-workspace.fs.writeFile
-workspace.fs.createDirectory
-fs.writeFile
-fs.writeFileSync
-fs.mkdir
-fs.mkdirSync
-copy / rename operations that create or mutate consumer files
-writer/helper abstractions that ultimately call these functions
-
-Do not stop at the two routes already discovered.
-
-For each route return:
-
-* entry point;
-* final mutation function;
-* what it writes;
-* whether it writes consumer artifacts;
-* how consumerRoot is selected;
-* whether root exclusion is applied;
-* whether containment is applied;
-* whether trusted Preview/Approval/WriteAuthorization is applied;
-* whether the route is reachable from normal QA/user behavior;
-* exact production files involved;
-* verdict.
-
-Classify each route exactly as one of:
-
-TRUSTED_CONSUMER_WRITE
-INTERNAL_NON_CONSUMER_WRITE
-TEST_ONLY
-DEAD_OR_UNREACHABLE
-REPAIR_5_REQUIRED
-AMBIGUOUS
-
-The purpose of this sweep is to ensure the next independent audit does not discover yet another live consumer-write path.
-
-Do not assume the previously known route count is complete.
-
-⸻
-
-5. REQUIRED TARGET ARCHITECTURE
-
-For every real consumer-workspace write, the required contract remains:
+The design principle for every consumer write remains:
 
 resolve canonical consumerRoot
 → reject prohibited/reference/source roots
@@ -209,385 +140,771 @@ resolve canonical consumerRoot
 → immediate containment re-check
 → exactly one filesystem mutation
 
-No production consumer-write route may depend on:
+==================================================
+5. NORMAL QA ROOT CONTRACT
+==================================================
 
-workspaceFolders[0]
-
-or on an inference equivalent to:
-
-"the folder that is not extension/framework must be the consumer"
-
-Normal QA topology remains:
+For all three repaired flows:
 
 exactly one legitimate consumer folder
-→ consumerRoot
-zero folders
+→ canonical consumerRoot
+
+zero workspace folders
 → BLOCKED
-one prohibited/reference/source root
+
+one prohibited/reference/source/install root
 → BLOCKED
+
+sample_repo as sole root
+→ BLOCKED
+
 multiple folders without explicit safe selection
 → ambiguous / BLOCKED
 
-⸻
-
-6. SHARED INFRASTRUCTURE REUSE
-
-Determine the smallest way for all Repair-5-required write flows to reuse existing HF1-V2 infrastructure.
-
-Prefer reuse of existing:
-
-RepoWriter
-RepoWriter.resolveWorkspacePath / canonical root classification
-PathValidator
-TrustedWriteApprovalStore
-requestWriteAuthorization / equivalent trusted approval API
-WriteAuthorization
-manifest/checksum primitives
-
-Do not propose:
-
-* another approval store;
-* another root classifier;
-* another WriteAuthorization implementation;
-* direct workspace.fs.writeFile before trusted authorization;
-* automatic approval;
-* feature-flag bypass;
-* test-only production escape.
-
-If a route has a genuinely different artifact/operation shape, identify the smallest adapter required to map it into the existing trusted write contract.
-
-⸻
-
-7. EXPLAIN SAVE — REQUIRED TEST PLAN
-
-Identify the exact existing test file(s) where behavioral coverage belongs.
-
-The future Repair 5 must prove:
-
-1. first save request → preview only, zero writes;
-2. approved second request → exactly one write;
-3. consumed/replayed approval → zero additional writes;
-4. cancel/reject → zero writes;
-5. sole sample_repo/reference root → BLOCKED;
-6. sole framework/source/install root → BLOCKED;
-7. multi-root without explicit selection → BLOCKED;
-8. no first-folder fallback;
-9. absolute path rejected;
-10. traversal rejected;
-11. sibling-root escape rejected;
-12. every actual write is contained within canonical consumerRoot.
-
-Tests must exercise real production behavior.
-
-Do not use source-text assertions as primary evidence.
-
-⸻
-
-8. ARTIFACT REUSE — REQUIRED TEST PLAN
-
-Identify the exact existing test file(s) where behavioral coverage belongs.
-
-The future Repair 5 must prove:
-
-13. preview produces zero writes;
-14. approved new-artifact apply → exactly one contained write;
-15. approved patch apply → exactly the intended contained mutation;
-16. replay cannot apply again;
-17. cancel performs zero mutations;
-18. sole sample_repo/reference root → BLOCKED;
-19. framework/source/install root → BLOCKED;
-20. multi-root ambiguity → BLOCKED;
-21. first-folder fallback is impossible;
-22. consumerRoot drift after preview invalidates apply;
-23. relative path drift invalidates apply;
-24. content/patch drift invalidates apply;
-25. absolute/traversal/sibling escape is rejected;
-26. no mutation can occur outside canonical consumerRoot.
-
-Tests must exercise the real production coordinator/writer path.
-
-⸻
-
-9. OTHER WRITE ROUTES FOUND BY THE SWEEP
-
-For every additional route classified:
-
-REPAIR_5_REQUIRED
-
-provide:
-
-* exact production path;
-* exact root cause;
-* whether it can reuse the same trusted infrastructure;
-* exact behavioral test file;
-* exact test scenarios required.
-
-Do not silently exclude a route merely because it is pre-existing.
-
-If it is a reachable consumer-workspace write, it is relevant to the final QA safety gate.
-
-⸻
-
-10. ROOT-SELECTION CONSISTENCY
-
-For every consumer-write route, determine whether the root ultimately comes from the same canonical resolver semantics used by HF1 V2.
-
-Report any occurrence of:
+Never use:
 
 workspaceFolders[0]
 workspaceFolders?.[0]
-active editor inferred root
-process.cwd() as consumer root
-parent/sibling repo guessing
-hard-coded sample/reference repo selection
 
-For each occurrence classify whether it is:
+as a consumer-write root.
 
-* harmless/internal;
-* unreachable;
-* test-only;
-* or a Repair-5 blocker.
+Never infer:
 
-⸻
+"the folder that is not extension/framework must be consumer"
 
-11. APPROVAL MODEL CONSISTENCY
+All root decisions must reuse RepoWriter.resolveWorkspacePath() or an exact trusted delegation to it.
 
-For each consumer-write route determine:
+==================================================
+6. FINDING A — EXPLAIN SAVE
+==================================================
 
-* preview object/state used;
-* approval mechanism used;
-* whether approval is explicit;
-* whether it binds root/path/content;
-* whether it is one-time;
-* whether replay is rejected;
-* whether drift invalidates apply;
-* whether actual write occurs only after approval.
+Repair:
 
-Identify parallel weaker approval mechanisms that should be replaced by or adapted to the shared trusted write contract.
+ExplainCoordinator.handleSaveExplain()
 
-⸻
+Current problem:
 
-12. STATE / PREVIEW IDENTITY
+- naive first-folder root selection;
+- no protected-root classification;
+- direct write;
+- no trusted preview/approval/WriteAuthorization lifecycle.
 
-For each multi-turn route determine whether an opaque preview/approval identifier must persist between turns.
+Required final behavior:
 
-If required, identify:
+FIRST SAVE REQUEST
 
-* exact existing state/type;
-* exact field to add;
-* whether it is optional;
-* why old persisted state remains compatible.
+resolve canonical consumerRoot
+→ validate destination/path
+→ construct immutable manifest
+→ requestWriteAuthorization(...)
+→ preview record created
+→ persist opaque preview ID
+→ return approval-required state
+→ zero filesystem writes
 
-Never propose storing:
+SECOND TURN WITH APPROVED PREVIEW
 
-WriteAuthorization
-privileged capability objects
-mutable writer instances
-raw approval-store records
+same canonical consumerRoot
++ same relative path
++ same bytes/content
++ valid approved preview
+→ authorization accepted
+→ immediately re-check containment
+→ exactly one write
+→ mark approval consumed
+→ clear persisted pending preview identity
 
-Persist only opaque identity/state needed to resume the trusted lifecycle.
+REPLAY
 
-⸻
+same consumed preview
+→ rejected
+→ zero additional writes
 
-13. FRAMEWORK-BINDING LOW DEBT
+CANCEL / DECLINE
 
-Do not modify framework-binding behavior in Repair 5 unless one of the newly identified routes directly depends on it.
+→ zero writes
 
-The previous audit accepted the existing framework-binding limitation as LOW/INFO because the gated write path revalidates authority before write.
+==================================================
+7. EXPLAIN STATE
+==================================================
 
-Return exactly:
+Inside:
 
-FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: YES|NO
+src/chat/ExplainCoordinator.ts
 
-with live-source evidence.
+the discovery authorized adding exactly the minimum optional state to ExplainOutput:
 
-⸻
+pendingWriteApprovalId?: string
 
-14. CONSUMER ARTIFACT CONTRACT
+or the exact equivalent naming already established by the implementation.
 
-Determine whether Explain output and Artifact Reuse outputs are:
+Requirements:
 
-A. members of the existing governed consumer artifact manifest;
+- opaque string only;
+- optional;
+- backwards-compatible;
+- no WriteAuthorization object;
+- no approval-store record;
+- no privileged runtime capability;
+- no writer instance.
 
-B. separately generated but still consumer-workspace artifacts;
+Do not persist anything more powerful than the preview/approval identity required to resume the trusted lifecycle.
 
-or
+==================================================
+8. EXPLAIN PATH SAFETY
+==================================================
 
-C. genuinely internal/non-consumer files.
+Explain save must reject:
 
-For each, explain whether integrating the trusted write gate would alter:
+- absolute paths;
+- drive-qualified paths;
+- `..` traversal;
+- normalized consumerRoot escape;
+- sibling-root escape;
+- extension root;
+- framework/reference root;
+- sample_repo.
 
-* artifact paths;
-* bytes;
-* ordering;
-* existing user-visible behavior.
+Immediately before the real write:
 
-Do not silently add anything to the existing 12-artifact contract unless the existing architecture already treats it as part of that set.
+final target must still be a descendant of the same canonical consumerRoot approved in Preview.
 
-⸻
+The approved relative path must be the path written.
 
-15. FIVE HISTORICAL FAILURES
+Do not independently reconstruct a different destination after approval.
 
-Do not touch:
+==================================================
+9. FINDING B — ARTIFACT REUSE
+==================================================
 
-* two EvalGating failures;
-* three Copilot workflow customization failures;
-* Phase-H baseline;
-* customization assets.
+Repair the flow:
 
-They remain unrelated historical failures.
+ArtifactReuseConversationCoordinator
+→ ArtifactActionCoordinator
+→ NewArtifactWriter / ArtifactPatchApplier
 
-⸻
+The low-level writers and PathValidator are already trusted/contained.
 
-16. NO-TOUCH REQUIREMENTS
+Do NOT modify:
 
-This is read-only discovery.
+NewArtifactWriter.ts
+ArtifactPatchApplier.ts
+PathValidator.ts
+RepoWriter.ts
+TrustedWriteApprovalStore.ts
+WriteAuthorization.ts
+
+The defect is above them:
+
+- root selected naively before session creation;
+- root persisted without canonical consumer classification;
+- conversational confirmation is weaker than trusted authorization;
+- no immutable one-time approval binding;
+- no root/path/content drift protection equivalent to HF1 V2.
+
+==================================================
+10. ARTIFACT REUSE ROOT RESOLUTION
+==================================================
+
+At:
+
+ETLChatParticipant.startArtifactReuseSession(...)
+
+replace naive workspaceFolders[0]-style root selection with the canonical RepoWriter resolution.
+
+Before ArtifactReuseSessionState is created:
+
+resolve canonical root.
+
+If resolution is:
+
+BLOCKED
+ambiguous
+no_workspace
+prohibited/reference/source root
+
+then do not create a writable Artifact Reuse session.
+
+No consumer mutation may later occur from an unresolved or prohibited root.
+
+==================================================
+11. ARTIFACT REUSE STATE
+==================================================
+
+Inside:
+
+ArtifactReuseConversationCoordinator.ts
+
+add only the minimum optional opaque identity:
+
+pendingWriteApprovalId?: string
+
+to ArtifactReuseSessionState.
+
+Same restrictions as Explain:
+
+- opaque identifier only;
+- optional;
+- no privileged capability;
+- no raw authorization object;
+- no approval-store record;
+- backwards compatible.
+
+==================================================
+12. ARTIFACT REUSE PREVIEW/APPLY LIFECYCLE
+==================================================
+
+The conversational flow already has natural preview/apply turns.
+
+Integrate those turns with the trusted approval store.
+
+PREVIEW TURN
+
+- canonical consumerRoot already resolved;
+- patch/create plan computed;
+- artifact path/content/operation captured;
+- construct trusted immutable manifest;
+- call requestWriteAuthorization(...)
+- create preview record;
+- persist pendingWriteApprovalId;
+- render preview;
+- zero filesystem mutations.
+
+APPLY_PATCH / APPLY_CREATE TURN
+
+- use stored opaque preview identity;
+- re-resolve/re-verify consumerRoot;
+- verify operation;
+- verify relative path;
+- verify content/patch identity;
+- verify approval;
+- immediately re-check containment;
+- perform exactly intended mutation;
+- mark consumed;
+- clear pending preview identity.
+
+REPLAY
+
+→ rejected
+→ zero additional mutations.
+
+CANCEL
+
+→ zero mutations.
+
+==================================================
+13. ARTIFACTACTIONCOORDINATOR
+==================================================
+
+If required by the real call graph, thread the opaque preview ID / resolved authorization information through:
+
+src/core/artifacts/ArtifactActionCoordinator.ts
+
+only as necessary to reach the existing apply dispatch.
+
+Do not put approval logic into NewArtifactWriter or ArtifactPatchApplier.
+
+Do not invent a second authorization state machine.
+
+If live source proves no ArtifactActionCoordinator change is needed, leave this file untouched and explain why in the final report.
+
+==================================================
+14. ARTIFACT REUSE DRIFT CHECKS
+==================================================
+
+Between Preview and Apply, reject:
+
+consumerRoot drift
+relative path drift
+operation drift
+artifact content drift
+patch drift
+target drift
+consumed/replayed preview
+expired/stale approval
+
+No stale preview may apply a different create or patch operation.
+
+==================================================
+15. FINDING C — REPO CONTEXT INITIALIZER
+==================================================
+
+Repair the consumer-write route:
+
+RepoContextInitializer.initialize(...)
+
+reached through both identified call sites:
+
+- extension command path
+- ETLChatParticipant command path
+
+This is a distinct consumer-write feature and is in scope even though it shares ScaffoldedAssetWriter with separately excluded Copilot workflow customization code.
+
+Do NOT modify the excluded Copilot workflow customization family.
+
+Do NOT touch the three historical Copilot customization failures.
+
+==================================================
+16. REPO CONTEXT ROOT SELECTION
+==================================================
+
+Both callers must resolve the target through the same canonical RepoWriter consumer-root contract.
+
+Remove any naive:
+
+workspaceFolders[0]
+
+or QuickPick result that is accepted without canonical root classification.
+
+If the selected candidate is:
+
+sample_repo
+framework/reference/source/install root
+ambiguous
+invalid/external
+
+→ BLOCKED
+→ zero writes.
+
+For multi-root selection:
+
+a UI-selected folder still must pass canonical RepoWriter classification before it can become consumerRoot.
+
+Selection does not itself make a root trusted.
+
+==================================================
+17. REPO CONTEXT AUTHORIZATION MODEL
+==================================================
+
+The discovery concluded this flow is synchronous:
+
+preview
+→ modal confirmation
+→ initialize/write
+
+within one invocation.
+
+Therefore use the existing:
+
+requestInlineWriteAuthorization(...)
+
+or the exact existing single-shot trusted helper designed for this shape.
+
+Replace the current:
+
+{ approved: boolean }
+
+or equivalent plain-boolean security gate.
+
+RepoContextInitializer.initialize() must consume a resolved trusted authorization shape rather than trusting a caller-provided boolean.
+
+Do not allow:
+
+initialize(..., { approved: true })
+
+to become a writable capability.
+
+==================================================
+18. REPO CONTEXT WRITE SAFETY
+==================================================
+
+Before ScaffoldedAssetWriter writes:
+
+- consumerRoot must be canonical and approved;
+- generated relative path must be validated;
+- final target containment must be rechecked;
+- protected/reference/source roots must remain blocked;
+- approval must bind the exact write;
+- one user approval must authorize only the intended operation.
+
+No raw boolean approval.
+
+No first-folder fallback.
+
+No cross-root write.
+
+==================================================
+19. EXTENSION COMMAND
+==================================================
+
+Modify:
+
+src/extension.ts
+
+only for the identified initializeRepoContext command route.
+
+Responsibilities:
+
+- canonical root resolution;
+- fail-closed behavior;
+- trusted inline preview/approval flow;
+- pass trusted resolved authorization to RepoContextInitializer.
+
+Do not modify unrelated extension activation or command behavior.
+
+==================================================
+20. ETLCHATPARTICIPANT
+==================================================
+
+Modify:
+
+src/chat/ETLChatParticipant.ts
+
+only for:
+
+A. Artifact Reuse session root selection.
+
+B. RepoContext initialization command root selection / trusted authorization integration.
+
+Do not modify unrelated routing/planning behavior.
+
+Do not repair the existing non-blocking multi-root observability debt in this task.
+
+==================================================
+21. DO NOT FOLD THESE INTO RENDEREDARTIFACTS
+==================================================
+
+Discovery confirmed there is no literal "12 artifact" constant.
+
+The governed /create artifact shape is represented by RenderedArtifacts.
+
+Explain output, Artifact Reuse generated/modified artifacts, and RepoContext output are separately generated consumer-workspace artifacts.
+
+Do NOT fold them into:
+
+RenderedArtifacts
+buildWriteManifestFiles
+/create artifact ordering
+
+Do not make them an artificial "13th artifact".
+
+Each receives the smallest independent trusted authorization adapter while reusing the same underlying security infrastructure.
+
+==================================================
+22. CONFIGEXPLAIN TESTS
+==================================================
+
+In:
+
+src/test/suite/configExplain.test.ts
+
+extend the existing Explain command suite.
+
+Required behavioral tests:
+
+E1 — first save request:
+preview/approval required
+zero writes
+
+E2 — approved second request:
+exactly one write
+inside canonical consumerRoot
+
+E3 — replay:
+zero additional writes
+
+E4 — decline/cancel:
+zero writes
+
+E5 — sole sample_repo/reference root:
+BLOCKED
+zero writes
+
+E6 — multi-root with no explicit safe selection:
+BLOCKED
+zero writes
+
+E7 — no first-folder fallback:
+put an attractive folder at index 0
+still BLOCKED if selection is ambiguous
+
+E8 — absolute path rejected
+
+E9 — traversal rejected
+
+E10 — sibling-root escape rejected
+
+E11 — re-verify containment immediately before write
+
+Use real production behavior.
+
+Use existing mintTestWriteAuthorization test infrastructure only as intended.
+
+Do not fabricate a production WriteAuthorization object.
+
+==================================================
+23. ARTIFACT REUSE TESTS
+==================================================
+
+In:
+
+src/test/suite/artifactReuseConversation.test.ts
+
+required behavioral tests:
+
+A1 — preview produces zero writes
+
+A2 — approved create performs exactly one contained write
+
+A3 — approved patch performs exactly intended contained mutation
+
+A4 — replay cannot apply again
+
+A5 — cancel performs zero mutations
+
+A6 — sample_repo/reference root BLOCKED
+
+A7 — framework/source/install root BLOCKED
+
+A8 — multi-root ambiguity BLOCKED
+
+A9 — no first-folder fallback
+
+A10 — consumerRoot drift after preview rejected
+
+A11 — relative path drift rejected
+
+A12 — content/create drift rejected
+
+A13 — patch drift rejected
+
+A14 — absolute path escape rejected
+
+A15 — traversal rejected
+
+A16 — sibling-root escape rejected
+
+A17 — every actual mutation remains inside canonical consumerRoot
+
+Exercise the real conversational coordinator and existing low-level writers.
+
+==================================================
+24. REPO CONTEXT TESTS
+==================================================
+
+In:
+
+src/test/suite/repoContextInit.test.ts
+
+update existing initialize() call sites for the trusted authorization contract.
+
+Required behavioral coverage:
+
+R1 — preview/confirmation + valid trusted inline authorization permits exactly intended initialization write
+
+R2 — no approval → zero writes
+
+R3 — plain `{ approved: true }`-style capability no longer authorizes a write
+
+R4 — sample_repo sole root BLOCKED
+
+R5 — framework/reference/source root BLOCKED
+
+R6 — multi-root selected candidate still must pass root classification
+
+R7 — no first-folder fallback
+
+R8 — traversal/escape rejected
+
+R9 — final write contained in canonical consumerRoot
+
+R10 — existing status/non-writing behavior remains green
+
+If command-registration behavior in extension.ts requires additional testing, add the assertion inside this existing file or an already-existing relevant routing suite only if necessary.
+
+Do NOT create a new test file.
+
+==================================================
+25. COPILOT WORKFLOW CUSTOMIZATION — EXPLICIT NO TOUCH
+==================================================
+
+Do not modify the separately identified Copilot workflow customization family, including behavior responsible for the historical three customization failures.
+
+Do not modify their customization assets.
+
+Do not fix their failures.
+
+Finding C is RepoContext initialization, not authorization to redesign the broader customization system.
+
+==================================================
+26. FRAMEWORK BINDING — NO CHANGE
+==================================================
+
+Discovery returned:
+
+FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: NO
 
 Do not modify:
 
-original etl_framework_extension repository
-etl-framework-adb
-consumer repositories
-S-A / S-B files
-Phase-H baseline reports
-resources/prompts/**
-.github/**
-AGENT.md / AGENTS.md
-package-lock.json
+TrustedFrameworkDefinitionResolver.ts
+TrustedWriteApprovalStore.ts
+WriteAuthorization.ts
+framework contract JSON
+resources/framework/**
 
-Do not:
+unless this task later proves a compile-level signature adaptation is impossible without scope amendment.
 
-* install dependencies;
-* download anything;
-* package a VSIX;
-* run Git mutation;
-* stage;
-* commit;
-* push;
-* regenerate baselines.
+If so, STOP and request scope amendment rather than editing.
 
-⸻
+==================================================
+27. EXACT REPAIR-5 SCOPE
+==================================================
 
-17. EXACT REPAIR-5 PRODUCTION INVENTORY
+Maximum authorized production files:
 
-Return the exact minimal production file list required for Repair 5.
+src/chat/ExplainCoordinator.ts
+src/chat/ArtifactReuseConversationCoordinator.ts
+src/chat/ETLChatParticipant.ts
+src/core/artifacts/ArtifactActionCoordinator.ts
+src/extension.ts
+src/customization/RepoContextInitializer.ts
 
-For every file provide:
+Maximum authorized test files:
 
-Exact path
-Route/finding
-Exact class/function/type affected
-Why modification is required
-Whether it is root-selection, approval, state, containment, or write integration
+src/test/suite/configExplain.test.ts
+src/test/suite/artifactReuseConversation.test.ts
+src/test/suite/repoContextInit.test.ts
 
-Do not use approximate paths.
+New files:
 
-⸻
+0
 
-18. EXACT REPAIR-5 TEST INVENTORY
+State/type edits are contained inside already-listed production files.
 
-Return the exact minimal test file list required.
+No tenth file may change.
 
-For every test file provide:
+==================================================
+28. VALIDATION
+==================================================
 
-Exact path
-Route covered
-Existing test to modify vs new test inside existing file
-Exact behavioral assertions to add
+Run using existing local dependencies only:
 
-Do not create a new test file if an appropriate existing suite already exists.
+npm run compile
+npm run lint
 
-⸻
+Then run targeted tests covering:
 
-19. NEW FILES
+Explain
+Artifact Reuse
+RepoContextInitializer
+HF1
+RepoWriter workspace selection
+UnitTestCoordinator
+WriteAuthorization
+Trusted framework
+fresh consumer
+single-folder
 
-Determine whether Repair 5 requires any new production or test file.
+Then run the full unit suite.
 
-Strong preference:
+Expected result:
 
-NEW FILES REQUIRED: 0
+compile: PASS
+lint: PASS
+Repair-5 targeted tests: PASS
+HF1 V2 focused tests: PASS
+full unit: exactly 5 historical failures
+new HF1 V2 regressions: NONE
 
-If a new file is genuinely required, explain exactly why no existing trusted abstraction can host the change.
+Do not regenerate baselines.
 
-⸻
+Do not repair the historical five.
 
-20. SCOPE MINIMIZATION
+If native commands are unavailable, provide exact external validation commands and do not fabricate results.
 
-Do not include a file simply because it is upstream/downstream.
+==================================================
+29. FINAL WRITE-ROUTE SWEEP
+==================================================
 
-Include it only if live call-path evidence proves it must change.
+After implementation, perform a read-only repo-wide sweep again for production filesystem mutations.
 
-If both newly discovered routes can be corrected through one shared integration point, prefer that smaller common repair.
+Confirm each live consumer write route is now either:
 
-Do not redesign unrelated coordinators.
+TRUSTED_CONSUMER_WRITE
 
-⸻
+or legitimately:
 
-21. REQUIRED FINAL RESPONSE
+INTERNAL_NON_CONSUMER_WRITE
 
-Return the following sections.
+No:
 
-A. Complete production write-route inventory
+REPAIR_5_REQUIRED
 
-A table containing every discovered production mutation route and its classification.
+route may remain.
 
-B. ExplainCoordinator root cause
+Specifically prove no reachable consumer-write route still uses:
 
-Exact live path and required repair.
+workspaceFolders[0]
+workspaceFolders?.[0]
 
-C. Artifact Reuse root cause
+as an unvalidated write root.
 
-Exact live path and required repair.
+Do not modify additional files discovered during this final sweep.
 
-D. Any additional Repair-5-required route
+If another live ungated consumer write is found, STOP and return:
 
-Exact path and reason.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
 
-E. Exact production repair inventory
+==================================================
+30. END-STATE PROOF
+==================================================
 
-No approximate paths.
+Report:
 
-F. Exact test repair inventory
+- exact Repair-5 files actually changed;
+- files allowed but left untouched;
+- no new files;
+- staged count;
+- no Git mutation;
+- no dependency install/download;
+- no VSIX build/install;
+- no consumer repository write outside test-managed temp fixtures;
+- no original repository modification;
+- no etl-framework-adb modification;
+- no historical baseline modification.
 
-No approximate paths.
+==================================================
+31. REQUIRED FINAL REPORT
+==================================================
 
-G. State/type changes
+Return:
 
-Exact paths and fields, if required.
+1. Exact Repair-5 file inventory.
+2. Explain write before/after.
+3. Artifact Reuse write before/after.
+4. RepoContext initialize before/after.
+5. Root-resolution behavior for all three.
+6. Preview/approval state design.
+7. One-time authorization/replay behavior.
+8. Path/root/content drift protection.
+9. Containment proof.
+10. Test matrix and results.
+11. Full unit result.
+12. Final exhaustive write-route inventory.
+13. Confirmation no additional ungated consumer write remains.
+14. Historical-five separation.
+15. Framework-binding no-change confirmation.
+16. Exact scope/no-touch proof.
 
-H. Existing trusted infrastructure reuse plan
+Finish with exactly one:
 
-Show exactly what will be reused.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_VALIDATED
 
-I. Framework-binding verdict
+or:
 
-Exactly:
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
 
-FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: YES|NO
+or:
 
-J. Scope totals
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
 
-Return exactly:
+or:
 
-PRODUCTION_FILES_TO_MODIFY: <count>
-TEST_FILES_TO_MODIFY: <count>
-STATE_TYPE_FILES_TO_MODIFY: <count>
-NEW_FILES_REQUIRED: <count>
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_BLOCKED
 
-No implementation is authorized in this task.
-
-Finish with exactly:
-
-ALL_LIVE_CONSUMER_WRITE_ROUTES_ENUMERATED: YES|NO
-ADDITIONAL_UNGATED_WRITE_ROUTE_BEYOND_AUDIT_TWO: YES|NO
-EXPLAIN_WRITE_REPAIR_REQUIRED: YES|NO
-ARTIFACT_REUSE_WRITE_REPAIR_REQUIRED: YES|NO
-FRAMEWORK_BINDING_CHANGE_NEEDED_FOR_REPAIR_5: YES|NO
-REPAIR_5_SCOPE_FROZEN: YES|NO
-LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_DISCOVERY_COMPLETE
-
-Do not implement.
 Do not Keep.
 Do not commit.
 Do not push.
 Do not package.
+Do not install a VSIX.
+Stop after the final Repair-5 report.
