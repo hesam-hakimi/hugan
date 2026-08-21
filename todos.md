@@ -1,322 +1,240 @@
-Product Portfolio Poster – Repository Analysis
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2_DISCOVERY — READ ONLY
 
-I am preparing a product portfolio poster to present the tools/products we have built.
+Repair 5 has reached a validated partial state but ended with:
 
-Your task is to inspect the available Git repositories/workspace and create a clear, concise, business-friendly summary for each real product or tool you can identify.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_REQUIRED
 
-Important Rules
+Do NOT edit anything yet.
 
-* Do not modify any code or configuration.
-* Do not create commits, branches, or PRs.
-* Analyze the implementation, not only README files.
-* Use evidence from:
-    * source code
-    * README/documentation
-    * configuration files
-    * architecture files
-    * tests
-    * workflows
-    * APIs
-    * UI code
-    * integrations
-    * deployment configuration
-* Do not invent capabilities.
-* If something cannot be confirmed from the repository, write:
-    Needs confirmation
-* Do not expose:
-    * secrets
-    * credentials
-    * tokens
-    * private URLs
-    * connection strings
-    * sensitive infrastructure information
-* Write the final content in simple professional English suitable for a poster and for both technical and non-technical audiences.
+Preserve all current Repair-5 candidate bytes exactly as they are.
 
-⸻
+Do not Keep, Undo, Revert, Discard, Clean, stage, commit, package, install, download, or mutate any file.
 
-Step 1 – Identify the Products
+The current externally relevant implementation evidence is:
 
-First inspect the repositories/workspace and identify the distinct products, tools, extensions, frameworks, applications, or major reusable solutions we have built.
+- production compile: PASS
+- lint: PASS
+- focused Repair-5/HF1/Phase-6 matrix: 278 passing
+- full unit: 1890 passing, 5 pending, exactly 5 failing
+- the five failures are the protected historical failures
+- staged files: 0
+- new files: 0
+- framework binding unchanged
+- etl-framework-adb unchanged
+- 10 files currently changed
+- ArtifactActionCoordinator.ts was authorized but remained byte-identical
 
-Do not treat every library or module as a separate product.
+The verifier reported four remaining concerns:
 
-For each detected product, explain briefly why you consider it a separate product.
+1. dangling-link handling
+2. POSIX case-sensitive containment
+3. broader competing-route suppression
+4. unique temporary Explain fixtures
 
-Create an initial table:
+Your task is ONLY to determine the exact nature and minimum scope of these four items.
 
-Product	Repository / Location	Product Type	Main Purpose
+==================================================
+1. CLASSIFY EACH ITEM BEFORE REQUESTING ANY EDIT
+==================================================
 
-Examples of Product Type:
+For each of the four findings classify it exactly as one of:
 
-* Web Application
-* AI Application
-* VS Code Extension
-* Data Engineering Framework
-* Developer Tool
-* Evaluation Tool
-* Automation Tool
-* API / Service
-* Data Platform Component
+PRODUCTION_SECURITY_DEFECT
+PRODUCTION_CORRECTNESS_DEFECT
+TEST_HARNESS_DEFECT
+TEST_COVERAGE_GAP
+PORTABILITY_HARDENING
+NON_BLOCKING_DEBT
+FALSE_POSITIVE
+AMBIGUOUS
 
-⸻
+Do not assume that a verifier-requested test implies a production defect.
 
-Step 2 – Deeply Analyze Each Product
+For every item provide live-source evidence.
 
-For each identified product, inspect enough of the implementation to understand:
+==================================================
+2. DANGLING-LINK HANDLING
+==================================================
 
-1. What problem it solves
-2. What the tool actually does
-3. Who would use it
-4. Its major features
-5. Main architectural components
-6. Whether and how AI/LLM is used
-7. Important integrations
-8. What makes the solution useful or different
-9. Business and engineering benefits
-10. Current implementation evidence
+Determine exactly what "dangling-link handling" refers to.
 
-Do not simply copy repository descriptions.
+Trace:
 
-⸻
+- which repaired route encounters symlinks/junctions/reparse points;
+- whether PathValidator / isInsideRoot / canonicalization currently resolves them;
+- whether a dangling symbolic link could cause:
+  - consumerRoot escape,
+  - source/reference-root substitution,
+  - unauthorized write,
+  - write outside the approved relative path,
+  - or merely a clean filesystem error.
 
-Step 3 – Create Poster-Ready Content
+Identify:
 
-For every product use exactly this structure.
+- exact production function;
+- exact current behavior;
+- actual security impact;
+- exact test needed.
 
-[Product Name]
+Do not propose a platform-specific workaround unless the live production behavior requires it.
 
-Tagline
+==================================================
+3. POSIX CASE-SENSITIVE CONTAINMENT
+==================================================
 
-One short sentence, preferably 10–18 words, describing the value of the product.
+Determine whether current containment logic incorrectly assumes Windows case-insensitivity on POSIX.
 
-What Does This Tool Do?
+Inspect the exact implementation used by all Repair-5 write routes.
 
-Write one or two short paragraphs.
+Answer:
 
-Explain:
+A. Does Windows behavior remain correct?
 
-* the problem
-* what the product does
-* how it helps the user
+B. On Linux/macOS, could:
 
-Keep this approximately 60–100 words.
+/ConsumerRoot/file
+and
+/consumerroot/file
 
-Avoid deep implementation details here.
+be incorrectly treated as the same root?
 
-Key Features
+C. Could that cause a real root escape or false acceptance?
 
-Provide 4–7 short bullets.
+D. Is the bug in shared PathValidator/isInsideRoot infrastructure or only in Repair-5 test code?
 
-Each bullet should describe a meaningful capability, for example:
+E. Would fixing it require modifying an already-protected shared file outside the current scope?
 
-* Natural-language data querying
-* Automated ETL generation
-* Metadata-driven processing
-* Validation before deployment
-* Multi-platform data access
+Do not edit shared PathValidator or root utilities in this discovery.
 
-Do not use generic statements such as “easy to use” unless supported by the implementation.
+==================================================
+4. BROADER COMPETING-ROUTE SUPPRESSION
+==================================================
 
-How It Works
+Clarify exactly what "competing route" means.
 
-Describe the main workflow in 3–6 simple steps.
+Identify any scenario where more than one write-capable route could respond to the same user action or conversational state.
 
-Example format:
+For every claimed competing route show:
 
-User Request → Analysis → Validation → Execution → Result
+- entry point;
+- activation condition;
+- whether both can be reachable in the same request;
+- whether either can write;
+- whether preview state from one route can be consumed by another;
+- whether route confusion can bypass approval;
+- whether the issue is merely UX/routing ambiguity.
 
-Then add one sentence explaining the workflow.
+Do not broaden Repair 5 into unrelated routing redesign.
 
-Main Components
+If the concern is not capable of causing an unauthorized consumer mutation, classify it accordingly.
 
-Use a compact table:
+==================================================
+5. UNIQUE TEMPORARY EXPLAIN FIXTURES
+==================================================
 
-Component	Purpose
-Web UI	User interaction
-Backend API	Application orchestration
-LLM	AI reasoning/generation
-Database	Data or metadata storage
+Determine whether this is:
 
-Only include components that actually exist.
+- a production problem,
+- test isolation problem,
+- parallel-test collision,
+- stale temporary directory reuse,
+- or simply a verifier-hardening request.
 
-AI / LLM Enabled
+Inspect current Explain tests and temp-directory construction.
 
-Write:
+Prove whether two tests/runs can collide on the same path and contaminate one another.
 
-Yes / No / Partial
+If the issue is test-only, do not propose a production change.
 
-If Yes or Partial, briefly describe what AI does.
+Identify the exact existing test file that should be changed.
 
-Examples:
+No new test file unless strictly necessary.
 
-* understands user questions
-* generates SQL
-* analyzes metadata
-* generates ETL artifacts
-* evaluates results
-* provides recommendations
+==================================================
+6. RECHECK THE CURRENT REPAIR-5 CONTRACT
+==================================================
 
-Do not state the exact model unless it can be confirmed.
+Do a read-only confirmation that the current candidate already provides:
 
-Key Technologies
+- Explain trusted preview/approval/write lifecycle;
+- Explain root/path/content drift protection;
+- Explain replay rejection;
+- Artifact Reuse preview → approval → create/patch;
+- Artifact Reuse replay rejection;
+- RepoContext trusted inline authorization;
+- RepoContext manifest hashes the actual bytes written;
+- canonical RepoWriter root classification;
+- current extension-source checkout blocked as a consumer root;
+- no first-folder consumer-write fallback in repaired routes;
+- no remaining REPAIR_5_REQUIRED write route from the previous exhaustive sweep.
 
-Provide only the important technologies.
+If any of these is actually incomplete, report it separately as a regression from the just-completed implementation.
 
-For example:
+==================================================
+7. EXACT SCOPE REQUEST
+==================================================
 
-React · Python · FastAPI · Databricks · Azure OpenAI · SQL · VS Code
+For every item that truly requires a change, return:
 
-Avoid listing every package or dependency.
+- exact file path;
+- production vs test;
+- exact function/test affected;
+- smallest change required;
+- why the currently authorized 11-file universe cannot solve it;
+- whether the file was already part of the previously protected/no-touch set.
 
-Integrations
+Do not give approximate paths.
 
-List significant platforms or systems the product integrates with.
+Do not request a file merely for convenience.
 
-Target Users
+==================================================
+8. SCOPE MINIMIZATION RULE
+==================================================
 
-List the primary user groups in one short line.
+Prefer:
 
-For example:
+0 additional files
 
-Data Engineers · Analysts · Developers · Business Users
+if the remaining items can be addressed inside existing authorized files.
 
-Benefits
+If an additional file is genuinely necessary, request only that exact file.
 
-Provide 3–5 concise business-oriented benefits.
+If a shared security primitive outside current scope must change, explicitly flag:
 
-Focus on outcomes such as:
+SHARED_SECURITY_PRIMITIVE_SCOPE_REQUIRED
 
-* Reduces manual engineering effort
-* Speeds up delivery
-* Improves consistency
-* Reduces implementation errors
-* Makes governed data easier to access
-* Standardizes development workflows
-* Improves traceability
-* Enables self-service capabilities
+and stop before implementation.
 
-Only claim benefits that reasonably follow from confirmed functionality.
+==================================================
+9. REQUIRED FINAL REPORT
+==================================================
 
-Key Differentiator
+Return a four-row matrix:
 
-Write 1–2 sentences describing what makes this product particularly useful or different.
+Finding
+Classification
+Production impact
+Security impact
+Exact file(s) required
+Already authorized? YES|NO
+Repair required? YES|NO
+Release blocking? YES|NO
 
-Product Status
+Then return:
 
-Use one of:
+CURRENT_REPAIR_5_BYTES_PRESERVED: YES|NO
+CURRENT_COMPILE_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
+CURRENT_LINT_RESULT_RETAINED_AS_EXTERNAL_EVIDENCE: PASS
+CURRENT_FULL_UNIT_BASELINE: 1890_PASSING_5_PENDING_5_HISTORICAL_FAILING
+DANGLING_LINK_REPAIR_REQUIRED: YES|NO
+POSIX_CASE_CONTAINMENT_REPAIR_REQUIRED: YES|NO
+COMPETING_ROUTE_REPAIR_REQUIRED: YES|NO
+EXPLAIN_FIXTURE_REPAIR_REQUIRED: YES|NO
+ADDITIONAL_PRODUCTION_FILES_REQUIRED: <count>
+ADDITIONAL_TEST_FILES_REQUIRED: <count>
+SHARED_SECURITY_PRIMITIVE_SCOPE_REQUIRED: YES|NO
+REPAIR_5_AMENDMENT_2_SCOPE_FROZEN: YES|NO
 
-* Production
-* Pilot
-* POC
-* Active Development
-* Prototype
-* Unknown / Needs confirmation
+Finish exactly:
 
-Only select a status when repository evidence supports it.
-
-⸻
-
-Step 4 – Create a Very Short Poster Version
-
-After the detailed analysis, create a second condensed version for each product.
-
-Use this format:
-
-[Product Name] – Poster Card
-
-Tagline:
-Maximum 15 words.
-
-What it does:
-Maximum 50 words.
-
-Features:
-
-* Maximum 5 bullets
-* Maximum 8 words per bullet
-
-Components:
-Maximum 6 major components.
-
-AI Enabled:
-Yes / No / Partial
-
-Benefits:
-
-* Maximum 4 bullets
-* Maximum 8 words per bullet
-
-This section must be optimized for putting directly onto a visual poster.
-
-⸻
-
-Step 5 – Portfolio Summary
-
-After analyzing all products, create this comparison table:
-
-Product	Category	Primary User	Main Problem Solved	AI Enabled	Main Value
-
-Then add:
-
-Portfolio Story
-
-Write a short 100–150 word executive summary explaining how these products collectively demonstrate our capabilities.
-
-Focus on themes such as:
-
-* AI-enabled engineering
-* automation
-* data engineering
-* developer productivity
-* governed analytics
-* reusable frameworks
-* enterprise integration
-
-Only include themes supported by the products found.
-
-⸻
-
-Step 6 – Evidence / Verification Appendix
-
-The poster itself should remain clean, but I also need to know where the information came from.
-
-For every important claim, provide supporting repository evidence in a separate appendix.
-
-Use:
-
-Product	Claim	Evidence File	Relevant Code/Section
-
-Example:
-
-| AskTD | Natural-language querying | backend/... | Query orchestration implementation |
-
-This appendix is for verification and should not be mixed with poster content.
-
-⸻
-
-Final Deliverable
-
-Create a Markdown file named:
-
-PRODUCT_PORTFOLIO_POSTER_CONTENT.md
-
-Organize it as:
-
-1. Product Inventory
-2. Detailed Product Profiles
-3. Poster Cards
-4. Portfolio Comparison
-5. Portfolio Story
-6. Evidence / Verification Appendix
-7. Open Items / Needs Confirmation
-
-Before finishing, perform a final consistency check:
-
-* Every feature must have implementation evidence.
-* Remove duplicate products.
-* Remove low-level technical details unsuitable for a poster.
-* Keep wording simple and concise.
-* Do not overstate maturity or capabilities.
-* Clearly mark anything that requires human confirmation.
-
-Do not make any code changes. This task is analysis and documentation only.
+LOCAL_HOTFIX_HF1_V2_REPAIR_5_SCOPE_AMENDMENT_2_DISCOVERY_COMPLETE
