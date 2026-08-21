@@ -1,384 +1,526 @@
-We are continuing the existing AskTD / askAlpha / KMAI implementation after the successful formal closure of Program Phase 2C.
+We are continuing the existing AskTD / askAlpha / KMAI project.
 
-Phase 2C status:
+Program Phase 2C is formally closed:
 
 PHASE_2C_POST_MERGE_CLOSURE_PASS
 
-Do NOT reopen Phase 2C.
+The read-only Phase 2C.5 discovery concluded:
 
-Do NOT start Phase 2D recipe implementation yet.
+PHASE_2C5_FOUNDATION_READY_FOR_BOUNDED_IMPLEMENTATION
 
-This task is:
+This task is a BOUNDED IMPLEMENTATION of the minimum provider-abstraction foundation required before Phase 2D.
 
-READ-ONLY DISCOVERY / ARCHITECTURE-TO-CODE MAPPING ONLY
-
-Do not modify any repository file.
+Do NOT start Phase 2D recipe implementation.
 
 ⸻
 
-Objective
+1. Critical repository rule
 
-Determine the smallest safe implementation required to introduce the previously approved provider-abstraction foundation before Phase 2D.
+The existing primary checkout asktd_v2 is stale and does not contain the integrated Phase 2A/2B/2C implementation.
 
-The intended internal seams are:
+Do NOT implement this work on asktd_v2.
 
-DataSourceAdapter
-    ├── SqlServerAdapter
-    ├── DatabricksSqlAdapter       # contract/future implementation
-    └── future adapters
-DataGovernanceProvider
-    ├── AskTDRegistryProvider
-    ├── UnityCatalogProvider       # future
-    ├── CollibraProvider           # future
-    └── future providers
-ExecutionProvider
-    ├── DirectSqlExecutionProvider
-    ├── DatabricksSqlExecutionProvider   # future
-    └── GenieExecutionProvider           # future evaluation only
-AuthorizationScope
-    allowed_entities       # MVP
-    allowed_datasets       # future
-    allowed_columns        # future
-    row_scope              # future
+First verify current:
 
-These are architecture concepts, not permission to create all of these implementations now.
+origin/main
 
-The goal is to find the minimum seam needed so the current SQL Server/Azure SQL implementation can sit behind stable contracts without changing current behavior.
+contains the formally accepted Phase 2C implementation.
 
-⸻
+Then create a new dedicated branch/worktree from the exact current origin/main.
 
-Architecture rules
+Suggested branch name:
 
-Preserve these decisions:
+phase2/provider-abstraction-foundation
 
-1. AskTD must remain provider-agnostic.
-2. The semantic planner must not depend directly on:
-    * SQL Server;
-    * Databricks;
-    * Unity Catalog;
-    * Collibra;
-    * Genie.
-3. Azure SQL / SQL Server remains the current concrete analytical path.
-4. Databricks is NOT being integrated in this task.
-5. Genie is NOT being implemented.
-6. Unity Catalog and Collibra are NOT being integrated.
-7. MVP authorization remains application-controlled entity-level authorization.
-8. Fine-grained dataset/column/row authorization is future work.
-9. Do not add Redis.
-10. Do not add Event Hubs.
-11. Do not redesign hosting, React/FastAPI topology, agents, or deployment.
-12. Preserve all Phase 2A/2B/2C contracts and behavior.
+Use the repository’s normal safe worktree/branch workflow.
 
-⸻
+Before mutation record:
 
-1. Verify repository state
-
-Report:
-
-* repository;
-* current branch;
-* HEAD SHA;
+* repository identity;
 * origin/main SHA;
-* working-tree status.
+* new branch;
+* worktree path;
+* clean working-tree status.
 
-Confirm Phase 2C is present in main.
-
-Do not create or switch branches.
-
-⸻
-
-2. Find existing data-source boundaries
-
-Inspect the current code and identify all important components involved in:
-
-* Azure SQL / SQL Server connection;
-* SqlDataStore or equivalent;
-* query execution;
-* SQL generation/compiler behavior;
-* query timeout/cancellation;
-* result retrieval;
-* source configuration;
-* any existing source registry or source abstraction.
-
-For each relevant component report:
-
-* file path;
-* class/function;
-* responsibility;
-* callers;
-* dependencies;
-* whether it is provider-specific;
-* whether it already behaves like part of a DataSourceAdapter.
-
-Answer:
-
-What is the smallest change that can put the current SQL implementation behind a DataSourceAdapter contract without rewriting working SQL behavior?
+If Phase 2C is not present in origin/main, STOP.
 
 ⸻
 
-3. Find existing metadata/governance boundaries
+2. Discovery findings to preserve
 
-Inspect:
+The prior repository audit found:
 
-* MetadataRegistryService;
-* RegistrySnapshot;
-* registry loaders;
-* semantic planner metadata access;
-* metadata lookup/search paths;
-* Azure AI Search metadata use where relevant;
-* any direct metadata-source assumptions.
+Execution seam — already exists
 
-Determine whether an existing object/service can naturally become:
+Existing abstraction:
 
-AskTDRegistryProvider
+contracts/tool_base.py::DatabaseTool
 
-behind:
+with existing concrete implementations and configuration-based selection in the application.
 
-DataGovernanceProvider
+Do not create a competing ExecutionProvider hierarchy merely to rename an existing abstraction.
 
-without changing Phase 2C canonical metadata contracts.
+Treat the existing DatabaseTool boundary as satisfying the execution-provider architectural seam unless implementation evidence encountered during this task proves otherwise.
 
-The canonical model must remain:
+Governance seam — already exists
+
+Existing abstraction/substance:
+
+MetadataRegistryService
+
+operating on canonical:
+
+RegistrySnapshot
+
+Do not introduce a duplicate metadata-provider layer merely for naming symmetry.
+
+Preserve canonical Phase 2C metadata:
 
 ProductGroup
   -> Schema
     -> Dataset
       -> Field
 Relationship
-BusinessTerm
-KPI
-Classification
-Owner
-Source
 RegistryVersion
+...
 
-External providers must eventually map into this model.
+Future Unity Catalog / Collibra providers must eventually map into this canonical model, but they are NOT implemented now.
 
-Do not design Unity Catalog or Collibra mappings in detail yet.
+Authorization seam — already exists
 
-⸻
+Existing scope model:
 
-4. Find existing execution boundary
+EffectivePermissions
 
-Trace the current path from:
+with current entity-level allowlists and fail-closed behavior.
 
-validated semantic/query intent
-    ->
-SQL candidate
-    ->
-SQL safety validation
-    ->
-execution
-    ->
-result
+Extend/reuse this model.
 
-Identify:
+Do not create a parallel AuthorizationScope model.
 
-* where execution is currently initiated;
-* which class actually executes SQL;
-* where SQL Server-specific behavior enters;
-* whether source selection and execution are currently coupled;
-* the smallest place to introduce ExecutionProvider.
+Do not implement dataset-, column-, or row-level authorization in this task.
 
-Determine whether:
+Data-source seam — actual missing foundation
 
-DirectSqlExecutionProvider
+Existing:
 
-should wrap an existing component rather than replacing it.
+SqlDataStore
 
-Do not implement it.
+already exposes an adapter-shaped API but has no declared provider-neutral contract.
+
+The prior audit found direct SqlDataStore construction/coupling in Orchestrator at approximately three construction points and two direct type hints.
+
+This is the main implementation target.
 
 ⸻
 
-5. AuthorizationScope discovery
+3. Objective
 
-Inspect the current authorization implementation.
+Introduce the smallest provider-neutral data-source contract so that core orchestration depends on an abstraction rather than directly depending on SqlDataStore.
 
-Identify:
+Current behavior must remain unchanged.
 
-* existing authenticated-user representation;
-* group/entity entitlement representation;
-* current allowed_entities or equivalent;
-* where metadata is filtered by authorization;
-* where semantic planning receives authorized scope;
-* any existing canonical authorization/scope object.
+Target conceptual dependency:
 
-Determine whether an existing contract should be extended or wrapped instead of creating a parallel authorization model.
+Orchestrator
+    |
+    v
+DataSourceAdapter
+    |
+    v
+SqlDataStore   # current concrete implementation
 
-For MVP preserve only current entity-level behavior.
+Do NOT rename SqlDataStore merely for aesthetic consistency.
 
-Do not implement dataset/column/row enforcement.
-
-⸻
-
-6. Configuration discovery
-
-Inspect existing configuration patterns for:
-
-* data source;
-* SQL provider;
-* metadata source;
-* environment;
-* execution behavior.
-
-Determine the smallest configuration model required eventually to support explicit provider selection such as:
-
-data_source_provider
-governance_provider
-execution_provider
-
-Do not change configuration in this audit.
-
-Do not expose provider-specific configuration to the semantic planner.
+Do NOT rewrite its working SQL implementation.
 
 ⸻
 
-7. Dependency direction audit
+4. DataSourceAdapter contract
 
-Produce the current dependency direction for:
+Inspect the actual public API currently required from SqlDataStore by its consumers.
 
-Semantic Planner
-Metadata Registry
+Define the smallest typed interface/protocol/ABC representing only the behavior actually required by the orchestration/core layer.
+
+Prefer a lightweight Python Protocol if compatible with the repository’s typing/version conventions.
+
+Do not expose SQL Server-specific concepts in the contract unless they are genuinely required by current callers.
+
+The contract should represent capabilities, not a future Databricks design.
+
+Examples of candidate capabilities may include current operations such as:
+
+* executing an approved read query;
+* retrieving result rows;
+* connection/query lifecycle behavior;
+* timeout/cancellation if already exposed;
+
+but derive the exact interface from existing code.
+
+Do not invent unused methods.
+
+⸻
+
+5. Preserve SqlDataStore behavior
+
+Make existing SqlDataStore satisfy the new contract with the minimum possible change.
+
+Prefer structural typing where possible so implementation changes are minimal.
+
+Do not:
+
+* rewrite SQL connection handling;
+* change SQL generation;
+* change SQL safety;
+* change retry semantics;
+* change authorization;
+* change result shape;
+* change environment/config behavior.
+
+Existing behavior must remain byte-for-byte/semantically equivalent where practical.
+
+⸻
+
+6. Remove core Orchestrator coupling
+
+Inspect every direct:
+
+SqlDataStore(...)
+
+construction and direct SqlDataStore type annotation in the orchestration/core path.
+
+Replace those dependencies with the new adapter contract through the smallest safe injection/factory seam.
+
+Important:
+
+Do not introduce a dependency-injection framework.
+
+Reuse existing configuration/factory construction patterns if present.
+
+A simple explicit constructor/factory boundary is preferred.
+
+The runtime default must continue to construct/use the existing SQL implementation.
+
+There must be no behavior change for existing users.
+
+⸻
+
+7. Configuration
+
+Do NOT introduce speculative provider configuration if current code does not need it.
+
+If a source/provider selector already exists, reuse it.
+
+If one minimal selector is genuinely required to remove the direct construction coupling, add only the smallest backward-compatible configuration required.
+
+Default behavior must remain the current SQL path.
+
+Do not add config values for:
+
+* Databricks;
+* Unity Catalog;
+* Collibra;
+* Genie.
+
+No future provider should be selectable until it actually exists.
+
+⸻
+
+8. ExecutionProvider compatibility proof
+
+Do not add a new ExecutionProvider hierarchy unless repository evidence proves the discovery result was incorrect.
+
+Instead add/extend tests that demonstrate:
+
+* the core execution path depends on the existing DatabaseTool abstraction rather than one hard-coded concrete execution provider where applicable;
+* current configuration still selects the current implementation;
+* behavior remains unchanged.
+
+If an unavoidable gap is found, STOP and report it before broadening scope.
+
+⸻
+
+9. DataGovernanceProvider compatibility proof
+
+Do not wrap MetadataRegistryService in a meaningless forwarding class merely to create a name called DataGovernanceProvider.
+
+Instead verify through tests/types that semantic planning/core code consumes canonical registry/service contracts rather than provider-specific Unity/Collibra structures.
+
+If a lightweight Protocol is useful at an actual dependency boundary, it may be added only if it removes real coupling.
+
+Do not add:
+
+* UnityCatalogProvider;
+* CollibraProvider;
+* provider stubs.
+
+⸻
+
+10. AuthorizationScope compatibility proof
+
+Reuse EffectivePermissions.
+
+If necessary, make only additive typing/documentation changes proving that it can later support additional optional scope dimensions.
+
+Current behavior remains:
+
+allowed_entities
+
+or its existing equivalent.
+
+Do not implement:
+
+* allowed_datasets;
+* allowed_columns;
+* row_scope;
+
+unless those fields already exist and only need preservation.
+
+Do not change authorization decisions.
+
+⸻
+
+11. Contract tests
+
+Add focused tests proving the architecture seam rather than testing hypothetical providers.
+
+At minimum verify:
+
+Data-source contract
+
+* current SqlDataStore satisfies/implements DataSourceAdapter;
+* orchestrator/core accepts a test/fake adapter without constructing SqlDataStore;
+* normal default runtime still selects/uses current SQL behavior;
+* no SQL Server-specific concrete type is required by core orchestration after the seam.
+
+Governance boundary
+
+* canonical registry service remains the metadata contract used by Phase 2C planning/validation;
+* no external-provider-specific structure enters semantic planning.
+
+Execution boundary
+
+* existing DatabaseTool abstraction remains the execution-provider seam;
+* existing concrete selection behavior is unchanged.
+
 Authorization
-SQL generation
-SQL validation
-SQL execution
-Data source
 
-Identify any current direct dependency that would prevent future replacement of SQL Server or metadata providers.
+* existing EffectivePermissions behavior remains fail-closed/entity-scoped;
+* introducing the provider seam does not bypass authorization.
 
-Classify every finding:
-
-* ALREADY_ABSTRACTED
-* MINOR_SEAM_REQUIRED
-* COUPLED_REQUIRES_REFACTOR
-* OUT_OF_SCOPE
-* INSUFFICIENT_EVIDENCE
-
-Do not label ordinary current SQL implementation as a defect merely because SQL Server is currently concrete.
+Prefer focused contract tests over broad mocking.
 
 ⸻
 
-8. Existing tests
+12. Dependency-direction acceptance requirement
 
-Find existing tests that can protect behavior while provider seams are introduced.
+After implementation, the intended direction must be demonstrably:
 
-Report tests covering:
+Core / Orchestrator
+        |
+        +--> DataSourceAdapter
+        |       |
+        |       +--> SqlDataStore
+        |
+        +--> MetadataRegistryService / canonical registry boundary
+        |
+        +--> DatabaseTool execution abstraction
+        |
+        +--> EffectivePermissions authorization boundary
 
-* SQL execution;
-* SQL safety;
-* metadata registry;
-* semantic planner;
-* authorization;
-* source/config behavior;
-* Phase 2A/2B/2C compatibility.
+Core planning/orchestration must not newly import:
 
-Identify the minimum new contract tests that would be required for the abstraction foundation.
-
-Do not write them in this task.
-
-⸻
-
-9. Proposed minimum Phase 2C.5 implementation
-
-Based on actual code evidence, provide the smallest implementation sequence.
-
-Prefer something approximately like:
-
-1. define DataSourceAdapter protocol/interface;
-2. wrap current SQL implementation as SqlServerAdapter;
-3. define DataGovernanceProvider;
-4. wrap current registry service as AskTDRegistryProvider;
-5. define ExecutionProvider;
-6. wrap current direct SQL execution;
-7. introduce/normalize extensible AuthorizationScope;
-8. add provider-selection configuration;
-9. add contract tests;
-10. prove existing behavior unchanged.
-
-But do NOT force this exact structure if repository evidence shows existing abstractions should be reused.
-
-For every proposed change give:
-
-* exact file to modify;
-* exact new file if needed;
-* symbol/class to add or change;
-* reason;
-* compatibility impact;
-* tests required.
+* Databricks SDK;
+* Unity Catalog models;
+* Collibra clients;
+* Genie clients.
 
 ⸻
 
-10. Explicitly identify what must NOT be implemented
+13. Explicit out of scope
 
-The report must explicitly confirm that this foundation does NOT require:
+Do NOT implement:
 
-* Databricks SQL connection code;
-* Unity Catalog API code;
-* Collibra API code;
-* Genie API code;
+* Databricks SQL adapter;
+* Databricks authentication;
+* Unity Catalog provider;
+* Collibra provider;
+* Genie provider;
+* provider stubs with NotImplementedError;
+* SQL dialect abstraction for Databricks;
 * cross-source joins;
-* fine-grained row/column authorization;
+* new query recipes;
+* KPI/glossary functionality;
+* Phase 2D recipe pilot;
 * Redis;
 * Event Hubs;
-* Phase 2D recipes;
-* KPI/glossary work;
-* deployment changes.
+* fine-grained authorization;
+* deployment/infrastructure changes;
+* frontend changes;
+* broad orchestrator redesign.
 
-Stubs should not be added merely for visual completeness unless they are required to prove the contract.
+Also do not address unrelated existing items such as:
+
+* hard-coded dbo.* semantic models;
+* literal T-SQL in existing recipe code;
+* broader planner migration to the governed registry;
+
+unless required to make this very small abstraction compile/test.
+
+Those belong to later bounded work and must not expand this change.
 
 ⸻
 
-11. Final decision
+14. Test gates
+
+Run focused tests for every changed component first.
+
+Then run:
+
+1. Phase 2A/2B/2C focused regression;
+2. MetadataRegistryService integration tests;
+3. relevant authorization tests;
+4. relevant SQL datastore/orchestrator tests;
+5. full backend regression;
+6. configured coverage gate;
+7. golden baseline;
+8. git diff --check.
+
+Do not regenerate golden baselines.
+
+Do not install or upgrade dependencies.
+
+Classify any failure before changing additional code.
+
+⸻
+
+15. Diff discipline
+
+Before finishing, inspect the complete diff against the origin/main SHA from which the branch was created.
+
+The diff must contain only the bounded Phase 2C.5 foundation.
+
+Specifically confirm:
+
+* no Phase 2D implementation;
+* no Databricks/UC/Collibra/Genie code;
+* no unrelated refactor;
+* no infrastructure changes;
+* no frontend changes;
+* no hidden behavior changes to existing SQL execution.
+
+⸻
+
+16. Documentation
+
+Add one small architecture/ADR note only if consistent with the repository’s existing ADR conventions.
+
+It should record that:
+
+* the current SQL data path is now behind DataSourceAdapter;
+* DatabaseTool satisfies the execution-provider seam;
+* MetadataRegistryService satisfies the current governance-provider seam;
+* EffectivePermissions is the extensible authorization-scope foundation;
+* future providers must map into canonical AskTD contracts;
+* no Databricks/Genie/Collibra/Unity implementation was added.
+
+Do not rewrite the enterprise architecture documents.
+
+⸻
+
+17. Stop conditions
+
+STOP instead of making an architecture decision if implementation reveals that:
+
+* removing SqlDataStore coupling requires redesigning SQL semantics;
+* an existing abstraction contradicts the approved provider-agnostic architecture;
+* a new provider-specific choice is required;
+* Phase 2C behavior must change;
+* fine-grained authorization becomes necessary.
+
+Report the exact blocker.
+
+⸻
+
+18. Final verdict
 
 Return exactly one:
 
-PHASE_2C5_FOUNDATION_READY_FOR_BOUNDED_IMPLEMENTATION
+PHASE_2C5_IMPLEMENTATION_READY_FOR_INDEPENDENT_REVIEW
 
 or
 
-PHASE_2C5_FOUNDATION_REQUIRES_ARCHITECTURE_DECISION
+PHASE_2C5_IMPLEMENTATION_HAS_BLOCKERS
 
 or
 
-PHASE_2C5_FOUNDATION_INSUFFICIENT_EVIDENCE
+PHASE_2C5_IMPLEMENTATION_INSUFFICIENT_EVIDENCE
 
-Use READY only if the contracts can be introduced without making an unresolved enterprise architecture decision.
+READY requires:
+
+* bounded implementation complete;
+* existing behavior preserved;
+* contract tests pass;
+* Phase 2A/2B/2C regressions pass;
+* full regression/coverage/golden gates acceptable;
+* diff is scoped;
+* no future provider implementation entered the change.
 
 ⸻
 
-Output
+19. Git behavior
 
-Save the report outside the Git worktree:
+Implementation may modify files in the new dedicated Phase 2C.5 worktree.
 
-/tmp/ASKTD_PHASE_2C5_PROVIDER_ABSTRACTION_DISCOVERY_2026-08-21.md
+Do NOT:
 
-Sections:
+* merge;
+* deploy;
+* modify main;
+* modify asktd_v2;
+* start Phase 2D.
 
-1. Repository State
-2. Current Data Source Architecture
-3. Current Governance / Metadata Architecture
-4. Current Execution Architecture
-5. Current Authorization Architecture
-6. Current Configuration Architecture
-7. Dependency / Coupling Matrix
-8. Existing Test Protection
-9. Minimum Proposed Phase 2C.5 Changes
-10. Files That Would Change
-11. Explicitly Out of Scope
-12. Open Decisions / Assumptions
-13. Final Verdict
-14. Recommended Single Next Action
+Do not push automatically unless the normal project workflow explicitly requires a pushed branch for review.
 
-This task is strictly read-only.
+If a push is needed, ask before pushing.
 
-At completion state:
+⸻
 
-* Repository files changed: No
-* Git state changed: No
-* PR state changed: No
-* Databricks implemented: No
-* Genie implemented: No
-* Phase 2D started: No
+Required report
+
+Save outside the Git worktree:
+
+/tmp/ASKTD_PHASE_2C5_PROVIDER_ABSTRACTION_IMPLEMENTATION_2026-08-21.md
+
+Include:
+
+1. Repository / Branch Evidence
+2. Discovery Findings Revalidated
+3. DataSourceAdapter Implementation
+4. Orchestrator Decoupling
+5. Existing ExecutionProvider Mapping
+6. Existing GovernanceProvider Mapping
+7. AuthorizationScope Mapping
+8. Configuration Impact
+9. Contract Tests
+10. Regression / Coverage / Golden Results
+11. Diff Against Main
+12. Files Changed
+13. Explicit Out-of-Scope Confirmation
+14. Remaining Risks / Decisions
+15. Final Verdict
+16. Recommended Next Action
+
+At completion report:
+
+* branch;
+* base SHA;
+* current HEAD;
+* files changed;
+* tests;
+* coverage;
+* golden baseline;
+* repository pushed: Yes/No;
+* Phase 2D started: No.
 
 Then STOP.
