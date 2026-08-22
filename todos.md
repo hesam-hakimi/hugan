@@ -1,561 +1,538 @@
-# LOCAL_HOTFIX_HF1_V2_FINAL_POST_REPAIR5_REAUDIT
-# FRESH INDEPENDENT READ-ONLY RELEASE-GATE AUDIT
+We are performing the FINAL INDEPENDENT RE-REVIEW of the AskTD Phase 2C.5 Provider Abstraction Foundation after remediation of the first independent-review findings.
 
-Perform a fresh, independent, adversarial, strictly read-only audit of the CURRENT HF1 V2 candidate after the completed Repair 5 and Amendment 2.
+This is strictly:
 
-You did NOT implement this candidate.
+READ-ONLY INDEPENDENT REVIEW
 
-Do not trust the implementation chat's conclusions, its internal verifier, test summaries, or architectural claims unless independently supported by current live source evidence.
+Do not modify any repository file.
 
-The current implementation workflow reported:
+Do not fix findings.
 
-- production compile: PASS
-- lint: PASS
-- RepoWriter suite: 23 passing
-- Explain suite: 28 passing
-- focused Repair-5/HF1 matrix: 304 passing, 0 failing
-- full unit: 1896 passing, 5 pending, exactly 5 failing
-- five failures = the protected historical set
-- REPAIR_5_REQUIRED routes remaining: 0
-- staged files: 0
-- new files from Amendment 2: 0
-- internal verifier: VERIFIED
-- final implementation marker:
-  LOCAL_HOTFIX_HF1_V2_REPAIR_5_VALIDATED
+Do not commit, push, create a PR, merge, deploy, rebase, switch branches, or start Phase 2D.
 
-Treat all of the above as supplied evidence only.
+Use a fresh review session independent from the implementation/remediation session.
 
-Do not edit or mutate anything.
+⸻
 
-==================================================
-1. ONE CONSOLIDATED READ-ONLY AUTHORIZATION
-==================================================
+1. Context
 
-Before inspection, request one consolidated authorization for all required read-only commands, including equivalents of:
+Program Phase 2C is formally closed.
 
-git status
-git diff
-git diff --check
-git rev-parse
-git remote
-git ls-files
-git show
-rg
-Get-Content
-Get-Item
-Get-ChildItem
-Get-FileHash
-Test-Path
+The initial Phase 2C.5 implementation received:
 
-Do NOT run:
+PHASE_2C5_INDEPENDENT_REVIEW_FAIL
 
-- Git mutations
-- npm install / npm ci
-- downloads
-- VSIX packaging/install
-- baseline regeneration
-- any command that intentionally changes candidate bytes
+The first independent review identified:
 
-==================================================
-2. REPOSITORY IDENTITY
-==================================================
+1. HIGH — orchestrator.py still directly imported/constructed SqlDataStore.
+2. DataSourceAdapter contract was broader than required by real orchestration.
+3. Fake-adapter tests did not sufficiently prove the actual production injection/composition path.
 
-Audit only:
+A bounded remediation was then completed.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Remediation verdict:
+
+PHASE_2C5_REMEDIATION_READY_FOR_RE_REVIEW
+
+⸻
+
+2. Expected current implementation state
 
 Expected branch:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+phase2/provider-abstraction-foundation
 
-Expected base HEAD:
+The branch has NOT been committed or pushed yet.
 
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Expected remediation architecture:
 
-Expected origin:
+Composition root / app.main
+        |
+        +--> build_default_data_source()
+                  |
+                  +--> SqlDataStore
+        |
+        v
+Orchestrator
+        |
+        v
+DataSourceAdapter
 
-https://github.com/TD-Universe/agentic_etl.git
+The core Orchestrator should no longer know the concrete SqlDataStore.
 
-Expected staged count:
+⸻
 
-0
+3. Previously reported remediation evidence
 
-Independently verify all values.
+The remediation agent reported this core dependency audit:
 
-==================================================
-3. AUDIT IMMUTABILITY
-==================================================
+* Direct SqlDataStore import in Orchestrator: No
+* Direct SqlDataStore(...) construction: No
+* Concrete SqlDataStore annotation: No
+* Concrete isinstance(..., SqlDataStore) dependency: No
+* Default construction moved to:
+    app.main.build_default_data_source()
 
-At audit start:
+Reported validation:
 
-- enumerate the complete current candidate changed-path set;
-- capture full SHA-256 for every candidate file;
-- capture repository identity;
-- capture staged count.
+* Phase 2A/2B/2C focused regressions: 144 passed
+* MetadataRegistryService: 11 passed
+* Authorization: 61 passed
+* SQL/Orchestrator adjacent: 120 passed
+* Golden baseline: 10 passed
+* Full backend: 887 passed, 3 skipped
+* Coverage: 86.63%
+* git diff --check: PASS
 
-Repeat all four at audit end.
+Independently verify these claims.
 
-Any candidate-byte drift during this audit is an automatic FAIL.
+Do not trust them merely because the remediation agent reported them.
 
-Do not assume the implementation's changed-file count.
+⸻
 
-==================================================
-4. COMPLETE CONSUMER-WRITE ROUTE SWEEP
-==================================================
+4. Verify repository state
 
-Perform a fresh repo-wide search for every reachable production filesystem mutation capable of writing to a consumer workspace.
+Report:
 
-Trace equivalents of:
+* repository;
+* worktree;
+* branch;
+* original Phase 2C.5 base SHA;
+* current HEAD;
+* origin/main SHA;
+* staged files;
+* unstaged files;
+* untracked files.
 
-workspace.fs.writeFile
-workspace.fs.createDirectory
-fs.writeFile
-fs.writeFileSync
-fs.mkdir
-fs.mkdirSync
-rename/copy/write abstractions
-writers eventually reaching these APIs
+Confirm:
 
-Do not assume the previously known list is complete.
+* no commit was created;
+* branch was not pushed;
+* Phase 2D has not started.
 
-For every route classify it as exactly one of:
+Do not change Git state.
 
-TRUSTED_CONSUMER_WRITE
-INTERNAL_NON_CONSUMER_WRITE
-TEST_ONLY
-DEAD_OR_UNREACHABLE
-UNSAFE_CONSUMER_WRITE
-AMBIGUOUS
+⸻
 
-For every TRUSTED_CONSUMER_WRITE prove:
+5. Exact diff inventory
 
-canonical consumerRoot
-→ prohibited-root rejection
-→ contained artifact identity
-→ immutable preview
-→ explicit approval
-→ trusted authorization
-→ immediate pre-write re-verification
-→ exactly intended mutation
-→ one-time consumption/replay protection
+Inspect the complete current Phase 2C.5 diff against its original origin/main base.
+
+Produce the exact changed-file list.
+
+The remediation report indicates changes involving approximately:
+
+* main.py
+* orchestrator.py
+* src/backend/app/contracts/data_source.py
+* test_authz_no_access_guard.py
+* test_contracts_and_helpers.py
+* test/test_provider_abstraction_contracts.py
+* docs/adr/0003-phase2c5-provider-abstraction-foundation.md
+
+Do not assume this list is complete.
+
+For each actual changed file classify:
+
+* REQUIRED
+* JUSTIFIED_TEST
+* JUSTIFIED_ADR
+* UNNECESSARY
+* OUT_OF_SCOPE
+* SUSPICIOUS
+
+No unexplained file may remain for PASS.
+
+⸻
+
+6. Re-review the original HIGH finding
+
+Search orchestrator.py and relevant core modules for all occurrences of:
+
+SqlDataStore
+
+Verify specifically:
+
+* direct import: absent;
+* direct construction: absent;
+* direct concrete type annotation: absent;
+* concrete isinstance/type checks: absent.
+
+Also search for aliases or indirect imports that would merely hide the same concrete dependency.
+
+PASS requires that core Orchestrator depends only on the provider-neutral contract at this seam.
+
+⸻
+
+7. Composition-root review
+
+Inspect:
+
+app.main.build_default_data_source()
+
+or the actual final construction location.
+
+Verify:
+
+* this is genuinely outside core Orchestrator;
+* it is a sensible existing composition/runtime wiring boundary;
+* it constructs current SqlDataStore;
+* existing authentication context is passed exactly as required;
+* existing default runtime behavior remains unchanged;
+* no new DI framework/service locator/plugin system was introduced.
+
+The concrete default being SqlDataStore is correct for current behavior.
+
+The requirement is separation of dependency direction, not elimination of SQL Server.
+
+⸻
+
+8. DataSourceAdapter minimality
+
+Re-derive the contract independently from real production Orchestrator/core usage.
+
+For every Protocol member identify at least one real production consumer.
+
+Check that the remediation removed members/arguments that were present only because SqlDataStore exposed them.
+
+The contract must not contain speculative capabilities for:
+
+* Databricks;
+* Unity Catalog;
+* Collibra;
+* Genie;
+* cross-source queries.
+
+Also verify it does not leak:
+
+* SQL Server connection objects;
+* vendor SDKs;
+* T-SQL-specific implementation objects.
+
+A SQL/query-shaped method can remain if current core genuinely requires it.
+
+Return PASS only if the contract is the smallest practical production abstraction.
+
+⸻
+
+9. Substitution-test review
+
+Inspect the updated fake/test adapter tests.
+
+They must prove the actual supported production seam.
+
+Verify there is a test proving:
+
+1. fake DataSourceAdapter is injected using the supported factory/dependency path;
+2. representative Orchestrator behavior uses the fake;
+3. concrete SqlDataStore construction does not occur;
+4. no real database connection is attempted;
+5. fake receives expected calls;
+6. result/behavior is correct.
+
+Ensure the test does not simply instantiate isolated helper functions while bypassing the path it claims to prove.
+
+Do not accept an isinstance()-only conformance test as sufficient substitution evidence.
+
+⸻
+
+10. Dependency-direction regression protection
+
+Inspect the new test designed to prevent future direct concrete coupling.
+
+Verify it meaningfully protects:
+
+Orchestrator -> DataSourceAdapter
+
+rather than:
+
+Orchestrator -> SqlDataStore
+
+Prefer AST/import/structural or meaningful behavioral protection.
+
+Flag overly fragile text/formatting assertions.
+
+⸻
+
+11. Existing provider seams
+
+Verify remediation did NOT create duplicate abstractions.
+
+Execution
+
+Existing:
+
+DatabaseTool
+
+should remain the execution-provider seam.
+
+No redundant ExecutionProvider hierarchy should exist.
+
+Governance
+
+Existing:
+
+MetadataRegistryService
++
+RegistrySnapshot
+
+should remain the governance-provider/canonical metadata boundary.
+
+No pointless DataGovernanceProvider forwarding wrapper should exist.
+
+Authorization
+
+Existing:
+
+EffectivePermissions
+
+should remain the authorization-scope foundation.
+
+No parallel AuthorizationScope model should exist.
+
+Authorization must remain fail-closed and entity scoped.
+
+⸻
+
+12. Behavioral equivalence
+
+Inspect changed production code for any unintended behavior change to:
+
+* SQL text;
+* SQL validation;
+* query recipes;
+* authentication;
+* authorization;
+* result shapes;
+* connection behavior;
+* retries;
+* timeouts;
+* exceptions;
+* logging;
+* metadata selection;
+* API responses.
+
+The only intended behavioral/architectural change is dependency composition.
+
+Existing users should continue to use the current SQL path without new configuration.
+
+⸻
+
+13. Configuration audit
+
+Verify:
+
+* no new provider selector is required for current users;
+* current SQL behavior remains the default;
+* no config was added for nonexistent providers.
+
+There must be no selectable:
+
+* Databricks provider;
+* Genie provider;
+* Unity Catalog provider;
+* Collibra provider.
+
+⸻
+
+14. Scope audit
+
+Search the complete diff.
+
+Confirm NO implementation was added for:
+
+* Databricks SQL;
+* Databricks authentication;
+* Unity Catalog;
+* Collibra;
+* Genie;
+* Redis;
+* Event Hubs;
+* cross-source joins;
+* SQL dialect abstraction for Databricks;
+* Phase 2D recipes;
+* KPI/glossary work;
+* fine-grained authorization;
+* frontend;
+* infrastructure/deployment.
+
+Do not fail the review because pre-existing SQL Server-specific implementation still exists behind SqlDataStore.
+
+⸻
+
+15. ADR review
+
+Review:
+
+docs/adr/0003-phase2c5-provider-abstraction-foundation.md
+
+Verify it accurately represents the final dependency direction:
+
+Composition Root
+      -> SqlDataStore
+Orchestrator
+      -> DataSourceAdapter
+
+It should also correctly state:
+
+* DatabaseTool = existing execution seam;
+* MetadataRegistryService / RegistrySnapshot = current governance seam;
+* EffectivePermissions = authorization foundation;
+* no Databricks/Genie/Unity/Collibra implementation;
+* Phase 2D not started.
+
+No future enterprise decision should be described as already implemented or approved.
+
+⸻
+
+16. Validation
+
+Re-run independently:
+
+1. provider-abstraction contract tests;
+2. Phase 2A/2B/2C focused regression;
+3. MetadataRegistryService tests;
+4. authorization regression;
+5. SQL datastore/orchestrator-adjacent regression;
+6. golden baseline;
+7. full backend regression with configured coverage;
+8. git diff --check.
+
+Historical post-remediation results:
+
+* 144 focused
+* 11 MetadataRegistryService
+* 61 authorization
+* 120 SQL/Orchestrator
+* 10 golden
+* 887 backend / 3 skipped
+* 86.63% coverage
+
+Different totals are acceptable if explained by current repository state.
+
+Do not regenerate baselines.
+
+Do not install/upgrade dependencies.
+
+⸻
+
+17. Findings
+
+Report findings in severity order:
+
+* BLOCKER
+* HIGH
+* MEDIUM
+* LOW
+* OBSERVATION
+
+For each include:
+
+* file;
+* symbol/area;
+* finding;
+* reason;
+* minimum remediation.
 
 PASS requires:
 
-UNSAFE_CONSUMER_WRITE count = 0
-AMBIGUOUS consumer-write route count = 0
+* zero BLOCKER;
+* zero HIGH.
 
-==================================================
-5. NORMAL QA SINGLE-FOLDER CONTRACT
-==================================================
+MEDIUM/LOW findings must be evaluated for whether they truly block this bounded foundation.
 
-Independently prove:
+⸻
 
-one legitimate fresh consumer folder
-→ CREATE_NEW_JOB
+18. Final architecture acceptance questions
 
-one legitimate existing consumer folder
-→ UPDATE_EXISTING_REPO
+Answer Yes/No with evidence:
 
-zero folders
-→ BLOCKED
+1. Does Orchestrator still directly know SqlDataStore?
+2. Can a fake DataSourceAdapter replace the concrete implementation through the real supported seam?
+3. Does the current runtime still default to SqlDataStore?
+4. Is DataSourceAdapter minimal?
+5. Is DataSourceAdapter provider-neutral?
+6. Were existing Execution/Governance/Authorization abstractions reused?
+7. Was any future provider implementation added?
+8. Did Phase 2D start?
+9. Are Phase 2A/2B/2C regressions still clean?
+10. Is the complete diff bounded to Phase 2C.5?
 
-multiple folders with no explicit safe selection
-→ ambiguous/BLOCKED
+For PASS, expected answers are:
 
-sample_repo
-→ BLOCKED
+1. No
+2. Yes
+3. Yes
+4. Yes
+5. Yes
+6. Yes
+7. No
+8. No
+9. Yes
+10. Yes
 
-current HF1 V2 extension checkout
-→ BLOCKED
+⸻
 
-etl-framework-adb / framework/source/reference/install root
-→ BLOCKED
+19. Final verdict
 
-Normal QA must NOT require:
+Return exactly ONE:
 
-etl-framework-adb
-framework source
-frameworkRepositoryPath
-extension source
-a second workspace folder
-manual job_conf/
-manual env_conf/
-manual marker files
+PHASE_2C5_INDEPENDENT_REVIEW_PASS
 
-Search specifically for any remaining consumer-write use of:
+or
 
-workspaceFolders[0]
-workspaceFolders?.[0]
+PHASE_2C5_INDEPENDENT_REVIEW_FAIL
 
-Any reachable unvalidated first-folder write root is a release blocker.
+or
 
-==================================================
-6. PHYSICAL CONTAINMENT — REPAIR 5 AMENDMENT 2
-==================================================
+PHASE_2C5_INDEPENDENT_REVIEW_INSUFFICIENT_EVIDENCE
 
-Independently inspect the final RepoWriter physical-containment implementation.
+Use PASS only if the previous HIGH issue is fully resolved and no new HIGH/BLOCKER exists.
 
-Verify all of these:
+If PASS state:
 
-1. normal in-root destination accepted;
-2. `..` traversal rejected;
-3. absolute destination rejected;
-4. sibling-root destination rejected;
-5. link/junction to existing outside destination rejected;
-6. dangling final-file link to outside missing target rejected;
-7. dangling/escaping linked ancestor rejected;
-8. POSIX case-distinct sibling rejected;
-9. Windows equivalent-case path remains valid where appropriate;
-10. valid in-root linked/non-linked destination remains safe;
-11. hard-link/symlink compositions cannot physically mutate an outside file.
+The remediated Phase 2C.5 provider-abstraction foundation is technically ready to be committed and pushed for normal PR/CI review. Phase 2D has not started.
 
-Specifically verify:
+If FAIL, give only the minimum additional remediation required.
 
-- ancestor discovery is lstat-aware;
-- dangling links cannot be skipped as "nonexistent";
-- failed realpath is fail-closed;
-- physical target is checked, not merely lexical relative path;
-- POSIX comparisons preserve case;
-- Windows path identity remains case-insensitive as intended.
+Do not implement it.
 
-A physical write escape is automatic FAIL.
+⸻
 
-==================================================
-7. EXPLAIN WRITE FLOW
-==================================================
+Required report
 
-Trace Explain save end-to-end.
+Save outside the worktree:
 
-Prove:
+/tmp/ASKTD_PHASE_2C5_INDEPENDENT_REREVIEW_2026-08-22.md
 
-first save
-→ preview only
-→ zero writes
+Include:
 
-approved second turn
-→ same root/path/content
-→ exactly one contained write
+1. Repository / Worktree Evidence
+2. Executive Verdict
+3. Exact Diff Inventory
+4. Original HIGH Finding Revalidation
+5. Composition Root Review
+6. DataSourceAdapter Review
+7. Substitution Test Review
+8. Dependency-Direction Regression Test
+9. Existing Provider Seam Review
+10. Behavioral Equivalence
+11. Configuration Review
+12. ADR Review
+13. Scope Audit
+14. Validation Results
+15. Findings by Severity
+16. Final Architecture Acceptance Matrix
+17. Remaining Remediation
+18. Final Recommendation
 
-root drift
-→ rejected
+At completion explicitly state:
 
-path drift
-→ rejected
+* Repository files modified by review: No
+* Git state changed by review: No
+* Commit created: No
+* Branch pushed: No
+* PR created: No
+* Phase 2D started: No
 
-content drift
-→ rejected
-
-decline/cancel
-→ zero writes
-
-replay
-→ zero additional writes
-
-pending preview identity is opaque only.
-
-Also verify unique temporary Explain fixtures are test-only isolation and do not alter production semantics.
-
-==================================================
-8. ARTIFACT REUSE
-==================================================
-
-Trace:
-
-ArtifactReuseConversationCoordinator
-→ ArtifactActionCoordinator
-→ create/patch writers
-
-Prove:
-
-preview
-→ zero mutations
-
-real approval transition
-→ SAME preview/operation becomes authorized
-
-approved create
-→ exactly intended contained write
-
-approved patch
-→ exactly intended contained mutation
-
-consumerRoot drift
-→ rejected
-
-path drift
-→ rejected
-
-content/patch drift
-→ rejected
-
-cancel
-→ zero mutations
-
-replay
-→ zero additional mutation
-
-No preview_only state may be treated directly as approved.
-
-No independent weaker approval mechanism may bypass the trusted state machine.
-
-==================================================
-9. REPO CONTEXT INITIALIZATION
-==================================================
-
-Trace both production entry points.
-
-Verify:
-
-- canonical RepoWriter consumerRoot classification;
-- selected root is revalidated even after UI selection;
-- no workspaceFolders[0] trust;
-- raw `{ approved: true }` cannot authorize writes;
-- trusted inline authorization is required;
-- exact final bytes are what the authorization manifest hashes;
-- especially verify `.gitignore`;
-- containment is rechecked before writing;
-- prohibited/reference/source roots cannot be initialized.
-
-==================================================
-10. UNIT TEST COORDINATOR
-==================================================
-
-Reconfirm the previously fixed route:
-
-- no direct-write bypass;
-- shared RepoWriter root semantics;
-- preview first;
-- zero first-turn writes;
-- approval second turn;
-- exactly one write;
-- replay rejected;
-- path containment safe.
-
-==================================================
-11. FRAMEWORK AUTHORITY / ORACLE
-==================================================
-
-Reconfirm normal QA needs no live etl-framework-adb source.
-
-Verify packaged Oracle authority:
-
-configured source
-→ validated or fail closed
-
-explicit valid framework workspace source
-→ validated or fail closed
-
-otherwise packaged trusted contract
-→ normal QA authority
-
-Verify:
-
-FRAMEWORK_DEFINITION_UNAVAILABLE
-
-is distinct from:
-
-ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING
-
-and valid db_data_out / db_ctrl_out does not incorrectly produce generic missing_target_location.
-
-==================================================
-12. INSTALLED VSIX RESOURCE RESOLUTION
-==================================================
-
-Verify the trusted packaged framework contract can be resolved from the installed extension resource topology.
-
-It must not require:
-
-process.cwd()
-developer checkout
-neighbor repo
-consumer root
-etl-framework-adb
-
-for normal QA operation.
-
-A non-winning dev fallback may remain only if installed-resource resolution clearly wins.
-
-==================================================
-13. WRITE AUTHORIZATION ADVERSARIAL CHECK
-==================================================
-
-Verify trusted routes reject:
-
-forged authorization
-expired approval
-stale approval
-consumed approval
-wrong consumerRoot
-wrong target
-wrong targetDecision
-changed artifact type
-changed relative path
-changed bytes
-replay/concurrent second consumption
-
-No authorization may produce two writes.
-
-==================================================
-14. COMPETING-ROUTE DEBT
-==================================================
-
-The implementation discovery classified conversational competing-route precedence as NON_BLOCKING_DEBT.
-
-Independently verify that:
-
-- only one route mutates per request;
-- one route cannot consume another route's approval;
-- stale conversation state cannot bypass authorization;
-- remaining issue is only UX/conversational precedence.
-
-If true, leave it non-blocking.
-
-If an actual write bypass exists, elevate and FAIL.
-
-==================================================
-15. PACKAGE HYGIENE
-==================================================
-
-Verify the repository packaging configuration is sufficient for a clean QA VSIX.
-
-Required runtime resources must include the packaged framework contract.
-
-Development/test artifacts must remain excluded, including applicable forms of:
-
-src/test/**
-out/test/**
-docs/eval/**
-.vscode-test/**
-*.tsbuildinfo*
-tsconfig.test.json
-*.log
-*.vsix
-
-No manual ZIP surgery may be required.
-
-==================================================
-16. CONSUMER ARTIFACT CONTRACT
-==================================================
-
-Verify Repair 5 did not unintentionally alter governed /create consumer artifact output.
-
-Explain, Artifact Reuse, and RepoContext remain separately generated consumer-workspace operations and must not silently become additional /create artifacts.
-
-Verify equivalent /create inputs retain stable intended artifact paths/bytes/order.
-
-==================================================
-17. HISTORICAL FIVE
-==================================================
-
-Confirm the remaining five full-suite failures are still only:
-
-- two protected EvalGating failures;
-- three protected Copilot workflow customization failures.
-
-Confirm current HF1 V2 candidate does not introduce those failures.
-
-Do not repair them.
-
-==================================================
-18. NO-TOUCH BOUNDARY
-==================================================
-
-Verify current HF1 V2 candidate has not modified prohibited external surfaces such as:
-
-etl-framework-adb
-real consumer repositories
-S-A/S-B work
-Phase-H baselines
-resources/prompts/**
-.github/**
-AGENT.md / AGENTS.md
-package-lock.json
-
-except exact candidate-owned files explicitly expected by the hotfix.
-
-==================================================
-19. SEVERITY / RELEASE RULE
-==================================================
-
-Classify findings:
-
-CRITICAL
-HIGH
-MEDIUM
-LOW
-INFO
-
-A release-gate PASS requires:
-
-CRITICAL = 0
-HIGH = 0
-
-No reachable unsafe consumer write route may remain.
-
-No root/path physical escape may remain.
-
-No normal QA dependency on framework source may remain.
-
-==================================================
-20. REQUIRED FINAL REPORT
-==================================================
-
-Return:
-
-1. Repository identity.
-2. Exact candidate changed-path inventory.
-3. Start/end SHA-256 proof.
-4. Severity-ranked findings.
-5. Complete consumer-write-route inventory.
-6. Single-folder QA verdict.
-7. Physical containment verdict.
-8. Explain verdict.
-9. Artifact Reuse verdict.
-10. RepoContext verdict.
-11. UnitTestCoordinator verdict.
-12. WriteAuthorization verdict.
-13. Packaged framework/Oracle verdict.
-14. VSIX resource-resolution verdict.
-15. Package-hygiene verdict.
-16. Historical-five separation.
-17. Remaining non-blocking debts.
-18. End-state no-touch proof.
-
-Finish exactly:
-
-REPOSITORY_IDENTITY_MATCH: YES|NO
-CANDIDATE_BYTES_STABLE_DURING_AUDIT: YES|NO
-UNAUTHORIZED_PATH_DRIFT: YES|NO
-ALL_LIVE_CONSUMER_WRITE_ROUTES_ENUMERATED: YES|NO
-ALL_CONSUMER_WRITE_ROUTES_GATED: YES|NO
-NORMAL_QA_SINGLE_FOLDER_MODEL_SAFE: YES|NO
-QA_REQUIRES_FRAMEWORK_SOURCE: YES|NO
-PHYSICAL_CONTAINMENT_SAFE: YES|NO
-DANGLING_LINK_ESCAPE_CLOSED: YES|NO
-POSIX_CASE_CONTAINMENT_SAFE: YES|NO
-EXPLAIN_TRUSTED_WRITE_SAFE: YES|NO
-ARTIFACT_REUSE_TRUSTED_WRITE_SAFE: YES|NO
-REPO_CONTEXT_TRUSTED_WRITE_SAFE: YES|NO
-UNIT_TEST_COORDINATOR_TRUSTED_WRITE_SAFE: YES|NO
-WRITE_AUTHORIZATION_RUNTIME_SAFE: YES|NO
-PACKAGED_CONTRACT_TRUST_BOUNDARY_SAFE: YES|NO
-ORACLE_VALIDATION_SAFE: YES|NO
-INSTALLED_EXTENSION_RESOURCE_LOADING_SAFE: YES|NO
-CONSUMER_ARTIFACT_CONTRACT_PRESERVED: YES|NO
-PACKAGE_HYGIENE_READY_FOR_QA_VSIX: YES|NO
-FIVE_HISTORICAL_FAILURES_UNRELATED: YES|NO
-REAL_CONSUMER_E2E: NOT EXECUTED — SAMPLE UNAVAILABLE
-SAFE_TO_KEEP_REPAIR_5: YES|NO
-SAFE_TO_BUILD_QA_VSIX: YES|NO
-SAFE_TO_COMMIT_HF1_V2: NO
-
-Then exactly one final marker:
-
-LOCAL_HOTFIX_HF1_V2_FINAL_POST_REPAIR5_REAUDIT_PASS
-
-or:
-
-LOCAL_HOTFIX_HF1_V2_FINAL_POST_REPAIR5_REAUDIT_FAIL
-
-No text after the marker.
+Then STOP.
