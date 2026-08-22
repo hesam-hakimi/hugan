@@ -1,538 +1,617 @@
-We are performing the FINAL INDEPENDENT RE-REVIEW of the AskTD Phase 2C.5 Provider Abstraction Foundation after remediation of the first independent-review findings.
+LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_SCOPE_DISCOVERY — READ ONLY
 
-This is strictly:
+The final independent post-Repair-5 audit completed with:
 
-READ-ONLY INDEPENDENT REVIEW
+SAFE_TO_KEEP_REPAIR_5: YES
+SAFE_TO_BUILD_QA_VSIX: NO
+SAFE_TO_COMMIT_HF1_V2: NO
+LOCAL_HOTFIX_HF1_V2_FINAL_POST_REPAIR5_REAUDIT_FAIL
 
-Do not modify any repository file.
+Repair 5 itself has passed its independent gate and must be treated as accepted current candidate behavior.
 
-Do not fix findings.
+Do NOT reopen, redesign, or undo Repair 5.
 
-Do not commit, push, create a PR, merge, deploy, rebase, switch branches, or start Phase 2D.
+This task is a NEW release-gate discovery phase.
 
-Use a fresh review session independent from the implementation/remediation session.
+Do NOT implement anything.
 
-⸻
+Perform exhaustive, adversarial, strictly read-only investigation of the remaining release findings and freeze the exact smallest Repair-6 scope.
 
-1. Context
-
-Program Phase 2C is formally closed.
-
-The initial Phase 2C.5 implementation received:
-
-PHASE_2C5_INDEPENDENT_REVIEW_FAIL
-
-The first independent review identified:
-
-1. HIGH — orchestrator.py still directly imported/constructed SqlDataStore.
-2. DataSourceAdapter contract was broader than required by real orchestration.
-3. Fake-adapter tests did not sufficiently prove the actual production injection/composition path.
-
-A bounded remediation was then completed.
-
-Remediation verdict:
-
-PHASE_2C5_REMEDIATION_READY_FOR_RE_REVIEW
+No file may be created, edited, deleted, formatted, staged, committed, packaged, installed, or otherwise mutated.
 
 ⸻
 
-2. Expected current implementation state
+1. CURRENT ACCEPTED HF1 V2 STATE
 
-Expected branch:
+The independent audit already confirmed the following as PASS:
 
-phase2/provider-abstraction-foundation
+* repository identity correct;
+* candidate bytes stable during audit;
+* all live consumer-write routes enumerated;
+* normal QA single-folder model safe;
+* QA requires no framework source;
+* dangling-link handling in resolveContainedWorkspacePath() correct;
+* POSIX case-sensitive containment logic inside that helper correct;
+* Explain trusted write safe;
+* Artifact Reuse trusted write safe;
+* RepoContext trusted write safe;
+* UnitTestCoordinator trusted write safe;
+* WriteAuthorization runtime safe;
+* packaged Oracle framework contract safe;
+* Oracle validation safe;
+* installed-extension resource loading safe;
+* consumer artifact contract preserved;
+* five historical failures unrelated;
+* Repair 5 safe to Keep.
 
-The branch has NOT been committed or pushed yet.
-
-Expected remediation architecture:
-
-Composition root / app.main
-        |
-        +--> build_default_data_source()
-                  |
-                  +--> SqlDataStore
-        |
-        v
-Orchestrator
-        |
-        v
-DataSourceAdapter
-
-The core Orchestrator should no longer know the concrete SqlDataStore.
-
-⸻
-
-3. Previously reported remediation evidence
-
-The remediation agent reported this core dependency audit:
-
-* Direct SqlDataStore import in Orchestrator: No
-* Direct SqlDataStore(...) construction: No
-* Concrete SqlDataStore annotation: No
-* Concrete isinstance(..., SqlDataStore) dependency: No
-* Default construction moved to:
-    app.main.build_default_data_source()
-
-Reported validation:
-
-* Phase 2A/2B/2C focused regressions: 144 passed
-* MetadataRegistryService: 11 passed
-* Authorization: 61 passed
-* SQL/Orchestrator adjacent: 120 passed
-* Golden baseline: 10 passed
-* Full backend: 887 passed, 3 skipped
-* Coverage: 86.63%
-* git diff --check: PASS
-
-Independently verify these claims.
-
-Do not trust them merely because the remediation agent reported them.
+Do not re-litigate those conclusions unless live evidence shows a direct contradiction relevant to the findings below.
 
 ⸻
 
-4. Verify repository state
+2. AUDIT FINDINGS TO INVESTIGATE
 
-Report:
+The final independent audit reported:
 
-* repository;
-* worktree;
-* branch;
-* original Phase 2C.5 base SHA;
-* current HEAD;
-* origin/main SHA;
-* staged files;
-* unstaged files;
-* untracked files.
+HIGH H1 — physical containment is not applied to the primary RepoWriter write route
 
-Confirm:
+Audit claim:
 
-* no commit was created;
-* branch was not pushed;
-* Phase 2D has not started.
+RepoWriter.writeArtifacts(...)
 
-Do not change Git state.
+validates artifact paths lexically with PathValidator.validateArtifactPath(...), but does NOT invoke the already-hardened physical containment function:
 
-⸻
+resolveContainedWorkspacePath(...)
 
-5. Exact diff inventory
+before the real filesystem write.
 
-Inspect the complete current Phase 2C.5 diff against its original origin/main base.
+The audit reported that the primary routes using RepoWriter.writeArtifacts() include at least:
 
-Produce the exact changed-file list.
+* EtlActionToolService
+* WriteCoordinator
+* DeployCoordinator
 
-The remediation report indicates changes involving approximately:
+Potential consequence:
 
-* main.py
-* orchestrator.py
-* src/backend/app/contracts/data_source.py
-* test_authz_no_access_guard.py
-* test_contracts_and_helpers.py
-* test/test_provider_abstraction_contracts.py
-* docs/adr/0003-phase2c5-provider-abstraction-foundation.md
+A symlink/junction inside an approved consumerRoot could redirect an otherwise approved relative path physically outside consumerRoot.
 
-Do not assume this list is complete.
+The trusted preview may still display only the apparently safe relative path.
 
-For each actual changed file classify:
+Classification from audit:
 
-* REQUIRED
-* JUSTIFIED_TEST
-* JUSTIFIED_ADR
-* UNNECESSARY
-* OUT_OF_SCOPE
-* SUSPICIOUS
-
-No unexplained file may remain for PASS.
+HIGH
 
 ⸻
 
-6. Re-review the original HIGH finding
+HIGH H2 — package hygiene is insufficient for a safe QA VSIX
 
-Search orchestrator.py and relevant core modules for all occurrences of:
+The audit reported:
 
-SqlDataStore
+* .tmp/** is not excluded;
+* .tmp currently contains a large unrelated tree, including cloned/private repository content;
+* .tsbuildinfo.test is not matched by the current .vscodeignore rule;
+* a clean QA VSIX build may therefore package unrelated/private/test content;
+* manual ZIP surgery would otherwise be required.
 
-Verify specifically:
+Audit observed approximately:
 
-* direct import: absent;
-* direct construction: absent;
-* direct concrete type annotation: absent;
-* concrete isinstance/type checks: absent.
+.tmp:
+~1895 files
+~257 MB
 
-Also search for aliases or indirect imports that would merely hide the same concrete dependency.
+Do NOT rely on those numbers as current truth; verify them read-only.
 
-PASS requires that core Orchestrator depends only on the provider-neutral contract at this seam.
+Classification from audit:
+
+HIGH
 
 ⸻
 
-7. Composition-root review
+3. MEDIUM FINDINGS TO CLASSIFY BEFORE ANY REPAIR
+
+The independent audit also reported four MEDIUM findings.
+
+Do NOT automatically include them in Repair 6.
+
+For each, determine whether it is:
+
+RELEASE_BLOCKING_SECURITY_DEFECT
+RELEASE_BLOCKING_CORRECTNESS_DEFECT
+BOUNDED_NON_BLOCKING_DEBT
+FALSE_POSITIVE
+DEAD_OR_UNREACHABLE
+OUT_OF_SCOPE_LEGACY_BEHAVIOR
+AMBIGUOUS
+
+⸻
+
+M1 — additional lexical-only containment paths
+
+Audit reported that:
+
+UnitTestCoordinator.isInsideRoot(...)
+WorkflowTargetResolver.assertWithinWorkspace(...)
+
+use lexical path.relative(...)-style containment without physical realpath containment.
+
+Determine independently:
+
+A. Are these functions reachable on real consumer filesystem mutation paths?
+
+B. Does UnitTestCoordinator already perform an independent physical containment check elsewhere that makes this helper defense-in-depth only?
+
+C. Does WorkflowTargetResolver guard an actual consumer write or only planning/read behavior?
+
+D. Can either route physically escape consumerRoot through a symlink/junction?
+
+E. Would fixing them require a shared primitive outside the currently accepted Repair-5 architecture?
+
+Do not classify M1 as a blocker merely because the helper is lexical.
+
+Prove reachability and exploitability.
+
+⸻
+
+M2 — .tsbuildinfo.test package exclusion
+
+Audit reported that:
+
+.tsbuildinfo.test
+
+is not excluded by the current .vscodeignore.
+
+Determine whether this is already fully subsumed by H2.
+
+Prefer ONE package-hygiene repair rather than treating H2 and M2 as separate implementations if they share the same configuration fix.
+
+⸻
+
+M3 — manifest disposition mismatch
+
+Audit claim:
+
+EtlActionToolService.collectManifestFiles(...) may mark the job config as:
+
+disposition: unchanged
+
+while:
+
+RepoWriter.writeArtifacts(...)
+
+still rewrites artifacts.jobConfig.
+
+Determine:
+
+A. Is the same byte content rewritten?
+
+B. Does Preview tell the user that this file is unchanged?
+
+C. Is an actual filesystem write performed anyway?
+
+D. Could this break timestamp-sensitive behavior, downstream automation, audit semantics, or user expectations?
+
+E. Is this only a semantic/reporting inconsistency or a true unsafe write?
+
+F. Is it pre-existing?
+
+G. Does it affect the fresh-consumer QA use case?
+
+Do not fix it unless it is materially release-blocking or the smallest safe repair is clearly bounded.
+
+⸻
+
+M4 — legacy Copilot workflow customization writes
+
+Audit reported legacy paths involving equivalents of:
+
+CopilotWorkflowInitializer
+Repairer
+Upgrader
+Deleter
+ConsumerRepoOverlayService
+
+which may authorize consumer .github/** mutations using a plain:
+
+{ approved: true }
+
+plus a modal, rather than the HF1 V2 immutable manifest / checksum / one-time WriteAuthorization model.
+
+Important historical boundary:
+
+The repository already has three protected historical Copilot workflow customization failures.
+
+Repair 5 intentionally did NOT redesign that historical customization family.
+
+Determine:
+
+A. Are these routes part of the normal QA/end-user ETL flow being released?
+
+B. Are they reachable from the packaged extension?
+
+C. Do they mutate the same consumer workspace?
+
+D. Are they explicitly user-triggered maintainer/customization operations?
+
+E. Could they bypass HF1 V2 consumer-write guarantees in normal QA use?
+
+F. Would repairing them require touching the historical customization family / protected baseline?
+
+G. Is this a separate future security-hardening project rather than a blocker for this QA VSIX?
+
+Do NOT silently broaden Repair 6 into a rewrite of the Copilot workflow customization subsystem.
+
+⸻
+
+4. HIGH H1 — TRACE THE PRIMARY WRITE ROUTE COMPLETELY
+
+Trace:
+
+EtlActionToolService
+WriteCoordinator
+DeployCoordinator
+→ RepoWriter.writeArtifacts(...)
+→ final filesystem mutations
+
+For every call site determine:
+
+* canonical consumerRoot source;
+* preview manifest identity;
+* approval state;
+* WriteAuthorization state;
+* artifact relative path;
+* current lexical validation;
+* current physical validation;
+* exact final write target construction.
+
+Answer explicitly:
+
+H1-A
+
+Is resolveContainedWorkspacePath() already called earlier or later in the route for every artifact?
+
+H1-B
+
+If not, can a symlink/junction under:
+
+job_conf/
+env_conf/
+conf/
+sql/
+
+or another generated artifact directory redirect the final write physically outside consumerRoot?
+
+H1-C
+
+Can this occur after Preview/Approval without changing:
+
+* relative artifact path;
+* artifact bytes;
+* manifest checksum?
+
+H1-D
+
+What is the smallest correct integration point?
+
+Prefer, if architecture supports it:
+
+RepoWriter.writeArtifacts()
+
+as the single physical-containment choke point immediately before every real file/directory mutation.
+
+Do NOT duplicate physical containment into every caller if one central fix is sufficient.
+
+H1-E
+
+Enumerate every file-writing helper inside RepoWriter that would need to use the resolved physical target.
+
+H1-F
+
+Determine whether:
+
+backupExisting(...)
+ensureDirectoryStructure(...)
+
+or other internal helpers can create/mutate paths before the proposed physical validation.
+
+⸻
+
+5. H1 REQUIRED TEST PLAN
+
+Identify exact existing test file(s) for RepoWriter real filesystem writing.
+
+Future Repair 6 must behaviorally prove at least:
+
+1. normal approved in-root job write succeeds;
+2. approved relative path redirected by symlink to outside existing file is rejected;
+3. dangling symlink to outside missing file is rejected;
+4. escaping linked ancestor is rejected;
+5. sibling-root junction/reparse escape rejected where applicable;
+6. physical escape created AFTER Preview but BEFORE Write is rejected;
+7. no outside bytes are modified;
+8. normal valid in-root symlink behavior remains as defined by current contract;
+9. /write, WriteCoordinator, and local /deploy cannot bypass the central check;
+10. approval is failed/consumed correctly when the physical destination becomes unsafe.
+
+Tests must exercise real production write behavior.
+
+Do not accept source-text-only assertions.
+
+⸻
+
+6. H2 — PACKAGE HYGIENE AUDIT
 
 Inspect:
 
-app.main.build_default_data_source()
+.vscodeignore
+package.json
+VSIX packaging scripts/configuration
 
-or the actual final construction location.
+and the current repository filesystem.
+
+Determine exactly which candidate files/directories would be included by the VSIX packager.
+
+Do NOT actually package a VSIX in this discovery.
+
+Verify handling of at least:
+
+.tmp/**
+.tsbuildinfo.test
+*.tsbuildinfo
+*.tsbuildinfo.*
+tsconfig.test.json
+src/test/**
+out/test/**
+docs/eval/**
+.vscode-test/**
+*.log
+*.vsix
+node_modules/**
+
+Also verify required runtime content remains included:
+
+package.json
+out/extension.js
+out/sttm-runtime.js
+resources/copilot/**
+resources/framework/contracts/**
+required media/runtime assets
+
+⸻
+
+7. H2 — .tmp INVESTIGATION
+
+Inspect .tmp read-only.
+
+Return:
+
+* total files;
+* total bytes;
+* top-level entries;
+* whether Git repositories/checkouts exist underneath;
+* whether private/internal source content could be packaged;
+* whether .tmp is intended runtime content;
+* whether any production code expects .tmp to ship in VSIX.
+
+If .tmp is purely local/test/temporary state, state whether excluding:
+
+.tmp/**
+
+is sufficient.
+
+Do not delete .tmp.
+
+⸻
+
+8. H2 — .tsbuildinfo RULE
+
+Determine why current .vscodeignore matches some .tsbuildinfo forms but not:
+
+.tsbuildinfo.test
+
+Identify the smallest robust pattern that excludes:
+
+.tsbuildinfo
+.tsbuildinfo.test
+foo.tsbuildinfo
+foo.tsbuildinfo.test
+other equivalent build-info variants
+
+without excluding legitimate runtime assets.
+
+Do not edit yet.
+
+⸻
+
+9. PACKAGE CONTENT PROOF STRATEGY
+
+Define how Repair 6 should later prove package safety WITHOUT manual ZIP surgery.
+
+Preferred future validation:
+
+1. clean build;
+2. local VSIX package;
+3. vsce ls and/or archive-content inspection;
+4. assert required runtime files present;
+5. assert forbidden patterns absent;
+6. verify source repository bytes unchanged except authorized build outputs if expected.
+
+For this discovery only, specify commands but do not execute packaging.
+
+⸻
+
+10. RE-AUDIT ALL CURRENT WRITE ROUTES FOR H1 CLASS
+
+Because H1 revealed that authorization correctness and physical containment were separated, perform a narrow read-only sweep of every current TRUSTED_CONSUMER_WRITE route.
+
+For each route answer:
+
+Trusted authorization? YES/NO
+Canonical logical root? YES/NO
+Physical target containment immediately before mutation? YES/NO
+
+Routes must include at least:
+
+* RepoWriter / /write
+* WriteCoordinator
+* DeployCoordinator
+* ExplainCoordinator
+* UnitTestCoordinator
+* Artifact Reuse create
+* Artifact Reuse patch
+* RepoContextInitializer
+* legacy customization routes identified in M4
+
+The goal is not to redesign everything.
+
+The goal is to identify whether H1’s physical-containment omission exists anywhere else that is release-relevant.
+
+⸻
+
+11. DEAD/UNREACHABLE PUBLIC WRITE HELPERS
+
+Audit reported LOW findings around:
+
+RepoWriter.backupExisting(...)
+RepoWriter.ensureDirectoryStructure(...)
+
+being public but apparently unreachable from production.
 
 Verify:
 
-* this is genuinely outside core Orchestrator;
-* it is a sensible existing composition/runtime wiring boundary;
-* it constructs current SqlDataStore;
-* existing authentication context is passed exactly as required;
-* existing default runtime behavior remains unchanged;
-* no new DI framework/service locator/plugin system was introduced.
+* production caller count;
+* whether they are truly unreachable/dead;
+* whether they can be invoked indirectly;
+* whether they need Repair 6 modification if RepoWriter.writeArtifacts becomes the central safe choke point.
 
-The concrete default being SqlDataStore is correct for current behavior.
-
-The requirement is separation of dependency direction, not elimination of SQL Server.
+If dead/unreachable, keep them out of scope unless they undermine the safety proof.
 
 ⸻
 
-8. DataSourceAdapter minimality
+12. ROOT NAME HEURISTIC LOW DEBT
 
-Re-derive the contract independently from real production Orchestrator/core usage.
+Audit reported RepoWriter root exclusions still rely partly on folder names.
 
-For every Protocol member identify at least one real production consumer.
+Do not automatically fix this.
 
-Check that the remediation removed members/arguments that were present only because SqlDataStore exposed them.
+Determine whether a renamed extension/framework checkout can realistically become a consumer root in normal QA use despite:
 
-The contract must not contain speculative capabilities for:
+* single-folder topology;
+* explicit user selection;
+* packaged contract;
+* existing source/reference-root classifiers.
 
-* Databricks;
-* Unity Catalog;
-* Collibra;
-* Genie;
-* cross-source queries.
+Classify as:
 
-Also verify it does not leak:
+RELEASE_BLOCKER
+NON_BLOCKING_DEBT
+FALSE_POSITIVE
 
-* SQL Server connection objects;
-* vendor SDKs;
-* T-SQL-specific implementation objects.
-
-A SQL/query-shaped method can remain if current core genuinely requires it.
-
-Return PASS only if the contract is the smallest practical production abstraction.
+Do not widen Repair 6 unless necessary.
 
 ⸻
 
-9. Substitution-test review
+13. OUTPUT REQUIRED — COMPLETE REPAIR-6 DECISION MATRIX
 
-Inspect the updated fake/test adapter tests.
+Return a table with rows:
 
-They must prove the actual supported production seam.
+H1 Primary RepoWriter physical containment
+H2 .tmp package exclusion
+M1 Other lexical-only containment
+M2 .tsbuildinfo.test exclusion
+M3 disposition unchanged but rewritten
+M4 legacy customization authorization
+L1 workspaceFolders[0] read-root heuristic
+L3 folder-name root exclusions
+L4 PathValidator lowercase behavior
+L5 unreachable RepoWriter public helpers
 
-Verify there is a test proving:
+Columns:
 
-1. fake DataSourceAdapter is injected using the supported factory/dependency path;
-2. representative Orchestrator behavior uses the fake;
-3. concrete SqlDataStore construction does not occur;
-4. no real database connection is attempted;
-5. fake receives expected calls;
-6. result/behavior is correct.
-
-Ensure the test does not simply instantiate isolated helper functions while bypassing the path it claims to prove.
-
-Do not accept an isinstance()-only conformance test as sufficient substitution evidence.
-
-⸻
-
-10. Dependency-direction regression protection
-
-Inspect the new test designed to prevent future direct concrete coupling.
-
-Verify it meaningfully protects:
-
-Orchestrator -> DataSourceAdapter
-
-rather than:
-
-Orchestrator -> SqlDataStore
-
-Prefer AST/import/structural or meaningful behavioral protection.
-
-Flag overly fragile text/formatting assertions.
+Severity from audit
+Independent classification
+Reachable?
+Normal QA impact?
+Security impact?
+Release blocking?
+Exact production file(s) required
+Exact test/config file(s) required
+Already candidate-modified?
+Repair 6 required?
 
 ⸻
 
-11. Existing provider seams
+14. EXACT REPAIR-6 SCOPE
 
-Verify remediation did NOT create duplicate abstractions.
+Return the smallest exact file list required to reach:
 
-Execution
+SAFE_TO_BUILD_QA_VSIX: YES
 
-Existing:
+Separate:
 
-DatabaseTool
+PRODUCTION_FILES_TO_MODIFY
+TEST_FILES_TO_MODIFY
+PACKAGE_CONFIG_FILES_TO_MODIFY
+NEW_FILES_REQUIRED
 
-should remain the execution-provider seam.
+Do not include speculative files.
 
-No redundant ExecutionProvider hierarchy should exist.
-
-Governance
-
-Existing:
-
-MetadataRegistryService
-+
-RegistrySnapshot
-
-should remain the governance-provider/canonical metadata boundary.
-
-No pointless DataGovernanceProvider forwarding wrapper should exist.
-
-Authorization
-
-Existing:
-
-EffectivePermissions
-
-should remain the authorization-scope foundation.
-
-No parallel AuthorizationScope model should exist.
-
-Authorization must remain fail-closed and entity scoped.
+For every file explain the exact reason.
 
 ⸻
 
-12. Behavioral equivalence
+15. SCOPE MINIMIZATION
 
-Inspect changed production code for any unintended behavior change to:
+Strong preference:
 
-* SQL text;
-* SQL validation;
-* query recipes;
-* authentication;
-* authorization;
-* result shapes;
-* connection behavior;
-* retries;
-* timeouts;
-* exceptions;
-* logging;
-* metadata selection;
-* API responses.
+* one central physical-containment integration;
+* one package-ignore/config fix;
+* targeted behavioral regressions;
+* no unrelated routing redesign;
+* no historical customization repair unless proven release-blocking.
 
-The only intended behavioral/architectural change is dependency composition.
-
-Existing users should continue to use the current SQL path without new configuration.
+Do not convert every LOW/MEDIUM audit note into Repair 6 work.
 
 ⸻
 
-13. Configuration audit
+16. NO-TOUCH BOUNDARY
 
-Verify:
+Do not modify or propose incidental cleanup to:
 
-* no new provider selector is required for current users;
-* current SQL behavior remains the default;
-* no config was added for nonexistent providers.
+etl-framework-adb
+real consumer repositories
+S-A/S-B work
+Phase-H baselines
+resources/prompts/**
+.github/**
+AGENT.md / AGENTS.md
+package-lock.json
+historical customization assets
 
-There must be no selectable:
-
-* Databricks provider;
-* Genie provider;
-* Unity Catalog provider;
-* Collibra provider.
-
-⸻
-
-14. Scope audit
-
-Search the complete diff.
-
-Confirm NO implementation was added for:
-
-* Databricks SQL;
-* Databricks authentication;
-* Unity Catalog;
-* Collibra;
-* Genie;
-* Redis;
-* Event Hubs;
-* cross-source joins;
-* SQL dialect abstraction for Databricks;
-* Phase 2D recipes;
-* KPI/glossary work;
-* fine-grained authorization;
-* frontend;
-* infrastructure/deployment.
-
-Do not fail the review because pre-existing SQL Server-specific implementation still exists behind SqlDataStore.
+unless a finding is explicitly proven release-blocking and scope amendment is requested separately.
 
 ⸻
 
-15. ADR review
+17. REQUIRED END MARKERS
 
-Review:
+Return:
 
-docs/adr/0003-phase2c5-provider-abstraction-foundation.md
+CURRENT_HF1_V2_BYTES_PRESERVED: YES|NO
+H1_PRIMARY_WRITE_PHYSICAL_CONTAINMENT_REPAIR_REQUIRED: YES|NO
+H2_TMP_PACKAGE_EXCLUSION_REPAIR_REQUIRED: YES|NO
+M1_ADDITIONAL_PHYSICAL_CONTAINMENT_REPAIR_REQUIRED: YES|NO
+M2_TSBUILDINFO_PACKAGE_REPAIR_REQUIRED: YES|NO
+M3_DISPOSITION_REPAIR_REQUIRED_FOR_QA: YES|NO
+M4_LEGACY_CUSTOMIZATION_REPAIR_REQUIRED_FOR_QA: YES|NO
+ADDITIONAL_RELEASE_BLOCKER_DISCOVERED: YES|NO
+ALL_RELEASE_RELEVANT_WRITE_ROUTES_PHYSICALLY_AUDITED: YES|NO
+REPAIR_6_SCOPE_FROZEN: YES|NO
 
-Verify it accurately represents the final dependency direction:
+Finish exactly:
 
-Composition Root
-      -> SqlDataStore
-Orchestrator
-      -> DataSourceAdapter
+LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_SCOPE_DISCOVERY_COMPLETE
 
-It should also correctly state:
+No implementation.
 
-* DatabaseTool = existing execution seam;
-* MetadataRegistryService / RegistrySnapshot = current governance seam;
-* EffectivePermissions = authorization foundation;
-* no Databricks/Genie/Unity/Collibra implementation;
-* Phase 2D not started.
-
-No future enterprise decision should be described as already implemented or approved.
-
-⸻
-
-16. Validation
-
-Re-run independently:
-
-1. provider-abstraction contract tests;
-2. Phase 2A/2B/2C focused regression;
-3. MetadataRegistryService tests;
-4. authorization regression;
-5. SQL datastore/orchestrator-adjacent regression;
-6. golden baseline;
-7. full backend regression with configured coverage;
-8. git diff --check.
-
-Historical post-remediation results:
-
-* 144 focused
-* 11 MetadataRegistryService
-* 61 authorization
-* 120 SQL/Orchestrator
-* 10 golden
-* 887 backend / 3 skipped
-* 86.63% coverage
-
-Different totals are acceptable if explained by current repository state.
-
-Do not regenerate baselines.
-
-Do not install/upgrade dependencies.
-
-⸻
-
-17. Findings
-
-Report findings in severity order:
-
-* BLOCKER
-* HIGH
-* MEDIUM
-* LOW
-* OBSERVATION
-
-For each include:
-
-* file;
-* symbol/area;
-* finding;
-* reason;
-* minimum remediation.
-
-PASS requires:
-
-* zero BLOCKER;
-* zero HIGH.
-
-MEDIUM/LOW findings must be evaluated for whether they truly block this bounded foundation.
-
-⸻
-
-18. Final architecture acceptance questions
-
-Answer Yes/No with evidence:
-
-1. Does Orchestrator still directly know SqlDataStore?
-2. Can a fake DataSourceAdapter replace the concrete implementation through the real supported seam?
-3. Does the current runtime still default to SqlDataStore?
-4. Is DataSourceAdapter minimal?
-5. Is DataSourceAdapter provider-neutral?
-6. Were existing Execution/Governance/Authorization abstractions reused?
-7. Was any future provider implementation added?
-8. Did Phase 2D start?
-9. Are Phase 2A/2B/2C regressions still clean?
-10. Is the complete diff bounded to Phase 2C.5?
-
-For PASS, expected answers are:
-
-1. No
-2. Yes
-3. Yes
-4. Yes
-5. Yes
-6. Yes
-7. No
-8. No
-9. Yes
-10. Yes
-
-⸻
-
-19. Final verdict
-
-Return exactly ONE:
-
-PHASE_2C5_INDEPENDENT_REVIEW_PASS
-
-or
-
-PHASE_2C5_INDEPENDENT_REVIEW_FAIL
-
-or
-
-PHASE_2C5_INDEPENDENT_REVIEW_INSUFFICIENT_EVIDENCE
-
-Use PASS only if the previous HIGH issue is fully resolved and no new HIGH/BLOCKER exists.
-
-If PASS state:
-
-The remediated Phase 2C.5 provider-abstraction foundation is technically ready to be committed and pushed for normal PR/CI review. Phase 2D has not started.
-
-If FAIL, give only the minimum additional remediation required.
-
-Do not implement it.
-
-⸻
-
-Required report
-
-Save outside the worktree:
-
-/tmp/ASKTD_PHASE_2C5_INDEPENDENT_REREVIEW_2026-08-22.md
-
-Include:
-
-1. Repository / Worktree Evidence
-2. Executive Verdict
-3. Exact Diff Inventory
-4. Original HIGH Finding Revalidation
-5. Composition Root Review
-6. DataSourceAdapter Review
-7. Substitution Test Review
-8. Dependency-Direction Regression Test
-9. Existing Provider Seam Review
-10. Behavioral Equivalence
-11. Configuration Review
-12. ADR Review
-13. Scope Audit
-14. Validation Results
-15. Findings by Severity
-16. Final Architecture Acceptance Matrix
-17. Remaining Remediation
-18. Final Recommendation
-
-At completion explicitly state:
-
-* Repository files modified by review: No
-* Git state changed by review: No
-* Commit created: No
-* Branch pushed: No
-* PR created: No
-* Phase 2D started: No
-
-Then STOP.
+Do not Keep.
+Do not commit.
+Do not package.
+Do not install a VSIX.
