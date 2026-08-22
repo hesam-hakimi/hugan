@@ -1,703 +1,502 @@
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6 — IMPLEMENT FROZEN RELEASE-GATE SCOPE
+We are continuing the AskTD / askAlpha / KMAI project.
 
-The read-only Repair-6 discovery completed with:
+Current state:
 
-CURRENT_HF1_V2_BYTES_PRESERVED: YES
-H1_PRIMARY_WRITE_PHYSICAL_CONTAINMENT_REPAIR_REQUIRED: YES
-H2_TMP_PACKAGE_EXCLUSION_REPAIR_REQUIRED: YES
-M1_ADDITIONAL_PHYSICAL_CONTAINMENT_REPAIR_REQUIRED: YES
-M2_TSBUILDINFO_PACKAGE_REPAIR_REQUIRED: YES
-M3_DISPOSITION_REPAIR_REQUIRED_FOR_QA: YES
-M4_LEGACY_CUSTOMIZATION_REPAIR_REQUIRED_FOR_QA: NO
-ADDITIONAL_RELEASE_BLOCKER_DISCOVERED: YES
-ALL_RELEASE_RELEVANT_WRITE_ROUTES_PHYSICALLY_AUDITED: YES
-REPAIR_6_SCOPE_FROZEN: YES
+- Program Phase 2C is formally closed.
+- Phase 2C.5 Provider Abstraction Foundation has passed independent technical review.
+- PR #15 exists for:
+  branch: phase2/provider-abstraction-foundation
+  base: main
+- PR #15 is not yet approved/merged.
+- Therefore Phase 2D must NOT formally start yet.
 
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_SCOPE_DISCOVERY_COMPLETE
+This task is:
 
-Implement exactly this frozen Repair-6 scope.
+PHASE 2D DISCOVERY / READINESS ONLY
 
-Do not reopen Repair 5.
-
-==================================================
-0. SINGLE BOUNDED AUTHORIZATION
-==================================================
-
-Before edits, request one consolidated authorization covering:
-
-- edits only to the 11 exact paths listed below;
-- creation of exactly one new test file;
-- compile/lint/unit/focused tests using existing dependencies;
-- package creation and verifyVsix only at the final validation stage;
-- no Git mutation;
-- no dependency install/download;
-- no VSIX installation;
-- no real consumer repository mutation.
-
-Ask for:
-
-APPLY_LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6
+Do not modify repository files.
+Do not commit.
+Do not push.
+Do not create or edit a PR.
+Do not merge.
+Do not deploy.
+Do not start Phase 2D implementation.
 
 ==================================================
-1. EXACT AUTHORIZED SCOPE
+1. TARGET REPOSITORY
 ==================================================
 
-PRODUCTION FILES
+Repository:
+TD-Enterprise/kmai-td-genie
 
-1. src/writers/RepoWriter.ts
-2. src/chat/UnitTestCoordinator.ts
-3. src/chat/ExplainCoordinator.ts
-4. src/core/artifacts/NewArtifactWriter.ts
-5. src/core/artifacts/ArtifactPatchApplier.ts
-6. src/tools/EtlActionToolService.ts
+Use current `origin/main` as the repository baseline.
 
-TEST / VERIFICATION FILES
+Also inspect the Phase 2C.5 branch if needed only to understand the provider-abstraction seam:
 
-7. src/test/verifyVsixContents.ts
-8. src/test/suite/packageAssets.test.ts
-9. src/test/suite/onboardingWriteApproval.test.ts
+phase2/provider-abstraction-foundation
 
-PACKAGE CONFIG
-
-10. .vscodeignore
-
-NEW FILE — EXACTLY ONE
-
-11. src/test/suite/physicalWriteContainment.test.ts
-
-No twelfth file may change.
-
-If another file is genuinely required, STOP before editing it and return:
-
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_SCOPE_AMENDMENT_REQUIRED
+Do not modify either branch.
 
 ==================================================
-2. H1 — REPOWRITER PRIMARY PHYSICAL CONTAINMENT
+2. OBJECTIVE
 ==================================================
 
-RepoWriter.writeArtifacts() is the central write choke point shared by:
+Determine the exact smallest, safest implementation scope for:
 
-/write
-WriteCoordinator
-DeployCoordinator
-etl_write_to_workspace
+PROGRAM PHASE 2D
+Approved Recipe Pilot
 
-Today it performs lexical PathValidator checks and then constructs physical paths with path.join before writing.
+The goal is NOT to design a new architecture.
 
-That is insufficient.
+The goal is to discover how Phase 2D should attach to the architecture already implemented through:
 
-Integrate the already-hardened:
+- Phase 2A
+- Phase 2B
+- Phase 2C
+- Phase 2C.5
 
-resolveContainedWorkspacePath(...)
-
-inside RepoWriter.writeArtifacts() for EVERY actual artifact destination:
-
-- job config
-- every additional job config
-- env config
-- every include file
-
-The physical containment decision must occur before ANY filesystem mutation for that target.
-
-Do not duplicate the hardened algorithm.
-
-Reuse the existing helper.
+We need repository-backed evidence before any implementation prompt is written.
 
 ==================================================
-3. ORDERING REQUIREMENT
+3. ARCHITECTURE CONSTRAINTS
 ==================================================
 
-Current private writeFile() creates parent directories before writing.
+Preserve these decisions:
 
-Therefore containment MUST be resolved BEFORE calling writeFile().
+1. AskTD remains provider-agnostic.
 
-Required order:
+2. Do not implement:
+   - Databricks
+   - Unity Catalog
+   - Collibra
+   - Genie
+   - Redis
+   - Event Hubs
+   - cross-source execution
+   - fine-grained authorization
 
-approved canonical consumerRoot
-→ relative artifact path
-→ lexical validation
-→ resolveContainedWorkspacePath()
-→ fail closed if unsafe
-→ only then createDirectory
-→ only then writeFile
+3. Existing seams must be reused, not duplicated:
 
-An unsafe destination must create:
+Execution:
+- existing DatabaseTool abstraction
 
-- zero outside files
-- zero outside directories
-- zero target directories through an escaping link
+Data source:
+- Phase 2C.5 DataSourceAdapter seam
 
-==================================================
-4. REPOWRITER ALL FOUR DESTINATION BRANCHES
-==================================================
+Governance / semantic metadata:
+- MetadataRegistryService
+- RegistrySnapshot
+- Governed Semantic Plan
+- deterministic validation
 
-Apply the same physical containment contract independently to:
+Authorization:
+- EffectivePermissions
+- current fail-closed entity-level authorization
 
-1. artifacts.jobConfigPath / artifacts.jobConfig
+4. Do not redesign Orchestrator broadly.
 
-2. every additionalJobConfigs entry
-
-3. artifacts.envConfigPath / artifacts.envConfig
-
-4. every includeFiles entry
-
-Do not assume one safe job-config destination proves the others safe.
-
-==================================================
-5. REPOWRITER PUBLIC MUTATORS L5
-==================================================
-
-Discovery found:
-
-backupExisting(...)
-ensureDirectoryStructure(...)
-
-have no production callers but remain public mutation APIs.
-
-Do not delete them.
-
-Route any destination they mutate through the same physical containment primitive using the smallest change possible.
-
-This is latent hardening only.
-
-Do not redesign their APIs unless necessary.
+5. Phase 2D must be a bounded Approved Recipe Pilot, not a complete enterprise recipe platform.
 
 ==================================================
-6. UNITTESTCOORDINATOR PHYSICAL CHECK
+4. FIRST DISCOVERY: CURRENT RECIPE IMPLEMENTATION
 ==================================================
 
-Replace the current lexical-only final containment check immediately before the real filesystem mutation.
+Find every current recipe-related implementation.
 
-Do NOT rely on:
+Search for terms including:
 
-isInsideRoot(...)
+- recipe
+- recipes
+- query_recipe
+- approved_recipe
+- semantic recipe
+- SQL recipe
+- report recipe
+- intent recipe
+- query template
+- query plan
+- semantic plan
 
-as the sole security boundary.
+For each relevant file/symbol report:
 
-Use the same hardened physical containment semantics as RepoWriter.
+- file path;
+- symbol;
+- current purpose;
+- whether it is production code, test code, legacy code, or unused;
+- whether it contains hard-coded SQL;
+- whether it is coupled to SQL Server / T-SQL;
+- whether it is currently used by Orchestrator/planner/query generation;
+- whether it already behaves like an approved recipe.
 
-The approved path identity must remain unchanged.
-
-Required order:
-
-approved preview
-→ canonical consumerRoot
-→ physical destination re-resolution
-→ fail closed
-→ createDirectory/writeFile
-→ mark consumed
-
-Also correct any comment that currently claims lexical isInsideRoot is a complete containment proof.
-
-==================================================
-7. EXPLAINCOORDINATOR ORDERING FIX
-==================================================
-
-Explain already performs physical containment, but discovery found:
-
-createDirectory(...)
-
-occurs before the final physical containment check.
-
-Move the physical containment resolution/check BEFORE createDirectory.
-
-Required:
-
-preview/approval
-→ root/path/content drift checks
-→ physical containment
-→ createDirectory
-→ writeFile
-→ mark consumed
-
-Unsafe path:
-
-→ zero directory creation
-→ zero file creation
-→ fail/revoke approval correctly
-
-Do not otherwise redesign Explain.
+Do not infer usage from names alone.
+Trace actual call paths.
 
 ==================================================
-8. ARTIFACT REUSE — REAL APPLY MUTATION CHECKS
+5. TRACE THE CURRENT QUERY PATH
 ==================================================
 
-Repair the real physical mutation points:
+Trace the actual current runtime flow from user question to SQL/data execution.
 
-src/core/artifacts/NewArtifactWriter.ts
+At minimum identify:
 
-and
+User Question
+→ intent/routing
+→ authorization
+→ metadata discovery
+→ semantic planning
+→ SQL/query generation
+→ execution
+→ result handling
 
-src/core/artifacts/ArtifactPatchApplier.ts
+For every stage identify:
 
-The preview/plan-freeze containment check is NOT sufficient because filesystem topology may change between preview and apply.
+- file;
+- class/function;
+- inputs;
+- outputs;
+- current boundary.
 
-Immediately before:
+Answer specifically:
 
-createDirectory
-writeFile
-patch write
-
-perform the same hardened physical containment check against the canonical approved consumerRoot.
-
-This closes the TOCTOU window:
-
-preview
-→ approval
-→ attacker/environment creates junction/symlink
-→ apply
-
-must result in:
-
-REJECTED
-zero outside mutation
-
-Do not weaken ArtifactActionCoordinator's approval model.
-
-Do not change preview_only handling.
+1. Where is `GovernedSemanticPlan` created today?
+2. Where is it validated?
+3. Is it actually consumed by the current SQL/query-generation path?
+4. If not, where does the current runtime bypass it?
+5. What is the smallest seam where an Approved Recipe decision can safely be inserted?
 
 ==================================================
-9. M3 — MANIFEST DISPOSITION TRUTHFULNESS
+6. TWO METADATA WORLDS CHECK
 ==================================================
 
-Discovery confirmed:
+Earlier discovery reported a possible issue:
 
-EtlActionToolService.collectManifestFiles(...)
+the planner/runtime may still use legacy semantic metadata while the governed registry / semantic-plan model exists separately.
 
-can describe job config as:
+Verify this against current `origin/main`.
 
-disposition: unchanged
+Report exactly:
 
-while RepoWriter.writeArtifacts() will rewrite the non-empty job config anyway.
+- whether two metadata worlds still exist;
+- files/symbols for each;
+- whether this is an actual blocker for a bounded Phase 2D pilot;
+- whether Phase 2D should bridge them;
+- or whether bridging belongs to a later phase.
 
-The approval preview must truthfully describe the actual mutation.
-
-Change only the smallest relevant logic in:
-
-src/tools/EtlActionToolService.ts
-
-so disposition reflects what RepoWriter will really do.
-
-Do not change the artifact bytes.
-
-Do not change output paths.
-
-Do not add a new write.
-
-Only make preview/manifest semantics truthful.
-
-Add/update the behavioral regression in:
-
-src/test/suite/onboardingWriteApproval.test.ts
+Do NOT solve it in this task.
 
 ==================================================
-10. H2/M2 — .VSCODEIGNORE
+7. DEFINE “APPROVED RECIPE” FROM CURRENT CODE
 ==================================================
 
-Repair package hygiene in:
+Based on existing repository architecture, determine the minimum viable contract for one Approved Recipe.
 
-.vscodeignore
+Do not invent a large platform.
 
-At minimum ensure recursive exclusion of:
+Evaluate whether the pilot contract needs only fields such as:
 
-.tmp/**
+- recipe_id
+- version
+- intent / use_case
+- governed dataset refs
+- required field refs
+- allowed relationship refs
+- required filters/parameters
+- parameter schema
+- deterministic SQL/query template or builder reference
+- output shape
+- lifecycle / enabled status
 
-nested Git metadata at any depth:
+Only recommend fields that are justified by current runtime needs.
 
-**/.git/**
+For each recommended field provide:
 
-and robust tsbuildinfo variants, including:
-
-.tsbuildinfo
-.tsbuildinfo.test
-foo.tsbuildinfo
-foo.tsbuildinfo.test
-nested equivalents
-
-Use patterns compatible with the actual vsce/minimatch semantics.
-
-Do not remove required runtime content.
-
-Required runtime resources must remain packageable:
-
-out/extension.js
-out/sttm-runtime.js
-resources/copilot/**
-resources/framework/contracts/**
-media/runtime assets required by package.json
+- why required;
+- which current component consumes it;
+- whether it is mandatory for the pilot or future-only.
 
 ==================================================
-11. VERIFYVSIXCONTENTS MUST MATCH PACKAGE POLICY
+8. RECIPE STORAGE / REGISTRY LOCATION
 ==================================================
 
-Update:
+Determine where the pilot recipe should logically live.
 
-src/test/verifyVsixContents.ts
+Evaluate current repository options only.
 
-The verifier must not use suffix-only logic that misses nested temporary trees.
+Examples to inspect:
 
-It must reject at least:
+- canonical registry snapshot;
+- separate recipe registry;
+- existing query_recipes module;
+- configuration/static files;
+- existing metadata service.
 
-extension/.tmp/**
-any nested /.git/**
-all tsbuildinfo variants
-src/test/**
-out/test/**
-docs/eval/**
-.vscode-test/**
-*.log
-*.vsix
-other existing forbidden package entries
+Do not choose based on preference.
 
-Also add package-size/content ceilings sufficient to catch a future bulk leak even if a novel file extension appears.
+For each viable option report:
 
-Do not hard-code today's exact .tmp byte count.
+- benefits;
+- coupling;
+- versioning implications;
+- compatibility with `registry_version`;
+- whether recipe content should participate in governed snapshot identity;
+- minimum change surface.
 
-Use reasonable deterministic ceilings based on the legitimate package profile.
-
-The verifier and .vscodeignore must express equivalent policy so they cannot silently drift apart.
+Recommend ONE smallest option for the pilot.
 
 ==================================================
-12. PACKAGEASSETS REGRESSION LOCK
+9. RECIPE SELECTION
 ==================================================
 
-Update:
+Determine how one approved recipe should be selected.
 
-src/test/suite/packageAssets.test.ts
+Evaluate repository-backed options such as:
 
-Assert the new .vscodeignore rules exist and match representative paths:
+- intent match;
+- deterministic recipe ID;
+- planner-selected recipe;
+- registry lookup from semantic plan;
+- explicit pilot routing.
 
-.tmp/agentic_etl/package.json
-.tmp/repo/.git/objects/pack/example.pack
-.tsbuildinfo.test
-nested/foo.tsbuildinfo.test
+The LLM must not be allowed to invent an ungoverned recipe.
 
-Also assert required framework runtime contracts remain INCLUDED.
-
-==================================================
-13. NEW PHYSICAL WRITE TEST SUITE
-==================================================
-
-Create exactly:
-
-src/test/suite/physicalWriteContainment.test.ts
-
-This is the only new file authorized.
-
-Use real filesystem behavior where possible.
-
-Cover the central RepoWriter real mutation path and reduced multiplicity for the other Repair-6 routes.
-
-Minimum RepoWriter cases:
-
-1. job_conf directory junction → outside root: rejected.
-
-2. env_conf junction → outside root: rejected.
-
-3. include/sql directory junction → outside root: rejected.
-
-4. additionalJobConfig destination junction → outside root: rejected independently.
-
-5. final-file symlink → outside existing file: rejected.
-
-6. dangling final symlink → outside missing target: rejected.
-
-7. hard-linked unsafe destination / multiply-linked target: rejected according to existing containment contract.
-
-8. refusal creates no directory outside root.
-
-9. TOCTOU:
-   build preview/approval while topology is safe,
-   create escaping link after approval,
-   attempt write,
-   rejected and approval failed/not consumed.
-
-10. positive control:
-    normal deep fresh-consumer artifact path still writes successfully.
-
-==================================================
-14. M1 ROUTE REGRESSIONS
-==================================================
-
-The new suite must also include reduced physical escape tests for:
-
-UnitTestCoordinator
-
-NewArtifactWriter
-
-ArtifactPatchApplier
-
-ExplainCoordinator ordering
-
-At minimum for each real mutation class:
-
-- one escaping junction/symlink case
-- assertion of zero outside mutation
-
-For Explain additionally prove:
-
-unsafe path creates no directory before rejection.
-
-For Artifact Reuse additionally prove:
-
-topology changed after preview/approval but before apply
-→ rejected.
-
-==================================================
-15. DO NOT REPAIR M4
-==================================================
-
-Legacy Copilot workflow customization remains OUT OF SCOPE.
-
-Do not modify:
-
-CopilotWorkflowInitializer
-WorkflowTargetResolver
-CopilotWorkflowDeleter
-Repairer
-Upgrader
-or protected customization assets
-
-The discovery explicitly classified these as:
-
-OUT_OF_SCOPE_LEGACY_BEHAVIOR
-
-They are not part of the fresh-consumer QA release path.
-
-Record them as deferred security-hardening debt only.
-
-==================================================
-16. DO NOT REPAIR NON-BLOCKING LOW DEBT
-==================================================
-
-Do not redesign:
-
-folder-name exclusion heuristic
-PathValidator.normalizePath
-env-config read-root fallback
-competing conversational route UX
-
-unless compilation proves an unavoidable direct dependency.
-
-Repair 6 should stay bounded to the frozen release blockers.
-
-==================================================
-17. NO-TOUCH BOUNDARY
-==================================================
-
-Do not modify:
-
-etl-framework-adb
-real consumer repositories
-S-A / S-B files
-Phase-H baselines
-resources/prompts/**
-.github/**
-AGENT.md / AGENTS.md
-package-lock.json
-historical customization assets
-
-Do not delete .tmp.
-
-The package must exclude it; the source tree remains untouched.
-
-==================================================
-18. VALIDATION — CODE FIRST
-==================================================
-
-Using existing dependencies only:
-
-npm run compile
-npm run lint
-
-Run focused suites for:
-
-physicalWriteContainment
-RepoWriter
-UnitTestCoordinator
-Explain
-Artifact Reuse
-RepoContext
-WriteAuthorization
-onboardingWriteApproval
-packageAssets
-HF1 V2 / Repair 5 regressions
-
-Then run:
-
-npm run test:unit
-
-Expected:
-
-compile PASS
-lint PASS
-all Repair-6 focused tests PASS
-all Repair-5/HF1 focused tests PASS
-full unit exactly 5 historical failures
-no new regression
-
-==================================================
-19. PACKAGE VALIDATION — NOW AUTHORIZED
-==================================================
-
-Only AFTER code/test validation passes:
-
-build the QA candidate VSIX using the repository's existing local packaging flow and already-installed tools.
-
-No download.
-No install.
-No npx dependency fetch.
-
-Then run the existing:
-
-npm run verify:vsix
-
-or exact repo-local equivalent discovered.
-
-Also inspect the generated VSIX contents using the existing local vsce/archive tooling.
-
-Prove REQUIRED runtime entries are present.
-
-Prove forbidden entries are absent.
-
-Specifically prove:
-
-NO extension/.tmp/**
-NO nested /.git/**
-NO *.tsbuildinfo*
-NO src/test/**
-NO out/test/**
-NO docs/eval/**
-NO .vscode-test/**
-NO *.log
-NO nested *.vsix
-
-The VSIX must not contain any of the eight .tmp scratch repositories.
-
-==================================================
-20. PACKAGE SIZE / CONTENT SANITY
-==================================================
+For the pilot, identify the smallest deterministic selection mechanism.
 
 Report:
 
-VSIX path
-SHA-256
-file count
-compressed size
-uncompressed size
+- selector input;
+- selector output;
+- failure behavior;
+- authorization interaction;
+- semantic-plan interaction.
 
-Compare against expected legitimate extension content.
-
-If package size is unexpectedly large, FAIL rather than manually deleting archive entries.
-
-No manual ZIP surgery is allowed.
+Fail-closed behavior is required.
 
 ==================================================
-21. SOURCE IMMUTABILITY AROUND PACKAGING
+10. VALIDATION CONTRACT
 ==================================================
 
-Capture repository changed-path inventory before package validation.
+Determine which deterministic checks must occur before recipe execution.
 
-Repeat afterward.
+At minimum evaluate:
 
-Packaging may create its expected output artifact outside or in the repository according to existing packaging convention, but source candidate bytes must not change unexpectedly.
+- recipe exists;
+- recipe enabled/approved;
+- registry version compatibility;
+- dataset refs exist;
+- field refs exist;
+- relationships exist;
+- selected datasets are authorized;
+- recipe scope does not exceed GovernedSemanticPlan;
+- required parameters exist;
+- parameter types are valid;
+- no undeclared dataset/field appears;
+- resulting execution remains read-only/bounded.
 
-No package-driven source mutation is acceptable.
+Identify which checks already exist in Phase 2C validators and should be reused.
+
+Do not duplicate validators unnecessarily.
 
 ==================================================
-22. FINAL WRITE-ROUTE PHYSICAL SWEEP
+11. SQL / EXECUTION BOUNDARY
 ==================================================
 
-Re-audit all release-relevant write routes.
+Determine how the pilot recipe should reach execution without breaking provider abstraction.
+
+Specifically inspect:
+
+- DatabaseTool
+- DataSourceAdapter
+- current query generation
+- SqlDataStore
+- existing SQL policy/guardrails
+
+Answer:
+
+1. Should the recipe produce SQL directly in the pilot?
+2. Or should it produce an intermediate execution specification?
+3. What is the minimum option that preserves current behavior and does not prematurely implement multi-provider SQL dialect support?
+
+Do not implement a Databricks dialect abstraction.
+
+If current pilot can safely remain SQL-server-backed behind existing abstractions, say so explicitly.
+
+==================================================
+12. AUTHORIZATION
+==================================================
+
+Verify Phase 2D pilot can remain within current authorization model.
+
+Current working model:
+
+Entra user
+→ EffectivePermissions
+→ allowed entities
+→ restricted metadata
+→ semantic plan
+→ execution
+
+Report:
+
+- where recipe selection must be constrained by authorization;
+- whether any new authorization model is required;
+- whether dataset-level/entity-level scope is sufficient for the pilot.
+
+Fine-grained column/row authorization must not be added unless current code proves it is already required.
+
+==================================================
+13. PILOT USE CASE
+==================================================
+
+Find the smallest realistic existing query/use case in the repository that could be converted into the first Approved Recipe pilot.
+
+Prefer a use case that:
+
+- already has deterministic SQL/query logic;
+- uses a small number of datasets;
+- has known parameters;
+- does not require cross-source joins;
+- does not require Databricks;
+- does not require new authorization;
+- has existing tests or golden outputs.
+
+Give up to 3 candidates.
 
 For each report:
 
-Trusted authorization
-Canonical logical root
-Physical containment immediately before mutation
+- current implementation location;
+- complexity;
+- dependencies;
+- testability;
+- risk.
 
-PASS requires every release-relevant consumer mutation to have all three.
-
-No lexical-only physical mutation route may remain in the fresh-consumer QA path.
-
-==================================================
-23. FINAL SCOPE PROOF
-==================================================
-
-Return exact:
-
-- files modified
-- one new file created
-- files authorized but unchanged
-- staged count
-- Git mutation count
-- dependency install/download count
-- consumer repository mutation count
-
-No unlisted source/config/test file may change.
+Recommend ONE.
 
 ==================================================
-24. REQUIRED FINAL REPORT
+14. TEST STRATEGY
 ==================================================
 
-Return:
+Identify the minimum test layers Phase 2D implementation will require.
 
-1. Exact Repair-6 changed-file inventory.
-2. H1 RepoWriter before/after.
-3. UnitTestCoordinator physical containment result.
-4. Explain ordering result.
-5. Artifact create/patch TOCTOU result.
-6. M3 disposition correction.
-7. .vscodeignore before/after.
-8. verifyVsixContents hardening.
-9. physical containment adversarial matrix.
-10. Compile result.
-11. Lint result.
-12. Focused tests.
-13. Full unit result.
-14. Historical-five separation.
-15. VSIX build result.
-16. VSIX SHA-256/file-count/size.
-17. Required package entries.
-18. Forbidden package entries.
-19. Final write-route physical sweep.
-20. Exact no-touch/scope proof.
-21. Deferred M4/non-blocking debt list.
+At minimum consider:
 
-Finish exactly:
+- recipe contract tests;
+- recipe registry/version tests;
+- deterministic recipe selection tests;
+- authorization negative tests;
+- semantic-plan compatibility tests;
+- invalid parameter tests;
+- execution boundary tests;
+- existing regression/golden tests.
 
-H1_PRIMARY_WRITE_PHYSICAL_CONTAINMENT_CLOSED: YES|NO
-M1_ADDITIONAL_PHYSICAL_CONTAINMENT_CLOSED: YES|NO
-H2_PACKAGE_HYGIENE_CLOSED: YES|NO
-M2_TSBUILDINFO_HYGIENE_CLOSED: YES|NO
-M3_MANIFEST_DISPOSITION_CLOSED: YES|NO
-ALL_RELEASE_RELEVANT_WRITES_PHYSICALLY_CONTAINED: YES|NO
-COMPILE_PASS: YES|NO
-LINT_PASS: YES|NO
-FOCUSED_TESTS_PASS: YES|NO
-FULL_UNIT_ONLY_HISTORICAL_FIVE: YES|NO
-QA_VSIX_BUILT: YES|NO
-QA_VSIX_CONTENT_VERIFIED: YES|NO
-UNEXPECTED_SCOPE_DRIFT: YES|NO
-SAFE_FOR_FINAL_RELEASE_REAUDIT: YES|NO
+Identify exact existing test files that can be extended.
 
-Then exactly one:
+Avoid creating redundant parallel test frameworks.
 
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_VALIDATED
+==================================================
+15. EXACT MINIMUM IMPLEMENTATION SURFACE
+==================================================
 
-or:
+Produce a proposed Phase 2D pilot change inventory.
 
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_IMPLEMENTED_AWAITING_EXTERNAL_VALIDATION
+For each file classify:
 
-or:
+- EXISTING_FILE_TO_MODIFY
+- NEW_FILE_REQUIRED
+- TEST_ONLY
+- ADR/DOC
 
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_SCOPE_AMENDMENT_REQUIRED
+For each proposed file explain the exact change in one sentence.
 
-or:
+Do not write code.
 
-LOCAL_HOTFIX_HF1_V2_RELEASE_GATE_REPAIR_6_BLOCKED
+Do not include future enterprise features.
 
-Do not commit.
-Do not push.
-Do not install the VSIX.
-Stop after the report.
+==================================================
+16. BLOCKERS VS NON-BLOCKERS
+==================================================
+
+Separate:
+
+CORE DEVELOPMENT BLOCKERS
+INTEGRATION BLOCKERS
+PRODUCTION BLOCKERS
+NON-BLOCKING OPEN DECISIONS
+
+For every unresolved item state:
+
+- assumption;
+- why it matters;
+- evidence;
+- who should confirm;
+- whether it blocks Phase 2D pilot implementation.
+
+Do not turn Databricks/SpruceX/DAC/Genie decisions into Core blockers unless code evidence genuinely requires them.
+
+==================================================
+17. READINESS VERDICT
+==================================================
+
+Return exactly one:
+
+PHASE_2D_DISCOVERY_READY_FOR_BOUNDED_IMPLEMENTATION
+
+or
+
+PHASE_2D_DISCOVERY_BLOCKED
+
+or
+
+PHASE_2D_DISCOVERY_INSUFFICIENT_EVIDENCE
+
+PASS/ready requires that you can identify:
+
+- exact insertion seam;
+- minimal Approved Recipe contract;
+- deterministic selection mechanism;
+- validation path;
+- execution path;
+- first pilot use case;
+- bounded file list;
+- test strategy.
+
+Do not implement anything.
+
+==================================================
+18. REPORT
+==================================================
+
+Save the report outside the worktree:
+
+/tmp/ASKTD_PHASE_2D_DISCOVERY_2026-08-22.md
+
+Required sections:
+
+1. Repository Evidence
+2. Current Runtime Query Path
+3. Existing Recipe Inventory
+4. Governed Semantic Plan Integration Status
+5. Metadata World Gap Analysis
+6. Proposed Minimal Approved Recipe Contract
+7. Recipe Storage / Versioning Recommendation
+8. Deterministic Recipe Selection
+9. Validation Reuse
+10. Execution Boundary
+11. Authorization Interaction
+12. Pilot Candidate Comparison
+13. Recommended Pilot
+14. Test Strategy
+15. Minimum File Change Surface
+16. Blockers / Open Decisions
+17. Phase 2D Readiness Verdict
+18. Recommended Implementation Sequence
+
+At completion explicitly state:
+
+Repository files modified: No
+Git state changed: No
+Commit created: No
+Branch pushed: No
+PR created: No
+Phase 2D implementation started: No
+
+Then STOP.
