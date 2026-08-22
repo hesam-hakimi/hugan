@@ -1,502 +1,335 @@
-We are continuing the AskTD / askAlpha / KMAI project.
+TASK: LOCAL_HOTFIX_HF1_V2_FINAL_RELEASE_REAUDIT
 
-Current state:
+Perform a final, independent, adversarial, READ-ONLY release re-audit of the current HF1 V2 candidate after Repair 6.
 
-- Program Phase 2C is formally closed.
-- Phase 2C.5 Provider Abstraction Foundation has passed independent technical review.
-- PR #15 exists for:
-  branch: phase2/provider-abstraction-foundation
-  base: main
-- PR #15 is not yet approved/merged.
-- Therefore Phase 2D must NOT formally start yet.
+This is NOT an implementation task.
+DO NOT edit, create, delete, rename, stage, commit, revert, Keep, package-install, dependency-install, or otherwise mutate source/repository state.
 
-This task is:
+Treat all prior implementation reports as UNTRUSTED INPUT.
+Re-derive conclusions from the current source tree, Git state, generated output, test results, and QA VSIX contents.
 
-PHASE 2D DISCOVERY / READINESS ONLY
-
-Do not modify repository files.
-Do not commit.
-Do not push.
-Do not create or edit a PR.
-Do not merge.
-Do not deploy.
-Do not start Phase 2D implementation.
+Primary objective:
+Determine whether the current candidate is genuinely safe to commit and release, or whether any release-blocking defect still exists.
 
 ==================================================
-1. TARGET REPOSITORY
+1. REPOSITORY / SCOPE INTEGRITY
 ==================================================
 
-Repository:
-TD-Enterprise/kmai-td-genie
+Verify independently:
 
-Use current `origin/main` as the repository baseline.
+- current repository root
+- current branch
+- current HEAD
+- origin
+- staged file count
+- complete modified/untracked path inventory
+- no unexpected files were modified by Repair 6
+- no protected/no-touch areas were modified
+- Repair 6 changed only the authorized paths plus the explicitly authorized new test file
+- no consumer repository was modified
+- no etl-framework-adb source/runtime dependency was introduced
+- no Git mutation occurred during this audit
 
-Also inspect the Phase 2C.5 branch if needed only to understand the provider-abstraction seam:
-
-phase2/provider-abstraction-foundation
-
-Do not modify either branch.
-
-==================================================
-2. OBJECTIVE
-==================================================
-
-Determine the exact smallest, safest implementation scope for:
-
-PROGRAM PHASE 2D
-Approved Recipe Pilot
-
-The goal is NOT to design a new architecture.
-
-The goal is to discover how Phase 2D should attach to the architecture already implemented through:
-
-- Phase 2A
-- Phase 2B
-- Phase 2C
-- Phase 2C.5
-
-We need repository-backed evidence before any implementation prompt is written.
+Capture hashes/state at audit start and end and prove this audit itself changed nothing.
 
 ==================================================
-3. ARCHITECTURE CONSTRAINTS
+2. COMPLETE CONSUMER WRITE-ROUTE ENUMERATION
 ==================================================
 
-Preserve these decisions:
+Do NOT assume the previously listed write routes are complete.
 
-1. AskTD remains provider-agnostic.
+Enumerate all reachable production code paths that can perform any real consumer-workspace filesystem mutation, including:
 
-2. Do not implement:
-   - Databricks
-   - Unity Catalog
-   - Collibra
-   - Genie
-   - Redis
-   - Event Hubs
-   - cross-source execution
-   - fine-grained authorization
+- writeFile
+- createDirectory
+- rename
+- delete
+- copy
+- backup
+- patch
+- create
+- overwrite
+- any helper wrapping these operations
 
-3. Existing seams must be reused, not duplicated:
+Classify every route as one of:
 
-Execution:
-- existing DatabaseTool abstraction
+A. TRUSTED_CONSUMER_WRITE
+B. INTERNAL_NON_CONSUMER_WRITE
+C. TEST_ONLY
+D. DEAD_OR_UNREACHABLE
+E. LEGACY / DEFERRED
 
-Data source:
-- Phase 2C.5 DataSourceAdapter seam
+For every TRUSTED_CONSUMER_WRITE route prove all three:
 
-Governance / semantic metadata:
-- MetadataRegistryService
-- RegistrySnapshot
-- Governed Semantic Plan
-- deterministic validation
+1. trusted authorization or approved lifecycle exists where applicable
+2. canonical logical consumer root is used
+3. PHYSICAL containment is verified immediately before filesystem mutation
 
-Authorization:
-- EffectivePermissions
-- current fail-closed entity-level authorization
-
-4. Do not redesign Orchestrator broadly.
-
-5. Phase 2D must be a bounded Approved Recipe Pilot, not a complete enterprise recipe platform.
+Do not accept lexical path checking alone.
 
 ==================================================
-4. FIRST DISCOVERY: CURRENT RECIPE IMPLEMENTATION
+3. PHYSICAL CONTAINMENT ADVERSARIAL RECHECK
 ==================================================
 
-Find every current recipe-related implementation.
+Re-audit the Repair 6 containment model from source.
 
-Search for terms including:
+Specifically verify protection against:
 
-- recipe
-- recipes
-- query_recipe
-- approved_recipe
-- semantic recipe
-- SQL recipe
-- report recipe
-- intent recipe
-- query template
-- query plan
-- semantic plan
+- ../ traversal
+- absolute path escape
+- drive-qualified path escape
+- sibling-root escape
+- symlink escape
+- junction/reparse-point escape
+- dangling final-link escape
+- dangling ancestor-link escape
+- path replacement between preview and write
+- TOCTOU after approval
+- hard-link based escape where relevant
+- POSIX case-sensitive sibling paths
+- Windows case-insensitive equivalent paths
 
-For each relevant file/symbol report:
+Confirm the hardened physical resolver is applied BEFORE any directory creation or file mutation.
 
-- file path;
-- symbol;
-- current purpose;
-- whether it is production code, test code, legacy code, or unused;
-- whether it contains hard-coded SQL;
-- whether it is coupled to SQL Server / T-SQL;
-- whether it is currently used by Orchestrator/planner/query generation;
-- whether it already behaves like an approved recipe.
+Pay special attention to:
 
-Do not infer usage from names alone.
-Trace actual call paths.
+- RepoWriter.writeArtifacts
+- UnitTestCoordinator
+- ExplainCoordinator
+- NewArtifactWriter
+- ArtifactPatchApplier
+- RepoContextInitializer
+- any route newly discovered during this audit
 
-==================================================
-5. TRACE THE CURRENT QUERY PATH
-==================================================
-
-Trace the actual current runtime flow from user question to SQL/data execution.
-
-At minimum identify:
-
-User Question
-→ intent/routing
-→ authorization
-→ metadata discovery
-→ semantic planning
-→ SQL/query generation
-→ execution
-→ result handling
-
-For every stage identify:
-
-- file;
-- class/function;
-- inputs;
-- outputs;
-- current boundary.
-
-Answer specifically:
-
-1. Where is `GovernedSemanticPlan` created today?
-2. Where is it validated?
-3. Is it actually consumed by the current SQL/query-generation path?
-4. If not, where does the current runtime bypass it?
-5. What is the smallest seam where an Approved Recipe decision can safely be inserted?
+If any consumer write path reaches the filesystem with only lexical containment, classify it as RELEASE BLOCKING.
 
 ==================================================
-6. TWO METADATA WORLDS CHECK
+4. AUTHORIZATION / PREVIEW / WRITE INVARIANCE
 ==================================================
 
-Earlier discovery reported a possible issue:
+Verify the following independently:
 
-the planner/runtime may still use legacy semantic metadata while the governed registry / semantic-plan model exists separately.
+preview
+→ immutable/frozen artifact identity
+→ explicit approval
+→ re-validation
+→ one-time authorization
+→ physical containment immediately before mutation
+→ write
+→ consumed/failed terminal state
 
-Verify this against current `origin/main`.
+Check:
 
-Report exactly:
+- no approval reuse
+- no forged approval
+- no stale approval
+- no wrong consumerRoot
+- no wrong target/decision
+- no changed relPath
+- no changed artifact type
+- no changed bytes/content hash
+- no second write from the same authorization
+- no route can bypass the trusted approval model using a plain boolean or conversation state alone within the release-relevant fresh-consumer path
 
-- whether two metadata worlds still exist;
-- files/symbols for each;
-- whether this is an actual blocker for a bounded Phase 2D pilot;
-- whether Phase 2D should bridge them;
-- or whether bridging belongs to a later phase.
-
-Do NOT solve it in this task.
-
-==================================================
-7. DEFINE “APPROVED RECIPE” FROM CURRENT CODE
-==================================================
-
-Based on existing repository architecture, determine the minimum viable contract for one Approved Recipe.
-
-Do not invent a large platform.
-
-Evaluate whether the pilot contract needs only fields such as:
-
-- recipe_id
-- version
-- intent / use_case
-- governed dataset refs
-- required field refs
-- allowed relationship refs
-- required filters/parameters
-- parameter schema
-- deterministic SQL/query template or builder reference
-- output shape
-- lifecycle / enabled status
-
-Only recommend fields that are justified by current runtime needs.
-
-For each recommended field provide:
-
-- why required;
-- which current component consumes it;
-- whether it is mandatory for the pilot or future-only.
+Also verify that the manifest truthfully describes files actually rewritten versus unchanged.
 
 ==================================================
-8. RECIPE STORAGE / REGISTRY LOCATION
+5. SINGLE-FOLDER / MULTI-ROOT QA MODEL
 ==================================================
 
-Determine where the pilot recipe should logically live.
+Re-prove:
 
-Evaluate current repository options only.
+- zero folders => BLOCKED
+- one valid fresh consumer => CREATE_NEW_JOB
+- one valid existing consumer => UPDATE_EXISTING_REPO
+- prohibited/reference/source/extension roots => BLOCKED
+- sample_repo => BLOCKED
+- multiple roots without explicit safe selection => AMBIGUOUS/BLOCKED
+- no workspaceFolders[0] fallback survives in a release-relevant consumer write path
+- QA does NOT require etl-framework-adb to be opened
+- QA does NOT require a framework source checkout beside the consumer repo
 
-Examples to inspect:
-
-- canonical registry snapshot;
-- separate recipe registry;
-- existing query_recipes module;
-- configuration/static files;
-- existing metadata service.
-
-Do not choose based on preference.
-
-For each viable option report:
-
-- benefits;
-- coupling;
-- versioning implications;
-- compatibility with `registry_version`;
-- whether recipe content should participate in governed snapshot identity;
-- minimum change surface.
-
-Recommend ONE smallest option for the pilot.
+Check both runtime behavior and tests.
 
 ==================================================
-9. RECIPE SELECTION
+6. FRAMEWORK CONTRACT / ORACLE REGRESSION CHECK
 ==================================================
 
-Determine how one approved recipe should be selected.
+Confirm Repair 6 did NOT weaken:
 
-Evaluate repository-backed options such as:
+- trusted framework-definition resolution
+- configured_source > workspace_source > packaged_contract precedence
+- fail-closed behavior
+- Oracle delivery-control validation
+- distinction between:
+  FRAMEWORK_DEFINITION_UNAVAILABLE
+  and
+  ORACLE_DELIVERY_CONTROL_DEFINITION_MISSING
+- packaged-contract identity/version/integrity validation
+- installed VSIX resource resolution
 
-- intent match;
-- deterministic recipe ID;
-- planner-selected recipe;
-- registry lookup from semantic plan;
-- explicit pilot routing.
-
-The LLM must not be allowed to invent an ungoverned recipe.
-
-For the pilot, identify the smallest deterministic selection mechanism.
-
-Report:
-
-- selector input;
-- selector output;
-- failure behavior;
-- authorization interaction;
-- semantic-plan interaction.
-
-Fail-closed behavior is required.
+Do not redesign framework binding in this task.
+Only report a finding if Repair 6 introduced a regression.
 
 ==================================================
-10. VALIDATION CONTRACT
+7. PACKAGE HYGIENE / QA VSIX
 ==================================================
 
-Determine which deterministic checks must occur before recipe execution.
+Perform an independent package-content audit.
 
-At minimum evaluate:
+Verify that the final QA VSIX excludes at any depth:
 
-- recipe exists;
-- recipe enabled/approved;
-- registry version compatibility;
-- dataset refs exist;
-- field refs exist;
-- relationships exist;
-- selected datasets are authorized;
-- recipe scope does not exceed GovernedSemanticPlan;
-- required parameters exist;
-- parameter types are valid;
-- no undeclared dataset/field appears;
-- resulting execution remains read-only/bounded.
+- .tmp/**
+- nested .git/**
+- *.tsbuildinfo
+- *.tsbuildinfo.*
+- logs
+- test output
+- test fixtures
+- source-only QA artifacts
+- unrelated repositories
+- previous VSIX files
+- pack files
+- large scratch outputs
+- credentials/secrets
+- developer-machine paths
 
-Identify which checks already exist in Phase 2C validators and should be reused.
+Verify required runtime content is present, especially:
 
-Do not duplicate validators unnecessarily.
+- compiled extension runtime
+- STTM runtime
+- package.json
+- resources/copilot/**
+- resources/prompts/**
+- resources/framework/**
+- required media/scripts/workflow assets
 
-==================================================
-11. SQL / EXECUTION BOUNDARY
-==================================================
+Check package file count and compressed/uncompressed size for plausibility.
 
-Determine how the pilot recipe should reach execution without breaking provider abstraction.
-
-Specifically inspect:
-
-- DatabaseTool
-- DataSourceAdapter
-- current query generation
-- SqlDataStore
-- existing SQL policy/guardrails
-
-Answer:
-
-1. Should the recipe produce SQL directly in the pilot?
-2. Or should it produce an intermediate execution specification?
-3. What is the minimum option that preserves current behavior and does not prematurely implement multi-provider SQL dialect support?
-
-Do not implement a Databricks dialect abstraction.
-
-If current pilot can safely remain SQL-server-backed behind existing abstractions, say so explicitly.
+Do NOT manually edit the ZIP/VSIX.
+The package must be correct from source/package rules alone.
 
 ==================================================
-12. AUTHORIZATION
+8. TEST QUALITY / FALSE-GREEN CHECK
 ==================================================
 
-Verify Phase 2D pilot can remain within current authorization model.
+Do not only inspect pass counts.
 
-Current working model:
+Review whether Repair 6 tests genuinely discriminate regressions.
 
-Entra user
-→ EffectivePermissions
-→ allowed entities
-→ restricted metadata
-→ semantic plan
-→ execution
+Confirm tests would fail if we reintroduced:
 
-Report:
+- lexical-only containment
+- workspaceFolders[0] fallback
+- write-before-containment
+- write-before-approval
+- approval replay
+- manifest drift
+- sample_repo accepted as consumer
+- symlink/junction escape
+- dangling-link escape
+- POSIX case-folding defect
+- package inclusion of .tmp
+- package inclusion of nested .git
+- package inclusion of .tsbuildinfo
 
-- where recipe selection must be constrained by authorization;
-- whether any new authorization model is required;
-- whether dataset-level/entity-level scope is sufficient for the pilot.
-
-Fine-grained column/row authorization must not be added unless current code proves it is already required.
-
-==================================================
-13. PILOT USE CASE
-==================================================
-
-Find the smallest realistic existing query/use case in the repository that could be converted into the first Approved Recipe pilot.
-
-Prefer a use case that:
-
-- already has deterministic SQL/query logic;
-- uses a small number of datasets;
-- has known parameters;
-- does not require cross-source joins;
-- does not require Databricks;
-- does not require new authorization;
-- has existing tests or golden outputs.
-
-Give up to 3 candidates.
-
-For each report:
-
-- current implementation location;
-- complexity;
-- dependencies;
-- testability;
-- risk.
-
-Recommend ONE.
+Identify any test that is vacuous, mock-only where a real filesystem test is required, or proves source text instead of runtime behavior.
 
 ==================================================
-14. TEST STRATEGY
+9. HISTORICAL FIVE FAILURES
 ==================================================
 
-Identify the minimum test layers Phase 2D implementation will require.
+Independently confirm the remaining full-suite failures are exactly the pre-existing historical five:
 
-At minimum consider:
+- 2 EvalGating baseline failures
+- 3 Copilot workflow customization failures
 
-- recipe contract tests;
-- recipe registry/version tests;
-- deterministic recipe selection tests;
-- authorization negative tests;
-- semantic-plan compatibility tests;
-- invalid parameter tests;
-- execution boundary tests;
-- existing regression/golden tests.
+Confirm none is caused by HF1 V2 / Repair 5 / Repair 6.
 
-Identify exact existing test files that can be extended.
-
-Avoid creating redundant parallel test frameworks.
+Do NOT repair them in this task.
 
 ==================================================
-15. EXACT MINIMUM IMPLEMENTATION SURFACE
+10. DEFERRED DEBT
 ==================================================
 
-Produce a proposed Phase 2D pilot change inventory.
+Re-check but DO NOT modify deferred/non-blocking areas, including:
 
-For each file classify:
+- legacy Copilot workflow customization authorization model
+- repo-learning / knowledge raw filesystem writers
+- remaining low-level path-normalization/folder-name heuristics
+- conversational route precedence UX debt
+- framework-binding long-lived-session debt
 
-- EXISTING_FILE_TO_MODIFY
-- NEW_FILE_REQUIRED
-- TEST_ONLY
-- ADR/DOC
+For each, classify:
 
-For each proposed file explain the exact change in one sentence.
+- release blocker
+- bounded non-blocking debt
+- out of scope
+- needs separate follow-up
 
-Do not write code.
-
-Do not include future enterprise features.
-
-==================================================
-16. BLOCKERS VS NON-BLOCKERS
-==================================================
-
-Separate:
-
-CORE DEVELOPMENT BLOCKERS
-INTEGRATION BLOCKERS
-PRODUCTION BLOCKERS
-NON-BLOCKING OPEN DECISIONS
-
-For every unresolved item state:
-
-- assumption;
-- why it matters;
-- evidence;
-- who should confirm;
-- whether it blocks Phase 2D pilot implementation.
-
-Do not turn Databricks/SpruceX/DAC/Genie decisions into Core blockers unless code evidence genuinely requires them.
+Do not silently promote or suppress severity.
 
 ==================================================
-17. READINESS VERDICT
+11. EXECUTION
 ==================================================
 
-Return exactly one:
+Use already-installed dependencies only.
 
-PHASE_2D_DISCOVERY_READY_FOR_BOUNDED_IMPLEMENTATION
+Run, where available:
 
-or
+- compile
+- lint
+- focused Repair 5 / Repair 6 tests
+- physical containment tests
+- relevant write-authorization tests
+- full unit suite
+- QA VSIX package build
+- VSIX content verification
 
-PHASE_2D_DISCOVERY_BLOCKED
+Do NOT install/download dependencies.
 
-or
-
-PHASE_2D_DISCOVERY_INSUFFICIENT_EVIDENCE
-
-PASS/ready requires that you can identify:
-
-- exact insertion seam;
-- minimal Approved Recipe contract;
-- deterministic selection mechanism;
-- validation path;
-- execution path;
-- first pilot use case;
-- bounded file list;
-- test strategy.
-
-Do not implement anything.
+If a command cannot run, state that clearly.
+Do not infer PASS from source inspection alone.
 
 ==================================================
-18. REPORT
+12. FINAL DECISION
 ==================================================
 
-Save the report outside the worktree:
+Return a concise final report with:
 
-/tmp/ASKTD_PHASE_2D_DISCOVERY_2026-08-22.md
+A. Repository identity
+B. Changed-path inventory
+C. Write-route inventory
+D. Physical-containment verdict
+E. Authorization/TOCTOU verdict
+F. Single-folder QA verdict
+G. Framework/Oracle regression verdict
+H. Package-hygiene verdict
+I. Test-quality verdict
+J. Historical-five confirmation
+K. Remaining debts
+L. Exact blockers, if any
 
-Required sections:
+Then print EXACTLY one of these final decisions:
 
-1. Repository Evidence
-2. Current Runtime Query Path
-3. Existing Recipe Inventory
-4. Governed Semantic Plan Integration Status
-5. Metadata World Gap Analysis
-6. Proposed Minimal Approved Recipe Contract
-7. Recipe Storage / Versioning Recommendation
-8. Deterministic Recipe Selection
-9. Validation Reuse
-10. Execution Boundary
-11. Authorization Interaction
-12. Pilot Candidate Comparison
-13. Recommended Pilot
-14. Test Strategy
-15. Minimum File Change Surface
-16. Blockers / Open Decisions
-17. Phase 2D Readiness Verdict
-18. Recommended Implementation Sequence
+SAFE_TO_COMMIT_HF1_V2: YES
+SAFE_TO_BUILD_RELEASE_VSIX: YES
+SAFE_TO_RELEASE_HF1_V2: YES
 
-At completion explicitly state:
+OR, if anything release-blocking remains:
 
-Repository files modified: No
-Git state changed: No
-Commit created: No
-Branch pushed: No
-PR created: No
-Phase 2D implementation started: No
+SAFE_TO_COMMIT_HF1_V2: NO
+SAFE_TO_BUILD_RELEASE_VSIX: NO
+SAFE_TO_RELEASE_HF1_V2: NO
 
-Then STOP.
+If NO, list the minimum exact file/function/test scope needed for the next repair.
+
+Important:
+Do not modify anything during this audit.
+Do not fix findings.
+Do not regenerate baselines.
+Do not touch .github/**, resources/prompts/**, AGENT.md/AGENTS.md, package-lock.json, consumer repositories, or etl-framework-adb.
+Do not commit, push, Keep, revert, or install the VSIX.
+
+Final marker:
+LOCAL_HOTFIX_HF1_V2_FINAL_RELEASE_REAUDIT_COMPLETE
