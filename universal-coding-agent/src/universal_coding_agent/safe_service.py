@@ -10,10 +10,21 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
 from universal_coding_agent.context.safe_compiler import SafeContextCompiler
+from universal_coding_agent.context.sharded_line_edit_compiler import (
+    ShardedLineAddressedContextCompiler,
+)
 from universal_coding_agent.core.safe_models import SafeTaskRequest
-from universal_coding_agent.orchestration.safe_graph import SafeGraphServices, SafeModeGraph
+from universal_coding_agent.orchestration.safe_graph import SafeGraphServices
+from universal_coding_agent.product.controlled_safe_graph import (
+    ControlledSafeModeGraph,
+    ControlledShardedLineAddressedSafeModeGraph,
+)
+from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.repository.indexer import RepositoryIndexer
+from universal_coding_agent.safe.model_line_addressing import (
+    ModelFacingLineAddressedEditEngine,
+)
 from universal_coding_agent.safe.patching import SafeEditEngine, SafePatchEngine
 from universal_coding_agent.safe.testing import SafeTestRunner
 from universal_coding_agent.sandbox.git import GitSandboxManager
@@ -25,6 +36,8 @@ class SafeAgentService:
     graph: Any
     connection: sqlite3.Connection
     artifacts: ArtifactStore
+    control: TaskControlService
+    owns_control: bool = False
 
     @classmethod
     def create(
@@ -33,11 +46,31 @@ class SafeAgentService:
         provider: ModelProvider,
         *,
         allow_local_sources: bool = False,
+        control: TaskControlService | None = None,
     ) -> SafeAgentService:
         state_root = state_root.resolve()
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
         state_root.mkdir(parents=True, exist_ok=True)
         artifacts = ArtifactStore(state_root / "artifacts")
+        owns_control = control is None
+        control_service = control or TaskControlService(state_root / "task-control.sqlite")
+
+        protocol = os.environ.get("UCA_SAFE_EDIT_PROTOCOL", "v1").strip().lower()
+        if protocol in {"v2", "v2-line-addressed", "line-addressed"}:
+            context = ShardedLineAddressedContextCompiler()
+            edit_engine = ModelFacingLineAddressedEditEngine()
+            graph_type = ControlledShardedLineAddressedSafeModeGraph
+        elif protocol == "v1":
+            context = SafeContextCompiler()
+            edit_engine = SafeEditEngine()
+            graph_type = ControlledSafeModeGraph
+        else:
+            if owns_control:
+                control_service.close()
+            raise ValueError(
+                "UCA_SAFE_EDIT_PROTOCOL must be v1 or v2-line-addressed"
+            )
+
         services = SafeGraphServices(
             provider=provider,
             sandbox=GitSandboxManager(
@@ -45,9 +78,9 @@ class SafeAgentService:
                 allow_local_sources=allow_local_sources,
             ),
             indexer=RepositoryIndexer(),
-            context=SafeContextCompiler(),
+            context=context,
             artifacts=artifacts,
-            edit_engine=SafeEditEngine(),
+            edit_engine=edit_engine,
             patch_engine=SafePatchEngine(),
             test_runner=SafeTestRunner(),
         )
@@ -55,13 +88,24 @@ class SafeAgentService:
             state_root / "safe-checkpoints.sqlite",
             check_same_thread=False,
         )
-        graph = SafeModeGraph(services).build(checkpointer=SqliteSaver(connection))
-        return cls(graph=graph, connection=connection, artifacts=artifacts)
+        graph = graph_type(services, control_service).build(
+            checkpointer=SqliteSaver(connection)
+        )
+        return cls(
+            graph=graph,
+            connection=connection,
+            artifacts=artifacts,
+            control=control_service,
+            owns_control=owns_control,
+        )
 
     def close(self) -> None:
         self.connection.close()
+        if self.owns_control:
+            self.control.close()
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
+        self.control.ensure_task(task.task_id)
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
@@ -69,12 +113,44 @@ class SafeAgentService:
         config = {"configurable": {"thread_id": thread_id}}
         return self.graph.invoke(Command(resume={"approved": approved}), config=config)
 
+    def pause(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
+        task_id = self._task_id(thread_id)
+        return self.control.pause_task(task_id, reason=reason).model_dump(mode="json")
+
+    def cancel(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
+        task_id = self._task_id(thread_id)
+        return self.control.cancel_task(task_id, reason=reason).model_dump(mode="json")
+
+    def resume_control(self, thread_id: str, *, action: str = "resume") -> dict[str, Any]:
+        normalized = action.strip().lower()
+        if normalized not in {"resume", "cancel"}:
+            raise ValueError("control action must be resume or cancel")
+        config = {"configurable": {"thread_id": thread_id}}
+        return self.graph.invoke(Command(resume={"action": normalized}), config=config)
+
     def state(self, thread_id: str) -> dict[str, Any]:
         config = {"configurable": {"thread_id": thread_id}}
         snapshot = self.graph.get_state(config)
+        values = snapshot.values
+        task_id = None
+        task_payload = values.get("task") if isinstance(values, dict) else None
+        if isinstance(task_payload, dict):
+            task_id = task_payload.get("task_id")
+        record = self.control.get_task(task_id) if isinstance(task_id, str) else None
+        control = record.model_dump(mode="json") if record is not None else None
         return {
-            "values": snapshot.values,
+            "values": values,
             "next": list(snapshot.next),
             "metadata": snapshot.metadata,
             "created_at": snapshot.created_at,
+            "control": control,
         }
+
+    def _task_id(self, thread_id: str) -> str:
+        snapshot = self.state(thread_id)
+        task_payload = snapshot["values"].get("task")
+        if not isinstance(task_payload, dict) or not isinstance(
+            task_payload.get("task_id"), str
+        ):
+            raise KeyError(f"task not found for thread: {thread_id}")
+        return task_payload["task_id"]

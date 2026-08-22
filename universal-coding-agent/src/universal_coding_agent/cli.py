@@ -12,6 +12,7 @@ from universal_coding_agent.core.safe_models import (
     SafeModePolicy,
     SafeTaskRequest,
 )
+from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.providers.external import load_provider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.service import AgentService
@@ -56,12 +57,43 @@ def parser() -> argparse.ArgumentParser:
     safe.add_argument("--task-id")
     safe.add_argument("--thread-id")
 
+    safe_auto = sub.add_parser("safe-auto")
+    safe_auto.add_argument("--repository", required=True)
+    safe_auto.add_argument("--ref", required=True)
+    safe_auto.add_argument("--task-file", type=Path, required=True)
+    safe_auto.add_argument("--policy-file", type=Path, required=True)
+    safe_auto.add_argument(
+        "--test-profile",
+        action="append",
+        required=True,
+        dest="test_profiles",
+        help="trusted policy test profile; repeat for multiple profiles",
+    )
+    safe_auto.add_argument(
+        "--acceptance-file",
+        type=Path,
+        help="optional JSON array of human-provided acceptance criteria",
+    )
+    safe_auto.add_argument("--title")
+    safe_auto.add_argument("--task-id")
+    safe_auto.add_argument("--thread-id")
+
     safe_resume = sub.add_parser("safe-resume")
     safe_resume.add_argument("--thread-id", required=True)
     safe_resume.add_argument("--decision", choices=("approve", "reject"), required=True)
 
     safe_status = sub.add_parser("safe-status")
     safe_status.add_argument("--thread-id", required=True)
+
+    serve = sub.add_parser("serve", help="run the local UCA Product Control API and UI")
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--ui-dist", type=Path, default=Path("web/dist"))
+    serve.add_argument(
+        "--allow-remote-ui",
+        action="store_true",
+        help="explicitly allow binding the UI/API to a non-loopback address",
+    )
     return root
 
 
@@ -75,7 +107,9 @@ def main(argv: list[str] | None = None) -> int:
         print("AGENT_MODEL_PROVIDER_OK")
         return 0
 
-    if arguments.command in {"safe", "safe-resume", "safe-status"}:
+    if arguments.command == "serve":
+        return _run_server(arguments, provider)
+    if arguments.command in {"safe", "safe-auto", "safe-resume", "safe-status"}:
         return _run_safe(arguments, provider)
     return _run_observe(arguments, provider)
 
@@ -112,6 +146,9 @@ def _run_observe(arguments: argparse.Namespace, provider) -> int:
 
 
 def _run_safe(arguments: argparse.Namespace, provider) -> int:
+    if arguments.command == "safe-auto":
+        return _run_discovered_safe(arguments, provider)
+
     service = SafeAgentService.create(
         arguments.state_root,
         provider,
@@ -142,6 +179,76 @@ def _run_safe(arguments: argparse.Namespace, provider) -> int:
         return 0
     finally:
         service.close()
+
+
+def _run_discovered_safe(arguments: argparse.Namespace, provider) -> int:
+    objective = arguments.task_file.read_text(encoding="utf-8")
+    policy_payload = json.loads(arguments.policy_file.read_text(encoding="utf-8"))
+    policy = SafeModePolicy.model_validate(policy_payload)
+    criteria = _load_acceptance_criteria(arguments.acceptance_file, objective)
+    task_id = arguments.task_id or f"safe-auto-{uuid.uuid4().hex[:16]}"
+    thread_id = arguments.thread_id or task_id
+    service = DiscoveredSafeAgentService.create(
+        arguments.state_root,
+        provider,
+        allow_local_sources=arguments.allow_local_sources,
+    )
+    result = service.start(
+        task_id=task_id,
+        thread_id=thread_id,
+        title=arguments.title or arguments.task_file.stem,
+        objective=objective,
+        repository=RepositorySpec(url=arguments.repository, base_ref=arguments.ref),
+        policy=policy,
+        test_profiles=tuple(arguments.test_profiles),
+        acceptance_criteria=criteria,
+    )
+    print(json.dumps(result, indent=2, default=str))
+    return 0
+
+
+def _run_server(arguments: argparse.Namespace, provider) -> int:
+    import uvicorn
+
+    from universal_coding_agent.product.workspace import ProductWorkspace
+    from universal_coding_agent.web.app import (
+        ProductWebRuntime,
+        create_product_app,
+        is_loopback_host,
+    )
+
+    if not is_loopback_host(arguments.host) and not arguments.allow_remote_ui:
+        raise ValueError(
+            "refusing non-loopback UI bind; pass --allow-remote-ui only behind "
+            "approved access controls"
+        )
+    if arguments.port < 1 or arguments.port > 65535:
+        raise ValueError("port must be between 1 and 65535")
+
+    state_root = arguments.state_root.resolve()
+    workspace = ProductWorkspace.create(state_root / "product", provider)
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=state_root / "web-runtime",
+        allow_local_sources=arguments.allow_local_sources,
+    )
+    app = create_product_app(runtime, ui_dist=arguments.ui_dist)
+    uvicorn.run(app, host=arguments.host, port=arguments.port, log_level="info")
+    return 0
+
+
+def _load_acceptance_criteria(path: Path | None, objective: str) -> tuple[str, ...]:
+    if path is None:
+        return (objective,)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, list) or not payload:
+        raise ValueError("acceptance file must contain a non-empty JSON array")
+    criteria: list[str] = []
+    for item in payload:
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError("acceptance criteria must be non-empty strings")
+        criteria.append(item.strip())
+    return tuple(criteria)
 
 
 if __name__ == "__main__":

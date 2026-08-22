@@ -1,0 +1,337 @@
+# salected files
+
+- universal-coding-agent/pyproject.toml
+- universal-coding-agent/src/universal_coding_agent/safe/model_line_addressing.py
+- universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
+- universal-coding-agent/src/universal_coding_agent/safe_service.py
+- universal-coding-agent/src/universal_coding_agent/solution_discovery.py
+- universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
+- universal-coding-agent/src/universal_coding_agent/cli.py
+- universal-coding-agent/src/universal_coding_agent/web/__init__.py
+- universal-coding-agent/src/universal_coding_agent/web/app.py
+- universal-coding-agent/tests/test_web_api.py
+- universal-coding-agent/web/package.json
+- universal-coding-agent/web/tsconfig.json
+- universal-coding-agent/web/vite.config.ts
+- universal-coding-agent/web/index.html
+- universal-coding-agent/web/src/main.tsx
+- universal-coding-agent/web/src/App.tsx
+- universal-coding-agent/web/src/api.ts
+- universal-coding-agent/web/src/types.ts
+- universal-coding-agent/web/src/viewModels.ts
+- universal-coding-agent/web/src/viewModels.test.ts
+- universal-coding-agent/web/src/styles.css
+- universal-coding-agent/tests/test_model_line_addressing.py
+- universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
+- universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
+- universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
+- universal-coding-agent/src/universal_coding_agent/testlab/live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
+- universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
+- universal-coding-agent/src/universal_coding_agent/testlab/large_solution_production.py
+- universal-coding-agent/src/universal_coding_agent/testlab/product_foundation_live.py
+- universal-coding-agent/tests/test_pretransfer_lab.py
+- universal-coding-agent/tests/test_openai_testlab_provider.py
+- universal-coding-agent/tests/test_hard_reasoning_lab.py
+- universal-coding-agent/tests/test_solution_discovery.py
+- universal-coding-agent/tests/test_sharded_dependency_contracts.py
+- universal-coding-agent/tests/test_discovered_safe_service.py
+- universal-coding-agent/scripts/pretransfer-test-lab.sh
+- universal-coding-agent/scripts/pretransfer-live-openai.sh
+- universal-coding-agent/src/universal_coding_agent/product/__init__.py
+- universal-coding-agent/src/universal_coding_agent/product/models.py
+- universal-coding-agent/src/universal_coding_agent/product/context_documents.py
+- universal-coding-agent/src/universal_coding_agent/product/search_service.py
+- universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
+- universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
+- universal-coding-agent/src/universal_coding_agent/product/task_control.py
+- universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
+- universal-coding-agent/src/universal_coding_agent/product/workspace.py
+- universal-coding-agent/tests/test_product_foundation.py
+- universal-coding-agent/tests/test_product_workspace_control.py
+- universal-coding-agent/tests/test_safe_control.py
+- universal-coding-agent/tests/test_requirement_draft_repair.py
+- universal-coding-agent/tests/test_program_execution.py
+
+Cmd 1
+
+```bash
+cd /home/tag5916/projects/universal-coding-agent/universal-coding-agent
+```
+
+Cmd 2
+
+```bash
+set -Eeuo pipefail
+for FILE in \
+  pyproject.toml \
+  src/universal_coding_agent/safe/model_line_addressing.py \
+  src/universal_coding_agent/context/sharded_line_edit_compiler.py \
+  src/universal_coding_agent/safe_service.py \
+  src/universal_coding_agent/solution_discovery.py \
+  src/universal_coding_agent/discovered_safe_service.py \
+  src/universal_coding_agent/cli.py \
+  src/universal_coding_agent/web/__init__.py \
+  src/universal_coding_agent/web/app.py \
+  tests/test_web_api.py \
+  web/package.json \
+  web/tsconfig.json \
+  web/vite.config.ts \
+  web/index.html \
+  web/src/main.tsx \
+  web/src/App.tsx \
+  web/src/api.ts \
+  web/src/types.ts \
+  web/src/viewModels.ts \
+  web/src/viewModels.test.ts \
+  web/src/styles.css \
+  tests/test_model_line_addressing.py \
+  src/universal_coding_agent/testlab/__init__.py \
+  src/universal_coding_agent/testlab/synthetic.py \
+  src/universal_coding_agent/testlab/openai_responses.py \
+  src/universal_coding_agent/testlab/live.py \
+  src/universal_coding_agent/testlab/hard_reasoning.py \
+  src/universal_coding_agent/testlab/large_solution.py \
+  src/universal_coding_agent/testlab/large_solution_production.py \
+  src/universal_coding_agent/testlab/product_foundation_live.py \
+  tests/test_pretransfer_lab.py \
+  tests/test_openai_testlab_provider.py \
+  tests/test_hard_reasoning_lab.py \
+  tests/test_solution_discovery.py \
+  tests/test_sharded_dependency_contracts.py \
+  tests/test_discovered_safe_service.py \
+  scripts/pretransfer-test-lab.sh \
+  scripts/pretransfer-live-openai.sh \
+  src/universal_coding_agent/product/__init__.py \
+  src/universal_coding_agent/product/models.py \
+  src/universal_coding_agent/product/context_documents.py \
+  src/universal_coding_agent/product/search_service.py \
+  src/universal_coding_agent/product/requirement_alignment.py \
+  src/universal_coding_agent/product/program_orchestrator.py \
+  src/universal_coding_agent/product/task_control.py \
+  src/universal_coding_agent/product/controlled_safe_graph.py \
+  src/universal_coding_agent/product/workspace.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py \
+  tests/test_safe_control.py \
+  tests/test_requirement_draft_repair.py \
+  tests/test_program_execution.py
+do
+  test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
+done
+.venv/bin/python - <<'PY'
+from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
+from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
+from universal_coding_agent.product.models import ProgramExecutionBinding, ProgramExecutionStatus
+from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
+from universal_coding_agent.safe_service import SafeAgentService
+from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
+from universal_coding_agent.web import ProductWebRuntime, create_product_app
+assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
+assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
+assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
+assert ProductWebRuntime and create_product_app
+assert ProgramExecutionBinding and ProgramExecutionStatus
+assert DiscoveredSafeExecutionPort and ProgramExecutionError
+print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
+print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
+PY
+```
+
+Cmd 3
+
+```bash
+.venv/bin/python -m compileall -q src tests && \
+.venv/bin/python -m pytest -q \
+  tests/test_web_api.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py \
+  tests/test_safe_control.py \
+  tests/test_requirement_draft_repair.py \
+  tests/test_program_execution.py \
+  tests/test_sharded_line_edit_protocol.py \
+  tests/test_sharded_dependency_contracts.py \
+  tests/test_discovered_safe_service.py \
+  tests/test_hard_reasoning_lab.py \
+  tests/test_solution_discovery.py && \
+echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
+echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS"
+```
+
+Cmd 4
+
+```bash
+.venv/bin/ruff check . && echo "RUFF_PASS"
+```
+
+Cmd 5
+
+```bash
+command -v npm >/dev/null || { echo "NPM_NOT_AVAILABLE"; exit 1; }
+cd web
+npm install --no-audit --no-fund
+npm run test
+npm run build
+cd ..
+test -f web/dist/index.html
+echo "PRODUCT_CONTROL_CENTER_FRONTEND_PASS"
+```
+
+Cmd 6
+
+```bash
+UI_STATE_ROOT="$HOME/.uca-ui-smoke/$(date -u +%Y%m%dT%H%M%SZ)"
+.venv/bin/uca \
+  --state-root "$UI_STATE_ROOT" \
+  --provider-factory universal_coding_agent.providers.fake:create_provider \
+  serve --host 127.0.0.1 --port 18765 --ui-dist web/dist \
+  >"$UI_STATE_ROOT.log" 2>&1 &
+UI_PID=$!
+trap 'kill "$UI_PID" 2>/dev/null || true' EXIT
+sleep 2
+.venv/bin/python - <<'PY'
+import json
+import urllib.request
+health = json.load(urllib.request.urlopen("http://127.0.0.1:18765/api/health", timeout=5))
+assert health["status"] == "ok"
+assert health["browser_credentials"] is False
+html = urllib.request.urlopen("http://127.0.0.1:18765/", timeout=5).read().decode("utf-8")
+assert '<div id="root"></div>' in html
+print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
+PY
+kill "$UI_PID"
+wait "$UI_PID" || true
+trap - EXIT
+```
+
+Cmd 7
+
+```bash
+PRETRANSFER_STATE_ROOT="$HOME/.uca-pretransfer-lab/product-control-center-$(date -u +%Y%m%dT%H%M%SZ)"
+PATH="$PWD/.venv/bin:$PATH" bash scripts/pretransfer-test-lab.sh "$PRETRANSFER_STATE_ROOT"
+test -f "$PRETRANSFER_STATE_ROOT/pretransfer-junit.xml"
+echo "PRETRANSFER_PRODUCT_CONTROL_CENTER_GATE_PASS"
+```
+
+Cmd 8
+
+```bash
+env -u UCA_SAFE_EDIT_PROTOCOL .venv/bin/python -m pytest -q
+```
+
+Cmd 9
+
+```bash
+export UCA_OPENAI_MODEL="${UCA_OPENAI_MODEL:-gpt-5.6}"
+test -n "${AZURE_OPENAI_API_KEY:-}" || { echo "AZURE_OPENAI_API_KEY_NOT_SET"; exit 1; }
+export OPENAI_API_KEY="$AZURE_OPENAI_API_KEY"
+echo "UCA_OPENAI_MODEL=$UCA_OPENAI_MODEL"
+```
+
+Cmd 10
+
+```bash
+LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-strict-schema-$(date -u +%Y%m%dT%H%M%SZ)"
+LIVE_RC=0
+UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  bash scripts/pretransfer-live-openai.sh "$LIVE_STATE_ROOT" || LIVE_RC=$?
+test -f "$LIVE_STATE_ROOT/live-summary.json"
+.venv/bin/python -m json.tool "$LIVE_STATE_ROOT/live-summary.json"
+test "$LIVE_RC" -eq 0
+```
+
+Cmd 11
+
+```bash
+PRODUCT_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-product-foundation-$(date -u +%Y%m%dT%H%M%SZ)"
+PRODUCT_RC=0
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.product_foundation_live \
+  --state-root "$PRODUCT_STATE_ROOT" || PRODUCT_RC=$?
+test -f "$PRODUCT_STATE_ROOT/product-foundation-live-summary.json"
+.venv/bin/python -m json.tool "$PRODUCT_STATE_ROOT/product-foundation-live-summary.json"
+test "$PRODUCT_RC" -eq 0
+echo "PRODUCT_FOUNDATION_LIVE_QUALIFICATION_PASS"
+```
+
+Cmd 12
+
+```bash
+HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
+HARD_RC=0
+UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.hard_reasoning --state-root "$HARD_STATE_ROOT" || HARD_RC=$?
+test -f "$HARD_STATE_ROOT/hard-summary.json"
+.venv/bin/python -m json.tool "$HARD_STATE_ROOT/hard-summary.json"
+find "$HARD_STATE_ROOT" -type f -name test-results.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$HARD_STATE_ROOT" -type f -name safe-review.json -print -exec .venv/bin/python -m json.tool {} \; || true
+test "$HARD_RC" -eq 0
+echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
+```
+
+Cmd 13
+
+```bash
+LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
+LARGE_RC=0
+UCA_LARGE_SOLUTION_RUNS=1 UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.large_solution_production --state-root "$LARGE_STATE_ROOT" || LARGE_RC=$?
+test -f "$LARGE_STATE_ROOT/large-solution-summary.json"
+.venv/bin/python -m json.tool "$LARGE_STATE_ROOT/large-solution-summary.json"
+find "$LARGE_STATE_ROOT" -type f -name solution-discovery-failure.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name test-results.json -print -exec .venv/bin/python -m json.tool {} \; || true
+find "$LARGE_STATE_ROOT" -type f -name safe-review.json -print -exec .venv/bin/python -m json.tool {} \; || true
+test "$LARGE_RC" -eq 0
+echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
+```
+
+Cmd 14
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+```
+
+Cmd 15
+
+```bash
+STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
+bash scripts/qualify-line-addressed-host-provider.sh \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --state-root "$STATE_ROOT" --skip-install --skip-quality
+```
+
+Cmd 16
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+PHASE2C_STATE_ROOT="$HOME/.uca-safe-runs/phase2c-pretransfer-lab-v2-$(date -u +%Y%m%dT%H%M%SZ)"
+printf '%s\n' "$PHASE2C_STATE_ROOT" > "$HOME/.uca-phase2c-line-addressed-v2-current"
+bash scripts/safe-workflow.sh start \
+  --state-root "$PHASE2C_STATE_ROOT" \
+  --repository /app1/tag5916/projects/kmai-td-genie \
+  --ref phase2/semantic-plan-contract-validator \
+  --task-file /app1/tag5916/.uca-phase2c-safe-scope-v2/phase2c-safe-task.md \
+  --scope-file /app1/tag5916/.uca-phase2c-safe-scope-v2/approved-scope.json \
+  --policy-file /app1/tag5916/.uca-phase2c-safe-scope-v2/trusted-policy.json \
+  --host-client /app1/tag5916/projects/kmai-td-genie/.kmai-dev-agent/kmai_client.py \
+  --host-python /app1/tag5916/projects/kmai-td-genie/.venv/bin/python \
+  --title "Phase 2C real Safe Mode - product control center pre-transfer qualified"
+```
+
+Cmd 17
+
+```bash
+export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
+PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
+bash scripts/safe-workflow.sh approve --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
+```
+
+Cmd 18
+
+```bash
+PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
+FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-final-report.json -print -quit)"
+test -n "$FINAL_REPORT"
+.venv/bin/python -m json.tool "$FINAL_REPORT"
+```
