@@ -1,346 +1,581 @@
-TASK: LOCAL_HOTFIX_HF1_V2_FINAL_RELEASE_REAUDIT_AFTER_REPAIR_7
+We are performing the FINAL INDEPENDENT READ-ONLY REVIEW of the AskTD /
+KMAI Phase 2D Approved Recipe Pilot stacked candidate.
 
-This is an INDEPENDENT FINAL RELEASE RE-AUDIT.
+The implementation was produced in a separate implementation session.
 
-Do NOT modify source files.
-Do NOT fix findings.
-Do NOT commit.
-Do NOT push.
-Do NOT install the VSIX.
-Do NOT touch any consumer repository.
-Do NOT touch etl-framework-adb.
-Do NOT modify .github/**, resources/prompts/**, AGENT.md, AGENTS.md,
-package-lock.json, historical Phase-H baselines, or framework/Oracle contracts.
+Implementation verdict:
 
-Treat all prior Repair-5, Repair-6, and Repair-7 reports as UNTRUSTED CLAIMS.
-Verify the current working tree independently from live source and executed evidence.
+PHASE_2D_STACKED_CANDIDATE_READY_FOR_INDEPENDENT_REVIEW
 
-Primary objective:
+This review is strictly READ-ONLY.
 
-Determine whether the current HF1 V2 candidate is actually safe to:
-
-1. build a fresh QA VSIX,
-2. verify that fresh VSIX,
-3. commit the hotfix candidate,
-4. proceed toward release testing.
+Do not modify files.
+Do not fix findings.
+Do not commit.
+Do not push.
+Do not create or edit a PR.
+Do not merge.
+Do not deploy.
+Do not change PR #15.
+Do not start any additional roadmap phase.
 
 ==================================================
-A. REPOSITORY / SCOPE INTEGRITY
+1. TARGET
 ==================================================
 
-Independently capture:
+Repository:
 
-- repository root
-- branch
-- HEAD
-- origin
-- git status
-- staged files
-- tracked modified files
-- untracked files
-- complete changed-path inventory
+TD-Enterprise/kmai-td-genie
 
-Confirm no unauthorized change exists in:
+Phase 2D branch:
 
-- consumer repositories
-- etl-framework-adb
-- .github/**
-- resources/prompts/**
-- AGENT.md / AGENTS.md
-- package-lock.json
-- historical Phase-H baseline files
-- framework/Oracle contracts
+phase2/approved-recipe-pilot
 
-Do not assume the reported 12-file Repair-7 scope is correct.
-Derive it from the working tree.
+Expected worktree:
 
-==================================================
-B. ENUMERATE ALL LIVE CONSUMER-WORKSPACE WRITE ROUTES
-==================================================
+/tmp/asktd-phase2d-approved-recipe-pilot
 
-Do not start from a fixed list.
+Stack base:
 
-Search production source for every reachable filesystem mutation that can
-write/create/delete/move/rename consumer-workspace content.
+phase2/provider-abstraction-foundation
 
-Include at minimum:
+Expected accepted PR #15 base SHA:
 
-- workspace.fs.writeFile
-- workspace.fs.delete
-- workspace.fs.createDirectory
-- fs.writeFile / writeFileSync
-- fs.mkdir / mkdirSync
-- fs.rename
-- fs.copyFile
-- fs.rm / unlink
-- wrapper/helper methods that ultimately perform these operations
+d5472ae31081879329c224922244d87962737e8c
 
-For each reachable route classify:
+Do not trust the SHA blindly.
 
-- TRUSTED_CONSUMER_WRITE
-- INTERNAL_NON_CONSUMER_WRITE
-- READ_ONLY
-- TEST_ONLY
-- DEAD_OR_UNREACHABLE
-- LEGACY/DEFERRED
+Verify the current local and remote evidence.
 
-For every TRUSTED_CONSUMER_WRITE prove all three:
-
-1. trusted authorization / approval semantics where applicable
-2. canonical logical consumer root
-3. physical containment immediately before filesystem mutation
-
-The physical containment proof must cover:
-
-- ../ traversal
-- absolute path
-- drive-qualified path
-- sibling-root escape
-- symlink/junction/reparse-point escape
-- dangling final symlink
-- linked ancestor escape
-- hard-link escape where relevant
-- POSIX case-sensitive behavior
-- Windows case-insensitive behavior
-- TOCTOU path replacement between preview/approval and write
-
-If ANY live consumer write route reaches mutation with lexical-only
-containment, classify it RELEASE BLOCKING.
+PR #15 must remain byte-for-byte unchanged.
 
 ==================================================
-C. REPAIR-7 SHARED PRIMITIVE AUDIT
+2. READ IMPLEMENTATION REPORT
 ==================================================
 
-Inspect the new shared physical-containment primitive independently.
+Read completely:
+
+/tmp/ASKTD_PHASE_2D_STACKED_IMPLEMENTATION_2026-08-22.md
+
+Also read the Phase 2D discovery report:
+
+/tmp/ASKTD_PHASE_2D_DISCOVERY_2026-08-22.md
+
+Use the discovery only as expected design evidence.
+
+Verify the actual implementation independently.
+
+==================================================
+3. REPOSITORY AND CANDIDATE IDENTITY
+==================================================
+
+Report:
+
+- repository identity;
+- Phase 2D worktree path;
+- branch;
+- current HEAD;
+- staged changes;
+- unstaged changes;
+- untracked files;
+- PR #15 local/remote HEAD;
+- merge-base with PR #15;
+- ahead/behind state.
 
 Confirm:
 
-- no policy-specific rules are embedded in it
-- no .github-specific policy is embedded in it
-- nearest-existing-ancestor discovery is lstat-aware
-- dangling links cannot be silently skipped
-- realpath/native canonicalization is used appropriately
-- POSIX case is preserved
-- Windows comparison is case-insensitive
-- sibling-prefix tricks are rejected
-- hard-link handling matches the intended contract
-- mutations happen only after containment succeeds
+- Phase 2D was created from the exact accepted PR #15 HEAD;
+- PR #15 was not modified;
+- main was not modified;
+- no commit was created;
+- no Phase 2D branch was pushed;
+- no Phase 2D PR exists.
 
-Then independently verify every Repair-7 consumer of this primitive.
+If the candidate is not based on the exact accepted PR #15 HEAD, return:
 
-Do not rely on source-text presence alone.
-Trace the actual runtime write path.
+PHASE_2D_INDEPENDENT_REVIEW_INSUFFICIENT_EVIDENCE
+
+and STOP.
 
 ==================================================
-D. AUTHORIZATION / PREVIEW / WRITE INVARIANCE
+4. EXACT DIFF INVENTORY
 ==================================================
 
-Verify that routes using WriteAuthorization still reject:
+Inspect the complete Phase 2D diff relative to the exact PR #15 HEAD.
 
-- forged authorization
-- stale authorization
-- expired authorization
-- consumed authorization
-- wrong consumerRoot
-- wrong target
-- wrong targetDecision
-- changed artifact types
-- changed relative path
-- changed bytes/content hash
-- replay / concurrent reuse
+The implementation agent reported approximately:
 
-Confirm a failed physical-containment check cannot mark an approval consumed
-as successful.
+- 9 changed files;
+- +1521 / -4;
+- new ADR 0004;
+- new app/recipes package;
+- new approved_recipes.py;
+- new test_approved_recipe_pilot.py;
+- limited Orchestrator modifications;
+- extensions to three existing test files;
+- ADR index update.
 
-For legacy/deferred customization routes that do not use WriteAuthorization,
-classify them explicitly and determine whether any remains a release blocker
-for the current fresh-consumer QA path.
+Produce the exact changed-file inventory.
 
-==================================================
-E. STANDARD TEST-SUITE INCLUSION / FALSE-GREEN DEFENSE
-==================================================
+Classify every file:
 
-Verify that the new containment suites actually run under the normal unit
-command.
+- REQUIRED
+- JUSTIFIED_TEST
+- JUSTIFIED_ADR
+- UNNECESSARY
+- OUT_OF_SCOPE
+- SUSPICIOUS
 
-Specifically verify inclusion of:
-
-- physicalWriteContainment.test
-- artifactReuseConversation.test
-- repoContextInit.test
-
-Inspect PURE_UNIT_TEST_PATTERNS / equivalent runner configuration.
-
-Run a controlled mutation probe only against generated build output or another
-fully reversible non-source artifact:
-
-Temporarily neutralize the shared physical-containment decision.
-
-Expected result:
-relevant containment tests MUST fail.
-
-Restore the generated artifact afterward and prove source bytes did not change.
-
-If tests remain green with the guard neutralized, classify TEST_FALSE_GREEN
-and fail the release audit.
+No unexplained file may remain for PASS.
 
 ==================================================
-F. VALIDATION
+5. ADR REVIEW
 ==================================================
 
-Using already-installed dependencies only, run:
+Review:
 
-- compile
-- lint
-- focused physical-containment tests
-- Repair-5 regression suites
-- Repair-6 regression suites
-- Repair-7 customization-route suites
-- WriteAuthorization suites
-- onboarding approval suites
-- repo-writer workspace-selection suites
-- RepoContext suites
-- full unit suite
+docs/adr/0004-phase2d-approved-recipe-pilot.md
 
-The five previously identified historical failures may remain only if they are
-independently proven unchanged and unrelated.
+Verify it accurately records:
 
-Any additional failure is a release blocker.
+- one-recipe pilot;
+- source_balance_mom_change;
+- Q25/Q26-style route;
+- dataset-scoped governed plan;
+- feature flag default OFF;
+- strict metadata requirement when ON;
+- fail-closed behavior;
+- dependency-aware compatibility;
+- live registry_version used for evidence, not blind pinning;
+- recipe lifecycle independent from registry lifecycle;
+- rollback through feature-flag disablement;
+- no Databricks, Unity Catalog, Collibra, Genie, Redis, Event Hubs,
+  Graph, reporting, or fine-grained authorization implementation.
 
-==================================================
-G. BUILD A FRESH QA VSIX
-==================================================
-
-This step MUST use the current post-Repair-7 source.
-
-Do not reuse:
-etl-hf1-v2-repair6-qa.vsix
-or any other pre-Repair-7 package.
-
-Build exactly one fresh QA VSIX using the repository's normal packaging
-mechanism and already-installed dependencies.
-
-Do not install it.
-
-Record:
-
-- exact filename
-- SHA-256
-- file count
-- compressed size
-- uncompressed size
+Verify the ADR does not silently make an enterprise architecture decision.
 
 ==================================================
-H. VERIFY THE FRESH VSIX
+6. APPROVED RECIPE CONTRACT
 ==================================================
 
-Run the repository's VSIX verification against the newly-created package.
+Inspect the actual ApprovedRecipe and RecipeParameter models.
 
-Independently inspect package contents.
+Verify:
 
-Confirm required runtime content exists and forbidden content is absent.
+- immutable/frozen behavior;
+- unknown extra fields rejected;
+- only repository-backed fields exist;
+- every field has a current consumer;
+- no speculative recipe DSL was introduced;
+- no provider-specific fields exist;
+- recipe lifecycle is explicit;
+- recipe version is independent from registry version;
+- governed dataset dependencies are explicit.
 
-At minimum verify absence of:
+The implementation reported an eight-field ApprovedRecipe contract.
 
-- .tmp/**
-- nested .git/**
-- *.tsbuildinfo and *.tsbuildinfo.*
-- node_modules/**
-- source test trees
-- out/test/**
-- docs/eval/**
-- .vscode-test/**
-- *.log
-- nested .vsix
-- unrelated repositories
-- developer-machine absolute paths
-- credentials/secrets
-- local scratch repositories
-
-Also check for unexpected:
-
-- *.code-workspace
-- scripts/**
-- workflow/**
-
-If such maintainer-only files are shipped, determine whether they are required
-runtime assets. Do not silently accept them.
-
-Confirm package provenance:
-the packaged JS/runtime files must correspond to the current source/build, not
-the pre-Repair-7 build.
+Independently determine whether all eight fields are necessary and sufficient.
 
 ==================================================
-I. CLEAN BUILD REPRODUCIBILITY
+7. RECIPE REGISTRY AND SELECTION
 ==================================================
 
-If possible without downloads:
+Verify:
 
-- remove/regenerate only authorized generated build output
-- rebuild
-- rebuild the QA VSIX
-- compare the resulting package deterministically
+- only the intended pilot recipe is registered;
+- recipe ID is deterministic;
+- lookup is exact and fail-closed;
+- no fuzzy matching;
+- no LLM recipe invention;
+- no dynamic imports/plugin framework;
+- no database/config-generated recipe registry;
+- existing deterministic selector is reused.
 
-Report whether package bytes or content manifests are reproducible.
-
-Do not modify source to force reproducibility.
+Unknown recipe IDs must never fall into an ungoverned execution path.
 
 ==================================================
-J. FINAL DECISION
+8. PARAMETER VALIDATION
 ==================================================
 
-Return a severity-ranked finding table:
+Inspect the parameter model and actual call path.
 
-CRITICAL
-HIGH
-MEDIUM
-LOW
-INFO
+Verify:
 
-For every finding state:
+- required values are enforced;
+- type checking is enforced;
+- allowed_values/domain is enforced;
+- undeclared values are rejected;
+- injection-like values fail before SQL building/execution;
+- valid values preserve the existing SQL output;
+- source code/source label mapping is deterministic;
+- quote escaping is not the only trust control.
 
-- exact file
-- exact function / route
-- reachability
-- normal QA impact
-- security/correctness impact
-- release blocking YES/NO
-- smallest repair scope if needed
+Check that no parameter value can select an undeclared table, builder, recipe,
+or execution provider.
 
-Then return EXACTLY these markers:
+==================================================
+9. GOVERNED SNAPSHOT COMPATIBILITY
+==================================================
 
-REPOSITORY_IDENTITY_VERIFIED: YES/NO
-UNAUTHORIZED_SCOPE_DRIFT: YES/NO
-ALL_LIVE_CONSUMER_WRITE_ROUTES_ENUMERATED: YES/NO
-ALL_RELEASE_RELEVANT_CONSUMER_WRITES_PHYSICALLY_CONTAINED: YES/NO
-WRITE_AUTHORIZATION_RUNTIME_SAFE: YES/NO
-STANDARD_UNIT_SUITE_INCLUDES_CONTAINMENT_REGRESSIONS: YES/NO
-MUTATION_PROBE_DETECTS_DISABLED_CONTAINMENT: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-FOCUSED_TESTS_PASS: YES/NO
-FULL_UNIT_ONLY_HISTORICAL_FAILURES: YES/NO
-FRESH_POST_REPAIR7_VSIX_BUILT: YES/NO
-FRESH_POST_REPAIR7_VSIX_VERIFIED: YES/NO
-PACKAGE_HYGIENE_SAFE: YES/NO
-PACKAGE_PROVENANCE_MATCHES_CURRENT_SOURCE: YES/NO
-SAFE_TO_COMMIT_HF1_V2: YES/NO
-SAFE_TO_BEGIN_QA_VSIX_TESTING: YES/NO
-SAFE_TO_RELEASE_HF1_V2: YES/NO
+Verify the pilot:
 
-PASS BAR:
+1. resolves the current RegistrySnapshot through MetadataRegistryService;
+2. captures the live registry_version for trace/evidence;
+3. builds a dataset-scoped GovernedSemanticPlan;
+4. reuses the existing service-level deterministic validator;
+5. fails closed for unknown/ungoverned datasets;
+6. does not use field_refs or relationship_refs that the current snapshot
+   cannot validate;
+7. does not treat an exact historical registry_version as a permanent
+   recipe-validity lock.
 
-SAFE_TO_COMMIT_HF1_V2 may be YES only if there are ZERO unresolved
-CRITICAL/HIGH release-blocking findings.
+Confirm a relevant incompatible dataset dependency fails closed.
 
-SAFE_TO_BEGIN_QA_VSIX_TESTING may be YES only if a fresh post-Repair-7 VSIX
-was built and independently verified.
+Confirm an unrelated metadata-version change does not automatically invalidate
+the recipe merely because the overall registry hash changed.
 
-SAFE_TO_RELEASE_HF1_V2 must remain NO until QA installation/end-user workflow
-testing is completed separately.
+==================================================
+10. FEATURE FLAG AND STRICT MODE
+==================================================
 
-Do not repair anything during this audit.
+Verify:
 
-End with:
+### Flag OFF
 
-LOCAL_HOTFIX_HF1_V2_FINAL_RELEASE_REAUDIT_AFTER_REPAIR_7_COMPLETE
+- current runtime behavior is unchanged;
+- current routing and answers remain compatible;
+- governed recipe evaluation does not alter unrelated routes;
+- no strict-mode requirement is imposed on normal existing traffic.
+
+### Flag ON
+
+- only the pilot recipe enters the governed path;
+- strict metadata validation is required or implied;
+- unavailable strict metadata fails closed;
+- no silent fallback executes the pilot as an ungoverned legacy route;
+- rollback is possible by disabling the flag.
+
+The feature flag must default to OFF.
+
+==================================================
+11. ORCHESTRATOR REVIEW
+==================================================
+
+Review every Orchestrator change.
+
+The implementation agent reported approximately 21 changed lines across four
+small hunks.
+
+Verify:
+
+- insertion is at the expected pre-execution seams;
+- no broad Orchestrator redesign occurred;
+- no duplicate route was created;
+- no existing authorization ordering was weakened;
+- recipe validation happens before SQL execution;
+- failure uses an existing safe response family;
+- unrelated recipes and LLM routes remain unchanged;
+- DataSourceAdapter remains the execution dependency;
+- no SqlDataStore concrete dependency was reintroduced.
+
+==================================================
+12. AUTHORIZATION PRESERVATION
+==================================================
+
+Verify reuse of:
+
+- EffectivePermissions;
+- deny_all short-circuit;
+- SqlPolicy;
+- SqlAuthorizationGuard;
+- auth-bound DataSourceAdapter.
+
+Recipe selection must not grant authorization.
+
+Check:
+
+- deny_all blocks before data access;
+- unauthorized tables/entities execute no SQL;
+- the existing audited blocked response remains intact;
+- governed metadata does not carry permission grants;
+- no column/row authorization model was added.
+
+==================================================
+13. EXECUTION BOUNDARY
+==================================================
+
+Verify the valid pilot route is:
+
+ApprovedRecipe.builder_key
+    ->
+existing tested query builder
+    ->
+existing SQL string
+    ->
+existing SQL safety / authorization
+    ->
+DataSourceAdapter.execute_query
+    ->
+existing result/rendering path
+
+Confirm:
+
+- no execution-spec compiler was introduced;
+- no new SQL dialect abstraction;
+- no alternate database execution path;
+- no direct SqlDataStore use in Orchestrator;
+- no provider-specific implementation entered the diff.
+
+==================================================
+14. TEST QUALITY
+==================================================
+
+Do not judge tests only by pass counts.
+
+Read important assertions in:
+
+test/test_approved_recipe_pilot.py
+
+and every extended test file.
+
+Verify tests prove:
+
+- contract immutability and extra-field rejection;
+- known/unknown recipe behavior;
+- lifecycle gate;
+- parameter presence/type/domain validation;
+- injection-like value rejection;
+- dataset-scoped governed-plan validation;
+- strict-mode failure;
+- feature flag OFF regression;
+- feature flag ON positive route;
+- no SQL on validation failure;
+- deny_all and unauthorized-table behavior;
+- DataSourceAdapter execution;
+- existing SQL policy/read-only enforcement;
+- unrelated recipes remain unchanged.
+
+Flag tests that overmock the path they claim to prove.
+
+==================================================
+15. SECURITY FINDING: OBJECT NAME DISCLOSURE
+==================================================
+
+The implementation report identified a pre-existing behavior:
+
+an unauthorized denial response may include the blocked physical object name,
+for example a dbo-qualified view.
+
+Review this independently.
+
+Determine:
+
+- exact production path;
+- whether the value is exposed to the user, debug-only, or audit-only;
+- whether unauthorized users can learn metadata they are not entitled to know;
+- whether it is introduced or expanded by Phase 2D;
+- severity: BLOCKER / HIGH / MEDIUM / LOW / OBSERVATION;
+- whether it blocks Phase 2D technical acceptance;
+- the minimum separate remediation if required.
+
+Do not fix it in this review.
+
+Do not dismiss it merely because it is pre-existing.
+
+==================================================
+16. ADR INDEX FINDING
+==================================================
+
+The implementation report states that ADR 0003 has no row in the ADR index,
+and that the Phase 2D agent deliberately did not modify PR #15 to fix it.
+
+Verify the exact state.
+
+Determine:
+
+- whether ADR 0004 is indexed;
+- whether ADR 0003 is missing;
+- whether this is inherited from PR #15;
+- whether it blocks the stacked candidate;
+- what must be done before the final integrated Phase 2D merge.
+
+Do not modify PR #15 or the Phase 2D candidate.
+
+==================================================
+17. SCOPE AUDIT
+==================================================
+
+Search the complete diff.
+
+Confirm no implementation was added for:
+
+- Databricks SQL;
+- Databricks authentication;
+- Unity Catalog;
+- Collibra;
+- Genie;
+- Redis;
+- Event Hubs;
+- cross-source joins;
+- Graph or GraphRAG;
+- Answer Intelligence/report templates;
+- KPI/glossary;
+- fine-grained authorization;
+- recipe-management UI;
+- full lifecycle automation;
+- frontend;
+- infrastructure/deployment;
+- broad planner migration;
+- migration of all historical recipes.
+
+==================================================
+18. VALIDATION GATES
+==================================================
+
+Run independently:
+
+1. focused Approved Recipe tests;
+2. Phase 2A/2B/2C regression;
+3. Phase 2C.5 provider-abstraction regression;
+4. MetadataRegistryService tests;
+5. authorization tests;
+6. SQL policy/store tests;
+7. semantic-model/query-recipe tests;
+8. golden baseline;
+9. full backend regression with configured coverage;
+10. git diff --check;
+11. excluded-technology scan.
+
+Historical implementation results were:
+
+- focused: 107 passed;
+- selected 18-file regression: 405 passed;
+- full backend: 945 passed, 3 skipped;
+- coverage: 86.72%;
+- required gate: 75%;
+- excluded-technology scan: 0.
+
+Different counts are acceptable only if explained.
+
+Do not regenerate baselines.
+
+Do not install or upgrade dependencies.
+
+==================================================
+19. FINDINGS
+==================================================
+
+Report findings by severity:
+
+- BLOCKER
+- HIGH
+- MEDIUM
+- LOW
+- OBSERVATION
+
+For each finding include:
+
+- file/symbol/path;
+- evidence;
+- why it matters;
+- whether introduced by Phase 2D;
+- whether it blocks technical acceptance;
+- minimum remediation.
+
+PASS requires zero BLOCKER and zero HIGH findings attributable to or
+necessarily blocking the Phase 2D pilot.
+
+==================================================
+20. FINAL ACCEPTANCE MATRIX
+==================================================
+
+Answer Yes/No with evidence:
+
+1. Is the candidate based on the exact accepted PR #15 HEAD?
+2. Did PR #15 remain unchanged?
+3. Is the ApprovedRecipe contract minimal and immutable?
+4. Is recipe selection deterministic and LLM-independent?
+5. Are parameters allow-listed and fail-closed?
+6. Is the recipe validated against the current governed snapshot?
+7. Is registry_version recorded without blind compatibility pinning?
+8. Does flag OFF preserve existing behavior?
+9. Does flag ON fail closed when governance is unavailable?
+10. Is authorization unchanged and independently enforced?
+11. Does valid execution use DataSourceAdapter and existing SQL policy?
+12. Is the implementation limited to one pilot recipe?
+13. Are all regression/coverage/golden gates acceptable?
+14. Is the complete diff bounded to Phase 2D?
+15. Did Phase 2D avoid every excluded technology?
+16. Is the candidate technically safe for commit/push as a stacked Draft PR?
+
+==================================================
+21. FINAL VERDICT
+==================================================
+
+Return exactly one:
+
+PHASE_2D_INDEPENDENT_REVIEW_PASS
+
+or
+
+PHASE_2D_INDEPENDENT_REVIEW_FAIL
+
+or
+
+PHASE_2D_INDEPENDENT_REVIEW_INSUFFICIENT_EVIDENCE
+
+If PASS, state:
+
+The Phase 2D Approved Recipe Pilot stacked candidate is technically ready to be
+committed and pushed for a Draft stacked PR based on
+phase2/provider-abstraction-foundation. It is not ready to merge until PR #15
+is merged, the branch is rebased onto main, and final integrated acceptance is
+re-run.
+
+If FAIL, provide only the smallest bounded remediation.
+
+Do not implement fixes.
+
+==================================================
+22. REPORT
+==================================================
+
+Save outside the worktree:
+
+/tmp/ASKTD_PHASE_2D_INDEPENDENT_REVIEW_2026-08-22.md
+
+Required sections:
+
+1. Repository / Stack Evidence
+2. Executive Verdict
+3. Exact Diff Inventory
+4. ADR Review
+5. ApprovedRecipe Contract
+6. Registry and Selection
+7. Parameter Validation
+8. Governed Snapshot Compatibility
+9. Feature Flag / Strict Mode
+10. Orchestrator Review
+11. Authorization Preservation
+12. Execution Boundary
+13. Test Quality
+14. Security Finding Review
+15. ADR Index Review
+16. Scope Audit
+17. Validation Results
+18. Findings by Severity
+19. Final Acceptance Matrix
+20. Remaining Remediation
+21. Final Recommendation
+
+At completion explicitly state:
+
+- Repository files modified by review: No
+- PR #15 changed: No
+- main changed: No
+- Commit created: No
+- Branch pushed: No
+- Phase 2D PR created: No
+- Phase 2D formally accepted: No
+
+Then STOP.
