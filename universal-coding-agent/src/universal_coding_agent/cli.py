@@ -211,11 +211,16 @@ def _run_server(arguments: argparse.Namespace, provider) -> int:
     import uvicorn
 
     from universal_coding_agent.product.workspace import ProductWorkspace
-    from universal_coding_agent.web.app import ProductWebRuntime, create_product_app, is_loopback_host
+    from universal_coding_agent.web.app import (
+        ProductWebRuntime,
+        create_product_app,
+        is_loopback_host,
+    )
 
     if not is_loopback_host(arguments.host) and not arguments.allow_remote_ui:
         raise ValueError(
-            "refusing non-loopback UI bind; pass --allow-remote-ui only behind approved access controls"
+            "refusing non-loopback UI bind; pass --allow-remote-ui only behind "
+            "approved access controls"
         )
     if arguments.port < 1 or arguments.port > 65535:
         raise ValueError("port must be between 1 and 65535")
