@@ -14,6 +14,16 @@ from universal_coding_agent.discovered_safe_service import (
     DiscoveredSafeAgentService,
     DiscoveredSafeStartError,
 )
+from universal_coding_agent.product.models import (
+    AcceptanceCriterion,
+    PhaseStatus,
+    ProgramExecutionStatus,
+    ProgramStatus,
+    RequirementContract,
+    RequirementItem,
+    RequirementStatus,
+)
+from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.fake import FakeModelProvider
 from universal_coding_agent.solution_discovery import (
     ImpactChange,
@@ -423,3 +433,109 @@ def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(
         )
 
     assert calls == []
+
+
+def test_program_execution_uses_discovered_safe_end_to_end_and_preserves_source(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    source, source_sha = _repository(tmp_path)
+    source_status = _git(source, "status", "--porcelain")
+    provider, calls = _full_provider()
+    workspace = ProductWorkspace.create(tmp_path / "workspace", provider)
+    requirement = RequirementContract(
+        alignment_id="discovered-safe-program",
+        version=1,
+        title="Validated credit-limit overrides",
+        objective="Validate the active credit-limit override contract.",
+        requirements=(
+            RequirementItem(
+                requirement_id="R-001",
+                statement="The active override path validates amount and expiry.",
+                category="functional",
+            ),
+        ),
+        acceptance_criteria=(
+            AcceptanceCriterion(
+                criterion_id="AC-001",
+                statement="The approved active contract test passes.",
+                requirement_ids=("R-001",),
+            ),
+        ),
+        status=RequirementStatus.APPROVED,
+    )
+
+    def program_planner(_request):
+        return {
+            "title": "Credit-limit override delivery",
+            "objective": "Deliver the approved active-path change.",
+            "phases": [
+                {
+                    "phase_id": "phase-1",
+                    "title": "Active-path contract",
+                    "objective": "Implement the approved active-path contract.",
+                    "dependencies": [],
+                    "slices": [
+                        {
+                            "slice_id": "slice-1",
+                            "title": "Active-path implementation",
+                            "objective": (
+                                "Use the active service and domain rule so credit-limit "
+                                "overrides validate amount and expires_at and reject "
+                                "non-positive amounts."
+                            ),
+                            "dependencies": [],
+                            "acceptance_criteria": [
+                                "The active service passes amount and expires_at.",
+                                "The active rule rejects non-positive amounts.",
+                            ],
+                        }
+                    ],
+                    "acceptance_criteria": ["The trusted active-contract profile passes."],
+                }
+            ],
+            "definition_of_done": ["The independent reviewer returns PASS."],
+        }
+
+    workspace.programs.provider = FakeModelProvider(
+        handlers={"program_planner": program_planner}
+    )
+    requirement_hash = requirement.canonical_hash()
+    plan = workspace.programs.create_program(
+        program_id="discovered-safe-program",
+        requirement=requirement,
+        requirement_hash=requirement_hash,
+    )
+    workspace.programs.approve_program(plan.program_id, plan.canonical_hash())
+    monkeypatch.setenv("UCA_SAFE_EDIT_PROTOCOL", "v2-line-addressed")
+    try:
+        binding = workspace.start_next_program_execution(
+            program_id=plan.program_id,
+            current_requirement_hash=requirement_hash,
+            repository=RepositorySpec(url=str(source), base_ref="main"),
+            policy=_behavior_policy(tmp_path),
+            test_profiles=("active-contract",),
+            allow_local_sources=True,
+        )
+        assert binding.status is ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL
+        completed = workspace.continue_program_execution(
+            program_id=plan.program_id,
+            task_id=binding.task_id,
+            current_requirement_hash=requirement_hash,
+            approved=True,
+            allow_local_sources=True,
+        )
+
+        assert completed.status is ProgramExecutionStatus.COMPLETED
+        assert workspace.programs.phase_status(plan.program_id, "phase-1") is (
+            PhaseStatus.COMPLETED
+        )
+        assert workspace.programs.status(plan.program_id) is ProgramStatus.COMPLETED
+        report = workspace.artifacts.read_json(completed.phase_report_ref)
+        assert report["phase_status"] == "completed"
+        assert report["bindings"][0]["thread_id"] == completed.thread_id
+        assert calls == ["solution_discovery", "implementer", "implementer", "reviewer"]
+        assert _git(source, "rev-parse", "HEAD") == source_sha
+        assert _git(source, "status", "--porcelain") == source_status == ""
+    finally:
+        workspace.close()

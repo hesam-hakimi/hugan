@@ -3,10 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from universal_coding_agent.core.models import ProjectManifest
+from universal_coding_agent.core.models import ProjectManifest, RepositorySpec
+from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.context_documents import ContextDocumentService
-from universal_coding_agent.product.models import ContextDocument, ContextScope, DocumentRole
+from universal_coding_agent.product.models import (
+    ContextDocument,
+    ContextScope,
+    DocumentRole,
+    ProgramExecutionBinding,
+)
 from universal_coding_agent.product.program_orchestrator import ProgramOrchestrator
 from universal_coding_agent.product.requirement_alignment import RequirementAlignmentService
 from universal_coding_agent.product.search_service import SearchService
@@ -100,4 +106,50 @@ class ProductWorkspace:
             self.provider,
             allow_local_sources=allow_local_sources,
             control=self.control,
+        )
+
+    def start_next_program_execution(
+        self,
+        *,
+        program_id: str,
+        current_requirement_hash: str,
+        repository: RepositorySpec,
+        policy: SafeModePolicy,
+        test_profiles: tuple[str, ...],
+        state_root: Path | None = None,
+        allow_local_sources: bool = False,
+    ) -> ProgramExecutionBinding:
+        executor = self.discovered_safe(
+            state_root=state_root,
+            allow_local_sources=allow_local_sources,
+        )
+        return self.programs.start_next_execution(
+            program_id=program_id,
+            current_requirement_hash=current_requirement_hash,
+            repository=repository,
+            policy=policy,
+            test_profiles=test_profiles,
+            executor=executor,
+        )
+
+    def continue_program_execution(
+        self,
+        *,
+        program_id: str,
+        task_id: str,
+        current_requirement_hash: str,
+        approved: bool,
+        state_root: Path | None = None,
+        allow_local_sources: bool = False,
+    ) -> ProgramExecutionBinding:
+        executor = self.discovered_safe(
+            state_root=state_root,
+            allow_local_sources=allow_local_sources,
+        )
+        return self.programs.continue_execution(
+            program_id=program_id,
+            task_id=task_id,
+            current_requirement_hash=current_requirement_hash,
+            executor=executor,
+            approved=approved,
         )

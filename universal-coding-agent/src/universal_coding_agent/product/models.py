@@ -213,6 +213,15 @@ class PhaseStatus(StrEnum):
     COMPLETED = "completed"
 
 
+class ProgramExecutionStatus(StrEnum):
+    STARTING = "starting"
+    AWAITING_SCOPE_APPROVAL = "awaiting_scope_approval"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
 class ProgramPhase(FrozenModel):
     phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
     title: str = Field(min_length=1, max_length=200)
@@ -307,6 +316,20 @@ class PhaseResult(FrozenModel):
     reviewer_verdict: str = ""
     known_risks: tuple[str, ...] = ()
     artifact_refs: tuple[str, ...] = ()
+
+
+class ProgramExecutionBinding(FrozenModel):
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    slice_id: str | None = Field(default=None, min_length=1, max_length=64)
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    thread_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    status: ProgramExecutionStatus
+    safe_status: str = Field(default="", max_length=64)
+    result_ref: str = Field(default="", max_length=1024)
+    phase_report_ref: str = Field(default="", max_length=1024)
+    error_ref: str = Field(default="", max_length=1024)
 
 
 class ControlEntityType(StrEnum):

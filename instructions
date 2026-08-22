@@ -51,6 +51,7 @@
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
 - universal-coding-agent/tests/test_requirement_draft_repair.py
+- universal-coding-agent/tests/test_program_execution.py
 
 Cmd 1
 
@@ -113,13 +114,16 @@ for FILE in \
   tests/test_product_foundation.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
-  tests/test_requirement_draft_repair.py
+  tests/test_requirement_draft_repair.py \
+  tests/test_program_execution.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
+from universal_coding_agent.product.models import ProgramExecutionBinding, ProgramExecutionStatus
+from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
@@ -128,7 +132,10 @@ assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentServic
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert ProductWebRuntime and create_product_app
+assert ProgramExecutionBinding and ProgramExecutionStatus
+assert DiscoveredSafeExecutionPort and ProgramExecutionError
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
+print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -142,12 +149,14 @@ Cmd 3
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_requirement_draft_repair.py \
+  tests/test_program_execution.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
-echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS"
+echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
+echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS"
 ```
 
 Cmd 4
