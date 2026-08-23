@@ -6,6 +6,7 @@
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/src/universal_coding_agent/solution_discovery.py
 - universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
+- universal-coding-agent/src/universal_coding_agent/sandbox/git.py
 - universal-coding-agent/src/universal_coding_agent/cli.py
 - universal-coding-agent/src/universal_coding_agent/web/__init__.py
 - universal-coding-agent/src/universal_coding_agent/web/app.py
@@ -37,6 +38,7 @@
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
+- universal-coding-agent/tests/test_repository.py
 - universal-coding-agent/tests/test_sharded_dependency_contracts.py
 - universal-coding-agent/tests/test_discovered_safe_service.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
@@ -74,6 +76,7 @@ for FILE in \
   src/universal_coding_agent/safe_service.py \
   src/universal_coding_agent/solution_discovery.py \
   src/universal_coding_agent/discovered_safe_service.py \
+  src/universal_coding_agent/sandbox/git.py \
   src/universal_coding_agent/cli.py \
   src/universal_coding_agent/web/__init__.py \
   src/universal_coding_agent/web/app.py \
@@ -105,6 +108,7 @@ for FILE in \
   tests/test_openai_testlab_provider.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
+  tests/test_repository.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   scripts/pretransfer-test-lab.sh \
@@ -171,7 +175,8 @@ Cmd 3
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
-  tests/test_solution_discovery.py && \
+  tests/test_solution_discovery.py \
+  tests/test_repository.py && \
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
