@@ -1,397 +1,437 @@
-AskTD / KMAI — Phase 2E Independent Review Prompt
+TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_DISCOVERY
 
-You are performing an independent review of the already-implemented Phase 2E candidate.
+This is a READ-ONLY source-of-truth discovery task.
 
-This is a review task, not an implementation or remediation task.
+Do NOT implement.
+Do NOT edit files.
+Do NOT regenerate contracts.
+Do NOT change the extension version.
+Do NOT package a VSIX.
+Do NOT commit or push.
 
-1. Mandatory safety boundary
+The goal is to determine the exact minimum repair required to unblock the
+fresh-consumer CREATE_NEW_JOB preview flow discovered during runtime QA of
+Databricks ETL Copilot 0.3.140.
 
-Work only in this permanent Phase 2E worktree:
+==================================================
+1. QA EVIDENCE TO RECONCILE
+==================================================
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records
+Runtime QA independently established:
 
-Repository implementation root:
+- Databricks ETL Copilot 0.3.140 was active.
+- The workspace was a single disposable consumer workspace.
+- Workflow customization was installed.
+- No extension source or etl-framework-adb was available to the QA user.
+- The synthetic STTM was discovered.
+- The workspace was correctly classified as a fresh consumer.
+- The runtime selected:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+  TARGET_DECISION: CREATE_NEW_JOB
 
-Do not use or modify the stale primary checkout on branch asktd_v2.
+- Packaged framework fallback was successfully selected.
+- No filesystem write occurred.
+- No Preview ID was issued because deterministic validation failed first.
 
-You MUST NOT:
+The two blocking validation findings were:
 
-* edit repository files;
-* apply fixes or formatting;
-* stage files;
-* create commits;
-* amend commits;
-* push branches;
-* create or modify PRs;
-* rebase, merge, cherry-pick, reset, stash, clean, switch, or delete branches;
-* modify Git configuration;
-* modify deployment or environment configuration;
-* enable runtime feature flags outside process-local test execution;
-* start Phase 2F;
-* alter PR #15, PR #16, or main.
+1. "No modules detected in job config"
+2. "Confirm output path or table"
 
-The only permitted persistent write is the independent-review report outside the Git candidate:
+Read-only packaged-contract discovery then established:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_INDEPENDENT_REVIEW_2026-08-23.md
+TOP_LEVEL_MODULE_ENVELOPE_PROVEN: NO
+TOP_LEVEL_MODULE_ENVELOPE_KEY: UNKNOWN
+UNITY_CATALOG_TABLE_WRITE_SUPPORTED: UNKNOWN
+UNITY_CATALOG_TARGET_FIELD: UNKNOWN
+PATH_REQUIRED_FOR_DATAFRAME_WRITER: UNKNOWN
+PRODUCT_DEFECT_FOUND: YES
+PACKAGE_CONTRACT_GAP_FOUND: YES
+QA_CAN_RESUME_WITHOUT_CODE_CHANGE: NO
 
-If any review command unexpectedly modifies the worktree, stop immediately. Do not clean, restore, or overwrite anything. Report the exact modification.
+Do not challenge these runtime facts without contrary live-source evidence.
 
-2. Review independence
+==================================================
+2. SOURCE REPOSITORY PREFLIGHT
+==================================================
 
-Do not assume the implementation report is correct.
+Work only in the current HF1 V2 extension source checkout.
 
-You may read it as an evidence index, but independently verify every material claim:
+Expected repository family:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_IMPLEMENTATION_2026-08-23.md
+TD-Universe/agentic_etl
 
-Do not redesign accepted Phase 2C, Phase 2C.5, or Phase 2D behavior.
+Expected branch:
 
-Do not expand the Phase 2E scope.
+hotfix/hf1-oracle-fresh-consumer-v2
 
-3. Expected immutable parent and candidate identity
+Independently verify:
 
-The expected Phase 2D parent SHA is:
+- repository root
+- branch
+- HEAD
+- origin
+- staged count
+- complete changed-path inventory
+- current package version
+- `.github/**` cleanliness
+- Repair-5/6/7 candidate files remain present
 
-5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
+The working tree contains extensive uncommitted HF1 work.
 
-The expected local branch is:
+Do not reset, clean, stash, checkout, restore, or mutate anything.
 
-phase2/governed-field-records
+If repository identity is not the expected HF1 V2 candidate, stop.
 
-The expected branch state is:
+==================================================
+3. FIND THE AUTHORITATIVE JOB-CONFIG ENVELOPE
+==================================================
 
-* local HEAD remains exactly at the Phase 2D parent SHA;
-* all Phase 2E candidate changes are unstaged and uncommitted;
-* no remote phase2/governed-field-records ref exists;
-* no Phase 2E commit or PR exists;
-* the candidate contains exactly 12 repository files: 5 new and 7 modified.
+Trace the production runtime responsible for the error:
 
-Expected combined candidate SHA-256:
+"No modules detected in job config"
 
-1c72d47be76b7e8d2f768005cca0254dd43761212a15637950fcfb0ed6d7cc35
+Locate the exact:
 
-Before reviewing code, verify:
+- validator
+- parser
+- renderer
+- module extractor
+- job-config model/type
+- HOCON handling
+- validation error definition
+
+Determine from executable production code:
+
+1. the exact top-level Job Config module-envelope key;
+2. the exact expected nesting shape;
+3. whether modules are represented as:
+   - a list,
+   - an object,
+   - a map,
+   - named HOCON blocks,
+   - or another structure;
+4. the exact minimum valid Job Config HOCON document;
+5. how the validator detects module types;
+6. the required module ordering;
+7. whether the current renderer produces that same shape.
+
+Do not infer this from prose documentation when production code is available.
+
+Return exact source paths, functions, and line ranges.
+
+Classify the result:
 
-1. current working directory and repository root;
-2. current branch and exact HEAD;
-3. clean index;
-4. unstaged and untracked inventory;
-5. absence of unexpected commits;
-6. absence of unrelated files;
-7. exact parent relationship;
-8. whether the expected remote Phase 2E branch is still absent;
-9. whether main, Phase 2C.5, and Phase 2D remote refs remain at their expected SHAs, if authenticated remote access is available.
+- PROVEN_FROM_RUNTIME_CODE
+- CONTRADICTORY_RUNTIME_CODE
+- NOT_IMPLEMENTED
 
-Expected remote SHAs:
+==================================================
+4. RECONCILE ALL MODULE REPRESENTATIONS
+==================================================
 
-* origin/main:
-    9ca6567571772a9f4e1ab555d8a678e678c45d49
-* origin/phase2/provider-abstraction-foundation:
-    d5472ae31081879329c224922244d87962737e8c
-* origin/phase2/approved-recipe-pilot:
-    5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
+Inspect and compare all sources that currently describe modules:
 
-If remote access is unavailable, state that explicitly. Do not infer remote state.
+- `etl_describe_module`
+- `etl_get_framework_rules`
+- packaged module reference assets
+- packaged framework contracts
+- packaged examples
+- renderer inputs
+- renderer output
+- validators
+- tests
+- runtime types/interfaces
+- repo-convention rules
 
-If the parent SHA, candidate inventory, or candidate digest differs, stop the behavioral review and return:
+The QA evidence found at least two conflicting representations:
 
-PHASE_2E_INDEPENDENT_REVIEW_BLOCKED_CANDIDATE_DRIFT
+A. named module HOCON block with a top-level `type`;
+B. ordered JSON array entries using `options.module`,
+   `target-path`, `target-format`, and `mode-of-write`.
 
-4. Expected candidate files
+Determine:
 
-New files
+- which representation production runtime actually consumes;
+- whether either representation is only a planning DTO rather than final HOCON;
+- where conversion is supposed to occur;
+- why the conversion did not occur during QA;
+- whether Package examples are stale, wrong, or incomplete;
+- whether `etl_describe_module` output is stale, wrong, or incomplete.
 
-1. kmai-td-genie/docs/adr/0005-phase2e-governed-field-records.md
-2. kmai-td-genie/src/backend/app/available_data/field_evidence.py
-3. kmai-td-genie/src/backend/app/recipes/dependency_fingerprint.py
-4. kmai-td-genie/test/test_governed_field_records.py
-5. kmai-td-genie/test/test_recipe_dependency_fingerprint.py
+There must be one authoritative representation or one explicit transformation
+pipeline. Do not propose parallel undocumented forms.
 
-Modified files
+==================================================
+5. DETERMINE THE REAL DATAFRAME_WRITER CONTRACT
+==================================================
 
-1. kmai-td-genie/docs/adr/README.md
-2. kmai-td-genie/src/backend/app/available_data/registry_contract.py
-3. kmai-td-genie/src/backend/app/recipes/approved_recipes.py
-4. kmai-td-genie/test/test_approved_recipe_pilot.py
-5. kmai-td-genie/test/test_authz_no_access_guard.py
-6. kmai-td-genie/test/test_provider_abstraction_contracts.py
-7. kmai-td-genie/test/test_semantic_plan_contract.py
+Trace the actual production/framework implementation of `dataframe_writer`.
 
-Verify all 12 files, including untracked files. Do not rely only on ordinary git diff, because it omits untracked files.
+Determine conclusively whether it supports:
 
-Recompute the combined digest independently:
+A. ADLS/filesystem path output;
+B. Delta path output;
+C. Parquet/CSV/text path output;
+D. JDBC/Synapse output;
+E. Unity Catalog table by three-part name;
+F. another registered-table abstraction.
 
-1. sort the 12 workspace-relative paths bytewise;
-2. SHA-256 each complete file;
-3. create one line per file in this exact form:
-    <lowercase-sha256><two spaces><workspace-relative-path>\n
-4. hash the complete 12-line manifest, including the final newline;
-5. compare it to the expected combined digest.
+For each supported destination mode return:
 
-5. Phase 2E bounded objective
+- exact config field names;
+- exact required fields;
+- exact optional fields;
+- accepted HOCON shape;
+- overwrite/append semantics;
+- merge/upsert/CDC/SCD limitations;
+- production implementation path;
+- validator path;
+- corresponding tests.
 
-Independently determine whether the candidate correctly:
+Specifically answer:
 
-* emits real, strictly evidenced FieldRecord objects;
-* emits fields only for datasets already governed;
-* never invents datasets, schemas, Product Groups, relationships, fields, or business meaning;
-* adds canonical governed field references only to the single Phase 2D pilot ApprovedRecipe;
-* computes deterministic, entity-scoped dependency fingerprints;
-* prevents unrelated metadata changes from invalidating the recipe;
-* changes the dependency fingerprint when a referenced entity materially changes;
-* fails closed when a referenced field is missing, renamed, unknown, ambiguous, or invalid;
-* preserves exact Phase 2D behavior when the Phase 2E feature flag is OFF.
+UNITY_CATALOG_TABLE_WRITE_SUPPORTED: YES/NO
+UNITY_CATALOG_TARGET_FIELD: <exact field or NONE>
+PATH_REQUIRED_FOR_DATAFRAME_WRITER: YES/NO
 
-6. Minimum source review
+Do not add Unity Catalog support merely because the QA STTM used a table name.
 
-Review every line of all 12 candidate files.
+If direct Unity Catalog table output is not supported, identify the correct
+existing writer/module for that destination, or conclude that the QA fixture
+must use a supported path-based synthetic destination.
 
-At minimum, perform a detailed behavioral review of:
+==================================================
+6. READ-ONLY FRAMEWORK SOURCE RECONCILIATION
+==================================================
 
-1. src/backend/app/available_data/field_evidence.py
-2. src/backend/app/available_data/registry_contract.py
-3. src/backend/app/recipes/dependency_fingerprint.py
-4. src/backend/app/recipes/approved_recipes.py
+If an existing local `etl-framework-adb` checkout is available to the maintainer,
+it may be inspected READ ONLY as authoritative implementation evidence.
 
-Review ADR 0005 and its index entry for consistency with the code and bounded scope.
+It must NOT be:
 
-Review all six changed test files. Determine whether the assertions genuinely prove the required behavior rather than merely exercising code paths.
+- modified;
+- added to the QA workspace;
+- packaged;
+- required by the end user;
+- used as a runtime fallback in the final fix.
 
-7. Field-evidence review requirements
+Compare the live framework implementation with the packaged extension contract.
 
-Verify independently that:
+Report every contract field that must be copied/generated into the VSIX so the
+installed extension is self-contained.
 
-* data/metadata/json/field.json is the authoritative field-evidence input;
-* the live file contains 328 rows;
-* exactly 199 evidenced rows map to the already-governed pilot dataset;
-* rows for non-governed datasets do not cause new datasets or fields to be invented;
-* field identity is exact and case-sensitive;
-* canonical IDs use:
-    field:<logical_dataset_id>.<exact_COLUMN_NAME>
-* whitespace, punctuation, prefixes, empty components, duplicate canonical IDs, ambiguous mappings, invalid required values, malformed JSON, unsupported IS_KEY values, and inconsistent governed source context fail deterministically where required;
-* display names do not substitute inferred business meaning;
-* descriptive classifications do not grant authorization;
-* evidence ordering cannot change canonical output or registry identity;
-* safe error output does not disclose complete evidence rows, business descriptions, classifications, or filesystem paths.
+If no framework checkout is available, do not fabricate the missing contract.
 
-Confirm that relationship evidence is not emitted and no RelationshipRecord is introduced.
+==================================================
+7. TRACE PACKAGED FALLBACK DEFECTS
+==================================================
 
-8. Pilot recipe reference review
+Investigate the confirmed defects:
 
-Inspect the authoritative Phase 2D pilot builder directly.
+A. `criticalConfigKeys` missing from `etl_get_framework_rules`
 
-Verify that its actual SQL/data access requires exactly these four evidenced fields:
+QA observed:
 
-1. field:v_dlv_dep_agmt_clr.CUR_BAL_AMT
-2. field:v_dlv_dep_agmt_clr.RRDW_SRC_CD
-3. field:v_dlv_dep_agmt_clr.RRDN_AS_OF_DT
-4. field:v_dlv_dep_agmt_clr.AGMT_CD
+- the packaged machine-readable framework contract contains populated
+  `criticalConfigKeys`;
+- `etl_get_framework_rules` returns
+  "Critical config keys: not available".
 
-Confirm that:
+Locate the exact data-loss point.
 
-* all four exist verbatim in current evidence;
-* no required source field is omitted;
-* no derived alias, output-format field, parameter label, trace field, or unrelated field was added;
-* no second recipe was created;
-* no legacy recipe was migrated.
-
-9. Semantic-plan and fail-closed review
+B. `etl_search_examples` ignores packaged examples
 
-Verify the complete enabled execution order:
+QA observed:
 
-1. recipe lifecycle and parameter validation;
-2. live registry/version resolution;
-3. semantic-plan construction using governed dataset and field references;
-4. service-level governed semantic-plan validation;
-5. dependency-fingerprint computation only after successful validation;
-6. authoritative builder resolution and invocation only after all governance checks pass.
+- indexed approved examples exist inside packaged knowledge assets;
+- `etl_search_examples` returns `no_search_roots_available`;
+- the packaged examples are never consulted.
 
-For missing, removed, renamed, or unknown referenced fields, verify:
+Locate the exact discovery/search-root defect.
 
-* deterministic failure;
-* expected error code such as plan_unknown_field, where applicable;
-* zero data-source factory activity;
-* zero adapter or schema-probe activity;
-* zero builder resolution;
-* zero authoritative or legacy builder invocation;
-* zero SQL execution.
+C. packaged self-inconsistency
 
-10. Dependency-fingerprint review
-
-Verify that fingerprinting is:
-
-* deterministic;
-* canonical;
-* entity-scoped;
-* independent of input ordering;
-* insensitive to equivalent duplicates;
-* sensitive to conflicting duplicates;
-* sensitive to materially changed referenced dataset or field attributes;
-* insensitive to unrelated datasets and unreferenced fields;
-* independent of whole-registry version changes when referenced entities are unchanged;
-* fail-closed for unknown references.
-
-Review which DatasetRecord and FieldRecord attributes are included and determine whether they represent the intended dependency semantics without accidentally incorporating unrelated global state.
-
-Confirm that no historical approved fingerprint is persisted or compared and that no future lifecycle status is assigned.
-
-11. Reverse-index review
-
-Verify that the reverse index:
-
-* maps each governed entity reference to a deterministically sorted tuple of approved recipe IDs;
-* de-duplicates equivalent references and recipe IDs;
-* is pure and in-memory;
-* has no persistence;
-* has no external API;
-* is not a metadata graph, join graph, lineage graph, or graph database;
-* has no Redis or cache dependency.
+Locate why:
 
-12. Compatibility and separation review
+- module reference output;
+- packaged examples;
+- renderer;
+- validator;
 
-Verify that with GOVERNED_FIELD_RECORDS_ENABLED absent or false:
+do not use one consistent model.
 
-* field.json is not read;
-* emitted fields remain empty;
-* relationships remain empty;
-* the exact Phase 2D registry version is restored:
-    sv-a9dd6c5ac25e1b42
-* Phase 2D recipe behavior remains dataset-only;
-* recipe field references and dependency fingerprints are not consulted or traced.
+D. deployed context divergence
 
-Verify that authorization remains independent:
+Determine why the installed workspace context file is a small prose stub while
+other packaged assets contain richer and conflicting contracts.
 
-* no authorization source or contract changed;
-* metadata classifications do not grant or deny access;
-* existing EffectivePermissions, SQL policy, SQL authorization, auditing, and denial behavior remain authoritative.
+Do not solve this by copying arbitrary user-editable context into a trusted
+contract path.
 
-13. Explicit scope exclusions
+Record the existing deferred finding:
 
-Confirm through diff inspection and case-insensitive source scanning that the candidate contains no implementation, stub, adapter, or import for:
+CONTEXT_OWNERSHIP_AND_TRUST_BOUNDARY
 
-* lifecycle states VALID, REVIEW_REQUIRED, BROKEN, or NOT_APPROVED;
-* approval or reapproval workflows;
-* relationship emission;
-* metadata, join, or lineage graphs;
-* graph databases;
-* Redis or distributed caching;
-* query-result caching;
-* Databricks;
-* Genie;
-* Unity Catalog;
-* Collibra;
-* Event Hubs, Kafka, or message buses;
-* cross-source execution or joins;
-* SQL dialect compilers;
-* new provider SDKs;
-* new authorization engines;
-* row/column authorization;
-* frontend work;
-* deployment or Terraform changes;
-* Orchestrator decomposition;
-* schema or data migrations;
-* extra Approved Recipes;
-* Phase 2F work.
-
-Documentation-only non-goal references and negative test constants are acceptable. Runtime implementation is not.
-
-14. Validation execution
-
-Run validation from the permanent Phase 2E repository root.
-
-Prevent avoidable review artifacts:
-
-* set PYTHONDONTWRITEBYTECODE=1;
-* disable the pytest cache provider;
-* direct coverage data outside the Git candidate if needed;
-* do not run auto-formatters or commands that rewrite files.
-
-Run at least:
-
-1. new field-evidence/emission tests;
-2. new dependency-fingerprint and reverse-index tests;
-3. registry, hierarchy, and version regressions;
-4. semantic-plan regressions;
-5. Approved Recipe pilot regressions;
-6. authorization/no-access regressions;
-7. provider-abstraction contract tests;
-8. query-recipe and SQL-policy regressions;
-9. golden baseline;
-10. the complete configured backend test suite;
-11. the configured coverage gate;
-12. git diff --check;
-13. checks covering untracked candidate files;
-14. provider-neutrality and excluded-technology scans.
-
-The previous implementation evidence reported:
-
-* full backend: 996 passed, 3 skipped;
-* coverage: 86.87%, required 75%;
-* golden baseline: 10 passed;
-* warnings: 8 existing warnings;
-* no increase in skips;
-* no changed-Python-file diagnostics;
-* all diff and excluded-technology scans passed.
-
-Do not treat those values as authoritative. Reproduce them independently and explain any difference.
-
-After all validation, compare the final Git status, candidate inventory, per-file hashes, and combined digest with the pre-review capture.
-
-The candidate must remain byte-for-byte unchanged.
-
-15. Defect handling
-
-Do not fix defects.
-
-For every finding, record:
-
-* severity: Blocking / High / Medium / Low;
-* exact file and line;
-* violated requirement;
-* concrete evidence;
-* reproduction command or test;
-* security or behavioral impact;
-* narrowly bounded remediation recommendation;
-* whether a full re-review is required.
-
-Any unresolved blocking correctness, security, fail-closed, parent-identity, candidate-drift, authorization-separation, or scope-boundary defect requires a FAIL or BLOCKED verdict.
-
-16. Independent-review report
-
-Write the final report only to:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_INDEPENDENT_REVIEW_2026-08-23.md
-
-The report must include:
-
-1. final verdict;
-2. reviewer independence statement;
-3. parent, branch, worktree, and remote identity;
-4. complete 12-file inventory;
-5. per-file hashes and independently recomputed combined digest;
-6. detailed source-review findings;
-7. acceptance-criterion matrix;
-8. field-evidence and canonical-ID findings;
-9. recipe-reference findings;
-10. semantic-plan and fail-closed findings;
-11. dependency-fingerprint findings;
-12. reverse-index findings;
-13. flag-off compatibility proof;
-14. authorization-separation proof;
-15. relationship/graph and excluded-scope proof;
-16. exact commands and test results;
-17. pre-review versus post-review candidate identity;
-18. risks and deferred items;
-19. required remediation, if any;
-20. completion-state attestation confirming no repository mutation.
-
-End with exactly one verdict token:
-
-* PHASE_2E_INDEPENDENT_REVIEW_PASS
-* PHASE_2E_INDEPENDENT_REVIEW_FAIL
-* PHASE_2E_INDEPENDENT_REVIEW_BLOCKED_CANDIDATE_DRIFT
-* PHASE_2E_INDEPENDENT_REVIEW_BLOCKED_ENVIRONMENT
-
-A PASS means only that the current uncommitted Phase 2E candidate passed independent technical review. It does not authorize commit, push, PR creation, runtime activation, merge, or Phase 2F.
+==================================================
+8. STTM FIXTURE/PARSER CLASSIFICATION
+==================================================
+
+QA also observed:
+
+- the markdown STTM was found;
+- native structured parsing recognized zero mappings;
+- it returned `STTM_SHEET_UNRECOGNIZED` / `missing_sheet: fieldMapping`;
+- the Orchestrator then read the raw markdown content manually.
+
+Determine whether:
+
+A. Markdown STTM is an officially supported input format;
+B. the QA fixture is simply the wrong format/template;
+C. the parser is expected to support this template but has a defect.
+
+Do not automatically include STTM parser changes in Repair 8.
+
+If the fixture is invalid, specify the exact supported synthetic format to use
+for the next QA run, such as a sanitized XLSX workbook with required sheets and
+columns.
+
+Classify:
+
+STTM_QA_FIXTURE_VALID: YES/NO/UNKNOWN
+STTM_PARSER_REPAIR_REQUIRED: YES/NO/UNKNOWN
+
+==================================================
+9. DEFINE THE SINGLE SOURCE OF TRUTH
+==================================================
+
+Based on production implementation, recommend the smallest design that ensures:
+
+- one machine-readable canonical Job Config contract;
+- exact module-envelope key and shape;
+- exact module fields;
+- exact writer destination modes;
+- exact critical config keys;
+- examples validated against the same contract;
+- renderer output validated against the same contract;
+- installed extension fallback remains self-contained;
+- no framework source is required by QA/end users;
+- no user-editable context file becomes the authority for executable config.
+
+Do not redesign the entire ETL product.
+
+Prefer extracting/packaging existing authoritative implementation facts over
+inventing a new schema.
+
+==================================================
+10. MINIMUM REPAIR INVENTORY
+==================================================
+
+Produce the exact minimum file inventory for a bounded Repair 8.
+
+For each required file state:
+
+- exact path;
+- production/test/package/config;
+- exact function/type/section;
+- reason the change is necessary;
+- whether it already has HF1 candidate changes;
+- whether a new file is required.
+
+Expected repair areas may include, but must be proven rather than assumed:
+
+- canonical Job Config contract/schema;
+- packaged framework-contract generation;
+- `etl_get_framework_rules` fallback;
+- `etl_describe_module`;
+- `etl_search_examples`;
+- renderer contract consumption;
+- validator/renderer alignment;
+- package-content tests;
+- fresh-consumer preview regression tests.
+
+Do not include files merely because they are adjacent.
+
+Do not include `etl-framework-adb` as a modified file.
+
+==================================================
+11. REQUIRED TEST PLAN
+==================================================
+
+Define tests proving:
+
+1. a fresh consumer with no local job/env examples can produce a valid preview;
+2. the renderer emits the exact production module envelope;
+3. the validator recognizes every rendered module;
+4. the packaged fallback surfaces `criticalConfigKeys`;
+5. packaged examples are searchable without local search roots;
+6. examples, module descriptions, renderer, and validator agree;
+7. supported writer destination modes are explicit and validated;
+8. unsupported Unity Catalog table-by-name output is rejected clearly, if it is
+   not supported;
+9. a supported destination produces a Preview ID;
+10. preview remains zero-write;
+11. framework source is not required;
+12. the existing Repair-5/6/7 security behavior is unchanged;
+13. package verification remains clean.
+
+Include mutation/negative tests where useful to prevent false-green results.
+
+==================================================
+12. VERSIONING DECISION
+==================================================
+
+Do not change the version during this discovery.
+
+Because runtime behavior and/or packaged contract content must change, state
+whether the next QA package must become:
+
+0.3.141
+
+The expected answer is YES unless discovery proves no product/package byte
+change is necessary.
+
+Do not build that package in this task.
+
+==================================================
+13. FINAL REPORT
+==================================================
+
+Return:
+
+1. Repository identity.
+2. Exact validator source for "No modules detected in job config".
+3. Exact validator source for "Confirm output path or table".
+4. Canonical Job Config envelope key and shape.
+5. Minimal valid Job Config HOCON example.
+6. Canonical module representation.
+7. Actual `dataframe_writer` destination contract.
+8. Unity Catalog table-name support verdict.
+9. `criticalConfigKeys` fallback root cause.
+10. Packaged-example search root cause.
+11. Package self-inconsistency root cause.
+12. STTM fixture/parser classification.
+13. Minimum Repair-8 file inventory.
+14. Required tests.
+15. No-touch proof.
+16. Versioning recommendation.
+
+Finish exactly with:
+
+CANONICAL_JOB_CONFIG_ENVELOPE_PROVEN: YES/NO
+CANONICAL_MODULE_REPRESENTATION_PROVEN: YES/NO
+DATAFRAME_WRITER_CONTRACT_PROVEN: YES/NO
+UNITY_CATALOG_TABLE_WRITE_SUPPORTED: YES/NO/UNKNOWN
+CRITICAL_CONFIG_KEYS_FALLBACK_DEFECT_CONFIRMED: YES/NO
+PACKAGED_EXAMPLE_SEARCH_DEFECT_CONFIRMED: YES/NO
+PACKAGE_SELF_CONSISTENCY_DEFECT_CONFIRMED: YES/NO
+STTM_QA_FIXTURE_VALID: YES/NO/UNKNOWN
+STTM_PARSER_REPAIR_REQUIRED: YES/NO/UNKNOWN
+PRODUCT_CODE_CHANGE_REQUIRED: YES/NO
+PACKAGE_CONTRACT_CHANGE_REQUIRED: YES/NO
+NEXT_QA_VERSION_MUST_BE_0_3_141: YES/NO
+REPAIR_8_SCOPE_FROZEN: YES/NO
+
+End exactly:
+
+LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_DISCOVERY_COMPLETE
