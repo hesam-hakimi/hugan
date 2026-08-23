@@ -1,482 +1,607 @@
-TASK: LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_140
+We are performing a BOUNDED REMEDIATION of the existing AskTD / KMAI
+Phase 2D Approved Recipe Pilot stacked candidate.
 
-Perform a narrowly bounded version-bump and QA-package generation task for the
-already validated HF1 V2 candidate.
+The first independent review verdict was:
 
-This is NOT another repair.
+PHASE_2D_INDEPENDENT_REVIEW_FAIL
 
-Do NOT reopen, redesign, or modify Repair 5, Repair 6, Repair 7, workspace
-selection, physical containment, write authorization, framework resolution,
-Oracle validation, artifact generation, or package-hygiene architecture.
+All validation and regression gates were green, but the reviewer identified
+two Phase-2D-attributable HIGH findings that block acceptance.
 
-The current accepted QA package is:
+This task must remediate only those findings and directly related
+contract/test issues.
 
-databricks-etl-copilot-0.3.139-hf1-v2-qa-clean.vsix
+Do NOT redesign the application.
 
-Its internal extension version is still:
-
-0.3.139
-
-The required new QA version is:
-
-0.3.140
-
-The required new output package is:
-
-databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
-
-Do NOT rename the existing 0.3.139 VSIX.
-
-The new version must be represented inside the VSIX metadata.
+Do NOT commit.
+Do NOT push.
+Do NOT create or edit a PR.
+Do NOT merge.
+Do NOT deploy.
+Do NOT modify PR #15.
+Do NOT modify main.
+Do NOT start another roadmap phase.
 
 ==================================================
-1. EXPECTED REPOSITORY IDENTITY
+1. TARGET
 ==================================================
 
-Work only in:
+Repository:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+TD-Enterprise/kmai-td-genie
 
-Expected branch:
+Phase 2D branch:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+phase2/approved-recipe-pilot
 
-Expected base HEAD:
+Expected worktree:
 
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+/tmp/asktd-phase2d-approved-recipe-pilot
 
-Expected origin:
+Stack base:
 
-https://github.com/TD-Universe/agentic_etl.git
+phase2/provider-abstraction-foundation
 
-Expected current package version:
+Expected accepted PR #15 SHA:
 
-0.3.139
+d5472ae31081879329c224922244d87962737e8c
 
-Before mutation, independently verify:
+First verify:
 
-- repository root;
-- branch;
-- HEAD;
-- origin;
-- staged count;
-- `.github/**` is clean;
-- `package-lock.json` is absent or unchanged;
-- the current `package.json` version is exactly `0.3.139`;
-- the existing HF1 candidate changes are still present.
+- the Phase 2D worktree is the same candidate that was independently reviewed;
+- it is based directly on the accepted PR #15 HEAD;
+- PR #15 is unchanged;
+- main is unchanged;
+- no Phase 2D commit or remote branch has appeared.
 
-If repository identity does not match, STOP.
+If the base or candidate changed unexpectedly, STOP and report:
+
+PHASE_2D_REMEDIATION_CANDIDATE_CHANGED
 
 ==================================================
-2. ONE CONSOLIDATED AUTHORIZATION
+2. READ THE REVIEW EVIDENCE COMPLETELY
 ==================================================
 
-Request one consolidated authorization covering:
+Read completely:
 
-- modification of exactly one tracked repository file:
-  `package.json`;
-- changing only the version value from `0.3.139` to `0.3.140`;
-- compile, lint, focused tests, full unit tests;
-- creation of exactly one fresh `0.3.140` QA VSIX;
-- verification and read-only inspection of that exact VSIX;
-- no dependency installation or download;
-- no Git mutation;
-- no commit or push;
-- no VSIX installation;
-- no consumer-repository mutation.
+/tmp/ASKTD_PHASE_2D_INDEPENDENT_REVIEW_2026-08-22.md
 
-Authorization token:
+Also read:
 
-APPLY_HF1_V2_QA_VERSION_BUMP_0_3_140
+/tmp/ASKTD_PHASE_2D_STACKED_IMPLEMENTATION_2026-08-22.md
 
-Do not edit before authorization.
+Use the independent-review report as the authoritative source for the
+remediation findings.
+
+Before editing, reproduce and report the exact code path for both HIGH
+findings.
 
 ==================================================
-3. EXACT SOURCE SCOPE
+3. FINDINGS TO REMEDIATE
 ==================================================
 
-The only tracked repository file authorized for modification is:
+The independent reviewer found:
 
-package.json
+HIGH 1:
 
-No second source/config/test file may be modified.
+The governed Approved Recipe gate runs after an adapter/schema operation.
+Therefore a validation failure does not guarantee zero data-source activity.
 
-The only intended source change is:
+HIGH 2:
 
-"version": "0.3.139"
+ApprovedRecipe.builder_key does not authoritatively determine the SQL builder.
+The legacy path builds SQL before governed recipe validation.
 
-to:
+Related issues:
 
-"version": "0.3.140"
-
-Preserve all other existing HF1 V2 changes already present in `package.json`.
-
-Do not reset, reformat, reorder, normalize, or rewrite unrelated JSON content.
-
-Do not modify:
-
-- package-lock.json;
-- `.vscodeignore`;
-- any TypeScript file;
-- any test file;
-- `.github/**`;
-- resources/prompts/**;
-- framework/Oracle contracts;
-- AGENT.md or AGENTS.md;
-- Phase-H baselines;
-- consumer repositories;
-- etl-framework-adb.
-
-If another tracked repository file appears necessary, STOP before modifying it
-and return:
-
-LOCAL_HOTFIX_HF1_V2_VERSION_BUMP_SCOPE_AMENDMENT_REQUIRED
+- some ApprovedRecipe fields may exist without a real production consumer;
+- independently allowed source_code and source_label values may permit an
+  invalid combination;
+- tests do not fully prove zero adapter/schema/builder calls on every governed
+  denial;
+- tests do not prove that builder_key controls the SQL actually executed.
 
 ==================================================
-4. PRESERVE ACCEPTED SECURITY AND PACKAGE-POLICY BYTES
+4. REQUIRED FINAL ORDERING
 ==================================================
 
-Before editing, capture SHA-256 hashes for all accepted Repair-7 and
-release-preparation security files, including at minimum:
+The final pilot ordering must be:
 
-src/core/utils/PhysicalPathContainment.ts
-src/core/trusted/WriteAuthorization.ts
-src/core/trusted/index.ts
-src/writers/RepoWriter.ts
-src/core/artifacts/NewArtifactWriter.ts
-src/core/artifacts/ArtifactPatchApplier.ts
-src/customization/ScaffoldedAssetWriter.ts
-src/customization/WorkflowTargetResolver.ts
-src/customization/CopilotWorkflowInitializer.ts
-src/customization/CopilotWorkflowUpgrader.ts
-src/customization/CopilotWorkflowRepairer.ts
-src/customization/GeneratedAssetGitignoreManager.ts
-src/customization/CopilotWorkflowDeleter.ts
-src/customization/RepoContextInitializer.ts
-src/test/suite/physicalWriteContainment.test.ts
-src/test/testPatterns.ts
-.vscodeignore
-src/test/verifyVsixContents.ts
-src/test/suite/packageAssets.test.ts
+1. existing coarse deny_all authorization gate;
+2. deterministic legacy selector produces a candidate recipe_id;
+3. exact ApprovedRecipe lookup;
+4. recipe lifecycle validation;
+5. parameter presence/type/domain validation;
+6. cross-parameter pair validation;
+7. current governed RegistrySnapshot resolution;
+8. dataset-scoped GovernedSemanticPlan construction;
+9. deterministic governed-plan validation;
+10. builder resolution from ApprovedRecipe.builder_key;
+11. SQL construction using only the resolved builder and validated parameters;
+12. data-source adapter construction/access;
+13. existing SQL read-only and object-authorization controls;
+14. execution and current result handling.
 
-Recalculate every hash at task end.
+The following must NOT occur before Steps 3–9 pass:
 
-All must remain byte-identical.
+- DataSourceAdapter construction;
+- DataSourceAdapter method call;
+- database/schema probe;
+- has_dataset/schema lookup through the data source;
+- SQL builder call;
+- SQL string construction;
+- SQL authorization/execution.
 
-==================================================
-5. VERSION UPDATE
-==================================================
-
-Modify only the `version` field in `package.json`:
-
-0.3.139 → 0.3.140
-
-Verify these fields remain unchanged:
-
-- name;
-- displayName;
-- publisher;
-- engines;
-- main;
-- activationEvents;
-- contributes;
-- scripts;
-- dependencies;
-- devDependencies;
-- configuration;
-- extension metadata.
-
-Return a minimal diff proving only the version value changed in this task.
+MetadataRegistryService and its in-process governed RegistrySnapshot service
+are not considered a data-source adapter and may be used for governance
+validation before SQL construction.
 
 ==================================================
-6. VALIDATION BEFORE PACKAGING
+5. MOVE GOVERNED EVALUATION EARLIER
 ==================================================
 
-Using already-installed dependencies only, run:
+Inspect the current Orchestrator route from deterministic selection through:
 
-npm run compile
-npm run lint
+- parameter/source resolution;
+- data-source creation;
+- schema resolution;
+- SQL construction;
+- approved-recipe evaluation;
+- execution.
 
-Run focused tests covering:
+Move the Approved Recipe evaluation to the earliest safe point after:
 
-- packageAssets;
-- verifyVsixContents;
-- physicalWriteContainment;
-- repoContextInit;
-- artifactReuseConversation;
-- WriteAuthorization;
-- RepoWriter workspace selection;
-- HF1 V2 Repair-5/6/7 regression suites.
+- recipe_id is known;
+- raw recipe parameters are available;
 
-Then run:
+but before:
 
-npm run test:unit
+- self._data_source(...);
+- any data-source factory;
+- schema probes;
+- SQL construction.
 
-Expected classification:
+Do not move existing object-level authorization into the recipe selector.
 
-2 EXPECTED_BASELINE_REFRESH_REQUIRED
-3 PRE_EXISTING_PROTECTED_CUSTOMIZATION_FAILURES
-0 NEW_FUNCTIONAL_REGRESSIONS
+Selection remains distinct from authorization.
 
-No additional test failure is permitted.
+The existing execution-level authorization controls must still run after the
+authoritative SQL is built.
 
-Do not regenerate the Phase-H baseline.
+Do not broadly restructure Orchestrator.
 
-Do not repair the three protected customization failures.
-
-==================================================
-7. BUILD EXACTLY ONE FRESH 0.3.140 QA VSIX
-==================================================
-
-Only after compile, lint, and focused tests pass, build a new package from the
-current source using already-installed local/global packaging tools.
-
-Do not use npx in a way that downloads anything.
-
-Do not install dependencies.
-
-Do not reuse or rename:
-
-databricks-etl-copilot-0.3.139-hf1-v2-qa-clean.vsix
-
-Do not reuse any Repair-6 package.
-
-The exact required output filename is:
-
-databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
-
-Pass the output filename explicitly to the packaging tool so no ambiguous
-default package is selected.
-
-Do not delete older VSIX files in this task.
-
-Do not manually edit the VSIX archive.
+Use the smallest helper extraction necessary to make ordering explicit and
+testable.
 
 ==================================================
-8. VERIFY INTERNAL VERSION METADATA
+6. MAKE builder_key AUTHORITATIVE
 ==================================================
 
-Open and independently inspect the new VSIX.
+ApprovedRecipe.builder_key must control the SQL builder that is actually used.
 
-Verify:
+Implement a small static allow-listed builder registry/resolver.
 
-1. the output filename contains `0.3.140`;
+Conceptual example only:
 
-2. inside:
+APPROVED_RECIPE_BUILDERS = {
+    "source_balance_mom_change_sql":
+        query_recipes.source_balance_mom_change_sql,
+}
 
-   extension/package.json
+Do not use:
 
-   the value is:
+- dynamic imports;
+- getattr over arbitrary user-controlled strings;
+- plugin discovery;
+- configuration-provided callables;
+- LLM-selected builders;
+- reflection-based execution.
 
-   "version": "0.3.140"
+After lifecycle, parameter, and governed-plan validation pass:
 
-3. inside:
+1. resolve the builder exclusively from recipe.builder_key;
+2. fail closed if the builder key is unknown;
+3. call that resolved builder with only validated parameters;
+4. pass its result into the existing SQL policy/authorization/execution path.
 
-   extension.vsixmanifest
+Remove any duplicate direct legacy builder invocation for the pilot path.
 
-   the extension identity version is exactly:
-
-   0.3.140
-
-4. the extension name and publisher are unchanged;
-
-5. no package metadata still declares `0.3.139`.
-
-A renamed file with internal version `0.3.139` is an automatic FAIL.
-
-==================================================
-9. RUN PACKAGE VERIFICATION AGAINST THE EXACT NEW FILE
-==================================================
-
-Run the repository VSIX verifier by passing the exact new `0.3.140` path.
-
-Do not allow the verifier to select a VSIX by newest modification time.
-
-Verify the exact package:
-
-databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
-
-Required forbidden-content result:
-
-NO *.code-workspace
-NO extension/scripts/**
-NO extension/workflow/**
-NO extension/.tmp/**
-NO nested .git/**
-NO *.tsbuildinfo*
-NO node_modules/**
-NO src/test/**
-NO out/test/**
-NO docs/eval/**
-NO .vscode-test/**
-NO *.log
-NO nested *.vsix
-NO unrelated repositories
-NO developer-machine absolute paths
-NO credentials or secrets
-
-Required runtime content must remain present:
-
-- extension/out/extension.js;
-- extension/out/sttm-runtime.js;
-- extension/package.json;
-- resources/copilot/**;
-- resources/prompts/**;
-- resources/framework/**;
-- required media/runtime assets.
+There must be one authoritative builder invocation.
 
 ==================================================
-10. COMPARE 0.3.139 AND 0.3.140 PACKAGES
+7. CONTRACT FIELD AUDIT
 ==================================================
 
-If the validated clean `0.3.139` package is present, use it only as a
-read-only comparison baseline.
+Audit every field in:
 
-Compare archive entry names and uncompressed content hashes.
+ApprovedRecipe
 
-Expected:
+and:
 
-- the runtime entry set remains equivalent;
-- package hygiene remains equivalent;
-- Repair-7 runtime/security content remains unchanged;
-- version-bearing metadata changes from `0.3.139` to `0.3.140`.
+RecipeParameter
 
-Identify the exact archive entries whose bytes differ.
+For every field identify its real production consumer.
 
-Expected version-related differences should be limited to metadata such as:
+Each field must be one of:
 
-- extension/package.json;
-- extension.vsixmanifest;
+- actively consumed by production behavior;
+- actively written into required trace/audit evidence;
+- removed from the bounded pilot contract.
 
-and any package metadata directly derived from those values.
+Do not preserve unused fields merely because discovery proposed them.
 
-If compiled runtime JavaScript or framework/resource bytes differ unexpectedly,
-STOP and report the exact entries.
+In particular inspect whether fields such as:
 
-Do not dismiss unexpected runtime drift.
+- intent_id;
+- renderer;
+- any descriptive/output field;
 
-==================================================
-11. PACKAGE METRICS
-==================================================
+are genuinely consumed.
 
-Report for the new VSIX:
+Do not add speculative consumers simply to justify a field.
 
-- exact absolute path;
-- filename;
-- internal version;
-- publisher;
-- SHA-256;
-- archive entry count;
-- compressed file size;
-- total compressed-entry size if available;
-- total uncompressed size;
-- largest entry;
-- build timestamp;
-- verification result.
+Prefer removing a field that has no bounded pilot purpose.
 
-The package must remain within the existing configured size ceilings.
+Update ADR 0004 and tests to match the actual minimal final contract.
 
 ==================================================
-12. EXACT SOURCE-SCOPE PROOF
+8. VALIDATE SOURCE CODE/LABEL AS A PAIR
 ==================================================
 
-At task end prove:
+The pilot must not validate source_code and source_label independently when
+only specific pairs are governed.
 
-- `package.json` is the only tracked repository file changed by this task;
-- only its version field changed;
-- all Repair-7 security hashes match task-start hashes;
-- all package-policy hashes match task-start hashes;
-- `.github/**` remains clean;
-- staged count remains 0;
-- Git commits remain 0;
-- Git pushes remain 0;
-- dependency installs/downloads remain 0;
-- VSIX installations remain 0;
-- consumer-repository mutations remain 0;
-- etl-framework-adb remains untouched;
-- Phase-H baseline remains untouched.
+Define one explicit deterministic declared domain for valid combinations.
 
-The new `.vsix` output is allowed and must remain uninstalled.
+Based on current repository evidence, preserve only the intended pairs, such
+as:
 
-==================================================
-13. QA HANDOFF DECISION
-==================================================
+IMSB -> Deposits
+STAX -> Savings
 
-The exact QA handoff artifact must be:
+Use the exact current business values found in repository code/tests.
 
-databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
+Do not trust this prompt if actual values differ.
 
-Explicitly state that QA must not use:
+Validation must reject:
 
-- databricks-etl-copilot-0.3.139.vsix;
-- databricks-etl-copilot-0.3.139-hf1-v2-qa-clean.vsix;
-- etl-hf1-v2-repair6-qa.vsix;
-- any other older VSIX.
+- unknown source_code;
+- unknown source_label;
+- valid code with the wrong label;
+- valid label with the wrong code;
+- missing code;
+- missing label;
+- undeclared additional parameters;
+- injection-like values.
 
-Do not install the new VSIX during this task.
+Pair validation must happen before builder resolution and before any adapter
+activity.
 
 ==================================================
-14. REQUIRED FINAL REPORT
+9. ZERO-SIDE-EFFECT DENIAL CONTRACT
 ==================================================
 
-Return:
+For every Approved Recipe governance failure, guarantee:
 
-1. Repository identity.
-2. Authorization used.
-3. Exact source diff.
-4. `package.json` before/after version.
-5. Compile result.
-6. Lint result.
-7. Focused-test result.
-8. Full-unit classification.
-9. New VSIX path.
-10. Internal `extension/package.json` version.
-11. Internal `extension.vsixmanifest` version.
-12. New VSIX SHA-256 and metrics.
-13. Package-verification result.
-14. Required-content proof.
-15. Forbidden-content proof.
-16. 0.3.139 versus 0.3.140 archive comparison.
-17. Repair-7 hash-preservation result.
-18. Exact scope/no-touch proof.
-19. Exact artifact approved for QA handoff.
-20. Remaining pre-merge chores.
+- data-source factory calls: 0;
+- adapter constructions: 0;
+- adapter method calls: 0;
+- schema probes: 0;
+- builder calls: 0;
+- SQL executions: 0.
 
-Finish exactly:
+At minimum cover:
 
-SOURCE_VERSION_BEFORE: 0.3.139
-SOURCE_VERSION_AFTER: 0.3.140
-VSIX_PACKAGE_JSON_VERSION: 0.3.140|OTHER
-VSIX_MANIFEST_VERSION: 0.3.140|OTHER
-PACKAGE_FILENAME_VERSION_CORRECT: YES|NO
-ONLY_PACKAGE_JSON_SOURCE_CHANGED_BY_TASK: YES|NO
-REPAIR7_SECURITY_BYTES_UNCHANGED: YES|NO
-PACKAGE_POLICY_BYTES_UNCHANGED: YES|NO
-GITHUB_PROTECTED_PATHS_CLEAN: YES|NO
-COMPILE_PASS: YES|NO
-LINT_PASS: YES|NO
-FOCUSED_TESTS_PASS: YES|NO
-NEW_FUNCTIONAL_REGRESSIONS: YES|NO
-FRESH_0_3_140_QA_VSIX_BUILT: YES|NO
-FRESH_0_3_140_QA_VSIX_VERIFIED: YES|NO
-PACKAGE_HYGIENE_SAFE: YES|NO
-PACKAGE_PROVENANCE_MATCHES_CURRENT_SOURCE: YES|NO
-SAFE_TO_HANDOFF_0_3_140_TO_QA: YES|NO
-SAFE_TO_RELEASE_HF1_V2: NO
+- unknown recipe ID;
+- recipe lifecycle not approved/published;
+- missing parameter;
+- wrong parameter type;
+- out-of-domain value;
+- invalid source_code/source_label pair;
+- unknown builder_key;
+- unknown governed dataset;
+- strict metadata unavailable;
+- governed-plan validation failure.
 
-Then exactly one final marker:
+The existing coarse deny_all behavior must also remain before data access.
 
-LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_140_COMPLETE
+==================================================
+10. AUTHORITATIVE BUILDER TESTS
+==================================================
 
-or:
+Add strong tests proving builder_key is not decorative metadata.
 
-LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_140_BLOCKED
+Tests must prove:
 
-or:
+1. the resolved allow-listed builder is called;
+2. an unrelated/legacy direct builder is not called;
+3. the exact SQL passed to the execution boundary comes from the resolved
+   builder;
+4. an unknown builder_key fails closed;
+5. validation failure occurs before any builder invocation;
+6. a recipe cannot select an arbitrary callable or module.
 
-LOCAL_HOTFIX_HF1_V2_VERSION_BUMP_SCOPE_AMENDMENT_REQUIRED
+A useful test may install a sentinel allowed builder and make the former direct
+legacy builder raise if invoked.
 
-Do not commit.
-Do not push.
-Do not install the VSIX.
-Stop after the final report.
+Do not overmock the Orchestrator behavior under test.
+
+==================================================
+11. ADAPTER / SCHEMA-PROBE TESTS
+==================================================
+
+Add tests using the real supported dependency-injection seam.
+
+For denial cases, configure the data-source factory to:
+
+- record every invocation; or
+- raise immediately if called.
+
+Prove the governed validation failure completes through the expected safe
+response without invoking that factory.
+
+If schema resolution is currently hidden inside a helper, instrument the
+actual helper or fake adapter method so the test proves:
+
+schema probes == 0
+
+Do not claim zero adapter activity merely because execute_query was not called.
+
+==================================================
+12. PRESERVE AUTHORIZATION
+==================================================
+
+Do not add a new authorization system.
+
+Preserve:
+
+- EffectivePermissions;
+- deny_all;
+- SqlPolicy;
+- SqlAuthorizationGuard;
+- current auth-bound DataSourceAdapter;
+- current object-level authorization order for valid governed recipes.
+
+For an approved and governance-valid recipe that references an unauthorized
+physical object:
+
+- existing object authorization must still block;
+- no rows are returned;
+- current audited blocked-path behavior remains reachable.
+
+Do not convert an authorization failure into “recipe not found” or generic
+governance failure.
+
+==================================================
+13. PRE-EXISTING OBJECT-NAME DISCLOSURE
+==================================================
+
+The independent reviewer classified the unauthorized physical-object-name
+disclosure as:
+
+MEDIUM
+PRE-EXISTING
+SEPARATE REMEDIATION
+
+Do not fix it inside this bounded Phase 2D remediation unless the current
+Phase 2D diff introduced or expanded the disclosure.
+
+Record it in the remediation report as a separate security follow-up.
+
+Do not weaken or hide tests merely to avoid observing it.
+
+==================================================
+14. ADR AND DOCUMENTATION
+==================================================
+
+Update ADR 0004 only as needed to describe the corrected architecture:
+
+- governed validation occurs before adapter construction/schema probing/SQL
+  construction;
+- builder_key is authoritative through a static allow-listed resolver;
+- invalid recipe/governance/parameter states have zero adapter and zero builder
+  activity;
+- pair-level parameter validation;
+- final minimal contract fields;
+- existing authorization remains a later independent execution control.
+
+Do not modify ADR 0003 or PR #15.
+
+The missing ADR 0003 index row remains an inherited PR #15/documentation issue
+to reconcile after integration unless repository policy proves it blocks the
+Phase 2D candidate.
+
+==================================================
+15. SCOPE LIMIT
+==================================================
+
+Do NOT implement:
+
+- Databricks;
+- Unity Catalog;
+- Collibra;
+- Genie;
+- Redis;
+- Event Hubs;
+- graph or GraphRAG;
+- reporting templates;
+- KPI/glossary;
+- cross-source execution;
+- fine-grained authorization;
+- recipe-management UI;
+- generalized recipe lifecycle platform;
+- dynamic builder plugins;
+- SQL dialect abstraction;
+- frontend;
+- deployment/infrastructure;
+- broad Orchestrator redesign;
+- migration of other recipes;
+- changes to PR #15 or main.
+
+==================================================
+16. FOCUSED TESTS FIRST
+==================================================
+
+Run focused tests for:
+
+- ApprovedRecipe/RecipeParameter contract;
+- pair validation;
+- builder resolver;
+- builder authority;
+- zero adapter calls;
+- zero schema probes;
+- zero builder calls on denial;
+- flag OFF behavior;
+- flag ON successful pilot;
+- existing authorization denial.
+
+Inspect the assertions, not only the test count.
+
+==================================================
+17. FULL VALIDATION
+==================================================
+
+After focused tests pass, run:
+
+1. all Approved Recipe tests;
+2. Phase 2A/2B/2C regressions;
+3. Phase 2C.5 provider-abstraction regressions;
+4. MetadataRegistryService tests;
+5. authorization tests;
+6. SQL policy/store tests;
+7. semantic-model/query-recipe tests;
+8. golden baseline;
+9. full backend suite with configured coverage;
+10. git diff --check;
+11. excluded-technology scan.
+
+Historical pre-remediation results:
+
+- focused: 107 passed;
+- selected regression: 405 passed;
+- full backend: 945 passed, 3 skipped;
+- coverage: 86.72%.
+
+Counts may legitimately increase because new tests are required.
+
+Do not force exact historical counts.
+
+Do not regenerate baselines.
+
+Do not install or upgrade dependencies.
+
+==================================================
+18. FINAL CODE-PATH AUDIT
+==================================================
+
+Before finishing, explicitly report the exact final order for the pilot route.
+
+Answer:
+
+- Is data-source factory called before governed validation? Yes/No
+- Is any adapter method called before governed validation? Yes/No
+- Is any schema probe performed before governed validation? Yes/No
+- Is any SQL builder called before governed validation? Yes/No
+- Is SQL constructed before governed validation? Yes/No
+- Does recipe.builder_key select the actual executed builder? Yes/No
+- Can an unknown builder_key execute anything? Yes/No
+- Can an invalid source_code/source_label pair execute anything? Yes/No
+- Do existing authorization controls still run for a valid recipe? Yes/No
+
+Required successful answers:
+
+No
+No
+No
+No
+No
+Yes
+No
+No
+Yes
+
+==================================================
+19. DIFF AUDIT
+==================================================
+
+Inspect the complete diff against the accepted PR #15 HEAD.
+
+Classify every changed file.
+
+Confirm:
+
+- only bounded Phase 2D remediation entered the candidate;
+- no PR #15 files were modified outside inherited base content;
+- no unrelated security cleanup entered;
+- no excluded technology entered;
+- no broad refactor entered.
+
+==================================================
+20. FINAL VERDICT
+==================================================
+
+Return exactly one:
+
+PHASE_2D_REMEDIATION_READY_FOR_RE_REVIEW
+
+or
+
+PHASE_2D_REMEDIATION_HAS_BLOCKERS
+
+or
+
+PHASE_2D_REMEDIATION_INSUFFICIENT_EVIDENCE
+
+READY requires:
+
+- governed validation before all adapter/schema/SQL-building activity;
+- builder_key authoritatively selects executed SQL builder;
+- unused contract fields removed or genuinely consumed;
+- source code/label pairs validated together;
+- zero-side-effect denial tests pass;
+- existing authorization preserved;
+- regressions, coverage, golden, diff, and scope gates pass;
+- PR #15 and main remain unchanged;
+- no commit/push/PR created.
+
+==================================================
+21. REPORT
+==================================================
+
+Save outside the worktree:
+
+/tmp/ASKTD_PHASE_2D_REMEDIATION_2026-08-22.md
+
+Required sections:
+
+1. Candidate / Stack Evidence
+2. Independent Review Findings Reproduced
+3. Root Cause
+4. Corrected Execution Ordering
+5. Authoritative Builder Resolution
+6. Contract Field Audit
+7. Pair-Level Parameter Validation
+8. Zero-Side-Effect Denial Evidence
+9. Authorization Preservation
+10. ADR Update
+11. Focused Test Results
+12. Full Regression / Coverage / Golden Results
+13. Exact Diff Inventory
+14. Scope Audit
+15. Deferred Security Finding
+16. Final Code-Path Audit
+17. Remaining Findings
+18. Final Verdict
+19. Recommended Next Action
+
+At completion explicitly state:
+
+- Repository files modified by remediation: list
+- PR #15 changed: No
+- main changed: No
+- Commit created: No
+- Branch pushed: No
+- Phase 2D PR created: No
+- Phase 2D formally accepted: No
+
+Then STOP.
