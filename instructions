@@ -128,14 +128,20 @@ from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
+from universal_coding_agent.web.app import (
+    ProgramExecutionContinueRequest,
+    ProgramExecutionStartRequest,
+)
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert ProductWebRuntime and create_product_app
 assert ProgramExecutionBinding and ProgramExecutionStatus
 assert DiscoveredSafeExecutionPort and ProgramExecutionError
+assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
+print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -156,7 +162,8 @@ Cmd 3
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py && \
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
-echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS"
+echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
+echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS"
 ```
 
 Cmd 4

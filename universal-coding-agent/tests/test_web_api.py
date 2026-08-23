@@ -1,7 +1,19 @@
 from __future__ import annotations
 
+import time
+from pathlib import Path
+from typing import Any
+
 from fastapi.testclient import TestClient
 
+from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
+from universal_coding_agent.product.models import (
+    AcceptanceCriterion,
+    RequirementContract,
+    RequirementItem,
+    RequirementStatus,
+)
 from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.fake import FakeModelProvider
 from universal_coding_agent.web.app import (
@@ -9,6 +21,25 @@ from universal_coding_agent.web.app import (
     create_product_app,
     is_loopback_host,
 )
+
+
+class RecordingProgramExecutor:
+    def __init__(self) -> None:
+        self.starts: list[dict[str, Any]] = []
+        self.resumes: list[tuple[str, bool]] = []
+
+    def start(self, **request: Any) -> dict[str, Any]:
+        self.starts.append(request)
+        return {"state": {"status": "awaiting_scope_approval"}}
+
+    def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
+        self.resumes.append((thread_id, approved))
+        return {
+            "status": "completed",
+            "scope_approved": approved,
+            "reviewer_verdict": "PASS",
+            "final_report_ref": "artifact://tasks/program/final-report.json",
+        }
 
 
 def _provider() -> FakeModelProvider:
@@ -86,6 +117,79 @@ def _client(tmp_path):
         state_root=tmp_path / "runtime",
     )
     return TestClient(create_product_app(runtime))
+
+
+def _policy() -> SafeModePolicy:
+    return SafeModePolicy(
+        profiles=(
+            TestProfile(
+                profile_id="trusted-contract",
+                argv=("python", "-m", "pytest", "-q"),
+            ),
+        )
+    )
+
+
+def _approved_program(workspace: ProductWorkspace, program_id: str) -> str:
+    requirement = RequirementContract(
+        alignment_id=f"{program_id}-requirement",
+        version=1,
+        title="Program execution API",
+        objective="Execute one approved program unit through Safe Mode.",
+        requirements=(
+            RequirementItem(
+                requirement_id="R-001",
+                statement="Execution requires an explicit API action.",
+                category="safety",
+            ),
+        ),
+        acceptance_criteria=(
+            AcceptanceCriterion(
+                criterion_id="AC-001",
+                statement="Restart recovery does not start provider work.",
+                requirement_ids=("R-001",),
+            ),
+        ),
+        status=RequirementStatus.APPROVED,
+    )
+    requirement_hash = requirement.canonical_hash()
+    plan = workspace.programs.create_program(
+        program_id=program_id,
+        requirement=requirement,
+        requirement_hash=requirement_hash,
+    )
+    workspace.programs.approve_program(program_id, plan.canonical_hash())
+    return requirement_hash
+
+
+def _program_execution_request(requirement_hash: str) -> dict[str, Any]:
+    return {
+        "current_requirement_hash": requirement_hash,
+        "repository": "https://example.test/repository.git",
+        "ref": "main",
+        "policy": _policy().model_dump(mode="json"),
+        "test_profiles": ["trusted-contract"],
+    }
+
+
+def _wait_for_program_execution(
+    client: TestClient,
+    program_id: str,
+    expected_status: str,
+) -> dict[str, Any]:
+    for _ in range(200):
+        response = client.get(f"/api/programs/{program_id}/executions")
+        assert response.status_code == 200
+        body = response.json()
+        bindings = body["bindings"]
+        if (
+            bindings
+            and bindings[-1]["status"] == expected_status
+            and not body["runtime"]["busy"]
+        ):
+            return body
+        time.sleep(0.01)
+    raise AssertionError(f"program execution did not reach {expected_status}")
 
 
 def test_health_document_upload_and_search(tmp_path) -> None:
@@ -200,6 +304,159 @@ def test_requirement_program_and_program_controls_are_api_backed(tmp_path) -> No
         )
         assert cancelled.status_code == 200
         assert cancelled.json()["status"] == "cancelled"
+
+
+def test_program_execution_api_requires_explicit_start_and_continue(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    program_id = "program-api-execution"
+    requirement_hash = _approved_program(workspace, program_id)
+    executor = RecordingProgramExecutor()
+    monkeypatch.setattr(workspace, "discovered_safe", lambda **_kwargs: executor)
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        initial = client.get(f"/api/programs/{program_id}/executions")
+        assert initial.status_code == 200
+        assert initial.json()["bindings"] == []
+        assert initial.json()["runtime"]["requires_explicit_action"] is False
+        assert executor.starts == []
+
+        invalid = _program_execution_request(requirement_hash)
+        invalid["test_profiles"] = []
+        rejected = client.post(
+            f"/api/programs/{program_id}/executions/start-next",
+            json=invalid,
+        )
+        assert rejected.status_code == 422
+        assert executor.starts == []
+
+        started = client.post(
+            f"/api/programs/{program_id}/executions/start-next",
+            json=_program_execution_request(requirement_hash),
+        )
+        assert started.status_code == 202
+        awaiting = _wait_for_program_execution(
+            client,
+            program_id,
+            "awaiting_scope_approval",
+        )
+        binding = awaiting["bindings"][0]
+        assert awaiting["runtime"]["requires_explicit_action"] is True
+        assert awaiting["runtime"]["recovered_pending"] is False
+        assert len(executor.starts) == 1
+        assert executor.resumes == []
+
+        continued = client.post(
+            (
+                f"/api/programs/{program_id}/executions/"
+                f"{binding['task_id']}/continue"
+            ),
+            json={
+                "current_requirement_hash": requirement_hash,
+                "approved": True,
+            },
+        )
+        assert continued.status_code == 202
+        completed = _wait_for_program_execution(client, program_id, "completed")
+        assert completed["program_status"] == "completed"
+        assert completed["runtime"]["requires_explicit_action"] is False
+        assert executor.resumes == [(binding["thread_id"], True)]
+        assert completed["bindings"][0]["phase_report_ref"].endswith(
+            "/phase-execution-report.json"
+        )
+
+        terminal = client.post(
+            (
+                f"/api/programs/{program_id}/executions/"
+                f"{binding['task_id']}/continue"
+            ),
+            json={
+                "current_requirement_hash": requirement_hash,
+                "approved": True,
+            },
+        )
+        assert terminal.status_code == 400
+
+
+def test_program_execution_api_recovers_binding_without_automatic_work(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    product_root = tmp_path / "product"
+    first_workspace = ProductWorkspace.create(product_root, _provider())
+    program_id = "program-api-restart"
+    requirement_hash = _approved_program(first_workspace, program_id)
+    first_executor = RecordingProgramExecutor()
+    binding = first_workspace.programs.start_next_execution(
+        program_id=program_id,
+        current_requirement_hash=requirement_hash,
+        repository=RepositorySpec(
+            url="https://example.test/repository.git",
+            base_ref="main",
+        ),
+        policy=_policy(),
+        test_profiles=("trusted-contract",),
+        executor=first_executor,
+    )
+    first_workspace.close()
+    assert len(first_executor.starts) == 1
+
+    reopened = ProductWorkspace.create(product_root, _provider())
+    recovered_executor = RecordingProgramExecutor()
+    monkeypatch.setattr(
+        reopened,
+        "discovered_safe",
+        lambda **_kwargs: recovered_executor,
+    )
+    runtime = ProductWebRuntime(
+        workspace=reopened,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        recovered = client.get(f"/api/programs/{program_id}/executions")
+        assert recovered.status_code == 200
+        recovered_body = recovered.json()
+        assert recovered_body["bindings"][0]["task_id"] == binding.task_id
+        assert recovered_body["runtime"]["recovered_pending"] is True
+        assert recovered_body["runtime"]["requires_explicit_action"] is True
+        assert recovered_executor.starts == []
+        assert recovered_executor.resumes == []
+
+        idempotent_start = client.post(
+            f"/api/programs/{program_id}/executions/start-next",
+            json=_program_execution_request(requirement_hash),
+        )
+        assert idempotent_start.status_code == 202
+        still_awaiting = _wait_for_program_execution(
+            client,
+            program_id,
+            "awaiting_scope_approval",
+        )
+        assert still_awaiting["bindings"][0]["task_id"] == binding.task_id
+        assert recovered_executor.starts == []
+        assert recovered_executor.resumes == []
+
+        explicit_continue = client.post(
+            (
+                f"/api/programs/{program_id}/executions/"
+                f"{binding.task_id}/continue"
+            ),
+            json={
+                "current_requirement_hash": requirement_hash,
+                "approved": True,
+            },
+        )
+        assert explicit_continue.status_code == 202
+        completed = _wait_for_program_execution(client, program_id, "completed")
+        assert completed["program_status"] == "completed"
+        assert recovered_executor.resumes == [(binding.thread_id, True)]
 
 
 def test_unknown_task_control_is_not_silently_created(tmp_path) -> None:

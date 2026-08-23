@@ -17,7 +17,13 @@ from pydantic import BaseModel, Field
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.product.context_documents import DocumentValidationError
-from universal_coding_agent.product.models import ContextScope, DocumentRole, RequirementContract
+from universal_coding_agent.product.models import (
+    ContextScope,
+    DocumentRole,
+    ProgramExecutionBinding,
+    ProgramExecutionStatus,
+    RequirementContract,
+)
 from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
@@ -58,6 +64,19 @@ class ProgramApproveRequest(BaseModel):
     plan_hash: str
 
 
+class ProgramExecutionStartRequest(BaseModel):
+    current_requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    repository: str = Field(min_length=1, max_length=4000)
+    ref: str = Field(min_length=1, max_length=512)
+    policy: SafeModePolicy
+    test_profiles: tuple[str, ...]
+
+
+class ProgramExecutionContinueRequest(BaseModel):
+    current_requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    approved: bool
+
+
 class ControlRequest(BaseModel):
     reason: str = ""
 
@@ -90,6 +109,7 @@ class ProductWebRuntime:
         )
     )
     _runs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    _program_execution_runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
@@ -150,6 +170,112 @@ class ProductWebRuntime:
         self._require_run(task_id)
         self.workspace.control.cancel_task(task_id, reason=reason)
         return self.task_status(task_id)
+
+    def program_execution_status(self, program_id: str) -> dict[str, Any]:
+        program_status = self.workspace.programs.status(program_id)
+        bindings = self.workspace.programs.execution_bindings(program_id)
+        with self._lock:
+            runtime_record = dict(self._program_execution_runs.get(program_id, {}))
+        pending = tuple(
+            binding
+            for binding in bindings
+            if binding.status
+            in {
+                ProgramExecutionStatus.STARTING,
+                ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL,
+                ProgramExecutionStatus.RUNNING,
+            }
+        )
+        return {
+            "program_id": program_id,
+            "program_status": program_status.value,
+            "runtime": {
+                "busy": bool(runtime_record.get("busy", False)),
+                "action": str(runtime_record.get("action", "")),
+                "task_id": str(runtime_record.get("task_id", "")),
+                "status": str(runtime_record.get("status", "idle")),
+                "recovered_pending": bool(pending and not runtime_record),
+                "requires_explicit_action": bool(pending),
+                "error_type": str(runtime_record.get("error_type", "")),
+                "error": str(runtime_record.get("error", "")),
+            },
+            "bindings": [
+                self._program_execution_binding_snapshot(binding)
+                for binding in bindings
+            ],
+        }
+
+    def start_next_program_execution(
+        self,
+        program_id: str,
+        request: ProgramExecutionStartRequest,
+    ) -> dict[str, Any]:
+        self.workspace.programs.plan(program_id)
+        with self._lock:
+            current = self._program_execution_runs.get(program_id)
+            if current is not None and current.get("busy"):
+                raise ValueError("program execution is currently busy")
+            self._program_execution_runs[program_id] = {
+                "busy": True,
+                "action": "start_next",
+                "task_id": "",
+                "status": "queued",
+            }
+        try:
+            self.executor.submit(
+                self._start_program_execution_worker,
+                program_id,
+                request,
+            )
+        except Exception:
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                status="failed",
+            )
+            raise
+        return self.program_execution_status(program_id)
+
+    def continue_program_execution(
+        self,
+        program_id: str,
+        task_id: str,
+        request: ProgramExecutionContinueRequest,
+    ) -> dict[str, Any]:
+        binding = self.workspace.programs.execution_binding(task_id)
+        if binding.program_id != program_id:
+            raise ValueError("execution binding belongs to another program")
+        if binding.status not in {
+            ProgramExecutionStatus.STARTING,
+            ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL,
+            ProgramExecutionStatus.RUNNING,
+        }:
+            raise ValueError("execution binding is not awaiting an explicit action")
+        with self._lock:
+            current = self._program_execution_runs.get(program_id)
+            if current is not None and current.get("busy"):
+                raise ValueError("program execution is currently busy")
+            self._program_execution_runs[program_id] = {
+                "busy": True,
+                "action": "continue",
+                "task_id": task_id,
+                "status": "queued",
+            }
+        try:
+            self.executor.submit(
+                self._continue_program_execution_worker,
+                program_id,
+                task_id,
+                request,
+            )
+        except Exception:
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                status="failed",
+            )
+            raise
+        return self.program_execution_status(program_id)
 
     def _require_run(self, task_id: str) -> None:
         with self._lock:
@@ -225,10 +351,92 @@ class ProductWebRuntime:
                 error=sanitize_text(str(exc))[:2000],
             )
 
+    def _start_program_execution_worker(
+        self,
+        program_id: str,
+        request: ProgramExecutionStartRequest,
+    ) -> None:
+        try:
+            binding = self.workspace.start_next_program_execution(
+                program_id=program_id,
+                current_requirement_hash=request.current_requirement_hash,
+                repository=RepositorySpec(
+                    url=request.repository,
+                    base_ref=request.ref,
+                ),
+                policy=request.policy,
+                test_profiles=request.test_profiles,
+                state_root=self.state_root / "safe",
+                allow_local_sources=self.allow_local_sources,
+            )
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                task_id=binding.task_id,
+                status=binding.status.value,
+                error_type="",
+                error="",
+            )
+        except Exception as exc:
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                status="failed",
+                error_type=type(exc).__name__,
+                error=sanitize_text(str(exc))[:2000],
+            )
+
+    def _continue_program_execution_worker(
+        self,
+        program_id: str,
+        task_id: str,
+        request: ProgramExecutionContinueRequest,
+    ) -> None:
+        try:
+            binding = self.workspace.continue_program_execution(
+                program_id=program_id,
+                task_id=task_id,
+                current_requirement_hash=request.current_requirement_hash,
+                approved=request.approved,
+                state_root=self.state_root / "safe",
+                allow_local_sources=self.allow_local_sources,
+            )
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                task_id=binding.task_id,
+                status=binding.status.value,
+                error_type="",
+                error="",
+            )
+        except Exception as exc:
+            self._set_program_execution_run(
+                program_id,
+                busy=False,
+                status="failed",
+                error_type=type(exc).__name__,
+                error=sanitize_text(str(exc))[:2000],
+            )
+
     def _set_run(self, task_id: str, **changes: Any) -> None:
         with self._lock:
             record = self._runs.setdefault(task_id, {"task_id": task_id})
             record.update(changes)
+
+    def _set_program_execution_run(self, program_id: str, **changes: Any) -> None:
+        with self._lock:
+            record = self._program_execution_runs.setdefault(program_id, {})
+            record.update(changes)
+
+    def _program_execution_binding_snapshot(
+        self,
+        binding: ProgramExecutionBinding,
+    ) -> dict[str, Any]:
+        snapshot = binding.model_dump(mode="json")
+        control = self.workspace.control.get_task(binding.task_id)
+        if control is not None:
+            snapshot["control"] = control.model_dump(mode="json")
+        return snapshot
 
 
 def create_product_app(
@@ -362,6 +570,33 @@ def create_product_app(
     ) -> dict[str, Any]:
         runtime.workspace.programs.cancel(program_id, reason=request.reason)
         return _program_snapshot(runtime.workspace, program_id)
+
+    @app.get("/api/programs/{program_id}/executions")
+    def program_execution_status(program_id: str) -> dict[str, Any]:
+        return runtime.program_execution_status(program_id)
+
+    @app.post("/api/programs/{program_id}/executions/start-next", status_code=202)
+    def start_next_program_execution(
+        program_id: str,
+        request: ProgramExecutionStartRequest,
+    ) -> dict[str, Any]:
+        if not request.test_profiles:
+            raise HTTPException(
+                status_code=422,
+                detail="at least one trusted test profile is required",
+            )
+        return runtime.start_next_program_execution(program_id, request)
+
+    @app.post(
+        "/api/programs/{program_id}/executions/{task_id}/continue",
+        status_code=202,
+    )
+    def continue_program_execution(
+        program_id: str,
+        task_id: str,
+        request: ProgramExecutionContinueRequest,
+    ) -> dict[str, Any]:
+        return runtime.continue_program_execution(program_id, task_id, request)
 
     @app.post("/api/tasks/safe", status_code=202)
     def start_safe_task(request: SafeTaskStartRequest) -> dict[str, Any]:
