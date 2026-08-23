@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from universal_coding_agent.core.cancellation import (
+    CancellationSignal,
+    OwnedOperationKind,
+)
 from universal_coding_agent.core.models import ModelCapabilities, ModelRequest, ModelResponse
 from universal_coding_agent.providers.base import ModelProviderError
 
@@ -65,6 +69,21 @@ class HostSubprocessProvider:
         return bool(self.probe_details().get("ok"))
 
     def invoke(self, request: ModelRequest) -> ModelResponse:
+        return self._invoke(request)
+
+    def invoke_cancellable(
+        self,
+        request: ModelRequest,
+        cancellation: CancellationSignal,
+    ) -> ModelResponse:
+        return self._invoke(request, cancellation=cancellation)
+
+    def _invoke(
+        self,
+        request: ModelRequest,
+        *,
+        cancellation: CancellationSignal | None = None,
+    ) -> ModelResponse:
         payload = self._call_bridge(
             {
                 "action": "invoke",
@@ -73,7 +92,8 @@ class HostSubprocessProvider:
                 "response_schema": request.response_schema,
                 "max_output_tokens": request.max_output_tokens,
                 "json_mode": self.json_mode,
-            }
+            },
+            cancellation=cancellation,
         )
         content = str(payload.get("content") or "")
         structured = _try_json_object(content)
@@ -99,6 +119,7 @@ class HostSubprocessProvider:
         request: dict[str, Any],
         *,
         raise_on_error: bool = True,
+        cancellation: CancellationSignal | None = None,
     ) -> dict[str, Any]:
         bridge = Path(__file__).with_name("host_bridge.py").resolve()
         payload = {
@@ -110,17 +131,41 @@ class HostSubprocessProvider:
             "deployment_attribute": self.deployment_attribute,
         }
         timeout = float(os.getenv(TIMEOUT_ENV, "120"))
-        completed = subprocess.run(
-            [str(self.host_python), str(bridge)],
-            input=json.dumps(payload, separators=(",", ":")),
-            text=True,
-            capture_output=True,
-            timeout=timeout,
-            check=False,
-            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
-        )
+        if cancellation is not None:
+            cancellation.raise_if_cancelled()
+        encoded = json.dumps(payload, separators=(",", ":"))
+        def start_bridge() -> subprocess.Popen[str]:
+            return subprocess.Popen(
+                [str(self.host_python), str(bridge)],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                start_new_session=True,
+            )
+
+        if cancellation is None:
+            process = start_bridge()
+            try:
+                stdout, _stderr = process.communicate(encoded, timeout=timeout)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.communicate()
+                raise
+        else:
+            with cancellation.owned_process(
+                OwnedOperationKind.PROVIDER,
+                start_bridge,
+            ) as process:
+                try:
+                    stdout, _stderr = process.communicate(encoded, timeout=timeout)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.communicate()
+                    raise
         try:
-            result = json.loads(completed.stdout)
+            result = json.loads(stdout)
         except (TypeError, ValueError):
             result = {
                 "ok": False,

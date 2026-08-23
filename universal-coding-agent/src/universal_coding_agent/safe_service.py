@@ -83,6 +83,7 @@ class SafeAgentService:
             edit_engine=edit_engine,
             patch_engine=SafePatchEngine(),
             test_runner=SafeTestRunner(),
+            cancellation=control_service.cancellation,
         )
         connection = sqlite3.connect(
             state_root / "safe-checkpoints.sqlite",
@@ -119,7 +120,11 @@ class SafeAgentService:
 
     def cancel(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
         task_id = self._task_id(thread_id)
-        return self.control.cancel_task(task_id, reason=reason).model_dump(mode="json")
+        record = self.control.cancel_task(task_id, reason=reason)
+        report = self.control.cancellation_report(task_id)
+        payload = record.model_dump(mode="json")
+        payload["cancellation_report"] = report.to_json() if report is not None else None
+        return payload
 
     def resume_control(self, thread_id: str, *, action: str = "resume") -> dict[str, Any]:
         normalized = action.strip().lower()
@@ -138,12 +143,20 @@ class SafeAgentService:
             task_id = task_payload.get("task_id")
         record = self.control.get_task(task_id) if isinstance(task_id, str) else None
         control = record.model_dump(mode="json") if record is not None else None
+        cancellation = (
+            self.control.cancellation_report(task_id)
+            if isinstance(task_id, str)
+            else None
+        )
         return {
             "values": values,
             "next": list(snapshot.next),
             "metadata": snapshot.metadata,
             "created_at": snapshot.created_at,
             "control": control,
+            "cancellation_report": (
+                cancellation.to_json() if cancellation is not None else None
+            ),
         }
 
     def _task_id(self, thread_id: str) -> str:

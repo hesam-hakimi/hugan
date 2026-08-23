@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from universal_coding_agent.core.cancellation import CancellationSignal
 from universal_coding_agent.core.models import (
     ModelCapabilities,
     ModelRequest,
@@ -27,3 +28,13 @@ class ModelProvider(Protocol):
 
     def invoke(self, request: ModelRequest) -> ModelResponse:
         """Invoke one bounded role request."""
+
+
+@runtime_checkable
+class CancellableModelProvider(Protocol):
+    def invoke_cancellable(
+        self,
+        request: ModelRequest,
+        cancellation: CancellationSignal,
+    ) -> ModelResponse:
+        """Invoke while exposing cancellation to provider-owned work."""

@@ -115,6 +115,23 @@ A human approval gate uses `interrupt()`. Resume uses `Command(resume=...)` with
 
 Before future write-mode resume, the service will revalidate repository identity, base SHA, branch, sandbox, diff hash, plan hash, and approval scope.
 
+## Task cancellation
+
+Safe execution has a task-scoped typed cancellation signal in addition to the persistent control
+record. Every provider invocation and trusted test profile receives a cooperative checkpoint. UCA
+registers only child processes that it starts itself: the host-provider bridge and fixed-argv test
+profiles. A cancellation request sends termination to those active process groups, escalates to a
+kill after a bounded grace period, prevents later task work from starting, and stores a durable
+SQLite cancellation report with the observed operation kind and termination outcome. The isolated
+sandbox is retained for evidence and deterministic finalization; the source repository remains
+untouched.
+
+In-process and remote provider clients that do not implement the cancellable provider contract
+cannot be forcibly terminated by this milestone. They observe cancellation before and after the
+bounded call, and the report identifies cooperative fallback. Therefore hard cancellation is
+claimed only for registered UCA-owned provider/test child processes, not for every provider or
+network transport.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

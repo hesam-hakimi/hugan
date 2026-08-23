@@ -4,6 +4,10 @@ import sqlite3
 from pathlib import Path
 from threading import RLock
 
+from universal_coding_agent.core.cancellation import (
+    CancellationCoordinator,
+    CancellationReport,
+)
 from universal_coding_agent.product.models import (
     ControlAction,
     ControlDecision,
@@ -21,10 +25,16 @@ class TaskControlService:
     worker and a concurrent UI/API control request.
     """
 
-    def __init__(self, database_path: Path) -> None:
+    def __init__(
+        self,
+        database_path: Path,
+        *,
+        cancellation: CancellationCoordinator | None = None,
+    ) -> None:
         self.database_path = database_path.resolve()
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = RLock()
+        self.cancellation = cancellation or CancellationCoordinator()
         self.connection = sqlite3.connect(self.database_path, check_same_thread=False)
         self.connection.execute(
             """
@@ -35,6 +45,20 @@ class TaskControlService:
                 reason TEXT NOT NULL,
                 revision INTEGER NOT NULL,
                 PRIMARY KEY (entity_type, entity_id)
+            )
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cancellation_reports (
+                task_id TEXT PRIMARY KEY,
+                reason TEXT NOT NULL,
+                active_operation_kinds TEXT NOT NULL,
+                owned_processes_observed INTEGER NOT NULL,
+                terminate_requests INTEGER NOT NULL,
+                kill_requests INTEGER NOT NULL,
+                processes_still_active INTEGER NOT NULL,
+                cooperative_fallback INTEGER NOT NULL
             )
             """
         )
@@ -134,7 +158,18 @@ class TaskControlService:
             record = self.ensure(entity_type, entity_id)
             if record.state in {ControlState.CANCELLED, ControlState.COMPLETED}:
                 return record
-            return self._set(entity_type, entity_id, ControlState.CANCEL_REQUESTED, reason)
+            if record.state is ControlState.CANCEL_REQUESTED:
+                return record
+            record = self._set(
+                entity_type,
+                entity_id,
+                ControlState.CANCEL_REQUESTED,
+                reason,
+            )
+        if entity_type is ControlEntityType.TASK:
+            report = self.cancellation.cancel_task(entity_id, reason=reason)
+            self._store_cancellation_report(report)
+        return record
 
     def checkpoint(
         self,
@@ -185,6 +220,31 @@ class TaskControlService:
     def cancel_task(self, task_id: str, *, reason: str = "") -> ControlRecord:
         return self.request_cancel(ControlEntityType.TASK, task_id, reason=reason)
 
+    def cancellation_report(self, task_id: str) -> CancellationReport | None:
+        with self._lock:
+            row = self.connection.execute(
+                """
+                SELECT reason, active_operation_kinds, owned_processes_observed,
+                       terminate_requests, kill_requests, processes_still_active,
+                       cooperative_fallback
+                FROM cancellation_reports WHERE task_id = ?
+                """,
+                (task_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            kinds = tuple(item for item in row[1].split(",") if item)
+            return CancellationReport(
+                task_id=task_id,
+                reason=row[0],
+                active_operation_kinds=kinds,
+                owned_processes_observed=row[2],
+                terminate_requests=row[3],
+                kill_requests=row[4],
+                processes_still_active=row[5],
+                cooperative_fallback=bool(row[6]),
+            )
+
     def complete_task(self, task_id: str) -> ControlRecord:
         return self.mark_completed(ControlEntityType.TASK, task_id)
 
@@ -224,3 +284,26 @@ class TaskControlService:
             )
             self.connection.commit()
             return self.get_required(entity_type, entity_id)
+
+    def _store_cancellation_report(self, report: CancellationReport) -> None:
+        with self._lock:
+            self.connection.execute(
+                """
+                INSERT OR REPLACE INTO cancellation_reports(
+                    task_id, reason, active_operation_kinds,
+                    owned_processes_observed, terminate_requests, kill_requests,
+                    processes_still_active, cooperative_fallback
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    report.task_id,
+                    report.reason,
+                    ",".join(report.active_operation_kinds),
+                    report.owned_processes_observed,
+                    report.terminate_requests,
+                    report.kill_requests,
+                    report.processes_still_active,
+                    int(report.cooperative_fallback),
+                ),
+            )
+            self.connection.commit()

@@ -54,6 +54,7 @@ class LineAddressedSafeModeGraph(SafeModeGraph):
                 request,
                 StructuredEditProposal,
                 repair_guidance=LINE_ADDRESSED_IMPLEMENTER_REPAIR_GUIDANCE,
+                cancellation=self.services.cancellation.signal(task.task_id),
             )
         except StructuredOutputError as exc:
             validation_ref = self.services.artifacts.write_json(

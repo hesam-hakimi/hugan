@@ -10,6 +10,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt
 
 from universal_coding_agent.context.safe_compiler import SafeContextCompiler
+from universal_coding_agent.core.cancellation import CancellationCoordinator
 from universal_coding_agent.core.models import ModelRequest, ProjectManifest, TaskStatus
 from universal_coding_agent.core.safe_models import (
     PatchProposal,
@@ -80,6 +81,7 @@ class SafeGraphServices:
     edit_engine: SafeEditEngine
     patch_engine: SafePatchEngine
     test_runner: SafeTestRunner
+    cancellation: CancellationCoordinator
 
 
 class SafeModeGraph:
@@ -267,6 +269,7 @@ class SafeModeGraph:
                 request,
                 StructuredEditProposal,
                 repair_guidance=IMPLEMENTER_REPAIR_GUIDANCE,
+                cancellation=self.services.cancellation.signal(task.task_id),
             )
         except StructuredOutputError as exc:
             validation_ref = self.services.artifacts.write_json(
@@ -364,6 +367,7 @@ class SafeModeGraph:
                     repair_request,
                     StructuredEditProposal,
                     repair_guidance=EDIT_REPAIR_GUIDANCE,
+                    cancellation=self.services.cancellation.signal(task.task_id),
                 )
             except StructuredOutputError as exc:
                 repair_validation_ref = self.services.artifacts.write_json(
@@ -558,6 +562,7 @@ class SafeModeGraph:
                 Path(state["sandbox_path"]),
                 task.policy,
                 task.manifest.test_profiles,
+                cancellation=self.services.cancellation.signal(task.task_id),
             )
             in_scope, actual_paths = self.services.patch_engine.verify_changed_paths(
                 Path(state["sandbox_path"]),
@@ -631,6 +636,7 @@ class SafeModeGraph:
                 request,
                 SafeReviewResult,
                 repair_guidance=SAFE_REVIEWER_REPAIR_GUIDANCE,
+                cancellation=self.services.cancellation.signal(task.task_id),
             )
         except StructuredOutputError as exc:
             validation_ref = self.services.artifacts.write_json(

@@ -141,6 +141,9 @@ class ProductWebRuntime:
             raise KeyError(task_id)
         if control is not None:
             record["control"] = control.model_dump(mode="json")
+        cancellation = self.workspace.control.cancellation_report(task_id)
+        if cancellation is not None:
+            record["cancellation_report"] = cancellation.to_json()
         return record
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:
@@ -436,6 +439,9 @@ class ProductWebRuntime:
         control = self.workspace.control.get_task(binding.task_id)
         if control is not None:
             snapshot["control"] = control.model_dump(mode="json")
+        cancellation = self.workspace.control.cancellation_report(binding.task_id)
+        if cancellation is not None:
+            snapshot["cancellation_report"] = cancellation.to_json()
         return snapshot
 
 

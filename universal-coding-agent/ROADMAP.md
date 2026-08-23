@@ -18,14 +18,18 @@
 
 ## Milestone 2 — Safe Development
 
-- approved-path scope gate;
-- implementer subgraph;
-- unified patch parser and path validator;
-- atomic patch application;
-- fixed test-profile registry;
-- bounded diagnose/repair loop;
-- regression and security reviewers;
-- checkpoint-safe rollback of agent-owned patches;
+- [x] approved-path scope gate;
+- [x] implementer subgraph;
+- [x] deterministic structured edit and patch validation;
+- [x] isolated patch application;
+- [x] fixed test-profile registry;
+- [x] bounded structured-output and edit repair;
+- [x] independent Safe reviewer;
+- [x] deterministic rollback of agent-owned sandbox changes;
+- [x] task-scoped cancellation signal and active termination for registered UCA-owned host-provider and trusted-test child processes;
+- [x] durable cancellation report and cooperative fallback for providers without an active termination contract;
+- [ ] cancellable adapters for supported in-process/remote provider transports;
+- [ ] active pause of an already-running provider/test operation;
 - publish approval;
 - commit, push, and optional Draft PR through a source-control adapter.
 
