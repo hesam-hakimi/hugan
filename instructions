@@ -7,6 +7,7 @@
 - universal-coding-agent/src/universal_coding_agent/core/safe_models.py
 - universal-coding-agent/src/universal_coding_agent/core/cancellation.py
 - universal-coding-agent/src/universal_coding_agent/providers/base.py
+- universal-coding-agent/src/universal_coding_agent/providers/host_chat.py
 - universal-coding-agent/src/universal_coding_agent/providers/host_subprocess.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/structured_output.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph.py
@@ -70,6 +71,7 @@
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
 - universal-coding-agent/tests/test_strong_cancellation.py
+- universal-coding-agent/tests/test_host_chat_provider.py
 - universal-coding-agent/tests/test_host_subprocess_provider.py
 - universal-coding-agent/tests/test_requirement_draft_repair.py
 - universal-coding-agent/tests/test_program_execution.py
@@ -93,6 +95,7 @@ for FILE in \
   src/universal_coding_agent/core/safe_models.py \
   src/universal_coding_agent/core/cancellation.py \
   src/universal_coding_agent/providers/base.py \
+  src/universal_coding_agent/providers/host_chat.py \
   src/universal_coding_agent/providers/host_subprocess.py \
   src/universal_coding_agent/orchestration/structured_output.py \
   src/universal_coding_agent/orchestration/safe_graph.py \
@@ -156,6 +159,7 @@ for FILE in \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
+  tests/test_host_chat_provider.py \
   tests/test_host_subprocess_provider.py \
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
@@ -165,11 +169,12 @@ do
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
-from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal
+from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
+from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
@@ -189,11 +194,14 @@ assert SafeContextEvidence and AcceptedPhaseEvidenceBundle
 assert DiscoveredSafeExecutionPort and ProgramExecutionError
 assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 assert CancellationCoordinator and CancellationReport and CancellationSignal
+assert OwnedCancellableOperation and HostChatCompletionsProvider
+assert CANCELLABLE_COMPLETION_FACTORY_ENV
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
+print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -207,6 +215,7 @@ Cmd 3
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
+  tests/test_host_chat_provider.py \
   tests/test_host_subprocess_provider.py \
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
@@ -224,7 +233,8 @@ echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
-echo "STRONG_CANCELLATION_PREFLIGHT_PASS"
+echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
+echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS"
 ```
 
 Cmd 4

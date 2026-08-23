@@ -18,7 +18,7 @@ from universal_coding_agent.product.models import (
 
 
 class TaskControlService:
-    """Persistent cooperative pause/resume/cancel state.
+    """Persistent control state with cooperative boundaries and owned-work cancellation.
 
     Callers check at safe boundaries. Pause stops new work at the next boundary; cancel is
     terminal once observed. The lock makes the same service safe to use from an execution
@@ -55,13 +55,17 @@ class TaskControlService:
                 reason TEXT NOT NULL,
                 active_operation_kinds TEXT NOT NULL,
                 owned_processes_observed INTEGER NOT NULL,
+                owned_cancellable_operations_observed INTEGER NOT NULL DEFAULT 0,
                 terminate_requests INTEGER NOT NULL,
                 kill_requests INTEGER NOT NULL,
+                cancellable_operation_cancel_requests INTEGER NOT NULL DEFAULT 0,
                 processes_still_active INTEGER NOT NULL,
+                cancellable_operations_still_active INTEGER NOT NULL DEFAULT 0,
                 cooperative_fallback INTEGER NOT NULL
             )
             """
         )
+        self._ensure_cancellation_report_columns()
         self.connection.commit()
 
     def close(self) -> None:
@@ -225,7 +229,9 @@ class TaskControlService:
             row = self.connection.execute(
                 """
                 SELECT reason, active_operation_kinds, owned_processes_observed,
-                       terminate_requests, kill_requests, processes_still_active,
+                       owned_cancellable_operations_observed, terminate_requests,
+                       kill_requests, cancellable_operation_cancel_requests,
+                       processes_still_active, cancellable_operations_still_active,
                        cooperative_fallback
                 FROM cancellation_reports WHERE task_id = ?
                 """,
@@ -239,10 +245,13 @@ class TaskControlService:
                 reason=row[0],
                 active_operation_kinds=kinds,
                 owned_processes_observed=row[2],
-                terminate_requests=row[3],
-                kill_requests=row[4],
-                processes_still_active=row[5],
-                cooperative_fallback=bool(row[6]),
+                owned_cancellable_operations_observed=row[3],
+                terminate_requests=row[4],
+                kill_requests=row[5],
+                cancellable_operation_cancel_requests=row[6],
+                processes_still_active=row[7],
+                cancellable_operations_still_active=row[8],
+                cooperative_fallback=bool(row[9]),
             )
 
     def complete_task(self, task_id: str) -> ControlRecord:
@@ -291,19 +300,42 @@ class TaskControlService:
                 """
                 INSERT OR REPLACE INTO cancellation_reports(
                     task_id, reason, active_operation_kinds,
-                    owned_processes_observed, terminate_requests, kill_requests,
-                    processes_still_active, cooperative_fallback
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    owned_processes_observed, owned_cancellable_operations_observed,
+                    terminate_requests, kill_requests,
+                    cancellable_operation_cancel_requests, processes_still_active,
+                    cancellable_operations_still_active, cooperative_fallback
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     report.task_id,
                     report.reason,
                     ",".join(report.active_operation_kinds),
                     report.owned_processes_observed,
+                    report.owned_cancellable_operations_observed,
                     report.terminate_requests,
                     report.kill_requests,
+                    report.cancellable_operation_cancel_requests,
                     report.processes_still_active,
+                    report.cancellable_operations_still_active,
                     int(report.cooperative_fallback),
                 ),
             )
             self.connection.commit()
+
+    def _ensure_cancellation_report_columns(self) -> None:
+        existing = {
+            str(row[1])
+            for row in self.connection.execute(
+                "PRAGMA table_info(cancellation_reports)"
+            ).fetchall()
+        }
+        additions = {
+            "owned_cancellable_operations_observed": "INTEGER NOT NULL DEFAULT 0",
+            "cancellable_operation_cancel_requests": "INTEGER NOT NULL DEFAULT 0",
+            "cancellable_operations_still_active": "INTEGER NOT NULL DEFAULT 0",
+        }
+        for name, declaration in additions.items():
+            if name not in existing:
+                self.connection.execute(
+                    f"ALTER TABLE cancellation_reports ADD COLUMN {name} {declaration}"
+                )

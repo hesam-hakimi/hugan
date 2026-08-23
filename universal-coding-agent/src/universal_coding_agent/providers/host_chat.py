@@ -7,8 +7,13 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, Protocol, cast
 
+from universal_coding_agent.core.cancellation import (
+    CancellationRequested,
+    CancellationSignal,
+    OwnedOperationKind,
+)
 from universal_coding_agent.core.models import ModelCapabilities, ModelRequest, ModelResponse
 from universal_coding_agent.providers.base import ModelProviderError
 
@@ -18,17 +23,30 @@ CONFIG_FACTORY_ENV = "UCA_HOST_MODEL_CONFIG_FACTORY"
 DEPLOYMENT_ATTRIBUTE_ENV = "UCA_HOST_DEPLOYMENT_ATTRIBUTE"
 PROBE_TOKENS_ENV = "UCA_HOST_PROBE_TOKENS"
 JSON_MODE_ENV = "UCA_HOST_JSON_MODE"
+CANCELLABLE_COMPLETION_FACTORY_ENV = "UCA_HOST_CANCELLABLE_COMPLETION_FACTORY"
+
+
+class _HostCompletionHandle(Protocol):
+    def result(self) -> Any:
+        """Wait for and return the host completion result."""
+
+    def cancel(self) -> None:
+        """Request termination without blocking."""
+
+    def done(self) -> bool:
+        """Return without blocking whether the host operation has terminated."""
 
 
 @dataclass
 class HostChatCompletionsProvider:
-    """Adapt an existing site-owned OpenAI-compatible client without owning its auth."""
+    """Adapt a site-owned client with optional explicit completion-handle ownership."""
 
     host_module_path: Path
     client_factory_name: str = "create_client"
     config_factory_name: str = "get_configured_model_or_deployment"
     deployment_attribute: str = "deployment"
     json_mode: bool = True
+    cancellable_completion_factory_name: str | None = None
 
     def __post_init__(self) -> None:
         self.host_module_path = self.host_module_path.expanduser().resolve()
@@ -50,6 +68,7 @@ class HostChatCompletionsProvider:
             client = self._call_factory(module, self.client_factory_name)
             deployment = self._deployment(module)
             response, _ = self._create_completion(
+                module,
                 client,
                 deployment,
                 messages=[
@@ -64,6 +83,24 @@ class HostChatCompletionsProvider:
             return False
 
     def invoke(self, request: ModelRequest) -> ModelResponse:
+        return self._invoke(request)
+
+    def invoke_cancellable(
+        self,
+        request: ModelRequest,
+        cancellation: CancellationSignal,
+    ) -> ModelResponse:
+        cancellation.raise_if_cancelled()
+        response = self._invoke(request, cancellation=cancellation)
+        cancellation.raise_if_cancelled()
+        return response
+
+    def _invoke(
+        self,
+        request: ModelRequest,
+        *,
+        cancellation: CancellationSignal | None = None,
+    ) -> ModelResponse:
         try:
             module = self._host_module()
             client = self._call_factory(module, self.client_factory_name)
@@ -78,6 +115,7 @@ class HostChatCompletionsProvider:
                 schema_heading = "Required JSON Schema (return one JSON object only):"
                 system_prompt = f"{system_prompt}\n\n{schema_heading}\n{schema}"
             response, request_metadata = self._create_completion(
+                module,
                 client,
                 deployment,
                 messages=[
@@ -86,7 +124,10 @@ class HostChatCompletionsProvider:
                 ],
                 max_output_tokens=request.max_output_tokens,
                 use_json_mode=bool(request.response_schema) and self.json_mode,
+                cancellation=cancellation,
             )
+        except CancellationRequested:
+            raise
         except ModelProviderError:
             raise
         except Exception as exc:
@@ -112,6 +153,7 @@ class HostChatCompletionsProvider:
             "token_parameter": request_metadata["token_parameter"],
             "json_mode_requested": request_metadata["json_mode_requested"],
             "json_mode_used": request_metadata["json_mode_used"],
+            "cancellation_mode": request_metadata["cancellation_mode"],
         }
         return ModelResponse(
             content=content,
@@ -166,16 +208,17 @@ class HostChatCompletionsProvider:
             raise ModelProviderError("host_deployment_missing", "host deployment is unavailable")
         return deployment
 
-    @staticmethod
     def _create_completion(
+        self,
+        module: ModuleType,
         client: Any,
         deployment: str,
         *,
         messages: list[dict[str, str]],
         max_output_tokens: int,
         use_json_mode: bool,
+        cancellation: CancellationSignal | None = None,
     ) -> tuple[Any, dict[str, str | bool]]:
-        create = client.chat.completions.create
         base: dict[str, Any] = {"model": deployment, "messages": messages}
         if use_json_mode:
             base["response_format"] = {"type": "json_object"}
@@ -186,11 +229,20 @@ class HostChatCompletionsProvider:
             kwargs = dict(base)
             kwargs[token_parameter] = max_output_tokens
             try:
-                return create(**kwargs), {
+                response, cancellation_mode = self._call_completion(
+                    module,
+                    client,
+                    kwargs,
+                    cancellation=cancellation,
+                )
+                return response, {
                     "token_parameter": token_parameter,
                     "json_mode_requested": use_json_mode,
                     "json_mode_used": use_json_mode,
+                    "cancellation_mode": cancellation_mode,
                 }
+            except (CancellationRequested, ModelProviderError):
+                raise
             except Exception as exc:
                 last_error = exc
                 if not _looks_like_parameter_error(exc, token_parameter):
@@ -198,11 +250,20 @@ class HostChatCompletionsProvider:
                         fallback = dict(kwargs)
                         fallback.pop("response_format", None)
                         try:
-                            return create(**fallback), {
+                            response, cancellation_mode = self._call_completion(
+                                module,
+                                client,
+                                fallback,
+                                cancellation=cancellation,
+                            )
+                            return response, {
                                 "token_parameter": token_parameter,
                                 "json_mode_requested": True,
                                 "json_mode_used": False,
+                                "cancellation_mode": cancellation_mode,
                             }
+                        except (CancellationRequested, ModelProviderError):
+                            raise
                         except Exception as fallback_exc:
                             last_error = fallback_exc
                     break
@@ -212,6 +273,54 @@ class HostChatCompletionsProvider:
             "host_model_invoke_failed",
             f"host model request failed safely: {type(last_error).__name__}",
         ) from None
+
+    def _call_completion(
+        self,
+        module: ModuleType,
+        client: Any,
+        kwargs: dict[str, Any],
+        *,
+        cancellation: CancellationSignal | None,
+    ) -> tuple[Any, str]:
+        if cancellation is None:
+            return client.chat.completions.create(**kwargs), "not_requested"
+
+        cancellation.raise_if_cancelled()
+        factory_name = self.cancellable_completion_factory_name
+        if not factory_name:
+            response = client.chat.completions.create(**kwargs)
+            cancellation.raise_if_cancelled()
+            return response, "cooperative"
+
+        factory = getattr(module, factory_name, None)
+        if not callable(factory):
+            raise ModelProviderError(
+                "host_cancellable_factory_missing",
+                "configured host cancellable completion factory is unavailable",
+            )
+
+        def start_operation() -> _HostCompletionHandle:
+            value = factory(client=client, **kwargs)
+            return _require_completion_handle(value)
+
+        with cancellation.owned_cancellable_operation(
+            OwnedOperationKind.PROVIDER,
+            start_operation,
+        ) as operation:
+            handle = cast(_HostCompletionHandle, operation)
+            completed = False
+            try:
+                response = handle.result()
+                completed = _handle_done(handle)
+            finally:
+                if not _handle_done(handle):
+                    _cancel_handle(handle)
+            if not completed:
+                raise ModelProviderError(
+                    "host_cancellable_handle_incomplete",
+                    "host completion handle returned before termination",
+                )
+            return response, "owned_handle"
 
 
 def create_provider() -> HostChatCompletionsProvider:
@@ -229,12 +338,16 @@ def create_provider() -> HostChatCompletionsProvider:
     deployment_attribute = (
         os.getenv(DEPLOYMENT_ATTRIBUTE_ENV, "deployment").strip() or "deployment"
     )
+    cancellable_factory = (
+        os.getenv(CANCELLABLE_COMPLETION_FACTORY_ENV, "").strip() or None
+    )
     return HostChatCompletionsProvider(
         host_module_path=Path(path_value),
         client_factory_name=client_factory,
         config_factory_name=config_factory,
         deployment_attribute=deployment_attribute,
         json_mode=_truthy(os.getenv(JSON_MODE_ENV, "1")),
+        cancellable_completion_factory_name=cancellable_factory,
     )
 
 
@@ -286,3 +399,26 @@ def _looks_like_parameter_error(exc: Exception, parameter: str) -> bool:
 
 def _truthy(value: str | None) -> bool:
     return str(value or "").strip().lower() not in {"", "0", "false", "no", "off"}
+
+
+def _require_completion_handle(value: Any) -> _HostCompletionHandle:
+    if not all(callable(getattr(value, name, None)) for name in ("result", "cancel", "done")):
+        raise ModelProviderError(
+            "host_cancellable_handle_invalid",
+            "host cancellable completion factory returned an invalid handle",
+        )
+    return cast(_HostCompletionHandle, value)
+
+
+def _handle_done(handle: _HostCompletionHandle) -> bool:
+    try:
+        return bool(handle.done())
+    except Exception:
+        return False
+
+
+def _cancel_handle(handle: _HostCompletionHandle) -> None:
+    try:
+        handle.cancel()
+    except Exception:
+        return

@@ -126,11 +126,20 @@ SQLite cancellation report with the observed operation kind and termination outc
 sandbox is retained for evidence and deterministic finalization; the source repository remains
 untouched.
 
-In-process and remote provider clients that do not implement the cancellable provider contract
-cannot be forcibly terminated by this milestone. They observe cancellation before and after the
-bounded call, and the report identifies cooperative fallback. Therefore hard cancellation is
-claimed only for registered UCA-owned provider/test child processes, not for every provider or
-network transport.
+P1.2b adds one opt-in in-process/remote adapter to `HostChatCompletionsProvider`. A trusted host
+module may configure `UCA_HOST_CANCELLABLE_COMPLETION_FACTORY` and return a non-blocking handle with
+`result()`, `cancel()`, and `done()` methods. UCA creates and registers that handle before waiting
+for the remote completion, invokes `cancel()` from the task-control path, waits only for the bounded
+coordinator grace period, and records the owned handle, cancel request, and still-active outcome in
+the durable report. Existing P1.2a databases receive additive default-zero report columns.
+
+The host factory is optional and trusted: it must return promptly, its cancellation hook must be
+thread-safe and non-blocking, and `done()` must be non-blocking and accurately report transport termination. Missing
+hooks retain cooperative before/after checks. Invalid configured handles fail closed. A handle that
+does not terminate is explicitly reported as still active, so hard cancellation is claimed only
+for registered child processes and host handles that actually terminate. Other in-process and
+remote provider transports remain cooperative. No arbitrary shell or model-controlled process
+execution is introduced.
 
 ## Context management
 
