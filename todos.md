@@ -1,437 +1,321 @@
-TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_DISCOVERY
+TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_AMENDMENT_1
 
-This is a READ-ONLY source-of-truth discovery task.
+This is a READ-ONLY scope-completion task in the SOFTWARE DEVELOPMENT ENVIRONMENT.
 
 Do NOT implement.
-Do NOT edit files.
-Do NOT regenerate contracts.
-Do NOT change the extension version.
-Do NOT package a VSIX.
+Do NOT edit any file.
+Do NOT change version.
+Do NOT build a VSIX.
+Do NOT regenerate baselines.
 Do NOT commit or push.
+Do NOT modify etl-framework-adb.
 
-The goal is to determine the exact minimum repair required to unblock the
-fresh-consumer CREATE_NEW_JOB preview flow discovered during runtime QA of
-Databricks ETL Copilot 0.3.140.
+The previous Repair-8 discovery is accepted as authoritative.
 
-==================================================
-1. QA EVIDENCE TO RECONCILE
-==================================================
+Do not re-litigate the following proven facts:
 
-Runtime QA independently established:
+CANONICAL_JOB_CONFIG_ENVELOPE_PROVEN: YES
+CANONICAL_MODULE_REPRESENTATION_PROVEN: YES
+DATAFRAME_WRITER_CONTRACT_PROVEN: YES
+UNITY_CATALOG_TABLE_WRITE_SUPPORTED: NO
+CRITICAL_CONFIG_KEYS_FALLBACK_DEFECT_CONFIRMED: YES
+PACKAGED_EXAMPLE_SEARCH_DEFECT_CONFIRMED: YES
+PACKAGE_SELF_CONSISTENCY_DEFECT_CONFIRMED: YES
+STTM_PARSER_REPAIR_REQUIRED: NO
+PRODUCT_CODE_CHANGE_REQUIRED: YES
+PACKAGE_CONTRACT_CHANGE_REQUIRED: YES
+NEXT_QA_VERSION_MUST_BE_0_3_141: YES
 
-- Databricks ETL Copilot 0.3.140 was active.
-- The workspace was a single disposable consumer workspace.
-- Workflow customization was installed.
-- No extension source or etl-framework-adb was available to the QA user.
-- The synthetic STTM was discovered.
-- The workspace was correctly classified as a fresh consumer.
-- The runtime selected:
+The canonical executable Job Config form is:
 
-  TARGET_DECISION: CREATE_NEW_JOB
+modules {
+  <stage_key> {
+    ...
+    options {
+      module = <module_type>
+      method = process
+    }
+  }
+}
 
-- Packaged framework fallback was successfully selected.
-- No filesystem write occurred.
-- No Preview ID was issued because deterministic validation failed first.
-
-The two blocking validation findings were:
-
-1. "No modules detected in job config"
-2. "Confirm output path or table"
-
-Read-only packaged-contract discovery then established:
-
-TOP_LEVEL_MODULE_ENVELOPE_PROVEN: NO
-TOP_LEVEL_MODULE_ENVELOPE_KEY: UNKNOWN
-UNITY_CATALOG_TABLE_WRITE_SUPPORTED: UNKNOWN
-UNITY_CATALOG_TARGET_FIELD: UNKNOWN
-PATH_REQUIRED_FOR_DATAFRAME_WRITER: UNKNOWN
-PRODUCT_DEFECT_FOUND: YES
-PACKAGE_CONTRACT_GAP_FOUND: YES
-QA_CAN_RESUME_WITHOUT_CODE_CHANGE: NO
-
-Do not challenge these runtime facts without contrary live-source evidence.
+The purpose of this task is only to close the remaining scope gaps before
+Repair-8 implementation.
 
 ==================================================
-2. SOURCE REPOSITORY PREFLIGHT
+1. VERIFY SOFTWARE DEVELOPMENT ENVIRONMENT
 ==================================================
 
-Work only in the current HF1 V2 extension source checkout.
+Expected root:
 
-Expected repository family:
-
-TD-Universe/agentic_etl
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
 Expected branch:
 
 hotfix/hf1-oracle-fresh-consumer-v2
 
-Independently verify:
+Expected base HEAD:
 
-- repository root
-- branch
-- HEAD
-- origin
-- staged count
-- complete changed-path inventory
-- current package version
-- `.github/**` cleanliness
-- Repair-5/6/7 candidate files remain present
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-The working tree contains extensive uncommitted HF1 work.
+Expected current version:
 
-Do not reset, clean, stash, checkout, restore, or mutate anything.
+0.3.140
 
-If repository identity is not the expected HF1 V2 candidate, stop.
+Verify repository identity through read-only evidence.
+
+Do not reset, clean, restore, checkout, stash, or mutate the working tree.
 
 ==================================================
-3. FIND THE AUTHORITATIVE JOB-CONFIG ENVELOPE
+2. ACCEPTED INITIAL REPAIR-8 FILE INVENTORY
 ==================================================
 
-Trace the production runtime responsible for the error:
+The previous discovery proposed these files.
 
-"No modules detected in job config"
+New:
 
-Locate the exact:
+1. resources/framework/contracts/job-config-envelope.v1.json
 
-- validator
-- parser
-- renderer
-- module extractor
-- job-config model/type
-- HOCON handling
-- validation error definition
+2. src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 
-Determine from executable production code:
+Modified:
 
-1. the exact top-level Job Config module-envelope key;
-2. the exact expected nesting shape;
-3. whether modules are represented as:
-   - a list,
-   - an object,
-   - a map,
-   - named HOCON blocks,
-   - or another structure;
-4. the exact minimum valid Job Config HOCON document;
-5. how the validator detects module types;
-6. the required module ordering;
-7. whether the current renderer produces that same shape.
+3. src/tools/EtlReadOnlyToolService.ts
 
-Do not infer this from prose documentation when production code is available.
+4. resources/copilot/context/etl-module-reference.md
 
-Return exact source paths, functions, and line ranges.
+5. resources/copilot/knowledge/examples/dataframe-writer-export.example.json
 
-Classify the result:
+6. resources/copilot/knowledge/framework-contracts/etl-framework-2.latest.json
 
-- PROVEN_FROM_RUNTIME_CODE
-- CONTRADICTORY_RUNTIME_CODE
-- NOT_IMPLEMENTED
+7. src/renderers/JobConfigRenderer.ts
+
+8. src/test/verifyVsixContents.ts
+
+Treat this as the initial proposed scope, not automatically complete.
 
 ==================================================
-4. RECONCILE ALL MODULE REPRESENTATIONS
+3. PROVE THE FRESH-CONSUMER INTEGRATION SEAM
 ==================================================
 
-Inspect and compare all sources that currently describe modules:
+Trace the complete shipping-runtime call path used in the development test
+workspace:
 
-- `etl_describe_module`
-- `etl_get_framework_rules`
-- packaged module reference assets
-- packaged framework contracts
-- packaged examples
-- renderer inputs
-- renderer output
-- validators
-- tests
-- runtime types/interfaces
-- repo-convention rules
+ETL Orchestrator
+→ registered ETL tools
+→ framework-rule retrieval
+→ job-config drafting/rendering
+→ deterministic validation
+→ trusted preview creation
 
-The QA evidence found at least two conflicting representations:
+Answer conclusively:
 
-A. named module HOCON block with a top-level `type`;
-B. ordered JSON array entries using `options.module`,
-   `target-path`, `target-format`, and `mode-of-write`.
+A. How will the new TrustedJobConfigEnvelopeResolver be consumed by the actual
+fresh-consumer CREATE_NEW_JOB path?
 
-Determine:
+B. Is changing EtlReadOnlyToolService plus packaged guidance sufficient to make
+the active agentic path consume the canonical contract?
 
-- which representation production runtime actually consumes;
-- whether either representation is only a planning DTO rather than final HOCON;
-- where conversion is supposed to occur;
-- why the conversion did not occur during QA;
-- whether Package examples are stale, wrong, or incomplete;
-- whether `etl_describe_module` output is stale, wrong, or incomplete.
+C. Does EtlActionToolService.renderJobConfig() require a code change?
 
-There must be one authoritative representation or one explicit transformation
-pipeline. Do not propose parallel undocumented forms.
+D. Does ArtifactGenerationPipeline require a code change?
 
-==================================================
-5. DETERMINE THE REAL DATAFRAME_WRITER CONTRACT
-==================================================
+E. Does JobConfigRenderer need to become the actual deterministic rendering
+boundary for the agentic path, or is it only required as the canonical example
+renderer?
 
-Trace the actual production/framework implementation of `dataframe_writer`.
+F. Are ModuleSequenceExtractor, FrameworkParseValidator, or
+ReadinessProfileCatalog production changes required, or are their current
+strict checks correct and only new tests are needed?
 
-Determine conclusively whether it supports:
+For every answer provide:
 
-A. ADLS/filesystem path output;
-B. Delta path output;
-C. Parquet/CSV/text path output;
-D. JDBC/Synapse output;
-E. Unity Catalog table by three-part name;
-F. another registered-table abstraction.
+- exact source path;
+- function or class;
+- call-path evidence;
+- CHANGE_REQUIRED or NO_CHANGE_REQUIRED;
+- reason.
 
-For each supported destination mode return:
+Do not add a file to scope merely because it is adjacent.
 
-- exact config field names;
-- exact required fields;
-- exact optional fields;
-- accepted HOCON shape;
-- overwrite/append semantics;
-- merge/upsert/CDC/SCD limitations;
-- production implementation path;
-- validator path;
-- corresponding tests.
-
-Specifically answer:
-
-UNITY_CATALOG_TABLE_WRITE_SUPPORTED: YES/NO
-UNITY_CATALOG_TARGET_FIELD: <exact field or NONE>
-PATH_REQUIRED_FOR_DATAFRAME_WRITER: YES/NO
-
-Do not add Unity Catalog support merely because the QA STTM used a table name.
-
-If direct Unity Catalog table output is not supported, identify the correct
-existing writer/module for that destination, or conclude that the QA fixture
-must use a supported path-based synthetic destination.
+Do not rely on model compliance alone if a deterministic integration point is
+already intended by the architecture.
 
 ==================================================
-6. READ-ONLY FRAMEWORK SOURCE RECONCILIATION
+4. EXACT TEST-FILE INVENTORY
 ==================================================
 
-If an existing local `etl-framework-adb` checkout is available to the maintainer,
-it may be inspected READ ONLY as authoritative implementation evidence.
+The previous discovery defined 13 required proofs but did not name the exact
+test files.
 
-It must NOT be:
+Locate the smallest existing test homes for every proof:
 
-- modified;
-- added to the QA workspace;
-- packaged;
-- required by the end user;
-- used as a runtime fallback in the final fix.
+1. canonical envelope contract loads, validates, and fingerprints;
+2. contract fails closed on invalid fields/version/secret scan;
+3. resolver precedence and installed-resource ancestor resolution;
+4. canonical examples yield at least one module;
+5. quoted-JSON and array forms yield zero modules;
+6. FrameworkParseValidator accepts canonical fresh-consumer config;
+7. artifact evidence extracts a canonical dataframe_writer target;
+8. generic_dataframe_write readiness accepts the supported target;
+9. fallback surfaces non-empty criticalConfigKeys;
+10. packaged examples are searchable without local workspace examples;
+11. every shipped example/context conforms to the canonical form;
+12. fresh-consumer CREATE_NEW_JOB reaches a real Preview ID with zero writes;
+13. verifyVsixContents proves both trusted contracts ship in the VSIX.
 
-Compare the live framework implementation with the packaged extension contract.
+Return the exact test path for every proof.
 
-Report every contract field that must be copied/generated into the VSIX so the
-installed extension is self-contained.
+Prefer extending existing suites.
 
-If no framework checkout is available, do not fabricate the missing contract.
+A new test file is allowed only when no existing suite can exercise the real
+integration path without becoming misleading.
 
-==================================================
-7. TRACE PACKAGED FALLBACK DEFECTS
-==================================================
-
-Investigate the confirmed defects:
-
-A. `criticalConfigKeys` missing from `etl_get_framework_rules`
-
-QA observed:
-
-- the packaged machine-readable framework contract contains populated
-  `criticalConfigKeys`;
-- `etl_get_framework_rules` returns
-  "Critical config keys: not available".
-
-Locate the exact data-loss point.
-
-B. `etl_search_examples` ignores packaged examples
-
-QA observed:
-
-- indexed approved examples exist inside packaged knowledge assets;
-- `etl_search_examples` returns `no_search_roots_available`;
-- the packaged examples are never consulted.
-
-Locate the exact discovery/search-root defect.
-
-C. packaged self-inconsistency
-
-Locate why:
-
-- module reference output;
-- packaged examples;
-- renderer;
-- validator;
-
-do not use one consistent model.
-
-D. deployed context divergence
-
-Determine why the installed workspace context file is a small prose stub while
-other packaged assets contain richer and conflicting contracts.
-
-Do not solve this by copying arbitrary user-editable context into a trusted
-contract path.
-
-Record the existing deferred finding:
-
-CONTEXT_OWNERSHIP_AND_TRUST_BOUNDARY
-
-==================================================
-8. STTM FIXTURE/PARSER CLASSIFICATION
-==================================================
-
-QA also observed:
-
-- the markdown STTM was found;
-- native structured parsing recognized zero mappings;
-- it returned `STTM_SHEET_UNRECOGNIZED` / `missing_sheet: fieldMapping`;
-- the Orchestrator then read the raw markdown content manually.
-
-Determine whether:
-
-A. Markdown STTM is an officially supported input format;
-B. the QA fixture is simply the wrong format/template;
-C. the parser is expected to support this template but has a defect.
-
-Do not automatically include STTM parser changes in Repair 8.
-
-If the fixture is invalid, specify the exact supported synthetic format to use
-for the next QA run, such as a sanitized XLSX workbook with required sheets and
-columns.
-
-Classify:
-
-STTM_QA_FIXTURE_VALID: YES/NO/UNKNOWN
-STTM_PARSER_REPAIR_REQUIRED: YES/NO/UNKNOWN
-
-==================================================
-9. DEFINE THE SINGLE SOURCE OF TRUTH
-==================================================
-
-Based on production implementation, recommend the smallest design that ensures:
-
-- one machine-readable canonical Job Config contract;
-- exact module-envelope key and shape;
-- exact module fields;
-- exact writer destination modes;
-- exact critical config keys;
-- examples validated against the same contract;
-- renderer output validated against the same contract;
-- installed extension fallback remains self-contained;
-- no framework source is required by QA/end users;
-- no user-editable context file becomes the authority for executable config.
-
-Do not redesign the entire ETL product.
-
-Prefer extracting/packaging existing authoritative implementation facts over
-inventing a new schema.
-
-==================================================
-10. MINIMUM REPAIR INVENTORY
-==================================================
-
-Produce the exact minimum file inventory for a bounded Repair 8.
-
-For each required file state:
+For every test file return:
 
 - exact path;
-- production/test/package/config;
-- exact function/type/section;
-- reason the change is necessary;
-- whether it already has HF1 candidate changes;
-- whether a new file is required.
+- existing or new;
+- proofs covered;
+- whether it already contains HF1 candidate changes;
+- whether real production code or only source text is exercised.
 
-Expected repair areas may include, but must be proven rather than assumed:
-
-- canonical Job Config contract/schema;
-- packaged framework-contract generation;
-- `etl_get_framework_rules` fallback;
-- `etl_describe_module`;
-- `etl_search_examples`;
-- renderer contract consumption;
-- validator/renderer alignment;
-- package-content tests;
-- fresh-consumer preview regression tests.
-
-Do not include files merely because they are adjacent.
-
-Do not include `etl-framework-adb` as a modified file.
+Do not use source-text-only assertions for behavioral proofs.
 
 ==================================================
-11. REQUIRED TEST PLAN
+5. POSITIVE AND NEGATIVE DESTINATION FIXTURES
 ==================================================
 
-Define tests proving:
+The current development-test STTM used:
 
-1. a fresh consumer with no local job/env examples can produce a valid preview;
-2. the renderer emits the exact production module envelope;
-3. the validator recognizes every rendered module;
-4. the packaged fallback surfaces `criticalConfigKeys`;
-5. packaged examples are searchable without local search roots;
-6. examples, module descriptions, renderer, and validator agree;
-7. supported writer destination modes are explicit and validated;
-8. unsupported Unity Catalog table-by-name output is rejected clearly, if it is
-   not supported;
-9. a supported destination produces a Preview ID;
-10. preview remains zero-write;
-11. framework source is not required;
-12. the existing Repair-5/6/7 security behavior is unchanged;
-13. package verification remains clean.
+curated.qa_hf1v2_customer
 
-Include mutation/negative tests where useful to prevent false-green results.
+as a Unity Catalog table-by-name target.
 
-==================================================
-12. VERSIONING DECISION
-==================================================
+The framework implementation proves this is unsupported by dataframe_writer.
 
-Do not change the version during this discovery.
+Define two separate QA cases:
 
-Because runtime behavior and/or packaged contract content must change, state
-whether the next QA package must become:
+A. Positive supported case
 
-0.3.141
-
-The expected answer is YES unless discovery proves no product/package byte
-change is necessary.
-
-Do not build that package in this task.
-
-==================================================
-13. FINAL REPORT
-==================================================
+Specify the exact synthetic path-based destination shape that can produce a
+valid preview without requiring real credentials or real storage access.
 
 Return:
 
-1. Repository identity.
-2. Exact validator source for "No modules detected in job config".
-3. Exact validator source for "Confirm output path or table".
-4. Canonical Job Config envelope key and shape.
-5. Minimal valid Job Config HOCON example.
-6. Canonical module representation.
-7. Actual `dataframe_writer` destination contract.
-8. Unity Catalog table-name support verdict.
-9. `criticalConfigKeys` fallback root cause.
-10. Packaged-example search root cause.
-11. Package self-inconsistency root cause.
-12. STTM fixture/parser classification.
-13. Minimum Repair-8 file inventory.
-14. Required tests.
-15. No-touch proof.
-16. Versioning recommendation.
+- target path format;
+- target format;
+- write mode;
+- required dataframe_writer fields;
+- whether only planning/preview is possible without storage connectivity;
+- exact sanitized STTM/fixture update required.
 
-Finish exactly with:
+B. Negative unsupported case
 
-CANONICAL_JOB_CONFIG_ENVELOPE_PROVEN: YES/NO
-CANONICAL_MODULE_REPRESENTATION_PROVEN: YES/NO
-DATAFRAME_WRITER_CONTRACT_PROVEN: YES/NO
-UNITY_CATALOG_TABLE_WRITE_SUPPORTED: YES/NO/UNKNOWN
-CRITICAL_CONFIG_KEYS_FALLBACK_DEFECT_CONFIRMED: YES/NO
-PACKAGED_EXAMPLE_SEARCH_DEFECT_CONFIRMED: YES/NO
-PACKAGE_SELF_CONSISTENCY_DEFECT_CONFIRMED: YES/NO
-STTM_QA_FIXTURE_VALID: YES/NO/UNKNOWN
-STTM_PARSER_REPAIR_REQUIRED: YES/NO/UNKNOWN
-PRODUCT_CODE_CHANGE_REQUIRED: YES/NO
-PACKAGE_CONTRACT_CHANGE_REQUIRED: YES/NO
-NEXT_QA_VERSION_MUST_BE_0_3_141: YES/NO
-REPAIR_8_SCOPE_FROZEN: YES/NO
+Retain a Unity Catalog table-name target as a deterministic negative test.
+
+Expected outcome must be a clear unsupported-destination error, not:
+
+"No modules detected in job config"
+
+and not an ambiguous:
+
+"Confirm output path or table"
+
+Do not add Unity Catalog support in Repair 8.
+
+Determine whether the positive/negative fixture belongs in:
+
+- an existing test file;
+- a new test fixture;
+- the disposable DEVELOPMENT_TEST_WORKSPACE only;
+- or a packaged approved example.
+
+Name the exact file if repository mutation is required.
+
+==================================================
+6. CONTEXT TRUST BOUNDARY
+==================================================
+
+Keep this deferred and out of Repair 8:
+
+CONTEXT_OWNERSHIP_AND_TRUST_BOUNDARY
+
+Confirm Repair 8 will not make:
+
+resources/copilot/context/**
+
+the machine-authoritative executable contract.
+
+The authority must remain an extension-owned, integrity-validated contract
+under:
+
+resources/framework/contracts/**
+
+The prose context may reference the trusted contract but must not override it.
+
+==================================================
+7. VERSIONING AND PACKAGING SEPARATION
+==================================================
+
+Confirm the recommended sequence:
+
+1. implement Repair 8 while source version remains 0.3.140;
+2. run compile/lint/focused/full tests;
+3. independently re-audit Repair 8;
+4. perform a separate version bump to 0.3.141;
+5. build and verify one clean 0.3.141 VSIX;
+6. return to the DEVELOPMENT_TEST_WORKSPACE for runtime QA.
+
+Do not change version or package during this scope task.
+
+==================================================
+8. FINAL FROZEN FILE INVENTORY
+==================================================
+
+Return one exact deduplicated inventory grouped as:
+
+NEW_PRODUCTION_OR_CONTRACT_FILES
+MODIFIED_PRODUCTION_FILES
+MODIFIED_PACKAGED_GUIDANCE_FILES
+MODIFIED_TEST_FILES
+NEW_TEST_FILES
+PACKAGE_POLICY_OR_VERIFIER_FILES
+VERSION_FILES_DEFERRED_TO_LATER
+EXPLICITLY_NO_CHANGE_FILES
+
+For every file include:
+
+- exact path;
+- reason;
+- specific function/section;
+- proof/test mapped to it.
+
+The list must include every file needed to implement and test Repair 8.
+
+No implementation authorization will include unnamed files.
+
+==================================================
+9. FINAL MARKERS
+==================================================
+
+Finish with:
+
+INITIAL_8_FILE_SCOPE_COMPLETE: YES|NO
+FRESH_CONSUMER_INTEGRATION_PATH_PROVEN: YES|NO
+ETL_ACTION_TOOL_SERVICE_CHANGE_REQUIRED: YES|NO
+ARTIFACT_GENERATION_PIPELINE_CHANGE_REQUIRED: YES|NO
+JOB_CONFIG_RENDERER_RUNTIME_INTEGRATION_REQUIRED: YES|NO
+VALIDATOR_PRODUCTION_CHANGE_REQUIRED: YES|NO
+READINESS_PROFILE_PRODUCTION_CHANGE_REQUIRED: YES|NO
+EXACT_TEST_FILE_INVENTORY_PROVEN: YES|NO
+POSITIVE_PATH_BASED_QA_FIXTURE_PROVEN: YES|NO
+UNITY_CATALOG_NEGATIVE_TEST_DEFINED: YES|NO
+CONTEXT_TRUST_BOUNDARY_REMAINS_DEFERRED: YES|NO
+REPAIR_8_IMPLEMENTATION_FILE_COUNT: <number>
+REPAIR_8_TEST_FILE_COUNT: <number>
+REPAIR_8_NEW_FILE_COUNT: <number>
+NEXT_QA_VERSION_REMAINS_0_3_141: YES|NO
+REPAIR_8_SCOPE_AMENDMENT_FROZEN: YES|NO
 
 End exactly:
 
-LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_DISCOVERY_COMPLETE
+LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_SCOPE_AMENDMENT_1_COMPLETE
