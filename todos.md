@@ -1,217 +1,274 @@
-TASK: HF1 V2 RUNTIME QA — CORRECT FRESH-CONSUMER ENTRY POINT
+TASK: HF1_V2_QA_PHASE_1_PREVIEW_ONLY
 
-Continue QA in the current sole disposable workspace:
+Continue HF1 V2 runtime QA using the installed Databricks ETL Copilot
+extension version 0.3.140.
 
-C:\Users\tag5916\AppData\Local\Temp\hf1-v2-qa-consumer-03140
+CURRENT QA STATE
 
-The installed and activated extension is Databricks ETL Copilot 0.3.140.
+- The current VS Code window has one disposable consumer workspace root.
+- Expected workspace basename:
+  etl-acz9999-hf1v2-qa
+- Workflow setup has already completed successfully.
+- The generated agents, skills, instructions, and supporting context files are
+  already present.
+- Databricks ETL Copilot 0.3.140 is activated.
+- ETL Chat participant, read-only tools, action tools, and commands are
+  registered.
+- The synthetic QA STTM is:
 
-IMPORTANT CORRECTION
+  sttm/qa_hf1v2_demo_sttm.md
 
-The previous command:
+IMPORTANT
+
+Do NOT run:
 
 @etl /workflow create
 
-was routed to:
+again.
 
-Copilot workflow manager — action=setup
+That workflow setup has already completed.
 
-That command manages consumer workflow customization and is NOT the
-fresh ETL job-generation entry point.
+This phase tests the normal ETL job planning and preview flow after bootstrap.
 
-It correctly blocked because this completely empty directory has none of the
-workflow-target markers:
-
-- job_conf/
-- env_conf/
-- sttm/
-- EDP.yml
-- CD.yml
-- managed ETL Copilot instructions
-
-Do not classify that result as an HF1 product failure.
-
-Do not rerun `/workflow create` as the fresh-consumer test.
+Do NOT modify extension source.
+Do NOT access or modify etl-framework-adb.
+Do NOT access or modify any real consumer repository.
+Do NOT commit or push.
+Do NOT install or download dependencies.
+Do NOT approve or execute a write during this phase.
 
 ==================================================
-1. VERIFY THE CURRENT ENVIRONMENT
+1. VERIFY RUNTIME AND WORKSPACE
 ==================================================
 
 Confirm from live runtime evidence:
 
-- this directory is the only workspace root;
-- Databricks ETL Copilot 0.3.140 is active;
+- installed and active extension version is exactly 0.3.140;
 - 0.3.139 is not active;
-- this workspace is disposable and contains no real project data;
-- no framework source or etl-framework-adb is present.
+- exactly one workspace folder is open;
+- its basename is etl-acz9999-hf1v2-qa;
+- this is a disposable QA workspace;
+- no framework source or etl-framework-adb is present;
+- workflow customization setup is already present;
+- ETL Orchestrator and its required skills/tools are available.
 
-If any prerequisite fails, return QA_RESULT: BLOCKED.
+If any prerequisite fails, stop with:
 
-==================================================
-2. IDENTIFY THE REAL ETL JOB-CREATION ENTRY POINT
-==================================================
+QA_PHASE_1_RESULT: BLOCKED
 
-Inspect only the installed extension’s registered commands, chat participant
-commands, help output, and packaged runtime metadata.
-
-Identify the normal end-user entry point for creating a new ETL job from an
-STTM or equivalent input.
-
-Do not guess the command.
-
-Do not use extension source checkout code.
-
-Explicitly report the distinction between:
-
-A. fresh ETL job creation;
-B. `/workflow create` customization setup.
-
-If no job-generation entry point is exposed by the installed extension,
-return:
-
-FRESH_JOB_ENTRYPOINT_AVAILABLE: NO
-QA_RESULT: FAIL
-
-with the exact command-registration evidence.
+Do not modify anything.
 
 ==================================================
-3. PREPARE MINIMUM SYNTHETIC INPUT
+2. CAPTURE THE PREVIEW BASELINE
 ==================================================
 
-Preserve evidence that the consumer workspace began empty.
+Before starting ETL planning, capture a recursive workspace inventory containing:
 
-Then prepare only the minimum non-production test input required by the
-documented fresh-job flow.
+- relative path;
+- file size;
+- SHA-256 for every existing file.
 
-Preferred form:
+Include the currently generated:
 
-sttm/<synthetic-test-STTM>
+- .github/**
+- resources/copilot/context/**
+- sttm/**
+- .gitignore
 
-Use only:
+Record the baseline file count and aggregate hash.
 
-- a documented packaged sample; or
-- a user-supplied synthetic/sanitized STTM; or
-- a minimal fixture whose structure is explicitly defined by the installed
-  extension contract.
-
-Do not copy real production data.
-
-Do not invent undocumented business mappings merely to force the workflow to
-continue.
-
-If a valid synthetic STTM is not available, stop with:
-
-TEST_INPUT_REQUIRED: YES
-QA_RESULT: BLOCKED
-
-and describe the exact supported file type and minimum fields required.
-
-Do not create job_conf/, env_conf/, EDP.yml, CD.yml, or .github/** merely to
-trick workspace classification.
+Do not modify any file while creating this baseline.
 
 ==================================================
-4. EXECUTE THE FRESH-CONSUMER JOB FLOW
+3. INPUT AND CONTEXT DISCOVERY
 ==================================================
 
-Using the actual installed-extension job-generation command:
+Use:
 
-1. select/read the synthetic STTM;
-2. classify the sole workspace as a fresh consumer;
-3. produce the intended ETL artifact preview;
-4. confirm preview writes zero files;
-5. record every previewed path and content hash;
-6. reject/cancel once and prove zero files are written;
-7. generate a fresh preview;
-8. explicitly approve it;
-9. confirm the write succeeds;
-10. confirm the actual paths and bytes match the approved preview;
-11. confirm the target decision is CREATE_NEW_JOB;
-12. confirm no write occurs outside the disposable workspace;
-13. confirm no framework-source checkout or etl-framework-adb is required.
+sttm/qa_hf1v2_demo_sttm.md
 
-Do not assume Oracle, TIBCO, Data Lake, Synapse, or another destination unless
-the synthetic fixture explicitly exercises it.
+as the only STTM/business-mapping input.
 
-==================================================
-5. APPROVAL AND SECURITY CHECKS
-==================================================
+Report:
 
-Verify at runtime:
+- whether the STTM was discovered;
+- whether it was parsed successfully;
+- the detected source and target concepts;
+- the detected columns/mappings;
+- the requested output/write strategy, if present;
+- any genuinely missing required information.
 
-- the first request is preview-only;
-- approval is explicit;
-- rejected approval writes zero files;
-- approved authorization is one-time;
-- replay is rejected;
-- changing content or path requires a new preview;
-- traversal and absolute escapes are rejected;
-- sibling-root escape is rejected;
-- junction/symlink/reparse escape is rejected where supported;
-- physical containment is checked immediately before mutation.
+Do not invent missing business mappings.
 
-Do not weaken validation to produce a PASS.
+If required information is genuinely absent, stop with:
+
+QA_INPUT_REQUIRED: YES
+QA_PHASE_1_RESULT: BLOCKED
+
+List the exact questions required to continue.
+
+Also report the exact context/knowledge files consumed during planning.
+
+Do not add, replace, or upload new context files during this phase.
+
+Record the following deferred observation without repairing it:
+
+DEFERRED_DESIGN_FINDING:
+CONTEXT_OWNERSHIP_AND_TRUST_BOUNDARY
 
 ==================================================
-6. SEPARATE WORKFLOW-SETUP SCENARIO
+4. RUN THE NORMAL ETL JOB-PLANNING FLOW
 ==================================================
 
-Only after the fresh ETL job flow has completed or the workspace has become a
-verified ETL consumer workspace, test:
+Use the installed ETL Orchestrator, skills, and runtime tools.
 
-@etl /workflow create
+Do not invoke extension source directly.
 
-Treat this as a separate customization scenario.
+Run the normal ETL job-planning flow for the supplied STTM.
 
-Expected behavior:
+The workflow must:
 
-- target resolves as an end-user ETL workspace;
-- proposed `.github/agents/**` assets are shown in a preview;
-- no workflow asset is created before approval;
-- rejection produces zero workflow files;
-- approval creates only the previewed workflow assets;
-- all output remains inside this disposable consumer workspace.
+1. inspect the consumer workspace;
+2. inspect the synthetic STTM;
+3. inspect available packaged framework contracts/resources;
+4. determine the workspace target classification;
+5. determine the target decision;
+6. determine the required ETL artifacts;
+7. run validation/readiness checks;
+8. produce an immutable preview manifest.
 
-In this disposable workspace, `.github/agents/**` is an allowed consumer
-workflow output after explicit approval.
+Do not force the target decision to CREATE_NEW_JOB.
 
-Do not modify `.github/**` in the extension source repository or any real
-consumer repository.
+Report the actual decision from runtime evidence as one of:
+
+- CREATE_NEW_JOB
+- UPDATE_EXISTING_REPO
+- BLOCKED
+
+Because workflow setup assets already exist, explain exactly why the runtime
+selected its decision.
+
+The key requirement is that the workspace must not be BLOCKED merely because
+etl-framework-adb or framework source is absent.
 
 ==================================================
-7. FINAL REPORT
+5. PREVIEW-ONLY SAFETY
+==================================================
+
+Generate the complete Preview.
+
+The Preview report must include for every proposed artifact:
+
+- relative path;
+- artifact type;
+- disposition:
+  CREATE / MODIFY / UNCHANGED / CONFLICT / BLOCKED;
+- content SHA-256;
+- reason/evidence;
+- whether it is writable;
+- whether approval is required.
+
+Confirm that all proposed destinations are contained within the current
+disposable consumer root.
+
+Do not request automatic approval.
+
+Do not perform any filesystem write.
+
+Stop at the point where explicit approval would normally be requested.
+
+==================================================
+6. VERIFY ZERO WRITES
+==================================================
+
+After the Preview has been generated, recapture the complete workspace
+inventory and hashes.
+
+Compare it with the Phase-1 baseline.
+
+Required result:
+
+- zero new files;
+- zero deleted files;
+- zero modified file bytes;
+- `.github/**` unchanged;
+- `resources/copilot/context/**` unchanged;
+- STTM unchanged;
+- no job_conf/** created;
+- no env_conf/** created;
+- no generated ETL artifact written.
+
+A preview/log record held only in extension memory is acceptable.
+
+A workspace file write is not acceptable.
+
+==================================================
+7. FRAMEWORK INDEPENDENCE
+==================================================
+
+Confirm that planning and Preview succeeded using packaged extension resources.
+
+Required:
+
+- no etl-framework-adb workspace;
+- no framework-source checkout;
+- no sibling framework repository;
+- no manual frameworkRepositoryPath required;
+- no source-root fallback used.
+
+Report which packaged framework contract or provider-neutral contract was used.
+
+Do not describe the ETL architecture as Oracle-only.
+
+==================================================
+8. STOP BEFORE APPROVAL
+==================================================
+
+Do not approve the Preview.
+
+Do not call the write operation.
+
+Do not create, modify, or delete artifacts.
+
+Stop after presenting the immutable Preview ID and manifest.
+
+==================================================
+9. REQUIRED FINAL REPORT
 ==================================================
 
 Return:
 
-FRESH_JOB_ENTRYPOINT_IDENTIFIED: PASS/FAIL/BLOCKED
-SYNTHETIC_STTM_AVAILABLE: PASS/FAIL/BLOCKED
-EMPTY_WORKSPACE_START_CONFIRMED: PASS/FAIL/BLOCKED
-FRESH_CONSUMER_CLASSIFIED: PASS/FAIL/BLOCKED
-TARGET_DECISION_CREATE_NEW_JOB: PASS/FAIL/BLOCKED
-PREVIEW_ZERO_WRITES: PASS/FAIL/BLOCKED
-EXPLICIT_APPROVAL_REQUIRED: PASS/FAIL/BLOCKED
-REJECTED_APPROVAL_ZERO_WRITES: PASS/FAIL/BLOCKED
-APPROVED_WRITE_SUCCESS: PASS/FAIL/BLOCKED
-WRITE_PATH_EQUALS_PREVIEW: PASS/FAIL/BLOCKED
-WRITE_CONTENT_EQUALS_APPROVED_MANIFEST: PASS/FAIL/BLOCKED
-APPROVAL_REPLAY_BLOCKED: PASS/FAIL/BLOCKED
-PHYSICAL_CONTAINMENT_RUNTIME_SAFE: PASS/FAIL/BLOCKED
-NO_WRITE_OUTSIDE_CONSUMER_ROOT: PASS/FAIL/BLOCKED
-FRAMEWORK_SOURCE_NOT_REQUIRED: PASS/FAIL/BLOCKED
-WORKFLOW_SETUP_TARGET_VERIFIED: PASS/FAIL/BLOCKED
-WORKFLOW_SETUP_PREVIEW_ONLY_BEFORE_APPROVAL: PASS/FAIL/BLOCKED
-WORKFLOW_SETUP_APPROVED_WRITE_SUCCESS: PASS/FAIL/BLOCKED
-NEW_FUNCTIONAL_REGRESSIONS: YES/NO/BLOCKED
-HF1_SECURITY_REGRESSIONS: YES/NO/BLOCKED
+ACTIVE_EXTENSION_VERSION: <value>
+WORKSPACE_ROOT: <absolute path>
+WORKSPACE_ROOT_COUNT: <number>
+WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
+STTM_INPUT_FOUND: YES/NO
+STTM_PARSED: YES/NO
+CONTEXT_FILES_CONSUMED: <exact list>
+TARGET_CLASSIFICATION: <value>
+TARGET_DECISION: CREATE_NEW_JOB/UPDATE_EXISTING_REPO/BLOCKED
+FRAMEWORK_SOURCE_REQUIRED: YES/NO
+PACKAGED_CONTRACT_RESOLVED: YES/NO
+PREVIEW_ID: <value or NONE>
+PREVIEW_ARTIFACT_COUNT: <number>
+PREVIEW_ARTIFACT_MANIFEST: <complete list>
+PREVIEW_ZERO_NEW_FILES: YES/NO
+PREVIEW_ZERO_MODIFIED_FILES: YES/NO
+PREVIEW_ZERO_DELETED_FILES: YES/NO
+PREVIEW_PATHS_INSIDE_CONSUMER_ROOT: YES/NO
+EXPLICIT_APPROVAL_REQUIRED: YES/NO
+WRITE_EXECUTED: NO
+DEFERRED_CONTEXT_TRUST_FINDING_RECORDED: YES/NO
 
-Conclude exactly one:
+End exactly with one:
 
-QA_RESULT: PASS
-QA_RESULT: FAIL
-QA_RESULT: BLOCKED
+QA_PHASE_1_RESULT: PASS
+QA_PHASE_1_RESULT: FAIL
+QA_PHASE_1_RESULT: BLOCKED
 
-PASS requires the fresh-job flow and the separately identified workflow-setup
-flow to have actually executed.
+PASS requires a real runtime Preview from the installed extension with a
+Preview ID, complete artifact manifest, zero workspace writes, and explicit
+approval still pending.
 
 Do not convert static inspection into a runtime PASS.
-Do not repair product source during this QA task.
+Do not repair source code during this QA phase.
