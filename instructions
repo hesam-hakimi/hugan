@@ -9,6 +9,7 @@
 - universal-coding-agent/src/universal_coding_agent/cli.py
 - universal-coding-agent/src/universal_coding_agent/web/__init__.py
 - universal-coding-agent/src/universal_coding_agent/web/app.py
+- .github/workflows/pretransfer-live-openai.yml
 - universal-coding-agent/tests/test_web_api.py
 - universal-coding-agent/web/package.json
 - universal-coding-agent/web/tsconfig.json
@@ -31,6 +32,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution_production.py
 - universal-coding-agent/src/universal_coding_agent/testlab/product_foundation_live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/program_execution_live.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
@@ -53,6 +55,7 @@
 - universal-coding-agent/tests/test_safe_control.py
 - universal-coding-agent/tests/test_requirement_draft_repair.py
 - universal-coding-agent/tests/test_program_execution.py
+- universal-coding-agent/tests/test_program_execution_qualification.py
 
 Cmd 1
 
@@ -74,6 +77,7 @@ for FILE in \
   src/universal_coding_agent/cli.py \
   src/universal_coding_agent/web/__init__.py \
   src/universal_coding_agent/web/app.py \
+  ../.github/workflows/pretransfer-live-openai.yml \
   tests/test_web_api.py \
   web/package.json \
   web/tsconfig.json \
@@ -96,6 +100,7 @@ for FILE in \
   src/universal_coding_agent/testlab/large_solution.py \
   src/universal_coding_agent/testlab/large_solution_production.py \
   src/universal_coding_agent/testlab/product_foundation_live.py \
+  src/universal_coding_agent/testlab/program_execution_live.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_hard_reasoning_lab.py \
@@ -117,7 +122,8 @@ for FILE in \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_requirement_draft_repair.py \
-  tests/test_program_execution.py
+  tests/test_program_execution.py \
+  tests/test_program_execution_qualification.py
 do
   test -f "$FILE" || { echo "MISSING_FILE=$FILE"; exit 1; }
 done
@@ -129,6 +135,7 @@ from universal_coding_agent.product.program_orchestrator import DiscoveredSafeEx
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
+from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
 from universal_coding_agent.web.app import (
     ProgramExecutionContinueRequest,
@@ -137,6 +144,7 @@ from universal_coding_agent.web.app import (
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
+assert run_program_execution_live
 assert ProductWebRuntime and create_product_app
 assert ProgramExecutionBinding and ProgramExecutionStatus
 assert DiscoveredSafeExecutionPort and ProgramExecutionError
@@ -158,6 +166,7 @@ Cmd 3
   tests/test_safe_control.py \
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
+  tests/test_program_execution_qualification.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
@@ -165,7 +174,8 @@ Cmd 3
   tests/test_solution_discovery.py && \
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
-echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS"
+echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
+echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -288,6 +298,19 @@ echo "PRODUCT_FOUNDATION_LIVE_QUALIFICATION_PASS"
 Cmd 12
 
 ```bash
+PROGRAM_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-program-execution-$(date -u +%Y%m%dT%H%M%SZ)"
+PROGRAM_RC=0
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/python -m universal_coding_agent.testlab.program_execution_live \
+  --state-root "$PROGRAM_STATE_ROOT" || PROGRAM_RC=$?
+test -f "$PROGRAM_STATE_ROOT/program-execution-live-summary.json"
+.venv/bin/python -m json.tool "$PROGRAM_STATE_ROOT/program-execution-live-summary.json"
+test "$PROGRAM_RC" -eq 0
+echo "PROGRAM_EXECUTION_LIVE_QUALIFICATION_PASS"
+```
+
+Cmd 13
+
+```bash
 HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
 HARD_RC=0
 UCA_HARD_LIVE_RUNS=1 UCA_HARD_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
@@ -300,7 +323,7 @@ test "$HARD_RC" -eq 0
 echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
 ```
 
-Cmd 13
+Cmd 14
 
 ```bash
 LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -316,13 +339,13 @@ test "$LARGE_RC" -eq 0
 echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
 ```
 
-Cmd 14
+Cmd 15
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 ```
 
-Cmd 15
+Cmd 16
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -332,7 +355,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --state-root "$STATE_ROOT" --skip-install --skip-quality
 ```
 
-Cmd 16
+Cmd 17
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -350,7 +373,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - product control center pre-transfer qualified"
 ```
 
-Cmd 17
+Cmd 18
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -358,7 +381,7 @@ PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
 bash scripts/safe-workflow.sh approve --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 18
+Cmd 19
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
