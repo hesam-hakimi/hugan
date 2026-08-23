@@ -1,413 +1,230 @@
-We need to perform an INDEPENDENT, READ-ONLY RE-REVIEW of the remediated AskTD / KMAI Phase 2D approved-recipe pilot.
+TASK: HF1 V2 QA VALIDATION — VERSION 0.3.140
 
-This is NOT an implementation task.
+We now have the approved QA candidate:
 
-Do NOT modify repository files.
-Do NOT create or amend commits.
-Do NOT push.
-Do NOT create/update a PR.
-Do NOT merge.
-Do NOT start any later phase.
-Do NOT fix findings during this review.
-Do NOT trust the remediation chat summary by itself; independently verify the candidate from source and tests.
+databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
 
-==================================================
-1. REVIEW TARGET
-==================================================
+This task is QA validation only.
 
-Repository:
-TD-Enterprise/kmai-td-genie
-
-Phase 2C.5 parent branch / accepted candidate:
-phase2/provider-abstraction-foundation
-
-Phase 2D working branch:
-phase2/approved-recipe-pilot
-
-Expected Phase 2D worktree:
-/tmp/asktd-phase2d-approved-recipe-pilot
-
-The Phase 2D remediation has completed but is intentionally:
-- uncommitted
-- unpushed
-- without a PR
-- not formally accepted
-
-The remediation report states:
-
-PHASE_2D_REMEDIATION_READY_FOR_RE_REVIEW
-
-Do not accept that verdict without independent verification.
+Do NOT modify source code.
+Do NOT modify framework source.
+Do NOT modify .github/**.
+Do NOT modify AGENT.md / AGENTS.md.
+Do NOT regenerate Phase-H baselines.
+Do NOT commit or push anything.
+Do NOT install or download dependencies.
+Do NOT use any older VSIX artifact.
 
 ==================================================
-2. PRIOR REVIEW FINDINGS THAT MUST BE RE-TESTED
+1. PRE-QA ENVIRONMENT CHECK
 ==================================================
 
-The previous independent review failed Phase 2D for two HIGH findings.
+Before testing:
 
-HIGH-1:
-Governed validation occurred too late, after adapter/schema probing or other SQL-related work had already started.
+1. Inspect the currently installed Databricks ETL Copilot extension version.
+2. If version 0.3.139 or any older/stale HF1 build is installed:
+   - uninstall it first.
+3. Confirm no other Databricks ETL Copilot version remains active.
+4. Install ONLY:
 
-Acceptance requirement:
-For every Phase 2D approved-recipe path, governance/lifecycle/parameter validation must complete successfully BEFORE:
+   databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
 
-- DataSourceFactory / data-source construction
-- adapter acquisition
-- schema probing
-- builder resolution/invocation
-- SQL generation
-- SQL execution
+5. Restart/reload VS Code if required.
+6. Confirm the installed extension reports version:
 
-On every fail-closed path, prove that NONE of those operations occur.
+   0.3.140
 
-HIGH-2:
-ApprovedRecipe.builder_key did not authoritatively control the executed SQL builder; legacy query_kind control flow could construct the SQL before recipe validation.
-
-Acceptance requirement:
-After successful Phase 2D validation, the executed deterministic SQL builder must be selected through the approved recipe's builder_key.
-
-There must not be an alternative legacy builder invocation that bypasses the authoritative builder_key decision for the Phase 2D pilot path.
+Do not rename or substitute another VSIX.
 
 ==================================================
-3. REMEDIATION CLAIMS TO VERIFY
+2. TEST WORKSPACE RULES
 ==================================================
 
-Independently verify each claim below from the actual candidate bytes:
+Use a fresh QA/test consumer workspace.
 
-1. Governed validation now precedes ALL:
-   - adapter creation/access
-   - schema probing
-   - builder resolution
-   - builder execution
-   - SQL execution
+Do NOT add etl-framework-adb or framework source as another workspace folder.
 
-2. builder_key is authoritative for selecting the executed deterministic builder.
+The tester/end-user workspace must represent the normal packaged-extension experience.
 
-3. ApprovedRecipe contains only six actively consumed contract fields after remediation.
-   Verify the exact field set and prove each retained field has a real runtime or validation consumer.
-   Flag any dead/unused contract field.
+The extension must operate using packaged resources and the consumer workspace only.
 
-4. The pilot parameter model validates valid source-code/source-label pairs, including:
-   IMSB -> Deposits
-   STAX -> Savings
-
-5. Mismatched pairs fail closed.
-
-6. Missing required parameters fail closed.
-
-7. Out-of-domain values fail closed.
-
-8. Unknown recipe IDs fail closed.
-
-9. Non-approved/non-published lifecycle state fails closed.
-
-10. Ungoverned dataset references fail closed.
-
-11. Strict-mode unavailable/off behavior remains fail closed where required by the pilot contract.
-
-12. deny_all and unauthorized-object paths preserve the EXISTING audited blocked behavior.
-
-13. For governed denial/validation failures, prove with executable dependency-injection/call-count tests that there are ZERO calls to:
-   - data-source factory
-   - adapter/data source
-   - schema helper/probe
-   - authoritative builder
-   - legacy builder
-   - SQL execution
-
-Do not accept string scanning as sufficient evidence for this item.
+Do not intentionally modify unrelated files.
 
 ==================================================
-4. ARCHITECTURAL BOUNDARIES THAT MUST REMAIN INTACT
+3. CORE QA SCENARIO — FRESH CONSUMER
 ==================================================
 
-This remains a bounded Phase 2D pilot.
+Run the normal end-user ETL flow on a fresh consumer workspace.
 
-Confirm that the diff does NOT introduce:
+Exercise the normal entry point, including:
 
-- Databricks implementation
-- Unity Catalog implementation
-- Genie implementation
-- Collibra implementation
-- Redis
-- Event Hubs
-- cross-source execution
-- new provider SDKs
-- SQL dialect abstraction
-- broad orchestrator redesign
-- frontend changes
-- fine-grained row/column authorization model
-- a second authorization engine
-- a second read-only enforcement layer
-- a second SQL parser/table-reference extractor
-- an intermediate execution-spec/compiler architecture
-- broad recipe migration
-- registry seed migration
-- recipe folding into RegistrySnapshot identity
+/workflow
 
-Existing SQL Server-backed execution behind DataSourceAdapter is acceptable for this pilot.
+or the currently supported equivalent ETL workflow command.
 
-==================================================
-5. CANDIDATE IDENTITY / IMMUTABILITY
-==================================================
+Validate that the extension can:
 
-Before reviewing logic:
+1. recognize the consumer workspace correctly;
+2. distinguish a fresh consumer from:
+   - extension source
+   - framework/reference roots
+   - sample_repo
+   - unrelated workspace folders;
+3. resolve the intended consumer root without using a first-folder fallback;
+4. locate or request required ETL inputs such as STTM;
+5. inspect the existing workspace;
+6. build the preview/plan;
+7. present intended artifact changes before writing;
+8. require explicit approval before filesystem mutation;
+9. write only after approval;
+10. write only beneath the authorized consumer root.
 
-1. Verify the exact worktree and branch.
-2. Capture:
-   - current HEAD
-   - base/parent SHA
-   - git status
-   - git diff --stat
-   - git diff --name-status
-3. Compute a deterministic digest for the current Phase 2D candidate files.
-4. Record the start-state hashes.
-5. At the end of review, recompute them.
-6. Prove the candidate bytes did not change during the review.
-
-If the expected Phase 2D worktree is absent, do not silently inspect another checkout.
-
-If a correct reachable candidate exists elsewhere, identify it explicitly and prove equivalence before continuing.
-
-Otherwise STOP with a clear blocker.
+Capture the exact user-visible result at each important stage.
 
 ==================================================
-6. FILE-SCOPE REVIEW
+4. WRITE-SAFETY QA
 ==================================================
 
-Enumerate the complete Phase 2D diff against its Phase 2C.5 parent.
+Specifically validate the HF1 fixes.
 
-Pay particular attention to:
+Test that:
 
-- docs/adr/0004-phase2d-approved-recipe-pilot.md
-- src/backend/app/recipes/
-- src/backend/app/recipes/approved_recipes.py
-- src/backend/app/orchestrator.py
-- test/test_approved_recipe_pilot.py
-- test/test_semantic_plan_contract.py
-- test/test_semantic_models.py
-- test/test_authz_no_access_guard.py
-- test/test_query_recipes.py
-- test/test_golden_baseline.py
-- test/test_provider_abstraction_contracts.py
-- docs/adr/README.md
+- preview performs zero writes;
+- declining/cancelling approval performs zero writes;
+- approval allows exactly the intended write;
+- replaying the same consumed approval does not produce another write;
+- changing the target/path/content after preview cannot reuse the previous approval;
+- prohibited/reference roots are blocked;
+- sample_repo is blocked;
+- extension/framework roots are blocked;
+- zero-folder and ambiguous multi-root conditions fail closed rather than selecting workspaceFolders[0].
 
-Do not assume this list is complete.
-The live diff is authoritative.
-
-Also separate:
-A. Phase 2D-attributable findings
-B. pre-existing findings
-C. PR #15 / Phase 2C.5 findings
-
-Do not fail Phase 2D for unrelated pre-existing issues unless Phase 2D makes them worse or depends on them unsafely.
+Do NOT construct dangerous external filesystem links outside a controlled QA/temp fixture unless the environment explicitly supports such testing safely.
 
 ==================================================
-7. REQUIRED SOURCE-CODE TRACE
+5. GENERATED ARTIFACT VALIDATION
 ==================================================
 
-Trace the real pilot execution path end-to-end:
-
-user request
--> authentication context
--> coarse deny_all handling
--> deterministic recipe selection
--> approved recipe lookup
--> recipe lifecycle validation
--> required parameter validation
--> allowed-domain / pair validation
--> governed dataset plan construction
--> governed semantic validation
--> authoritative builder resolution from builder_key
--> SQL construction
--> existing authorization/read-only enforcement
--> DataSourceAdapter.execute_query(...)
--> result handling
-
-For each stage, identify the exact symbol/file and confirm ordering.
-
-The key question is:
-
-CAN ANY ADAPTER, SCHEMA PROBE, BUILDER, SQL GENERATION, OR SQL EXECUTION OCCUR BEFORE THE APPROVED RECIPE HAS PASSED ITS GOVERNED VALIDATION?
-
-The only acceptable answer for PASS is:
-NO, proven by code path plus executable tests.
-
-==================================================
-8. REQUIRED TESTING
-==================================================
-
-Run the narrowest tests first, then broaden.
-
-At minimum run:
-
-A. Approved-recipe focused tests
-B. Semantic-plan compatibility tests
-C. Authorization/no-access tests
-D. Query recipe tests
-E. Provider abstraction tests
-F. Golden baseline
-G. Relevant Phase 2A / 2B / 2C / 2C.5 regression slice
-H. Full backend configured test suite
-I. Coverage gate
-J. git diff --check
-
-Also run an excluded-technology scan against ADDED Phase 2D code.
-
-The previous remediation reported approximately:
-
-Focused Phase 2D: 124 passed
-Full backend: 962 passed, 3 skipped
-Coverage: ~86.75%
-Golden baseline: 10 passed
-
-These numbers are context only.
-Do not force them.
-Report the actual independently observed results.
-
-==================================================
-9. ADVERSARIAL TEST CASES
-==================================================
-
-Independently test or inspect coverage for at least these cases:
-
-- valid Deposits/IMSB recipe request
-- valid Savings/STAX recipe request
-- mismatched IMSB/Savings
-- mismatched STAX/Deposits
-- missing required parameter
-- unknown recipe id
-- draft/non-approved recipe
-- ungoverned dataset
-- strict-mode unavailable/off
-- deny_all user
-- resolved-but-unauthorized dataset/table
-- malicious/out-of-domain parameter
-- flag OFF regression path
-- flag ON successful pilot path
-
-For every failed recipe/governance case, assert no adapter/schema/builder/SQL side effects.
-
-==================================================
-10. GOLDEN / REGRESSION REQUIREMENT
-==================================================
-
-With the Phase 2D pilot flag OFF:
-
-Existing behavior must remain byte-for-byte / semantically unchanged where the current golden harness supports comparison.
+For the successful fresh-consumer flow, inspect generated ETL artifacts.
 
 Confirm:
-- legacy recipe routing still works
-- existing response behavior is preserved
-- existing authorization behavior is preserved
-- no new provider dependency leaks into core
-- previous Phase 2C.5 abstraction guarantees remain intact
+
+- paths shown during Preview are the same paths later written;
+- no path is silently recomputed to another root;
+- expected job config is created;
+- environment/config reuse behavior matches the current product contract;
+- include paths are valid;
+- no unrelated .github/** files are generated;
+- no maintainer/control-plane files are copied into the consumer workspace;
+- no framework source directory is required by the consumer.
+
+If the workflow produces multiple ETL artifacts, record every generated path.
 
 ==================================================
-11. REVIEW OF THE TWO REMEDIATION DESIGN CHOICES
+6. PROVIDER / OUTPUT BEHAVIOR
 ==================================================
 
-Explicitly answer:
+Do not assume Oracle is the product architecture.
 
-A. Is governance now truly before all side-effectful data-source work?
+Oracle validation was part of this hotfix regression surface only.
 
-B. Is ApprovedRecipe.builder_key now the single authoritative builder selector for the pilot lane?
+The extension remains a general ETL extension and may support multiple framework output/provider patterns such as Databricks/data-lake/database/TIBCO/Synapse-style integrations according to available framework contracts.
 
-C. Can legacy query_kind branching still choose or invoke another builder after recipe validation?
+For this QA run, validate only the provider/output path exercised by the supplied test case.
 
-D. Can any schema probe occur before validation?
-
-E. Can an unauthorized or invalid recipe cause any DB/data-source interaction?
-
-F. Are all six ApprovedRecipe fields actually consumed?
-
-G. Are the source_code/source_label pair rules sufficiently deterministic and fail-closed?
+Do not redesign provider behavior.
 
 ==================================================
-12. SECURITY FINDING FROM PREVIOUS REVIEW
+7. NEGATIVE QA
 ==================================================
 
-The previous review also noted a pre-existing MEDIUM issue:
+Perform at least these negative checks where practical:
 
-The resolved-but-unauthorized denial path may disclose the blocked physical object name.
+A. protected/reference workspace as sole folder
+Expected: BLOCKED.
 
-Re-check whether Phase 2D:
-- introduces it,
-- worsens it,
-- fixes it,
-- or leaves it unchanged.
+B. more than one eligible workspace root without explicit safe resolution
+Expected: BLOCKED / ambiguous.
 
-Classify it accurately.
+C. user rejects write approval
+Expected: zero filesystem mutation.
 
-Do NOT silently expand Phase 2D scope to fix it unless the Phase 2D implementation created the issue.
+D. stale/replayed approval
+Expected: rejected.
 
-==================================================
-13. OUTPUT REPORT
-==================================================
+E. artifact/path changes between preview and approval
+Expected: rejected or fresh preview required.
 
-Write a formal report outside the repository/worktree:
-
-/tmp/ASKTD_PHASE_2D_INDEPENDENT_REREVIEW_2026-08-22.md
-
-Include at minimum:
-
-1. Candidate identity
-2. Parent/base identity
-3. Candidate byte/hash proof
-4. Complete changed-file inventory
-5. Source execution trace
-6. Previous HIGH-1 disposition
-7. Previous HIGH-2 disposition
-8. ApprovedRecipe contract audit
-9. Parameter/pair validation audit
-10. Fail-closed side-effect audit
-11. Authorization interaction
-12. Provider-abstraction boundary audit
-13. Excluded-technology scan
-14. Test results
-15. Coverage
-16. Golden/regression results
-17. Security/pre-existing findings
-18. Severity-ranked findings
-19. Acceptance matrix
-20. Final verdict
-21. Candidate immutability/end-state proof
-22. Recommended next action
+Do not weaken validation to make tests pass.
 
 ==================================================
-14. VERDICT RULES
+8. PACKAGE / VERSION CONFIRMATION
 ==================================================
 
-Return EXACTLY ONE of these final verdict tokens:
+Confirm during QA that the actually installed extension is 0.3.140.
 
-PHASE_2D_INDEPENDENT_REREVIEW_PASS
+Record:
 
-or
+- extension version
+- VSIX filename
+- consumer workspace used
+- VS Code version
+- operating system
+- test start/end time
 
-PHASE_2D_INDEPENDENT_REREVIEW_FAIL
-
-PASS requires BOTH former HIGH findings to be conclusively resolved.
-
-Any remaining HIGH issue attributable to Phase 2D => FAIL.
-
-A pre-existing unrelated MEDIUM/LOW finding should be recorded separately and should not automatically fail Phase 2D.
-
-Do not downgrade an unresolved HIGH simply because tests are green.
+Do not rely only on the VSIX filename. Verify the installed extension metadata.
 
 ==================================================
-15. COMPLETION STATE
+9. RESULT CLASSIFICATION
 ==================================================
 
-At the end explicitly report:
+Classify every issue as one of:
 
-Repository files modified by reviewer: Yes/No
-Candidate bytes changed during review: Yes/No
-PR #15 changed: Yes/No
-main changed: Yes/No
-Commit created: Yes/No
-Branch pushed: Yes/No
-Phase 2D PR created: Yes/No
-Phase 2D formally accepted: Yes/No
-Later phase started: Yes/No
+- NEW_FUNCTIONAL_REGRESSION
+- HF1_SECURITY_REGRESSION
+- QA_ENVIRONMENT_ISSUE
+- TEST_DATA_ISSUE
+- PRE_EXISTING_KNOWN_FAILURE
+- NON_BLOCKING_UX_DEBT
+- PASS
 
-This review must remain completely read-only.
+Do not classify a real new issue as historical simply because the full test suite already has known failures.
+
+==================================================
+10. FINAL REPORT
+==================================================
+
+Return a concise but evidence-based report with:
+
+1. Installed version
+2. VSIX tested
+3. Workspace/test scenario
+4. Fresh-consumer workflow result
+5. Preview result
+6. Approval/write result
+7. Generated artifact paths
+8. Root-selection result
+9. Protected-root blocking result
+10. Replay/stale approval result
+11. Any unexpected writes
+12. Any new regression
+13. Screenshots/log evidence available
+14. QA verdict
+
+End with exactly these markers:
+
+QA_VSIX_VERSION_0_3_140_CONFIRMED: YES/NO
+FRESH_CONSUMER_WORKFLOW_PASS: YES/NO
+PREVIEW_WRITES_ZERO_FILES: YES/NO
+EXPLICIT_APPROVAL_REQUIRED: YES/NO
+APPROVED_WRITE_SUCCEEDS: YES/NO
+WRITE_PATH_MATCHES_PREVIEW: YES/NO
+PROTECTED_ROOTS_BLOCKED: YES/NO
+MULTI_ROOT_FAILS_CLOSED: YES/NO
+APPROVAL_REPLAY_BLOCKED: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS: YES/NO
+HF1_SECURITY_REGRESSIONS: YES/NO
+SAFE_TO_PROCEED_TO_PRE_MERGE_CHORES: YES/NO
+QA_RESULT: PASS/FAIL
+
+If any release-critical behavior fails, set QA_RESULT: FAIL and stop. Do not repair code during this QA task.
