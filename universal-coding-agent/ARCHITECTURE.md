@@ -126,7 +126,18 @@ The context compiler uses progressive disclosure:
 5. current task and phase plan;
 6. latest check evidence.
 
-It enforces per-role character budgets and stores the compiled context as an artifact. Future milestones will add accepted phase/slice handoffs as long-term project memory.
+It enforces per-role character budgets and stores the compiled context as an artifact. For a
+dependency-ready Program phase, the orchestrator now compiles completed prerequisite phases into
+one typed, hash-addressed, read-only evidence bundle. The bundle preserves the approved
+requirement hash, immutable source Base SHA, phase result/report references, trusted test
+references, independent PASS reviews, decisions, risks, and Safe execution references. Discovery,
+Implementer, and Reviewer contexts receive the bounded bundle as evidence, not instructions or
+edit authority. Missing provenance, a non-PASS review, missing test evidence, mixed Base SHAs, or
+a current checkout that no longer matches the evidence Base SHA stops before new model work.
+
+This handoff deliberately transfers no prior sandbox source or patch. Automatic full-program
+execution, cross-phase patched-source integration, retry/replan policy, and general project-memory
+compaction remain future work.
 
 ## Portability
 

@@ -32,7 +32,8 @@
 ## Milestone 3 — Project memory and large-program execution
 
 - accepted project knowledge packs;
-- phase/slice handoff compaction;
+- [x] typed, provenance-preserving accepted prior-phase evidence for dependent Safe contexts;
+- phase/slice handoff compaction beyond the bounded accepted phase bundle;
 - project decision and ADR memory;
 - incremental repository index;
 - dependency/call graph and test-impact analysis;

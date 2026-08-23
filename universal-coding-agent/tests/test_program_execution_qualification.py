@@ -38,8 +38,11 @@ class RecordingExecutionPort:
         self.resumes.append((thread_id, approved))
         return {
             "status": self.resume_status,
+            "base_sha": "c" * 40,
             "scope_approved": approved,
             "reviewer_verdict": "PASS" if self.resume_status == "completed" else "FAIL",
+            "tests_ref": f"artifact://tasks/{thread_id}/test-results.json",
+            "review_ref": f"artifact://tasks/{thread_id}/safe-review.json",
             "final_report_ref": f"artifact://tasks/{thread_id}/safe-final-report.json",
         }
 
@@ -365,8 +368,17 @@ def test_multiphase_program_api_recovers_and_executes_dependency_order(
         assert phase_two_report["phase_status"] == "completed"
         assert len(phase_one_report["bindings"]) == 2
         assert len(phase_two_report["bindings"]) == 1
+        dependent = final["bindings"][-1]
+        assert dependent["accepted_evidence_ref"].startswith("artifact://programs/")
+        assert len(dependent["accepted_evidence_hash"]) == 64
+        assert dependent["expected_base_sha"] == "c" * 40
+        bundle = reopened.artifacts.read_json(dependent["accepted_evidence_ref"])
+        assert bundle["dependency_phase_ids"] == ["phase-one"]
+        assert bundle["phases"][0]["reviewer_verdict"] == "PASS"
+        assert len(bundle["phases"][0]["executions"]) == 2
 
     assert len(recovered_executor.starts) == 2
+    assert len(recovered_executor.starts[-1]["accepted_evidence"]) == 1
     assert len(recovered_executor.resumes) == 3
     assert _git(source, "rev-parse", "HEAD") == source_sha
     assert _git(source, "status", "--porcelain") == ""

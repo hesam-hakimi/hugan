@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 from pydantic import ValidationError
 
@@ -10,6 +12,7 @@ from universal_coding_agent.core.safe_models import (
     ChangeScopeEntry,
     FileEdit,
     PatchProposal,
+    SafeContextEvidence,
     SafeModePolicy,
     SafeTaskRequest,
     StructuredEditProposal,
@@ -97,6 +100,23 @@ def test_safe_task_requires_human_approval_and_known_profiles() -> None:
             ),
             manifest=_manifest(),
             policy=SafeModePolicy(),
+        )
+
+
+def test_safe_context_evidence_requires_exact_content_hash() -> None:
+    content = '{"phase_id":"phase-1","reviewer_verdict":"PASS"}'
+    evidence = SafeContextEvidence(
+        source_ref="artifact://programs/example/accepted-evidence.json",
+        sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        content=content,
+    )
+    assert evidence.content == content
+
+    with pytest.raises(ValidationError, match="content hash"):
+        SafeContextEvidence(
+            source_ref="artifact://programs/example/accepted-evidence.json",
+            sha256="f" * 64,
+            content=content,
         )
 
 

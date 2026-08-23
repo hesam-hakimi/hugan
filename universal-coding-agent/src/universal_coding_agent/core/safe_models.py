@@ -5,7 +5,7 @@ import json
 import re
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -162,6 +162,22 @@ class SafeModePolicy(FrozenSafeModel):
         return {item.profile_id: item for item in self.profiles}
 
 
+class SafeContextEvidence(FrozenSafeModel):
+    """Bounded, integrity-checked, read-only context accepted by the control plane."""
+
+    context_type: Literal["accepted_phase_evidence"] = "accepted_phase_evidence"
+    source_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    content: str = Field(min_length=1, max_length=48_000)
+
+    @model_validator(mode="after")
+    def validate_content_hash(self) -> SafeContextEvidence:
+        digest = hashlib.sha256(self.content.encode("utf-8")).hexdigest()
+        if digest != self.sha256:
+            raise ValueError("safe context evidence content hash does not match sha256")
+        return self
+
+
 class SafeTaskRequest(FrozenSafeModel):
     task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
     thread_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
@@ -173,6 +189,7 @@ class SafeTaskRequest(FrozenSafeModel):
     mode: TaskMode = TaskMode.SAFE
     require_scope_approval: bool = True
     metadata: dict[str, str] = Field(default_factory=dict)
+    context_evidence: tuple[SafeContextEvidence, ...] = Field(default=(), max_length=8)
 
     @model_validator(mode="after")
     def validate_safe_task(self) -> SafeTaskRequest:

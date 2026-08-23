@@ -79,6 +79,9 @@ export type ProgramExecutionBinding = {
   result_ref: string;
   phase_report_ref: string;
   error_ref: string;
+  accepted_evidence_ref: string;
+  accepted_evidence_hash: string;
+  expected_base_sha: string;
   control?: ControlSnapshot;
 };
 

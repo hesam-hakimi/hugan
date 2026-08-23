@@ -107,6 +107,9 @@ describe("control-center view models", () => {
         result_ref: "artifact://completed.json",
         phase_report_ref: "artifact://phase-1.json",
         error_ref: "",
+        accepted_evidence_ref: "",
+        accepted_evidence_hash: "",
+        expected_base_sha: "",
       },
       {
         program_id: "program-1",
@@ -120,6 +123,9 @@ describe("control-center view models", () => {
         result_ref: "artifact://awaiting.json",
         phase_report_ref: "artifact://phase-2.json",
         error_ref: "",
+        accepted_evidence_ref: "artifact://accepted-phase-1.json",
+        accepted_evidence_hash: "b".repeat(64),
+        expected_base_sha: "c".repeat(40),
       },
     ];
 
@@ -157,6 +163,9 @@ describe("control-center view models", () => {
         result_ref: "artifact://awaiting.json",
         phase_report_ref: "artifact://phase-1.json",
         error_ref: "",
+        accepted_evidence_ref: "",
+        accepted_evidence_hash: "",
+        expected_base_sha: "",
         control: {
           state: "running",
           reason: "",

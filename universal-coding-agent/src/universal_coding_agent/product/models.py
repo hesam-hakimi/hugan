@@ -318,6 +318,61 @@ class PhaseResult(FrozenModel):
     artifact_refs: tuple[str, ...] = ()
 
 
+class AcceptedSafeExecutionEvidence(FrozenModel):
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    slice_id: str | None = Field(default=None, min_length=1, max_length=64)
+    source_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    result_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    result_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    tests_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    review_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    final_report_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    reviewer_verdict: str = Field(pattern=r"^PASS$")
+
+
+class AcceptedPhaseEvidence(FrozenModel):
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    result_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    result_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    summary_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    summary_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    phase_report_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    phase_report_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    summary: str = Field(min_length=1, max_length=8000)
+    changed_paths: tuple[str, ...] = ()
+    decisions: tuple[str, ...] = ()
+    tests: tuple[str, ...] = Field(min_length=1)
+    reviewer_verdict: str = Field(pattern=r"^PASS$")
+    known_risks: tuple[str, ...] = ()
+    executions: tuple[AcceptedSafeExecutionEvidence, ...] = Field(min_length=1)
+
+
+class AcceptedPhaseEvidenceBundle(FrozenModel):
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    target_phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    dependency_phase_ids: tuple[str, ...] = Field(min_length=1)
+    phases: tuple[AcceptedPhaseEvidence, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_dependency_order(self) -> AcceptedPhaseEvidenceBundle:
+        phase_ids = tuple(item.phase_id for item in self.phases)
+        if phase_ids != self.dependency_phase_ids:
+            raise ValueError("accepted phase evidence must match dependency order")
+        return self
+
+    def canonical_hash(self) -> str:
+        payload = json.dumps(
+            self.model_dump(mode="json"),
+            separators=(",", ":"),
+            sort_keys=True,
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
+
 class ProgramExecutionBinding(FrozenModel):
     program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
     phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
@@ -330,6 +385,9 @@ class ProgramExecutionBinding(FrozenModel):
     result_ref: str = Field(default="", max_length=1024)
     phase_report_ref: str = Field(default="", max_length=1024)
     error_ref: str = Field(default="", max_length=1024)
+    accepted_evidence_ref: str = Field(default="", max_length=1024)
+    accepted_evidence_hash: str = Field(default="", max_length=64)
+    expected_base_sha: str = Field(default="", max_length=64)
 
 
 class ControlEntityType(StrEnum):

@@ -51,12 +51,20 @@ class RecordingDiscoveredSafeExecutor:
             }
         return {
             "status": "completed",
+            "base_sha": "a" * 40,
             "scope_approved": True,
             "reviewer_verdict": "PASS",
             "tests_ref": "artifact://tasks/test-results.json",
             "review_ref": "artifact://tasks/review.json",
             "final_report_ref": "artifact://tasks/final-report.json",
         }
+
+
+class MissingBaseEvidenceExecutor(RecordingDiscoveredSafeExecutor):
+    def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
+        result = super().resume(thread_id, approved)
+        result.pop("base_sha", None)
+        return result
 
 
 def _provider() -> FakeModelProvider:
@@ -238,6 +246,26 @@ def test_completed_safe_units_unlock_slices_and_dependent_phases(tmp_path: Path)
         third = _start_next(workspace, program_id, requirement_hash, executor)
         assert third.phase_id == "phase-2"
         assert third.slice_id == "slice-3"
+        assert third.expected_base_sha == "a" * 40
+        assert third.accepted_evidence_ref.startswith("artifact://programs/")
+        assert len(third.accepted_evidence_hash) == 64
+        accepted = executor.starts[-1]["accepted_evidence"]
+        assert len(accepted) == 1
+        assert accepted[0].source_ref == third.accepted_evidence_ref
+        assert accepted[0].sha256 == third.accepted_evidence_hash
+        assert executor.starts[-1]["expected_base_sha"] == "a" * 40
+        evidence_payload = workspace.artifacts.read_json(third.accepted_evidence_ref)
+        assert evidence_payload["target_phase_id"] == "phase-2"
+        assert evidence_payload["dependency_phase_ids"] == ["phase-1"]
+        assert evidence_payload["phases"][0]["reviewer_verdict"] == "PASS"
+        assert len(evidence_payload["phases"][0]["result_sha256"]) == 64
+        assert len(evidence_payload["phases"][0]["summary_sha256"]) == 64
+        assert len(evidence_payload["phases"][0]["phase_report_sha256"]) == 64
+        assert len(evidence_payload["phases"][0]["executions"]) == 2
+        assert all(
+            len(item["result_sha256"]) == 64
+            for item in evidence_payload["phases"][0]["executions"]
+        )
         assert [call["objective"] for call in executor.starts] == [
             "Implement the first bounded change.",
             "Implement the dependent bounded change.",
@@ -268,6 +296,32 @@ def test_safe_failure_blocks_program_and_prevents_later_work(tmp_path: Path) -> 
         with pytest.raises(ProgramExecutionError, match="not running"):
             _start_next(workspace, program_id, requirement_hash, executor)
         assert len(executor.starts) == 1
+    finally:
+        workspace.close()
+
+
+def test_dependent_phase_fails_closed_before_provider_when_evidence_is_incomplete(
+    tmp_path: Path,
+) -> None:
+    workspace, program_id, requirement_hash = _approved_workspace(tmp_path)
+    executor = MissingBaseEvidenceExecutor()
+    try:
+        for _ in range(2):
+            binding = _start_next(workspace, program_id, requirement_hash, executor)
+            workspace.programs.continue_execution(
+                program_id=program_id,
+                task_id=binding.task_id,
+                current_requirement_hash=requirement_hash,
+                executor=executor,
+                approved=True,
+            )
+
+        with pytest.raises(ProgramExecutionError, match="evidence is invalid"):
+            _start_next(workspace, program_id, requirement_hash, executor)
+
+        assert len(executor.starts) == 2
+        assert workspace.programs.phase_status(program_id, "phase-2") is PhaseStatus.PENDING
+        assert len(workspace.programs.execution_bindings(program_id)) == 2
     finally:
         workspace.close()
 

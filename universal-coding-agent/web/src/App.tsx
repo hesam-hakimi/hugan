@@ -864,6 +864,16 @@ export default function App() {
                             Phase report: <code>{binding.phase_report_ref}</code>
                           </div>
                         )}
+                        {binding.accepted_evidence_ref && (
+                          <div className="artifactRef">
+                            Accepted prior-phase evidence: {" "}
+                            <code>{binding.accepted_evidence_ref}</code>
+                            <br />
+                            Evidence SHA256: <code>{binding.accepted_evidence_hash}</code>
+                            <br />
+                            Immutable Base SHA: <code>{binding.expected_base_sha}</code>
+                          </div>
+                        )}
                         {binding.error_ref && (
                           <div className="artifactRef errorText">
                             Error evidence: <code>{binding.error_ref}</code>

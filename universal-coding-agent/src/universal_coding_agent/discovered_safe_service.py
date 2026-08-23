@@ -9,6 +9,7 @@ from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.safe_models import (
     ApprovedChangeManifest,
     ChangeScopeEntry,
+    SafeContextEvidence,
     SafeModePolicy,
     SafeTaskRequest,
     safe_json,
@@ -71,6 +72,8 @@ class DiscoveredSafeAgentService:
         policy: SafeModePolicy,
         test_profiles: tuple[str, ...],
         acceptance_criteria: tuple[str, ...] = (),
+        accepted_evidence: tuple[SafeContextEvidence, ...] = (),
+        expected_base_sha: str = "",
     ) -> dict[str, Any]:
         requested_profiles = self._validate_test_profiles(policy, test_profiles)
         criteria = acceptance_criteria or (objective,)
@@ -89,12 +92,30 @@ class DiscoveredSafeAgentService:
                 f"discovery sandbox failed safely: {type(exc).__name__}"
             ) from exc
 
+        if expected_base_sha and sandbox.base_sha != expected_base_sha:
+            drift_ref = artifacts.write_json(
+                f"{task_root}/accepted-evidence-base-drift.json",
+                {
+                    "expected_base_sha": expected_base_sha,
+                    "actual_base_sha": sandbox.base_sha,
+                    "accepted_evidence_refs": [
+                        item.source_ref for item in accepted_evidence
+                    ],
+                    "provider_work_started": False,
+                },
+            )
+            raise DiscoveredSafeStartError(
+                "accepted prior-phase evidence base SHA does not match the current "
+                f"discovery checkout; diagnostic: {drift_ref.uri}"
+            )
+
         try:
             discovery = SolutionDiscoveryService(self.provider).discover(
                 Path(sandbox.path),
                 repository,
                 base_sha=sandbox.base_sha,
                 objective=objective,
+                accepted_evidence=accepted_evidence,
             )
         except SolutionDiscoveryError as exc:
             checks = sandbox_manager.read_only_git_checks(Path(sandbox.path))
@@ -187,6 +208,7 @@ class DiscoveredSafeAgentService:
             repository=repository,
             manifest=manifest,
             policy=policy,
+            context_evidence=accepted_evidence,
             metadata={
                 "scope_source": "solution_discovery",
                 "solution_discovery_plan_ref": plan_ref.uri,

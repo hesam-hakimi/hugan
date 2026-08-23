@@ -14,6 +14,8 @@ python -m compileall -q src tests
 ruff check .
 env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_model_line_addressing.py \
+  tests/test_safe_models.py \
+  tests/test_line_edit_protocol.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \

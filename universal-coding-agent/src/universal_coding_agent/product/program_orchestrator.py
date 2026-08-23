@@ -10,12 +10,15 @@ from typing import Any, Protocol
 from pydantic import TypeAdapter
 
 from universal_coding_agent.core.models import ModelRequest, RepositorySpec, SlicePlan
-from universal_coding_agent.core.safe_models import SafeModePolicy
+from universal_coding_agent.core.safe_models import SafeContextEvidence, SafeModePolicy
 from universal_coding_agent.orchestration.structured_output import (
     StructuredOutputError,
     invoke_structured,
 )
 from universal_coding_agent.product.models import (
+    AcceptedPhaseEvidence,
+    AcceptedPhaseEvidenceBundle,
+    AcceptedSafeExecutionEvidence,
     ControlAction,
     ControlEntityType,
     ControlState,
@@ -86,6 +89,8 @@ class DiscoveredSafeExecutionPort(Protocol):
         policy: SafeModePolicy,
         test_profiles: tuple[str, ...],
         acceptance_criteria: tuple[str, ...] = (),
+        accepted_evidence: tuple[SafeContextEvidence, ...] = (),
+        expected_base_sha: str = "",
     ) -> dict[str, Any]: ...
 
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]: ...
@@ -153,10 +158,20 @@ class ProgramOrchestrator:
                 result_ref TEXT NOT NULL DEFAULT '',
                 phase_report_ref TEXT NOT NULL DEFAULT '',
                 error_ref TEXT NOT NULL DEFAULT '',
+                accepted_evidence_ref TEXT NOT NULL DEFAULT '',
+                accepted_evidence_hash TEXT NOT NULL DEFAULT '',
+                expected_base_sha TEXT NOT NULL DEFAULT '',
                 PRIMARY KEY(program_id, phase_id, unit_key)
             )
             """
         )
+        self._ensure_execution_column(
+            "accepted_evidence_ref", "TEXT NOT NULL DEFAULT ''"
+        )
+        self._ensure_execution_column(
+            "accepted_evidence_hash", "TEXT NOT NULL DEFAULT ''"
+        )
+        self._ensure_execution_column("expected_base_sha", "TEXT NOT NULL DEFAULT ''")
         self.connection.commit()
 
     def close(self) -> None:
@@ -352,6 +367,11 @@ class ProgramOrchestrator:
             if active is not None:
                 return active
             phase, slice_plan = self._next_execution_unit(program_id)
+            accepted_evidence, expected_base_sha = self._prepare_accepted_evidence(
+                program_id,
+                phase,
+                current_requirement_hash,
+            )
             if self.phase_status(program_id, phase.phase_id) is PhaseStatus.PENDING:
                 self.start_phase(program_id, phase.phase_id)
             task_id, thread_id = self._execution_ids(
@@ -367,6 +387,13 @@ class ProgramOrchestrator:
                 thread_id=thread_id,
                 requirement_hash=current_requirement_hash,
                 status=ProgramExecutionStatus.STARTING,
+                accepted_evidence_ref=(
+                    accepted_evidence[0].source_ref if accepted_evidence else ""
+                ),
+                accepted_evidence_hash=(
+                    accepted_evidence[0].sha256 if accepted_evidence else ""
+                ),
+                expected_base_sha=expected_base_sha,
             )
             self._insert_execution(binding)
             self.control.ensure_task(task_id)
@@ -388,6 +415,8 @@ class ProgramOrchestrator:
                 policy=policy,
                 test_profiles=requested_profiles,
                 acceptance_criteria=criteria,
+                accepted_evidence=accepted_evidence,
+                expected_base_sha=expected_base_sha,
             )
         except Exception as exc:
             with self._lock:
@@ -439,7 +468,8 @@ class ProgramOrchestrator:
                 """
                 SELECT program_id, phase_id, slice_id, task_id, thread_id,
                        requirement_hash, status, safe_status, result_ref,
-                       phase_report_ref, error_ref
+                       phase_report_ref, error_ref, accepted_evidence_ref,
+                       accepted_evidence_hash, expected_base_sha
                 FROM program_executions WHERE task_id = ?
                 """,
                 (task_id,),
@@ -454,7 +484,8 @@ class ProgramOrchestrator:
                 """
                 SELECT program_id, phase_id, slice_id, task_id, thread_id,
                        requirement_hash, status, safe_status, result_ref,
-                       phase_report_ref, error_ref
+                       phase_report_ref, error_ref, accepted_evidence_ref,
+                       accepted_evidence_hash, expected_base_sha
                 FROM program_executions WHERE program_id = ? ORDER BY rowid
                 """,
                 (program_id,),
@@ -671,6 +702,217 @@ class ProgramOrchestrator:
                 return phase, slice_plan
         raise ProgramExecutionError("phase has no dependency-ready execution unit")
 
+    def _prepare_accepted_evidence(
+        self,
+        program_id: str,
+        target_phase: ProgramPhase,
+        requirement_hash: str,
+    ) -> tuple[tuple[SafeContextEvidence, ...], str]:
+        dependency_ids = self._prior_dependency_phase_ids(program_id, target_phase)
+        if not dependency_ids:
+            return (), ""
+
+        phases: list[AcceptedPhaseEvidence] = []
+        source_base_shas: set[str] = set()
+        for phase_id in dependency_ids:
+            row = self.connection.execute(
+                """
+                SELECT status, result_ref, summary_ref FROM program_phases
+                WHERE program_id = ? AND phase_id = ?
+                """,
+                (program_id, phase_id),
+            ).fetchone()
+            if row is None or PhaseStatus(row[0]) is not PhaseStatus.COMPLETED:
+                raise ProgramExecutionError(
+                    f"accepted evidence dependency is not completed: {phase_id}"
+                )
+            result_ref, summary_ref = str(row[1]), str(row[2])
+            if not result_ref or not summary_ref:
+                raise ProgramExecutionError(
+                    f"accepted evidence is missing phase artifacts: {phase_id}"
+                )
+            try:
+                result_content = self.artifacts.read_text(result_ref)
+                summary_content = self.artifacts.read_text(summary_ref)
+                phase_result = PhaseResult.model_validate(json.loads(result_content))
+            except Exception as exc:
+                raise ProgramExecutionError(
+                    f"accepted evidence phase artifacts are invalid: {phase_id}"
+                ) from exc
+            if phase_result.phase_id != phase_id:
+                raise ProgramExecutionError("accepted evidence phase identity mismatch")
+            if phase_result.reviewer_verdict != "PASS" or not phase_result.tests:
+                raise ProgramExecutionError(
+                    f"accepted evidence lacks PASS review or trusted tests: {phase_id}"
+                )
+
+            bindings = tuple(
+                item
+                for item in self.execution_bindings(program_id)
+                if item.phase_id == phase_id
+            )
+            if not bindings or any(
+                item.status is not ProgramExecutionStatus.COMPLETED
+                or item.requirement_hash != requirement_hash
+                for item in bindings
+            ):
+                raise ProgramExecutionError(
+                    f"accepted evidence has incomplete or drifted executions: {phase_id}"
+                )
+            report_refs = {item.phase_report_ref for item in bindings}
+            if len(report_refs) != 1 or not next(iter(report_refs)):
+                raise ProgramExecutionError(
+                    f"accepted evidence phase report is missing: {phase_id}"
+                )
+            phase_report_ref = next(iter(report_refs))
+            try:
+                report_content = self.artifacts.read_text(phase_report_ref)
+                report = json.loads(report_content)
+            except Exception as exc:
+                raise ProgramExecutionError(
+                    f"accepted evidence phase report is invalid: {phase_id}"
+                ) from exc
+            if (
+                report.get("phase_id") != phase_id
+                or report.get("phase_status") != PhaseStatus.COMPLETED.value
+                or report.get("requirement_hash") != requirement_hash
+            ):
+                raise ProgramExecutionError(
+                    f"accepted evidence phase report provenance mismatch: {phase_id}"
+                )
+
+            executions: list[AcceptedSafeExecutionEvidence] = []
+            for binding in bindings:
+                try:
+                    execution_result_content = self.artifacts.read_text(binding.result_ref)
+                    payload = json.loads(execution_result_content)
+                    state = self._safe_state(payload)
+                    execution = AcceptedSafeExecutionEvidence(
+                        task_id=binding.task_id,
+                        slice_id=binding.slice_id,
+                        source_base_sha=str(
+                            state.get("base_sha") or payload.get("base_sha") or ""
+                        ),
+                        result_ref=binding.result_ref,
+                        result_sha256=hashlib.sha256(
+                            execution_result_content.encode("utf-8")
+                        ).hexdigest(),
+                        tests_ref=str(
+                            state.get("tests_ref") or payload.get("tests_ref") or ""
+                        ),
+                        review_ref=str(
+                            state.get("review_ref") or payload.get("review_ref") or ""
+                        ),
+                        final_report_ref=str(
+                            state.get("final_report_ref")
+                            or payload.get("final_report_ref")
+                            or ""
+                        ),
+                        reviewer_verdict=str(
+                            state.get("reviewer_verdict")
+                            or payload.get("reviewer_verdict")
+                            or ""
+                        ),
+                    )
+                except Exception as exc:
+                    raise ProgramExecutionError(
+                        f"accepted Safe execution evidence is invalid: {binding.task_id}"
+                    ) from exc
+                source_base_shas.add(execution.source_base_sha)
+                executions.append(execution)
+
+            phases.append(
+                AcceptedPhaseEvidence(
+                    phase_id=phase_id,
+                    result_ref=result_ref,
+                    result_sha256=hashlib.sha256(
+                        result_content.encode("utf-8")
+                    ).hexdigest(),
+                    summary_ref=summary_ref,
+                    summary_sha256=hashlib.sha256(
+                        summary_content.encode("utf-8")
+                    ).hexdigest(),
+                    phase_report_ref=phase_report_ref,
+                    phase_report_sha256=hashlib.sha256(
+                        report_content.encode("utf-8")
+                    ).hexdigest(),
+                    summary=sanitize_text(phase_result.summary),
+                    changed_paths=phase_result.changed_paths,
+                    decisions=tuple(sanitize_text(item) for item in phase_result.decisions),
+                    tests=phase_result.tests,
+                    reviewer_verdict=phase_result.reviewer_verdict,
+                    known_risks=tuple(
+                        sanitize_text(item) for item in phase_result.known_risks
+                    ),
+                    executions=tuple(executions),
+                )
+            )
+
+        if len(source_base_shas) != 1:
+            raise ProgramExecutionError(
+                "accepted prior-phase evidence does not share one immutable Base SHA"
+            )
+        source_base_sha = next(iter(source_base_shas))
+        bundle = AcceptedPhaseEvidenceBundle(
+            program_id=program_id,
+            target_phase_id=target_phase.phase_id,
+            requirement_hash=requirement_hash,
+            source_base_sha=source_base_sha,
+            dependency_phase_ids=dependency_ids,
+            phases=tuple(phases),
+        )
+        content = json.dumps(
+            bundle.model_dump(mode="json"),
+            separators=(",", ":"),
+            sort_keys=True,
+            ensure_ascii=False,
+        )
+        evidence_hash = bundle.canonical_hash()
+        if len(content) > 48_000:
+            raise ProgramExecutionError(
+                "accepted prior-phase evidence exceeds the bounded Safe context budget"
+            )
+        reference = self.artifacts.write_text(
+            (
+                f"programs/{program_id}/phases/{target_phase.phase_id}/"
+                f"accepted-prior-phase-evidence-{evidence_hash}.json"
+            ),
+            content,
+            "application/json",
+        )
+        if reference.sha256 != evidence_hash:
+            raise ProgramExecutionError("accepted evidence artifact hash mismatch")
+        return (
+            (
+                SafeContextEvidence(
+                    source_ref=reference.uri,
+                    sha256=evidence_hash,
+                    content=content,
+                ),
+            ),
+            source_base_sha,
+        )
+
+    def _prior_dependency_phase_ids(
+        self,
+        program_id: str,
+        target_phase: ProgramPhase,
+    ) -> tuple[str, ...]:
+        plan = self.plan(program_id)
+        by_id = {item.phase_id: item for item in plan.phases}
+        required: set[str] = set()
+
+        def visit(phase_id: str) -> None:
+            if phase_id in required:
+                return
+            required.add(phase_id)
+            for dependency in by_id[phase_id].dependencies:
+                visit(dependency)
+
+        for dependency in target_phase.dependencies:
+            visit(dependency)
+        return tuple(item.phase_id for item in plan.phases if item.phase_id in required)
+
     def _active_execution(self, program_id: str) -> ProgramExecutionBinding | None:
         active = [
             binding
@@ -688,8 +930,9 @@ class ProgramOrchestrator:
             INSERT INTO program_executions(
                 program_id, phase_id, unit_key, slice_id, task_id, thread_id,
                 requirement_hash, status, safe_status, result_ref,
-                phase_report_ref, error_ref
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                phase_report_ref, error_ref, accepted_evidence_ref,
+                accepted_evidence_hash, expected_base_sha
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 binding.program_id,
@@ -704,6 +947,9 @@ class ProgramOrchestrator:
                 binding.result_ref,
                 binding.phase_report_ref,
                 binding.error_ref,
+                binding.accepted_evidence_ref,
+                binding.accepted_evidence_hash,
+                binding.expected_base_sha,
             ),
         )
         self.connection.commit()
@@ -812,6 +1058,8 @@ class ProgramOrchestrator:
             return
 
         artifact_refs: list[str] = []
+        changed_paths: list[str] = []
+        test_evidence: list[str] = []
         reviewer_verdicts: list[str] = []
         for binding in bindings:
             artifact_refs.append(binding.result_ref)
@@ -820,9 +1068,22 @@ class ProgramOrchestrator:
             verdict = state.get("reviewer_verdict")
             if isinstance(verdict, str) and verdict:
                 reviewer_verdicts.append(verdict)
+            paths = state.get("actual_changed_paths", ())
+            if isinstance(paths, (list, tuple)):
+                changed_paths.extend(str(path) for path in paths if isinstance(path, str))
+            tests_ref = state.get("tests_ref")
+            if isinstance(tests_ref, str) and tests_ref.startswith("artifact://"):
+                test_evidence.append(f"{binding.task_id}: {tests_ref}")
             for value in (*payload.values(), *state.values()):
                 if isinstance(value, str) and value.startswith("artifact://"):
                     artifact_refs.append(value)
+        if (
+            len(reviewer_verdicts) != len(bindings)
+            or any(verdict != "PASS" for verdict in reviewer_verdicts)
+            or len(test_evidence) != len(bindings)
+        ):
+            self._fail_execution_phase(program_id, phase_id)
+            return
         self.complete_phase(
             program_id,
             PhaseResult(
@@ -831,15 +1092,9 @@ class ProgramOrchestrator:
                     f"Completed {len(bindings)} approved Discovered Safe execution "
                     "unit(s) in dependency order."
                 ),
-                tests=tuple(
-                    f"{binding.task_id}: Safe status completed" for binding in bindings
-                ),
-                reviewer_verdict=(
-                    "PASS"
-                    if reviewer_verdicts
-                    and all(verdict == "PASS" for verdict in reviewer_verdicts)
-                    else ""
-                ),
+                changed_paths=tuple(dict.fromkeys(changed_paths)),
+                tests=tuple(test_evidence),
+                reviewer_verdict="PASS",
                 artifact_refs=tuple(dict.fromkeys(artifact_refs)),
             ),
         )
@@ -951,7 +1206,20 @@ class ProgramOrchestrator:
             result_ref=row[8],
             phase_report_ref=row[9],
             error_ref=row[10],
+            accepted_evidence_ref=row[11],
+            accepted_evidence_hash=row[12],
+            expected_base_sha=row[13],
         )
+
+    def _ensure_execution_column(self, name: str, declaration: str) -> None:
+        columns = {
+            str(row[1])
+            for row in self.connection.execute("PRAGMA table_info(program_executions)")
+        }
+        if name not in columns:
+            self.connection.execute(
+                f"ALTER TABLE program_executions ADD COLUMN {name} {declaration}"
+            )
 
     def _set_program_status(self, program_id: str, status: ProgramStatus) -> None:
         self.connection.execute(

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -52,6 +53,9 @@ class ProgramExecutionQualificationProvider:
         return self.live.capabilities()
 
     def invoke(self, request: ModelRequest) -> ModelResponse:
+        accepted_evidence_context = (
+            "# Accepted prior-phase evidence (READ ONLY)" in request.user_prompt
+        )
         if request.role == "solution_discovery":
             target_path = self._target_path(request.user_prompt)
             payload = SolutionImpactPlan(
@@ -79,6 +83,7 @@ class ProgramExecutionQualificationProvider:
                     "role": request.role,
                     "provider": "deterministic_qualification_scope",
                     "target_path": target_path,
+                    "accepted_evidence_context": accepted_evidence_context,
                     "status": "completed",
                 }
             )
@@ -95,6 +100,7 @@ class ProgramExecutionQualificationProvider:
             "provider": "openai_responses",
             "task_id": str(request.metadata.get("task_id", "")),
             "target_path": str(request.metadata.get("target_path", "")),
+            "accepted_evidence_context": accepted_evidence_context,
             "status": "started",
         }
         try:
@@ -352,6 +358,23 @@ def run_program_execution_live(
                     for report in phase_reports.values()
                 )
             )
+            evidence_ref = str(beta_binding.get("accepted_evidence_ref", ""))
+            evidence_content = reopened.artifacts.read_text(evidence_ref)
+            evidence_bundle = json.loads(evidence_content)
+            evidence_hash = hashlib.sha256(evidence_content.encode("utf-8")).hexdigest()
+            evidence_provenance_pass = (
+                first_binding.get("accepted_evidence_ref", "") == ""
+                and beta_binding.get("expected_base_sha") == base_sha
+                and beta_binding.get("accepted_evidence_hash") == evidence_hash
+                and evidence_bundle.get("target_phase_id") == "phase-beta"
+                and evidence_bundle.get("requirement_hash") == requirement_hash
+                and evidence_bundle.get("source_base_sha") == base_sha
+                and evidence_bundle.get("dependency_phase_ids") == ["phase-alpha"]
+                and len(evidence_bundle.get("phases", [])) == 1
+                and evidence_bundle["phases"][0].get("reviewer_verdict") == "PASS"
+                and len(evidence_bundle["phases"][0].get("tests", [])) == 1
+                and len(evidence_bundle["phases"][0].get("executions", [])) == 1
+            )
         finally:
             recovered_client.close()
             recovered_runtime.close()
@@ -394,6 +417,25 @@ def run_program_execution_live(
             {"implementer", "reviewer"}.issubset(roles)
             for roles in (set(items) for items in live_role_coverage.values())
         )
+        beta_task_id = task_ids[1]
+        beta_live_evidence_roles = {
+            str(record["role"])
+            for record in provider.records
+            if record.get("provider") == "openai_responses"
+            and record.get("task_id") == beta_task_id
+            and record.get("accepted_evidence_context") is True
+            and record.get("status") == "completed"
+        }
+        beta_discovery_evidence = any(
+            record.get("role") == "solution_discovery"
+            and record.get("target_path") == "features/beta.py"
+            and record.get("accepted_evidence_context") is True
+            for record in provider.records
+        )
+        evidence_context_pass = (
+            beta_discovery_evidence
+            and {"implementer", "reviewer"}.issubset(beta_live_evidence_roles)
+        )
         source_preserved = _source_preserved(source, base_sha, initial_status)
         qualified = all(
             (
@@ -402,6 +444,8 @@ def run_program_execution_live(
                 phase_order_pass,
                 slice_order_pass,
                 phase_reports_pass,
+                evidence_provenance_pass,
+                evidence_context_pass,
                 safe_reports_pass,
                 live_role_coverage_pass,
                 source_preserved,
@@ -421,6 +465,13 @@ def run_program_execution_live(
                 "phase_report_count": len(phase_report_refs),
                 "phase_report_refs": phase_report_refs,
                 "phase_reports_pass": phase_reports_pass,
+                "cross_phase_evidence_compilation": True,
+                "accepted_evidence_ref": evidence_ref,
+                "accepted_evidence_hash": evidence_hash,
+                "accepted_evidence_provenance_pass": evidence_provenance_pass,
+                "accepted_evidence_context_roles": sorted(beta_live_evidence_roles),
+                "accepted_evidence_discovery_context": beta_discovery_evidence,
+                "accepted_evidence_context_pass": evidence_context_pass,
                 "safe_report_refs": safe_report_refs,
                 "safe_reports_pass": safe_reports_pass,
                 "live_role_coverage": live_role_coverage,

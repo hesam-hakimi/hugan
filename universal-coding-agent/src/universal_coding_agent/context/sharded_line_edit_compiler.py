@@ -48,6 +48,7 @@ class ShardedLineAddressedContextCompiler(LineAddressedContextCompiler):
         sections = [
             "# Safe task",
             task.objective,
+            *self._accepted_evidence_sections(task),
             "# File-shard assignment",
             (
                 f"Target path: {target_path}\n"

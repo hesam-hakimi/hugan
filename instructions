@@ -1,8 +1,10 @@
-# salected files
+# selected files
 
 - universal-coding-agent/pyproject.toml
 - universal-coding-agent/src/universal_coding_agent/safe/model_line_addressing.py
 - universal-coding-agent/src/universal_coding_agent/context/sharded_line_edit_compiler.py
+- universal-coding-agent/src/universal_coding_agent/context/safe_compiler.py
+- universal-coding-agent/src/universal_coding_agent/core/safe_models.py
 - universal-coding-agent/src/universal_coding_agent/safe_service.py
 - universal-coding-agent/src/universal_coding_agent/solution_discovery.py
 - universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
@@ -25,6 +27,8 @@
 - universal-coding-agent/web/src/viewModels.test.ts
 - universal-coding-agent/web/src/styles.css
 - universal-coding-agent/tests/test_model_line_addressing.py
+- universal-coding-agent/tests/test_safe_models.py
+- universal-coding-agent/tests/test_line_edit_protocol.py
 - universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
@@ -49,6 +53,8 @@
 - universal-coding-agent/src/universal_coding_agent/product/search_service.py
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
+- universal-coding-agent/ARCHITECTURE.md
+- universal-coding-agent/ROADMAP.md
 - universal-coding-agent/src/universal_coding_agent/product/task_control.py
 - universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
@@ -73,6 +79,8 @@ for FILE in \
   pyproject.toml \
   src/universal_coding_agent/safe/model_line_addressing.py \
   src/universal_coding_agent/context/sharded_line_edit_compiler.py \
+  src/universal_coding_agent/context/safe_compiler.py \
+  src/universal_coding_agent/core/safe_models.py \
   src/universal_coding_agent/safe_service.py \
   src/universal_coding_agent/solution_discovery.py \
   src/universal_coding_agent/discovered_safe_service.py \
@@ -95,6 +103,8 @@ for FILE in \
   web/src/viewModels.test.ts \
   web/src/styles.css \
   tests/test_model_line_addressing.py \
+  tests/test_safe_models.py \
+  tests/test_line_edit_protocol.py \
   src/universal_coding_agent/testlab/__init__.py \
   src/universal_coding_agent/testlab/synthetic.py \
   src/universal_coding_agent/testlab/openai_responses.py \
@@ -119,6 +129,8 @@ for FILE in \
   src/universal_coding_agent/product/search_service.py \
   src/universal_coding_agent/product/requirement_alignment.py \
   src/universal_coding_agent/product/program_orchestrator.py \
+  ARCHITECTURE.md \
+  ROADMAP.md \
   src/universal_coding_agent/product/task_control.py \
   src/universal_coding_agent/product/controlled_safe_graph.py \
   src/universal_coding_agent/product/workspace.py \
@@ -134,7 +146,8 @@ done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
-from universal_coding_agent.product.models import ProgramExecutionBinding, ProgramExecutionStatus
+from universal_coding_agent.core.safe_models import SafeContextEvidence
+from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
@@ -151,11 +164,13 @@ assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_
 assert run_program_execution_live
 assert ProductWebRuntime and create_product_app
 assert ProgramExecutionBinding and ProgramExecutionStatus
+assert SafeContextEvidence and AcceptedPhaseEvidenceBundle
 assert DiscoveredSafeExecutionPort and ProgramExecutionError
 assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
+print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -171,6 +186,8 @@ Cmd 3
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
   tests/test_program_execution_qualification.py \
+  tests/test_safe_models.py \
+  tests/test_line_edit_protocol.py \
   tests/test_sharded_line_edit_protocol.py \
   tests/test_sharded_dependency_contracts.py \
   tests/test_discovered_safe_service.py \
@@ -180,7 +197,8 @@ Cmd 3
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
-echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS"
+echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS" && \
+echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -311,6 +329,7 @@ test -f "$PROGRAM_STATE_ROOT/program-execution-live-summary.json"
 .venv/bin/python -m json.tool "$PROGRAM_STATE_ROOT/program-execution-live-summary.json"
 test "$PROGRAM_RC" -eq 0
 echo "PROGRAM_EXECUTION_LIVE_QUALIFICATION_PASS"
+echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_LIVE_QUALIFICATION_PASS"
 ```
 
 Cmd 13

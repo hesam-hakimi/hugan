@@ -36,8 +36,11 @@ class RecordingProgramExecutor:
         self.resumes.append((thread_id, approved))
         return {
             "status": "completed",
+            "base_sha": "d" * 40,
             "scope_approved": approved,
             "reviewer_verdict": "PASS",
+            "tests_ref": "artifact://tasks/program/test-results.json",
+            "review_ref": "artifact://tasks/program/safe-review.json",
             "final_report_ref": "artifact://tasks/program/final-report.json",
         }
 

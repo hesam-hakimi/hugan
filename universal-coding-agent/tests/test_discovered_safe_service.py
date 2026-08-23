@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import subprocess
@@ -9,7 +10,11 @@ from pathlib import Path
 import pytest
 
 from universal_coding_agent.core.models import RepositorySpec
-from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
+from universal_coding_agent.core.safe_models import (
+    SafeContextEvidence,
+    SafeModePolicy,
+    TestProfile,
+)
 from universal_coding_agent.discovered_safe_service import (
     DiscoveredSafeAgentService,
     DiscoveredSafeStartError,
@@ -433,6 +438,54 @@ def test_discovered_safe_rejects_untrusted_test_profile_before_discovery(
         )
 
     assert calls == []
+
+
+def test_discovered_safe_rejects_evidence_base_drift_before_provider_work(
+    tmp_path: Path,
+) -> None:
+    source, source_sha = _repository(tmp_path)
+    provider, calls = _provider()
+    state_root = tmp_path / "state"
+    service = DiscoveredSafeAgentService.create(
+        state_root,
+        provider,
+        allow_local_sources=True,
+    )
+    content = '{"accepted":"phase-1"}'
+    evidence = SafeContextEvidence(
+        source_ref="artifact://programs/example/evidence.json",
+        sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        content=content,
+    )
+    expected_sha = "b" * 40
+    assert expected_sha != source_sha
+
+    with pytest.raises(DiscoveredSafeStartError, match="base SHA does not match"):
+        service.start(
+            task_id="evidence-drift-task",
+            thread_id="evidence-drift-thread",
+            title="Evidence drift",
+            objective="Use accepted prior-phase evidence safely.",
+            repository=RepositorySpec(url=str(source), base_ref="main"),
+            policy=_policy(),
+            test_profiles=("active-contract",),
+            accepted_evidence=(evidence,),
+            expected_base_sha=expected_sha,
+        )
+
+    assert calls == []
+    diagnostic = json.loads(
+        (
+            state_root
+            / "artifacts"
+            / "tasks"
+            / "evidence-drift-task"
+            / "accepted-evidence-base-drift.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert diagnostic["provider_work_started"] is False
+    assert diagnostic["expected_base_sha"] == expected_sha
+    assert diagnostic["actual_base_sha"] == source_sha
 
 
 def test_program_execution_uses_discovered_safe_end_to_end_and_preserves_source(
