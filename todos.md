@@ -1,230 +1,335 @@
-TASK: HF1 V2 QA VALIDATION — VERSION 0.3.140
+We are finalizing the independently accepted AskTD / KMAI Phase 2D Approved Recipe Pilot.
 
-We now have the approved QA candidate:
+The implementation and bounded remediation are complete.
 
-databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
+The latest independent read-only re-review returned:
 
-This task is QA validation only.
+PHASE_2D_INDEPENDENT_REREVIEW_PASS
 
-Do NOT modify source code.
-Do NOT modify framework source.
-Do NOT modify .github/**.
-Do NOT modify AGENT.md / AGENTS.md.
-Do NOT regenerate Phase-H baselines.
-Do NOT commit or push anything.
-Do NOT install or download dependencies.
-Do NOT use any older VSIX artifact.
+The reviewer independently confirmed:
 
-==================================================
-1. PRE-QA ENVIRONMENT CHECK
-==================================================
+- Former HIGH-1 (governed validation ordering): RESOLVED
+- Former HIGH-2 (`builder_key` not authoritative): RESOLVED
+- No HIGH findings attributable to Phase 2D
+- Full backend suite: 962 passed, 3 skipped
+- Coverage: 86.75% (required gate 75%)
+- Golden baseline: passed
+- `git diff --check`: clean
+- Independent mutation probes confirmed that the new controls are load-bearing
+- Candidate bytes remained unchanged during independent review
+- PR #15 was not changed
+- `main` was not changed
+- No commit was created by the reviewer
+- No branch was pushed by the reviewer
+- No Phase 2D PR was created by the reviewer
+- No later phase was started
 
-Before testing:
+The independent reviewer also recorded:
 
-1. Inspect the currently installed Databricks ETL Copilot extension version.
-2. If version 0.3.139 or any older/stale HF1 build is installed:
-   - uninstall it first.
-3. Confirm no other Databricks ETL Copilot version remains active.
-4. Install ONLY:
-
-   databricks-etl-copilot-0.3.140-hf1-v2-qa-clean.vsix
-
-5. Restart/reload VS Code if required.
-6. Confirm the installed extension reports version:
-
-   0.3.140
-
-Do not rename or substitute another VSIX.
+1. A pre-existing MEDIUM issue where a denial message can disclose the blocked physical object name. This is NOT attributable to Phase 2D and MUST NOT be repaired in this operation.
+2. A future-risk LOW/INFO item: `governed_dataset_refs` is not currently cross-checked against the tables actually emitted by the builder. This MUST NOT be expanded into new Phase 2D work now. Record it as follow-up/deferred work only.
 
 ==================================================
-2. TEST WORKSPACE RULES
+OBJECTIVE
 ==================================================
 
-Use a fresh QA/test consumer workspace.
+Finalize the EXACT independently reviewed Phase 2D candidate:
 
-Do NOT add etl-framework-adb or framework source as another workspace folder.
+1. Verify candidate identity and byte stability.
+2. Commit the already-reviewed Phase 2D implementation.
+3. Push the Phase 2D branch.
+4. Create a DRAFT pull request.
+5. Report the exact resulting repository state.
 
-The tester/end-user workspace must represent the normal packaged-extension experience.
-
-The extension must operate using packaged resources and the consumer workspace only.
-
-Do not intentionally modify unrelated files.
-
-==================================================
-3. CORE QA SCENARIO — FRESH CONSUMER
-==================================================
-
-Run the normal end-user ETL flow on a fresh consumer workspace.
-
-Exercise the normal entry point, including:
-
-/workflow
-
-or the currently supported equivalent ETL workflow command.
-
-Validate that the extension can:
-
-1. recognize the consumer workspace correctly;
-2. distinguish a fresh consumer from:
-   - extension source
-   - framework/reference roots
-   - sample_repo
-   - unrelated workspace folders;
-3. resolve the intended consumer root without using a first-folder fallback;
-4. locate or request required ETL inputs such as STTM;
-5. inspect the existing workspace;
-6. build the preview/plan;
-7. present intended artifact changes before writing;
-8. require explicit approval before filesystem mutation;
-9. write only after approval;
-10. write only beneath the authorized consumer root.
-
-Capture the exact user-visible result at each important stage.
+DO NOT implement anything new.
 
 ==================================================
-4. WRITE-SAFETY QA
+CRITICAL IMMUTABILITY RULE
 ==================================================
 
-Specifically validate the HF1 fixes.
+The independently reviewed candidate MUST NOT change before commit.
 
-Test that:
+Before doing anything mutating:
 
-- preview performs zero writes;
-- declining/cancelling approval performs zero writes;
-- approval allows exactly the intended write;
-- replaying the same consumed approval does not produce another write;
-- changing the target/path/content after preview cannot reuse the previous approval;
-- prohibited/reference roots are blocked;
-- sample_repo is blocked;
-- extension/framework roots are blocked;
-- zero-folder and ambiguous multi-root conditions fail closed rather than selecting workspaceFolders[0].
+1. Identify the exact Phase 2D worktree and branch used for the successful independent re-review.
 
-Do NOT construct dangerous external filesystem links outside a controlled QA/temp fixture unless the environment explicitly supports such testing safely.
+Expected branch:
 
-==================================================
-5. GENERATED ARTIFACT VALIDATION
-==================================================
+    phase2/approved-recipe-pilot
 
-For the successful fresh-consumer flow, inspect generated ETL artifacts.
+Expected parent:
 
-Confirm:
+    d5472ae31081879329c224922244d87962737e8c
 
-- paths shown during Preview are the same paths later written;
-- no path is silently recomputed to another root;
-- expected job config is created;
-- environment/config reuse behavior matches the current product contract;
-- include paths are valid;
-- no unrelated .github/** files are generated;
-- no maintainer/control-plane files are copied into the consumer workspace;
-- no framework source directory is required by the consumer.
+The parent corresponds to the independently accepted Phase 2C.5 candidate.
 
-If the workflow produces multiple ETL artifacts, record every generated path.
+2. Capture:
 
-==================================================
-6. PROVIDER / OUTPUT BEHAVIOR
-==================================================
+    git status --short
+    git branch --show-current
+    git rev-parse HEAD
+    git diff --stat
+    git diff --check
+    git diff --name-status
+    git diff
+    git ls-files --others --exclude-standard
 
-Do not assume Oracle is the product architecture.
+3. Compute a deterministic digest of ALL candidate changes, including:
+   - modified tracked files
+   - newly added/untracked files that belong to Phase 2D
 
-Oracle validation was part of this hotfix regression surface only.
+4. Compare the candidate against the state that received:
 
-The extension remains a general ETL extension and may support multiple framework output/provider patterns such as Databricks/data-lake/database/TIBCO/Synapse-style integrations according to available framework contracts.
+    PHASE_2D_INDEPENDENT_REREVIEW_PASS
 
-For this QA run, validate only the provider/output path exercised by the supplied test case.
+If there is ANY unexplained candidate drift:
 
-Do not redesign provider behavior.
+STOP.
+
+Output:
+
+    PHASE_2D_FINALIZATION_BLOCKED_CANDIDATE_DRIFT
+
+Do not commit.
+Do not push.
+Do not create a PR.
 
 ==================================================
-7. NEGATIVE QA
+SCOPE LOCK
 ==================================================
 
-Perform at least these negative checks where practical:
+Do NOT:
 
-A. protected/reference workspace as sole folder
-Expected: BLOCKED.
+- modify implementation
+- modify tests
+- modify ADR content
+- fix formatting unless required to preserve the exact reviewed bytes
+- repair the pre-existing MEDIUM security issue
+- implement the governed_dataset_refs/table cross-check
+- modify PR #15
+- modify `main`
+- merge anything
+- rebase the reviewed candidate
+- squash or rewrite Phase 2C.5
+- start Phase 2E
+- add Databricks/Genie/Unity Catalog work
+- add Redis/Event Hubs work
+- perform unrelated cleanup
 
-B. more than one eligible workspace root without explicit safe resolution
-Expected: BLOCKED / ambiguous.
-
-C. user rejects write approval
-Expected: zero filesystem mutation.
-
-D. stale/replayed approval
-Expected: rejected.
-
-E. artifact/path changes between preview and approval
-Expected: rejected or fresh preview required.
-
-Do not weaken validation to make tests pass.
-
-==================================================
-8. PACKAGE / VERSION CONFIRMATION
-==================================================
-
-Confirm during QA that the actually installed extension is 0.3.140.
-
-Record:
-
-- extension version
-- VSIX filename
-- consumer workspace used
-- VS Code version
-- operating system
-- test start/end time
-
-Do not rely only on the VSIX filename. Verify the installed extension metadata.
+This operation is repository finalization only.
 
 ==================================================
-9. RESULT CLASSIFICATION
+EXPECTED PHASE 2D CONTENT
 ==================================================
 
-Classify every issue as one of:
+Verify the candidate contains the already-reviewed Phase 2D work, including the relevant Phase 2D files such as:
 
-- NEW_FUNCTIONAL_REGRESSION
-- HF1_SECURITY_REGRESSION
-- QA_ENVIRONMENT_ISSUE
-- TEST_DATA_ISSUE
-- PRE_EXISTING_KNOWN_FAILURE
-- NON_BLOCKING_UX_DEBT
-- PASS
+- docs/adr/0004-phase2d-approved-recipe-pilot.md
+- src/backend/app/recipes/__init__.py
+- src/backend/app/recipes/approved_recipes.py
+- src/backend/app/orchestrator.py
+- test/test_approved_recipe_pilot.py
+- previously reviewed Phase 2D test extensions
+- ADR index update if it was part of the reviewed candidate
 
-Do not classify a real new issue as historical simply because the full test suite already has known failures.
+Do NOT reconstruct this list from this prompt alone.
+
+The actual independently reviewed Git diff is authoritative.
 
 ==================================================
-10. FINAL REPORT
+PRE-COMMIT VALIDATION
 ==================================================
 
-Return a concise but evidence-based report with:
+Before committing, rerun the relevant non-mutating validation gates against the unchanged candidate.
 
-1. Installed version
-2. VSIX tested
-3. Workspace/test scenario
-4. Fresh-consumer workflow result
-5. Preview result
-6. Approval/write result
-7. Generated artifact paths
-8. Root-selection result
-9. Protected-root blocking result
-10. Replay/stale approval result
-11. Any unexpected writes
-12. Any new regression
-13. Screenshots/log evidence available
-14. QA verdict
+At minimum:
 
-End with exactly these markers:
+1. Phase 2D focused tests
+2. Approved Recipe contract tests
+3. semantic-plan/governance tests
+4. authorization negative tests
+5. provider-abstraction regression tests
+6. golden baseline
+7. full backend test suite with configured coverage
+8. git diff --check
+9. excluded/future-provider technology scan
 
-QA_VSIX_VERSION_0_3_140_CONFIRMED: YES/NO
-FRESH_CONSUMER_WORKFLOW_PASS: YES/NO
-PREVIEW_WRITES_ZERO_FILES: YES/NO
-EXPLICIT_APPROVAL_REQUIRED: YES/NO
-APPROVED_WRITE_SUCCEEDS: YES/NO
-WRITE_PATH_MATCHES_PREVIEW: YES/NO
-PROTECTED_ROOTS_BLOCKED: YES/NO
-MULTI_ROOT_FAILS_CLOSED: YES/NO
-APPROVAL_REPLAY_BLOCKED: YES/NO
-NEW_FUNCTIONAL_REGRESSIONS: YES/NO
-HF1_SECURITY_REGRESSIONS: YES/NO
-SAFE_TO_PROCEED_TO_PRE_MERGE_CHORES: YES/NO
-QA_RESULT: PASS/FAIL
+Expected previously reviewed baseline includes:
 
-If any release-critical behavior fails, set QA_RESULT: FAIL and stop. Do not repair code during this QA task.
+    962 passed
+    3 skipped
+    coverage 86.75%
+
+Small test-count differences are acceptable ONLY if you can prove they are caused by test-discovery/environment differences and NOT candidate changes.
+
+Any real regression:
+
+STOP.
+
+Output:
+
+    PHASE_2D_FINALIZATION_BLOCKED_VALIDATION_FAILURE
+
+==================================================
+COMMIT
+==================================================
+
+Only after identity and validation pass:
+
+Stage ONLY the exact independently reviewed Phase 2D files.
+
+Before commit, show:
+
+    git status --short
+    git diff --cached --name-status
+    git diff --cached --stat
+
+Confirm that no unrelated files are staged.
+
+Create ONE commit.
+
+Suggested commit message:
+
+    feat(asktd): add governed approved recipe pilot
+
+Do not amend any existing commit.
+
+After commit capture:
+
+    git rev-parse HEAD
+    git show --stat --oneline HEAD
+    git status --short
+
+==================================================
+PUSH
+==================================================
+
+Push:
+
+    phase2/approved-recipe-pilot
+
+Do NOT force push.
+
+Verify local HEAD equals remote branch HEAD after push.
+
+If they differ:
+
+STOP and report the mismatch.
+
+==================================================
+DRAFT PR
+==================================================
+
+Create a DRAFT PR.
+
+Base:
+
+    phase2/provider-abstraction-foundation
+
+Head:
+
+    phase2/approved-recipe-pilot
+
+IMPORTANT:
+
+PR #15 is the Phase 2C.5 PR into `main`.
+
+Phase 2D is intentionally stacked on the accepted Phase 2C.5 candidate.
+
+Do NOT target `main` while PR #15 remains unmerged.
+
+The PR body should clearly state:
+
+Title:
+
+    Phase 2D — Governed Approved Recipe Pilot
+
+Summary should explain in simple terms:
+
+- introduces the first governed Approved Recipe pilot
+- uses deterministic recipe selection
+- validates recipe lifecycle and parameters before any data-source/SQL activity
+- makes `builder_key` authoritative for the executed SQL builder
+- validates governed dataset scope using the existing semantic-plan governance layer
+- preserves existing authorization and read-only enforcement
+- remains behind the Phase 2D pilot flag
+- preserves legacy behavior when the flag is disabled
+- does not introduce Databricks, Genie, Unity Catalog, Redis, Event Hubs, or cross-source execution
+
+Include validation evidence:
+
+- Independent re-review: PASS
+- Full backend: 962 passed, 3 skipped
+- Coverage: 86.75%
+- Golden baseline: passed
+- diff checks: clean
+- independent mutation probes: passed
+
+Also explicitly state:
+
+Dependency:
+This PR is stacked on PR #15 / `phase2/provider-abstraction-foundation`.
+It must not be merged before its base dependency is resolved.
+
+Deferred/non-blocking findings:
+- pre-existing physical-object disclosure in one denial path
+- future governed_dataset_refs vs emitted-table cross-check
+
+Do NOT claim those were fixed.
+
+==================================================
+POST-PUSH / PR VERIFICATION
+==================================================
+
+After creating the Draft PR, verify:
+
+- branch name
+- local commit SHA
+- remote commit SHA
+- PR number
+- PR URL
+- PR base
+- PR head
+- Draft = yes
+- changed-file count
+- CI/check status if available
+- mergeability if available
+- PR #15 unchanged
+- `main` unchanged
+- working tree clean
+
+==================================================
+FINAL RESPONSE
+==================================================
+
+Return exactly one final status token:
+
+PHASE_2D_DRAFT_PR_CREATED
+
+or, if blocked:
+
+PHASE_2D_FINALIZATION_BLOCKED_<REASON>
+
+Then provide a concise evidence table containing:
+
+- Parent SHA
+- Phase 2D commit SHA
+- Remote SHA
+- Branch
+- PR number
+- PR base/head
+- Draft status
+- Changed files
+- Test results
+- Coverage
+- CI status
+- Working-tree status
+- PR #15 changed? Yes/No
+- main changed? Yes/No
+- Phase 2E started? Yes/No
+
+IMPORTANT:
+
+Do not start Phase 2E.
+
+Stop after Phase 2D Draft PR creation and verification.
