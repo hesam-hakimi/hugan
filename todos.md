@@ -1,335 +1,465 @@
-We are finalizing the independently accepted AskTD / KMAI Phase 2D Approved Recipe Pilot.
+We are continuing the AskTD / KMAI roadmap after Phase 2D.
 
-The implementation and bounded remediation are complete.
+This task is DISCOVERY + READINESS ONLY for Phase 2E.
 
-The latest independent read-only re-review returned:
+DO NOT implement Phase 2E yet.
+DO NOT modify production code.
+DO NOT create commits.
+DO NOT push branches.
+DO NOT create a PR.
+DO NOT merge anything.
+DO NOT modify PR #15 or PR #16.
+DO NOT use /tmp or create a detached worktree outside the main VS Code workspace.
 
-PHASE_2D_INDEPENDENT_REREVIEW_PASS
+IMPORTANT WORKSPACE RULE
 
-The reviewer independently confirmed:
+Work only inside the currently opened repository workspace.
 
-- Former HIGH-1 (governed validation ordering): RESOLVED
-- Former HIGH-2 (`builder_key` not authoritative): RESOLVED
-- No HIGH findings attributable to Phase 2D
-- Full backend suite: 962 passed, 3 skipped
-- Coverage: 86.75% (required gate 75%)
-- Golden baseline: passed
-- `git diff --check`: clean
-- Independent mutation probes confirmed that the new controls are load-bearing
-- Candidate bytes remained unchanged during independent review
-- PR #15 was not changed
-- `main` was not changed
-- No commit was created by the reviewer
-- No branch was pushed by the reviewer
-- No Phase 2D PR was created by the reviewer
-- No later phase was started
+Do not create another Git worktree under /tmp, /var/tmp, home, or any other external path.
 
-The independent reviewer also recorded:
+The purpose is to avoid repeated Copilot approval prompts for filesystem access.
 
-1. A pre-existing MEDIUM issue where a denial message can disclose the blocked physical object name. This is NOT attributable to Phase 2D and MUST NOT be repaired in this operation.
-2. A future-risk LOW/INFO item: `governed_dataset_refs` is not currently cross-checked against the tables actually emitted by the builder. This MUST NOT be expanded into new Phase 2D work now. Record it as follow-up/deferred work only.
+If branch isolation is needed for later implementation, recommend the exact branch strategy in the report, but do not create it during this discovery task.
 
 ==================================================
-OBJECTIVE
+CURRENT VERIFIED STATE
 ==================================================
 
-Finalize the EXACT independently reviewed Phase 2D candidate:
-
-1. Verify candidate identity and byte stability.
-2. Commit the already-reviewed Phase 2D implementation.
-3. Push the Phase 2D branch.
-4. Create a DRAFT pull request.
-5. Report the exact resulting repository state.
-
-DO NOT implement anything new.
-
-==================================================
-CRITICAL IMMUTABILITY RULE
-==================================================
-
-The independently reviewed candidate MUST NOT change before commit.
-
-Before doing anything mutating:
-
-1. Identify the exact Phase 2D worktree and branch used for the successful independent re-review.
-
-Expected branch:
-
-    phase2/approved-recipe-pilot
-
-Expected parent:
-
-    d5472ae31081879329c224922244d87962737e8c
-
-The parent corresponds to the independently accepted Phase 2C.5 candidate.
-
-2. Capture:
-
-    git status --short
-    git branch --show-current
-    git rev-parse HEAD
-    git diff --stat
-    git diff --check
-    git diff --name-status
-    git diff
-    git ls-files --others --exclude-standard
-
-3. Compute a deterministic digest of ALL candidate changes, including:
-   - modified tracked files
-   - newly added/untracked files that belong to Phase 2D
-
-4. Compare the candidate against the state that received:
-
-    PHASE_2D_INDEPENDENT_REREVIEW_PASS
-
-If there is ANY unexplained candidate drift:
-
-STOP.
-
-Output:
-
-    PHASE_2D_FINALIZATION_BLOCKED_CANDIDATE_DRIFT
-
-Do not commit.
-Do not push.
-Do not create a PR.
-
-==================================================
-SCOPE LOCK
-==================================================
-
-Do NOT:
-
-- modify implementation
-- modify tests
-- modify ADR content
-- fix formatting unless required to preserve the exact reviewed bytes
-- repair the pre-existing MEDIUM security issue
-- implement the governed_dataset_refs/table cross-check
-- modify PR #15
-- modify `main`
-- merge anything
-- rebase the reviewed candidate
-- squash or rewrite Phase 2C.5
-- start Phase 2E
-- add Databricks/Genie/Unity Catalog work
-- add Redis/Event Hubs work
-- perform unrelated cleanup
-
-This operation is repository finalization only.
-
-==================================================
-EXPECTED PHASE 2D CONTENT
-==================================================
-
-Verify the candidate contains the already-reviewed Phase 2D work, including the relevant Phase 2D files such as:
-
-- docs/adr/0004-phase2d-approved-recipe-pilot.md
-- src/backend/app/recipes/__init__.py
-- src/backend/app/recipes/approved_recipes.py
-- src/backend/app/orchestrator.py
-- test/test_approved_recipe_pilot.py
-- previously reviewed Phase 2D test extensions
-- ADR index update if it was part of the reviewed candidate
-
-Do NOT reconstruct this list from this prompt alone.
-
-The actual independently reviewed Git diff is authoritative.
-
-==================================================
-PRE-COMMIT VALIDATION
-==================================================
-
-Before committing, rerun the relevant non-mutating validation gates against the unchanged candidate.
-
-At minimum:
-
-1. Phase 2D focused tests
-2. Approved Recipe contract tests
-3. semantic-plan/governance tests
-4. authorization negative tests
-5. provider-abstraction regression tests
-6. golden baseline
-7. full backend test suite with configured coverage
-8. git diff --check
-9. excluded/future-provider technology scan
-
-Expected previously reviewed baseline includes:
-
-    962 passed
-    3 skipped
-    coverage 86.75%
-
-Small test-count differences are acceptable ONLY if you can prove they are caused by test-discovery/environment differences and NOT candidate changes.
-
-Any real regression:
-
-STOP.
-
-Output:
-
-    PHASE_2D_FINALIZATION_BLOCKED_VALIDATION_FAILURE
-
-==================================================
-COMMIT
-==================================================
-
-Only after identity and validation pass:
-
-Stage ONLY the exact independently reviewed Phase 2D files.
-
-Before commit, show:
-
-    git status --short
-    git diff --cached --name-status
-    git diff --cached --stat
-
-Confirm that no unrelated files are staged.
-
-Create ONE commit.
-
-Suggested commit message:
-
-    feat(asktd): add governed approved recipe pilot
-
-Do not amend any existing commit.
-
-After commit capture:
-
-    git rev-parse HEAD
-    git show --stat --oneline HEAD
-    git status --short
-
-==================================================
-PUSH
-==================================================
-
-Push:
-
-    phase2/approved-recipe-pilot
-
-Do NOT force push.
-
-Verify local HEAD equals remote branch HEAD after push.
-
-If they differ:
-
-STOP and report the mismatch.
-
-==================================================
-DRAFT PR
-==================================================
-
-Create a DRAFT PR.
-
-Base:
-
-    phase2/provider-abstraction-foundation
-
-Head:
-
-    phase2/approved-recipe-pilot
-
-IMPORTANT:
-
-PR #15 is the Phase 2C.5 PR into `main`.
-
-Phase 2D is intentionally stacked on the accepted Phase 2C.5 candidate.
-
-Do NOT target `main` while PR #15 remains unmerged.
-
-The PR body should clearly state:
-
-Title:
-
-    Phase 2D — Governed Approved Recipe Pilot
-
-Summary should explain in simple terms:
-
-- introduces the first governed Approved Recipe pilot
-- uses deterministic recipe selection
-- validates recipe lifecycle and parameters before any data-source/SQL activity
-- makes `builder_key` authoritative for the executed SQL builder
-- validates governed dataset scope using the existing semantic-plan governance layer
-- preserves existing authorization and read-only enforcement
-- remains behind the Phase 2D pilot flag
-- preserves legacy behavior when the flag is disabled
-- does not introduce Databricks, Genie, Unity Catalog, Redis, Event Hubs, or cross-source execution
-
-Include validation evidence:
-
-- Independent re-review: PASS
+Repository:
+TD-Enterprise/kmai-td-genie
+
+Phase 2C.5:
+PR #15
+Base: main
+Head: phase2/provider-abstraction-foundation
+Status: open / draft / not merged
+Reviewed candidate commit:
+d5472ae31081879329c224922244d87962737e8c
+
+Phase 2D:
+PR #16
+Base: phase2/provider-abstraction-foundation
+Head: phase2/approved-recipe-pilot
+Status: draft
+
+Phase 2D implementation has passed independent review.
+
+Relevant validation evidence:
 - Full backend: 962 passed, 3 skipped
-- Coverage: 86.75%
-- Golden baseline: passed
-- diff checks: clean
-- independent mutation probes: passed
+- Coverage: ~86.75%
+- Golden baseline passed
+- Phase 2D independent review: PASS
+- Candidate was verified byte-identical before finalization
+- main was not changed
+- PR #15 was not changed
 
-Also explicitly state:
+Phase 2D introduced the bounded Approved Recipe pilot.
 
-Dependency:
-This PR is stacked on PR #15 / `phase2/provider-abstraction-foundation`.
-It must not be merged before its base dependency is resolved.
+The Phase 2D implementation includes, among other things:
+- ApprovedRecipe contract
+- deterministic approved-recipe lookup
+- recipe lifecycle gate
+- parameter validation
+- governed dataset references
+- governed semantic-plan validation
+- builder_key as authoritative builder selector
+- governed validation before adapter/schema-probe/builder/SQL activity
+- fail-closed behavior
+- existing authorization preserved
+- feature flag / rollback path
+- source_balance_mom_change pilot recipe
 
-Deferred/non-blocking findings:
-- pre-existing physical-object disclosure in one denial path
-- future governed_dataset_refs vs emitted-table cross-check
-
-Do NOT claim those were fixed.
+Do not assume this summary is sufficient.
+Inspect the actual repository and PR branches.
 
 ==================================================
-POST-PUSH / PR VERIFICATION
+FIRST: VERIFY LIVE REPOSITORY STATE
 ==================================================
 
-After creating the Draft PR, verify:
+Before architecture analysis, verify:
 
-- branch name
-- local commit SHA
-- remote commit SHA
-- PR number
-- PR URL
-- PR base
-- PR head
-- Draft = yes
-- changed-file count
-- CI/check status if available
-- mergeability if available
-- PR #15 unchanged
-- `main` unchanged
-- working tree clean
+1. current workspace path
+2. current checked-out branch
+3. git status
+4. origin/main SHA
+5. PR #15 branch SHA
+6. PR #16 branch SHA
+7. whether either PR has changed since the recorded evidence
+8. exact relationship:
+
+main
+  -> phase2/provider-abstraction-foundation
+      -> phase2/approved-recipe-pilot
+
+9. changed-file inventory for PR #15
+10. changed-file inventory for PR #16
+11. whether Phase 2D files are present only on PR #16 or anywhere else
+12. workflow/check status for both PRs
+13. whether PR #16 still intentionally receives no CI because its base is a stacked feature branch
+
+If the live state differs materially from the recorded state, STOP implementation planning and clearly explain the drift.
+
+Do not mutate anything while verifying.
+
+==================================================
+SECOND: READ THE EXISTING ARCHITECTURE
+==================================================
+
+Inspect the current implementation and roadmap-related code/docs needed to understand what Phase 2E should be.
+
+At minimum inspect the current implementations of:
+
+- orchestration/runtime flow
+- Approved Recipe package
+- semantic models
+- GovernedSemanticPlan
+- RegistrySnapshot
+- MetadataRegistryService
+- registry/version handling
+- authorization / EffectivePermissions
+- SQL policy / read-only enforcement
+- DataSourceAdapter / provider abstraction
+- query recipe builders
+- answer renderers
+- report generation
+- visualization/chart generation
+- model/agent workflow
+- current cache usage
+- Redis support if present
+- any graph / relationship / semantic-network implementation
+- configuration and feature flags
+- audit / tracing
+- golden baseline tests
+- architecture ADRs
+- roadmap/status documentation currently available in the repository
+
+Do not redesign the system from scratch.
+
+==================================================
+THIRD: RECONSTRUCT THE PHASE 2E PURPOSE
+==================================================
+
+Determine from evidence what the smallest useful Phase 2E should be.
+
+The Phase 2E analysis MUST explicitly examine these roadmap areas:
+
+A. Approved Recipe evolution
+B. metadata/semantic governance integration
+C. keeping recipes valid when datasets/metadata evolve
+D. field-level and relationship-level governed references
+E. recipe versioning and lifecycle
+F. richer answer-generation workflow
+G. reusable report / presentation templates
+H. graph / semantic relationship layer
+I. caching strategy
+J. Redis role
+K. provider abstraction continuation
+L. Databricks / Genie coexistence boundaries
+M. future cross-source capability
+N. observability / audit
+O. self-service onboarding
+
+Do NOT assume all of these belong in Phase 2E.
+
+Classify each item as:
+
+- Phase 2E
+- Phase 2F
+- Later
+- Existing / already implemented
+- Separate infrastructure track
+- Separate UX/reporting track
+- Needs architecture decision
+
+Explain why.
+
+==================================================
+IMPORTANT QUESTION: RECIPE EVOLUTION
+==================================================
+
+We specifically need an architecture answer for this:
+
+"What happens when a governed dataset changes after an Approved Recipe has been created?"
+
+Investigate and design the intended lifecycle.
+
+Evaluate scenarios such as:
+
+- dataset gains a column
+- dataset loses a column
+- column renamed
+- datatype changed
+- relationship changed
+- business definition changed
+- source physical object changes but logical governed dataset stays stable
+- recipe parameter domain changes
+- builder implementation changes
+- registry version changes for an unrelated dataset
+- dataset is deprecated
+- recipe is superseded
+
+Determine whether recipes should be:
+
+- dynamically validated against the latest governed snapshot,
+- pinned to logical metadata versions,
+- pinned only to specific referenced entities,
+- dependency-aware,
+- automatically marked stale,
+- automatically revalidated,
+- manually re-approved,
+- or some combination.
+
+Avoid a design where every unrelated registry change invalidates every recipe.
+
+Propose a practical dependency-aware model.
+
+==================================================
+IMPORTANT QUESTION: GRAPH
+==================================================
+
+Investigate what "graph" should mean in AskTD.
+
+Distinguish between:
+
+1. metadata relationship graph
+2. dataset relationship graph
+3. business semantic graph
+4. execution/query plan graph
+5. lineage graph
+
+Identify which one is useful first.
+
+Explain whether the graph should initially be:
+
+- persisted,
+- computed from registry metadata,
+- represented in relational tables,
+- represented in JSON,
+- stored in a graph database,
+- or deferred.
+
+Do not introduce a graph database unless evidence justifies it.
+
+==================================================
+IMPORTANT QUESTION: BETTER ANSWERS + REPORT TEMPLATES
+==================================================
+
+Determine where roadmap work belongs for:
+
+- better multi-step reasoning
+- improved question clarification
+- stronger agent workflow
+- executive summaries
+- richer tables
+- formatted analytical answers
+- reusable report templates
+- beautiful visual layouts
+- chart/report composition
+- downloadable reports
+
+Separate:
+
+1. reasoning/orchestration improvement
+2. semantic correctness
+3. visualization
+4. report-template system
+5. frontend presentation
+
+Propose likely phases for each.
+
+==================================================
+IMPORTANT QUESTION: CACHE / REDIS
+==================================================
+
+Audit current caching.
+
+Answer:
+
+1. Is Redis currently implemented, optional, planned, or unused?
+2. What is currently cached?
+3. What should be cached?
+4. What must never be cached without authorization scope?
+5. Should cache keys include:
+   - user/effective scope
+   - registry version
+   - recipe version
+   - dataset refs
+   - query parameters
+6. Which cache belongs in-process vs Redis?
+7. Should Redis be introduced now or later?
+8. What invalidates cached entries?
+
+Do not propose Redis merely because it exists in the architecture roadmap.
+
+==================================================
+FOURTH: DEFINE PHASE 2E OPTIONS
+==================================================
+
+Produce at least three realistic Phase 2E options:
+
+Option A — smallest bounded next slice
+
+Option B — medium governance expansion
+
+Option C — larger semantic foundation
+
+For each include:
+
+- objective
+- user/business value
+- architecture value
+- exact dependencies
+- approximate file-change surface
+- migration risk
+- test scope
+- rollback strategy
+- whether PR #15 must merge first
+- whether PR #16 must merge first
+- whether it can safely be stacked
+- expected follow-on phase
+
+Then recommend ONE option.
+
+Prefer the smallest slice that creates a durable architectural improvement.
+
+==================================================
+FIFTH: BRANCH / PR STRATEGY
+==================================================
+
+We currently have stacked PRs.
+
+Recommend the safest continuation strategy.
+
+Consider:
+
+main
+ -> PR #15 / Phase 2C.5
+    -> PR #16 / Phase 2D
+       -> possible Phase 2E branch
+
+Answer:
+
+- Can Phase 2E safely stack on PR #16?
+- What risks arise if #15 later changes?
+- What risks arise if #16 later changes?
+- When should rebase happen?
+- Should Phase 2E implementation wait for both merges?
+- If implementation must continue before approvals, what exact branch structure should be used?
+
+For future implementation, prefer creating the branch directly inside the normal repository workspace rather than using /tmp worktrees.
+
+Do not create the branch during this discovery.
+
+==================================================
+SIXTH: ROADMAP RECONSTRUCTION
+==================================================
+
+Build a management-friendly roadmap from current state through the enterprise target.
+
+Use simple language.
+
+Include approximately:
+
+Current foundation
+Phase 2D
+Phase 2E
+Phase 2F
+Phase 3
+Phase 4
+Phase 5 / enterprise maturity
+
+Do not force these names if repository evidence supports different sequencing.
+
+For each phase show:
+
+- What capability the user gets
+- What technical foundation is added
+- Why it matters
+- Major dependencies
+
+Make sure the roadmap explicitly places:
+
+- Approved Recipes
+- recipe maintenance/versioning
+- metadata governance
+- field/relationship semantics
+- better agent reasoning
+- report templates
+- charts/visualization
+- graph capabilities
+- caching / Redis
+- Databricks provider
+- Genie integration/coexistence
+- cross-source support
+- observability
+- self-service onboarding
+
+==================================================
+SEVENTH: PRODUCE THE DISCOVERY REPORT
+==================================================
+
+Create ONE markdown report inside the current workspace, preferably under an existing docs/plans or docs/architecture location.
+
+Do not use /tmp.
+
+Suggested name:
+
+ASKTD_PHASE_2E_DISCOVERY_AND_ROADMAP_2026-08-23.md
+
+The report must contain:
+
+1. Executive summary
+2. Live repository / PR state
+3. Current architecture baseline
+4. What Phase 2D established
+5. Remaining architecture gaps
+6. Recipe evolution / stale-detection design
+7. Metadata + relationship graph analysis
+8. Better-answer / reporting / visualization roadmap
+9. Cache / Redis analysis
+10. Provider / Databricks / Genie boundary
+11. Phase 2E option A
+12. Phase 2E option B
+13. Phase 2E option C
+14. Recommended Phase 2E
+15. Exact bounded implementation surface
+16. Tests required
+17. Branch / stacked PR strategy
+18. Rollback strategy
+19. Dependencies / blockers
+20. Management roadmap
+21. Explicit out-of-scope items
+22. Recommended next action
 
 ==================================================
 FINAL RESPONSE
 ==================================================
 
-Return exactly one final status token:
+At the end, report:
 
-PHASE_2D_DRAFT_PR_CREATED
+PHASE_2E_DISCOVERY_COMPLETE
 
-or, if blocked:
+Then provide:
 
-PHASE_2D_FINALIZATION_BLOCKED_<REASON>
+- recommended Phase 2E name
+- one-sentence objective
+- approximate number of source files to modify
+- approximate number of new source files
+- approximate test files
+- PR dependency recommendation
+- whether Phase 2E can safely start before PR #15/#16 merge
+- report path
 
-Then provide a concise evidence table containing:
+And explicitly state:
 
-- Parent SHA
-- Phase 2D commit SHA
-- Remote SHA
-- Branch
-- PR number
-- PR base/head
-- Draft status
-- Changed files
-- Test results
-- Coverage
-- CI status
-- Working-tree status
-- PR #15 changed? Yes/No
-- main changed? Yes/No
-- Phase 2E started? Yes/No
+Repository files modified:
+Git state changed:
+Commit created:
+Branch created:
+Branch pushed:
+PR created:
+Phase 2E implementation started:
 
-IMPORTANT:
+For this discovery task, all should be NO except the single discovery/report document if documentation creation is permitted.
 
-Do not start Phase 2E.
-
-Stop after Phase 2D Draft PR creation and verification.
+Do not begin implementation.
