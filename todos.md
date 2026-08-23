@@ -1,607 +1,413 @@
-We are performing a BOUNDED REMEDIATION of the existing AskTD / KMAI
-Phase 2D Approved Recipe Pilot stacked candidate.
+We need to perform an INDEPENDENT, READ-ONLY RE-REVIEW of the remediated AskTD / KMAI Phase 2D approved-recipe pilot.
 
-The first independent review verdict was:
+This is NOT an implementation task.
 
-PHASE_2D_INDEPENDENT_REVIEW_FAIL
-
-All validation and regression gates were green, but the reviewer identified
-two Phase-2D-attributable HIGH findings that block acceptance.
-
-This task must remediate only those findings and directly related
-contract/test issues.
-
-Do NOT redesign the application.
-
-Do NOT commit.
+Do NOT modify repository files.
+Do NOT create or amend commits.
 Do NOT push.
-Do NOT create or edit a PR.
+Do NOT create/update a PR.
 Do NOT merge.
-Do NOT deploy.
-Do NOT modify PR #15.
-Do NOT modify main.
-Do NOT start another roadmap phase.
+Do NOT start any later phase.
+Do NOT fix findings during this review.
+Do NOT trust the remediation chat summary by itself; independently verify the candidate from source and tests.
 
 ==================================================
-1. TARGET
+1. REVIEW TARGET
 ==================================================
 
 Repository:
-
 TD-Enterprise/kmai-td-genie
 
-Phase 2D branch:
-
-phase2/approved-recipe-pilot
-
-Expected worktree:
-
-/tmp/asktd-phase2d-approved-recipe-pilot
-
-Stack base:
-
+Phase 2C.5 parent branch / accepted candidate:
 phase2/provider-abstraction-foundation
 
-Expected accepted PR #15 SHA:
-
-d5472ae31081879329c224922244d87962737e8c
-
-First verify:
-
-- the Phase 2D worktree is the same candidate that was independently reviewed;
-- it is based directly on the accepted PR #15 HEAD;
-- PR #15 is unchanged;
-- main is unchanged;
-- no Phase 2D commit or remote branch has appeared.
-
-If the base or candidate changed unexpectedly, STOP and report:
-
-PHASE_2D_REMEDIATION_CANDIDATE_CHANGED
-
-==================================================
-2. READ THE REVIEW EVIDENCE COMPLETELY
-==================================================
-
-Read completely:
-
-/tmp/ASKTD_PHASE_2D_INDEPENDENT_REVIEW_2026-08-22.md
-
-Also read:
-
-/tmp/ASKTD_PHASE_2D_STACKED_IMPLEMENTATION_2026-08-22.md
-
-Use the independent-review report as the authoritative source for the
-remediation findings.
-
-Before editing, reproduce and report the exact code path for both HIGH
-findings.
-
-==================================================
-3. FINDINGS TO REMEDIATE
-==================================================
-
-The independent reviewer found:
-
-HIGH 1:
-
-The governed Approved Recipe gate runs after an adapter/schema operation.
-Therefore a validation failure does not guarantee zero data-source activity.
-
-HIGH 2:
-
-ApprovedRecipe.builder_key does not authoritatively determine the SQL builder.
-The legacy path builds SQL before governed recipe validation.
-
-Related issues:
-
-- some ApprovedRecipe fields may exist without a real production consumer;
-- independently allowed source_code and source_label values may permit an
-  invalid combination;
-- tests do not fully prove zero adapter/schema/builder calls on every governed
-  denial;
-- tests do not prove that builder_key controls the SQL actually executed.
-
-==================================================
-4. REQUIRED FINAL ORDERING
-==================================================
-
-The final pilot ordering must be:
-
-1. existing coarse deny_all authorization gate;
-2. deterministic legacy selector produces a candidate recipe_id;
-3. exact ApprovedRecipe lookup;
-4. recipe lifecycle validation;
-5. parameter presence/type/domain validation;
-6. cross-parameter pair validation;
-7. current governed RegistrySnapshot resolution;
-8. dataset-scoped GovernedSemanticPlan construction;
-9. deterministic governed-plan validation;
-10. builder resolution from ApprovedRecipe.builder_key;
-11. SQL construction using only the resolved builder and validated parameters;
-12. data-source adapter construction/access;
-13. existing SQL read-only and object-authorization controls;
-14. execution and current result handling.
-
-The following must NOT occur before Steps 3–9 pass:
-
-- DataSourceAdapter construction;
-- DataSourceAdapter method call;
-- database/schema probe;
-- has_dataset/schema lookup through the data source;
-- SQL builder call;
-- SQL string construction;
-- SQL authorization/execution.
-
-MetadataRegistryService and its in-process governed RegistrySnapshot service
-are not considered a data-source adapter and may be used for governance
-validation before SQL construction.
-
-==================================================
-5. MOVE GOVERNED EVALUATION EARLIER
-==================================================
-
-Inspect the current Orchestrator route from deterministic selection through:
-
-- parameter/source resolution;
-- data-source creation;
-- schema resolution;
-- SQL construction;
-- approved-recipe evaluation;
-- execution.
-
-Move the Approved Recipe evaluation to the earliest safe point after:
-
-- recipe_id is known;
-- raw recipe parameters are available;
-
-but before:
-
-- self._data_source(...);
-- any data-source factory;
-- schema probes;
-- SQL construction.
-
-Do not move existing object-level authorization into the recipe selector.
-
-Selection remains distinct from authorization.
-
-The existing execution-level authorization controls must still run after the
-authoritative SQL is built.
-
-Do not broadly restructure Orchestrator.
-
-Use the smallest helper extraction necessary to make ordering explicit and
-testable.
-
-==================================================
-6. MAKE builder_key AUTHORITATIVE
-==================================================
-
-ApprovedRecipe.builder_key must control the SQL builder that is actually used.
-
-Implement a small static allow-listed builder registry/resolver.
-
-Conceptual example only:
-
-APPROVED_RECIPE_BUILDERS = {
-    "source_balance_mom_change_sql":
-        query_recipes.source_balance_mom_change_sql,
-}
-
-Do not use:
-
-- dynamic imports;
-- getattr over arbitrary user-controlled strings;
-- plugin discovery;
-- configuration-provided callables;
-- LLM-selected builders;
-- reflection-based execution.
-
-After lifecycle, parameter, and governed-plan validation pass:
-
-1. resolve the builder exclusively from recipe.builder_key;
-2. fail closed if the builder key is unknown;
-3. call that resolved builder with only validated parameters;
-4. pass its result into the existing SQL policy/authorization/execution path.
-
-Remove any duplicate direct legacy builder invocation for the pilot path.
-
-There must be one authoritative builder invocation.
-
-==================================================
-7. CONTRACT FIELD AUDIT
-==================================================
-
-Audit every field in:
-
-ApprovedRecipe
-
-and:
-
-RecipeParameter
-
-For every field identify its real production consumer.
-
-Each field must be one of:
-
-- actively consumed by production behavior;
-- actively written into required trace/audit evidence;
-- removed from the bounded pilot contract.
-
-Do not preserve unused fields merely because discovery proposed them.
-
-In particular inspect whether fields such as:
-
-- intent_id;
-- renderer;
-- any descriptive/output field;
-
-are genuinely consumed.
-
-Do not add speculative consumers simply to justify a field.
-
-Prefer removing a field that has no bounded pilot purpose.
-
-Update ADR 0004 and tests to match the actual minimal final contract.
-
-==================================================
-8. VALIDATE SOURCE CODE/LABEL AS A PAIR
-==================================================
-
-The pilot must not validate source_code and source_label independently when
-only specific pairs are governed.
-
-Define one explicit deterministic declared domain for valid combinations.
-
-Based on current repository evidence, preserve only the intended pairs, such
-as:
-
-IMSB -> Deposits
-STAX -> Savings
-
-Use the exact current business values found in repository code/tests.
-
-Do not trust this prompt if actual values differ.
-
-Validation must reject:
-
-- unknown source_code;
-- unknown source_label;
-- valid code with the wrong label;
-- valid label with the wrong code;
-- missing code;
-- missing label;
-- undeclared additional parameters;
-- injection-like values.
-
-Pair validation must happen before builder resolution and before any adapter
-activity.
-
-==================================================
-9. ZERO-SIDE-EFFECT DENIAL CONTRACT
-==================================================
-
-For every Approved Recipe governance failure, guarantee:
-
-- data-source factory calls: 0;
-- adapter constructions: 0;
-- adapter method calls: 0;
-- schema probes: 0;
-- builder calls: 0;
-- SQL executions: 0.
-
-At minimum cover:
-
-- unknown recipe ID;
-- recipe lifecycle not approved/published;
-- missing parameter;
-- wrong parameter type;
-- out-of-domain value;
-- invalid source_code/source_label pair;
-- unknown builder_key;
-- unknown governed dataset;
-- strict metadata unavailable;
-- governed-plan validation failure.
-
-The existing coarse deny_all behavior must also remain before data access.
-
-==================================================
-10. AUTHORITATIVE BUILDER TESTS
-==================================================
-
-Add strong tests proving builder_key is not decorative metadata.
-
-Tests must prove:
-
-1. the resolved allow-listed builder is called;
-2. an unrelated/legacy direct builder is not called;
-3. the exact SQL passed to the execution boundary comes from the resolved
-   builder;
-4. an unknown builder_key fails closed;
-5. validation failure occurs before any builder invocation;
-6. a recipe cannot select an arbitrary callable or module.
-
-A useful test may install a sentinel allowed builder and make the former direct
-legacy builder raise if invoked.
-
-Do not overmock the Orchestrator behavior under test.
-
-==================================================
-11. ADAPTER / SCHEMA-PROBE TESTS
-==================================================
-
-Add tests using the real supported dependency-injection seam.
-
-For denial cases, configure the data-source factory to:
-
-- record every invocation; or
-- raise immediately if called.
-
-Prove the governed validation failure completes through the expected safe
-response without invoking that factory.
-
-If schema resolution is currently hidden inside a helper, instrument the
-actual helper or fake adapter method so the test proves:
-
-schema probes == 0
-
-Do not claim zero adapter activity merely because execute_query was not called.
-
-==================================================
-12. PRESERVE AUTHORIZATION
-==================================================
-
-Do not add a new authorization system.
-
-Preserve:
-
-- EffectivePermissions;
-- deny_all;
-- SqlPolicy;
-- SqlAuthorizationGuard;
-- current auth-bound DataSourceAdapter;
-- current object-level authorization order for valid governed recipes.
-
-For an approved and governance-valid recipe that references an unauthorized
-physical object:
-
-- existing object authorization must still block;
-- no rows are returned;
-- current audited blocked-path behavior remains reachable.
-
-Do not convert an authorization failure into “recipe not found” or generic
-governance failure.
-
-==================================================
-13. PRE-EXISTING OBJECT-NAME DISCLOSURE
-==================================================
-
-The independent reviewer classified the unauthorized physical-object-name
-disclosure as:
-
-MEDIUM
-PRE-EXISTING
-SEPARATE REMEDIATION
-
-Do not fix it inside this bounded Phase 2D remediation unless the current
-Phase 2D diff introduced or expanded the disclosure.
-
-Record it in the remediation report as a separate security follow-up.
-
-Do not weaken or hide tests merely to avoid observing it.
-
-==================================================
-14. ADR AND DOCUMENTATION
-==================================================
-
-Update ADR 0004 only as needed to describe the corrected architecture:
-
-- governed validation occurs before adapter construction/schema probing/SQL
-  construction;
-- builder_key is authoritative through a static allow-listed resolver;
-- invalid recipe/governance/parameter states have zero adapter and zero builder
-  activity;
-- pair-level parameter validation;
-- final minimal contract fields;
-- existing authorization remains a later independent execution control.
-
-Do not modify ADR 0003 or PR #15.
-
-The missing ADR 0003 index row remains an inherited PR #15/documentation issue
-to reconcile after integration unless repository policy proves it blocks the
-Phase 2D candidate.
-
-==================================================
-15. SCOPE LIMIT
-==================================================
-
-Do NOT implement:
-
-- Databricks;
-- Unity Catalog;
-- Collibra;
-- Genie;
-- Redis;
-- Event Hubs;
-- graph or GraphRAG;
-- reporting templates;
-- KPI/glossary;
-- cross-source execution;
-- fine-grained authorization;
-- recipe-management UI;
-- generalized recipe lifecycle platform;
-- dynamic builder plugins;
-- SQL dialect abstraction;
-- frontend;
-- deployment/infrastructure;
-- broad Orchestrator redesign;
-- migration of other recipes;
-- changes to PR #15 or main.
-
-==================================================
-16. FOCUSED TESTS FIRST
-==================================================
-
-Run focused tests for:
-
-- ApprovedRecipe/RecipeParameter contract;
-- pair validation;
-- builder resolver;
-- builder authority;
-- zero adapter calls;
-- zero schema probes;
-- zero builder calls on denial;
-- flag OFF behavior;
-- flag ON successful pilot;
-- existing authorization denial.
-
-Inspect the assertions, not only the test count.
-
-==================================================
-17. FULL VALIDATION
-==================================================
-
-After focused tests pass, run:
-
-1. all Approved Recipe tests;
-2. Phase 2A/2B/2C regressions;
-3. Phase 2C.5 provider-abstraction regressions;
-4. MetadataRegistryService tests;
-5. authorization tests;
-6. SQL policy/store tests;
-7. semantic-model/query-recipe tests;
-8. golden baseline;
-9. full backend suite with configured coverage;
-10. git diff --check;
-11. excluded-technology scan.
-
-Historical pre-remediation results:
-
-- focused: 107 passed;
-- selected regression: 405 passed;
-- full backend: 945 passed, 3 skipped;
-- coverage: 86.72%.
-
-Counts may legitimately increase because new tests are required.
-
-Do not force exact historical counts.
-
-Do not regenerate baselines.
-
-Do not install or upgrade dependencies.
-
-==================================================
-18. FINAL CODE-PATH AUDIT
-==================================================
-
-Before finishing, explicitly report the exact final order for the pilot route.
-
-Answer:
-
-- Is data-source factory called before governed validation? Yes/No
-- Is any adapter method called before governed validation? Yes/No
-- Is any schema probe performed before governed validation? Yes/No
-- Is any SQL builder called before governed validation? Yes/No
-- Is SQL constructed before governed validation? Yes/No
-- Does recipe.builder_key select the actual executed builder? Yes/No
-- Can an unknown builder_key execute anything? Yes/No
-- Can an invalid source_code/source_label pair execute anything? Yes/No
-- Do existing authorization controls still run for a valid recipe? Yes/No
-
-Required successful answers:
-
-No
-No
-No
-No
-No
-Yes
-No
-No
-Yes
-
-==================================================
-19. DIFF AUDIT
-==================================================
-
-Inspect the complete diff against the accepted PR #15 HEAD.
-
-Classify every changed file.
-
-Confirm:
-
-- only bounded Phase 2D remediation entered the candidate;
-- no PR #15 files were modified outside inherited base content;
-- no unrelated security cleanup entered;
-- no excluded technology entered;
-- no broad refactor entered.
-
-==================================================
-20. FINAL VERDICT
-==================================================
-
-Return exactly one:
+Phase 2D working branch:
+phase2/approved-recipe-pilot
+
+Expected Phase 2D worktree:
+/tmp/asktd-phase2d-approved-recipe-pilot
+
+The Phase 2D remediation has completed but is intentionally:
+- uncommitted
+- unpushed
+- without a PR
+- not formally accepted
+
+The remediation report states:
 
 PHASE_2D_REMEDIATION_READY_FOR_RE_REVIEW
 
-or
-
-PHASE_2D_REMEDIATION_HAS_BLOCKERS
-
-or
-
-PHASE_2D_REMEDIATION_INSUFFICIENT_EVIDENCE
-
-READY requires:
-
-- governed validation before all adapter/schema/SQL-building activity;
-- builder_key authoritatively selects executed SQL builder;
-- unused contract fields removed or genuinely consumed;
-- source code/label pairs validated together;
-- zero-side-effect denial tests pass;
-- existing authorization preserved;
-- regressions, coverage, golden, diff, and scope gates pass;
-- PR #15 and main remain unchanged;
-- no commit/push/PR created.
+Do not accept that verdict without independent verification.
 
 ==================================================
-21. REPORT
+2. PRIOR REVIEW FINDINGS THAT MUST BE RE-TESTED
 ==================================================
 
-Save outside the worktree:
+The previous independent review failed Phase 2D for two HIGH findings.
 
-/tmp/ASKTD_PHASE_2D_REMEDIATION_2026-08-22.md
+HIGH-1:
+Governed validation occurred too late, after adapter/schema probing or other SQL-related work had already started.
 
-Required sections:
+Acceptance requirement:
+For every Phase 2D approved-recipe path, governance/lifecycle/parameter validation must complete successfully BEFORE:
 
-1. Candidate / Stack Evidence
-2. Independent Review Findings Reproduced
-3. Root Cause
-4. Corrected Execution Ordering
-5. Authoritative Builder Resolution
-6. Contract Field Audit
-7. Pair-Level Parameter Validation
-8. Zero-Side-Effect Denial Evidence
-9. Authorization Preservation
-10. ADR Update
-11. Focused Test Results
-12. Full Regression / Coverage / Golden Results
-13. Exact Diff Inventory
-14. Scope Audit
-15. Deferred Security Finding
-16. Final Code-Path Audit
-17. Remaining Findings
-18. Final Verdict
-19. Recommended Next Action
+- DataSourceFactory / data-source construction
+- adapter acquisition
+- schema probing
+- builder resolution/invocation
+- SQL generation
+- SQL execution
 
-At completion explicitly state:
+On every fail-closed path, prove that NONE of those operations occur.
 
-- Repository files modified by remediation: list
-- PR #15 changed: No
-- main changed: No
-- Commit created: No
-- Branch pushed: No
-- Phase 2D PR created: No
-- Phase 2D formally accepted: No
+HIGH-2:
+ApprovedRecipe.builder_key did not authoritatively control the executed SQL builder; legacy query_kind control flow could construct the SQL before recipe validation.
 
-Then STOP.
+Acceptance requirement:
+After successful Phase 2D validation, the executed deterministic SQL builder must be selected through the approved recipe's builder_key.
+
+There must not be an alternative legacy builder invocation that bypasses the authoritative builder_key decision for the Phase 2D pilot path.
+
+==================================================
+3. REMEDIATION CLAIMS TO VERIFY
+==================================================
+
+Independently verify each claim below from the actual candidate bytes:
+
+1. Governed validation now precedes ALL:
+   - adapter creation/access
+   - schema probing
+   - builder resolution
+   - builder execution
+   - SQL execution
+
+2. builder_key is authoritative for selecting the executed deterministic builder.
+
+3. ApprovedRecipe contains only six actively consumed contract fields after remediation.
+   Verify the exact field set and prove each retained field has a real runtime or validation consumer.
+   Flag any dead/unused contract field.
+
+4. The pilot parameter model validates valid source-code/source-label pairs, including:
+   IMSB -> Deposits
+   STAX -> Savings
+
+5. Mismatched pairs fail closed.
+
+6. Missing required parameters fail closed.
+
+7. Out-of-domain values fail closed.
+
+8. Unknown recipe IDs fail closed.
+
+9. Non-approved/non-published lifecycle state fails closed.
+
+10. Ungoverned dataset references fail closed.
+
+11. Strict-mode unavailable/off behavior remains fail closed where required by the pilot contract.
+
+12. deny_all and unauthorized-object paths preserve the EXISTING audited blocked behavior.
+
+13. For governed denial/validation failures, prove with executable dependency-injection/call-count tests that there are ZERO calls to:
+   - data-source factory
+   - adapter/data source
+   - schema helper/probe
+   - authoritative builder
+   - legacy builder
+   - SQL execution
+
+Do not accept string scanning as sufficient evidence for this item.
+
+==================================================
+4. ARCHITECTURAL BOUNDARIES THAT MUST REMAIN INTACT
+==================================================
+
+This remains a bounded Phase 2D pilot.
+
+Confirm that the diff does NOT introduce:
+
+- Databricks implementation
+- Unity Catalog implementation
+- Genie implementation
+- Collibra implementation
+- Redis
+- Event Hubs
+- cross-source execution
+- new provider SDKs
+- SQL dialect abstraction
+- broad orchestrator redesign
+- frontend changes
+- fine-grained row/column authorization model
+- a second authorization engine
+- a second read-only enforcement layer
+- a second SQL parser/table-reference extractor
+- an intermediate execution-spec/compiler architecture
+- broad recipe migration
+- registry seed migration
+- recipe folding into RegistrySnapshot identity
+
+Existing SQL Server-backed execution behind DataSourceAdapter is acceptable for this pilot.
+
+==================================================
+5. CANDIDATE IDENTITY / IMMUTABILITY
+==================================================
+
+Before reviewing logic:
+
+1. Verify the exact worktree and branch.
+2. Capture:
+   - current HEAD
+   - base/parent SHA
+   - git status
+   - git diff --stat
+   - git diff --name-status
+3. Compute a deterministic digest for the current Phase 2D candidate files.
+4. Record the start-state hashes.
+5. At the end of review, recompute them.
+6. Prove the candidate bytes did not change during the review.
+
+If the expected Phase 2D worktree is absent, do not silently inspect another checkout.
+
+If a correct reachable candidate exists elsewhere, identify it explicitly and prove equivalence before continuing.
+
+Otherwise STOP with a clear blocker.
+
+==================================================
+6. FILE-SCOPE REVIEW
+==================================================
+
+Enumerate the complete Phase 2D diff against its Phase 2C.5 parent.
+
+Pay particular attention to:
+
+- docs/adr/0004-phase2d-approved-recipe-pilot.md
+- src/backend/app/recipes/
+- src/backend/app/recipes/approved_recipes.py
+- src/backend/app/orchestrator.py
+- test/test_approved_recipe_pilot.py
+- test/test_semantic_plan_contract.py
+- test/test_semantic_models.py
+- test/test_authz_no_access_guard.py
+- test/test_query_recipes.py
+- test/test_golden_baseline.py
+- test/test_provider_abstraction_contracts.py
+- docs/adr/README.md
+
+Do not assume this list is complete.
+The live diff is authoritative.
+
+Also separate:
+A. Phase 2D-attributable findings
+B. pre-existing findings
+C. PR #15 / Phase 2C.5 findings
+
+Do not fail Phase 2D for unrelated pre-existing issues unless Phase 2D makes them worse or depends on them unsafely.
+
+==================================================
+7. REQUIRED SOURCE-CODE TRACE
+==================================================
+
+Trace the real pilot execution path end-to-end:
+
+user request
+-> authentication context
+-> coarse deny_all handling
+-> deterministic recipe selection
+-> approved recipe lookup
+-> recipe lifecycle validation
+-> required parameter validation
+-> allowed-domain / pair validation
+-> governed dataset plan construction
+-> governed semantic validation
+-> authoritative builder resolution from builder_key
+-> SQL construction
+-> existing authorization/read-only enforcement
+-> DataSourceAdapter.execute_query(...)
+-> result handling
+
+For each stage, identify the exact symbol/file and confirm ordering.
+
+The key question is:
+
+CAN ANY ADAPTER, SCHEMA PROBE, BUILDER, SQL GENERATION, OR SQL EXECUTION OCCUR BEFORE THE APPROVED RECIPE HAS PASSED ITS GOVERNED VALIDATION?
+
+The only acceptable answer for PASS is:
+NO, proven by code path plus executable tests.
+
+==================================================
+8. REQUIRED TESTING
+==================================================
+
+Run the narrowest tests first, then broaden.
+
+At minimum run:
+
+A. Approved-recipe focused tests
+B. Semantic-plan compatibility tests
+C. Authorization/no-access tests
+D. Query recipe tests
+E. Provider abstraction tests
+F. Golden baseline
+G. Relevant Phase 2A / 2B / 2C / 2C.5 regression slice
+H. Full backend configured test suite
+I. Coverage gate
+J. git diff --check
+
+Also run an excluded-technology scan against ADDED Phase 2D code.
+
+The previous remediation reported approximately:
+
+Focused Phase 2D: 124 passed
+Full backend: 962 passed, 3 skipped
+Coverage: ~86.75%
+Golden baseline: 10 passed
+
+These numbers are context only.
+Do not force them.
+Report the actual independently observed results.
+
+==================================================
+9. ADVERSARIAL TEST CASES
+==================================================
+
+Independently test or inspect coverage for at least these cases:
+
+- valid Deposits/IMSB recipe request
+- valid Savings/STAX recipe request
+- mismatched IMSB/Savings
+- mismatched STAX/Deposits
+- missing required parameter
+- unknown recipe id
+- draft/non-approved recipe
+- ungoverned dataset
+- strict-mode unavailable/off
+- deny_all user
+- resolved-but-unauthorized dataset/table
+- malicious/out-of-domain parameter
+- flag OFF regression path
+- flag ON successful pilot path
+
+For every failed recipe/governance case, assert no adapter/schema/builder/SQL side effects.
+
+==================================================
+10. GOLDEN / REGRESSION REQUIREMENT
+==================================================
+
+With the Phase 2D pilot flag OFF:
+
+Existing behavior must remain byte-for-byte / semantically unchanged where the current golden harness supports comparison.
+
+Confirm:
+- legacy recipe routing still works
+- existing response behavior is preserved
+- existing authorization behavior is preserved
+- no new provider dependency leaks into core
+- previous Phase 2C.5 abstraction guarantees remain intact
+
+==================================================
+11. REVIEW OF THE TWO REMEDIATION DESIGN CHOICES
+==================================================
+
+Explicitly answer:
+
+A. Is governance now truly before all side-effectful data-source work?
+
+B. Is ApprovedRecipe.builder_key now the single authoritative builder selector for the pilot lane?
+
+C. Can legacy query_kind branching still choose or invoke another builder after recipe validation?
+
+D. Can any schema probe occur before validation?
+
+E. Can an unauthorized or invalid recipe cause any DB/data-source interaction?
+
+F. Are all six ApprovedRecipe fields actually consumed?
+
+G. Are the source_code/source_label pair rules sufficiently deterministic and fail-closed?
+
+==================================================
+12. SECURITY FINDING FROM PREVIOUS REVIEW
+==================================================
+
+The previous review also noted a pre-existing MEDIUM issue:
+
+The resolved-but-unauthorized denial path may disclose the blocked physical object name.
+
+Re-check whether Phase 2D:
+- introduces it,
+- worsens it,
+- fixes it,
+- or leaves it unchanged.
+
+Classify it accurately.
+
+Do NOT silently expand Phase 2D scope to fix it unless the Phase 2D implementation created the issue.
+
+==================================================
+13. OUTPUT REPORT
+==================================================
+
+Write a formal report outside the repository/worktree:
+
+/tmp/ASKTD_PHASE_2D_INDEPENDENT_REREVIEW_2026-08-22.md
+
+Include at minimum:
+
+1. Candidate identity
+2. Parent/base identity
+3. Candidate byte/hash proof
+4. Complete changed-file inventory
+5. Source execution trace
+6. Previous HIGH-1 disposition
+7. Previous HIGH-2 disposition
+8. ApprovedRecipe contract audit
+9. Parameter/pair validation audit
+10. Fail-closed side-effect audit
+11. Authorization interaction
+12. Provider-abstraction boundary audit
+13. Excluded-technology scan
+14. Test results
+15. Coverage
+16. Golden/regression results
+17. Security/pre-existing findings
+18. Severity-ranked findings
+19. Acceptance matrix
+20. Final verdict
+21. Candidate immutability/end-state proof
+22. Recommended next action
+
+==================================================
+14. VERDICT RULES
+==================================================
+
+Return EXACTLY ONE of these final verdict tokens:
+
+PHASE_2D_INDEPENDENT_REREVIEW_PASS
+
+or
+
+PHASE_2D_INDEPENDENT_REREVIEW_FAIL
+
+PASS requires BOTH former HIGH findings to be conclusively resolved.
+
+Any remaining HIGH issue attributable to Phase 2D => FAIL.
+
+A pre-existing unrelated MEDIUM/LOW finding should be recorded separately and should not automatically fail Phase 2D.
+
+Do not downgrade an unresolved HIGH simply because tests are green.
+
+==================================================
+15. COMPLETION STATE
+==================================================
+
+At the end explicitly report:
+
+Repository files modified by reviewer: Yes/No
+Candidate bytes changed during review: Yes/No
+PR #15 changed: Yes/No
+main changed: Yes/No
+Commit created: Yes/No
+Branch pushed: Yes/No
+Phase 2D PR created: Yes/No
+Phase 2D formally accepted: Yes/No
+Later phase started: Yes/No
+
+This review must remain completely read-only.
