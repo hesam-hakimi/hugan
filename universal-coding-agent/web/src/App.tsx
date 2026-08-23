@@ -3,12 +3,26 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 import type {
   ContextDocument,
+  ProgramExecutionSnapshot,
   ProgramSnapshot,
   RequirementResult,
   SearchHit,
   TaskSnapshot,
 } from "./types";
-import { canApproveScope, phaseProgress, statusTone, unresolvedClarifications } from "./viewModels";
+import {
+  activeProgramExecutionBinding,
+  canApproveScope,
+  canContinueProgramExecution,
+  canStartProgramExecution,
+  phaseProgress,
+  statusTone,
+  unresolvedClarifications,
+} from "./viewModels";
+
+type ProgramState = {
+  program: ProgramSnapshot;
+  execution: ProgramExecutionSnapshot;
+};
 
 type View = "overview" | "task" | "requirements" | "program" | "documents" | "search";
 
@@ -52,6 +66,7 @@ export default function App() {
   const [requirementObjective, setRequirementObjective] = useState("");
 
   const [program, setProgram] = useState<ProgramSnapshot>();
+  const [programExecution, setProgramExecution] = useState<ProgramExecutionSnapshot>();
   const [programId, setProgramId] = useState("program-customer-export");
 
   const [documents, setDocuments] = useState<ContextDocument[]>([]);
@@ -90,11 +105,33 @@ export default function App() {
     return () => window.clearInterval(timer);
   }, [task?.task_id, task?.status]);
 
+  useEffect(() => {
+    if (!program?.program_id || !programExecution?.runtime.busy) {
+      return;
+    }
+    const loadedProgramId = program.program_id;
+    const timer = window.setInterval(() => {
+      Promise.all([
+        api.program(loadedProgramId),
+        api.programExecutions(loadedProgramId),
+      ])
+        .then(([programSnapshot, executionSnapshot]) => {
+          setProgram(programSnapshot);
+          setProgramExecution(executionSnapshot);
+        })
+        .catch(() => undefined);
+    }, 1600);
+    return () => window.clearInterval(timer);
+  }, [program?.program_id, programExecution?.runtime.busy]);
+
   const unresolved = useMemo(
     () => unresolvedClarifications(requirement?.contract),
     [requirement],
   );
   const progress = phaseProgress(program);
+  const activeProgramExecution = activeProgramExecutionBinding(programExecution);
+  const programExecutionCanStart = canStartProgramExecution(program, programExecution);
+  const programExecutionCanContinue = canContinueProgramExecution(program, programExecution);
 
   async function perform<T>(action: () => Promise<T>, onSuccess: (value: T) => void, success: string) {
     setBusy(true);
@@ -144,16 +181,65 @@ export default function App() {
     );
   }
 
+  function applyProgramState(state: ProgramState) {
+    setProgram(state.program);
+    setProgramExecution(state.execution);
+    setProgramId(state.program.program_id);
+  }
+
+  async function readProgramState(id: string): Promise<ProgramState> {
+    const loadedProgram = await api.program(id);
+    const execution = await api.programExecutions(loadedProgram.program_id);
+    return { program: loadedProgram, execution };
+  }
+
+  async function attachExecutionState(
+    programRequest: Promise<ProgramSnapshot>,
+  ): Promise<ProgramState> {
+    const updatedProgram = await programRequest;
+    const execution = await api.programExecutions(updatedProgram.program_id);
+    return { program: updatedProgram, execution };
+  }
+
+  async function attachProgramState(
+    executionRequest: Promise<ProgramExecutionSnapshot>,
+  ): Promise<ProgramState> {
+    const execution = await executionRequest;
+    const updatedProgram = await api.program(execution.program_id);
+    return { program: updatedProgram, execution };
+  }
+
+  function loadProgram() {
+    const requestedProgramId = programId.trim();
+    if (!requestedProgramId) return;
+    void perform(
+      () => readProgramState(requestedProgramId),
+      applyProgramState,
+      "Program and persisted execution state loaded.",
+    );
+  }
+
+  function refreshProgram() {
+    if (!program) return;
+    void perform(
+      () => readProgramState(program.program_id),
+      applyProgramState,
+      "Program execution status refreshed without starting work.",
+    );
+  }
+
   function createProgram() {
     if (!requirement || requirement.contract.status !== "approved") return;
     void perform(
       () =>
-        api.createProgram({
-          program_id: programId,
-          requirement: requirement.contract,
-          requirement_hash: requirement.requirement_hash,
-        }),
-      setProgram,
+        attachExecutionState(
+          api.createProgram({
+            program_id: programId,
+            requirement: requirement.contract,
+            requirement_hash: requirement.requirement_hash,
+          }),
+        ),
+      applyProgramState,
       "Program plan created and awaiting approval.",
     );
   }
@@ -161,9 +247,99 @@ export default function App() {
   function controlProgram(action: "pause" | "resume" | "cancel") {
     if (!program) return;
     void perform(
-      () => api.programControl(program.program_id, action, "Operator action from Control Center"),
-      setProgram,
+      () =>
+        attachExecutionState(
+          api.programControl(
+            program.program_id,
+            action,
+            "Operator action from Control Center",
+          ),
+        ),
+      applyProgramState,
       `Program ${action} applied.`,
+    );
+  }
+
+  function trustedExecutionInputs(): {
+    policy: Record<string, unknown>;
+    testProfiles: string[];
+  } | undefined {
+    let policy: Record<string, unknown>;
+    try {
+      policy = JSON.parse(policyText) as Record<string, unknown>;
+    } catch {
+      setError("Trusted policy must be valid JSON.");
+      return undefined;
+    }
+    const profiles = testProfiles
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (profiles.length === 0) {
+      setError("At least one trusted test profile is required.");
+      return undefined;
+    }
+    return { policy, testProfiles: profiles };
+  }
+
+  function startProgramExecution() {
+    if (
+      !program ||
+      !programExecutionCanStart ||
+      !repository.trim() ||
+      !ref.trim()
+    ) {
+      return;
+    }
+    const inputs = trustedExecutionInputs();
+    if (!inputs) return;
+    if (
+      !window.confirm(
+        "Start exactly one dependency-ready Program unit through Discovered Safe Mode?",
+      )
+    ) {
+      return;
+    }
+    void perform(
+      () =>
+        attachProgramState(
+          api.startProgramExecution(program.program_id, {
+            current_requirement_hash: program.plan.requirement_hash,
+            repository: repository.trim(),
+            ref: ref.trim(),
+            policy: inputs.policy,
+            test_profiles: inputs.testProfiles,
+          }),
+        ),
+      applyProgramState,
+      "One dependency-ready Program unit was explicitly queued.",
+    );
+  }
+
+  function continueProgramExecution(approved: boolean) {
+    if (!program || !activeProgramExecution || !programExecutionCanContinue) return;
+    const decision = approved ? "approve" : "reject";
+    if (
+      !window.confirm(
+        `${decision[0].toUpperCase()}${decision.slice(1)} the pending Safe checkpoint for ${activeProgramExecution.task_id}?`,
+      )
+    ) {
+      return;
+    }
+    void perform(
+      () =>
+        attachProgramState(
+          api.continueProgramExecution(
+            program.program_id,
+            activeProgramExecution.task_id,
+            program.plan.requirement_hash,
+            approved,
+          ),
+        ),
+      applyProgramState,
+      approved
+        ? "The checkpoint was explicitly approved and queued for continuation."
+        : "The checkpoint was explicitly rejected; implementation was not approved.",
     );
   }
 
@@ -415,61 +591,296 @@ export default function App() {
         )}
 
         {view === "program" && (
-          <section className="grid2 alignStart">
-            <article className="card formCard">
-              <span className="kicker">Program orchestration</span>
-              <h2>Plan a large change in phases</h2>
-              <Field label="Program ID" value={programId} onChange={setProgramId} />
-              <p className="muted">Planning is bound to the approved requirement hash. No phase execution is implied by planning.</p>
-              {!program && (
-                <button
-                  className="primary"
-                  onClick={createProgram}
-                  disabled={busy || requirement?.contract.status !== "approved"}
-                >
-                  Create phase plan
-                </button>
-              )}
-              {program?.status === "awaiting_approval" && (
-                <button
-                  className="primary"
-                  onClick={() =>
-                    void perform(
-                      () => api.approveProgram(program.program_id, program.plan_hash),
-                      setProgram,
-                      "Program approved.",
-                    )
-                  }
-                  disabled={busy}
-                >
-                  Approve program plan
-                </button>
-              )}
-              {program && (
+          <section className="stack">
+            <div className="grid2 alignStart">
+              <article className="card formCard">
+                <span className="kicker">Program orchestration</span>
+                <h2>Plan or recover a large change</h2>
+                <Field label="Program ID" value={programId} onChange={setProgramId} />
+                <p className="muted">
+                  Loading and refreshing are read-only. Planning is bound to an approved
+                  requirement hash and never implies phase execution.
+                </p>
                 <div className="controlRow">
-                  <button className="secondary" onClick={() => controlProgram("pause")} disabled={busy}>Pause</button>
-                  <button className="secondary" onClick={() => controlProgram("resume")} disabled={busy}>Resume</button>
-                  <button className="dangerGhost" onClick={() => controlProgram("cancel")} disabled={busy}>Cancel</button>
+                  <button
+                    className="secondary"
+                    onClick={loadProgram}
+                    disabled={busy || !programId.trim()}
+                  >
+                    Load existing program
+                  </button>
+                  {!program && (
+                    <button
+                      className="primary"
+                      onClick={createProgram}
+                      disabled={busy || requirement?.contract.status !== "approved"}
+                    >
+                      Create phase plan
+                    </button>
+                  )}
                 </div>
-              )}
-            </article>
-            <article className="card">
-              <div className="sectionHeading">
-                <div><span className="kicker">Phase map</span><h2>{program?.plan.title ?? "No program yet"}</h2></div>
-                <StatusPill status={program?.status} />
-              </div>
-              {!program && <Empty text="Approve a requirement, then create a program plan." />}
-              {program?.phases.map((phase, index) => (
-                <div className="phase" key={phase.phase_id}>
-                  <div className="phaseIndex">{String(index + 1).padStart(2, "0")}</div>
-                  <div className="phaseBody">
-                    <div className="phaseTitle"><strong>{phase.title}</strong><StatusPill status={phase.status} /></div>
-                    <code>{phase.phase_id}</code>
-                    <p>Depends on: {phase.dependencies.join(", ") || "none"}</p>
+                {program?.status === "awaiting_approval" && (
+                  <button
+                    className="primary"
+                    onClick={() =>
+                      void perform(
+                        () =>
+                          attachExecutionState(
+                            api.approveProgram(program.program_id, program.plan_hash),
+                          ),
+                        applyProgramState,
+                        "Program approved.",
+                      )
+                    }
+                    disabled={busy}
+                  >
+                    Approve program plan
+                  </button>
+                )}
+                {program && (
+                  <div className="controlRow">
+                    <button
+                      className="secondary"
+                      onClick={() => controlProgram("pause")}
+                      disabled={busy}
+                    >
+                      Pause
+                    </button>
+                    <button
+                      className="secondary"
+                      onClick={() => controlProgram("resume")}
+                      disabled={busy}
+                    >
+                      Resume
+                    </button>
+                    <button
+                      className="dangerGhost"
+                      onClick={() => controlProgram("cancel")}
+                      disabled={busy}
+                    >
+                      Cancel
+                    </button>
                   </div>
+                )}
+              </article>
+              <article className="card">
+                <div className="sectionHeading">
+                  <div>
+                    <span className="kicker">Phase map</span>
+                    <h2>{program?.plan.title ?? "No program yet"}</h2>
+                  </div>
+                  <StatusPill status={program?.status} />
                 </div>
-              ))}
-              {program && <div className="hashBox">Plan hash: {program.plan_hash}</div>}
+                {!program && (
+                  <Empty text="Approve a requirement and create a plan, or load an existing Program ID." />
+                )}
+                {program?.phases.map((phase, index) => (
+                  <div className="phase" key={phase.phase_id}>
+                    <div className="phaseIndex">
+                      {String(index + 1).padStart(2, "0")}
+                    </div>
+                    <div className="phaseBody">
+                      <div className="phaseTitle">
+                        <strong>{phase.title}</strong>
+                        <StatusPill status={phase.status} />
+                      </div>
+                      <code>{phase.phase_id}</code>
+                      <p>Depends on: {phase.dependencies.join(", ") || "none"}</p>
+                    </div>
+                  </div>
+                ))}
+                {program && <div className="hashBox">Plan hash: {program.plan_hash}</div>}
+              </article>
+            </div>
+
+            <article className="card executionPanel">
+              <div className="sectionHeading">
+                <div>
+                  <span className="kicker">Discovered Safe execution</span>
+                  <h2>Explicit Program checkpoints</h2>
+                </div>
+                <StatusPill
+                  status={
+                    programExecution?.runtime.busy
+                      ? programExecution.runtime.status
+                      : programExecution?.program_status
+                  }
+                />
+              </div>
+              {!program && (
+                <Empty text="Load or create a program before inspecting execution state." />
+              )}
+              {program && !programExecution && (
+                <Empty text="Load the program to read its persisted execution bindings." />
+              )}
+              {programExecution && (
+                <>
+                  <div className="executionFacts">
+                    <div>
+                      <span>Loaded program</span>
+                      <strong>{programExecution.program_id}</strong>
+                    </div>
+                    <div>
+                      <span>Runtime action</span>
+                      <strong>{programExecution.runtime.action || "none"}</strong>
+                    </div>
+                    <div>
+                      <span>Runtime status</span>
+                      <strong>{programExecution.runtime.status}</strong>
+                    </div>
+                    <div>
+                      <span>Persisted bindings</span>
+                      <strong>{programExecution.bindings.length}</strong>
+                    </div>
+                  </div>
+
+                  {programExecution.runtime.recovered_pending && (
+                    <div className="approvalBox">
+                      <strong>Recovered pending execution</strong>
+                      <p>
+                        The API recovered a durable binding after restart. No provider work was
+                        started automatically. Review the binding and make an explicit decision.
+                      </p>
+                    </div>
+                  )}
+
+                  {programExecution.runtime.error && (
+                    <div className="notice error">
+                      {programExecution.runtime.error_type}: {programExecution.runtime.error}
+                    </div>
+                  )}
+
+                  <div className="grid2 executionInputs">
+                    <Field
+                      label="Repository URL or approved local path"
+                      value={repository}
+                      onChange={setRepository}
+                    />
+                    <Field label="Branch / ref" value={ref} onChange={setRef} />
+                    <Field
+                      label="Trusted test profiles (comma separated)"
+                      value={testProfiles}
+                      onChange={setTestProfiles}
+                    />
+                    <div className="executionActions">
+                      <button
+                        className="secondary"
+                        onClick={refreshProgram}
+                        disabled={busy}
+                      >
+                        Refresh status
+                      </button>
+                      <button
+                        className="primary"
+                        onClick={startProgramExecution}
+                        disabled={
+                          busy ||
+                          !programExecutionCanStart ||
+                          !repository.trim() ||
+                          !ref.trim() ||
+                          !testProfiles.trim()
+                        }
+                      >
+                        Start next unit
+                      </button>
+                    </div>
+                  </div>
+                  <details>
+                    <summary>Trusted execution policy</summary>
+                    <TextArea
+                      label="Trusted policy JSON"
+                      value={policyText}
+                      onChange={setPolicyText}
+                      rows={10}
+                      mono
+                    />
+                  </details>
+
+                  {activeProgramExecution && programExecutionCanContinue && (
+                    <div className="approvalBox">
+                      <strong>Explicit Safe checkpoint decision required</strong>
+                      <p>
+                        Task <code>{activeProgramExecution.task_id}</code> is bound to phase{" "}
+                        <code>{activeProgramExecution.phase_id}</code>
+                        {activeProgramExecution.slice_id
+                          ? ` / slice ${activeProgramExecution.slice_id}`
+                          : ""}
+                        . Approve or reject this exact checkpoint; refresh never continues it.
+                      </p>
+                      <div className="controlRow">
+                        <button
+                          className="primary"
+                          onClick={() => continueProgramExecution(true)}
+                          disabled={busy}
+                        >
+                          Approve & continue
+                        </button>
+                        <button
+                          className="dangerGhost"
+                          onClick={() => continueProgramExecution(false)}
+                          disabled={busy}
+                        >
+                          Reject checkpoint
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {programExecution.runtime.requires_explicit_action &&
+                    activeProgramExecution &&
+                    !programExecutionCanContinue && (
+                      <div className="notice error">
+                        This binding requires explicit action, but the Program or task control
+                        state currently prevents continuation. Resume or refresh the Program
+                        before deciding.
+                      </div>
+                    )}
+
+                  <div className="executionList">
+                    {programExecution.bindings.length === 0 && (
+                      <Empty text="No Program execution unit has been started." />
+                    )}
+                    {programExecution.bindings.map((binding) => (
+                      <div className="executionRow" key={binding.task_id}>
+                        <div className="executionHeading">
+                          <div>
+                            <strong>{binding.phase_id}</strong>
+                            <span>
+                              {binding.slice_id ? `Slice ${binding.slice_id}` : "Phase unit"}
+                            </span>
+                          </div>
+                          <StatusPill status={binding.status} />
+                        </div>
+                        <div className="executionMeta">
+                          <code>{binding.task_id}</code>
+                          <span>Safe: {binding.safe_status || "not reported"}</span>
+                          <span>Control: {binding.control?.state ?? "not reported"}</span>
+                        </div>
+                        {binding.control?.reason && (
+                          <p className="muted">Control reason: {binding.control.reason}</p>
+                        )}
+                        {binding.phase_report_ref && (
+                          <div className="artifactRef">
+                            Phase report: <code>{binding.phase_report_ref}</code>
+                          </div>
+                        )}
+                        {binding.error_ref && (
+                          <div className="artifactRef errorText">
+                            Error evidence: <code>{binding.error_ref}</code>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <details>
+                    <summary>Technical execution state</summary>
+                    <pre className="jsonPreview">
+                      {JSON.stringify(programExecution, null, 2)}
+                    </pre>
+                  </details>
+                </>
+              )}
             </article>
           </section>
         )}

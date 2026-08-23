@@ -127,6 +127,26 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .phaseBody code { display: inline-block; margin-top: 4px; color: #71809a; font-size: 11px; }
 .phaseBody p { margin: 7px 0 0; color: #798596; font-size: 12px; }
 
+.executionPanel { display: grid; gap: 16px; }
+.executionFacts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.executionFacts > div { background: #f7f8fa; border: 1px solid #e3e7ed; padding: 11px; border-radius: 9px; }
+.executionFacts span, .executionFacts strong { display: block; }
+.executionFacts span { font-size: 9px; color: #7b8798; text-transform: uppercase; letter-spacing: .06em; }
+.executionFacts strong { font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
+.executionInputs { align-items: end; }
+.executionActions { display: flex; justify-content: flex-end; align-items: center; gap: 9px; }
+.executionList { display: grid; gap: 10px; }
+.executionRow { border: 1px solid #dfe4ea; border-radius: 10px; padding: 14px; background: #fbfcfd; }
+.executionHeading { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.executionHeading strong, .executionHeading span { display: block; }
+.executionHeading span { color: #7b8796; font-size: 11px; margin-top: 3px; }
+.executionMeta { display: flex; align-items: center; flex-wrap: wrap; gap: 9px 15px; margin-top: 10px; color: #667387; font-size: 11px; }
+.executionMeta code { color: #526176; }
+.artifactRef { margin-top: 9px; color: #667387; font-size: 11px; overflow-wrap: anywhere; }
+.artifactRef code { color: #526176; }
+.errorText, .errorText code { color: #9d3f3f; }
+.executionPanel details .field { margin-top: 12px; }
+
 .fileDrop { border: 1px dashed #aeb9c8; border-radius: 11px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; }
 .fileDrop input { display: none; }
 .fileDrop strong, .fileDrop span { display: block; }
@@ -162,4 +182,5 @@ summary { color: #526176; cursor: pointer; font-size: 12px; font-weight: 700; }
   .shell { grid-template-columns: 220px 1fr; }
   main { padding-left: 24px; padding-right: 24px; }
   .metricGrid { grid-template-columns: repeat(2, 1fr); }
+  .executionFacts { grid-template-columns: repeat(2, 1fr); }
 }

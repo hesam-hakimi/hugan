@@ -59,6 +59,45 @@ export type ProgramSnapshot = {
   }>;
 };
 
+export type ControlSnapshot = {
+  entity_type?: "task" | "program";
+  entity_id?: string;
+  state: string;
+  reason: string;
+  revision: number;
+};
+
+export type ProgramExecutionBinding = {
+  program_id: string;
+  phase_id: string;
+  slice_id: string | null;
+  task_id: string;
+  thread_id: string;
+  requirement_hash: string;
+  status: "starting" | "awaiting_scope_approval" | "running" | "completed" | "failed" | "cancelled";
+  safe_status: string;
+  result_ref: string;
+  phase_report_ref: string;
+  error_ref: string;
+  control?: ControlSnapshot;
+};
+
+export type ProgramExecutionSnapshot = {
+  program_id: string;
+  program_status: string;
+  runtime: {
+    busy: boolean;
+    action: string;
+    task_id: string;
+    status: string;
+    recovered_pending: boolean;
+    requires_explicit_action: boolean;
+    error_type: string;
+    error: string;
+  };
+  bindings: ProgramExecutionBinding[];
+};
+
 export type SearchHit = {
   record_id: string;
   source_type: string;
@@ -87,10 +126,6 @@ export type TaskSnapshot = {
   busy?: boolean;
   error?: string;
   error_type?: string;
-  control?: {
-    state: string;
-    reason: string;
-    revision: number;
-  };
+  control?: ControlSnapshot;
   result?: Record<string, unknown>;
 };

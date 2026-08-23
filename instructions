@@ -17,6 +17,7 @@
 - universal-coding-agent/web/src/main.tsx
 - universal-coding-agent/web/src/App.tsx
 - universal-coding-agent/web/src/api.ts
+- universal-coding-agent/web/src/api.test.ts
 - universal-coding-agent/web/src/types.ts
 - universal-coding-agent/web/src/viewModels.ts
 - universal-coding-agent/web/src/viewModels.test.ts
@@ -81,6 +82,7 @@ for FILE in \
   web/src/main.tsx \
   web/src/App.tsx \
   web/src/api.ts \
+  web/src/api.test.ts \
   web/src/types.ts \
   web/src/viewModels.ts \
   web/src/viewModels.test.ts \
@@ -183,6 +185,7 @@ npm run build
 cd ..
 test -f web/dist/index.html
 echo "PRODUCT_CONTROL_CENTER_FRONTEND_PASS"
+echo "PROGRAM_EXECUTION_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -199,13 +202,34 @@ trap 'kill "$UI_PID" 2>/dev/null || true' EXIT
 sleep 2
 .venv/bin/python - <<'PY'
 import json
+import re
+import urllib.parse
 import urllib.request
 health = json.load(urllib.request.urlopen("http://127.0.0.1:18765/api/health", timeout=5))
 assert health["status"] == "ok"
 assert health["browser_credentials"] is False
 html = urllib.request.urlopen("http://127.0.0.1:18765/", timeout=5).read().decode("utf-8")
 assert '<div id="root"></div>' in html
+openapi = json.load(urllib.request.urlopen("http://127.0.0.1:18765/openapi.json", timeout=5))
+for path in (
+    "/api/programs/{program_id}/executions",
+    "/api/programs/{program_id}/executions/start-next",
+    "/api/programs/{program_id}/executions/{task_id}/continue",
+):
+    assert path in openapi["paths"]
+asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
+assert asset is not None
+bundle_url = urllib.parse.urljoin("http://127.0.0.1:18765/", asset.group(1))
+bundle = urllib.request.urlopen(bundle_url, timeout=5).read().decode("utf-8")
+for marker in (
+    "Explicit Program checkpoints",
+    "Recovered pending execution",
+    "Start next unit",
+    "Approve & continue",
+):
+    assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
+print("PROGRAM_EXECUTION_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

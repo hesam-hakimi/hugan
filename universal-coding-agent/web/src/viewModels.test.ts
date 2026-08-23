@@ -1,7 +1,46 @@
 import { describe, expect, it } from "vitest";
 
-import type { ProgramSnapshot, RequirementContract, TaskSnapshot } from "./types";
-import { canApproveScope, phaseProgress, statusTone, unresolvedClarifications } from "./viewModels";
+import type {
+  ProgramExecutionSnapshot,
+  ProgramSnapshot,
+  RequirementContract,
+  TaskSnapshot,
+} from "./types";
+import {
+  activeProgramExecutionBinding,
+  canApproveScope,
+  canContinueProgramExecution,
+  canStartProgramExecution,
+  phaseProgress,
+  statusTone,
+  unresolvedClarifications,
+} from "./viewModels";
+
+function executionSnapshot(
+  overrides: Partial<ProgramExecutionSnapshot["runtime"]> = {},
+): ProgramExecutionSnapshot {
+  return {
+    program_id: "program-1",
+    program_status: "running",
+    runtime: {
+      busy: false,
+      action: "",
+      task_id: "",
+      status: "idle",
+      recovered_pending: false,
+      requires_explicit_action: false,
+      error_type: "",
+      error: "",
+      ...overrides,
+    },
+    bindings: [],
+  };
+}
+
+const runningProgram = {
+  program_id: "program-1",
+  status: "running",
+} as ProgramSnapshot;
 
 describe("control-center view models", () => {
   it("classifies delivery states without changing backend semantics", () => {
@@ -51,5 +90,90 @@ describe("control-center view models", () => {
         busy: true,
       } as TaskSnapshot),
     ).toBe(false);
+  });
+
+  it("selects the latest active persisted Program execution binding", () => {
+    const execution = executionSnapshot({ requires_explicit_action: true });
+    execution.bindings = [
+      {
+        program_id: "program-1",
+        phase_id: "phase-1",
+        slice_id: null,
+        task_id: "task-completed",
+        thread_id: "thread-completed",
+        requirement_hash: "a".repeat(64),
+        status: "completed",
+        safe_status: "completed",
+        result_ref: "artifact://completed.json",
+        phase_report_ref: "artifact://phase-1.json",
+        error_ref: "",
+      },
+      {
+        program_id: "program-1",
+        phase_id: "phase-2",
+        slice_id: "slice-1",
+        task_id: "task-active",
+        thread_id: "thread-active",
+        requirement_hash: "a".repeat(64),
+        status: "awaiting_scope_approval",
+        safe_status: "awaiting_scope_approval",
+        result_ref: "artifact://awaiting.json",
+        phase_report_ref: "artifact://phase-2.json",
+        error_ref: "",
+      },
+    ];
+
+    expect(activeProgramExecutionBinding(execution)?.task_id).toBe("task-active");
+  });
+
+  it("starts only from a loaded running Program with no active work", () => {
+    expect(canStartProgramExecution(runningProgram, executionSnapshot())).toBe(true);
+    expect(
+      canStartProgramExecution(
+        runningProgram,
+        executionSnapshot({ busy: true }),
+      ),
+    ).toBe(false);
+    expect(
+      canStartProgramExecution(
+        { ...runningProgram, status: "paused" },
+        executionSnapshot(),
+      ),
+    ).toBe(false);
+  });
+
+  it("continues only after an explicit action is required for an active binding", () => {
+    const execution = executionSnapshot({ requires_explicit_action: true });
+    execution.bindings = [
+      {
+        program_id: "program-1",
+        phase_id: "phase-1",
+        slice_id: null,
+        task_id: "task-active",
+        thread_id: "thread-active",
+        requirement_hash: "a".repeat(64),
+        status: "awaiting_scope_approval",
+        safe_status: "awaiting_scope_approval",
+        result_ref: "artifact://awaiting.json",
+        phase_report_ref: "artifact://phase-1.json",
+        error_ref: "",
+        control: {
+          state: "running",
+          reason: "",
+          revision: 0,
+        },
+      },
+    ];
+
+    expect(canContinueProgramExecution(runningProgram, execution)).toBe(true);
+    execution.runtime.requires_explicit_action = false;
+    expect(canContinueProgramExecution(runningProgram, execution)).toBe(false);
+    execution.runtime.requires_explicit_action = true;
+    execution.bindings[0].control = {
+      state: "cancel_requested",
+      reason: "operator cancelled",
+      revision: 1,
+    };
+    expect(canContinueProgramExecution(runningProgram, execution)).toBe(false);
   });
 });

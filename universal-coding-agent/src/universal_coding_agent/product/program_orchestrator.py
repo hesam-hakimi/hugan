@@ -275,23 +275,26 @@ class ProgramOrchestrator:
         return self.plan(program_id)
 
     def plan(self, program_id: str) -> ProgramPlan:
-        row = self._program_row_required(program_id)
-        return ProgramPlan.model_validate(self.artifacts.read_json(row[4]))
+        with self._lock:
+            row = self._program_row_required(program_id)
+            return ProgramPlan.model_validate(self.artifacts.read_json(row[4]))
 
     def status(self, program_id: str) -> ProgramStatus:
-        row = self._program_row_required(program_id)
-        return ProgramStatus(row[1])
+        with self._lock:
+            row = self._program_row_required(program_id)
+            return ProgramStatus(row[1])
 
     def phase_status(self, program_id: str, phase_id: str) -> PhaseStatus:
-        row = self.connection.execute(
-            """
-            SELECT status FROM program_phases WHERE program_id = ? AND phase_id = ?
-            """,
-            (program_id, phase_id),
-        ).fetchone()
-        if row is None:
-            raise KeyError(phase_id)
-        return PhaseStatus(row[0])
+        with self._lock:
+            row = self.connection.execute(
+                """
+                SELECT status FROM program_phases WHERE program_id = ? AND phase_id = ?
+                """,
+                (program_id, phase_id),
+            ).fetchone()
+            if row is None:
+                raise KeyError(phase_id)
+            return PhaseStatus(row[0])
 
     def ready_phases(self, program_id: str) -> tuple[ProgramPhase, ...]:
         if self.status(program_id) is not ProgramStatus.RUNNING:
@@ -431,30 +434,32 @@ class ProgramOrchestrator:
             return self._record_execution_result(binding, result)
 
     def execution_binding(self, task_id: str) -> ProgramExecutionBinding:
-        row = self.connection.execute(
-            """
-            SELECT program_id, phase_id, slice_id, task_id, thread_id,
-                   requirement_hash, status, safe_status, result_ref,
-                   phase_report_ref, error_ref
-            FROM program_executions WHERE task_id = ?
-            """,
-            (task_id,),
-        ).fetchone()
-        if row is None:
-            raise KeyError(task_id)
-        return self._binding_from_row(row)
+        with self._lock:
+            row = self.connection.execute(
+                """
+                SELECT program_id, phase_id, slice_id, task_id, thread_id,
+                       requirement_hash, status, safe_status, result_ref,
+                       phase_report_ref, error_ref
+                FROM program_executions WHERE task_id = ?
+                """,
+                (task_id,),
+            ).fetchone()
+            if row is None:
+                raise KeyError(task_id)
+            return self._binding_from_row(row)
 
     def execution_bindings(self, program_id: str) -> tuple[ProgramExecutionBinding, ...]:
-        rows = self.connection.execute(
-            """
-            SELECT program_id, phase_id, slice_id, task_id, thread_id,
-                   requirement_hash, status, safe_status, result_ref,
-                   phase_report_ref, error_ref
-            FROM program_executions WHERE program_id = ? ORDER BY rowid
-            """,
-            (program_id,),
-        ).fetchall()
-        return tuple(self._binding_from_row(row) for row in rows)
+        with self._lock:
+            rows = self.connection.execute(
+                """
+                SELECT program_id, phase_id, slice_id, task_id, thread_id,
+                       requirement_hash, status, safe_status, result_ref,
+                       phase_report_ref, error_ref
+                FROM program_executions WHERE program_id = ? ORDER BY rowid
+                """,
+                (program_id,),
+            ).fetchall()
+            return tuple(self._binding_from_row(row) for row in rows)
 
     def complete_phase(self, program_id: str, result: PhaseResult) -> str:
         if self.phase_status(program_id, result.phase_id) is not PhaseStatus.RUNNING:

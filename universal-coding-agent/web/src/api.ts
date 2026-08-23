@@ -1,5 +1,6 @@
 import type {
   ContextDocument,
+  ProgramExecutionSnapshot,
   ProgramSnapshot,
   RequirementContract,
   RequirementResult,
@@ -78,6 +79,9 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  program: (programId: string) =>
+    request<ProgramSnapshot>(`/api/programs/${encodeURIComponent(programId)}`),
+
   approveProgram: (programId: string, planHash: string) =>
     request<ProgramSnapshot>(`/api/programs/${encodeURIComponent(programId)}/approve`, {
       method: "POST",
@@ -89,6 +93,46 @@ export const api = {
       method: "POST",
       body: action === "resume" ? undefined : JSON.stringify({ reason }),
     }),
+
+  programExecutions: (programId: string) =>
+    request<ProgramExecutionSnapshot>(
+      `/api/programs/${encodeURIComponent(programId)}/executions`,
+    ),
+
+  startProgramExecution: (
+    programId: string,
+    payload: {
+      current_requirement_hash: string;
+      repository: string;
+      ref: string;
+      policy: Record<string, unknown>;
+      test_profiles: string[];
+    },
+  ) =>
+    request<ProgramExecutionSnapshot>(
+      `/api/programs/${encodeURIComponent(programId)}/executions/start-next`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      },
+    ),
+
+  continueProgramExecution: (
+    programId: string,
+    taskId: string,
+    currentRequirementHash: string,
+    approved: boolean,
+  ) =>
+    request<ProgramExecutionSnapshot>(
+      `/api/programs/${encodeURIComponent(programId)}/executions/${encodeURIComponent(taskId)}/continue`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          current_requirement_hash: currentRequirementHash,
+          approved,
+        }),
+      },
+    ),
 
   startSafeTask: (payload: Record<string, unknown>) =>
     request<TaskSnapshot>("/api/tasks/safe", {

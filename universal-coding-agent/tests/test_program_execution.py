@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from threading import Event, Thread
 from typing import Any
 
 import pytest
@@ -380,4 +381,53 @@ def test_program_execution_rejects_untrusted_test_profile_before_binding(
         assert workspace.programs.phase_status(program_id, "phase-1") is PhaseStatus.PENDING
         assert executor.starts == []
     finally:
+        workspace.close()
+
+
+def test_program_reads_share_the_execution_connection_lock(tmp_path: Path) -> None:
+    workspace, program_id, requirement_hash = _approved_workspace(tmp_path)
+    binding = _start_next(
+        workspace,
+        program_id,
+        requirement_hash,
+        RecordingDiscoveredSafeExecutor(),
+    )
+    started = Event()
+    completed = Event()
+    errors: list[BaseException] = []
+    results: dict[str, Any] = {}
+
+    def read_program_state() -> None:
+        started.set()
+        try:
+            results["plan"] = workspace.programs.plan(program_id)
+            results["status"] = workspace.programs.status(program_id)
+            results["phase_status"] = workspace.programs.phase_status(
+                program_id,
+                "phase-1",
+            )
+            results["binding"] = workspace.programs.execution_binding(binding.task_id)
+            results["bindings"] = workspace.programs.execution_bindings(program_id)
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            completed.set()
+
+    reader = Thread(target=read_program_state, daemon=True)
+    try:
+        with workspace.programs._lock:
+            reader.start()
+            assert started.wait(timeout=1)
+            assert not completed.wait(timeout=0.1)
+
+        reader.join(timeout=1)
+        assert not reader.is_alive()
+        assert errors == []
+        assert results["plan"].program_id == program_id
+        assert results["status"] is ProgramStatus.RUNNING
+        assert results["phase_status"] is PhaseStatus.RUNNING
+        assert results["binding"] == binding
+        assert results["bindings"] == (binding,)
+    finally:
+        reader.join(timeout=1)
         workspace.close()
