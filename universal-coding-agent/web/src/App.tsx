@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { api } from "./api";
 import type {
+  CancellationReport,
   ContextDocument,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
@@ -14,6 +15,7 @@ import {
   canApproveScope,
   canContinueProgramExecution,
   canStartProgramExecution,
+  cancellationEvidencePresentation,
   phaseProgress,
   statusTone,
   unresolvedClarifications,
@@ -503,7 +505,14 @@ export default function App() {
                   <li>Requirement ambiguity blocks material decisions.</li>
                   <li>Discovery proposes scope without edit authority.</li>
                   <li>Scope approval happens before implementation.</li>
-                  <li>Pause and cancel are checked at safe boundaries.</li>
+                  <li>
+                    Pause prevents new work at the next safe boundary; it does not suspend an
+                    active provider or test operation.
+                  </li>
+                  <li>
+                    Cancel prevents new work and requests termination only for registered
+                    UCA-owned processes or explicitly owned handles.
+                  </li>
                 </ul>
               </article>
               <article className="card">
@@ -859,6 +868,9 @@ export default function App() {
                         {binding.control?.reason && (
                           <p className="muted">Control reason: {binding.control.reason}</p>
                         )}
+                        {binding.cancellation_report && (
+                          <CancellationReportPanel report={binding.cancellation_report} />
+                        )}
                         {binding.phase_report_ref && (
                           <div className="artifactRef">
                             Phase report: <code>{binding.phase_report_ref}</code>
@@ -991,6 +1003,9 @@ export default function App() {
                     <button className="secondary" onClick={() => controlTask("resume")} disabled={busy}>Resume</button>
                     <button className="dangerGhost" onClick={() => controlTask("cancel")} disabled={busy}>Stop</button>
                   </div>
+                  {task.cancellation_report && (
+                    <CancellationReportPanel report={task.cancellation_report} />
+                  )}
                   {canApproveScope(task) && (
                     <div className="approvalBox">
                       <strong>Scope approval required</strong>
@@ -1014,6 +1029,62 @@ export default function App() {
       </main>
     </div>
   );
+}
+
+function CancellationReportPanel({ report }: { report: CancellationReport }) {
+  const evidence = cancellationEvidencePresentation(report);
+  const operationKinds = report.active_operation_kinds.join(", ") || "none";
+
+  return (
+    <section className="cancellationEvidence">
+      <div className="cancellationEvidenceHeader">
+        <div>
+          <span className="kicker">Durable cancellation evidence</span>
+          <h3>{evidence.label}</h3>
+        </div>
+        <span className={`status ${evidence.tone}`}>recorded</span>
+      </div>
+      <p className="cancellationSummary">{evidence.summary}</p>
+      <div className="cancellationMeta">
+        <span>Task: <code>{report.task_id}</code></span>
+        <span>Active kinds: <code>{operationKinds}</code></span>
+      </div>
+      <p className="cancellationReason">
+        <strong>Reason:</strong> {report.reason || "Not provided"}
+      </p>
+      <div className="cancellationMetrics">
+        <CancellationMetric label="Owned processes observed" value={report.owned_processes_observed} />
+        <CancellationMetric
+          label="Owned handles observed"
+          value={report.owned_cancellable_operations_observed}
+        />
+        <CancellationMetric label="Terminate requests" value={report.terminate_requests} />
+        <CancellationMetric
+          label="Handle cancel requests"
+          value={report.cancellable_operation_cancel_requests}
+        />
+        <CancellationMetric label="Kill requests" value={report.kill_requests} />
+        <CancellationMetric label="Processes still active" value={report.processes_still_active} />
+        <CancellationMetric
+          label="Handles still active"
+          value={report.cancellable_operations_still_active}
+        />
+        <CancellationMetric
+          label="Cooperative fallback"
+          value={report.cooperative_fallback ? "yes" : "no"}
+        />
+      </div>
+      <p className="cancellationBoundaryNote">
+        Pause is safe-boundary only. Cancel prevents new work and requests active termination only
+        for registered UCA-owned processes and explicitly owned handles; this report records the
+        observed bounded outcome.
+      </p>
+    </section>
+  );
+}
+
+function CancellationMetric({ label, value }: { label: string; value: number | string }) {
+  return <div><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function StatusPill({ status }: { status?: string }) {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type {
+  CancellationReport,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RequirementContract,
@@ -11,6 +12,7 @@ import {
   canApproveScope,
   canContinueProgramExecution,
   canStartProgramExecution,
+  cancellationEvidencePresentation,
   phaseProgress,
   statusTone,
   unresolvedClarifications,
@@ -41,6 +43,25 @@ const runningProgram = {
   program_id: "program-1",
   status: "running",
 } as ProgramSnapshot;
+
+function cancellationReport(
+  overrides: Partial<CancellationReport> = {},
+): CancellationReport {
+  return {
+    task_id: "task-1",
+    reason: "operator cancelled",
+    active_operation_kinds: ["provider"],
+    owned_processes_observed: 0,
+    owned_cancellable_operations_observed: 0,
+    terminate_requests: 0,
+    kill_requests: 0,
+    cancellable_operation_cancel_requests: 0,
+    processes_still_active: 0,
+    cancellable_operations_still_active: 0,
+    cooperative_fallback: false,
+    ...overrides,
+  };
+}
 
 describe("control-center view models", () => {
   it("classifies delivery states without changing backend semantics", () => {
@@ -184,5 +205,46 @@ describe("control-center view models", () => {
       revision: 1,
     };
     expect(canContinueProgramExecution(runningProgram, execution)).toBe(false);
+  });
+
+  it("reports the bounded outcome after an owned process is no longer active", () => {
+    const evidence = cancellationEvidencePresentation(
+      cancellationReport({
+        active_operation_kinds: ["test"],
+        owned_processes_observed: 1,
+        terminate_requests: 1,
+      }),
+    );
+
+    expect(evidence).toEqual({
+      label: "No owned work remained active",
+      summary:
+        "The bounded cancellation window ended with no registered owned process or handle still active.",
+      tone: "good",
+    });
+  });
+
+  it("labels cancellation without an owned termination contract as cooperative", () => {
+    const evidence = cancellationEvidencePresentation(
+      cancellationReport({ cooperative_fallback: true }),
+    );
+
+    expect(evidence.label).toBe("Cooperative fallback");
+    expect(evidence.tone).toBe("warn");
+    expect(evidence.summary).toContain("provider and test checkpoints");
+  });
+
+  it("surfaces an unresponsive owned handle without claiming termination", () => {
+    const evidence = cancellationEvidencePresentation(
+      cancellationReport({
+        owned_cancellable_operations_observed: 1,
+        cancellable_operation_cancel_requests: 1,
+        cancellable_operations_still_active: 1,
+      }),
+    );
+
+    expect(evidence.label).toBe("Owned work still active");
+    expect(evidence.tone).toBe("bad");
+    expect(evidence.summary).toContain("1 registered owned operation still active");
   });
 });

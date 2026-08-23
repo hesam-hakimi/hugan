@@ -67,6 +67,20 @@ export type ControlSnapshot = {
   revision: number;
 };
 
+export type CancellationReport = {
+  task_id: string;
+  reason: string;
+  active_operation_kinds: string[];
+  owned_processes_observed: number;
+  owned_cancellable_operations_observed: number;
+  terminate_requests: number;
+  kill_requests: number;
+  cancellable_operation_cancel_requests: number;
+  processes_still_active: number;
+  cancellable_operations_still_active: number;
+  cooperative_fallback: boolean;
+};
+
 export type ProgramExecutionBinding = {
   program_id: string;
   phase_id: string;
@@ -83,6 +97,7 @@ export type ProgramExecutionBinding = {
   accepted_evidence_hash: string;
   expected_base_sha: string;
   control?: ControlSnapshot;
+  cancellation_report?: CancellationReport;
 };
 
 export type ProgramExecutionSnapshot = {
@@ -130,5 +145,6 @@ export type TaskSnapshot = {
   error?: string;
   error_type?: string;
   control?: ControlSnapshot;
+  cancellation_report?: CancellationReport;
   result?: Record<string, unknown>;
 };

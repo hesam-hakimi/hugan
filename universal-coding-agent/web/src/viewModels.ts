@@ -1,4 +1,5 @@
 import type {
+  CancellationReport,
   ProgramExecutionBinding,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
@@ -7,6 +8,51 @@ import type {
 } from "./types";
 
 const activeExecutionStatuses = new Set(["starting", "awaiting_scope_approval", "running"]);
+
+export type CancellationEvidencePresentation = {
+  label: string;
+  summary: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+};
+
+export function cancellationEvidencePresentation(
+  report: CancellationReport,
+): CancellationEvidencePresentation {
+  const stillActive =
+    report.processes_still_active + report.cancellable_operations_still_active;
+  if (stillActive > 0) {
+    return {
+      label: "Owned work still active",
+      summary: `The bounded cancellation window ended with ${stillActive} registered owned operation${stillActive === 1 ? "" : "s"} still active.`,
+      tone: "bad",
+    };
+  }
+  if (report.cooperative_fallback) {
+    return {
+      label: "Cooperative fallback",
+      summary:
+        "No actively terminable owned process or handle was registered; cancellation relies on provider and test checkpoints.",
+      tone: "warn",
+    };
+  }
+  const observed =
+    report.owned_processes_observed +
+    report.owned_cancellable_operations_observed;
+  if (observed > 0) {
+    return {
+      label: "No owned work remained active",
+      summary:
+        "The bounded cancellation window ended with no registered owned process or handle still active.",
+      tone: "good",
+    };
+  }
+  return {
+    label: "No owned work observed",
+    summary:
+      "The cancellation request found no registered owned process or handle.",
+    tone: "neutral",
+  };
+}
 
 export function statusTone(status?: string): "good" | "warn" | "bad" | "neutral" {
   if (!status) return "neutral";

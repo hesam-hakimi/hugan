@@ -29,6 +29,7 @@
 - [x] task-scoped cancellation signal and active termination for registered UCA-owned host-provider and trusted-test child processes;
 - [x] durable cancellation report and cooperative fallback for providers without an active termination contract;
 - [x] opt-in cancellable handle adapter for the trusted in-process host-chat transport;
+- [x] typed durable cancellation evidence in the local Product Control Center;
 - [ ] cancellable adapters for additional supported in-process/remote provider transports;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

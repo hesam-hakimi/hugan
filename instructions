@@ -255,6 +255,7 @@ cd ..
 test -f web/dist/index.html
 echo "PRODUCT_CONTROL_CENTER_FRONTEND_PASS"
 echo "PROGRAM_EXECUTION_UI_FRONTEND_PASS"
+echo "CANCELLATION_EVIDENCE_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -295,10 +296,12 @@ for marker in (
     "Recovered pending execution",
     "Start next unit",
     "Approve & continue",
+    "Durable cancellation evidence",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
 print("PROGRAM_EXECUTION_UI_HTTP_SMOKE_PASS")
+print("CANCELLATION_EVIDENCE_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

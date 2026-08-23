@@ -134,12 +134,20 @@ coordinator grace period, and records the owned handle, cancel request, and stil
 the durable report. Existing P1.2a databases receive additive default-zero report columns.
 
 The host factory is optional and trusted: it must return promptly, its cancellation hook must be
-thread-safe and non-blocking, and `done()` must be non-blocking and accurately report transport termination. Missing
-hooks retain cooperative before/after checks. Invalid configured handles fail closed. A handle that
-does not terminate is explicitly reported as still active, so hard cancellation is claimed only
-for registered child processes and host handles that actually terminate. Other in-process and
-remote provider transports remain cooperative. No arbitrary shell or model-controlled process
-execution is introduced.
+thread-safe and non-blocking, and `done()` must be non-blocking and accurately report transport
+termination. Missing hooks retain cooperative before/after checks. Invalid configured handles fail
+closed. A handle that does not terminate is explicitly reported as still active, so hard
+cancellation is claimed only for registered child processes and host handles that actually
+terminate. Other in-process and remote provider transports remain cooperative. No arbitrary shell
+or model-controlled process execution is introduced.
+
+P1.2c types and displays the same durable report in the local Product Control Center for standalone
+tasks and persisted Program execution bindings. The UI shows operation kinds, owned process and
+handle observations, terminate/cancel/kill requests, work still active after the bounded window,
+and cooperative fallback. It does not add cancellation authority: pause remains a safe-boundary
+control, and cancel requests active termination only for registered UCA-owned processes and
+explicitly owned handles. The displayed counts are evidence of the observed outcome, not a blanket
+claim that every provider or network transport was forcibly stopped.
 
 ## Context management
 
