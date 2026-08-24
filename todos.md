@@ -1,394 +1,563 @@
-TASK: HF1_V2_ROOT_CAUSE_FRESH_CONSUMER_WORKSPACE_CLASSIFICATION_BLOCKER_0_3_141
+TASK: HF1_V2_REPAIR_9_FRESH_CONSUMER_CLASSIFICATION_AND_BUILD_0_3_142
 
-Perform a read-only root-cause investigation inside the Software Development
-Environment:
+Implement the bounded Repair 9 confirmed by the completed read-only root-cause
+investigation.
+
+Work only inside:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Do not implement a fix during this task.
-
-The purpose is to explain why the active verified 0.3.141 runtime rejects the
-intended fresh consumer Development Test Workspace before STTM interpretation.
+This task fixes the 0.3.141 runtime preflight classifier, adds regression and
+security tests, increments the version to 0.3.142, builds the exact VSIX and
+verifies it.
 
 Do not access or modify the Development Test Workspace.
 Do not access or modify etl-framework-adb.
-Do not modify source, tests, resources, generated output, or package metadata.
-Do not build another VSIX.
-Do not install or uninstall extensions.
+Do not install or uninstall the extension.
+Do not run Runtime QA.
+Do not use web search.
+Do not download dependencies.
 Do not run npm install.
+Do not use npm version.
 Do not create package-lock.json.
-Do not commit, push, merge, tag, stash, reset, clean, restore, or delete files.
 Do not modify protected .github/** assets.
-Temporary diagnostic fixtures may be created only outside the repository and
-must not contain real data.
+Do not modify resources/copilot/** unless concrete test evidence proves that an
+existing packaged asset is incorrect. The root-cause investigation found no
+packaged agent/prompt change necessary.
+Do not modify historical test baselines to hide failures.
+Do not commit, push, merge, tag, stash, reset, clean, restore, or delete existing
+files.
+Do not overwrite or delete the verified 0.3.141 VSIX.
 
 ==================================================
 
-1. LIVE RUNTIME FAILURE EVIDENCE
+1. AUTHORITATIVE ROOT-CAUSE EVIDENCE
     ==================================================
 
-Treat the following as authoritative live evidence from Runtime QA:
+Treat the completed investigation as authoritative:
 
-ACTIVE_EXTENSION_ID:
-td-etl.databricks-etl-copilot
+ROOT_CAUSE_RESULT:
+CONFIRMED_SOURCE_LOGIC_DEFECT
 
-ACTIVE_EXTENSION_VERSION:
+Source version and active failed runtime:
+
 0.3.141
 
-RUNTIME_ACTIVATION_PROVEN:
-YES
+Live failure:
 
-QA workspace:
-
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
-
-QA workspace facts:
-
-* exactly one workspace root;
-* intentionally consumer-shaped Development Test Workspace;
-* intentionally not a Git repository;
-* workflow setup already present;
-* sttm/qa_hf1v2_demo_sttm.md present;
-* resources/copilot/context/** present;
+* correctly initialized fresh consumer workspace;
+* one non-Git root;
+* STTM present;
+* initialized managed workflow assets present;
 * no job_conf/**;
 * no env_conf/**;
-* no generated ETL artifacts;
-* no extension-source checkout;
+* no Framework source;
 * no etl-framework-adb;
-* synthetic QA data only.
+* etl_capabilities returned targetType=unknown and blocked before STTM discovery.
 
-The installed runtime returned this blocker:
+Exact blocker:
 
-Workspace folder “etl-acz9999-hf1v2-qa” could not be confirmed as a consumer ETL
-workspace; open an ETL Framework workspace before STTM interpretation or guarded
-writes.
+src/tools/EtlReadOnlyToolService.ts
+EtlReadOnlyToolService.capabilities()
+approximately line 907
 
-Runtime result:
+Classifier:
 
-WORKSPACE_CLASSIFICATION:
-UNKNOWN
+src/tools/EtlReadOnlyToolService.ts
+classifyWorkspaceTargetType()
+via detectEtlAssetRepo()
+approximately lines 1007–1025 and 1468–1487
 
-TARGET_DECISION:
-CREATE_NEW_JOB (filesystem evidence only; runtime workflow blocked)
+Exact failed logic:
 
-The Runtime stopped before:
+detectEtlAssetRepo(folder, reader).length > 0 === false
 
-* STTM interpretation;
-* packaged Framework discovery;
-* contract resolution;
-* example search;
-* rendering;
-* deterministic validation;
-* Preview creation.
+Current detection accepts only generated/legacy evidence such as:
 
-No Preview ID was created and zero workspace files changed.
+* job_conf/**;
+* env_conf/**;
+* sql/**;
+* common_script/**;
+* external_modules/**;
+* job_onboarding/**;
+* legacy ETL-flavoured AGENTS.md.
+
+It ignores the extension-managed initialization signals already used by
+RepoWriter and WorkflowTargetResolver.
+
+Safe initialized-consumer evidence:
+
+* .github/copilot-instructions.md containing exact managed provenance:
+    etl-copilot:managed; or
+* at least one extension-managed asset under:
+    .github/agents/**,
+    .github/skills/**,
+    .github/instructions/**,
+    .github/prompts/**
+    whose content carries the same managed provenance.
+
+Evidence that must remain insufficient by itself:
+
+* bare sttm/**;
+* resources/copilot/context/**;
+* folder naming;
+* Git metadata;
+* arbitrary .github files without the managed provenance stamp.
+
+Existing generated job_conf/env_conf evidence must continue to work.
+
+The new classification evidence establishes workspace intent only. It must never
+become Framework contract, schema, validation, module, path or write authority.
 
 ==================================================
-2. EXPECTED PRODUCT BEHAVIOR
+2. VERIFY REPOSITORY AND PRESERVE BASELINE
 
-The intended supported scenario is a fresh consumer workspace.
+Expected identity:
 
-Required behavior:
-
-* a consumer does not require the extension source repository;
-* a consumer does not require etl-framework-adb;
-* a fresh consumer may initially have no job_conf/** and no env_conf/**;
-* absence of those generated files must lead to CREATE_NEW_JOB;
-* absence of generated files must not classify the workspace as UNKNOWN;
-* Git repository metadata must not be required for this disposable Runtime QA
-    workspace;
-* workflow setup and the STTM are already present;
-* packaged trusted Framework contracts provide machine authority;
-* resources/copilot/context/** remains advisory and must not become machine
-    authority;
-* an arbitrary empty folder must still fail closed;
-* multi-root ambiguity must still fail closed;
-* guarded Preview/write validation and explicit approval must not be weakened.
-
-Do not recommend adding placeholder job_conf/env_conf files, initializing Git,
-copying Framework source, or opening etl-framework-adb as a workaround.
-
-==================================================
-3. VERIFY SOURCE ENVIRONMENT IDENTITY
-
-Before analysis, report:
-
-EXPECTED_REPOSITORY_ROOT:
+REPOSITORY_ROOT:
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-EXPECTED_ORIGIN:
+ORIGIN:
 https://github.com/TD-Universe/agentic_etl.git
 
-EXPECTED_BRANCH:
+BRANCH:
 hotfix/hf1-oracle-fresh-consumer-v2
 
-EXPECTED_HEAD:
+HEAD:
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-EXPECTED_SOURCE_VERSION:
+SOURCE_VERSION_BEFORE:
 0.3.141
 
-Capture:
+Capture before editing:
 
-* repository root;
+* absolute repository root;
 * origin;
 * branch;
 * HEAD;
 * source version;
 * staged paths;
-* tracked-modified paths;
-* untracked paths.
+* tracked modifications;
+* untracked paths;
+* existing 0.3.141 and 0.3.142 VSIX files;
+* package-lock.json presence.
 
-A large pre-existing working-tree overlay may exist. Preserve it exactly.
+Preserve the complete pre-existing working-tree overlay exactly.
 
-If root, origin, branch, HEAD, or version differs, stop:
+If root, origin, branch or HEAD differs, stop:
 
-ROOT_CAUSE_RESULT: BLOCKED_IDENTITY_MISMATCH
+REPAIR_9_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-If staged files exist, report them and stop:
+If staged files exist, stop:
 
-ROOT_CAUSE_RESULT: BLOCKED_STAGED_CHANGES
+REPAIR_9_RESULT: BLOCKED_STAGED_CHANGES
 
-==================================================
-4. TRACE THE EXACT CLASSIFICATION BLOCKER
+If databricks-etl-copilot-0.3.142.vsix already exists, do not overwrite it.
+Inspect and report it, then stop:
 
-Search the source and compiled runtime for the exact or closest diagnostic text:
-
-could not be confirmed as a consumer ETL workspace
-
-and:
-
-open an ETL Framework workspace before STTM interpretation or guarded writes
-
-Identify and report:
-
-* exact source file and function producing the blocker;
-* compiled/runtime file containing it;
-* calling tool and call path;
-* classification function or resolver used;
-* input evidence the classifier reads;
-* evidence it ignores;
-* exact condition that returns UNKNOWN;
-* whether Git metadata is required directly or indirectly;
-* whether job_conf/** or env_conf/** presence is required;
-* whether Framework markers are incorrectly required;
-* whether STTM or initialized workflow markers are considered;
-* whether the error message incorrectly directs normal consumers to open a
-    Framework workspace.
-
-Trace the path beginning with etl_capabilities through the classifier and into
-the gate that prevents:
-
-* etl_interpret_sttm;
-* etl_get_framework_rules;
-* etl_search_examples;
-* guarded Preview creation.
-
-Do not infer from names alone. Cite exact files, functions, predicates, and
-returned values.
+REPAIR_9_RESULT: BLOCKED_EXISTING_0_3_142_ARTIFACT
 
 ==================================================
-5. DETERMINE THE INTENDED INITIALIZATION SIGNAL
+3. AUTHORIZED CHANGE BOUNDARY
 
-Inspect the existing workflow initialization and customization implementation.
+Primary authorized source files:
 
-Identify every durable signal created for a correctly initialized consumer
-workspace, including, where applicable:
+* src/tools/EtlReadOnlyToolService.ts
+* src/customization/WorkflowTargetResolver.ts
 
-* .github/agents/**;
-* .github/skills/**;
-* .github/instructions/**;
-* .github/prompts/**;
-* resources/copilot/context/**;
-* managed-asset or initialization manifests;
-* workspace configuration or extension-owned markers.
+Authorized test files:
 
-For each signal report:
+* src/test/suite/EtlReadOnlyToolService.test.ts
+* src/test/suite/hf1OracleFreshConsumer.test.ts
+* src/test/suite/workspaceClassificationParity.test.ts
+    (new, if the existing test structure supports it)
 
-* whether it exists in the QA topology;
-* whether current classification reads it;
-* whether it is extension-managed or consumer-editable;
-* whether it may safely establish workspace intent;
-* whether it may provide machine authority.
+Conditionally authorized:
 
-Maintain this distinction:
+* the canonical existing test registration/pattern file, only if required to
+    guarantee the new suite runs;
+* package.json, version token only:
+    3.141 → 0.3.142;
+* normal compiled/package output produced by existing scripts.
 
-* a safe initialization marker may establish that the folder is an initialized
-    consumer workspace;
-* consumer-editable context must never define trusted Framework contracts,
-    validation rules, module schemas, or write authority.
+Do not remove or exclude any existing test pattern.
 
-Determine which existing signal should classify a fresh initialized consumer
-without treating advisory content as machine authority.
+Prefer exporting/reusing the established managed-marker predicate from
+WorkflowTargetResolver rather than creating duplicate detection logic.
 
-If no trustworthy existing initialization signal exists, state that clearly.
-Do not invent one during this task.
+If a new shared source file is technically necessary, stop before creating it
+and report why the two planned source files cannot safely host the shared
+predicate:
+
+REPAIR_9_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+
+Any other intentional source/resource/configuration change is unauthorized.
 
 ==================================================
-6. REPRODUCE THE FAILURE
+4. IMPLEMENT SHARED INITIALIZATION-EVIDENCE DETECTION
 
-Use existing tests and test helpers where possible.
+Create or expose one shared predicate that recognizes extension-managed consumer
+workflow initialization.
 
-Do not edit tests.
+It must:
 
-Create any additional diagnostic fixture only in a temporary location outside
-the repository.
+1. Recognize .github/copilot-instructions.md only when its content contains the
+    exact etl-copilot:managed provenance.
+2. Recognize managed assets below:
+    * .github/agents/**;
+    * .github/skills/**;
+    * .github/instructions/**;
+    * .github/prompts/**;
+        only when the inspected asset contains the same managed provenance.
+3. Continue recognizing existing canonical consumer job/env layouts.
+4. Not require Git metadata.
+5. Not accept folder names as evidence.
+6. Not accept sttm/** alone.
+7. Not accept resources/copilot/context/** alone.
+8. Not interpret the content of consumer context as machine authority.
+9. Use bounded reads and normalized workspace-relative paths.
+10. Fail closed on read errors, traversal, sibling escapes and ambiguous roots.
 
-Reproduce at least these matrices:
+Reuse this same predicate in the preflight classifier and the existing workflow
+target resolver so their consumer classification cannot drift.
 
-A. Fresh initialized consumer:
+Avoid duplicating marker lists or marker parsing.
 
-* one root;
-* no Git metadata;
-* workflow customization present;
-* STTM present;
-* resources/copilot/context present;
+==================================================
+5. FIX PREFLIGHT CLASSIFICATION
+
+Update EtlReadOnlyToolService workspace classification so that:
+
+Fresh initialized consumer:
+
+* no Git;
 * no job_conf;
 * no env_conf;
-* no Framework source.
+* managed workflow initialization evidence present;
+* optional STTM present;
+* no Framework source;
 
-Expected:
-consumer-etl-workspace and CREATE_NEW_JOB.
+returns:
 
-B. Arbitrary empty folder:
+consumer-etl-workspace
 
-* no initialization evidence;
-* no STTM;
-* no job/env;
-* no Framework.
+For this case, etl_capabilities must report:
 
-Expected:
-UNKNOWN/BLOCKED.
+* selected root is the fresh consumer root;
+* runtimeReady=true;
+* available=true;
+* targetType=consumer-etl-workspace;
+* blockers=[].
 
-C. Existing consumer:
+The absence of job_conf/env_conf must remain a later target-decision concern and
+lead to CREATE_NEW_JOB. It must not block capabilities or STTM interpretation.
 
-* canonical existing consumer artifacts present.
+Keep evidence categories distinct.
 
-Expected:
-consumer-etl-workspace.
+Initialization evidence may classify workspace intent, but must not be passed to
+buildExampleSearchRoots or treated as an approved Framework example root.
 
-D. Framework source workspace:
-
-Expected:
-Framework/development classification, not consumer.
-
-E. Multi-root workspace:
-
-Expected:
-ambiguous/BLOCKED.
-
-For each case report:
-
-* actual classification;
-* expected classification;
-* decisive evidence;
-* exact predicate responsible for a mismatch.
-
-Do not use the real QA workspace for reproduction.
+Approved example search must remain restricted to trusted packaged or canonical
+artifact-layout evidence.
 
 ==================================================
-7. TEST-COVERAGE GAP ANALYSIS
+6. FAIL CLOSED FOR FRAMEWORK/SOURCE ROOTS
 
-Locate all existing tests covering:
+The investigation found that a Framework root containing sql/** or
+common_script/** can currently be mistaken for a consumer.
 
-* workspace classification;
-* etl_capabilities;
-* fresh consumers;
-* no existing job_conf/env_conf;
-* non-Git workspaces;
-* packaged Framework fallback;
-* CREATE_NEW_JOB routing;
-* pre-STTM capability gates;
-* Preview/write authorization.
+Close this false positive within the same classification boundary.
 
-Explain why compile, focused suites and the full unit suite passed while this
-runtime defect remained.
+Reuse existing source-root/reference-root evidence already used by RepoWriter,
+including established sourceRootNames or equivalent trusted predicates.
 
-Report:
+Required behavior:
 
-* existing relevant test files;
-* scenarios currently covered;
-* missing scenario;
-* tests that give a false sense of coverage;
-* whether fixtures accidentally contain job/env/Framework/Git evidence;
-* exact regression tests required for a repair.
+* extension source checkout is never classified as consumer-etl-workspace;
+* Framework/reference source root is never classified as a writable consumer;
+* ordinary existing consumer remains consumer-etl-workspace;
+* arbitrary empty folder remains unknown/blocked;
+* multi-root ambiguity remains fail-closed.
+
+Prefer the existing non-consumer/unknown result if it safely distinguishes the
+root. Do not expand the public target-type model unless absolutely required.
+
+Do not widen any write authorization.
 
 ==================================================
-8. SOURCE/VISX/PACKAGING PARITY CHECK
+7. CORRECT THE MISLEADING DIAGNOSTIC
 
-Determine whether this is:
+Replace the current instruction that tells a normal consumer to open an ETL
+Framework workspace.
 
-* a source logic defect;
-* a compiled-output defect;
-* a package-content defect;
-* stale installed runtime;
-* missing initialization evidence;
-* incorrect tool invocation;
-* or a combination.
+The diagnostic must accurately state that the folder lacks both:
 
-Compare the relevant classifier and blocker logic across:
+* existing canonical consumer artifacts; and
+* initialized managed ETL Copilot workflow evidence.
 
-1. source;
-2. current compiled output;
-3. exact verified VSIX:
-    databricks-etl-copilot-0.3.141.vsix
+It should direct the user to initialize the ETL Copilot workflow in the intended
+consumer folder.
 
-The exact verified artifact identity is:
+It must not direct the user to obtain or open Framework source.
 
-SIZE:
-1250393 bytes
-
-SHA-256:
-437427A915BEB7C0867DD2CE53C968161C99F43730004C702D87799390446B51
-
-Do not rebuild or modify the artifact.
-
-Report whether the source, compiled output and packaged runtime contain equivalent
-classification behavior.
+Preserve the stable diagnostic prefix or identifier if tests or callers depend
+on it; update only the misleading directive portion where possible.
 
 ==================================================
-9. TRUST AND SAFETY ANALYSIS
+8. REQUIRED REGRESSION AND SECURITY TESTS
 
-Explain how the repair can recognize a fresh initialized consumer while
-preserving fail-closed behavior.
+Add deterministic tests for all of the following.
 
-The future repair must not:
+Positive cases:
 
-* classify every folder containing an STTM as trusted;
-* use consumer context as Framework contract authority;
-* bypass packaged-contract resolution;
-* bypass artifact path validation;
-* bypass Preview freezing;
-* bypass explicit approval;
-* permit writes outside the workspace root;
-* weaken multi-root handling;
-* require Framework source.
+1. Fresh initialized consumer:
+    * no Git;
+    * no job_conf/env_conf;
+    * managed copilot-instructions marker;
+    * managed workflow assets;
+    * STTM;
+    * result consumer-etl-workspace;
+    * etl_capabilities runtimeReady/available true;
+    * blockers empty.
+2. Managed marker without generated artifacts:
+    * sufficient for initialized consumer classification.
+3. Existing canonical consumer:
+    * remains consumer-etl-workspace.
+4. HF1 Oracle fresh-consumer suite:
+    * capabilities classification passes before the write path;
+    * CREATE_NEW_JOB remains the expected decision;
+    * no Framework source required.
 
-Identify the minimum safe classification evidence and the separate downstream
-guards that continue to protect Preview and write operations.
+Negative/security cases:
+
+5. Arbitrary empty folder:
+    * unknown/blocked.
+6. Bare STTM only:
+    * not consumer.
+7. resources/copilot/context/** only:
+    * not consumer.
+8. Arbitrary .github assets without etl-copilot:managed:
+    * not consumer.
+9. Extension source checkout:
+    * not consumer and not writable.
+10. Framework/reference root:
+    * not consumer and not writable.
+11. Multiple roots:
+    * fail closed.
+12. Marker read failure or malformed marker:
+    * fail closed.
+13. Traversal and sibling escape:
+    * rejected.
+14. Preview drift and approval token rules:
+    * unchanged and still enforced.
+15. Example search-root isolation:
+    * initialization evidence does not add consumer directories to trusted
+        example search roots.
+
+Cross-classifier parity:
+
+Add a matrix asserting agreement among:
+
+* RepoWriter;
+* WorkflowTargetResolver;
+* EtlReadOnlyToolService/etl_capabilities;
+
+for fresh consumer, existing consumer, empty folder, Framework/source root and
+multi-root cases.
+
+Every new test must be included in an actually executed test command.
+
+Do not alter expectations merely to make the implementation pass.
 
 ==================================================
-10. PROPOSE THE BOUNDED REPAIR — DO NOT IMPLEMENT
+9. VALIDATE BEFORE VERSION BUMP
 
-Provide a concrete repair plan containing:
+Run using existing local dependencies:
 
-* exact source files requiring modification;
-* exact functions/predicates requiring modification;
-* exact diagnostic message correction;
-* exact new or updated test files;
-* required positive cases;
-* required negative/security cases;
-* compiled/generated artifacts expected from normal build commands;
-* whether packaged agent/prompt assets require synchronization;
-* whether a package version increment from 0.3.141 to 0.3.142 is required;
-* exact validation commands;
-* exact packaging verification commands;
-* Runtime QA steps that must be repeated afterward.
+1. TypeScript compile;
+2. lint;
+3. focused EtlReadOnlyToolService tests;
+4. HF1 Oracle fresh-consumer tests;
+5. workspace-classification parity tests;
+6. trusted Job Config envelope direct suite;
+7. Repair 8 focused suites;
+8. Repair 5/6/7 regression suites;
+9. full unit suite;
+10. canonical repository test command.
 
-Do not edit any file during this task.
+Report for every command:
+
+* exact command;
+* exit code;
+* passing count;
+* pending/skipped count;
+* failing count;
+* complete failure names.
+
+The prior verified 0.3.141 baseline was:
+
+* full unit passing: 2120;
+* pending: 1;
+* failures: 5;
+* all five failures historical;
+* new functional regressions: 0;
+* new security regressions: 0.
+
+The passing count should increase for the new tests.
+
+The same five historical failures may remain only if their identities and causes
+are unchanged and they reproduce against pristine HEAD.
+
+Required:
+
+COMPILE_PASS: YES
+LINT_PASS: YES
+NEW_REPAIR_9_TESTS_PASS: YES
+HF1_FRESH_CONSUMER_SUITE_PASS: YES
+CLASSIFICATION_PARITY_SUITE_PASS: YES
+TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
+REPAIR_8_FOCUSED_SUITES_PASS: YES
+REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+If a required gate fails, do not bump the version or package:
+
+REPAIR_9_RESULT: FAIL_VALIDATION_GATE
 
 ==================================================
-11. FINAL REPORT
+10. VERSION BUMP
+
+Only after all required repair gates pass, change exactly the package.json
+version token:
+
+“version”: “0.3.141”
+
+to:
+
+“version”: “0.3.142”
+
+Do not use npm version.
+Do not modify dependencies, scripts, publisher, package name or extension ID.
+Do not create or modify package-lock.json.
+
+Expected identity:
+
+PUBLISHER:
+td-etl
+
+PACKAGE_NAME:
+databricks-etl-copilot
+
+EXTENSION_ID:
+td-etl.databricks-etl-copilot
+
+TARGET_VERSION:
+0.3.142
+
+Re-run compile and the focused Repair 9 tests after the version change.
+
+==================================================
+11. BUILD EXACT 0.3.142 VSIX
+
+Use the existing canonical local packaging workflow.
+
+Create exactly:
+
+databricks-etl-copilot-0.3.142.vsix
+
+Expected path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
+
+Do not publish, install, commit or tag it.
+Do not overwrite the 0.3.141 artifact.
+
+==================================================
+12. VERIFY THE EXACT PACKAGE
+
+Run the repository’s exact-package verifier against the explicit 0.3.142 path.
+
+Do not use a newest-file selector.
+
+Independently verify:
+
+* archive opens;
+* internal package.json version is 0.3.142;
+* extension.vsixmanifest version is 0.3.142;
+* publisher is td-etl;
+* extension ID is td-etl.databricks-etl-copilot;
+* trusted Job Config contract is present and byte-equal to source;
+* trusted Oracle contract is present and byte-equal to source;
+* installed-layout contract resolution passes;
+* no etl-framework-adb dependency exists;
+* no source-checkout runtime dependency exists;
+* package hygiene and entry limits pass;
+* no .tmp/**;
+* no nested .git/**;
+* no .tsbuildinfo*;
+* no source tests or out-test content;
+* repaired classifier logic is present in packaged compiled output;
+* managed-marker detection is present in packaged compiled output;
+* corrected consumer diagnostic is present;
+* initialization evidence is not added to trusted example-search roots.
+
+Compare decompressed 0.3.141 and 0.3.142 package entries.
+
+Report all changed entries and classify each difference as:
+
+* expected version metadata;
+* expected compiled Repair 9 implementation;
+* unexpected.
+
+Ignore ZIP timestamps.
+
+Any unexplained entry or byte difference fails package verification.
+
+==================================================
+13. COMPUTE FINAL ARTIFACT IDENTITY
+
+Calculate from the actual newly built file:
+
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
+
+Do not predict or reuse a hash.
+
+==================================================
+14. POST-BUILD CHANGE-BOUNDARY CHECK
+
+Compare final state with the captured initial baseline.
+
+Report separately:
+
+* pre-existing tracked modifications;
+* pre-existing untracked files;
+* intentional Repair 9 source changes;
+* intentional Repair 9 test changes;
+* package.json version edit;
+* generated compile/package output;
+* unexpected changes;
+* staged files.
+
+Required:
+
+UNAUTHORIZED_SOURCE_CHANGES: NONE
+UNEXPECTED_CHANGED_PATHS: NONE
+STAGED_FILES: 0
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+PACKAGE_LOCK_CREATED_OR_MODIFIED: NO
+DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
+EXTENSION_INSTALLED: NO
+RUNTIME_QA_STARTED: NO
+
+Do not clean the repository after reporting.
+
+==================================================
+15. FINAL REPORT
 
 Return:
 
@@ -396,55 +565,92 @@ REPOSITORY_ROOT:
 ORIGIN: 
 BRANCH: 
 HEAD: 
-SOURCE_VERSION: 
-LIVE_RUNTIME_VERSION: 0.3.141
-LIVE_QA_WORKSPACE_EXPECTED_CLASSIFICATION: DEVELOPMENT_TEST_WORKSPACE
-LIVE_RUNTIME_CLASSIFICATION: UNKNOWN
-BLOCKER_SOURCE_FILE: 
-BLOCKER_SOURCE_FUNCTION: 
-CLASSIFIER_SOURCE_FILE: 
-CLASSIFIER_FUNCTION: 
-EXACT_FAILED_PREDICATE: 
-GIT_METADATA_REQUIRED_BY_CURRENT_LOGIC: YES/NO
-JOB_OR_ENV_REQUIRED_BY_CURRENT_LOGIC: YES/NO
-FRAMEWORK_MARKER_REQUIRED_BY_CURRENT_LOGIC: YES/NO
-INITIALIZED_CONSUMER_SIGNALS_FOUND: 
-CURRENT_CLASSIFIER_READS_INITIALIZATION_SIGNAL: YES/NO
-SAFE_MINIMUM_CLASSIFICATION_EVIDENCE: 
-FRESH_CONSUMER_REPRODUCED: YES/NO
-FRESH_CONSUMER_ACTUAL_RESULT: 
-EMPTY_FOLDER_NEGATIVE_CONTROL_PASS: YES/NO
-EXISTING_CONSUMER_CONTROL_PASS: YES/NO
-FRAMEWORK_WORKSPACE_CONTROL_PASS: YES/NO
-MULTI_ROOT_CONTROL_PASS: YES/NO
-MISSING_TEST_SCENARIO: 
-SOURCE_COMPILED_VSIX_PARITY: PASS/FAIL
-ROOT_CAUSE_CATEGORY: 
-SECURITY_BOUNDARY_PRESERVED_BY_PROPOSED_REPAIR: YES/NO
-PROPOSED_CHANGED_SOURCE_PATHS: 
-PROPOSED_CHANGED_TEST_PATHS: 
-PROPOSED_VERSION_AFTER_REPAIR: 
-TASK_ATTRIBUTABLE_CHANGES: NONE
+SOURCE_VERSION_BEFORE: 
+SOURCE_VERSION_AFTER: 
+ROOT_CAUSE_REPAIRED: YES/NO
+MANAGED_INITIALIZATION_EVIDENCE_SUPPORTED: YES/NO
+CONSUMER_CONTEXT_USED_AS_MACHINE_AUTHORITY: NO
+FRESH_NON_GIT_CONSUMER_CLASSIFICATION: 
+FRESH_CONSUMER_CAPABILITIES_RUNTIME_READY: YES/NO
+FRESH_CONSUMER_CAPABILITIES_BLOCKER_COUNT: 
+EMPTY_FOLDER_CLASSIFICATION: 
+BARE_STTM_CLASSIFICATION: 
+CONTEXT_ONLY_CLASSIFICATION: 
+EXTENSION_SOURCE_CLASSIFICATION: 
+FRAMEWORK_ROOT_CLASSIFICATION: 
+MULTI_ROOT_FAIL_CLOSED: YES/NO
+EXAMPLE_SEARCH_ROOTS_WIDENED: NO
+CROSS_CLASSIFIER_PARITY_PASS: YES/NO
+AUTHORIZED_SOURCE_CHANGED_PATHS: 
+AUTHORIZED_TEST_CHANGED_PATHS: 
+UNAUTHORIZED_SOURCE_CHANGED_PATHS: 
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+NEW_REPAIR_9_TESTS_PASS: YES/NO
+HF1_FRESH_CONSUMER_SUITE_PASS: YES/NO
+CLASSIFICATION_PARITY_SUITE_PASS: YES/NO
+TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
+REPAIR_8_FOCUSED_SUITES_PASS: YES/NO
+REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES/NO
+FULL_UNIT_PASSING_COUNT: 
+FULL_UNIT_PENDING_COUNT: 
+FULL_UNIT_FAILURE_COUNT: 
+FULL_UNIT_FAILURES: 
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
+FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+INTERNAL_PACKAGE_VERSION: 
+INTERNAL_MANIFEST_VERSION: 
+JOB_CONFIG_CONTRACT_HASH_MATCH: YES/NO
+ORACLE_CONTRACT_HASH_MATCH: YES/NO
+PACKAGE_CHANGED_ENTRIES_VS_0_3_141: 
+UNEXPLAINED_PACKAGE_DIFFERENCES: 
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
 STAGED_FILES: 
-QA_WORKSPACE_TOUCHED: NO
-SOURCE_MODIFIED: NO
-VSIX_BUILT: NO
-READY_FOR_BOUNDED_REPAIR: YES/NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+PACKAGE_LOCK_CREATED_OR_MODIFIED: NO
+DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
+READY_TO_INSTALL_0_3_142: YES/NO
+READY_FOR_RUNTIME_QA_PHASE_1: NO
+SAFE_TO_COMMIT: NO
+SAFE_TO_RELEASE: NO
+
+PASS requires:
+
+* confirmed source-logic defect repaired;
+* fresh initialized non-Git consumer classified correctly;
+* arbitrary/unsafe roots remain fail-closed;
+* Framework/source roots are not consumers;
+* classifiers agree;
+* no machine-authority boundary weakened;
+* all required focused/regression gates pass;
+* only unchanged historical full-suite failures remain;
+* zero new functional/security regressions;
+* version is 0.3.142;
+* exact final package verification passes;
+* actual artifact SHA-256 calculated;
+* zero staged files;
+* no install, Runtime QA, commit, push or tag.
 
 End exactly with one:
 
-ROOT_CAUSE_RESULT: CONFIRMED_SOURCE_LOGIC_DEFECT
+REPAIR_9_RESULT: PASS
 
-ROOT_CAUSE_RESULT: CONFIRMED_PACKAGING_DEFECT
+REPAIR_9_RESULT: FAIL_VALIDATION_GATE
 
-ROOT_CAUSE_RESULT: CONFIRMED_MISSING_INITIALIZATION_SIGNAL
+REPAIR_9_RESULT: FAIL_PACKAGE_VERIFICATION
 
-ROOT_CAUSE_RESULT: CONFIRMED_TOOL_INVOCATION_DEFECT
+REPAIR_9_RESULT: FAIL_UNAUTHORIZED_CHANGE
 
-ROOT_CAUSE_RESULT: CONFIRMED_COMBINED_DEFECT
+REPAIR_9_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-ROOT_CAUSE_RESULT: INCONCLUSIVE
+REPAIR_9_RESULT: BLOCKED_STAGED_CHANGES
 
-ROOT_CAUSE_RESULT: BLOCKED_IDENTITY_MISMATCH
+REPAIR_9_RESULT: BLOCKED_EXISTING_0_3_142_ARTIFACT
 
-ROOT_CAUSE_RESULT: BLOCKED_STAGED_CHANGES
+REPAIR_9_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
