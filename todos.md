@@ -1,347 +1,402 @@
-TASK: PHASE_2F_OWNER_DECISION_PACKET_PREPARATION
+TASK: HF1_V2_RUNTIME_QA_PHASE_1_PREVIEW_ONLY_VERSION_0_3_141
 
-Mode: bounded decision-document preparation only.
-No Phase 2F implementation is authorized.
+Execute Phase 1 of HF1 V2 runtime QA using the installed Databricks ETL
+Copilot extension.
 
-==================================================
-1. WORKSPACE GATE
-==================================================
+This is a DEVELOPMENT_TEST_WORKSPACE.
 
-Operate only from:
+It is not:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+- the software development source repository;
+- SIT;
+- production;
+- a real consumer deployment repository.
 
-The corresponding physical path may be:
+This workspace is disposable and contains synthetic QA inputs only.
 
-/app1/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
-
-Accept the workspace only if realpath confirms that these identify the
-same permanent Phase 2E worktree.
-
-Expected identity:
-
-Branch:
-phase2/governed-field-records
-
-HEAD:
-0430613e6a9f1680338d8fc099e7960e5d46cac2
-
-Expected state:
-- clean worktree and index;
-- zero commits beyond the finalized Phase 2E candidate;
-- no unexpected Phase 2F branch, worktree, commit, or PR.
-
-If the workspace, HEAD, or cleanliness does not match, stop without
-reading unrelated files and report:
-
-PHASE_2F_OWNER_PACKET_BLOCKED_IDENTITY_DRIFT
-
-Do not inspect or use the stale primary checkout or branch asktd_v2.
+Do not inspect or modify the extension source repository.
+Do not inspect or modify etl-framework-adb.
+Do not install or download dependencies.
+Do not commit or push.
+Do not execute a Databricks job.
+Do not connect to or mutate real data.
+Do not approve or execute a filesystem write during this phase.
+Do not repair source code.
 
 ==================================================
-2. AUTHORITATIVE INPUT
+1. EXPECTED RUNTIME IDENTITY
 ==================================================
 
-Read this report COMPLETELY:
+Expected extension ID:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2F_DISCOVERY_2026-08-24.md
+td-etl.databricks-etl-copilot
 
-Use it as the authoritative Phase 2F discovery baseline.
+Expected active extension version:
 
-You may read the exact repository files cited by that report solely to
-confirm names, fields, and current contracts. Do not perform a new broad
-architecture discovery.
+0.3.141
 
-Do not read unrelated reports, sibling repositories, ETL/UCA workspaces,
-Library exports, or the stale primary checkout.
+Expected workspace topology:
 
-==================================================
-3. PURPOSE
-==================================================
+- exactly one open workspace root;
+- Development Test Workspace;
+- no extension-source checkout;
+- no etl-framework-adb;
+- no existing job_conf/**;
+- no existing env_conf/**;
+- workflow customization already initialized;
+- STTM file present at:
 
-Create one concise owner-decision packet that allows the designated:
+  sttm/qa_hf1v2_demo_sttm.md
 
-- Product owner;
-- Data Governance owner;
-- Architecture owner;
-- recipe-governance authority;
-- Platform/Security owner where applicable;
+Use runtime tools such as etl_capabilities and the live ETL Copilot output to
+verify the installed extension identity.
 
-to explicitly approve, amend, reject, or defer the decisions required
-before bounded Phase 2F implementation.
+Do not treat package metadata alone as runtime activation proof.
 
-Do not make these decisions on their behalf.
+If the active extension is not 0.3.141, stop with:
 
-The packet must clearly distinguish:
-
-1. GitHub PR approval:
-   one eligible non-author approval required for each PR;
-
-2. recipe business/governance approval:
-   the immutable approval evidence consumed by the proposed Phase 2F
-   runtime comparison.
-
-A GitHub PR approval must never be represented as recipe approval
-provenance.
+QA_PHASE_1_RESULT: BLOCKED
 
 ==================================================
-4. BASELINE TO RECORD
+2. FIXED QA INPUTS
 ==================================================
 
-Record these as technically validated evidence, not approved business
-baselines:
+Do not ask the user to provide these values again.
 
-Phase 2E SHA:
-0430613e6a9f1680338d8fc099e7960e5d46cac2
+Job name:
 
-Phase 2E committed-content digest:
-d24d75ddc9cd38f699aefbda7392292d7b0cb708d06416cbb53b846a293915be
+qa_hf1v2_demo
 
-Pilot key:
-("source_balance_mom_change", "1.0.0")
+Malcode:
 
-Current technically validated dependency fingerprint:
-df-5018e97c00917aaa455c71b0c7ca7d42eac2ea01c0cab2b7449bd490559b425a
+acz9999
 
-Label the fingerprint:
+Environment:
 
-CANDIDATE TECHNICAL EVIDENCE — NOT AN APPROVED BASELINE
+dev
 
-Never silently convert it into approved evidence.
+Strategy:
 
-==================================================
-5. REQUIRED DECISION FORMS
-==================================================
+generic_dataframe_write
 
-Create explicit decision forms for the following.
+Source:
 
-D-01 — Approval authority and provenance
+- type: Delta;
+- physical mode: ADLS-path-backed;
+- path:
+  abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/raw/qa_hf1v2_customer
 
-Require owners to specify:
+Target:
 
-- recipe approval authority;
-- approved_by or approval_authority representation;
-- approval_reference format;
-- approved_at requirements;
-- whether any additional provenance is mandatory.
+- type: Delta;
+- physical mode: ADLS-path-backed;
+- path:
+  abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/curated/qa_hf1v2_customer
+- format: delta;
+- write mode: append.
 
-D-02 — Four-state semantics and precedence
+Primary key:
 
-Present the discovery recommendation for explicit approval or amendment:
+customer_id
 
-1. Phase 2F flag OFF:
-   emit no Phase 2F state and preserve exact Phase 2E behavior.
+The primary key is informational for this append-only QA case.
 
-2. Missing or invalid exact approval evidence:
-   NOT_APPROVED.
+Explicitly excluded behavior:
 
-3. Valid approval exists but current governed truth cannot be resolved,
-   including missing/renamed references or canonical conflicts:
-   BROKEN.
+- direct Unity Catalog table-name write;
+- merge;
+- upsert;
+- CDC;
+- SCD2;
+- database_out;
+- Synapse;
+- JDBC;
+- TIBCO;
+- production connectivity.
 
-4. Current recipe definition or dependency fingerprint differs while
-   current governed truth remains resolvable:
-   REVIEW_REQUIRED.
-
-5. Exact approved recipe-definition fingerprint and exact approved
-   dependency fingerprint:
-   VALID.
-
-Require an explicit owner decision for ambiguous multi-condition cases.
-
-D-03 — Canonical recipe-definition fingerprint
-
-Present the minimum recommended payload:
-
-- recipe_id;
-- recipe_version;
-- normalized governed dataset references;
-- normalized governed field references;
-- normalized parameter definitions, domains, and allowed pairs;
-- builder_key.
-
-Require explicit decisions on:
-
-- inclusion of lower-case lifecycle_status;
-- inclusion of builder implementation identity or code digest;
-- inclusion of output semantics;
-- canonical ordering and normalization;
-- version-bump requirements for execution-semantic changes.
-
-Do not invent the final payload or fingerprint.
-
-D-04 — Builder-change discipline
-
-Require owners to decide whether a builder implementation or output
-change:
-
-- changes recipe_version;
-- changes the approved recipe-definition fingerprint;
-- requires both;
-- or follows another explicitly documented rule.
-
-D-05 — Initial pilot approval record
-
-Create a decision template for the exact key:
-
-("source_balance_mom_change", "1.0.0")
-
-Required fields:
-
-- recipe_id;
-- recipe_version;
-- approved_recipe_fingerprint:
-  PENDING_OWNER_PAYLOAD_DECISION;
-- approved_dependency_fingerprint:
-  CANDIDATE_VALUE_REQUIRES_EXPLICIT_OWNER_ACCEPTANCE;
-- approval_authority:
-  PENDING;
-- approval_reference:
-  PENDING;
-- approved_at:
-  PENDING;
-- decision:
-  APPROVE / REJECT / DEFER / REQUEST_CHANGES;
-- decision rationale;
-- approver/sign-off.
-
-Do not populate an approval timestamp, authority, recipe fingerprint, or
-approval decision automatically.
-
-D-06 — Architecture option
-
-Request explicit acceptance, amendment, or rejection of:
-
-2F-B — a separate frozen, source-controlled, in-process approval-record
-registry keyed by exact (recipe_id, recipe_version).
-
-Record that:
-
-- runtime is a read-only consumer;
-- no setter, writer, upsert, bootstrap, refresh, or auto-registration
-  path is permitted;
-- 2F-A is not recommended because of approval/definition co-location and
-  self-blessing risk;
-- 2F-C persistent control plane is deferred.
-
-D-07 — Feature-flag interaction
-
-Request explicit confirmation of behavior when:
-
-APPROVED_RECIPE_DEPENDENCY_LIFECYCLE_ENABLED=true
-
-but strict registry or governed field records are unavailable or false.
-
-Present the recommendation:
-
-fail closed as BROKEN; never downgrade to dataset-only approval.
-
-D-08 — Trace and disclosure policy
-
-Request confirmation that enabled traces may contain only:
-
-- lifecycle state;
-- safe internal reason code.
-
-They must not expose:
-
-- approval authority or approver identity;
-- approved/current fingerprints;
-- physical object names;
-- governed dependency IDs;
-- raw evidence;
-- validation internals in the user-facing response.
-
-D-09 — Separate GitHub control
-
-Record as a working decision:
-
-GitHub PR approval is separate from recipe approval evidence.
-
-D-10 — Phase-name reconciliation
-
-Ask Architecture to reconcile ADR 0004’s earlier Phase 2G wording with
-the current bounded Phase 2F lifecycle slice.
-
-D-11 — Implementation base
-
-Record that Phase 2F implementation must not start until PR #15, #16,
-and #17 are merged bottom-up and the resulting main SHA, ancestry, file
-inventories, and Phase 2E digest are reverified.
+Any raw/curated labels in the STTM are logical zone names, not Unity Catalog
+table identifiers.
 
 ==================================================
-6. REQUIRED PACKET STRUCTURE
+3. WORKSPACE BASELINE
 ==================================================
 
-The document must contain:
+After workflow setup is complete, capture the runtime-QA baseline.
 
-1. Purpose and authority boundary.
-2. Technically validated evidence.
-3. Recommended 2F-B summary.
-4. Decisions requiring owner confirmation.
-5. Initial pilot approval-record decision form.
-6. State-precedence approval table.
-7. Recipe-definition payload decision table.
-8. Feature-flag and trace decisions.
-9. Owner/sign-off matrix.
-10. Explicit non-goals and deferred items.
-11. Implementation blockers.
-12. Exact effect of no decision:
-    the safe pilot result remains NOT_APPROVED and implementation remains
-    blocked.
-13. One recommended next action:
-    circulate the packet to the named owners and obtain explicit recorded
-    decisions.
+Confirm:
 
-For every open item include:
+- workspace root count;
+- workspace root path;
+- active extension version;
+- existing job_conf file count;
+- existing env_conf file count;
+- existing generated ETL artifact count;
+- STTM path;
+- workflow customization presence.
 
-- decision;
-- why it matters;
-- current evidence;
-- recommended answer;
-- owner;
-- confirmation required;
-- blocks Core implementation, runtime activation, integration,
-  production, or only a later phase.
+The expected pre-preview state is:
+
+EXISTING_JOB_CONF_COUNT: 0
+EXISTING_ENV_CONF_COUNT: 0
+
+Do not modify workflow customization assets during this QA phase.
 
 ==================================================
-7. PROHIBITED ACTIONS
+4. FRAMEWORK-INDEPENDENT DISCOVERY
 ==================================================
 
-Do not:
+Use only installed-extension runtime tools.
 
-- implement Phase 2F;
-- create a Phase 2F branch or worktree;
-- edit repository files;
-- stage or commit;
-- push;
-- create, edit, approve, retarget, mark ready, or merge a PR;
-- alter PR #15, #16, or #17;
-- enable runtime flags;
-- create approval evidence automatically;
-- treat the current dependency fingerprint as approved;
-- repair CODEOWNERS or workflows;
-- start Phase 2G;
-- introduce persistence, migrations, API, UI, Redis, graph, Databricks,
-  Genie, Unity Catalog, Collibra, deployment, or Terraform work.
+Verify:
+
+- framework source checkout is absent;
+- packaged framework fallback is used;
+- the trusted Job Config envelope contract resolves;
+- criticalConfigKeys are non-empty;
+- approved packaged examples can be searched without local example roots;
+- no consumer-editable context is treated as machine authority.
+
+Use, where applicable:
+
+- etl_get_framework_rules;
+- etl_search_examples;
+- etl_describe_module;
+- etl_interpret_sttm.
+
+Do not access the software source repository to obtain missing syntax.
+
+If the packaged contract cannot be resolved, stop without preview or write.
 
 ==================================================
-8. OUTPUT
+5. STTM INTERPRETATION
 ==================================================
 
-Create exactly one new report outside the Git repository:
+Read:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2F_OWNER_DECISION_PACKET_2026-08-24.md
+sttm/qa_hf1v2_demo_sttm.md
 
-Do not modify any existing report.
+The `Field Mapping` section must be recognized as a mapping section.
 
-Before completion, reverify that the repository worktree remains clean
-and that HEAD remains unchanged.
+Report:
 
-End with exactly one terminal marker:
+- mapping count;
+- source evidence;
+- target evidence;
+- filters;
+- write strategy;
+- whether STTM parsing required a raw-content fallback.
 
-PHASE_2F_OWNER_DECISION_PACKET_READY_FOR_OWNER_REVIEW
+Do not silently reinterpret the target as a Unity Catalog table.
 
-or:
+If the structured parser still reports zero mappings, record that fact
+honestly, but continue only if the installed runtime can derive the exact same
+six mappings deterministically from the supplied STTM without guessing.
 
-PHASE_2F_OWNER_DECISION_PACKET_BLOCKED
+==================================================
+6. TARGET DECISION
+==================================================
+
+Because the workspace contains no existing job_conf or env_conf for this job,
+the expected decision is:
+
+CREATE_NEW_JOB
+
+This decision must be based on the Development Test Workspace contents, not on
+the absence of etl-framework-adb.
+
+Required:
+
+TARGET_DECISION: CREATE_NEW_JOB
+FRAMEWORK_SOURCE_REQUIRED: NO
+
+==================================================
+7. CANONICAL JOB CONFIG
+==================================================
+
+Generate the proposed Job Config using the trusted packaged contract.
+
+The output must use the canonical HOCON envelope:
+
+modules {
+  <stage_key> {
+    ...
+    options {
+      module = <module_type>
+      method = process
+    }
+  }
+}
+
+Requirements:
+
+- `modules` is an object, not an array;
+- stage entries are keyed by stage name;
+- every stage has `options.module`;
+- every executable stage has the required method and option fields;
+- the final writer is dataframe_writer;
+- the writer destination is path-based;
+- output format is delta;
+- write mode is append;
+- no direct Unity Catalog table target is present;
+- no quoted-JSON modules envelope is present;
+- no non-canonical top-level module blocks are present.
+
+Use the installed packaged examples and trusted contract rather than inventing
+a new envelope.
+
+==================================================
+8. PREVIEW ARTIFACTS
+==================================================
+
+Render and validate the complete proposed artifact set.
+
+It must contain at least:
+
+- one job configuration;
+- one environment configuration.
+
+Likely canonical destinations include:
+
+job_conf/conf/acz9999/qa_hf1v2_demo.json
+
+env_conf/dev/env_conf_dev_qa_hf1v2_demo.yaml
+
+Additional include or SQL artifacts are permitted only when deterministically
+required by the selected strategy and STTM.
+
+Every artifact path must be inside the single Development Test Workspace root.
+
+Report the complete preview manifest, including:
+
+- relative path;
+- artifact type;
+- disposition;
+- content hash/checksum;
+- writable decision;
+- validation result.
+
+==================================================
+9. REQUEST PREVIEW ONLY
+==================================================
+
+Call the installed trusted write workflow only far enough to create a real
+preview record.
+
+Do not provide a previewId on the first request.
+
+The expected first-call behavior is:
+
+- deterministic validation passes;
+- a real Preview ID is issued;
+- the complete artifact manifest is frozen;
+- zero files are created;
+- zero files are modified;
+- zero files are deleted;
+- explicit approval remains pending;
+- no write authorization is consumed;
+- no user approval is fabricated.
+
+Do not approve the preview in this phase.
+
+Do not invoke the second write turn.
+
+Do not simulate or fabricate a Preview ID.
+
+==================================================
+10. ZERO-WRITE VERIFICATION
+==================================================
+
+After preview creation, verify directly that:
+
+- job_conf/** is still absent;
+- env_conf/** is still absent;
+- no include or SQL file was created;
+- no workflow customization asset changed;
+- the STTM did not change;
+- no protected root was modified;
+- no artifact exists merely because it appeared in the preview manifest.
+
+Required:
+
+PREVIEW_ZERO_NEW_FILES: YES
+PREVIEW_ZERO_MODIFIED_FILES: YES
+PREVIEW_ZERO_DELETED_FILES: YES
+WRITE_EXECUTED: NO
+
+==================================================
+11. STOP POINT
+==================================================
+
+Stop immediately after a valid Preview ID and zero-write proof are obtained.
+
+Do not accept the preview.
+Do not reject the preview unless deterministic validation itself fails.
+Do not continue to approval/write testing.
+Do not close or discard the active preview state.
+
+Preserve the Chat/session because Phase 2 will use the exact Preview ID and
+identical content.
+
+==================================================
+12. FINAL REPORT
+==================================================
+
+Return:
+
+ACTIVE_EXTENSION_ID: <value>
+ACTIVE_EXTENSION_VERSION: <value>
+WORKSPACE_CLASSIFICATION: DEVELOPMENT_TEST_WORKSPACE
+WORKSPACE_ROOT: <absolute path>
+WORKSPACE_ROOT_COUNT: <number>
+WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
+STTM_INPUT_FOUND: YES/NO
+STTM_STRUCTURED_MAPPING_COUNT: <number>
+STTM_RAW_FALLBACK_REQUIRED: YES/NO
+CONTEXT_FILES_CONSUMED: <exact list>
+TARGET_DECISION: <value>
+FRAMEWORK_SOURCE_REQUIRED: YES/NO
+PACKAGED_CONTRACT_RESOLVED: YES/NO
+CRITICAL_CONFIG_KEYS_COUNT: <number>
+PACKAGED_EXAMPLE_SEARCH_PASS: YES/NO
+CANONICAL_MODULE_ENVELOPE: YES/NO
+MODULE_COUNT: <number>
+DATAFRAME_WRITER_PATH_BASED: YES/NO
+UNITY_CATALOG_DIRECT_WRITE_REQUESTED: NO
+UNSUPPORTED_UNITY_CATALOG_DIAGNOSTIC_TRIGGERED: YES/NO
+PREVIEW_ID: <real value or NONE>
+PREVIEW_ARTIFACT_COUNT: <number>
+PREVIEW_ARTIFACT_MANIFEST: <complete list>
+PREVIEW_ZERO_NEW_FILES: YES/NO
+PREVIEW_ZERO_MODIFIED_FILES: YES/NO
+PREVIEW_ZERO_DELETED_FILES: YES/NO
+PREVIEW_PATHS_INSIDE_WORKSPACE_ROOT: YES/NO
+EXPLICIT_APPROVAL_REQUIRED: YES/NO
+APPROVAL_STILL_PENDING: YES/NO
+WRITE_EXECUTED: NO
+SOURCE_CODE_MODIFIED: NO
+REAL_DATA_ACCESSED: NO
+DEVELOPMENT_TEST_WORKSPACE_MUTATED: NO
+DEFERRED_CONTEXT_TRUST_FINDING_RECORDED: YES/NO
+
+PASS requires:
+
+- active extension 0.3.141;
+- exactly one Development Test Workspace root;
+- CREATE_NEW_JOB;
+- no framework source;
+- trusted packaged contract resolved;
+- at least one canonical module;
+- path-based dataframe_writer;
+- deterministic validation success;
+- a real Preview ID;
+- a complete manifest;
+- zero workspace writes;
+- explicit approval still pending.
+
+End exactly with one:
+
+QA_PHASE_1_RESULT: PASS
+
+QA_PHASE_1_RESULT: FAIL
+
+QA_PHASE_1_RESULT: BLOCKED
