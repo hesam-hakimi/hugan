@@ -1,656 +1,416 @@
-TASK: HF1_V2_REPAIR_9_FRESH_CONSUMER_CLASSIFICATION_AND_BUILD_0_3_142
+# Ready\-to\-run prompt — install ETL Copilot development guardrails
 
-Implement the bounded Repair 9 confirmed by the completed read-only root-cause
-investigation.
+Run this prompt in a new Coding/Agent chat in the **Software Development**
+**Environment** with only the Extension source repository open\.
+
+---
+
+TASK: ADD\_CROSS\_LOCAL\_CLOUD\_ETL\_ENGINEERING\_GUARDRAILS
 
 Work only inside:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
 
-This task fixes the 0.3.141 runtime preflight classifier, adds regression and
-security tests, increments the version to 0.3.142, builds the exact VSIX and
-verifies it.
+This is a documentation/instruction\-only task\. Add repository instructions that
+guide GitHub Copilot in both local VS Code Chat/Agent and GitHub Copilot Cloud
+Agent, while preserving all existing source and user changes\.
 
-Do not access or modify the Development Test Workspace.
-Do not access or modify etl-framework-adb.
-Do not install or uninstall the extension.
-Do not run Runtime QA.
-Do not use web search.
-Do not download dependencies.
-Do not run npm install.
-Do not use npm version.
-Do not create package-lock.json.
-Do not modify protected .github/** assets.
-Do not modify resources/copilot/** unless concrete test evidence proves that an
-existing packaged asset is incorrect. The root-cause investigation found no
-packaged agent/prompt change necessary.
-Do not modify historical test baselines to hide failures.
-Do not commit, push, merge, tag, stash, reset, clean, restore, or delete existing
-files.
-Do not overwrite or delete the verified 0.3.141 VSIX.
+Current verified state before this task:
 
-==================================================
+- Repair 9 completed successfully;
+- working source version is `0.3.142`;
+- `databricks-etl-copilot-0.3.142.vsix` was built and exact\-package verified;
+- recorded artifact size is `1251308` bytes;
+- recorded SHA\-256 is
+  `B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23`;
+- the artifact has not been installed and Runtime QA has not started\.
 
-1. AUTHORITATIVE ROOT-CAUSE EVIDENCE
-    ==================================================
+Do not implement Repair 9 or any runtime fix in this task\.
+Do not change the package version\.
+Do not compile, package, install, publish, or run Runtime QA\.
+Do not overwrite, delete, rebuild, rename, or otherwise modify the verified
+`databricks-etl-copilot-0.3.142.vsix` artifact\.
+Do not modify source, tests, contracts, prompts, workflows, settings, or baselines\.
+Do not install or download dependencies\.
+Do not use web search\.
+Do not commit, push, merge, tag, stash, reset, restore, clean, delete, or stage\.
 
-Treat the completed investigation as authoritative:
+The only paths that this task may intentionally add or edit are:
 
-ROOT_CAUSE_RESULT:
-CONFIRMED_SOURCE_LOGIC_DEFECT
+- `.github/copilot-instructions.md`
+- `.github/instructions/etl-runtime-safety.instructions.md`
+- `.github/instructions/etl-test-safety.instructions.md`
+- `.github/instructions/etl-packaging-safety.instructions.md`
 
-Source version and active failed runtime:
-
-0.3.141
-
-Live failure:
-
-* correctly initialized fresh consumer workspace;
-* one non-Git root;
-* STTM present;
-* initialized managed workflow assets present;
-* no job_conf/**;
-* no env_conf/**;
-* no Framework source;
-* no etl-framework-adb;
-* etl_capabilities returned targetType=unknown and blocked before STTM discovery.
-
-Exact blocker:
-
-src/tools/EtlReadOnlyToolService.ts
-EtlReadOnlyToolService.capabilities()
-approximately line 907
-
-Classifier:
-
-src/tools/EtlReadOnlyToolService.ts
-classifyWorkspaceTargetType()
-via detectEtlAssetRepo()
-approximately lines 1007–1025 and 1468–1487
-
-Exact failed logic:
-
-detectEtlAssetRepo(folder, reader).length > 0 === false
-
-Current detection accepts only generated/legacy evidence such as:
-
-* job_conf/**;
-* env_conf/**;
-* sql/**;
-* common_script/**;
-* external_modules/**;
-* job_onboarding/**;
-* legacy ETL-flavoured AGENTS.md.
-
-It ignores the extension-managed initialization signals already used by
-RepoWriter and WorkflowTargetResolver.
-
-Safe initialized-consumer evidence:
-
-* .github/copilot-instructions.md containing exact managed provenance:
-    etl-copilot:managed; or
-* at least one extension-managed asset under:
-    .github/agents/**,
-    .github/skills/**,
-    .github/instructions/**,
-    .github/prompts/**
-    whose content carries the same managed provenance.
-
-Evidence that must remain insufficient by itself:
-
-* bare sttm/**;
-* resources/copilot/context/**;
-* folder naming;
-* Git metadata;
-* arbitrary .github files without the managed provenance stamp.
-
-Existing generated job_conf/env_conf evidence must continue to work.
-
-The new classification evidence establishes workspace intent only. It must never
-become Framework contract, schema, validation, module, path or write authority.
+All other `.github/**` content is protected and must remain byte\-unchanged\.
 
 ==================================================
-2. VERIFY REPOSITORY AND PRESERVE BASELINE
 
-Expected identity:
+1. REPOSITORY IDENTITY AND SAFETY GATE
+   ==================================================
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Verify before editing:
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+EXPECTED\_ROOT:
+`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+EXPECTED\_ORIGIN:
+`https://github.com/TD-Universe/agentic_etl.git`
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+EXPECTED\_BRANCH:
+`hotfix/hf1-oracle-fresh-consumer-v2`
 
-SOURCE_VERSION_BEFORE:
-0.3.141
+EXPECTED\_HEAD:
+`b2e44c3a1a051aa7fa6008831d225bc06d22e847`
 
-Capture before editing:
+EXPECTED\_WORKING\_SOURCE\_VERSION:
+`0.3.142`
 
-* absolute repository root;
-* origin;
-* branch;
-* HEAD;
-* source version;
-* staged paths;
-* tracked modifications;
-* untracked paths;
-* existing 0.3.141 and 0.3.142 VSIX files;
-* package-lock.json presence.
+EXPECTED\_VERIFIED\_VSIX:
+`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix`
 
-Preserve the complete pre-existing working-tree overlay exactly.
+EXPECTED\_VERIFIED\_VSIX\_SIZE\_BYTES:
+`1251308`
 
-If root, origin, branch or HEAD differs, stop:
+EXPECTED\_VERIFIED\_VSIX\_SHA256:
+`B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23`
 
-REPAIR_9_RESULT: BLOCKED_IDENTITY_MISMATCH
+Capture:
 
-If staged files exist, stop:
+- absolute repository root;
+- origin URL;
+- current branch and HEAD;
+- staged file count;
+- complete tracked\-modified and untracked path lists;
+- current `package.json` version;
+- exact current path, size, and SHA\-256 of the verified `0.3.142` VSIX;
+- current contents/status of every authorized target path;
+- every existing `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, and
+  `.github/instructions/**/*.instructions.md` that could overlap these rules\.
 
-REPAIR_9_RESULT: BLOCKED_STAGED_CHANGES
+A large existing working\-tree overlay is expected\. Preserve it exactly\.
 
-If databricks-etl-copilot-0.3.142.vsix already exists, do not overwrite it.
-Inspect and report it, then stop:
+If root, origin, branch, HEAD, working source version, VSIX size, or VSIX SHA\-256
+differs, stop without editing and return:
 
-REPAIR_9_RESULT: BLOCKED_EXISTING_0_3_142_ARTIFACT
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_IDENTITY_MISMATCH`
 
-==================================================
-3. AUTHORIZED CHANGE BOUNDARY
+If staged files exist, stop without editing:
 
-Primary authorized source files:
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_STAGED_CHANGES`
 
-* src/tools/EtlReadOnlyToolService.ts
-* src/customization/WorkflowTargetResolver.ts
+If any authorized target already has an uncommitted user modification, do not
+overwrite it\. Report the exact conflict and stop:
 
-Authorized test files:
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_TARGET_HAS_USER_CHANGES`
 
-* src/test/suite/EtlReadOnlyToolService.test.ts
-* src/test/suite/hf1OracleFreshConsumer.test.ts
-* src/test/suite/workspaceClassificationParity.test.ts
-    (new, if the existing test structure supports it)
+# ================================================== 2\. MERGE, NEVER BLINDLY OVERWRITE
 
-Conditionally authorized:
+If an authorized file already exists and is clean, merge the requirements below
+into it\. Preserve useful repository\-specific instructions and remove no rule\.
+Avoid duplicate or contradictory sources of truth\.
 
-* the canonical existing test registration/pattern file, only if required to
-    guarantee the new suite runs;
-* package.json, version token only:
-    3.141 → 0.3.142;
-* normal compiled/package output produced by existing scripts.
+If an existing instruction conflicts with the safety invariants below, do not
+choose silently\. Stop and report both exact clauses:
 
-Do not remove or exclude any existing test pattern.
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_INSTRUCTION_CONFLICT`
 
-Prefer exporting/reusing the established managed-marker predicate from
-WorkflowTargetResolver rather than creating duplicate detection logic.
+Create `.github/instructions/` only if needed\. Do not touch any sibling file\.
 
-If a new shared source file is technically necessary, stop before creating it
-and report why the two planned source files cannot safely host the shared
-predicate:
+Write instruction content in clear, imperative English\. Keep it timeless: do not
+hard\-code the current version, branch, incident number, file line number, or
+temporary QA path inside the installed instruction files\.
 
-REPAIR_9_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+# ================================================== 3\. REPOSITORY\-WIDE INSTRUCTION
 
-Any other intentional source/resource/configuration change is unauthorized.
+Create or merge `.github/copilot-instructions.md` with the title:
 
-==================================================
-4. IMPLEMENT SHARED INITIALIZATION-EVIDENCE DETECTION
+`# Databricks ETL Copilot Engineering Invariants`
 
-Create or expose one shared predicate that recognizes extension-managed consumer
-workflow initialization.
+It must state that the rules are mandatory architecture and safety constraints
+for every implementation, repair, refactor, test, package, and release\-preparation
+task\. Define these stable invariant IDs and semantics:
 
-It must:
+### ETL\-INV\-01 — Trace the complete lifecycle
 
-1. Recognize .github/copilot-instructions.md only when its content contains the
-    exact etl-copilot:managed provenance.
-2. Recognize managed assets below:
-    * .github/agents/**;
-    * .github/skills/**;
-    * .github/instructions/**;
-    * .github/prompts/**;
-        only when the inspected asset contains the same managed provenance.
-3. Continue recognizing existing canonical consumer job/env layouts.
-4. Not require Git metadata.
-5. Not accept folder names as evidence.
-6. Not accept sttm/** alone.
-7. Not accept resources/copilot/context/** alone.
-8. Not interpret the content of consumer context as machine authority.
-9. Use bounded reads and normalized workspace-relative paths.
-10. Fail closed on read errors, traversal, sibling escapes and ambiguous roots.
+Before changing behavior, trace:
 
-Reuse this same predicate in the preflight classifier and the existing workflow
-target resolver so their consumer classification cannot drift.
+`workspace classification → discovery → STTM interpretation → target decision → rendering → deterministic validation → frozen Preview manifest → explicit approval → guarded write`
 
-Avoid duplicating marker lists or marker parsing.
+A downstream fix is incomplete when an earlier gate can reject, reinterpret, or
+recompute the same supported scenario\.
 
-==================================================
-5. FIX PREFLIGHT CLASSIFICATION
+### ETL\-INV\-02 — One authority for each decision
 
-Update EtlReadOnlyToolService workspace classification so that:
-
-Fresh initialized consumer:
-
-* no Git;
-* no job_conf;
-* no env_conf;
-* managed workflow initialization evidence present;
-* optional STTM present;
-* no Framework source;
-
-returns:
-
-consumer-etl-workspace
-
-For this case, etl_capabilities must report:
-
-* selected root is the fresh consumer root;
-* runtimeReady=true;
-* available=true;
-* targetType=consumer-etl-workspace;
-* blockers=[].
-
-The absence of job_conf/env_conf must remain a later target-decision concern and
-lead to CREATE_NEW_JOB. It must not block capabilities or STTM interpretation.
-
-Keep evidence categories distinct.
-
-Initialization evidence may classify workspace intent, but must not be passed to
-buildExampleSearchRoots or treated as an approved Framework example root.
-
-Approved example search must remain restricted to trusted packaged or canonical
-artifact-layout evidence.
-
-==================================================
-6. FAIL CLOSED FOR FRAMEWORK/SOURCE ROOTS
-
-The investigation found that a Framework root containing sql/** or
-common_script/** can currently be mistaken for a consumer.
-
-Close this false positive within the same classification boundary.
-
-Reuse existing source-root/reference-root evidence already used by RepoWriter,
-including established sourceRootNames or equivalent trusted predicates.
-
-Required behavior:
-
-* extension source checkout is never classified as consumer-etl-workspace;
-* Framework/reference source root is never classified as a writable consumer;
-* ordinary existing consumer remains consumer-etl-workspace;
-* arbitrary empty folder remains unknown/blocked;
-* multi-root ambiguity remains fail-closed.
-
-Prefer the existing non-consumer/unknown result if it safely distinguishes the
-root. Do not expand the public target-type model unless absolutely required.
-
-Do not widen any write authorization.
-
-==================================================
-7. CORRECT THE MISLEADING DIAGNOSTIC
-
-Replace the current instruction that tells a normal consumer to open an ETL
-Framework workspace.
-
-The diagnostic must accurately state that the folder lacks both:
-
-* existing canonical consumer artifacts; and
-* initialized managed ETL Copilot workflow evidence.
-
-It should direct the user to initialize the ETL Copilot workflow in the intended
-consumer folder.
-
-It must not direct the user to obtain or open Framework source.
-
-Preserve the stable diagnostic prefix or identifier if tests or callers depend
-on it; update only the misleading directive portion where possible.
-
-==================================================
-8. REQUIRED REGRESSION AND SECURITY TESTS
-
-Add deterministic tests for all of the following.
-
-Positive cases:
-
-1. Fresh initialized consumer:
-    * no Git;
-    * no job_conf/env_conf;
-    * managed copilot-instructions marker;
-    * managed workflow assets;
-    * STTM;
-    * result consumer-etl-workspace;
-    * etl_capabilities runtimeReady/available true;
-    * blockers empty.
-2. Managed marker without generated artifacts:
-    * sufficient for initialized consumer classification.
-3. Existing canonical consumer:
-    * remains consumer-etl-workspace.
-4. HF1 Oracle fresh-consumer suite:
-    * capabilities classification passes before the write path;
-    * CREATE_NEW_JOB remains the expected decision;
-    * no Framework source required.
-
-Negative/security cases:
-
-5. Arbitrary empty folder:
-    * unknown/blocked.
-6. Bare STTM only:
-    * not consumer.
-7. resources/copilot/context/** only:
-    * not consumer.
-8. Arbitrary .github assets without etl-copilot:managed:
-    * not consumer.
-9. Extension source checkout:
-    * not consumer and not writable.
-10. Framework/reference root:
-    * not consumer and not writable.
-11. Multiple roots:
-    * fail closed.
-12. Marker read failure or malformed marker:
-    * fail closed.
-13. Traversal and sibling escape:
-    * rejected.
-14. Preview drift and approval token rules:
-    * unchanged and still enforced.
-15. Example search-root isolation:
-    * initialization evidence does not add consumer directories to trusted
-        example search roots.
-
-Cross-classifier parity:
-
-Add a matrix asserting agreement among:
-
-* RepoWriter;
-* WorkflowTargetResolver;
-* EtlReadOnlyToolService/etl_capabilities;
-
-for fresh consumer, existing consumer, empty folder, Framework/source root and
-multi-root cases.
-
-Every new test must be included in an actually executed test command.
-
-Do not alter expectations merely to make the implementation pass.
-
-==================================================
-9. VALIDATE BEFORE VERSION BUMP
-
-Run using existing local dependencies:
-
-1. TypeScript compile;
-2. lint;
-3. focused EtlReadOnlyToolService tests;
-4. HF1 Oracle fresh-consumer tests;
-5. workspace-classification parity tests;
-6. trusted Job Config envelope direct suite;
-7. Repair 8 focused suites;
-8. Repair 5/6/7 regression suites;
-9. full unit suite;
-10. canonical repository test command.
-
-Report for every command:
-
-* exact command;
-* exit code;
-* passing count;
-* pending/skipped count;
-* failing count;
-* complete failure names.
-
-The prior verified 0.3.141 baseline was:
-
-* full unit passing: 2120;
-* pending: 1;
-* failures: 5;
-* all five failures historical;
-* new functional regressions: 0;
-* new security regressions: 0.
-
-The passing count should increase for the new tests.
-
-The same five historical failures may remain only if their identities and causes
-are unchanged and they reproduce against pristine HEAD.
-
-Required:
-
-COMPILE_PASS: YES
-LINT_PASS: YES
-NEW_REPAIR_9_TESTS_PASS: YES
-HF1_FRESH_CONSUMER_SUITE_PASS: YES
-CLASSIFICATION_PARITY_SUITE_PASS: YES
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
-REPAIR_8_FOCUSED_SUITES_PASS: YES
-REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-
-If a required gate fails, do not bump the version or package:
-
-REPAIR_9_RESULT: FAIL_VALIDATION_GATE
-
-==================================================
-10. VERSION BUMP
-
-Only after all required repair gates pass, change exactly the package.json
-version token:
-
-“version”: “0.3.141”
-
-to:
-
-“version”: “0.3.142”
-
-Do not use npm version.
-Do not modify dependencies, scripts, publisher, package name or extension ID.
-Do not create or modify package-lock.json.
-
-Expected identity:
-
-PUBLISHER:
-td-etl
-
-PACKAGE_NAME:
-databricks-etl-copilot
-
-EXTENSION_ID:
-td-etl.databricks-etl-copilot
-
-TARGET_VERSION:
-0.3.142
-
-Re-run compile and the focused Repair 9 tests after the version change.
-
-==================================================
-11. BUILD EXACT 0.3.142 VSIX
-
-Use the existing canonical local packaging workflow.
-
-Create exactly:
-
-databricks-etl-copilot-0.3.142.vsix
-
-Expected path:
-
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
-
-Do not publish, install, commit or tag it.
-Do not overwrite the 0.3.141 artifact.
-
-==================================================
-12. VERIFY THE EXACT PACKAGE
-
-Run the repository’s exact-package verifier against the explicit 0.3.142 path.
-
-Do not use a newest-file selector.
-
-Independently verify:
-
-* archive opens;
-* internal package.json version is 0.3.142;
-* extension.vsixmanifest version is 0.3.142;
-* publisher is td-etl;
-* extension ID is td-etl.databricks-etl-copilot;
-* trusted Job Config contract is present and byte-equal to source;
-* trusted Oracle contract is present and byte-equal to source;
-* installed-layout contract resolution passes;
-* no etl-framework-adb dependency exists;
-* no source-checkout runtime dependency exists;
-* package hygiene and entry limits pass;
-* no .tmp/**;
-* no nested .git/**;
-* no .tsbuildinfo*;
-* no source tests or out-test content;
-* repaired classifier logic is present in packaged compiled output;
-* managed-marker detection is present in packaged compiled output;
-* corrected consumer diagnostic is present;
-* initialization evidence is not added to trusted example-search roots.
-
-Compare decompressed 0.3.141 and 0.3.142 package entries.
-
-Report all changed entries and classify each difference as:
-
-* expected version metadata;
-* expected compiled Repair 9 implementation;
-* unexpected.
-
-Ignore ZIP timestamps.
-
-Any unexplained entry or byte difference fails package verification.
-
-==================================================
-13. COMPUTE FINAL ARTIFACT IDENTITY
-
-Calculate from the actual newly built file:
-
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
-
-Do not predict or reuse a hash.
-
-==================================================
-14. POST-BUILD CHANGE-BOUNDARY CHECK
-
-Compare final state with the captured initial baseline.
-
-Report separately:
-
-* pre-existing tracked modifications;
-* pre-existing untracked files;
-* intentional Repair 9 source changes;
-* intentional Repair 9 test changes;
-* package.json version edit;
-* generated compile/package output;
-* unexpected changes;
-* staged files.
-
-Required:
-
-UNAUTHORIZED_SOURCE_CHANGES: NONE
-UNEXPECTED_CHANGED_PATHS: NONE
-STAGED_FILES: 0
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-PACKAGE_LOCK_CREATED_OR_MODIFIED: NO
-DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
-EXTENSION_INSTALLED: NO
-RUNTIME_QA_STARTED: NO
-
-Do not clean the repository after reporting.
-
-==================================================
-15. FINAL REPORT
+No independent workspace classifiers, marker lists, trust resolvers,
+artifact\-layout calculators, include resolvers, or approval validators\. Extend
+the canonical owner and return one shared typed decision/evidence model\. Require
+cross\-component parity tests whenever a consumer is changed\.
+
+### ETL\-INV\-03 — Fresh consumer workspaces are valid
+
+A correctly initialized consumer may be non\-Git and contain no `job_conf/**` or
+`env_conf/**`\. Extension\-managed initialization evidence may establish consumer
+intent\. `sttm/**` alone, folder name, arbitrary `.github/**`, and
+`resources/copilot/context/**` alone are insufficient\. Missing generated artifacts
+means `CREATE_NEW_JOB`, not a classification blocker\. Source, Framework, unknown,
+escaped, protected, and multi\-root targets are not writable consumers\.
+
+### ETL\-INV\-04 — Preserve the trust boundary
+
+Only trusted installed runtime and packaged resources such as
+`resources/framework/contracts/**` provide machine authority for contracts,
+critical keys, module rules, layout, validation, and writes\. Consumer context,
+examples, prompts, STTM prose, and generated files are advisory/input only\.
+Normal installed runtime must not require Extension source, `etl-framework-adb`,
+local Framework examples, or absolute development paths\.
+
+### ETL\-INV\-05 — Preview is zero\-write
+
+Discovery through first Preview performs zero consumer filesystem mutations\.
+Select, normalize, validate, hash, and freeze paths and bytes once in one
+authoritative immutable manifest\. Validation, approval, and write consume that
+same manifest and do not recalculate or substitute it\.
+
+### ETL\-INV\-06 — All writes are guarded and approval\-bound
+
+Only one canonical guarded writer may mutate consumer files\. A write requires a
+runtime\-issued Preview ID and explicit approval on a separate turn, bound to root,
+operation, policy version, paths, dispositions, and content hashes\. Missing,
+fabricated, expired, reused, replayed, mismatched, or drifted state fails closed
+and requires a new Preview\. Audit, repair, upgrade, registration, retry, publish,
+and execution require their own authorization\.
+
+### ETL\-INV\-07 — Enforce physical containment
+
+Canonicalize root and destinations and reject traversal, symlink/junction escape,
+sibling escape, protected/source/package roots, and ambiguity\. Every artifact is
+physically contained in the selected single consumer root\. Generation does not
+modify maintainer `.github/**`, STTM, advisory context, source, or packaged
+resources\. Consumer `.github/**` is writable only when explicitly previewed and
+approved as generated output\.
+
+### ETL\-INV\-08 — Preserve artifact semantics
+
+Exactly one canonical Job Config per job; reuse compatible environment config\.
+Reject duplicate/ambiguous destinations\. One canonical include resolver handles
+normalized roots, nested includes, cycles, missing includes, traversal, effective
+merging, and role\-aware validation\. Do not assume reused `.yaml` is strict YAML;
+preserve supported HOCON/Framework syntax\. Keep path\-backed and table\-backed
+targets type\-distinct; never silently convert path\-backed Delta to Unity Catalog\.
+
+### ETL\-INV\-09 — Test the safety boundary
+
+Tests use unique test\-owned temporary consumer roots and never mutate Extension,
+Framework, maintainer `.github/**`, or real data\. Every behavior change names
+affected invariant IDs and adds positive, negative/security, prior\-gate, and
+cross\-component parity coverage\. Classification covers fresh initialized,
+existing, empty, STTM\-only, context\-only, source, Framework, escaped, and
+multi\-root cases\. Never weaken/skip tests or regenerate baselines to hide a
+failure\. Historical failures require exact identity/fingerprint, not count only\.
+
+### ETL\-INV\-10 — Verify shipped behavior
+
+Completion requires relevant compile, lint, focused, regression, package, and
+exact\-artifact gates—not only aggregate counts\. Packaged behavior changes require
+source/compiled/VSIX parity, trusted contract byte equality, explicit\-path package
+identity, and installed\-VSIX fresh\-consumer smoke without source/Framework\.
+Separate task changes from pre\-existing changes\. No commit, push, tag, publish,
+install, or execution without explicit authorization\.
+
+End with a conflict rule: if requested work violates an invariant, stop, name the
+invariant ID, and propose a compliant design\. Never copy a known legacy violation\.
+
+# ================================================== 4\. PATH\-SPECIFIC RUNTIME INSTRUCTION
+
+Create `.github/instructions/etl-runtime-safety.instructions.md` with exactly this
+portable frontmatter:
+
+```yaml
+---
+applyTo: "src/**/*.ts"
+---
+```
+
+Do not add `excludeAgent`; the file must apply locally and in Cloud\.
+
+The body must require:
+
+- locate and reuse the canonical classifier/evidence model, target/trust resolver,
+  layout builder, Preview manifest, approval validator, and guarded writer;
+- trace earlier and later lifecycle gates before editing;
+- read\-only services return evidence/proposals and never mutate or consume write
+  authorization;
+- no production calls to `fs.writeFile*`, `fs.appendFile*`, `fs.rename*`,
+  `fs.rm*`, `fs.unlink*`, `fs.mkdir*`, `workspace.fs.writeFile`, shell redirection,
+  or equivalent mutation outside the canonical guarded writer;
+- initialization evidence remains separate from contract authority, example
+  discovery, and approval;
+- every runtime entry point consumes one shared classification result;
+- fresh initialized non\-Git consumer is distinct from empty, STTM\-only,
+  context\-only, source, Framework, unknown, and multi\-root cases;
+- managed marker lists are centralized, never copied;
+- no source checkout, `etl-framework-adb`, or absolute development dependency;
+- render/normalize/validate/freeze one manifest before Preview;
+- Preview creates no proposed consumer files;
+- approval/write consume the exact frozen manifest and verify root, hashes, policy,
+  expiry/replay, containment, and preconditions immediately before mutation;
+- mismatch/drift fails closed and requires a new Preview;
+- one Job Config per job, compatible env reuse, canonical includes, HOCON\-safe
+  reuse, and explicit path\-vs\-table target types;
+- completion evidence includes classifier parity, zero\-write Preview,
+  approval\-negative tests, containment tests, and exact VSIX parity when packaged\.
+
+# ================================================== 5\. PATH\-SPECIFIC TEST INSTRUCTION
+
+Create `.github/instructions/etl-test-safety.instructions.md` with exactly:
+
+```yaml
+---
+applyTo: "src/test/**/*.ts,src/**/__tests__/**/*.ts,test/**/*.ts,tests/**/*.ts"
+---
+```
+
+The body must require:
+
+- unique test\-owned temporary consumer root per test;
+- never use Extension, Framework, home, real consumer, or maintainer `.github/**`
+  as a test write target;
+- no installed\-user\-extension, personal\-settings, network, source\-checkout, or
+  real\-data dependency;
+- mandatory classification matrix for fresh initialized non\-Git consumer,
+  existing consumer, empty folder, STTM\-only, context\-only, Extension source,
+  Framework source, multi\-root, escape attempts, and missing root;
+- equivalent typed decisions across all classifier/resolver entry points;
+- zero writes during discovery/render/validation/Preview;
+- exact Preview/write manifest equality;
+- exact approved write succeeds once;
+- missing/fake/expired/replayed/cross\-root/path/content/policy/precondition drift is
+  rejected;
+- write approval does not authorize other operations;
+- Job Config uniqueness, env reuse, nested/cycle/missing/traversal include tests,
+  unresolved variables, role\-aware fragments, HOCON\-in\-`.yaml`, and path\-backed
+  Delta preservation;
+- no assertion weakening, skip/quarantine, discovery change, snapshot/baseline
+  regeneration, or aggregate\-count\-only historical comparison;
+- explicit VSIX verifier and installed fresh\-consumer smoke for packaged behavior\.
+
+# ================================================== 6\. PATH\-SPECIFIC PACKAGE INSTRUCTION
+
+Create `.github/instructions/etl-packaging-safety.instructions.md` with exactly:
+
+```yaml
+---
+applyTo: "package.json,scripts/**/*.js,scripts/**/*.ts,src/test/verifyVsixContents.ts,resources/framework/contracts/**/*"
+---
+```
+
+The body must require:
+
+- exact VSIX path as verifier input; never newest\-mtime selection;
+- archive, identity, entry\-count/size, and forbidden\-entry verification;
+- required trusted contracts present and byte\-equal to source;
+- installed\-layout resolution without source, Framework, local examples, or
+  absolute development paths;
+- consumer context, source tests, temp content, nested Git, and build\-info excluded
+  unless explicitly required by package policy;
+- normalized entry\-name and decompressed\-byte comparisons, ignoring ZIP timestamps;
+- version\-only package has unchanged non\-version bytes;
+- packaging never implies permission to install/publish/tag/commit/run QA;
+- no modification of tests, contracts, policy, or protected `.github/**` to make a
+  package gate pass\.
+
+# ================================================== 7\. VALIDATE THE INSTRUCTION SET
+
+Perform read\-only validation after edits:
+
+1. Confirm all four authorized files exist and are UTF\-8 text\.
+2. Confirm both path\-specific files and the package file have valid YAML
+   frontmatter and exact `applyTo` values above\.
+3. Confirm no `excludeAgent` is present\.
+4. Confirm all ten `ETL-INV-01` through `ETL-INV-10` IDs exist exactly once in the
+   repository\-wide file\.
+5. Search all active instruction sources for direct semantic conflicts concerning:
+   workspace classification, consumer authority, Preview mutation, approval,
+   destination containment, protected `.github/**`, Framework dependency, and
+   test isolation\.
+6. Confirm no instruction claims that model guidance alone enforces security\.
+7. Confirm the path\-specific files contain details but do not contradict the
+   repository\-wide invariants\.
+8. Confirm Git diff contains no task\-attributable change outside the four
+   authorized paths\.
+9. Confirm `package.json`, all `src/**`, all tests, all contracts, workflows,
+   settings, and every other `.github/**` path are byte\-unchanged from the initial
+   baseline\.
+10. Recalculate the `0.3.142` VSIX size and SHA\-256 and confirm that the verified
+    artifact remains byte\-unchanged\.
+11. Confirm staged file count remains zero\.
+
+Do not run compile or unit tests: no executable source is authorized to change\.
+
+# ================================================== 8\. FINAL REPORT
 
 Return:
 
-REPOSITORY_ROOT: 
-ORIGIN: 
-BRANCH: 
-HEAD: 
-SOURCE_VERSION_BEFORE: 
-SOURCE_VERSION_AFTER: 
-ROOT_CAUSE_REPAIRED: YES/NO
-MANAGED_INITIALIZATION_EVIDENCE_SUPPORTED: YES/NO
-CONSUMER_CONTEXT_USED_AS_MACHINE_AUTHORITY: NO
-FRESH_NON_GIT_CONSUMER_CLASSIFICATION: 
-FRESH_CONSUMER_CAPABILITIES_RUNTIME_READY: YES/NO
-FRESH_CONSUMER_CAPABILITIES_BLOCKER_COUNT: 
-EMPTY_FOLDER_CLASSIFICATION: 
-BARE_STTM_CLASSIFICATION: 
-CONTEXT_ONLY_CLASSIFICATION: 
-EXTENSION_SOURCE_CLASSIFICATION: 
-FRAMEWORK_ROOT_CLASSIFICATION: 
-MULTI_ROOT_FAIL_CLOSED: YES/NO
-EXAMPLE_SEARCH_ROOTS_WIDENED: NO
-CROSS_CLASSIFIER_PARITY_PASS: YES/NO
-AUTHORIZED_SOURCE_CHANGED_PATHS: 
-AUTHORIZED_TEST_CHANGED_PATHS: 
-UNAUTHORIZED_SOURCE_CHANGED_PATHS: 
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-NEW_REPAIR_9_TESTS_PASS: YES/NO
-HF1_FRESH_CONSUMER_SUITE_PASS: YES/NO
-CLASSIFICATION_PARITY_SUITE_PASS: YES/NO
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
-REPAIR_8_FOCUSED_SUITES_PASS: YES/NO
-REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES/NO
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURES: 
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
-FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
-INTERNAL_PACKAGE_VERSION: 
-INTERNAL_MANIFEST_VERSION: 
-JOB_CONFIG_CONTRACT_HASH_MATCH: YES/NO
-ORACLE_CONTRACT_HASH_MATCH: YES/NO
-PACKAGE_CHANGED_ENTRIES_VS_0_3_141: 
-UNEXPLAINED_PACKAGE_DIFFERENCES: 
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
-STAGED_FILES: 
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-PACKAGE_LOCK_CREATED_OR_MODIFIED: NO
-DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
-READY_TO_INSTALL_0_3_142: YES/NO
-READY_FOR_RUNTIME_QA_PHASE_1: NO
-SAFE_TO_COMMIT: NO
-SAFE_TO_RELEASE: NO
+REPOSITORY\_ROOT: <value>
+ORIGIN: <value>
+BRANCH: <value>
+HEAD: <value>
+SOURCE\_VERSION: <value>
+VERIFIED\_VSIX\_PATH: <value>
+VERIFIED\_VSIX\_SIZE\_BYTES\_BEFORE: <value>
+VERIFIED\_VSIX\_SIZE\_BYTES\_AFTER: <value>
+VERIFIED\_VSIX\_SHA256\_BEFORE: <value>
+VERIFIED\_VSIX\_SHA256\_AFTER: <value>
+VERIFIED\_VSIX\_MODIFIED: YES/NO
+STAGED\_FILES\_BEFORE: <number>
+STAGED\_FILES\_AFTER: <number>
+PRE\_EXISTING\_CHANGED\_PATHS: <complete list>
+AUTHORIZED\_GUARDRAIL\_CHANGED\_PATHS: <complete list>
+UNAUTHORIZED\_CHANGED\_PATHS: <complete list>
+REPOSITORY\_WIDE\_INSTRUCTION\_PRESENT: YES/NO
+PATH\_SPECIFIC\_RUNTIME\_INSTRUCTION\_PRESENT: YES/NO
+PATH\_SPECIFIC\_TEST\_INSTRUCTION\_PRESENT: YES/NO
+PATH\_SPECIFIC\_PACKAGE\_INSTRUCTION\_PRESENT: YES/NO
+INVARIANT\_ID\_COUNT: <number>
+FRONTMATTER\_VALID: YES/NO
+LOCAL\_CLOUD\_PORTABLE\_APPLY\_TO: YES/NO
+EXCLUDE\_AGENT\_PRESENT: YES/NO
+INSTRUCTION\_CONFLICTS\_FOUND: <number>
+INSTRUCTION\_CONFLICTS: <complete list or NONE>
+PROTECTED\_GITHUB\_PATHS\_MODIFIED: <list or NONE>
+SOURCE\_OR\_TEST\_MODIFIED: YES/NO
+PACKAGE\_VERSION\_CHANGED: YES/NO
+COMPILE\_EXECUTED: NO
+VSIX\_BUILT: NO
+EXTENSION\_INSTALLED: NO
+RUNTIME\_QA\_STARTED: NO
+COMMIT\_CREATED: NO
+PUSH\_EXECUTED: NO
+READY\_FOR\_GUARDRAIL\_REVIEW: YES/NO
+READY\_FOR\_REPAIR\_9\_IMPLEMENTATION: YES/NO
 
 PASS requires:
 
-* confirmed source-logic defect repaired;
-* fresh initialized non-Git consumer classified correctly;
-* arbitrary/unsafe roots remain fail-closed;
-* Framework/source roots are not consumers;
-* classifiers agree;
-* no machine-authority boundary weakened;
-* all required focused/regression gates pass;
-* only unchanged historical full-suite failures remain;
-* zero new functional/security regressions;
-* version is 0.3.142;
-* exact final package verification passes;
-* actual artifact SHA-256 calculated;
-* zero staged files;
-* no install, Runtime QA, commit, push or tag.
+- correct repository identity and zero staged files;
+- exactly the four authorized guardrail paths added/merged;
+- all ten invariant IDs present;
+- valid portable path\-specific frontmatter without exclusions;
+- no unresolved instruction conflicts;
+- no changes outside the authorized paths;
+- verified `0.3.142` VSIX identity remains unchanged;
+- no source/test/version/build/install/QA/commit/push action\.
 
 End exactly with one:
 
-REPAIR_9_RESULT: PASS
+`GUARDRAIL_INSTALL_RESULT: PASS`
 
-REPAIR_9_RESULT: FAIL_VALIDATION_GATE
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_IDENTITY_MISMATCH`
 
-REPAIR_9_RESULT: FAIL_PACKAGE_VERIFICATION
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_STAGED_CHANGES`
 
-REPAIR_9_RESULT: FAIL_UNAUTHORIZED_CHANGE
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_TARGET_HAS_USER_CHANGES`
 
-REPAIR_9_RESULT: BLOCKED_IDENTITY_MISMATCH
+`GUARDRAIL_INSTALL_RESULT: BLOCKED_INSTRUCTION_CONFLICT`
 
-REPAIR_9_RESULT: BLOCKED_STAGED_CHANGES
-
-REPAIR_9_RESULT: BLOCKED_EXISTING_0_3_142_ARTIFACT
-
-REPAIR_9_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+`GUARDRAIL_INSTALL_RESULT: FAIL_UNAUTHORIZED_CHANGE`
