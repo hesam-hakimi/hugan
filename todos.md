@@ -1,455 +1,410 @@
-AskTD / KMAI — Read-only PR Stack Review and Merge-Readiness Verification
+TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_INDEPENDENT_READ_ONLY_REAUDIT
 
-Perform one bounded, read-only verification of the complete stacked PR chain for Phase 2C.5, Phase 2D, and Phase 2E.
+Perform an independent, adversarial, READ-ONLY re-audit of the current
+Repair-8 working tree.
 
-Repository:
+IMPORTANT:
 
-TD-Enterprise/kmai-td-genie
+Do NOT trust the prior implementation report as evidence.
+Reconstruct conclusions independently from the live working tree, tests,
+existing build artifacts, and executable code.
 
-This task must not modify any repository, branch, commit, PR, review, label, Git setting, credential, workflow, or working tree.
+DO NOT modify any file.
+DO NOT repair anything.
+DO NOT build a VSIX.
+DO NOT install or download dependencies.
+DO NOT stage, commit, push, reset, restore, checkout, stash, clean, rename,
+delete, or regenerate anything.
+DO NOT regenerate Phase-H baselines.
+DO NOT modify any development test workspace or consumer repository.
 
-Do not mark any PR ready.
+This is an independent release-gate investigation only.
 
-Do not approve or merge any PR.
+==================================================
+1. VERIFY REPOSITORY IDENTITY
+==================================================
 
-Do not start Phase 2F.
+Expected software-development repository:
 
-1. Workspace boundary
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Required logical repository root:
+Expected branch:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+hotfix/hf1-oracle-fresh-consumer-v2
 
-Accepted physical equivalent:
+Expected base HEAD:
 
-/app1/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-The workspace is valid when:
+Expected source version:
 
-* pwd matches the logical path;
-* pwd -P matches the physical path;
-* both resolve through realpath to the same directory.
+0.3.140
 
-Do not use or read the stale primary checkout or branch asktd_v2.
+Expected publisher:
 
-Do not inspect ETL, UCA, parent, or sibling repositories.
+td-etl
 
-If the workspace is wrong, stop with:
+Verify independently.
 
-PHASE_2E_PR_STACK_READINESS_BLOCKED_WRONG_WORKSPACE
+Capture:
 
-2. Permitted evidence reports
+- current changed paths;
+- untracked paths;
+- staged count;
+- .github/** status;
+- package.json version;
+- package-lock.json status;
+- existing VSIX artifacts and their mtimes;
+- source mtimes for Repair-8 files.
 
-Read completely:
+Do not mutate anything while collecting evidence.
 
-1. Final successful Phase 2E independent re-review:
-    /home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_F01_TARGETED_INDEPENDENT_REREVIEW_RERUN_2026-08-23.md
-2. Phase 2E finalization report:
-    /home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_FINALIZATION_2026-08-23.md
+==================================================
+2. RECONSTRUCT REPAIR-8 CHANGE SURFACE
+==================================================
 
-Do not modify these reports.
+Independently determine whether Repair 8 changed exactly the authorized
+21-path set:
 
-Do not read the procedurally failed re-review report.
+NEW:
+1. src/core/framework/TrustedJobConfigEnvelopeResolver.ts
+2. resources/framework/contracts/job-config-envelope.v1.json
+3. src/test/suite/trustedJobConfigEnvelope.test.ts
 
-Equivalent resolved /app1/... paths are permitted.
+AUTHORIZED EXISTING PATHS:
+4. src/core/trusted/FirstRenderInvariantGuard.ts
+5. src/core/trusted/index.ts
+6. src/core/utils/ModuleSequenceExtractor.ts
+7. src/core/framework/FrameworkDiscoveryService.ts
+8. src/tools/EtlReadOnlyToolService.ts
+9. src/core/readiness/ReadinessProfileCatalog.ts
+10. src/core/readiness/JobDevelopmentReadinessEvaluator.ts
+11. resources/copilot/context/etl-module-reference.md
+12. resources/copilot/knowledge/examples/dataframe-writer-export.example.json
+13. resources/copilot/knowledge/examples/curated-load-enrich.example.json
+14. src/test/verifyVsixContents.ts
+15. src/test/suite/configExplain.test.ts
+16. src/test/suite/firstRenderInvariantGuard.test.ts
+17. src/test/suite/EtlReadOnlyToolService.test.ts
+18. src/test/suite/jobDevelopmentReadiness.test.ts
+19. src/test/suite/packageAssets.test.ts
+20. src/test/suite/etlActionTools.test.ts
+21. src/test/suite/hf1OracleFreshConsumer.test.ts
 
-3. Strict read-only rules
+Distinguish:
 
-Do not:
+- Repair-8 changes;
+- accepted Repair-5/6/7 pre-existing changes;
+- unrelated pre-existing working-tree changes;
+- any unauthorized Repair-8 mutation.
 
-* edit repository files;
-* stage files;
-* create or amend commits;
-* fetch into or update local refs;
-* push;
-* force-push;
-* create, edit, close, reopen, approve, comment on, mark ready, or merge a PR;
-* change any PR base or head;
-* add reviewers, labels, milestones, or assignees;
-* modify Git or GitHub authentication;
-* run gh auth login;
-* print, copy, persist, or expose credentials;
-* rebase, merge, cherry-pick, reset, stash, clean, switch, or delete branches;
-* modify workflows or branch-protection settings;
-* enable runtime flags;
-* start Phase 2F.
+Do not infer scope only from git status.
 
-Use git ls-remote and an already-authenticated GitHub read interface where available.
+==================================================
+3. AUDIT THE TRUSTED CONTRACT
+==================================================
 
-If GitHub API access is unavailable, record that precisely and continue with all Git-level evidence that can be verified safely. Do not guess missing PR metadata.
+Inspect independently:
 
-4. Expected live branch chain
+resources/framework/contracts/job-config-envelope.v1.json
 
-Verify the current live SHAs rather than assuming them.
+and:
 
-Last accepted evidence:
-
-Main
-
-Branch:
-
-main
-
-Expected SHA:
-
-9ca6567571772a9f4e1ab555d8a678e678c45d49
-
-Phase 2C.5
-
-Branch:
-
-phase2/provider-abstraction-foundation
-
-Expected SHA:
-
-d5472ae31081879329c224922244d87962737e8c
-
-PR:
-
-#15
-
-Expected base:
-
-main
-
-Phase 2D
-
-Branch:
-
-phase2/approved-recipe-pilot
-
-Expected SHA:
-
-5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-
-PR:
-
-#16
-
-Expected base:
-
-phase2/provider-abstraction-foundation
-
-Phase 2E
-
-Branch:
-
-phase2/governed-field-records
-
-PR:
-
-#17
-
-Expected base:
-
-phase2/approved-recipe-pilot
-
-Derive the exact Phase 2E SHA independently from:
-
-* local HEAD;
-* the remote Phase 2E branch;
-* PR #17 head SHA.
-
-All three must match.
-
-Expected Phase 2E candidate digest:
-
-d24d75ddc9cd38f699aefbda7392292d7b0cb708d06416cbb53b846a293915be
-
-5. Verify exact linear ancestry
-
-Using read-only Git object and remote evidence, verify:
-
-main
-  -> phase2/provider-abstraction-foundation
-      -> phase2/approved-recipe-pilot
-          -> phase2/governed-field-records
-
-Confirm:
-
-* each phase adds exactly one commit;
-* each child commit’s parent is the immediately preceding phase SHA;
-* there are no merge commits;
-* merge bases are exact;
-* no branch has diverged;
-* no force-push or candidate drift is evident;
-* no unexpected commit appears in any phase branch.
-
-Show the exact four-SHA ancestry.
-
-If any expected accepted branch SHA has changed, return:
-
-PHASE_2E_PR_STACK_READINESS_DRIFT_DETECTED
-
-Do not recommend merge until the drift is independently reviewed.
-
-6. PR #15 live verification
+src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 
 Verify:
 
-* URL;
-* state;
-* Draft status;
-* base branch;
-* head branch;
-* exact base SHA;
-* exact head SHA;
-* commit count;
-* exact changed-file inventory;
-* additions and deletions;
-* reviews;
-* review decisions;
-* requested reviewers;
-* comments and review comments;
-* checks/workflows and conclusions;
-* required checks;
-* required approvals;
-* branch-protection requirements;
-* mergeability;
-* merge state;
-* conflicts;
-* unresolved review threads;
-* whether its independently reviewed candidate SHA remains unchanged.
+- canonical modules-object envelope;
+- stage-keyed modules;
+- options.module;
+- options.method;
+- supported module types;
+- required/optional fields;
+- dataframe_writer destination semantics;
+- critical config keys;
+- strict whitelist;
+- version validation;
+- integrity validation;
+- deterministic fingerprint;
+- secret/content scanning;
+- installed-resource resolution;
+- no normal process.cwd() dependency;
+- mutation isolation;
+- fail-closed behavior;
+- consumer-editable context cannot override authority.
 
-Expected accepted changed-file count:
+Confirm the contract is machine-authoritative and:
 
-7
+resources/copilot/context/**
 
-Do not assume an independent PASS means the PR was merged or approved.
+remains advisory only.
 
-7. PR #16 live verification
+==================================================
+4. AUDIT CANONICAL JOB-CONFIG ENFORCEMENT
+==================================================
 
-Verify the same complete metadata for PR #16:
+Trace the real runtime call path.
 
-* URL;
-* state;
-* Draft status;
-* base and head;
-* base and head SHAs;
-* commit count;
-* exact changed files;
-* additions/deletions;
-* reviews and requested reviewers;
-* comments/review comments;
-* checks;
-* required approvals and checks;
-* branch protection;
-* mergeability and merge state;
-* conflicts and unresolved threads;
-* candidate drift.
+Verify that fresh-consumer agent-authored job config reaches deterministic
+enforcement before preview/write.
 
-Expected base/head relationship:
+Specifically determine whether:
 
-phase2/provider-abstraction-foundation <- phase2/approved-recipe-pilot
+NON_CANONICAL_JOB_CONFIG_ENVELOPE
 
-Expected accepted changed-file count:
+is enforced for all relevant paths.
 
-9
+Test/reason about:
 
-8. PR #17 live verification
+- canonical colon HOCON;
+- canonical equals HOCON;
+- legal omitted-separator-before-{ HOCON;
+- quoted JSON;
+- modules array;
+- missing modules envelope;
+- missing options.module;
+- malformed module structure.
 
-Verify the same complete metadata for PR #17:
+Confirm no alternate production route bypasses the invariant.
 
-* URL;
-* state;
-* Draft status;
-* base:
-    phase2/approved-recipe-pilot
-* head:
-    phase2/governed-field-records
-* exact base and head SHAs;
-* one commit relative to its base;
-* exactly 12 changed files;
-* exact changed-file inventory;
-* additions/deletions;
-* reviews and requested reviewers;
-* comments/review comments;
-* checks/workflows;
-* required approvals and checks;
-* branch protection;
-* mergeability and merge state;
-* conflicts and unresolved threads;
-* candidate drift.
+==================================================
+5. AUDIT DATAFRAME_WRITER / UNITY CATALOG BEHAVIOR
+==================================================
 
-Confirm that PR #17’s committed file content reproduces:
+Independently inspect executable framework evidence and extension behavior.
 
-d24d75ddc9cd38f699aefbda7392292d7b0cb708d06416cbb53b846a293915be
+Confirm whether the current dataframe_writer supports direct Unity Catalog
+three-part table-name writes.
 
-Confirm no report file is included.
+Do NOT assume the implementation report is correct.
 
-The finalization evidence reported zero check runs for PR #17. Verify this live and distinguish among:
+If unsupported, verify:
 
-* genuinely zero check runs;
-* checks not triggered because of stacked-base workflow configuration;
-* API permissions preventing visibility;
-* checks pending or queued;
-* checks present under a different SHA.
+- canonical module detection still succeeds;
+- explicit UNSUPPORTED_UNITY_CATALOG_TARGET is produced;
+- readiness returns unsupported_unity_catalog_target;
+- it does not degrade to "No modules detected in job config";
+- it does not degrade only to "Confirm output path or table";
+- no Preview ID is issued;
+- no write occurs.
 
-Do not infer which explanation is correct without evidence.
+Also confirm supported path-based dataframe_writer behavior still succeeds.
 
-9. Approval and branch-protection analysis
+==================================================
+6. AUDIT FRESH-CONSUMER FALLBACK
+==================================================
 
-For each PR, determine where possible:
+With no framework checkout available, verify from tests/code that:
 
-* whether approvals are formally required;
-* how many approvals;
-* whether Code Owner review is required;
-* whether stale approvals are dismissed after new commits;
-* whether required status checks exist;
-* whether conversation resolution is required;
-* whether linear history is required;
-* whether signed commits are required;
-* whether merge queue applies;
-* whether draft PRs can be merged;
-* who can merge;
-* whether base-branch changes dismiss approvals or restart checks.
+- trusted packaged contract resolves;
+- criticalConfigKeys are non-empty;
+- packaged examples are searchable;
+- zero local search roots does not incorrectly produce
+  no_search_roots_available when packaged examples exist;
+- local/package precedence is deterministic;
+- no framework source is required;
+- no consumer-editable context becomes authoritative.
 
-If API permissions do not expose these settings, mark them:
+==================================================
+7. AUDIT PREVIEW / WRITE SECURITY
+==================================================
 
-OPEN — REQUIRES REPOSITORY ADMIN OR GITHUB UI CONFIRMATION
+Verify independently that the Repair-8 positive fresh-consumer path:
 
-Do not guess.
+- classifies CREATE_NEW_JOB;
+- produces canonical job config;
+- issues a real Preview ID;
+- performs zero filesystem writes during preview;
+- requires explicit approval before write;
+- remains protected by Repair-5/6/7 authorization and physical-containment
+  controls.
 
-10. Determine merge-readiness classification
+Trace production code rather than relying only on test names.
 
-Classify each PR using only verified evidence:
+Confirm Repair 8 did not weaken:
 
-* NOT_READY — CANDIDATE DRIFT
-* NOT_READY — TECHNICAL DEFECT
-* NOT_READY — DRAFT
-* NOT_READY — APPROVAL REQUIRED
-* NOT_READY — REQUIRED CHECKS MISSING
-* NOT_READY — CONFLICT
-* READY TO REQUEST REVIEW
-* READY TO MERGE
-* OPEN — INSUFFICIENT PERMISSION TO DETERMINE
+- TrustedWriteApprovalStore;
+- WriteAuthorization;
+- physical containment;
+- root selection;
+- replay protection;
+- stale-preview protection;
+- manifest binding.
 
-A clean mergeability result alone is not sufficient for READY TO MERGE.
+==================================================
+8. RUN READ-ONLY VALIDATION
+==================================================
 
-A prior independent technical PASS alone is not sufficient for READY TO MERGE.
+Using already-installed dependencies only, run:
 
-11. Produce the safe stacked merge sequence
+- compile;
+- lint;
+- all 8 Repair-8 focused suites;
+- relevant Repair-5/6/7 regression suites;
+- full unit suite.
 
-Without performing any mutation, determine the exact safe sequence.
+Do not alter source or fixtures to make tests pass.
 
-The expected bottom-up strategy to evaluate is:
+List every full-suite failure by exact test name.
 
-1. request review for PR #15;
-2. satisfy approvals and required checks for PR #15;
-3. merge PR #15 into main;
-4. verify main contains exactly the accepted Phase 2C.5 commit;
-5. retarget or recreate the correct base relationship for PR #16 only after explicit authorization;
-6. verify PR #16 still shows only the accepted Phase 2D delta;
-7. rerun any checks/review invalidated by its base change;
-8. merge PR #16;
-9. retarget or recreate the correct base relationship for PR #17 only after explicit authorization;
-10. verify PR #17 still shows only the accepted 12-file Phase 2E delta;
-11. rerun invalidated checks/reviews;
-12. merge PR #17.
+Classify each as exactly one:
 
-Determine whether GitHub’s current repository and branch policies support this exact sequence or require a different safe sequence.
+A. HISTORICAL_PROTECTED_FAILURE
+B. REPAIR_8_FUNCTIONAL_REGRESSION
+C. REPAIR_8_SECURITY_REGRESSION
+D. STALE_BUILD_ARTIFACT_FAILURE
+E. TEST_INFRASTRUCTURE_DEFECT
+F. UNRELATED_PRE_EXISTING_FAILURE
+G. UNKNOWN
 
-Do not perform any retargeting or merge.
+Provide evidence for every classification.
 
-Explain:
+==================================================
+9. INVESTIGATE THE SIXTH FAILURE ADVERSARIALLY
+==================================================
 
-* why PR #16 must not be merged ahead of PR #15;
-* why PR #17 must not be merged ahead of PR #16;
-* which checks and approvals may be invalidated after each base change;
-* whether branch deletion would affect child PRs;
-* whether parent branches must temporarily remain until child PRs are safely retargeted.
+The implementation report claimed one additional full-suite failure:
 
-12. CI/check-run open item
+"VSIX machine-specific path scan > built VSIX (when present) contains no
+machine-specific absolute path"
 
-Investigate read-only why PR #16 and/or PR #17 show zero checks.
+with missing entry:
 
-Inspect only existing workflow configuration inside the current repository and GitHub’s reported check metadata.
+extension/resources/framework/contracts/job-config-envelope.v1.json
 
-Do not modify workflows.
+Do NOT accept that explanation automatically.
 
-Determine whether:
+Investigate independently.
 
-* workflows only trigger for PRs targeting main;
-* stacked base branches are excluded;
-* path filters exclude the changed files;
-* workflows require manual dispatch;
-* checks have not yet started;
-* the API cannot expose them;
-* another evidenced cause exists.
+Determine:
 
-Classify this as one of:
+1. Which exact VSIX file the test selected.
+2. Its absolute path.
+3. Its filename.
+4. Its internal extension version.
+5. Its creation/modification timestamp.
+6. Whether it predates Repair 8.
+7. Whether it contains the new job-config-envelope contract.
+8. Why the test selected that VSIX.
+9. Whether the source tree/package policy would include the new contract in a
+   freshly built VSIX.
+10. Whether the failure is caused by stale artifact selection, source/package
+    omission, verifier logic, or another defect.
 
-* MERGE BLOCKER
-* REVIEW-READINESS BLOCKER
-* AUTOMATION GAP — MANUAL VALIDATION CURRENTLY AVAILABLE
-* VISIBILITY/PERMISSION GAP
-* NOT A BLOCKER UNDER VERIFIED POLICY
-* OPEN — REQUIRES OWNER CONFIRMATION
+Inspect the VSIX read-only.
 
-Record evidence. Do not make an enterprise or repository-policy decision on behalf of the owner.
+Do NOT rebuild, rename, delete, or modify it.
 
-13. Required decision register
+Also inspect every existing .vsix candidate and determine whether the test's
+selection algorithm can accidentally bind the unit suite to stale build
+artifacts.
 
-For every unresolved item, record:
+Answer explicitly:
 
-* decision or assumption;
-* why it matters;
-* current evidence;
-* owner;
-* confirmation required;
-* whether it blocks:
-    * review request;
-    * merge;
-    * runtime activation;
-    * production;
-    * later phase only.
+SIXTH_FAILURE_CAUSED_BY_REPAIR8_SOURCE_DEFECT: YES/NO/UNKNOWN
 
-At minimum cover:
+SIXTH_FAILURE_CAUSED_BY_STALE_VSIX: YES/NO/UNKNOWN
 
-* required approvals;
-* Code Owner requirement;
-* zero check runs;
-* base-retargeting policy;
-* branch deletion policy;
-* who is authorized to mark PRs ready;
-* who is authorized to merge;
-* whether PR #15 and #16 should remain Draft until all stacked candidates are reviewed;
-* runtime strict-mode activation as a separate work item.
+VSIX_SELECTION_LOGIC_ROBUST: YES/NO
 
-14. Report
+FRESH_VSIX_BUILD_REQUIRED_TO_CLOSE_GATE: YES/NO
 
-Write only this report outside the repository:
+If the selection logic itself is defective, identify the exact code path and
+smallest future repair, but DO NOT implement it.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR_STACK_READINESS_2026-08-23.md
+==================================================
+10. FALSE-GREEN CHECK
+==================================================
 
-The report must contain:
+Determine whether the Repair-8 focused suite could pass while the actual
+runtime feature is broken.
 
-1. final verdict;
-2. workspace and read-only attestation;
-3. live remote branch table;
-4. exact ancestry graph;
-5. PR #15 complete state;
-6. PR #16 complete state;
-7. PR #17 complete state;
-8. changed-file inventories;
-9. reviews and approval requirements;
-10. checks/workflows;
-11. mergeability and merge states;
-12. drift comparison against accepted SHAs;
-13. branch-protection findings;
-14. readiness classification for each PR;
-15. zero-check-run root-cause analysis;
-16. safe bottom-up review/merge sequence;
-17. decision register;
-18. one recommended next action;
-19. confirmation that no repository, branch, commit, PR, workflow, credential, or Git setting was changed.
+Use mutation/adversarial reasoning where possible without modifying source.
 
-End with exactly one token:
+Verify specifically that tests genuinely fail conceptually if:
 
-* PHASE_2E_PR_STACK_READINESS_VERIFIED
-* PHASE_2E_PR_STACK_READINESS_DRIFT_DETECTED
-* PHASE_2E_PR_STACK_READINESS_BLOCKED_API
-* PHASE_2E_PR_STACK_READINESS_BLOCKED_WRONG_WORKSPACE
-* PHASE_2E_PR_STACK_READINESS_BLOCKED_ENVIRONMENT
+- trusted contract resolution is disabled;
+- canonical envelope guard is disabled;
+- packaged fallback criticalConfigKeys become empty;
+- packaged example search is disabled;
+- Unity Catalog rejection is removed;
+- preview writes to disk;
+- framework checkout becomes required.
 
-A verified report does not authorize marking a PR ready, changing a base, approving, merging, deleting branches, activating runtime flags, or starting Phase 2F.
+Do not claim mutation evidence unless actually executed safely without source
+mutation.
+
+==================================================
+11. NO-TOUCH / VERSION PROOF
+==================================================
+
+Confirm:
+
+VERSION: 0.3.140
+
+and verify:
+
+- package.json was not version-bumped by Repair 8;
+- no VSIX was built during this audit;
+- no dependencies installed/downloaded;
+- no consumer/development-test workspace mutated;
+- etl-framework-adb not mutated;
+- no Git mutation;
+- no .github/** mutation;
+- no Phase-H baseline regeneration.
+
+==================================================
+12. DECISION
+==================================================
+
+Return these markers:
+
+REPOSITORY_IDENTITY_MATCH: YES/NO
+REPAIR_8_SCOPE_MATCH: YES/NO
+UNAUTHORIZED_REPAIR_8_PATHS: <count>
+TRUSTED_CONTRACT_VALID: YES/NO
+TRUSTED_RESOLVER_VALID: YES/NO
+CANONICAL_ENVELOPE_RUNTIME_ENFORCED: YES/NO
+MODULE_EXTRACTION_CORRECT: YES/NO
+UNITY_CATALOG_DIRECT_WRITE_SUPPORTED: YES/NO
+UNITY_CATALOG_NEGATIVE_DIAGNOSTIC_CORRECT: YES/NO
+PACKAGED_FALLBACK_CORRECT: YES/NO
+PACKAGED_EXAMPLE_SEARCH_CORRECT: YES/NO
+FRESH_CONSUMER_PREVIEW_PATH_CORRECT: YES/NO
+PREVIEW_ZERO_WRITE_PROVEN: YES/NO
+REPAIR_5_6_7_SECURITY_PRESERVED: YES/NO
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+FOCUSED_REPAIR_8_TESTS_PASS: YES/NO
+FULL_UNIT_FAILURE_COUNT: <number>
+HISTORICAL_PROTECTED_FAILURE_COUNT: <number>
+REPAIR_8_FUNCTIONAL_REGRESSION_COUNT: <number>
+REPAIR_8_SECURITY_REGRESSION_COUNT: <number>
+STALE_BUILD_ARTIFACT_FAILURE_COUNT: <number>
+SIXTH_FAILURE_CAUSED_BY_REPAIR8_SOURCE_DEFECT: YES/NO/UNKNOWN
+SIXTH_FAILURE_CAUSED_BY_STALE_VSIX: YES/NO/UNKNOWN
+VSIX_SELECTION_LOGIC_ROBUST: YES/NO
+FRESH_VSIX_BUILD_REQUIRED_TO_CLOSE_GATE: YES/NO
+VERSION_REMAINS_0_3_140: YES/NO
+WORKING_TREE_MUTATED_BY_AUDIT: NO
+
+Then make exactly one recommendation:
+
+A. REPAIR_8_SOURCE_FIX_REQUIRED
+B. REPAIR_8_SOURCE_VALID_BUILD_GATE_REQUIRED
+C. REPAIR_8_READY_FOR_VERSION_BUMP
+D. REPAIR_8_SCOPE_AMENDMENT_REQUIRED
+
+Do not equate a stale VSIX failure with a source defect without proving it.
+
+Do not authorize version 0.3.141 yet unless all source/runtime findings are
+clean and the only unresolved condition is the intentionally deferred fresh
+package build.
+
+End exactly with one:
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_PASS
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_FAIL
+
+LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_BLOCKED
