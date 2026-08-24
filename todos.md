@@ -1,70 +1,89 @@
-TASK: LOCAL_HOTFIX_HF1_V2_REPAIR_8_FRESH_0_3_140_BUILD_GATE
+TASK: LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_AND_FINAL_DEVELOPMENT_TEST_PACKAGE
 
-Perform the Repair-8 fresh-package build gate in the SOFTWARE DEVELOPMENT
-ENVIRONMENT.
+Perform the bounded version bump and final Development-Test package build for
+the accepted HF1 V2 Repair-8 candidate.
 
-This task is authorized to:
+This task runs in the SOFTWARE DEVELOPMENT ENVIRONMENT.
 
-- compile the current accepted Repair-8 working tree;
-- build exactly one fresh QA VSIX at source version 0.3.140;
-- verify that exact VSIX;
-- execute focused and full unit validation;
-- inspect generated package content read-only.
+The accepted Repair-8 source and security implementation must remain
+byte-identical.
 
-This task is NOT authorized to change source code.
+Authorized actions:
 
-Do NOT change the version.
-Do NOT edit package.json.
-Do NOT edit package-lock.json.
-Do NOT repair any source or test.
-Do NOT regenerate Phase-H baselines.
-Do NOT install the VSIX.
+1. change only the package.json version:
+   0.3.140 -> 0.3.141
+
+2. compile and lint;
+
+3. run the trusted Job Config contract suite directly;
+
+4. run Repair-8 and Repair-5/6/7 regression suites;
+
+5. build exactly one new standard-named VSIX:
+
+   databricks-etl-copilot-0.3.141.vsix
+
+6. verify that exact VSIX by explicit absolute path;
+
+7. run the full unit suite after the final VSIX exists;
+
+8. inspect the package read-only and compare it with the accepted
+   0.3.140 Repair-8 build-gate artifact.
+
+This task is NOT authorized to install the VSIX or execute runtime QA.
+
+Do NOT modify any production TypeScript file.
+Do NOT modify any test file.
+Do NOT modify any resource, contract, context, knowledge, prompt, skill, agent,
+instruction, packaging-policy, workflow, or framework file.
+Do NOT modify package-lock.json.
+Do NOT run npm version because it may create Git state or tags.
 Do NOT install or download dependencies.
-Do NOT modify a development test workspace.
+Do NOT regenerate Phase-H baselines.
+Do NOT modify .github/**.
+Do NOT modify resources/prompts/**.
+Do NOT modify AGENT.md or AGENTS.md.
 Do NOT modify etl-framework-adb.
-Do NOT stage, commit, push, reset, restore, checkout, stash, or clean.
-Do NOT delete, rename, or modify existing stale VSIX artifacts.
-Do NOT modify .github/**, resources/prompts/**, AGENT.md, or AGENTS.md.
+Do NOT modify a Development Test Workspace or consumer repository.
+Do NOT install the resulting VSIX.
+Do NOT stage, commit, push, reset, restore, checkout, stash, clean, tag, or
+otherwise mutate Git state.
+Do NOT delete, rename, overwrite, or modify older VSIX artifacts.
 
-Use only already-installed dependencies and the already-installed VSCE
-executable.
+Use only already-installed dependencies and the already-installed VSCE binary.
 
 ==================================================
-1. ACCEPTED INDEPENDENT RE-AUDIT
+1. ACCEPTED BUILD-GATE EVIDENCE
 ==================================================
 
-The following findings are accepted:
+Accept these completed findings:
 
-REPAIR_8_SCOPE_MATCH: YES
-UNAUTHORIZED_REPAIR_8_PATHS: 0
-TRUSTED_CONTRACT_VALID: YES
-TRUSTED_RESOLVER_VALID: YES
-CANONICAL_ENVELOPE_RUNTIME_ENFORCED: YES
-MODULE_EXTRACTION_CORRECT: YES
-UNITY_CATALOG_DIRECT_WRITE_SUPPORTED: NO
-UNITY_CATALOG_NEGATIVE_DIAGNOSTIC_CORRECT: YES
-PACKAGED_FALLBACK_CORRECT: YES
-PACKAGED_EXAMPLE_SEARCH_CORRECT: YES
-FRESH_CONSUMER_PREVIEW_PATH_CORRECT: YES
-PREVIEW_ZERO_WRITE_PROVEN: YES
-REPAIR_5_6_7_SECURITY_PRESERVED: YES
+REPAIR_8_FRESH_BUILD_GATE_PASS: YES
+REPOSITORY_IDENTITY_MATCH: YES
+SOURCE_OR_RESOURCE_DRIFT_DURING_BUILD: 0
 COMPILE_PASS: YES
 LINT_PASS: YES
+TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
 FOCUSED_REPAIR_8_TESTS_PASS: YES
-REPAIR_8_FUNCTIONAL_REGRESSION_COUNT: 0
-REPAIR_8_SECURITY_REGRESSION_COUNT: 0
-SIXTH_FAILURE_CAUSED_BY_REPAIR8_SOURCE_DEFECT: NO
-SIXTH_FAILURE_CAUSED_BY_STALE_VSIX: YES
-VSIX_SELECTION_LOGIC_ROBUST: NO
-FRESH_VSIX_BUILD_REQUIRED_TO_CLOSE_GATE: YES
-VERSION_REMAINS_0_3_140: YES
+REPAIR_5_6_7_REGRESSIONS_PASS: YES
+FULL_UNIT_FAILURE_COUNT: 5
+STALE_VSIX_FAILURE_REMAINING: NO
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+PACKAGED_CONTRACT_PRESENT: YES
+PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES
+REPAIR_8_INVARIANTS_ACTIVE_IN_NEW_PACKAGE: YES
 
-Do not repeat the Repair-8 architecture discovery.
+Accepted build-gate artifact:
 
-The purpose of this task is only to close the fresh-package build gate.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
+
+Do not use that artifact as the final Development-Test package.
+
+Do not repeat Repair-8 architecture discovery.
 
 ==================================================
-2. VERIFY SOFTWARE DEVELOPMENT ENVIRONMENT
+2. SOFTWARE DEVELOPMENT ENVIRONMENT PREFLIGHT
 ==================================================
 
 Expected repository root:
@@ -79,7 +98,11 @@ Expected base HEAD:
 
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-Expected package version:
+Expected package name:
+
+databricks-etl-copilot
+
+Expected current version:
 
 0.3.140
 
@@ -87,220 +110,157 @@ Expected publisher:
 
 td-etl
 
-Verify all values before running any build command.
+Expected package-lock.json:
 
-Capture:
+absent
 
-- current tracked-modified paths;
-- current untracked paths;
+Verify all values before mutation.
+
+Also verify that the accepted build-gate VSIX exists and record its:
+
+- absolute path;
+- SHA-256;
+- archive entry count;
+- internal package.json version;
+- internal extension.vsixmanifest version.
+
+Capture before-task:
+
+- tracked-modified path inventory;
+- untracked path inventory;
 - staged count;
 - package.json SHA-256;
-- all Repair-8 source/resource SHA-256 values;
-- existing root-level VSIX filenames, sizes, and mtimes.
+- all existing root-level VSIX paths, sizes, SHA-256 values, and mtimes;
+- SHA-256 for all Repair-5/6/7/8 source, test, resource, policy, and contract
+  files.
 
-Do not mutate the source tree during preflight.
+If repository identity, branch, HEAD, or current version differs, stop without
+editing and return:
 
-If repository identity or version differs, stop with:
-
-REPAIR_8_BUILD_GATE_ENVIRONMENT_MISMATCH
+HF1_V2_0_3_141_VERSION_BUMP_ENVIRONMENT_MISMATCH
 
 ==================================================
-3. SOURCE BYTE-FREEZE
+3. EXACT AUTHORIZED SOURCE EDIT
 ==================================================
 
-The source and resource bytes accepted by the independent re-audit must remain
-unchanged.
+The only authorized source-file modification is:
 
-Before the build, hash at minimum:
+package.json
 
-- all 21 Repair-8 authorized files;
-- package.json;
-- .vscodeignore;
-- src/test/testPatterns.ts;
-- resources/framework/contracts/oracle-delivery-controls.v1.json;
-- resources/framework/contracts/job-config-envelope.v1.json.
+Change exactly:
 
-At task end, re-hash the same files.
+"version": "0.3.140"
+
+to:
+
+"version": "0.3.141"
+
+Do not use `npm version`.
+
+Perform a direct single-field edit.
+
+Do not reformat, reorder, normalize, or rewrite package.json.
+
+Immediately verify:
+
+- exactly one tracked source path was modified by this task;
+- that path is package.json;
+- the task-attributable package.json diff is exactly one removed version line
+  and one added version line;
+- all other package.json fields remain byte-equivalent;
+- package-lock.json remains absent;
+- no other source/resource/test/config path changed.
+
+If any additional path changes, stop before building and return:
+
+HF1_V2_0_3_141_VERSION_BUMP_SCOPE_DRIFT
+
+==================================================
+4. SOURCE AND REPAIR BYTE FREEZE
+==================================================
+
+All accepted Repair-5/6/7/8 implementation bytes must remain unchanged.
+
+Re-hash the previously captured source, test, resource, contract, and package
+policy files after the version edit.
 
 Required:
 
-SOURCE_OR_RESOURCE_DRIFT_DURING_BUILD: 0
+REPAIR_5_6_7_8_NON_VERSION_FILE_DRIFT: 0
 
-Build-generated ignored files under out/** and TypeScript build metadata are
-not source drift.
+The only permitted source hash change is:
+
+package.json
+
+and only because of the version token.
+
+Do not include ignored out/** output or the newly generated VSIX as source
+drift.
 
 ==================================================
-4. COMPILE AND LINT
+5. COMPILE AND LINT
 ==================================================
 
-Using already-installed dependencies only, run:
+Using existing dependencies only, run:
 
-- production compile;
-- lint.
+npm run compile
+npm run lint
 
 Required:
 
 COMPILE_PASS: YES
 LINT_PASS: YES
 
-If either fails, stop.
+Confirm the npm banner reports version:
 
-Do not modify code to repair a failure in this task.
+0.3.141
+
+If compile or lint fails, do not repair code in this task.
+
+Return:
+
+HF1_V2_0_3_141_FINAL_PACKAGE_VALIDATION_FAILED
 
 ==================================================
-5. RUN THE TRUSTED CONTRACT SUITE DIRECTLY
+6. RUN TRUSTED CONTRACT SUITE DIRECTLY
 ==================================================
 
-The independent re-audit found that:
+The following suite is not yet registered in PURE_UNIT_TEST_PATTERNS:
 
 src/test/suite/trustedJobConfigEnvelope.test.ts
 
-is not currently included in PURE_UNIT_TEST_PATTERNS.
+Do not modify src/test/testPatterns.ts in this task.
 
-Do NOT edit src/test/testPatterns.ts in this task.
-
-Compile the test tree and execute the compiled trusted contract suite directly.
+Compile the test output and execute the compiled suite directly using the same
+working VS Code stub/register harness previously proven.
 
 Required:
 
 TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
 
-Report the exact passing/failing count.
+Expected current result:
 
-This direct run is required in addition to npm run test:unit.
+28 passing
+0 failing
 
-==================================================
-6. BUILD EXACTLY ONE FRESH 0.3.140 GATE VSIX
-==================================================
-
-Build exactly one new VSIX from the current Repair-8 source.
-
-Do not reuse an existing VSIX.
-Do not rename an existing VSIX.
-Do not delete existing VSIX artifacts.
-Do not install the result.
-
-Use an explicit output filename that cannot be confused with the final
-0.3.141 QA candidate:
-
-databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
-
-The exact expected location is:
-
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
-
-Use the repository's normal package preparation and the already-installed VSCE
-binary.
-
-No npm install, npx download, or dependency update is permitted.
-
-Record:
-
-- command used;
-- exit code;
-- build timestamp;
-- absolute path;
-- SHA-256;
-- archive entry count;
-- compressed size;
-- uncompressed size;
-- largest entry;
-- internal package.json version;
-- internal extension.vsixmanifest version.
-
-Required internal version:
-
-0.3.140
+Report actual values honestly.
 
 ==================================================
-7. VERIFY THE EXACT NEW VSIX BY EXPLICIT PATH
-==================================================
-
-Do not rely only on newest-file selection.
-
-Run the repository verifier against the exact absolute path of:
-
-databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
-
-Verify all existing package-security controls remain active:
-
-- required entries;
-- forbidden entries;
-- size ceilings;
-- archive entry ceilings;
-- content markers;
-- manifest checks;
-- machine-path scanning;
-- unrelated-repository scanning;
-- source/test/build-artifact exclusion;
-- credentials and secret scans;
-- nested .git exclusion;
-- nested VSIX exclusion;
-- .tmp exclusion;
-- .tsbuildinfo exclusion.
-
-Specifically verify these two entries exist:
-
-extension/resources/framework/contracts/oracle-delivery-controls.v1.json
-
-extension/resources/framework/contracts/job-config-envelope.v1.json
-
-Also verify the packaged job-config contract bytes match the current source
-contract bytes exactly.
-
-Required:
-
-EXACT_NEW_VSIX_VERIFIER_PASS: YES
-JOB_CONFIG_ENVELOPE_PRESENT_IN_VSIX: YES
-JOB_CONFIG_ENVELOPE_SOURCE_PACKAGE_HASH_MATCH: YES
-ORACLE_CONTRACT_PRESENT_IN_VSIX: YES
-
-==================================================
-8. INDEPENDENT PACKAGE INSPECTION
-==================================================
-
-In addition to the repository verifier, inspect the new VSIX archive using an
-independent ZIP central-directory reader.
-
-Confirm:
-
-- the new Job Config contract exists;
-- the Oracle contract exists;
-- internal version is 0.3.140;
-- no developer-machine absolute paths exist;
-- no unrelated repositories exist;
-- no .tmp/** exists;
-- no nested .git/** exists;
-- no source test tree exists;
-- no out/test/** exists;
-- no node_modules/** exists;
-- no .tsbuildinfo exists;
-- no nested VSIX exists;
-- no credentials or secrets are evident;
-- required Copilot agents, skills, instructions, context, knowledge, prompts,
-  framework contracts, runtime bundles, and media are present.
-
-Do not extract files into the repository.
-
-Use an OS temporary directory only if extraction is necessary and remove only
-that task-created temporary directory afterward.
-
-==================================================
-9. RUN REPAIR-8 AND REPAIR-5/6/7 REGRESSIONS
+7. PRE-PACKAGE FOCUSED VALIDATION
 ==================================================
 
 Run all eight Repair-8 focused suites:
 
-- trustedJobConfigEnvelope.test
-- configExplain.test
-- firstRenderInvariantGuard.test
-- EtlReadOnlyToolService.test
-- jobDevelopmentReadiness.test
-- packageAssets.test
-- etlActionTools.test
-- hf1OracleFreshConsumer.test
+1. trustedJobConfigEnvelope
+2. configExplain
+3. firstRenderInvariantGuard
+4. EtlReadOnlyToolService
+5. jobDevelopmentReadiness
+6. packageAssets
+7. etlActionTools
+8. hf1OracleFreshConsumer
 
-Also run relevant Repair-5/6/7 regression suites, including:
+Run all relevant Repair-5/6/7 regression suites, including:
 
 - physicalWriteContainment;
 - workspaceInputContainment;
@@ -309,174 +269,420 @@ Also run relevant Repair-5/6/7 regression suites, including:
 - createPreviewFlow;
 - artifactReuseConversation;
 - repoContextInit;
-- trusted framework definition resolver;
-- trusted write authorization.
+- TrustedFrameworkDefinitionResolver;
+- WriteAuthorization / TrustedWriteApprovalStore.
 
-All must pass.
+Required:
 
-No source change is authorized if a test fails.
+FOCUSED_REPAIR_8_TESTS_PASS: YES
+REPAIR_5_6_7_REGRESSIONS_PASS: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+Do not change source if a suite fails.
 
 ==================================================
-10. RUN THE FULL UNIT SUITE
+8. FINAL ARTIFACT NAME AND COLLISION CHECK
 ==================================================
 
-Run the full unit suite after the fresh build-gate VSIX exists.
+The final Development-Test package must use the standard filename:
 
-First report which exact VSIX the suite selects.
+databricks-etl-copilot-0.3.141.vsix
 
-It must select:
+Expected absolute path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Before building, verify that this exact file does not already exist.
+
+If it exists, do not overwrite, delete, rename, or reuse it.
+
+Stop and return:
+
+HF1_V2_0_3_141_FINAL_ARTIFACT_COLLISION
+
+Do not use a descriptive suffix for the final 0.3.141 artifact.
+
+The standard name is intentional because the Packaged Runtime tests resolve:
+
+databricks-etl-copilot-${version}.vsix
+
+by exact filename.
+
+==================================================
+9. BUILD EXACTLY ONE FINAL 0.3.141 VSIX
+==================================================
+
+Build exactly one new VSIX from the current source:
+
+databricks-etl-copilot-0.3.141.vsix
+
+Use an explicit `--out` path.
+
+Use the already-installed VSCE binary.
+
+Do not invoke an npx path that downloads anything.
+
+Do not build a second package.
+Do not manually edit the archive.
+Do not rename another VSIX.
+Do not reuse the 0.3.140 build-gate VSIX.
+
+Record:
+
+- command;
+- exit code;
+- absolute output path;
+- build timestamp;
+- SHA-256;
+- file size;
+- archive entry count;
+- total compressed-entry bytes;
+- total uncompressed-entry bytes;
+- largest archive entry;
+- internal package.json version;
+- internal extension.vsixmanifest version.
+
+Required:
+
+FINAL_0_3_141_VSIX_CREATED_COUNT: 1
+FINAL_0_3_141_INTERNAL_PACKAGE_VERSION: 0.3.141
+FINAL_0_3_141_INTERNAL_MANIFEST_VERSION: 0.3.141
+
+==================================================
+10. VERIFY THE EXACT FINAL VSIX
+==================================================
+
+Run the project package verifier against the exact absolute path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Do not rely only on newest-mtime discovery.
+
+Required package checks include:
+
+- required entries;
+- required content markers;
+- manifest checks;
+- entry count ceiling;
+- compressed-size ceiling;
+- uncompressed-size ceiling;
+- single-entry ceiling;
+- machine-specific absolute path scan;
+- credential/secret scan;
+- unrelated-repository scan;
+- source TypeScript exclusion;
+- test-tree exclusion;
+- out/test exclusion;
+- node_modules exclusion;
+- docs/eval exclusion;
+- .vscode-test exclusion;
+- .tmp exclusion;
+- nested .git exclusion;
+- nested VSIX exclusion;
+- .tsbuildinfo exclusion;
+- source-map exclusion;
+- maintainer/developer-only file exclusion.
+
+Explicitly verify these entries:
+
+extension/resources/framework/contracts/oracle-delivery-controls.v1.json
+
+extension/resources/framework/contracts/job-config-envelope.v1.json
+
+Verify that both packaged contract byte sequences match the current source
+contract files exactly.
+
+Required:
+
+FINAL_EXACT_VSIX_VERIFIER_PASS: YES
+JOB_CONFIG_ENVELOPE_PRESENT_IN_FINAL_VSIX: YES
+JOB_CONFIG_ENVELOPE_SOURCE_PACKAGE_HASH_MATCH: YES
+ORACLE_CONTRACT_PRESENT_IN_FINAL_VSIX: YES
+ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES
+PACKAGE_MACHINE_PATH_HITS: 0
+PACKAGE_SECRET_HITS: 0
+PACKAGE_UNRELATED_REPOSITORY_ENTRIES: 0
+
+==================================================
+11. INDEPENDENT ARCHIVE INSPECTION
+==================================================
+
+Independently inspect the final VSIX using an OS ZIP central-directory reader,
+not only the repository verifier.
+
+Confirm:
+
+- internal package version is 0.3.141;
+- internal manifest version is 0.3.141;
+- both trusted contracts exist;
+- required agents, skills, instructions, context, knowledge, prompts,
+  framework contracts, runtime bundles, and media exist;
+- every mandatory forbidden class is absent;
+- no developer-machine absolute path exists;
+- no credential or secret is evident;
+- no unrelated repository tree exists.
+
+Do not extract into the repository.
+
+Any temporary extraction must be under an OS temporary folder created only for
+this task.
+
+==================================================
+12. COMPARE 0.3.140 GATE VSIX TO 0.3.141 FINAL VSIX
+==================================================
+
+Compare these two artifacts read-only:
+
+A. Accepted Repair-8 build-gate:
 
 databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
 
-or otherwise explicitly bind the VSIX-dependent check to that exact artifact.
+B. Final Development-Test artifact:
 
-Do not silently accept selection of an older VSIX.
+databricks-etl-copilot-0.3.141.vsix
 
-Expected failure set after the stale-artifact issue is removed:
+Verify:
+
+- entry-name sets are identical;
+- no runtime, contract, agent, skill, context, knowledge, prompt, instruction,
+  or media entry was added or removed;
+- all non-version-bearing entry bytes are identical;
+- only version-bearing metadata differs.
+
+Expected differing archive entries:
+
+1. extension/package.json
+2. extension.vsixmanifest
+
+If another archive entry differs, report its exact path and byte/hash
+difference.
+
+Do not silently accept additional differences.
+
+Required:
+
+GATE_TO_FINAL_ENTRY_SET_IDENTICAL: YES
+GATE_TO_FINAL_NON_VERSION_BYTES_IDENTICAL: YES
+GATE_TO_FINAL_ONLY_VERSION_METADATA_DIFFERS: YES
+
+==================================================
+13. VERIFY BOTH VSIX SELECTION STRATEGIES
+==================================================
+
+The previous gate recorded two inconsistent selectors:
+
+- newest-mtime selector;
+- exact-version-filename selector.
+
+Do not repair selector code in this task.
+
+After building the standard-named 0.3.141 artifact, prove that both selectors
+resolve to:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Required:
+
+NEWEST_MTIME_VSIX_SELECTOR_TARGET: databricks-etl-copilot-0.3.141.vsix
+EXACT_VERSION_VSIX_SELECTOR_TARGET: databricks-etl-copilot-0.3.141.vsix
+VSIX_SELECTORS_CONVERGE_FOR_FINAL_ARTIFACT: YES
+
+Do not rely on the selection result as a substitute for explicit-path package
+verification.
+
+==================================================
+14. RUN FULL UNIT SUITE AFTER FINAL PACKAGE EXISTS
+==================================================
+
+Run:
+
+npm run test:unit
+
+after the final standard-named 0.3.141 VSIX has been built and verified.
+
+Before reporting the result, state:
+
+- which VSIX the newest-mtime test selected;
+- which VSIX the exact-version helper selected.
+
+The three STTM packaged-runtime tests that previously remained pending because
+the exact default filename did not exist must now execute against:
+
+databricks-etl-copilot-0.3.141.vsix
+
+Required:
+
+STTM_PACKAGED_RUNTIME_TESTS_EXECUTED: YES
+STTM_PACKAGED_RUNTIME_PENDING_COUNT: 0
+
+The only permitted pending test is the known Confluence-offline fallback,
+provided its exact test name is reported.
+
+Expected pending result:
+
+FULL_UNIT_PENDING_COUNT: 1
+
+Expected full-suite failures remain exactly five:
 
 A. Two Phase-H/EvalGating baseline-freshness failures.
 
-B. Three pre-existing protected Copilot workflow-customization failures.
+B. Three protected Copilot workflow-customization failures.
 
-Expected total:
-
-5 failures
-
-The previous sixth failure must disappear:
-
-VSIX machine-specific path scan
->
-built VSIX (when present) contains no machine-specific absolute path
-
-must no longer fail because the new contract must be present.
-
-Classify every failure by exact test name.
+List all five by exact test name.
 
 Required:
 
 FULL_UNIT_FAILURE_COUNT: 5
+PHASE_H_BASELINE_FRESHNESS_FAILURE_COUNT: 2
+PROTECTED_CUSTOMIZATION_FAILURE_COUNT: 3
 STALE_VSIX_FAILURE_REMAINING: NO
 NEW_FUNCTIONAL_REGRESSIONS: 0
 NEW_SECURITY_REGRESSIONS: 0
 
-If an additional failure exists, stop with:
+If a sixth or otherwise new failure occurs, do not repair it in this task.
 
-REPAIR_8_FRESH_BUILD_GATE_FAILED
+Return:
 
-Do not repair it during this task.
-
-==================================================
-11. CHECK THE FAIL-OPEN PACKAGING DEPENDENCY
-==================================================
-
-The independent audit documented that the two Repair-8 invariants become inert
-if the trusted contract is unavailable.
-
-Do not redesign that behavior in this task.
-
-Instead prove that the newly built artifact contains and resolves the trusted
-contract through the installed-resource path.
-
-Report:
-
-PACKAGED_CONTRACT_PRESENT: YES/NO
-PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES/NO
-REPAIR_8_INVARIANTS_ACTIVE_IN_NEW_PACKAGE: YES/NO
-
-This proof is required because package presence is currently a load-bearing
-release condition.
+HF1_V2_0_3_141_FINAL_PACKAGE_VALIDATION_FAILED
 
 ==================================================
-12. KNOWN DEFERRED ITEMS
+15. PACKAGED CONTRACT RESOLUTION FROM FINAL LAYOUT
+==================================================
+
+Extract the final 0.3.141 package read-only into an OS temporary installed-layout
+simulation.
+
+Set process.cwd() to a separate neutral empty directory.
+
+Prove that TrustedJobConfigEnvelopeResolver resolves:
+
+resources/framework/contracts/job-config-envelope.v1.json
+
+from the packaged installed layout, not from the source checkout or cwd
+fallback.
+
+Required:
+
+FINAL_PACKAGED_CONTRACT_PRESENT: YES
+FINAL_PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES
+CWD_FALLBACK_COULD_LEAK_SOURCE_CONTRACT: NO
+REPAIR_8_INVARIANTS_ACTIVE_IN_FINAL_PACKAGE: YES
+
+Also execute the negative control with an empty layout and verify the contract
+is not fabricated from cwd.
+
+Do not redesign the deferred guard-level fail-open behavior in this task.
+
+==================================================
+16. SOURCE AND END-STATE BYTE PROOF
+==================================================
+
+After all builds and tests:
+
+- re-hash every frozen Repair-5/6/7/8 non-version file;
+- re-hash package.json;
+- compare tracked and untracked inventories;
+- compare staged count;
+- inspect .github/**;
+- inspect resources/prompts/**;
+- inspect AGENT.md and AGENTS.md;
+- inspect etl-framework-adb;
+- inspect Development Test Workspaces;
+- inspect dependency directories and cache mtimes where relevant.
+
+Required:
+
+NON_VERSION_SOURCE_OR_RESOURCE_DRIFT: 0
+TASK_ATTRIBUTABLE_TRACKED_SOURCE_FILES: 1
+TASK_ATTRIBUTABLE_TRACKED_SOURCE_PATH: package.json
+PACKAGE_JSON_DIFF_IS_VERSION_ONLY: YES
+VERSION_AFTER_TASK: 0.3.141
+STAGED_COUNT: 0
+GIT_COMMITS_CREATED: 0
+GIT_PUSHES_PERFORMED: 0
+GIT_TAGS_CREATED: 0
+DEPENDENCY_INSTALLS_OR_DOWNLOADS: 0
+VSIX_INSTALLATIONS: 0
+CONSUMER_OR_DEVELOPMENT_TEST_WORKSPACE_MUTATIONS: 0
+ETL_FRAMEWORK_ADB_MUTATIONS: 0
+UNAUTHORIZED_SOURCE_CHANGED_PATHS: 0
+FINAL_0_3_141_VSIX_RETAINED: YES
+
+Do not delete the accepted 0.3.140 build-gate VSIX or older ignored artifacts.
+
+==================================================
+17. DEFERRED ITEMS
 ==================================================
 
 Record but do not repair:
 
 1. FirstRenderInvariantGuard contract-unavailable fail-open behavior.
 2. trustedJobConfigEnvelope.test.ts absence from PURE_UNIT_TEST_PATTERNS.
-3. VSIX newest-mtime selection logic is not source/version-aware.
-4. The low-severity degenerate modules/options shape precision gap.
-5. The known Phase-H baseline refresh chore.
-6. The three protected customization failures.
+3. VSIX selection logic is not source/version-freshness aware.
+4. Low-severity degenerate modules/options shape precision gap.
+5. Phase-H baseline refresh chore.
+6. Three protected Copilot workflow-customization failures.
+7. Context ownership and trust-boundary redesign.
+8. Direct Unity Catalog table-name write support.
 
-Do not promote any of these into a Repair-8 source failure unless live evidence
-contradicts the independent re-audit.
-
-==================================================
-13. END-STATE SCOPE PROOF
-==================================================
-
-At task end report:
-
-- exact newly created VSIX path;
-- exact generated temporary/build artifacts;
-- source/resource hash mismatch count;
-- staged count;
-- package.json version;
-- package.json hash match;
-- unauthorized source path count;
-- dependency installs/downloads;
-- consumer workspace mutations;
-- etl-framework-adb mutations;
-- Git mutations;
-- VSIX installations.
-
-Required:
-
-VERSION_AFTER_BUILD_GATE: 0.3.140
-SOURCE_OR_RESOURCE_DRIFT_DURING_BUILD: 0
-UNAUTHORIZED_SOURCE_CHANGED_PATHS: 0
-STAGED_COUNT: 0
-DEPENDENCY_INSTALLS_OR_DOWNLOADS: 0
-CONSUMER_WORKSPACE_MUTATIONS: 0
-ETL_FRAMEWORK_ADB_MUTATIONS: 0
-GIT_MUTATIONS: 0
-VSIX_INSTALLATIONS: 0
-FRESH_VSIX_CREATED_COUNT: 1
-
-Do not delete the fresh build-gate VSIX at task end.
+Do not add any of these to this one-file version-bump scope.
 
 ==================================================
-14. FINAL MARKERS
+18. FINAL REPORT
 ==================================================
 
 Return:
 
 REPOSITORY_IDENTITY_MATCH: YES/NO
-VERSION_BEFORE_BUILD_GATE: 0.3.140
-VERSION_AFTER_BUILD_GATE: 0.3.140
-SOURCE_BYTES_PRESERVED: YES/NO
+SOURCE_VERSION_BEFORE: 0.3.140
+SOURCE_VERSION_AFTER: 0.3.141
+ONLY_PACKAGE_JSON_SOURCE_CHANGED_BY_TASK: YES/NO
+PACKAGE_JSON_DIFF_IS_VERSION_ONLY: YES/NO
+NON_VERSION_REPAIR_BYTES_PRESERVED: YES/NO
 COMPILE_PASS: YES/NO
 LINT_PASS: YES/NO
 TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
 FOCUSED_REPAIR_8_TESTS_PASS: YES/NO
 REPAIR_5_6_7_REGRESSIONS_PASS: YES/NO
-FRESH_BUILD_GATE_VSIX_CREATED: YES/NO
-FRESH_BUILD_GATE_VSIX_PATH: <absolute path>
-FRESH_BUILD_GATE_VSIX_SHA256: <sha256>
-FRESH_BUILD_GATE_VSIX_INTERNAL_VERSION: <version>
-EXACT_NEW_VSIX_VERIFIER_PASS: YES/NO
-JOB_CONFIG_ENVELOPE_PRESENT_IN_VSIX: YES/NO
+FINAL_0_3_141_VSIX_CREATED_COUNT: <number>
+FINAL_0_3_141_VSIX_PATH: <absolute path>
+FINAL_0_3_141_VSIX_SHA256: <sha256>
+FINAL_0_3_141_INTERNAL_PACKAGE_VERSION: <version>
+FINAL_0_3_141_INTERNAL_MANIFEST_VERSION: <version>
+FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
+FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+JOB_CONFIG_ENVELOPE_PRESENT_IN_FINAL_VSIX: YES/NO
 JOB_CONFIG_ENVELOPE_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-ORACLE_CONTRACT_PRESENT_IN_VSIX: YES/NO
-PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES/NO
-REPAIR_8_INVARIANTS_ACTIVE_IN_NEW_PACKAGE: YES/NO
+ORACLE_CONTRACT_PRESENT_IN_FINAL_VSIX: YES/NO
+ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
+GATE_TO_FINAL_ENTRY_SET_IDENTICAL: YES/NO
+GATE_TO_FINAL_NON_VERSION_BYTES_IDENTICAL: YES/NO
+GATE_TO_FINAL_ONLY_VERSION_METADATA_DIFFERS: YES/NO
+VSIX_SELECTORS_CONVERGE_FOR_FINAL_ARTIFACT: YES/NO
+STTM_PACKAGED_RUNTIME_TESTS_EXECUTED: YES/NO
+STTM_PACKAGED_RUNTIME_PENDING_COUNT: <number>
+FULL_UNIT_PENDING_COUNT: <number>
 FULL_UNIT_FAILURE_COUNT: <number>
-FULL_UNIT_HISTORICAL_AND_PREEXISTING_FAILURES_ONLY: YES/NO
+FULL_UNIT_EXPECTED_FAILURES_ONLY: YES/NO
 STALE_VSIX_FAILURE_REMAINING: YES/NO
 NEW_FUNCTIONAL_REGRESSIONS: <number>
 NEW_SECURITY_REGRESSIONS: <number>
-SOURCE_OR_RESOURCE_DRIFT_DURING_BUILD: <number>
+FINAL_PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES/NO
+REPAIR_8_INVARIANTS_ACTIVE_IN_FINAL_PACKAGE: YES/NO
+NON_VERSION_SOURCE_OR_RESOURCE_DRIFT: <number>
 UNAUTHORIZED_SOURCE_CHANGED_PATHS: <number>
+VERSION_BUMP_PERFORMED: YES/NO
 VSIX_INSTALLED: NO
-VERSION_BUMP_PERFORMED: NO
 GIT_MUTATION_PERFORMED: NO
-READY_FOR_0_3_141_VERSION_BUMP: YES/NO
+READY_FOR_DEVELOPMENT_TEST_RUNTIME_QA: YES/NO
+SAFE_TO_COMMIT_BEFORE_RUNTIME_QA: NO
+SAFE_TO_RELEASE: NO
 
 End exactly with one:
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_FRESH_0_3_140_BUILD_GATE_PASS
+LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_PASS
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_FRESH_0_3_140_BUILD_GATE_FAIL
+LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_FAIL
 
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_FRESH_0_3_140_BUILD_GATE_BLOCKED
+LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_BLOCKED
