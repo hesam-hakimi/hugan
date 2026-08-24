@@ -1,373 +1,302 @@
-TASK: HF1_V2_VERIFY_AND_ADOPT_PREEXISTING_VSIX_0_3_141
+TASK: PHASE_2D_PR16_POST_PR15_MERGE_VERIFICATION_AND_RETARGET
 
-Work only inside the Software Development Environment:
+Perform one bounded post-merge verification and, only if every gate passes,
+retarget PR #16 from its current stacked base to main.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Repository:
+TD-Enterprise/kmai-td-genie
 
-Current confirmed situation:
+Required logical repository root:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-* package.json already reports version 0.3.141;
-* databricks-etl-copilot-0.3.141.vsix already exists;
-* the previous build task stopped safely with:
-    BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
-* the user reports that this may be an earlier experimental 0.3.141 package that
-    was manually installed;
-* installation history is not proof that this VSIX is the final verified package;
-* the previous task left many validation fields as NOT_RUN or NOT_VERIFIED.
+The equivalent physical path under /app1 is acceptable only if realpath proves
+that it is the same permanent Phase 2E worktree.
 
-The goal of this task is to validate the exact existing 0.3.141 artifact and,
-only if every required gate passes, adopt that same artifact as the final
-Development Test VSIX without rebuilding it.
+This task authorizes exactly one GitHub mutation:
 
-Do not use web search.
-Do not access or modify the Development Test Workspace.
-Do not access or modify etl-framework-adb.
-Do not install or download dependencies.
-Do not install or uninstall any VS Code extension.
-Do not start Runtime QA.
-Do not modify package.json.
-Do not use npm version.
-Do not create package-lock.json.
-Do not delete, rename, move, overwrite, or rebuild the existing VSIX.
-Do not create another VSIX.
-Do not edit source, resources, tests, baselines, snapshots, contracts, or prompts.
-Do not commit, push, merge, tag, stash, reset, clean, or restore files.
-Do not modify protected .github/** assets.
+    Change PR #16 base branch from:
+        phase2/provider-abstraction-foundation
+    to:
+        main
+
+No other mutation is authorized.
 
 ==================================================
+1. MANDATORY WORKSPACE GATE
+==================================================
 
-1. VERIFY REPOSITORY IDENTITY
-    ==================================================
+Before reading any repository file, verify:
 
-Verify:
+- pwd;
+- pwd -P;
+- realpath of the required logical root;
+- current repository identity;
+- current branch and HEAD;
+- git status --porcelain.
 
-EXPECTED_REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+The active workspace must resolve to the permanent Phase 2E repository root.
 
-EXPECTED_ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+Do not read, search, inspect, or modify:
 
-EXPECTED_BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+- the stale primary checkout;
+- branch asktd_v2;
+- sibling repositories;
+- ETL/UCA workspaces;
+- /tmp worktrees.
 
-EXPECTED_HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+If the workspace does not match, stop without mutation and end with:
 
-EXPECTED_SOURCE_VERSION:
-0.3.141
+PHASE_2D_PR16_RETARGET_BLOCKED_WRONG_WORKSPACE
 
-EXPECTED_ARTIFACT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
-
-Capture before running validations:
-
-* absolute repository root;
-* origin URL;
-* current branch;
-* current HEAD;
-* staged paths;
-* tracked-modified paths;
-* untracked paths;
-* package.json version;
-* package-lock.json presence;
-* exact artifact path;
-* artifact size;
-* artifact modification timestamp;
-* artifact SHA-256.
-
-A large pre-existing working-tree overlay may exist. Preserve it exactly.
-
-If repository root, origin, branch, HEAD, or source version conflicts with the
-expected identity, stop without modifying anything:
-
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-If staged files exist, report them and stop:
-
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_STAGED_CHANGES
-
-If the exact VSIX is absent, stop. Do not build it:
-
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_ARTIFACT_ABSENT
+Do not change branches, fetch, pull, reset, stash, clean, rebase, merge,
+cherry-pick, or modify Git configuration.
 
 ==================================================
-2. INSPECT THE EXISTING ARTIFACT READ-ONLY
+2. PERMITTED PRIOR EVIDENCE
+==================================================
 
-Inspect the exact existing file:
+Read these reports completely, from outside the Git repository:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+1.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR_STACK_READINESS_2026-08-23.md
 
-Do not select an artifact by newest modification time.
+2.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_FINALIZATION_2026-08-23.md
 
-Verify independently:
+Treat them as evidence indexes only. Independently verify all decisive live
+values.
 
-* the VSIX/ZIP archive opens successfully;
-* internal package.json exists;
-* internal package.json version is exactly 0.3.141;
-* internal extension.vsixmanifest exists;
-* manifest version is exactly 0.3.141;
-* publisher is td-etl;
-* package name is databricks-etl-copilot;
-* extension ID resolves to td-etl.databricks-etl-copilot;
-* resources/framework/contracts/job-config-envelope.v1.json is present;
-* the packaged Job Config contract is byte-equal to the current source contract;
-* the trusted Oracle delivery-control contract is present;
-* the packaged Oracle contract is byte-equal to the current source contract;
-* trusted contracts resolve using the installed-layout structure;
-* no etl-framework-adb checkout is required at runtime;
-* no absolute Software Development Environment path is embedded as a runtime
-    dependency;
-* no consumer-editable context is used as machine authority;
-* no forbidden package-hygiene entries are present;
-* no .tmp/** content is present;
-* no nested .git/** content is present;
-* no .tsbuildinfo* content is present;
-* no test source or out-test content is present;
-* package entry-count and size limits pass.
-
-Do not infer validity merely from the filename, version number, installation
-history, or the fact that the archive opens.
+Do not read unrelated reports, the stale checkout, Library exports, or Phase 2F
+decision documents.
 
 ==================================================
-3. RUN THE EXISTING EXACT-PACKAGE VERIFIER
+3. AUTHENTICATION AND SAFETY
+==================================================
 
-Inspect package.json and the repository scripts to identify the project’s
-canonical exact-package verification command.
+Use authenticated GitHub read access already available in the environment.
 
-Run the existing exact-package verifier against this explicit path:
+If the stored gh account token is invalid, do not repair it, log in, log out,
+rewrite hosts.yml, print credentials, or persist a token.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+You may use the same existing credential-helper-based method that previously
+authorized GitHub reads and the PR #17 push/creation.
 
-Do not allow a newest-VSIX selector or wildcard to choose another artifact.
+Never print, copy, save, or expose any credential.
 
-Report:
+All GitHub requests before section 6 must be read-only.
 
-* exact command;
-* exact artifact supplied to the verifier;
-* exit code;
-* every passed gate;
-* every warning;
-* every failed gate.
+If authenticated access is unavailable, stop without mutation and end with:
 
-Required:
-
-EXACT_PACKAGE_VERIFIER_PASS: YES
-
-If the repository has no usable exact-package verifier, do not fabricate a pass.
-Return:
-
-EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VERIFIER_UNAVAILABLE
+PHASE_2D_PR16_RETARGET_BLOCKED_GITHUB_ACCESS
 
 ==================================================
-4. RUN CURRENT VALIDATION GATES
+4. VERIFY PR #15 POST-MERGE STATE
+==================================================
 
-Use only existing local dependencies and repository scripts.
+Independently query the live GitHub state and verify:
 
-Do not run npm install or any dependency-changing command.
+PR #15:
 
-Run and report:
+- state: closed;
+- merged: true;
+- base branch: main;
+- head branch: phase2/provider-abstraction-foundation;
+- original candidate head SHA exactly:
 
-1. TypeScript compile;
-2. lint;
-3. trusted Job Config envelope direct suite;
-4. Repair 8 focused suites;
-5. Repair 5/6/7 regression suites;
-6. full unit suite.
+  d5472ae31081879329c224922244d87962737e8c
 
-For each gate report:
+- changed files: exactly 7;
+- additions/deletions: exactly +430/-28;
+- at least one eligible non-author approval exists;
+- the five previously reported checks succeeded;
+- exact full merge-commit SHA is obtained from GitHub.
 
-* exact command;
-* exit code;
-* passing count;
-* pending/skipped count;
-* failing count;
-* complete failure names;
-* whether each failure is historical/known or new;
-* whether a new functional regression exists;
-* whether a new security regression exists.
+Verify the merge commit:
 
-Required:
+- is the current live main SHA;
+- has exactly two parents;
+- first parent is the previous main:
 
-COMPILE_PASS: YES
-LINT_PASS: YES
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
-REPAIR_8_FOCUSED_SUITES_PASS: YES
-REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
+  9ca6567571772a9f4e1ab555d8a678e678c45d49
 
-Do not edit any implementation or test file if a gate fails.
+- second parent is the accepted Phase 2C.5 candidate:
+
+  d5472ae31081879329c224922244d87962737e8c
+
+- therefore Phase 2C.5 was merged using a merge commit, not squash or rebase;
+- d5472ae31081879329c224922244d87962737e8c is now an ancestor of main.
+
+Do not silently trust the short SHA shown in the browser. Record the exact
+40-character merge SHA.
+
+If any value differs, stop without changing PR #16 and end with:
+
+PHASE_2D_PR16_RETARGET_BLOCKED_POSTMERGE_IDENTITY
 
 ==================================================
-5. COMPARE WITH THE TRUSTED 0.3.140 BASELINE
+5. VERIFY PR #16 BEFORE RETARGETING
+==================================================
 
-If an exact previously verified 0.3.140 VSIX can be identified deterministically,
-compare it with the existing 0.3.141 artifact.
+Verify live PR #16 before making any mutation:
 
-Compare:
+- state: open;
+- Draft: true;
+- merged: false;
+- base branch:
 
-* decompressed entry names;
-* decompressed entry bytes;
-* internal version metadata;
-* trusted contract bytes;
-* package-hygiene results.
+  phase2/provider-abstraction-foundation
 
-Ignore ZIP container timestamps.
+- head branch:
 
-Expected:
+  phase2/approved-recipe-pilot
 
-* identical entry set;
-* all non-version functional content consistent with the intended HF1 V2 source;
-* differences limited to expected version metadata and already-authorized HF1 V2
-    package content.
+- exact head SHA:
 
-Do not select a 0.3.140 baseline only because it is the newest file.
+  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
 
-If no exact trusted baseline can be proven, report:
+- the head commit has the accepted Phase 2C.5 candidate as its single parent:
 
-BASELINE_0_3_140_COMPARISON:
-NOT_PERFORMED_NO_TRUSTED_BASELINE
+  d5472ae31081879329c224922244d87962737e8c
 
-This alone does not fail adoption if all direct source/package verification gates
-pass.
+- changed files: exactly 9;
+- additions/deletions: exactly +1431/-6;
+- no merge conflict;
+- no unexpected review, comment, head-force-push, base change, or candidate
+  drift has occurred.
+
+Also verify that the remote branch
+phase2/provider-abstraction-foundation still exists.
+
+Do not delete that branch. It must remain until PR #16 has been successfully
+retargeted and verified.
+
+If PR #16 does not match every expected identity and scope value, stop without
+mutation and end with:
+
+PHASE_2D_PR16_RETARGET_BLOCKED_CANDIDATE_DRIFT
 
 ==================================================
-6. DETERMINE WHETHER THE EXISTING ARTIFACT IS ADOPTABLE
+6. THE ONLY AUTHORIZED MUTATION
+==================================================
 
-Adopt the existing artifact without rebuilding only if:
+Only after sections 1–5 pass, change PR #16’s base branch from:
 
-* repository identity passes;
-* source version is 0.3.141;
-* internal package and manifest versions are 0.3.141;
-* publisher, package name, and extension ID are correct;
-* exact-package verifier passes;
-* independent package inspection passes;
-* trusted packaged contracts exist and are byte-equal to source;
-* required compile/lint/focused/regression gates pass;
-* there are zero new functional regressions;
-* there are zero new security regressions;
-* package hygiene passes;
-* no task-attributable source changes occurred;
-* no files are staged;
-* the SHA-256 is computed from the exact existing artifact.
+    phase2/provider-abstraction-foundation
 
-If all conditions pass:
+to:
 
-EXISTING_ARTIFACT_ADOPTED_AS_FINAL: YES
-REBUILD_REQUIRED: NO
-READY_TO_INSTALL_0_3_141: YES
-READY_FOR_RUNTIME_QA_PHASE_1: NO
+    main
 
-READY_FOR_RUNTIME_QA_PHASE_1 must remain NO because installation and active
-Extension Host verification have not been performed by this task.
+Use the GitHub API or another authenticated GitHub mechanism that performs only
+this base change.
 
-If any condition fails:
+Do not:
 
-EXISTING_ARTIFACT_ADOPTED_AS_FINAL: NO
-REBUILD_REQUIRED: YES
-READY_TO_INSTALL_0_3_141: NO
-READY_FOR_RUNTIME_QA_PHASE_1: NO
-
-Do not rename, delete, overwrite, or rebuild the artifact after a failure. Preserve
-the evidence for the next repair/rebuild prompt.
+- modify PR #16’s head;
+- push or force-push;
+- rebase or merge locally;
+- edit its title or description;
+- mark it ready for review;
+- request a reviewer;
+- submit an approval;
+- add a comment, label, milestone, or assignee;
+- close, reopen, or merge it;
+- trigger a workflow deliberately;
+- delete either parent branch;
+- modify PR #15 or PR #17.
 
 ==================================================
-7. POST-VALIDATION SAFETY CHECK
+7. POST-RETARGET VERIFICATION
+==================================================
 
-Capture final Git status and compare it with the initial baseline.
+After the base change, independently re-read PR #16 and verify:
 
-Separate:
+- state remains open;
+- Draft remains true;
+- base is now main;
+- head remains phase2/approved-recipe-pilot;
+- head SHA remains exactly:
 
-* pre-existing tracked modifications;
-* pre-existing untracked files;
-* validation-generated output;
-* unexpected changes;
-* staged files.
+  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
 
-Required:
+- changed files remain exactly 9;
+- additions/deletions remain exactly +1431/-6;
+- mergeable is true;
+- merge state is clean, or its equivalent indicates no conflict;
+- no head commit changed;
+- no approval was submitted;
+- no ready-for-review transition occurred.
 
-TASK_ATTRIBUTABLE_SOURCE_CHANGES: NONE
-ARTIFACT_OVERWRITTEN: NO
-NEW_VSIX_CREATED: NO
-STAGED_FILES: 0
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-PACKAGE_LOCK_CREATED: NO
-EXTENSION_INSTALLED_OR_UNINSTALLED: NO
-DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
-RUNTIME_QA_STARTED: NO
+GitHub may temporarily return mergeability as unknown/null while recalculating.
+Use bounded read-only polling. If it remains unresolved, report it as a blocker;
+do not make another mutation.
+
+Verify additionally:
+
+- current main SHA is still the exact PR #15 merge commit obtained in section 4;
+- PR #15 remains merged;
+- PR #17 remains untouched with:
+  - state open;
+  - Draft true;
+  - base phase2/approved-recipe-pilot;
+  - head phase2/governed-field-records;
+  - exact head SHA:
+
+    0430613e6a9f1680338d8fc099e7960e5d46cac2
+
+- phase2/provider-abstraction-foundation still exists;
+- phase2/approved-recipe-pilot still exists;
+- the permanent worktree/index remains clean;
+- no repository file or local Git ref changed.
+
+Record whether retargeting created any check or workflow run, but do not trigger
+one manually. Zero new checks is not, by itself, candidate drift because the
+current pull_request workflow does not listen for the base-change edited event.
+
+If the post-retarget scope is not exactly 9 files and +1431/-6, or any other
+identity changed, stop and end with:
+
+PHASE_2D_PR16_RETARGET_BLOCKED_POSTCHANGE_VALIDATION
+
+Do not attempt to undo or compensate automatically. Report the exact live state.
 
 ==================================================
-8. FINAL REPORT
+8. REPORT
+==================================================
 
-Return:
+Write one report outside the Git repository:
 
-REPOSITORY_ROOT: 
-ORIGIN: 
-BRANCH: 
-HEAD: 
-SOURCE_VERSION: 
-EXISTING_VSIX_PATH: 
-EXISTING_VSIX_SIZE_BYTES: 
-EXISTING_VSIX_MODIFIED_AT: 
-EXISTING_VSIX_SHA256: 
-INTERNAL_PACKAGE_VERSION: 
-INTERNAL_MANIFEST_VERSION: 
-PUBLISHER: 
-PACKAGE_NAME: 
-RESOLVED_EXTENSION_ID: 
-ARCHIVE_READABLE: YES/NO
-EXACT_PACKAGE_VERIFIER_COMMAND: 
-EXACT_PACKAGE_VERIFIER_PASS: YES/NO
-INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
-JOB_CONFIG_CONTRACT_PRESENT: YES/NO
-JOB_CONFIG_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-ORACLE_CONTRACT_PRESENT: YES/NO
-ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-INSTALLED_LAYOUT_CONTRACT_RESOLUTION_PASS: YES/NO
-SOURCE_CHECKOUT_RUNTIME_DEPENDENCY_FOUND: YES/NO
-CONSUMER_CONTEXT_USED_AS_MACHINE_AUTHORITY: YES/NO
-PACKAGE_HYGIENE_PASS: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
-REPAIR_8_FOCUSED_SUITES_PASS: YES/NO
-REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES/NO
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURES: 
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-BASELINE_0_3_140_COMPARISON: PASS/FAIL/NOT_PERFORMED_NO_TRUSTED_BASELINE
-TASK_ATTRIBUTABLE_SOURCE_CHANGES: 
-UNEXPECTED_CHANGED_PATHS: 
-STAGED_FILES: 
-EXISTING_ARTIFACT_ADOPTED_AS_FINAL: YES/NO
-REBUILD_REQUIRED: YES/NO
-READY_TO_INSTALL_0_3_141: YES/NO
-READY_FOR_RUNTIME_QA_PHASE_1: NO
-SAFE_TO_COMMIT: NO
-SAFE_TO_RELEASE: NO
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2D_PR16_RETARGET_2026-08-24.md
 
-PASS means the exact pre-existing artifact has been independently proven safe for
-installation; it does not mean Runtime QA has passed.
+The report must include:
 
-End exactly with one:
+1. exact workspace and no-change attestation;
+2. exact PR #15 merge commit and both parents;
+3. verified current main SHA;
+4. PR #15 final approval/check/merge evidence;
+5. PR #16 complete before-retarget state;
+6. the exact single mutation performed;
+7. PR #16 complete after-retarget state;
+8. changed-file inventory/count and additions/deletions;
+9. mergeability and conflict state;
+10. check/workflow state before and after;
+11. confirmation that PR #17 was untouched;
+12. confirmation that no parent branch was deleted;
+13. confirmation that no repository file, commit, branch head, runtime flag, or
+    Git configuration was changed;
+14. exact next permitted action.
 
-EXISTING_0_3_141_VERIFICATION_RESULT: PASS
+The next permitted action after a successful report is only:
 
-EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_PACKAGE_VERIFICATION
+- mark PR #16 ready for review;
+- obtain its one eligible non-author approval;
+- reverify its exact head and 9-file scope;
+- then merge it using a merge commit.
 
-EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VALIDATION_GATE
+Those actions are not authorized by this prompt.
 
-EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_UNAUTHORIZED_CHANGE
+End with exactly one terminal token:
 
-EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VERIFIER_UNAVAILABLE
+PHASE_2D_PR16_RETARGET_COMPLETE
 
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_STAGED_CHANGES
-
-EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_ARTIFACT_ABSENT
+or one applicable BLOCKED token defined above.
