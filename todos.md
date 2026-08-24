@@ -1,416 +1,314 @@
-# Ready\-to\-run prompt — install ETL Copilot development guardrails
+TASK: INSTALL_AND_ACTIVATE_VERIFIED_HF1_V2_VSIX_0_3_142
 
-Run this prompt in a new Coding/Agent chat in the **Software Development**
-**Environment** with only the Extension source repository open\.
+Work only from the Development Test Workspace:
 
----
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
 
-TASK: ADD\_CROSS\_LOCAL\_CLOUD\_ETL\_ENGINEERING\_GUARDRAILS
+This task installs and verifies the exact already-built 0.3.142 VSIX.
 
-Work only inside:
+Do not start Runtime QA Phase 1.
+Do not interpret the STTM.
+Do not invoke ETL Preview or Write.
+Do not create a Preview ID.
+Do not approve any filesystem operation.
+Do not create, modify, rename, or delete workspace files.
+Do not inspect or modify Extension source.
+Do not inspect or modify etl-framework-adb.
+Do not rebuild or modify the VSIX.
+Do not install dependencies.
+Do not commit or push.
+Do not connect to real data.
 
-`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
+The only permitted external file access is reading and installing this exact VSIX:
 
-This is a documentation/instruction\-only task\. Add repository instructions that
-guide GitHub Copilot in both local VS Code Chat/Agent and GitHub Copilot Cloud
-Agent, while preserving all existing source and user changes\.
-
-Current verified state before this task:
-
-- Repair 9 completed successfully;
-- working source version is `0.3.142`;
-- `databricks-etl-copilot-0.3.142.vsix` was built and exact\-package verified;
-- recorded artifact size is `1251308` bytes;
-- recorded SHA\-256 is
-  `B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23`;
-- the artifact has not been installed and Runtime QA has not started\.
-
-Do not implement Repair 9 or any runtime fix in this task\.
-Do not change the package version\.
-Do not compile, package, install, publish, or run Runtime QA\.
-Do not overwrite, delete, rebuild, rename, or otherwise modify the verified
-`databricks-etl-copilot-0.3.142.vsix` artifact\.
-Do not modify source, tests, contracts, prompts, workflows, settings, or baselines\.
-Do not install or download dependencies\.
-Do not use web search\.
-Do not commit, push, merge, tag, stash, reset, restore, clean, delete, or stage\.
-
-The only paths that this task may intentionally add or edit are:
-
-- `.github/copilot-instructions.md`
-- `.github/instructions/etl-runtime-safety.instructions.md`
-- `.github/instructions/etl-test-safety.instructions.md`
-- `.github/instructions/etl-packaging-safety.instructions.md`
-
-All other `.github/**` content is protected and must remain byte\-unchanged\.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
 
 ==================================================
 
-1. REPOSITORY IDENTITY AND SAFETY GATE
-   ==================================================
+1. WORKSPACE IDENTITY GATE
+    ==================================================
 
-Verify before editing:
+Confirm:
 
-EXPECTED\_ROOT:
-`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
+EXPECTED_WORKSPACE_ROOT:
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
 
-EXPECTED\_ORIGIN:
-`https://github.com/TD-Universe/agentic_etl.git`
+EXPECTED_WORKSPACE_ROOT_COUNT:
+1
 
-EXPECTED\_BRANCH:
-`hotfix/hf1-oracle-fresh-consumer-v2`
+EXPECTED_WORKSPACE_CLASSIFICATION:
+DEVELOPMENT_TEST_WORKSPACE
 
-EXPECTED\_HEAD:
-`b2e44c3a1a051aa7fa6008831d225bc06d22e847`
+Expected conditions:
 
-EXPECTED\_WORKING\_SOURCE\_VERSION:
-`0.3.142`
+* exactly one open workspace root;
+* no Extension-source checkout open;
+* no etl-framework-adb open;
+* workspace is not a Git source repository;
+* workflow customization is already initialized;
+* STTM exists at:
+    sttm/qa_hf1v2_demo_sttm.md
+* no existing job_conf/**;
+* no existing env_conf/**;
+* no existing generated ETL artifacts.
 
-EXPECTED\_VERIFIED\_VSIX:
-`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix`
+If the root or topology differs, stop without installing:
 
-EXPECTED\_VERIFIED\_VSIX\_SIZE\_BYTES:
-`1251308`
+INSTALL_0_3_142_RESULT: BLOCKED_WRONG_WORKSPACE
 
-EXPECTED\_VERIFIED\_VSIX\_SHA256:
-`B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23`
+==================================================
+2. CAPTURE ZERO-WRITE BASELINE
+
+Before installation, capture:
+
+* complete workspace file inventory;
+* file size and SHA-256 for every existing workspace file;
+* STTM size and SHA-256;
+* workflow customization asset list and hashes;
+* job_conf file count;
+* env_conf file count;
+* generated ETL artifact count.
+
+Expected:
+
+EXISTING_JOB_CONF_COUNT: 0
+EXISTING_ENV_CONF_COUNT: 0
+EXISTING_GENERATED_ETL_ARTIFACT_COUNT: 0
+
+Do not modify the workspace while collecting the baseline.
+
+==================================================
+3. VERIFY THE EXACT VSIX
+
+Verify the exact external artifact:
+
+EXPECTED_VSIX_PATH:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
+
+EXPECTED_VSIX_SIZE_BYTES:
+1251308
+
+EXPECTED_VSIX_SHA256:
+B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23
+
+Independently inspect the archive metadata and confirm:
+
+* archive is readable;
+* internal package.json version is 0.3.142;
+* internal extension.vsixmanifest version is 0.3.142;
+* publisher is td-etl;
+* package name is databricks-etl-copilot;
+* resolved Extension ID is td-etl.databricks-etl-copilot.
+
+Do not inspect any sibling source files.
+
+If path, size, SHA-256, identity, or internal versions differ, stop without
+installation:
+
+INSTALL_0_3_142_RESULT: BLOCKED_ARTIFACT_MISMATCH
+
+==================================================
+4. IDENTIFY THE CORRECT VS CODE INSTANCE
+
+Confirm the current QA window uses Visual Studio Code Stable and determine:
+
+* VS Code product/version;
+* CLI path belonging to that same Stable installation;
+* current user-data profile;
+* current Extension installation state;
+* installed td-etl.databricks-etl-copilot version;
+* active Extension Host runtime version.
+
+Expected Stable CLI from the previous verified QA environment:
+
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\bin\code.cmd
+
+Expected profile:
+
+Default Stable standard user-data profile with no profile override.
+
+Do not target Insiders, ETL HotFix, another profile, or another VS Code window.
+
+Installed-directory metadata alone is not runtime activation proof.
+
+Accepted starting runtime versions:
+
+* 0.3.141;
+* 0.3.142.
+
+Any unrelated active version is a conflict:
+
+INSTALL_0_3_142_RESULT: BLOCKED_RUNTIME_IDENTITY
+
+==================================================
+5. INSTALL ONLY IF REQUIRED
+
+If the exact 0.3.142 artifact is already installed:
+
+* do not reinstall it;
+* continue to runtime activation verification.
+
+If 0.3.142 is not installed, use the verified Stable CLI and exact VSIX path:
+
+& “C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\bin\code.cmd” --install-extension
+“C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix” `
+–force
 
 Capture:
 
-- absolute repository root;
-- origin URL;
-- current branch and HEAD;
-- staged file count;
-- complete tracked\-modified and untracked path lists;
-- current `package.json` version;
-- exact current path, size, and SHA\-256 of the verified `0.3.142` VSIX;
-- current contents/status of every authorized target path;
-- every existing `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, and
-  `.github/instructions/**/*.instructions.md` that could overlap these rules\.
+* exact command;
+* exit code;
+* stdout/stderr;
+* installed version after the command.
 
-A large existing working\-tree overlay is expected\. Preserve it exactly\.
+Do not use marketplace installation.
+Do not use a wildcard or newest-file selector.
+Do not uninstall another version separately.
+Do not delete Extension directories manually.
 
-If root, origin, branch, HEAD, working source version, VSIX size, or VSIX SHA\-256
-differs, stop without editing and return:
+If installation fails:
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_IDENTITY_MISMATCH`
+INSTALL_0_3_142_RESULT: FAIL_INSTALL
 
-If staged files exist, stop without editing:
+==================================================
+6. EXTENSION HOST ACTIVATION
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_STAGED_CHANGES`
+Installation metadata is insufficient.
 
-If any authorized target already has an uncommitted user modification, do not
-overwrite it\. Report the exact conflict and stop:
+Prove that the Extension Host serving this exact QA window has activated:
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_TARGET_HAS_USER_CHANGES`
+ACTIVE_EXTENSION_ID:
+td-etl.databricks-etl-copilot
 
-# ================================================== 2\. MERGE, NEVER BLINDLY OVERWRITE
+ACTIVE_EXTENSION_VERSION:
+0.3.142
 
-If an authorized file already exists and is clean, merge the requirements below
-into it\. Preserve useful repository\-specific instructions and remove no rule\.
-Avoid duplicate or contradictory sources of truth\.
+Use fresh runtime evidence from this QA window, such as:
 
-If an existing instruction conflicts with the safety invariants below, do not
-choose silently\. Stop and report both exact clauses:
+* current ETL Copilot Output channel;
+* newly timestamped Extension Host activation log;
+* installed runtime capability output after activation.
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_INSTRUCTION_CONFLICT`
+Required runtime evidence must include the equivalent of:
 
-Create `.github/instructions/` only if needed\. Do not touch any sibling file\.
+ETL Copilot version: 0.3.142
 
-Write instruction content in clear, imperative English\. Keep it timeless: do not
-hard\-code the current version, branch, incident number, file line number, or
-temporary QA path inside the installed instruction files\.
+Do not use stale 0.3.141 log entries or package metadata as activation proof.
 
-# ================================================== 3\. REPOSITORY\-WIDE INSTRUCTION
+If installation succeeds but the current Extension Host still reports 0.3.141:
 
-Create or merge `.github/copilot-instructions.md` with the title:
+* do not start Runtime QA;
+* do not create a Preview;
+* do not mutate the workspace;
+* preserve this Chat;
+* return:
 
-`# Databricks ETL Copilot Engineering Invariants`
+HOST_RELOAD_REQUIRED: YES
+INSTALL_0_3_142_RESULT: RELOAD_REQUIRED
 
-It must state that the rules are mandatory architecture and safety constraints
-for every implementation, repair, refactor, test, package, and release\-preparation
-task\. Define these stable invariant IDs and semantics:
+If a supported non-destructive VS Code Reload Window action is available, it may
+be requested. Do not kill VS Code processes or restart the computer.
 
-### ETL\-INV\-01 — Trace the complete lifecycle
+After Reload Window, continue in this same Chat with:
 
-Before changing behavior, trace:
+CONTINUE_INSTALL_0_3_142_POST_RELOAD_VERIFICATION
 
-`workspace classification → discovery → STTM interpretation → target decision → rendering → deterministic validation → frozen Preview manifest → explicit approval → guarded write`
+Then repeat only Sections 6–8. Do not reinstall when the exact version is already
+installed.
 
-A downstream fix is incomplete when an earlier gate can reject, reinterpret, or
-recompute the same supported scenario\.
+==================================================
+7. POST-INSTALL ZERO-MUTATION VERIFICATION
 
-### ETL\-INV\-02 — One authority for each decision
+Compare the workspace directly against the Section 2 baseline.
 
-No independent workspace classifiers, marker lists, trust resolvers,
-artifact\-layout calculators, include resolvers, or approval validators\. Extend
-the canonical owner and return one shared typed decision/evidence model\. Require
-cross\-component parity tests whenever a consumer is changed\.
+Required:
 
-### ETL\-INV\-03 — Fresh consumer workspaces are valid
+NEW_JOB_CONF_FILES: 0
+NEW_ENV_CONF_FILES: 0
+NEW_GENERATED_ETL_ARTIFACTS: 0
+STTM_MODIFIED: NO
+WORKFLOW_CUSTOMIZATION_MODIFIED: NO
+WORKSPACE_FILES_CREATED: 0
+WORKSPACE_FILES_MODIFIED: 0
+WORKSPACE_FILES_DELETED: 0
+PREVIEW_ID_CREATED: NO
+ETL_WRITE_EXECUTED: NO
+REAL_DATA_ACCESSED: NO
+SOURCE_REPOSITORY_MODIFIED: NO
+VSIX_MODIFIED: NO
 
-A correctly initialized consumer may be non\-Git and contain no `job_conf/**` or
-`env_conf/**`\. Extension\-managed initialization evidence may establish consumer
-intent\. `sttm/**` alone, folder name, arbitrary `.github/**`, and
-`resources/copilot/context/**` alone are insufficient\. Missing generated artifacts
-means `CREATE_NEW_JOB`, not a classification blocker\. Source, Framework, unknown,
-escaped, protected, and multi\-root targets are not writable consumers\.
+Recalculate the external VSIX size and SHA-256 and confirm they remain:
 
-### ETL\-INV\-04 — Preserve the trust boundary
+SIZE_BYTES:
+1251308
 
-Only trusted installed runtime and packaged resources such as
-`resources/framework/contracts/**` provide machine authority for contracts,
-critical keys, module rules, layout, validation, and writes\. Consumer context,
-examples, prompts, STTM prose, and generated files are advisory/input only\.
-Normal installed runtime must not require Extension source, `etl-framework-adb`,
-local Framework examples, or absolute development paths\.
+SHA256:
+B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23
 
-### ETL\-INV\-05 — Preview is zero\-write
-
-Discovery through first Preview performs zero consumer filesystem mutations\.
-Select, normalize, validate, hash, and freeze paths and bytes once in one
-authoritative immutable manifest\. Validation, approval, and write consume that
-same manifest and do not recalculate or substitute it\.
-
-### ETL\-INV\-06 — All writes are guarded and approval\-bound
-
-Only one canonical guarded writer may mutate consumer files\. A write requires a
-runtime\-issued Preview ID and explicit approval on a separate turn, bound to root,
-operation, policy version, paths, dispositions, and content hashes\. Missing,
-fabricated, expired, reused, replayed, mismatched, or drifted state fails closed
-and requires a new Preview\. Audit, repair, upgrade, registration, retry, publish,
-and execution require their own authorization\.
-
-### ETL\-INV\-07 — Enforce physical containment
-
-Canonicalize root and destinations and reject traversal, symlink/junction escape,
-sibling escape, protected/source/package roots, and ambiguity\. Every artifact is
-physically contained in the selected single consumer root\. Generation does not
-modify maintainer `.github/**`, STTM, advisory context, source, or packaged
-resources\. Consumer `.github/**` is writable only when explicitly previewed and
-approved as generated output\.
-
-### ETL\-INV\-08 — Preserve artifact semantics
-
-Exactly one canonical Job Config per job; reuse compatible environment config\.
-Reject duplicate/ambiguous destinations\. One canonical include resolver handles
-normalized roots, nested includes, cycles, missing includes, traversal, effective
-merging, and role\-aware validation\. Do not assume reused `.yaml` is strict YAML;
-preserve supported HOCON/Framework syntax\. Keep path\-backed and table\-backed
-targets type\-distinct; never silently convert path\-backed Delta to Unity Catalog\.
-
-### ETL\-INV\-09 — Test the safety boundary
-
-Tests use unique test\-owned temporary consumer roots and never mutate Extension,
-Framework, maintainer `.github/**`, or real data\. Every behavior change names
-affected invariant IDs and adds positive, negative/security, prior\-gate, and
-cross\-component parity coverage\. Classification covers fresh initialized,
-existing, empty, STTM\-only, context\-only, source, Framework, escaped, and
-multi\-root cases\. Never weaken/skip tests or regenerate baselines to hide a
-failure\. Historical failures require exact identity/fingerprint, not count only\.
-
-### ETL\-INV\-10 — Verify shipped behavior
-
-Completion requires relevant compile, lint, focused, regression, package, and
-exact\-artifact gates—not only aggregate counts\. Packaged behavior changes require
-source/compiled/VSIX parity, trusted contract byte equality, explicit\-path package
-identity, and installed\-VSIX fresh\-consumer smoke without source/Framework\.
-Separate task changes from pre\-existing changes\. No commit, push, tag, publish,
-install, or execution without explicit authorization\.
-
-End with a conflict rule: if requested work violates an invariant, stop, name the
-invariant ID, and propose a compliant design\. Never copy a known legacy violation\.
-
-# ================================================== 4\. PATH\-SPECIFIC RUNTIME INSTRUCTION
-
-Create `.github/instructions/etl-runtime-safety.instructions.md` with exactly this
-portable frontmatter:
-
-```yaml
----
-applyTo: "src/**/*.ts"
----
-```
-
-Do not add `excludeAgent`; the file must apply locally and in Cloud\.
-
-The body must require:
-
-- locate and reuse the canonical classifier/evidence model, target/trust resolver,
-  layout builder, Preview manifest, approval validator, and guarded writer;
-- trace earlier and later lifecycle gates before editing;
-- read\-only services return evidence/proposals and never mutate or consume write
-  authorization;
-- no production calls to `fs.writeFile*`, `fs.appendFile*`, `fs.rename*`,
-  `fs.rm*`, `fs.unlink*`, `fs.mkdir*`, `workspace.fs.writeFile`, shell redirection,
-  or equivalent mutation outside the canonical guarded writer;
-- initialization evidence remains separate from contract authority, example
-  discovery, and approval;
-- every runtime entry point consumes one shared classification result;
-- fresh initialized non\-Git consumer is distinct from empty, STTM\-only,
-  context\-only, source, Framework, unknown, and multi\-root cases;
-- managed marker lists are centralized, never copied;
-- no source checkout, `etl-framework-adb`, or absolute development dependency;
-- render/normalize/validate/freeze one manifest before Preview;
-- Preview creates no proposed consumer files;
-- approval/write consume the exact frozen manifest and verify root, hashes, policy,
-  expiry/replay, containment, and preconditions immediately before mutation;
-- mismatch/drift fails closed and requires a new Preview;
-- one Job Config per job, compatible env reuse, canonical includes, HOCON\-safe
-  reuse, and explicit path\-vs\-table target types;
-- completion evidence includes classifier parity, zero\-write Preview,
-  approval\-negative tests, containment tests, and exact VSIX parity when packaged\.
-
-# ================================================== 5\. PATH\-SPECIFIC TEST INSTRUCTION
-
-Create `.github/instructions/etl-test-safety.instructions.md` with exactly:
-
-```yaml
----
-applyTo: "src/test/**/*.ts,src/**/__tests__/**/*.ts,test/**/*.ts,tests/**/*.ts"
----
-```
-
-The body must require:
-
-- unique test\-owned temporary consumer root per test;
-- never use Extension, Framework, home, real consumer, or maintainer `.github/**`
-  as a test write target;
-- no installed\-user\-extension, personal\-settings, network, source\-checkout, or
-  real\-data dependency;
-- mandatory classification matrix for fresh initialized non\-Git consumer,
-  existing consumer, empty folder, STTM\-only, context\-only, Extension source,
-  Framework source, multi\-root, escape attempts, and missing root;
-- equivalent typed decisions across all classifier/resolver entry points;
-- zero writes during discovery/render/validation/Preview;
-- exact Preview/write manifest equality;
-- exact approved write succeeds once;
-- missing/fake/expired/replayed/cross\-root/path/content/policy/precondition drift is
-  rejected;
-- write approval does not authorize other operations;
-- Job Config uniqueness, env reuse, nested/cycle/missing/traversal include tests,
-  unresolved variables, role\-aware fragments, HOCON\-in\-`.yaml`, and path\-backed
-  Delta preservation;
-- no assertion weakening, skip/quarantine, discovery change, snapshot/baseline
-  regeneration, or aggregate\-count\-only historical comparison;
-- explicit VSIX verifier and installed fresh\-consumer smoke for packaged behavior\.
-
-# ================================================== 6\. PATH\-SPECIFIC PACKAGE INSTRUCTION
-
-Create `.github/instructions/etl-packaging-safety.instructions.md` with exactly:
-
-```yaml
----
-applyTo: "package.json,scripts/**/*.js,scripts/**/*.ts,src/test/verifyVsixContents.ts,resources/framework/contracts/**/*"
----
-```
-
-The body must require:
-
-- exact VSIX path as verifier input; never newest\-mtime selection;
-- archive, identity, entry\-count/size, and forbidden\-entry verification;
-- required trusted contracts present and byte\-equal to source;
-- installed\-layout resolution without source, Framework, local examples, or
-  absolute development paths;
-- consumer context, source tests, temp content, nested Git, and build\-info excluded
-  unless explicitly required by package policy;
-- normalized entry\-name and decompressed\-byte comparisons, ignoring ZIP timestamps;
-- version\-only package has unchanged non\-version bytes;
-- packaging never implies permission to install/publish/tag/commit/run QA;
-- no modification of tests, contracts, policy, or protected `.github/**` to make a
-  package gate pass\.
-
-# ================================================== 7\. VALIDATE THE INSTRUCTION SET
-
-Perform read\-only validation after edits:
-
-1. Confirm all four authorized files exist and are UTF\-8 text\.
-2. Confirm both path\-specific files and the package file have valid YAML
-   frontmatter and exact `applyTo` values above\.
-3. Confirm no `excludeAgent` is present\.
-4. Confirm all ten `ETL-INV-01` through `ETL-INV-10` IDs exist exactly once in the
-   repository\-wide file\.
-5. Search all active instruction sources for direct semantic conflicts concerning:
-   workspace classification, consumer authority, Preview mutation, approval,
-   destination containment, protected `.github/**`, Framework dependency, and
-   test isolation\.
-6. Confirm no instruction claims that model guidance alone enforces security\.
-7. Confirm the path\-specific files contain details but do not contradict the
-   repository\-wide invariants\.
-8. Confirm Git diff contains no task\-attributable change outside the four
-   authorized paths\.
-9. Confirm `package.json`, all `src/**`, all tests, all contracts, workflows,
-   settings, and every other `.github/**` path are byte\-unchanged from the initial
-   baseline\.
-10. Recalculate the `0.3.142` VSIX size and SHA\-256 and confirm that the verified
-    artifact remains byte\-unchanged\.
-11. Confirm staged file count remains zero\.
-
-Do not run compile or unit tests: no executable source is authorized to change\.
-
-# ================================================== 8\. FINAL REPORT
+==================================================
+8. FINAL REPORT
 
 Return:
 
-REPOSITORY\_ROOT: <value>
-ORIGIN: <value>
-BRANCH: <value>
-HEAD: <value>
-SOURCE\_VERSION: <value>
-VERIFIED\_VSIX\_PATH: <value>
-VERIFIED\_VSIX\_SIZE\_BYTES\_BEFORE: <value>
-VERIFIED\_VSIX\_SIZE\_BYTES\_AFTER: <value>
-VERIFIED\_VSIX\_SHA256\_BEFORE: <value>
-VERIFIED\_VSIX\_SHA256\_AFTER: <value>
-VERIFIED\_VSIX\_MODIFIED: YES/NO
-STAGED\_FILES\_BEFORE: <number>
-STAGED\_FILES\_AFTER: <number>
-PRE\_EXISTING\_CHANGED\_PATHS: <complete list>
-AUTHORIZED\_GUARDRAIL\_CHANGED\_PATHS: <complete list>
-UNAUTHORIZED\_CHANGED\_PATHS: <complete list>
-REPOSITORY\_WIDE\_INSTRUCTION\_PRESENT: YES/NO
-PATH\_SPECIFIC\_RUNTIME\_INSTRUCTION\_PRESENT: YES/NO
-PATH\_SPECIFIC\_TEST\_INSTRUCTION\_PRESENT: YES/NO
-PATH\_SPECIFIC\_PACKAGE\_INSTRUCTION\_PRESENT: YES/NO
-INVARIANT\_ID\_COUNT: <number>
-FRONTMATTER\_VALID: YES/NO
-LOCAL\_CLOUD\_PORTABLE\_APPLY\_TO: YES/NO
-EXCLUDE\_AGENT\_PRESENT: YES/NO
-INSTRUCTION\_CONFLICTS\_FOUND: <number>
-INSTRUCTION\_CONFLICTS: <complete list or NONE>
-PROTECTED\_GITHUB\_PATHS\_MODIFIED: <list or NONE>
-SOURCE\_OR\_TEST\_MODIFIED: YES/NO
-PACKAGE\_VERSION\_CHANGED: YES/NO
-COMPILE\_EXECUTED: NO
-VSIX\_BUILT: NO
-EXTENSION\_INSTALLED: NO
-RUNTIME\_QA\_STARTED: NO
-COMMIT\_CREATED: NO
-PUSH\_EXECUTED: NO
-READY\_FOR\_GUARDRAIL\_REVIEW: YES/NO
-READY\_FOR\_REPAIR\_9\_IMPLEMENTATION: YES/NO
+WORKSPACE_CLASSIFICATION: 
+WORKSPACE_ROOT: 
+WORKSPACE_ROOT_COUNT: 
+STTM_INPUT_FOUND: YES/NO
+WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
+EXISTING_JOB_CONF_COUNT: 
+EXISTING_ENV_CONF_COUNT: 
+VS_CODE_PRODUCT: 
+VS_CODE_CLI: 
+ACTIVE_PROFILE: 
+VERIFIED_VSIX_PATH: 
+VERIFIED_VSIX_SIZE_BYTES: 
+VERIFIED_VSIX_SHA256: 
+ARTIFACT_IDENTITY_MATCH: YES/NO
+INSTALLED_VERSION_BEFORE: 
+RUNTIME_VERSION_BEFORE: 
+INSTALL_COMMAND: 
+INSTALL_EXIT_CODE: 
+INSTALLED_VERSION_AFTER: 
+HOST_RELOAD_REQUIRED: YES/NO
+ACTIVE_EXTENSION_ID: 
+ACTIVE_EXTENSION_VERSION: 
+RUNTIME_ACTIVATION_PROVEN: YES/NO
+NEW_JOB_CONF_FILES: 
+NEW_ENV_CONF_FILES: 
+NEW_GENERATED_ETL_ARTIFACTS: 
+STTM_MODIFIED: YES/NO
+WORKFLOW_CUSTOMIZATION_MODIFIED: YES/NO
+WORKSPACE_FILES_CREATED: 
+WORKSPACE_FILES_MODIFIED: 
+WORKSPACE_FILES_DELETED: 
+PREVIEW_ID_CREATED: YES/NO
+ETL_WRITE_EXECUTED: YES/NO
+REAL_DATA_ACCESSED: YES/NO
+SOURCE_REPOSITORY_MODIFIED: YES/NO
+VSIX_MODIFIED: YES/NO
+RUNTIME_QA_STARTED: NO
+READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
 
 PASS requires:
 
-- correct repository identity and zero staged files;
-- exactly the four authorized guardrail paths added/merged;
-- all ten invariant IDs present;
-- valid portable path\-specific frontmatter without exclusions;
-- no unresolved instruction conflicts;
-- no changes outside the authorized paths;
-- verified `0.3.142` VSIX identity remains unchanged;
-- no source/test/version/build/install/QA/commit/push action\.
+* correct single Development Test Workspace;
+* exact verified 0.3.142 artifact identity;
+* correct Stable VS Code instance/profile;
+* installed version 0.3.142;
+* active runtime version 0.3.142 proven from fresh runtime evidence;
+* zero workspace mutations;
+* no Preview, Write, real-data access, source modification, or Runtime QA.
 
 End exactly with one:
 
-`GUARDRAIL_INSTALL_RESULT: PASS`
+INSTALL_0_3_142_RESULT: PASS
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_IDENTITY_MISMATCH`
+INSTALL_0_3_142_RESULT: RELOAD_REQUIRED
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_STAGED_CHANGES`
+INSTALL_0_3_142_RESULT: BLOCKED_WRONG_WORKSPACE
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_TARGET_HAS_USER_CHANGES`
+INSTALL_0_3_142_RESULT: BLOCKED_ARTIFACT_MISMATCH
 
-`GUARDRAIL_INSTALL_RESULT: BLOCKED_INSTRUCTION_CONFLICT`
+INSTALL_0_3_142_RESULT: BLOCKED_RUNTIME_IDENTITY
 
-`GUARDRAIL_INSTALL_RESULT: FAIL_UNAUTHORIZED_CHANGE`
+INSTALL_0_3_142_RESULT: FAIL_INSTALL
