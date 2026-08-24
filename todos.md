@@ -1,688 +1,347 @@
-TASK: LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_AND_FINAL_DEVELOPMENT_TEST_PACKAGE
+TASK: PHASE_2F_OWNER_DECISION_PACKET_PREPARATION
 
-Perform the bounded version bump and final Development-Test package build for
-the accepted HF1 V2 Repair-8 candidate.
-
-This task runs in the SOFTWARE DEVELOPMENT ENVIRONMENT.
-
-The accepted Repair-8 source and security implementation must remain
-byte-identical.
-
-Authorized actions:
-
-1. change only the package.json version:
-   0.3.140 -> 0.3.141
-
-2. compile and lint;
-
-3. run the trusted Job Config contract suite directly;
-
-4. run Repair-8 and Repair-5/6/7 regression suites;
-
-5. build exactly one new standard-named VSIX:
-
-   databricks-etl-copilot-0.3.141.vsix
-
-6. verify that exact VSIX by explicit absolute path;
-
-7. run the full unit suite after the final VSIX exists;
-
-8. inspect the package read-only and compare it with the accepted
-   0.3.140 Repair-8 build-gate artifact.
-
-This task is NOT authorized to install the VSIX or execute runtime QA.
-
-Do NOT modify any production TypeScript file.
-Do NOT modify any test file.
-Do NOT modify any resource, contract, context, knowledge, prompt, skill, agent,
-instruction, packaging-policy, workflow, or framework file.
-Do NOT modify package-lock.json.
-Do NOT run npm version because it may create Git state or tags.
-Do NOT install or download dependencies.
-Do NOT regenerate Phase-H baselines.
-Do NOT modify .github/**.
-Do NOT modify resources/prompts/**.
-Do NOT modify AGENT.md or AGENTS.md.
-Do NOT modify etl-framework-adb.
-Do NOT modify a Development Test Workspace or consumer repository.
-Do NOT install the resulting VSIX.
-Do NOT stage, commit, push, reset, restore, checkout, stash, clean, tag, or
-otherwise mutate Git state.
-Do NOT delete, rename, overwrite, or modify older VSIX artifacts.
-
-Use only already-installed dependencies and the already-installed VSCE binary.
+Mode: bounded decision-document preparation only.
+No Phase 2F implementation is authorized.
 
 ==================================================
-1. ACCEPTED BUILD-GATE EVIDENCE
+1. WORKSPACE GATE
 ==================================================
 
-Accept these completed findings:
+Operate only from:
 
-REPAIR_8_FRESH_BUILD_GATE_PASS: YES
-REPOSITORY_IDENTITY_MATCH: YES
-SOURCE_OR_RESOURCE_DRIFT_DURING_BUILD: 0
-COMPILE_PASS: YES
-LINT_PASS: YES
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
-FOCUSED_REPAIR_8_TESTS_PASS: YES
-REPAIR_5_6_7_REGRESSIONS_PASS: YES
-FULL_UNIT_FAILURE_COUNT: 5
-STALE_VSIX_FAILURE_REMAINING: NO
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-PACKAGED_CONTRACT_PRESENT: YES
-PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES
-REPAIR_8_INVARIANTS_ACTIVE_IN_NEW_PACKAGE: YES
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Accepted build-gate artifact:
+The corresponding physical path may be:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
+/app1/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Do not use that artifact as the final Development-Test package.
+Accept the workspace only if realpath confirms that these identify the
+same permanent Phase 2E worktree.
 
-Do not repeat Repair-8 architecture discovery.
+Expected identity:
 
-==================================================
-2. SOFTWARE DEVELOPMENT ENVIRONMENT PREFLIGHT
-==================================================
+Branch:
+phase2/governed-field-records
 
-Expected repository root:
+HEAD:
+0430613e6a9f1680338d8fc099e7960e5d46cac2
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Expected state:
+- clean worktree and index;
+- zero commits beyond the finalized Phase 2E candidate;
+- no unexpected Phase 2F branch, worktree, commit, or PR.
 
-Expected branch:
+If the workspace, HEAD, or cleanliness does not match, stop without
+reading unrelated files and report:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+PHASE_2F_OWNER_PACKET_BLOCKED_IDENTITY_DRIFT
 
-Expected base HEAD:
-
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
-
-Expected package name:
-
-databricks-etl-copilot
-
-Expected current version:
-
-0.3.140
-
-Expected publisher:
-
-td-etl
-
-Expected package-lock.json:
-
-absent
-
-Verify all values before mutation.
-
-Also verify that the accepted build-gate VSIX exists and record its:
-
-- absolute path;
-- SHA-256;
-- archive entry count;
-- internal package.json version;
-- internal extension.vsixmanifest version.
-
-Capture before-task:
-
-- tracked-modified path inventory;
-- untracked path inventory;
-- staged count;
-- package.json SHA-256;
-- all existing root-level VSIX paths, sizes, SHA-256 values, and mtimes;
-- SHA-256 for all Repair-5/6/7/8 source, test, resource, policy, and contract
-  files.
-
-If repository identity, branch, HEAD, or current version differs, stop without
-editing and return:
-
-HF1_V2_0_3_141_VERSION_BUMP_ENVIRONMENT_MISMATCH
+Do not inspect or use the stale primary checkout or branch asktd_v2.
 
 ==================================================
-3. EXACT AUTHORIZED SOURCE EDIT
+2. AUTHORITATIVE INPUT
 ==================================================
 
-The only authorized source-file modification is:
+Read this report COMPLETELY:
 
-package.json
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2F_DISCOVERY_2026-08-24.md
 
-Change exactly:
+Use it as the authoritative Phase 2F discovery baseline.
 
-"version": "0.3.140"
+You may read the exact repository files cited by that report solely to
+confirm names, fields, and current contracts. Do not perform a new broad
+architecture discovery.
 
-to:
-
-"version": "0.3.141"
-
-Do not use `npm version`.
-
-Perform a direct single-field edit.
-
-Do not reformat, reorder, normalize, or rewrite package.json.
-
-Immediately verify:
-
-- exactly one tracked source path was modified by this task;
-- that path is package.json;
-- the task-attributable package.json diff is exactly one removed version line
-  and one added version line;
-- all other package.json fields remain byte-equivalent;
-- package-lock.json remains absent;
-- no other source/resource/test/config path changed.
-
-If any additional path changes, stop before building and return:
-
-HF1_V2_0_3_141_VERSION_BUMP_SCOPE_DRIFT
+Do not read unrelated reports, sibling repositories, ETL/UCA workspaces,
+Library exports, or the stale primary checkout.
 
 ==================================================
-4. SOURCE AND REPAIR BYTE FREEZE
+3. PURPOSE
 ==================================================
 
-All accepted Repair-5/6/7/8 implementation bytes must remain unchanged.
+Create one concise owner-decision packet that allows the designated:
 
-Re-hash the previously captured source, test, resource, contract, and package
-policy files after the version edit.
+- Product owner;
+- Data Governance owner;
+- Architecture owner;
+- recipe-governance authority;
+- Platform/Security owner where applicable;
 
-Required:
+to explicitly approve, amend, reject, or defer the decisions required
+before bounded Phase 2F implementation.
 
-REPAIR_5_6_7_8_NON_VERSION_FILE_DRIFT: 0
+Do not make these decisions on their behalf.
 
-The only permitted source hash change is:
+The packet must clearly distinguish:
 
-package.json
+1. GitHub PR approval:
+   one eligible non-author approval required for each PR;
 
-and only because of the version token.
+2. recipe business/governance approval:
+   the immutable approval evidence consumed by the proposed Phase 2F
+   runtime comparison.
 
-Do not include ignored out/** output or the newly generated VSIX as source
-drift.
-
-==================================================
-5. COMPILE AND LINT
-==================================================
-
-Using existing dependencies only, run:
-
-npm run compile
-npm run lint
-
-Required:
-
-COMPILE_PASS: YES
-LINT_PASS: YES
-
-Confirm the npm banner reports version:
-
-0.3.141
-
-If compile or lint fails, do not repair code in this task.
-
-Return:
-
-HF1_V2_0_3_141_FINAL_PACKAGE_VALIDATION_FAILED
+A GitHub PR approval must never be represented as recipe approval
+provenance.
 
 ==================================================
-6. RUN TRUSTED CONTRACT SUITE DIRECTLY
+4. BASELINE TO RECORD
 ==================================================
 
-The following suite is not yet registered in PURE_UNIT_TEST_PATTERNS:
+Record these as technically validated evidence, not approved business
+baselines:
 
-src/test/suite/trustedJobConfigEnvelope.test.ts
+Phase 2E SHA:
+0430613e6a9f1680338d8fc099e7960e5d46cac2
 
-Do not modify src/test/testPatterns.ts in this task.
+Phase 2E committed-content digest:
+d24d75ddc9cd38f699aefbda7392292d7b0cb708d06416cbb53b846a293915be
 
-Compile the test output and execute the compiled suite directly using the same
-working VS Code stub/register harness previously proven.
+Pilot key:
+("source_balance_mom_change", "1.0.0")
 
-Required:
+Current technically validated dependency fingerprint:
+df-5018e97c00917aaa455c71b0c7ca7d42eac2ea01c0cab2b7449bd490559b425a
 
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
+Label the fingerprint:
 
-Expected current result:
+CANDIDATE TECHNICAL EVIDENCE — NOT AN APPROVED BASELINE
 
-28 passing
-0 failing
-
-Report actual values honestly.
-
-==================================================
-7. PRE-PACKAGE FOCUSED VALIDATION
-==================================================
-
-Run all eight Repair-8 focused suites:
-
-1. trustedJobConfigEnvelope
-2. configExplain
-3. firstRenderInvariantGuard
-4. EtlReadOnlyToolService
-5. jobDevelopmentReadiness
-6. packageAssets
-7. etlActionTools
-8. hf1OracleFreshConsumer
-
-Run all relevant Repair-5/6/7 regression suites, including:
-
-- physicalWriteContainment;
-- workspaceInputContainment;
-- onboardingWriteApproval;
-- repoWriterWorkspaceSelection;
-- createPreviewFlow;
-- artifactReuseConversation;
-- repoContextInit;
-- TrustedFrameworkDefinitionResolver;
-- WriteAuthorization / TrustedWriteApprovalStore.
-
-Required:
-
-FOCUSED_REPAIR_8_TESTS_PASS: YES
-REPAIR_5_6_7_REGRESSIONS_PASS: YES
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-
-Do not change source if a suite fails.
+Never silently convert it into approved evidence.
 
 ==================================================
-8. FINAL ARTIFACT NAME AND COLLISION CHECK
+5. REQUIRED DECISION FORMS
 ==================================================
 
-The final Development-Test package must use the standard filename:
+Create explicit decision forms for the following.
 
-databricks-etl-copilot-0.3.141.vsix
+D-01 — Approval authority and provenance
 
-Expected absolute path:
+Require owners to specify:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+- recipe approval authority;
+- approved_by or approval_authority representation;
+- approval_reference format;
+- approved_at requirements;
+- whether any additional provenance is mandatory.
 
-Before building, verify that this exact file does not already exist.
+D-02 — Four-state semantics and precedence
 
-If it exists, do not overwrite, delete, rename, or reuse it.
+Present the discovery recommendation for explicit approval or amendment:
 
-Stop and return:
+1. Phase 2F flag OFF:
+   emit no Phase 2F state and preserve exact Phase 2E behavior.
 
-HF1_V2_0_3_141_FINAL_ARTIFACT_COLLISION
+2. Missing or invalid exact approval evidence:
+   NOT_APPROVED.
 
-Do not use a descriptive suffix for the final 0.3.141 artifact.
+3. Valid approval exists but current governed truth cannot be resolved,
+   including missing/renamed references or canonical conflicts:
+   BROKEN.
 
-The standard name is intentional because the Packaged Runtime tests resolve:
+4. Current recipe definition or dependency fingerprint differs while
+   current governed truth remains resolvable:
+   REVIEW_REQUIRED.
 
-databricks-etl-copilot-${version}.vsix
+5. Exact approved recipe-definition fingerprint and exact approved
+   dependency fingerprint:
+   VALID.
 
-by exact filename.
+Require an explicit owner decision for ambiguous multi-condition cases.
 
-==================================================
-9. BUILD EXACTLY ONE FINAL 0.3.141 VSIX
-==================================================
+D-03 — Canonical recipe-definition fingerprint
 
-Build exactly one new VSIX from the current source:
+Present the minimum recommended payload:
 
-databricks-etl-copilot-0.3.141.vsix
+- recipe_id;
+- recipe_version;
+- normalized governed dataset references;
+- normalized governed field references;
+- normalized parameter definitions, domains, and allowed pairs;
+- builder_key.
 
-Use an explicit `--out` path.
+Require explicit decisions on:
 
-Use the already-installed VSCE binary.
+- inclusion of lower-case lifecycle_status;
+- inclusion of builder implementation identity or code digest;
+- inclusion of output semantics;
+- canonical ordering and normalization;
+- version-bump requirements for execution-semantic changes.
 
-Do not invoke an npx path that downloads anything.
+Do not invent the final payload or fingerprint.
 
-Do not build a second package.
-Do not manually edit the archive.
-Do not rename another VSIX.
-Do not reuse the 0.3.140 build-gate VSIX.
+D-04 — Builder-change discipline
 
-Record:
+Require owners to decide whether a builder implementation or output
+change:
 
-- command;
-- exit code;
-- absolute output path;
-- build timestamp;
-- SHA-256;
-- file size;
-- archive entry count;
-- total compressed-entry bytes;
-- total uncompressed-entry bytes;
-- largest archive entry;
-- internal package.json version;
-- internal extension.vsixmanifest version.
+- changes recipe_version;
+- changes the approved recipe-definition fingerprint;
+- requires both;
+- or follows another explicitly documented rule.
 
-Required:
+D-05 — Initial pilot approval record
 
-FINAL_0_3_141_VSIX_CREATED_COUNT: 1
-FINAL_0_3_141_INTERNAL_PACKAGE_VERSION: 0.3.141
-FINAL_0_3_141_INTERNAL_MANIFEST_VERSION: 0.3.141
+Create a decision template for the exact key:
 
-==================================================
-10. VERIFY THE EXACT FINAL VSIX
-==================================================
+("source_balance_mom_change", "1.0.0")
 
-Run the project package verifier against the exact absolute path:
+Required fields:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+- recipe_id;
+- recipe_version;
+- approved_recipe_fingerprint:
+  PENDING_OWNER_PAYLOAD_DECISION;
+- approved_dependency_fingerprint:
+  CANDIDATE_VALUE_REQUIRES_EXPLICIT_OWNER_ACCEPTANCE;
+- approval_authority:
+  PENDING;
+- approval_reference:
+  PENDING;
+- approved_at:
+  PENDING;
+- decision:
+  APPROVE / REJECT / DEFER / REQUEST_CHANGES;
+- decision rationale;
+- approver/sign-off.
 
-Do not rely only on newest-mtime discovery.
+Do not populate an approval timestamp, authority, recipe fingerprint, or
+approval decision automatically.
 
-Required package checks include:
+D-06 — Architecture option
 
-- required entries;
-- required content markers;
-- manifest checks;
-- entry count ceiling;
-- compressed-size ceiling;
-- uncompressed-size ceiling;
-- single-entry ceiling;
-- machine-specific absolute path scan;
-- credential/secret scan;
-- unrelated-repository scan;
-- source TypeScript exclusion;
-- test-tree exclusion;
-- out/test exclusion;
-- node_modules exclusion;
-- docs/eval exclusion;
-- .vscode-test exclusion;
-- .tmp exclusion;
-- nested .git exclusion;
-- nested VSIX exclusion;
-- .tsbuildinfo exclusion;
-- source-map exclusion;
-- maintainer/developer-only file exclusion.
+Request explicit acceptance, amendment, or rejection of:
 
-Explicitly verify these entries:
+2F-B — a separate frozen, source-controlled, in-process approval-record
+registry keyed by exact (recipe_id, recipe_version).
 
-extension/resources/framework/contracts/oracle-delivery-controls.v1.json
+Record that:
 
-extension/resources/framework/contracts/job-config-envelope.v1.json
+- runtime is a read-only consumer;
+- no setter, writer, upsert, bootstrap, refresh, or auto-registration
+  path is permitted;
+- 2F-A is not recommended because of approval/definition co-location and
+  self-blessing risk;
+- 2F-C persistent control plane is deferred.
 
-Verify that both packaged contract byte sequences match the current source
-contract files exactly.
+D-07 — Feature-flag interaction
 
-Required:
+Request explicit confirmation of behavior when:
 
-FINAL_EXACT_VSIX_VERIFIER_PASS: YES
-JOB_CONFIG_ENVELOPE_PRESENT_IN_FINAL_VSIX: YES
-JOB_CONFIG_ENVELOPE_SOURCE_PACKAGE_HASH_MATCH: YES
-ORACLE_CONTRACT_PRESENT_IN_FINAL_VSIX: YES
-ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES
-PACKAGE_MACHINE_PATH_HITS: 0
-PACKAGE_SECRET_HITS: 0
-PACKAGE_UNRELATED_REPOSITORY_ENTRIES: 0
+APPROVED_RECIPE_DEPENDENCY_LIFECYCLE_ENABLED=true
 
-==================================================
-11. INDEPENDENT ARCHIVE INSPECTION
-==================================================
+but strict registry or governed field records are unavailable or false.
 
-Independently inspect the final VSIX using an OS ZIP central-directory reader,
-not only the repository verifier.
+Present the recommendation:
 
-Confirm:
+fail closed as BROKEN; never downgrade to dataset-only approval.
 
-- internal package version is 0.3.141;
-- internal manifest version is 0.3.141;
-- both trusted contracts exist;
-- required agents, skills, instructions, context, knowledge, prompts,
-  framework contracts, runtime bundles, and media exist;
-- every mandatory forbidden class is absent;
-- no developer-machine absolute path exists;
-- no credential or secret is evident;
-- no unrelated repository tree exists.
+D-08 — Trace and disclosure policy
 
-Do not extract into the repository.
+Request confirmation that enabled traces may contain only:
 
-Any temporary extraction must be under an OS temporary folder created only for
-this task.
+- lifecycle state;
+- safe internal reason code.
 
-==================================================
-12. COMPARE 0.3.140 GATE VSIX TO 0.3.141 FINAL VSIX
-==================================================
+They must not expose:
 
-Compare these two artifacts read-only:
+- approval authority or approver identity;
+- approved/current fingerprints;
+- physical object names;
+- governed dependency IDs;
+- raw evidence;
+- validation internals in the user-facing response.
 
-A. Accepted Repair-8 build-gate:
+D-09 — Separate GitHub control
 
-databricks-etl-copilot-0.3.140-repair8-build-gate.vsix
+Record as a working decision:
 
-B. Final Development-Test artifact:
+GitHub PR approval is separate from recipe approval evidence.
 
-databricks-etl-copilot-0.3.141.vsix
+D-10 — Phase-name reconciliation
 
-Verify:
+Ask Architecture to reconcile ADR 0004’s earlier Phase 2G wording with
+the current bounded Phase 2F lifecycle slice.
 
-- entry-name sets are identical;
-- no runtime, contract, agent, skill, context, knowledge, prompt, instruction,
-  or media entry was added or removed;
-- all non-version-bearing entry bytes are identical;
-- only version-bearing metadata differs.
+D-11 — Implementation base
 
-Expected differing archive entries:
-
-1. extension/package.json
-2. extension.vsixmanifest
-
-If another archive entry differs, report its exact path and byte/hash
-difference.
-
-Do not silently accept additional differences.
-
-Required:
-
-GATE_TO_FINAL_ENTRY_SET_IDENTICAL: YES
-GATE_TO_FINAL_NON_VERSION_BYTES_IDENTICAL: YES
-GATE_TO_FINAL_ONLY_VERSION_METADATA_DIFFERS: YES
+Record that Phase 2F implementation must not start until PR #15, #16,
+and #17 are merged bottom-up and the resulting main SHA, ancestry, file
+inventories, and Phase 2E digest are reverified.
 
 ==================================================
-13. VERIFY BOTH VSIX SELECTION STRATEGIES
+6. REQUIRED PACKET STRUCTURE
 ==================================================
 
-The previous gate recorded two inconsistent selectors:
+The document must contain:
 
-- newest-mtime selector;
-- exact-version-filename selector.
+1. Purpose and authority boundary.
+2. Technically validated evidence.
+3. Recommended 2F-B summary.
+4. Decisions requiring owner confirmation.
+5. Initial pilot approval-record decision form.
+6. State-precedence approval table.
+7. Recipe-definition payload decision table.
+8. Feature-flag and trace decisions.
+9. Owner/sign-off matrix.
+10. Explicit non-goals and deferred items.
+11. Implementation blockers.
+12. Exact effect of no decision:
+    the safe pilot result remains NOT_APPROVED and implementation remains
+    blocked.
+13. One recommended next action:
+    circulate the packet to the named owners and obtain explicit recorded
+    decisions.
 
-Do not repair selector code in this task.
+For every open item include:
 
-After building the standard-named 0.3.141 artifact, prove that both selectors
-resolve to:
-
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
-
-Required:
-
-NEWEST_MTIME_VSIX_SELECTOR_TARGET: databricks-etl-copilot-0.3.141.vsix
-EXACT_VERSION_VSIX_SELECTOR_TARGET: databricks-etl-copilot-0.3.141.vsix
-VSIX_SELECTORS_CONVERGE_FOR_FINAL_ARTIFACT: YES
-
-Do not rely on the selection result as a substitute for explicit-path package
-verification.
-
-==================================================
-14. RUN FULL UNIT SUITE AFTER FINAL PACKAGE EXISTS
-==================================================
-
-Run:
-
-npm run test:unit
-
-after the final standard-named 0.3.141 VSIX has been built and verified.
-
-Before reporting the result, state:
-
-- which VSIX the newest-mtime test selected;
-- which VSIX the exact-version helper selected.
-
-The three STTM packaged-runtime tests that previously remained pending because
-the exact default filename did not exist must now execute against:
-
-databricks-etl-copilot-0.3.141.vsix
-
-Required:
-
-STTM_PACKAGED_RUNTIME_TESTS_EXECUTED: YES
-STTM_PACKAGED_RUNTIME_PENDING_COUNT: 0
-
-The only permitted pending test is the known Confluence-offline fallback,
-provided its exact test name is reported.
-
-Expected pending result:
-
-FULL_UNIT_PENDING_COUNT: 1
-
-Expected full-suite failures remain exactly five:
-
-A. Two Phase-H/EvalGating baseline-freshness failures.
-
-B. Three protected Copilot workflow-customization failures.
-
-List all five by exact test name.
-
-Required:
-
-FULL_UNIT_FAILURE_COUNT: 5
-PHASE_H_BASELINE_FRESHNESS_FAILURE_COUNT: 2
-PROTECTED_CUSTOMIZATION_FAILURE_COUNT: 3
-STALE_VSIX_FAILURE_REMAINING: NO
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-
-If a sixth or otherwise new failure occurs, do not repair it in this task.
-
-Return:
-
-HF1_V2_0_3_141_FINAL_PACKAGE_VALIDATION_FAILED
+- decision;
+- why it matters;
+- current evidence;
+- recommended answer;
+- owner;
+- confirmation required;
+- blocks Core implementation, runtime activation, integration,
+  production, or only a later phase.
 
 ==================================================
-15. PACKAGED CONTRACT RESOLUTION FROM FINAL LAYOUT
+7. PROHIBITED ACTIONS
 ==================================================
 
-Extract the final 0.3.141 package read-only into an OS temporary installed-layout
-simulation.
+Do not:
 
-Set process.cwd() to a separate neutral empty directory.
-
-Prove that TrustedJobConfigEnvelopeResolver resolves:
-
-resources/framework/contracts/job-config-envelope.v1.json
-
-from the packaged installed layout, not from the source checkout or cwd
-fallback.
-
-Required:
-
-FINAL_PACKAGED_CONTRACT_PRESENT: YES
-FINAL_PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES
-CWD_FALLBACK_COULD_LEAK_SOURCE_CONTRACT: NO
-REPAIR_8_INVARIANTS_ACTIVE_IN_FINAL_PACKAGE: YES
-
-Also execute the negative control with an empty layout and verify the contract
-is not fabricated from cwd.
-
-Do not redesign the deferred guard-level fail-open behavior in this task.
+- implement Phase 2F;
+- create a Phase 2F branch or worktree;
+- edit repository files;
+- stage or commit;
+- push;
+- create, edit, approve, retarget, mark ready, or merge a PR;
+- alter PR #15, #16, or #17;
+- enable runtime flags;
+- create approval evidence automatically;
+- treat the current dependency fingerprint as approved;
+- repair CODEOWNERS or workflows;
+- start Phase 2G;
+- introduce persistence, migrations, API, UI, Redis, graph, Databricks,
+  Genie, Unity Catalog, Collibra, deployment, or Terraform work.
 
 ==================================================
-16. SOURCE AND END-STATE BYTE PROOF
+8. OUTPUT
 ==================================================
 
-After all builds and tests:
+Create exactly one new report outside the Git repository:
 
-- re-hash every frozen Repair-5/6/7/8 non-version file;
-- re-hash package.json;
-- compare tracked and untracked inventories;
-- compare staged count;
-- inspect .github/**;
-- inspect resources/prompts/**;
-- inspect AGENT.md and AGENTS.md;
-- inspect etl-framework-adb;
-- inspect Development Test Workspaces;
-- inspect dependency directories and cache mtimes where relevant.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2F_OWNER_DECISION_PACKET_2026-08-24.md
 
-Required:
+Do not modify any existing report.
 
-NON_VERSION_SOURCE_OR_RESOURCE_DRIFT: 0
-TASK_ATTRIBUTABLE_TRACKED_SOURCE_FILES: 1
-TASK_ATTRIBUTABLE_TRACKED_SOURCE_PATH: package.json
-PACKAGE_JSON_DIFF_IS_VERSION_ONLY: YES
-VERSION_AFTER_TASK: 0.3.141
-STAGED_COUNT: 0
-GIT_COMMITS_CREATED: 0
-GIT_PUSHES_PERFORMED: 0
-GIT_TAGS_CREATED: 0
-DEPENDENCY_INSTALLS_OR_DOWNLOADS: 0
-VSIX_INSTALLATIONS: 0
-CONSUMER_OR_DEVELOPMENT_TEST_WORKSPACE_MUTATIONS: 0
-ETL_FRAMEWORK_ADB_MUTATIONS: 0
-UNAUTHORIZED_SOURCE_CHANGED_PATHS: 0
-FINAL_0_3_141_VSIX_RETAINED: YES
+Before completion, reverify that the repository worktree remains clean
+and that HEAD remains unchanged.
 
-Do not delete the accepted 0.3.140 build-gate VSIX or older ignored artifacts.
+End with exactly one terminal marker:
 
-==================================================
-17. DEFERRED ITEMS
-==================================================
+PHASE_2F_OWNER_DECISION_PACKET_READY_FOR_OWNER_REVIEW
 
-Record but do not repair:
+or:
 
-1. FirstRenderInvariantGuard contract-unavailable fail-open behavior.
-2. trustedJobConfigEnvelope.test.ts absence from PURE_UNIT_TEST_PATTERNS.
-3. VSIX selection logic is not source/version-freshness aware.
-4. Low-severity degenerate modules/options shape precision gap.
-5. Phase-H baseline refresh chore.
-6. Three protected Copilot workflow-customization failures.
-7. Context ownership and trust-boundary redesign.
-8. Direct Unity Catalog table-name write support.
-
-Do not add any of these to this one-file version-bump scope.
-
-==================================================
-18. FINAL REPORT
-==================================================
-
-Return:
-
-REPOSITORY_IDENTITY_MATCH: YES/NO
-SOURCE_VERSION_BEFORE: 0.3.140
-SOURCE_VERSION_AFTER: 0.3.141
-ONLY_PACKAGE_JSON_SOURCE_CHANGED_BY_TASK: YES/NO
-PACKAGE_JSON_DIFF_IS_VERSION_ONLY: YES/NO
-NON_VERSION_REPAIR_BYTES_PRESERVED: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
-FOCUSED_REPAIR_8_TESTS_PASS: YES/NO
-REPAIR_5_6_7_REGRESSIONS_PASS: YES/NO
-FINAL_0_3_141_VSIX_CREATED_COUNT: <number>
-FINAL_0_3_141_VSIX_PATH: <absolute path>
-FINAL_0_3_141_VSIX_SHA256: <sha256>
-FINAL_0_3_141_INTERNAL_PACKAGE_VERSION: <version>
-FINAL_0_3_141_INTERNAL_MANIFEST_VERSION: <version>
-FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
-FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
-JOB_CONFIG_ENVELOPE_PRESENT_IN_FINAL_VSIX: YES/NO
-JOB_CONFIG_ENVELOPE_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-ORACLE_CONTRACT_PRESENT_IN_FINAL_VSIX: YES/NO
-ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-GATE_TO_FINAL_ENTRY_SET_IDENTICAL: YES/NO
-GATE_TO_FINAL_NON_VERSION_BYTES_IDENTICAL: YES/NO
-GATE_TO_FINAL_ONLY_VERSION_METADATA_DIFFERS: YES/NO
-VSIX_SELECTORS_CONVERGE_FOR_FINAL_ARTIFACT: YES/NO
-STTM_PACKAGED_RUNTIME_TESTS_EXECUTED: YES/NO
-STTM_PACKAGED_RUNTIME_PENDING_COUNT: <number>
-FULL_UNIT_PENDING_COUNT: <number>
-FULL_UNIT_FAILURE_COUNT: <number>
-FULL_UNIT_EXPECTED_FAILURES_ONLY: YES/NO
-STALE_VSIX_FAILURE_REMAINING: YES/NO
-NEW_FUNCTIONAL_REGRESSIONS: <number>
-NEW_SECURITY_REGRESSIONS: <number>
-FINAL_PACKAGED_CONTRACT_RESOLVABLE_FROM_INSTALLED_LAYOUT: YES/NO
-REPAIR_8_INVARIANTS_ACTIVE_IN_FINAL_PACKAGE: YES/NO
-NON_VERSION_SOURCE_OR_RESOURCE_DRIFT: <number>
-UNAUTHORIZED_SOURCE_CHANGED_PATHS: <number>
-VERSION_BUMP_PERFORMED: YES/NO
-VSIX_INSTALLED: NO
-GIT_MUTATION_PERFORMED: NO
-READY_FOR_DEVELOPMENT_TEST_RUNTIME_QA: YES/NO
-SAFE_TO_COMMIT_BEFORE_RUNTIME_QA: NO
-SAFE_TO_RELEASE: NO
-
-End exactly with one:
-
-LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_PASS
-
-LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_FAIL
-
-LOCAL_HOTFIX_HF1_V2_QA_VERSION_BUMP_0_3_141_FINAL_PACKAGE_BLOCKED
+PHASE_2F_OWNER_DECISION_PACKET_BLOCKED
