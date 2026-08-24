@@ -1,36 +1,45 @@
-TASK: HF1_V2_BUILD_AND_VERIFY_FINAL_DEVELOPMENT_TEST_VSIX_0_3_141
+TASK: HF1_V2_VERIFY_AND_ADOPT_PREEXISTING_VSIX_0_3_141
 
 Work only inside the Software Development Environment:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-This task corrects the current live state:
+Current confirmed situation:
 
-* the last confirmed built and active Extension version is 0.3.140;
-* version 0.3.141 has not yet been built;
-* Runtime QA Phase 1 for 0.3.141 must not start until this build/package gate passes;
-* any earlier handoff claim that a verified 0.3.141 VSIX or its SHA already
-    exists is not live evidence and must not be trusted.
+* package.json already reports version 0.3.141;
+* databricks-etl-copilot-0.3.141.vsix already exists;
+* the previous build task stopped safely with:
+    BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
+* the user reports that this may be an earlier experimental 0.3.141 package that
+    was manually installed;
+* installation history is not proof that this VSIX is the final verified package;
+* the previous task left many validation fields as NOT_RUN or NOT_VERIFIED.
+
+The goal of this task is to validate the exact existing 0.3.141 artifact and,
+only if every required gate passes, adopt that same artifact as the final
+Development Test VSIX without rebuilding it.
 
 Do not use web search.
-Do not access or modify any Development Test Workspace.
+Do not access or modify the Development Test Workspace.
 Do not access or modify etl-framework-adb.
 Do not install or download dependencies.
+Do not install or uninstall any VS Code extension.
+Do not start Runtime QA.
+Do not modify package.json.
 Do not use npm version.
 Do not create package-lock.json.
-Do not commit, push, merge, tag, stash, reset, clean, or delete files.
+Do not delete, rename, move, overwrite, or rebuild the existing VSIX.
+Do not create another VSIX.
+Do not edit source, resources, tests, baselines, snapshots, contracts, or prompts.
+Do not commit, push, merge, tag, stash, reset, clean, or restore files.
 Do not modify protected .github/** assets.
-Do not modify tests or baselines to make failures disappear.
-Do not reopen or redesign Repairs 3–8.
-Do not install the resulting VSIX.
-Do not start Runtime QA.
 
 ==================================================
 
-1. VERIFY SOFTWARE DEVELOPMENT ENVIRONMENT IDENTITY
+1. VERIFY REPOSITORY IDENTITY
     ==================================================
 
-Before making any change, verify and report:
+Verify:
 
 EXPECTED_REPOSITORY_ROOT:
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
@@ -41,107 +50,120 @@ https://github.com/TD-Universe/agentic_etl.git
 EXPECTED_BRANCH:
 hotfix/hf1-oracle-fresh-consumer-v2
 
-EXPECTED_BASE_HEAD:
+EXPECTED_HEAD:
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-Capture:
+EXPECTED_SOURCE_VERSION:
+0.3.141
+
+EXPECTED_ARTIFACT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Capture before running validations:
 
 * absolute repository root;
 * origin URL;
 * current branch;
 * current HEAD;
-* staged file count;
+* staged paths;
 * tracked-modified paths;
 * untracked paths;
-* current package.json version;
+* package.json version;
 * package-lock.json presence;
-* existing VSIX files matching 0.3.140 and 0.3.141.
+* exact artifact path;
+* artifact size;
+* artifact modification timestamp;
+* artifact SHA-256.
 
-A large existing local working-tree overlay is expected. Preserve it exactly.
+A large pre-existing working-tree overlay may exist. Preserve it exactly.
 
-Do not assume the working tree is clean.
-Do not reset, restore, stash, clean, or remove any existing user changes.
+If repository root, origin, branch, HEAD, or source version conflicts with the
+expected identity, stop without modifying anything:
 
-If repository root, origin, branch, or HEAD conflicts with the expected identity,
-stop without changing anything and return:
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-BUILD_0_3_141_RESULT: BLOCKED_IDENTITY_MISMATCH
+If staged files exist, report them and stop:
 
-If staged changes exist, report them and stop without changing anything:
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_STAGED_CHANGES
 
-BUILD_0_3_141_RESULT: BLOCKED_STAGED_CHANGES
+If the exact VSIX is absent, stop. Do not build it:
 
-If an unexpected 0.3.141 VSIX already exists, do not overwrite or delete it.
-Inspect and report its path, version metadata, size, and SHA-256, then stop with:
-
-BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
-
-==================================================
-2. VERIFY CURRENT VERSION STATE
-
-Read the authoritative live version from package.json.
-
-Accepted starting states:
-
-A. package.json version is 0.3.140:
-
-* authorize exactly one intentional source edit;
-* change only the package.json version token:
-    “version”: “0.3.140”
-    to
-    “version”: “0.3.141”
-
-B. package.json version is already 0.3.141, but no 0.3.141 VSIX exists:
-
-* do not edit package.json again;
-* continue to validation and packaging.
-
-Any other source version is a conflict. Stop without changing it:
-
-BUILD_0_3_141_RESULT: BLOCKED_VERSION_MISMATCH
-
-Do not use npm version.
-Do not generate or modify a lockfile.
-Do not modify publisher, extension ID, scripts, dependencies, source,
-resources, tests, contracts, or package policy.
-
-Expected extension identity:
-
-PUBLISHER: td-etl
-PACKAGE_NAME: databricks-etl-copilot
-EXTENSION_ID: td-etl.databricks-etl-copilot
-TARGET_VERSION: 0.3.141
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_ARTIFACT_ABSENT
 
 ==================================================
-3. PRE-BUILD CHANGE BOUNDARY
+2. INSPECT THE EXISTING ARTIFACT READ-ONLY
 
-After the conditional version edit, compare the working tree with the captured
-baseline.
+Inspect the exact existing file:
 
-The only task-attributable intentional source change permitted is:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
 
-package.json
+Do not select an artifact by newest modification time.
 
-* version 0.3.140 → 0.3.141
+Verify independently:
 
-Existing changes that predate this task must remain untouched.
+* the VSIX/ZIP archive opens successfully;
+* internal package.json exists;
+* internal package.json version is exactly 0.3.141;
+* internal extension.vsixmanifest exists;
+* manifest version is exactly 0.3.141;
+* publisher is td-etl;
+* package name is databricks-etl-copilot;
+* extension ID resolves to td-etl.databricks-etl-copilot;
+* resources/framework/contracts/job-config-envelope.v1.json is present;
+* the packaged Job Config contract is byte-equal to the current source contract;
+* the trusted Oracle delivery-control contract is present;
+* the packaged Oracle contract is byte-equal to the current source contract;
+* trusted contracts resolve using the installed-layout structure;
+* no etl-framework-adb checkout is required at runtime;
+* no absolute Software Development Environment path is embedded as a runtime
+    dependency;
+* no consumer-editable context is used as machine authority;
+* no forbidden package-hygiene entries are present;
+* no .tmp/** content is present;
+* no nested .git/** content is present;
+* no .tsbuildinfo* content is present;
+* no test source or out-test content is present;
+* package entry-count and size limits pass.
 
-Generated output produced by existing compile/package commands must be reported
-separately and must not be described as an intentional source edit.
-
-If any other task-attributable source/resource/test/configuration path changes,
-stop and report:
-
-BUILD_0_3_141_RESULT: FAIL_UNAUTHORIZED_CHANGE
+Do not infer validity merely from the filename, version number, installation
+history, or the fact that the archive opens.
 
 ==================================================
-4. RUN EXISTING VALIDATION GATES
+3. RUN THE EXISTING EXACT-PACKAGE VERIFIER
 
-Inspect package.json and the existing repository validation scripts to identify
-the canonical local commands already used by this project.
+Inspect package.json and the repository scripts to identify the project’s
+canonical exact-package verification command.
 
-Use only existing local dependencies and existing repository scripts.
-Do not download packages or change validation configuration.
+Run the existing exact-package verifier against this explicit path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Do not allow a newest-VSIX selector or wildcard to choose another artifact.
+
+Report:
+
+* exact command;
+* exact artifact supplied to the verifier;
+* exit code;
+* every passed gate;
+* every warning;
+* every failed gate.
+
+Required:
+
+EXACT_PACKAGE_VERIFIER_PASS: YES
+
+If the repository has no usable exact-package verifier, do not fabricate a pass.
+Return:
+
+EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VERIFIER_UNAVAILABLE
+
+==================================================
+4. RUN CURRENT VALIDATION GATES
+
+Use only existing local dependencies and repository scripts.
+
+Do not run npm install or any dependency-changing command.
 
 Run and report:
 
@@ -150,25 +172,19 @@ Run and report:
 3. trusted Job Config envelope direct suite;
 4. Repair 8 focused suites;
 5. Repair 5/6/7 regression suites;
-6. the full unit suite.
+6. full unit suite.
 
-Do not modify tests, baselines, snapshots, prompts, contracts, or source to
-change the result.
-
-For every gate report:
+For each gate report:
 
 * exact command;
 * exit code;
 * passing count;
 * pending/skipped count;
 * failing count;
-* failure names;
+* complete failure names;
 * whether each failure is historical/known or new;
-* whether any new functional regression exists;
-* whether any new security regression exists.
-
-Known historical failures may remain visible, but they must not be hidden.
-Any new functional or security regression blocks packaging acceptance.
+* whether a new functional regression exists;
+* whether a new security regression exists.
 
 Required:
 
@@ -180,125 +196,110 @@ REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES
 NEW_FUNCTIONAL_REGRESSIONS: 0
 NEW_SECURITY_REGRESSIONS: 0
 
-If any required gate fails, do not repair source during this task.
-Stop, preserve all evidence, and return:
-
-BUILD_0_3_141_RESULT: FAIL_VALIDATION_GATE
+Do not edit any implementation or test file if a gate fails.
 
 ==================================================
-5. BUILD THE FINAL 0.3.141 VSIX
+5. COMPARE WITH THE TRUSTED 0.3.140 BASELINE
 
-Use the existing canonical local packaging workflow.
+If an exact previously verified 0.3.140 VSIX can be identified deterministically,
+compare it with the existing 0.3.141 artifact.
 
-Build exactly one final Development-Test artifact named:
+Compare:
 
-databricks-etl-copilot-0.3.141.vsix
+* decompressed entry names;
+* decompressed entry bytes;
+* internal version metadata;
+* trusted contract bytes;
+* package-hygiene results.
 
-Expected final path:
+Ignore ZIP container timestamps.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+Expected:
 
-Do not publish it.
-Do not install it.
-Do not overwrite an unexpected pre-existing 0.3.141 artifact.
-Do not create a Git tag or commit.
+* identical entry set;
+* all non-version functional content consistent with the intended HF1 V2 source;
+* differences limited to expected version metadata and already-authorized HF1 V2
+    package content.
 
-==================================================
-6. VERIFY THE EXACT FINAL PACKAGE
+Do not select a 0.3.140 baseline only because it is the newest file.
 
-Run the repository’s existing exact-package verifier against the explicit final
-0.3.141 VSIX path. Do not allow a “newest VSIX” selector to choose another file.
+If no exact trusted baseline can be proven, report:
 
-Independently inspect the produced archive and verify:
+BASELINE_0_3_140_COMPARISON:
+NOT_PERFORMED_NO_TRUSTED_BASELINE
 
-* the archive opens successfully;
-* internal package.json version is exactly 0.3.141;
-* internal extension.vsixmanifest version is exactly 0.3.141;
-* publisher is td-etl;
-* extension ID resolves to td-etl.databricks-etl-copilot;
-* resources/framework/contracts/job-config-envelope.v1.json is present;
-* the packaged Job Config envelope contract is byte-equal to source;
-* the trusted Oracle contract is present;
-* the packaged Oracle contract is byte-equal to source;
-* packaged trusted contracts resolve from installed-layout structure;
-* no etl-framework-adb checkout is required;
-* no source-checkout path is embedded as a runtime dependency;
-* no forbidden package-hygiene entries are present;
-* no .tmp/** content is present;
-* no nested .git/** content is present;
-* no .tsbuildinfo* content is present;
-* no source tests or out-test content is present;
-* package entry and size limits pass.
-
-If the exact verified 0.3.140 package is available locally, compare the
-decompressed entry sets and entry bytes.
-
-Expected comparison:
-
-* the same package entry set;
-* all non-version content bytes unchanged;
-* only package/manifest version metadata differs.
-
-Ignore ZIP container timestamps when comparing; compare entry names and
-decompressed bytes.
-
-If the exact trusted 0.3.140 comparison artifact cannot be identified
-deterministically, report:
-
-GATE_TO_FINAL_COMPARISON: NOT_PERFORMED_NO_TRUSTED_BASELINE
-
-Do not guess or select an artifact only by newest modification time.
+This alone does not fail adoption if all direct source/package verification gates
+pass.
 
 ==================================================
-7. COMPUTE THE REAL ARTIFACT IDENTITY
+6. DETERMINE WHETHER THE EXISTING ARTIFACT IS ADOPTABLE
 
-After all verification passes, calculate from the actual newly built file:
+Adopt the existing artifact without rebuilding only if:
 
-* absolute VSIX path;
-* file size in bytes;
-* SHA-256.
+* repository identity passes;
+* source version is 0.3.141;
+* internal package and manifest versions are 0.3.141;
+* publisher, package name, and extension ID are correct;
+* exact-package verifier passes;
+* independent package inspection passes;
+* trusted packaged contracts exist and are byte-equal to source;
+* required compile/lint/focused/regression gates pass;
+* there are zero new functional regressions;
+* there are zero new security regressions;
+* package hygiene passes;
+* no task-attributable source changes occurred;
+* no files are staged;
+* the SHA-256 is computed from the exact existing artifact.
 
-Do not reuse or expect any SHA recorded in the earlier handoff.
-The SHA must be computed from the actual new artifact.
+If all conditions pass:
 
-Report:
+EXISTING_ARTIFACT_ADOPTED_AS_FINAL: YES
+REBUILD_REQUIRED: NO
+READY_TO_INSTALL_0_3_141: YES
+READY_FOR_RUNTIME_QA_PHASE_1: NO
 
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
+READY_FOR_RUNTIME_QA_PHASE_1 must remain NO because installation and active
+Extension Host verification have not been performed by this task.
+
+If any condition fails:
+
+EXISTING_ARTIFACT_ADOPTED_AS_FINAL: NO
+REBUILD_REQUIRED: YES
+READY_TO_INSTALL_0_3_141: NO
+READY_FOR_RUNTIME_QA_PHASE_1: NO
+
+Do not rename, delete, overwrite, or rebuild the artifact after a failure. Preserve
+the evidence for the next repair/rebuild prompt.
 
 ==================================================
-8. POST-BUILD SAFETY CHECK
+7. POST-VALIDATION SAFETY CHECK
 
 Capture final Git status and compare it with the initial baseline.
 
-Report separately:
+Separate:
 
 * pre-existing tracked modifications;
 * pre-existing untracked files;
-* task-attributable package.json version edit;
-* generated build/package artifacts;
+* validation-generated output;
 * unexpected changes;
 * staged files.
 
 Required:
 
-TASK_ATTRIBUTABLE_INTENTIONAL_SOURCE_CHANGES:
-
-* package.json version token only, or NONE if it was already 0.3.141
-
+TASK_ATTRIBUTABLE_SOURCE_CHANGES: NONE
+ARTIFACT_OVERWRITTEN: NO
+NEW_VSIX_CREATED: NO
 STAGED_FILES: 0
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
 TAG_CREATED: NO
 PACKAGE_LOCK_CREATED: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
 DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
 RUNTIME_QA_STARTED: NO
 
-Do not commit or clean the repository.
-
 ==================================================
-9. FINAL REPORT
+8. FINAL REPORT
 
 Return:
 
@@ -306,11 +307,28 @@ REPOSITORY_ROOT:
 ORIGIN: 
 BRANCH: 
 HEAD: 
-SOURCE_VERSION_BEFORE: 
-SOURCE_VERSION_AFTER: 
-VERSION_EDIT_REQUIRED: YES/NO
-AUTHORIZED_SOURCE_CHANGED_PATHS: 
-UNAUTHORIZED_SOURCE_CHANGED_PATHS: 
+SOURCE_VERSION: 
+EXISTING_VSIX_PATH: 
+EXISTING_VSIX_SIZE_BYTES: 
+EXISTING_VSIX_MODIFIED_AT: 
+EXISTING_VSIX_SHA256: 
+INTERNAL_PACKAGE_VERSION: 
+INTERNAL_MANIFEST_VERSION: 
+PUBLISHER: 
+PACKAGE_NAME: 
+RESOLVED_EXTENSION_ID: 
+ARCHIVE_READABLE: YES/NO
+EXACT_PACKAGE_VERIFIER_COMMAND: 
+EXACT_PACKAGE_VERIFIER_PASS: YES/NO
+INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+JOB_CONFIG_CONTRACT_PRESENT: YES/NO
+JOB_CONFIG_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
+ORACLE_CONTRACT_PRESENT: YES/NO
+ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
+INSTALLED_LAYOUT_CONTRACT_RESOLUTION_PASS: YES/NO
+SOURCE_CHECKOUT_RUNTIME_DEPENDENCY_FOUND: YES/NO
+CONSUMER_CONTEXT_USED_AS_MACHINE_AUTHORITY: YES/NO
+PACKAGE_HYGIENE_PASS: YES/NO
 COMPILE_PASS: YES/NO
 LINT_PASS: YES/NO
 TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
@@ -322,57 +340,34 @@ FULL_UNIT_FAILURE_COUNT:
 FULL_UNIT_FAILURES: 
 NEW_FUNCTIONAL_REGRESSIONS: 
 NEW_SECURITY_REGRESSIONS: 
-FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
-FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
-INTERNAL_PACKAGE_VERSION: 
-INTERNAL_MANIFEST_VERSION: 
-JOB_CONFIG_CONTRACT_PRESENT: YES/NO
-JOB_CONFIG_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-ORACLE_CONTRACT_PRESENT: YES/NO
-ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
-GATE_TO_FINAL_COMPARISON: PASS/FAIL/NOT_PERFORMED_NO_TRUSTED_BASELINE
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
+BASELINE_0_3_140_COMPARISON: PASS/FAIL/NOT_PERFORMED_NO_TRUSTED_BASELINE
+TASK_ATTRIBUTABLE_SOURCE_CHANGES: 
+UNEXPECTED_CHANGED_PATHS: 
 STAGED_FILES: 
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-PACKAGE_LOCK_CREATED: NO
+EXISTING_ARTIFACT_ADOPTED_AS_FINAL: YES/NO
+REBUILD_REQUIRED: YES/NO
 READY_TO_INSTALL_0_3_141: YES/NO
-READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
+READY_FOR_RUNTIME_QA_PHASE_1: NO
 SAFE_TO_COMMIT: NO
 SAFE_TO_RELEASE: NO
 
-PASS requires:
-
-* correct repository identity;
-* source version 0.3.141;
-* only the authorized version-token source edit;
-* all required compile/lint/focused/regression gates pass;
-* zero new functional regressions;
-* zero new security regressions;
-* exact final VSIX verification passes;
-* internal package and manifest versions are 0.3.141;
-* trusted contracts are present and match source;
-* actual SHA-256 is calculated;
-* zero staged files;
-* no commit, push, tag, install, or Runtime QA.
+PASS means the exact pre-existing artifact has been independently proven safe for
+installation; it does not mean Runtime QA has passed.
 
 End exactly with one:
 
-BUILD_0_3_141_RESULT: PASS
+EXISTING_0_3_141_VERIFICATION_RESULT: PASS
 
-BUILD_0_3_141_RESULT: FAIL_VALIDATION_GATE
+EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_PACKAGE_VERIFICATION
 
-BUILD_0_3_141_RESULT: FAIL_PACKAGE_VERIFICATION
+EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VALIDATION_GATE
 
-BUILD_0_3_141_RESULT: FAIL_UNAUTHORIZED_CHANGE
+EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_UNAUTHORIZED_CHANGE
 
-BUILD_0_3_141_RESULT: BLOCKED_IDENTITY_MISMATCH
+EXISTING_0_3_141_VERIFICATION_RESULT: FAIL_VERIFIER_UNAVAILABLE
 
-BUILD_0_3_141_RESULT: BLOCKED_STAGED_CHANGES
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-BUILD_0_3_141_RESULT: BLOCKED_VERSION_MISMATCH
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_STAGED_CHANGES
 
-BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
+EXISTING_0_3_141_VERIFICATION_RESULT: BLOCKED_ARTIFACT_ABSENT
