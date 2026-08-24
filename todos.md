@@ -1,302 +1,450 @@
-TASK: PHASE_2D_PR16_POST_PR15_MERGE_VERIFICATION_AND_RETARGET
+TASK: HF1_V2_ROOT_CAUSE_FRESH_CONSUMER_WORKSPACE_CLASSIFICATION_BLOCKER_0_3_141
 
-Perform one bounded post-merge verification and, only if every gate passes,
-retarget PR #16 from its current stacked base to main.
+Perform a read-only root-cause investigation inside the Software Development
+Environment:
 
-Repository:
-TD-Enterprise/kmai-td-genie
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Required logical repository root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+Do not implement a fix during this task.
 
-The equivalent physical path under /app1 is acceptable only if realpath proves
-that it is the same permanent Phase 2E worktree.
+The purpose is to explain why the active verified 0.3.141 runtime rejects the
+intended fresh consumer Development Test Workspace before STTM interpretation.
 
-This task authorizes exactly one GitHub mutation:
-
-    Change PR #16 base branch from:
-        phase2/provider-abstraction-foundation
-    to:
-        main
-
-No other mutation is authorized.
-
-==================================================
-1. MANDATORY WORKSPACE GATE
-==================================================
-
-Before reading any repository file, verify:
-
-- pwd;
-- pwd -P;
-- realpath of the required logical root;
-- current repository identity;
-- current branch and HEAD;
-- git status --porcelain.
-
-The active workspace must resolve to the permanent Phase 2E repository root.
-
-Do not read, search, inspect, or modify:
-
-- the stale primary checkout;
-- branch asktd_v2;
-- sibling repositories;
-- ETL/UCA workspaces;
-- /tmp worktrees.
-
-If the workspace does not match, stop without mutation and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_WRONG_WORKSPACE
-
-Do not change branches, fetch, pull, reset, stash, clean, rebase, merge,
-cherry-pick, or modify Git configuration.
+Do not access or modify the Development Test Workspace.
+Do not access or modify etl-framework-adb.
+Do not modify source, tests, resources, generated output, or package metadata.
+Do not build another VSIX.
+Do not install or uninstall extensions.
+Do not run npm install.
+Do not create package-lock.json.
+Do not commit, push, merge, tag, stash, reset, clean, restore, or delete files.
+Do not modify protected .github/** assets.
+Temporary diagnostic fixtures may be created only outside the repository and
+must not contain real data.
 
 ==================================================
-2. PERMITTED PRIOR EVIDENCE
-==================================================
 
-Read these reports completely, from outside the Git repository:
+1. LIVE RUNTIME FAILURE EVIDENCE
+    ==================================================
 
-1.
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR_STACK_READINESS_2026-08-23.md
+Treat the following as authoritative live evidence from Runtime QA:
 
-2.
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_FINALIZATION_2026-08-23.md
+ACTIVE_EXTENSION_ID:
+td-etl.databricks-etl-copilot
 
-Treat them as evidence indexes only. Independently verify all decisive live
-values.
+ACTIVE_EXTENSION_VERSION:
+0.3.141
 
-Do not read unrelated reports, the stale checkout, Library exports, or Phase 2F
-decision documents.
+RUNTIME_ACTIVATION_PROVEN:
+YES
 
-==================================================
-3. AUTHENTICATION AND SAFETY
-==================================================
+QA workspace:
 
-Use authenticated GitHub read access already available in the environment.
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
 
-If the stored gh account token is invalid, do not repair it, log in, log out,
-rewrite hosts.yml, print credentials, or persist a token.
+QA workspace facts:
 
-You may use the same existing credential-helper-based method that previously
-authorized GitHub reads and the PR #17 push/creation.
+* exactly one workspace root;
+* intentionally consumer-shaped Development Test Workspace;
+* intentionally not a Git repository;
+* workflow setup already present;
+* sttm/qa_hf1v2_demo_sttm.md present;
+* resources/copilot/context/** present;
+* no job_conf/**;
+* no env_conf/**;
+* no generated ETL artifacts;
+* no extension-source checkout;
+* no etl-framework-adb;
+* synthetic QA data only.
 
-Never print, copy, save, or expose any credential.
+The installed runtime returned this blocker:
 
-All GitHub requests before section 6 must be read-only.
+Workspace folder “etl-acz9999-hf1v2-qa” could not be confirmed as a consumer ETL
+workspace; open an ETL Framework workspace before STTM interpretation or guarded
+writes.
 
-If authenticated access is unavailable, stop without mutation and end with:
+Runtime result:
 
-PHASE_2D_PR16_RETARGET_BLOCKED_GITHUB_ACCESS
+WORKSPACE_CLASSIFICATION:
+UNKNOWN
 
-==================================================
-4. VERIFY PR #15 POST-MERGE STATE
-==================================================
+TARGET_DECISION:
+CREATE_NEW_JOB (filesystem evidence only; runtime workflow blocked)
 
-Independently query the live GitHub state and verify:
+The Runtime stopped before:
 
-PR #15:
+* STTM interpretation;
+* packaged Framework discovery;
+* contract resolution;
+* example search;
+* rendering;
+* deterministic validation;
+* Preview creation.
 
-- state: closed;
-- merged: true;
-- base branch: main;
-- head branch: phase2/provider-abstraction-foundation;
-- original candidate head SHA exactly:
-
-  d5472ae31081879329c224922244d87962737e8c
-
-- changed files: exactly 7;
-- additions/deletions: exactly +430/-28;
-- at least one eligible non-author approval exists;
-- the five previously reported checks succeeded;
-- exact full merge-commit SHA is obtained from GitHub.
-
-Verify the merge commit:
-
-- is the current live main SHA;
-- has exactly two parents;
-- first parent is the previous main:
-
-  9ca6567571772a9f4e1ab555d8a678e678c45d49
-
-- second parent is the accepted Phase 2C.5 candidate:
-
-  d5472ae31081879329c224922244d87962737e8c
-
-- therefore Phase 2C.5 was merged using a merge commit, not squash or rebase;
-- d5472ae31081879329c224922244d87962737e8c is now an ancestor of main.
-
-Do not silently trust the short SHA shown in the browser. Record the exact
-40-character merge SHA.
-
-If any value differs, stop without changing PR #16 and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_POSTMERGE_IDENTITY
+No Preview ID was created and zero workspace files changed.
 
 ==================================================
-5. VERIFY PR #16 BEFORE RETARGETING
-==================================================
+2. EXPECTED PRODUCT BEHAVIOR
 
-Verify live PR #16 before making any mutation:
+The intended supported scenario is a fresh consumer workspace.
 
-- state: open;
-- Draft: true;
-- merged: false;
-- base branch:
+Required behavior:
 
-  phase2/provider-abstraction-foundation
+* a consumer does not require the extension source repository;
+* a consumer does not require etl-framework-adb;
+* a fresh consumer may initially have no job_conf/** and no env_conf/**;
+* absence of those generated files must lead to CREATE_NEW_JOB;
+* absence of generated files must not classify the workspace as UNKNOWN;
+* Git repository metadata must not be required for this disposable Runtime QA
+    workspace;
+* workflow setup and the STTM are already present;
+* packaged trusted Framework contracts provide machine authority;
+* resources/copilot/context/** remains advisory and must not become machine
+    authority;
+* an arbitrary empty folder must still fail closed;
+* multi-root ambiguity must still fail closed;
+* guarded Preview/write validation and explicit approval must not be weakened.
 
-- head branch:
-
-  phase2/approved-recipe-pilot
-
-- exact head SHA:
-
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-
-- the head commit has the accepted Phase 2C.5 candidate as its single parent:
-
-  d5472ae31081879329c224922244d87962737e8c
-
-- changed files: exactly 9;
-- additions/deletions: exactly +1431/-6;
-- no merge conflict;
-- no unexpected review, comment, head-force-push, base change, or candidate
-  drift has occurred.
-
-Also verify that the remote branch
-phase2/provider-abstraction-foundation still exists.
-
-Do not delete that branch. It must remain until PR #16 has been successfully
-retargeted and verified.
-
-If PR #16 does not match every expected identity and scope value, stop without
-mutation and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_CANDIDATE_DRIFT
+Do not recommend adding placeholder job_conf/env_conf files, initializing Git,
+copying Framework source, or opening etl-framework-adb as a workaround.
 
 ==================================================
-6. THE ONLY AUTHORIZED MUTATION
-==================================================
+3. VERIFY SOURCE ENVIRONMENT IDENTITY
 
-Only after sections 1–5 pass, change PR #16’s base branch from:
+Before analysis, report:
 
-    phase2/provider-abstraction-foundation
+EXPECTED_REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-to:
+EXPECTED_ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-    main
+EXPECTED_BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-Use the GitHub API or another authenticated GitHub mechanism that performs only
-this base change.
+EXPECTED_HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-Do not:
+EXPECTED_SOURCE_VERSION:
+0.3.141
 
-- modify PR #16’s head;
-- push or force-push;
-- rebase or merge locally;
-- edit its title or description;
-- mark it ready for review;
-- request a reviewer;
-- submit an approval;
-- add a comment, label, milestone, or assignee;
-- close, reopen, or merge it;
-- trigger a workflow deliberately;
-- delete either parent branch;
-- modify PR #15 or PR #17.
+Capture:
 
-==================================================
-7. POST-RETARGET VERIFICATION
-==================================================
+* repository root;
+* origin;
+* branch;
+* HEAD;
+* source version;
+* staged paths;
+* tracked-modified paths;
+* untracked paths.
 
-After the base change, independently re-read PR #16 and verify:
+A large pre-existing working-tree overlay may exist. Preserve it exactly.
 
-- state remains open;
-- Draft remains true;
-- base is now main;
-- head remains phase2/approved-recipe-pilot;
-- head SHA remains exactly:
+If root, origin, branch, HEAD, or version differs, stop:
 
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
+ROOT_CAUSE_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-- changed files remain exactly 9;
-- additions/deletions remain exactly +1431/-6;
-- mergeable is true;
-- merge state is clean, or its equivalent indicates no conflict;
-- no head commit changed;
-- no approval was submitted;
-- no ready-for-review transition occurred.
+If staged files exist, report them and stop:
 
-GitHub may temporarily return mergeability as unknown/null while recalculating.
-Use bounded read-only polling. If it remains unresolved, report it as a blocker;
-do not make another mutation.
-
-Verify additionally:
-
-- current main SHA is still the exact PR #15 merge commit obtained in section 4;
-- PR #15 remains merged;
-- PR #17 remains untouched with:
-  - state open;
-  - Draft true;
-  - base phase2/approved-recipe-pilot;
-  - head phase2/governed-field-records;
-  - exact head SHA:
-
-    0430613e6a9f1680338d8fc099e7960e5d46cac2
-
-- phase2/provider-abstraction-foundation still exists;
-- phase2/approved-recipe-pilot still exists;
-- the permanent worktree/index remains clean;
-- no repository file or local Git ref changed.
-
-Record whether retargeting created any check or workflow run, but do not trigger
-one manually. Zero new checks is not, by itself, candidate drift because the
-current pull_request workflow does not listen for the base-change edited event.
-
-If the post-retarget scope is not exactly 9 files and +1431/-6, or any other
-identity changed, stop and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_POSTCHANGE_VALIDATION
-
-Do not attempt to undo or compensate automatically. Report the exact live state.
+ROOT_CAUSE_RESULT: BLOCKED_STAGED_CHANGES
 
 ==================================================
-8. REPORT
+4. TRACE THE EXACT CLASSIFICATION BLOCKER
+
+Search the source and compiled runtime for the exact or closest diagnostic text:
+
+could not be confirmed as a consumer ETL workspace
+
+and:
+
+open an ETL Framework workspace before STTM interpretation or guarded writes
+
+Identify and report:
+
+* exact source file and function producing the blocker;
+* compiled/runtime file containing it;
+* calling tool and call path;
+* classification function or resolver used;
+* input evidence the classifier reads;
+* evidence it ignores;
+* exact condition that returns UNKNOWN;
+* whether Git metadata is required directly or indirectly;
+* whether job_conf/** or env_conf/** presence is required;
+* whether Framework markers are incorrectly required;
+* whether STTM or initialized workflow markers are considered;
+* whether the error message incorrectly directs normal consumers to open a
+    Framework workspace.
+
+Trace the path beginning with etl_capabilities through the classifier and into
+the gate that prevents:
+
+* etl_interpret_sttm;
+* etl_get_framework_rules;
+* etl_search_examples;
+* guarded Preview creation.
+
+Do not infer from names alone. Cite exact files, functions, predicates, and
+returned values.
+
 ==================================================
+5. DETERMINE THE INTENDED INITIALIZATION SIGNAL
 
-Write one report outside the Git repository:
+Inspect the existing workflow initialization and customization implementation.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2D_PR16_RETARGET_2026-08-24.md
+Identify every durable signal created for a correctly initialized consumer
+workspace, including, where applicable:
 
-The report must include:
+* .github/agents/**;
+* .github/skills/**;
+* .github/instructions/**;
+* .github/prompts/**;
+* resources/copilot/context/**;
+* managed-asset or initialization manifests;
+* workspace configuration or extension-owned markers.
 
-1. exact workspace and no-change attestation;
-2. exact PR #15 merge commit and both parents;
-3. verified current main SHA;
-4. PR #15 final approval/check/merge evidence;
-5. PR #16 complete before-retarget state;
-6. the exact single mutation performed;
-7. PR #16 complete after-retarget state;
-8. changed-file inventory/count and additions/deletions;
-9. mergeability and conflict state;
-10. check/workflow state before and after;
-11. confirmation that PR #17 was untouched;
-12. confirmation that no parent branch was deleted;
-13. confirmation that no repository file, commit, branch head, runtime flag, or
-    Git configuration was changed;
-14. exact next permitted action.
+For each signal report:
 
-The next permitted action after a successful report is only:
+* whether it exists in the QA topology;
+* whether current classification reads it;
+* whether it is extension-managed or consumer-editable;
+* whether it may safely establish workspace intent;
+* whether it may provide machine authority.
 
-- mark PR #16 ready for review;
-- obtain its one eligible non-author approval;
-- reverify its exact head and 9-file scope;
-- then merge it using a merge commit.
+Maintain this distinction:
 
-Those actions are not authorized by this prompt.
+* a safe initialization marker may establish that the folder is an initialized
+    consumer workspace;
+* consumer-editable context must never define trusted Framework contracts,
+    validation rules, module schemas, or write authority.
 
-End with exactly one terminal token:
+Determine which existing signal should classify a fresh initialized consumer
+without treating advisory content as machine authority.
 
-PHASE_2D_PR16_RETARGET_COMPLETE
+If no trustworthy existing initialization signal exists, state that clearly.
+Do not invent one during this task.
 
-or one applicable BLOCKED token defined above.
+==================================================
+6. REPRODUCE THE FAILURE
+
+Use existing tests and test helpers where possible.
+
+Do not edit tests.
+
+Create any additional diagnostic fixture only in a temporary location outside
+the repository.
+
+Reproduce at least these matrices:
+
+A. Fresh initialized consumer:
+
+* one root;
+* no Git metadata;
+* workflow customization present;
+* STTM present;
+* resources/copilot/context present;
+* no job_conf;
+* no env_conf;
+* no Framework source.
+
+Expected:
+consumer-etl-workspace and CREATE_NEW_JOB.
+
+B. Arbitrary empty folder:
+
+* no initialization evidence;
+* no STTM;
+* no job/env;
+* no Framework.
+
+Expected:
+UNKNOWN/BLOCKED.
+
+C. Existing consumer:
+
+* canonical existing consumer artifacts present.
+
+Expected:
+consumer-etl-workspace.
+
+D. Framework source workspace:
+
+Expected:
+Framework/development classification, not consumer.
+
+E. Multi-root workspace:
+
+Expected:
+ambiguous/BLOCKED.
+
+For each case report:
+
+* actual classification;
+* expected classification;
+* decisive evidence;
+* exact predicate responsible for a mismatch.
+
+Do not use the real QA workspace for reproduction.
+
+==================================================
+7. TEST-COVERAGE GAP ANALYSIS
+
+Locate all existing tests covering:
+
+* workspace classification;
+* etl_capabilities;
+* fresh consumers;
+* no existing job_conf/env_conf;
+* non-Git workspaces;
+* packaged Framework fallback;
+* CREATE_NEW_JOB routing;
+* pre-STTM capability gates;
+* Preview/write authorization.
+
+Explain why compile, focused suites and the full unit suite passed while this
+runtime defect remained.
+
+Report:
+
+* existing relevant test files;
+* scenarios currently covered;
+* missing scenario;
+* tests that give a false sense of coverage;
+* whether fixtures accidentally contain job/env/Framework/Git evidence;
+* exact regression tests required for a repair.
+
+==================================================
+8. SOURCE/VISX/PACKAGING PARITY CHECK
+
+Determine whether this is:
+
+* a source logic defect;
+* a compiled-output defect;
+* a package-content defect;
+* stale installed runtime;
+* missing initialization evidence;
+* incorrect tool invocation;
+* or a combination.
+
+Compare the relevant classifier and blocker logic across:
+
+1. source;
+2. current compiled output;
+3. exact verified VSIX:
+    databricks-etl-copilot-0.3.141.vsix
+
+The exact verified artifact identity is:
+
+SIZE:
+1250393 bytes
+
+SHA-256:
+437427A915BEB7C0867DD2CE53C968161C99F43730004C702D87799390446B51
+
+Do not rebuild or modify the artifact.
+
+Report whether the source, compiled output and packaged runtime contain equivalent
+classification behavior.
+
+==================================================
+9. TRUST AND SAFETY ANALYSIS
+
+Explain how the repair can recognize a fresh initialized consumer while
+preserving fail-closed behavior.
+
+The future repair must not:
+
+* classify every folder containing an STTM as trusted;
+* use consumer context as Framework contract authority;
+* bypass packaged-contract resolution;
+* bypass artifact path validation;
+* bypass Preview freezing;
+* bypass explicit approval;
+* permit writes outside the workspace root;
+* weaken multi-root handling;
+* require Framework source.
+
+Identify the minimum safe classification evidence and the separate downstream
+guards that continue to protect Preview and write operations.
+
+==================================================
+10. PROPOSE THE BOUNDED REPAIR — DO NOT IMPLEMENT
+
+Provide a concrete repair plan containing:
+
+* exact source files requiring modification;
+* exact functions/predicates requiring modification;
+* exact diagnostic message correction;
+* exact new or updated test files;
+* required positive cases;
+* required negative/security cases;
+* compiled/generated artifacts expected from normal build commands;
+* whether packaged agent/prompt assets require synchronization;
+* whether a package version increment from 0.3.141 to 0.3.142 is required;
+* exact validation commands;
+* exact packaging verification commands;
+* Runtime QA steps that must be repeated afterward.
+
+Do not edit any file during this task.
+
+==================================================
+11. FINAL REPORT
+
+Return:
+
+REPOSITORY_ROOT: 
+ORIGIN: 
+BRANCH: 
+HEAD: 
+SOURCE_VERSION: 
+LIVE_RUNTIME_VERSION: 0.3.141
+LIVE_QA_WORKSPACE_EXPECTED_CLASSIFICATION: DEVELOPMENT_TEST_WORKSPACE
+LIVE_RUNTIME_CLASSIFICATION: UNKNOWN
+BLOCKER_SOURCE_FILE: 
+BLOCKER_SOURCE_FUNCTION: 
+CLASSIFIER_SOURCE_FILE: 
+CLASSIFIER_FUNCTION: 
+EXACT_FAILED_PREDICATE: 
+GIT_METADATA_REQUIRED_BY_CURRENT_LOGIC: YES/NO
+JOB_OR_ENV_REQUIRED_BY_CURRENT_LOGIC: YES/NO
+FRAMEWORK_MARKER_REQUIRED_BY_CURRENT_LOGIC: YES/NO
+INITIALIZED_CONSUMER_SIGNALS_FOUND: 
+CURRENT_CLASSIFIER_READS_INITIALIZATION_SIGNAL: YES/NO
+SAFE_MINIMUM_CLASSIFICATION_EVIDENCE: 
+FRESH_CONSUMER_REPRODUCED: YES/NO
+FRESH_CONSUMER_ACTUAL_RESULT: 
+EMPTY_FOLDER_NEGATIVE_CONTROL_PASS: YES/NO
+EXISTING_CONSUMER_CONTROL_PASS: YES/NO
+FRAMEWORK_WORKSPACE_CONTROL_PASS: YES/NO
+MULTI_ROOT_CONTROL_PASS: YES/NO
+MISSING_TEST_SCENARIO: 
+SOURCE_COMPILED_VSIX_PARITY: PASS/FAIL
+ROOT_CAUSE_CATEGORY: 
+SECURITY_BOUNDARY_PRESERVED_BY_PROPOSED_REPAIR: YES/NO
+PROPOSED_CHANGED_SOURCE_PATHS: 
+PROPOSED_CHANGED_TEST_PATHS: 
+PROPOSED_VERSION_AFTER_REPAIR: 
+TASK_ATTRIBUTABLE_CHANGES: NONE
+STAGED_FILES: 
+QA_WORKSPACE_TOUCHED: NO
+SOURCE_MODIFIED: NO
+VSIX_BUILT: NO
+READY_FOR_BOUNDED_REPAIR: YES/NO
+
+End exactly with one:
+
+ROOT_CAUSE_RESULT: CONFIRMED_SOURCE_LOGIC_DEFECT
+
+ROOT_CAUSE_RESULT: CONFIRMED_PACKAGING_DEFECT
+
+ROOT_CAUSE_RESULT: CONFIRMED_MISSING_INITIALIZATION_SIGNAL
+
+ROOT_CAUSE_RESULT: CONFIRMED_TOOL_INVOCATION_DEFECT
+
+ROOT_CAUSE_RESULT: CONFIRMED_COMBINED_DEFECT
+
+ROOT_CAUSE_RESULT: INCONCLUSIVE
+
+ROOT_CAUSE_RESULT: BLOCKED_IDENTITY_MISMATCH
+
+ROOT_CAUSE_RESULT: BLOCKED_STAGED_CHANGES
