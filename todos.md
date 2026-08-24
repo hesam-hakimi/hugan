@@ -1,402 +1,378 @@
-TASK: HF1_V2_RUNTIME_QA_PHASE_1_PREVIEW_ONLY_VERSION_0_3_141
+TASK: HF1_V2_BUILD_AND_VERIFY_FINAL_DEVELOPMENT_TEST_VSIX_0_3_141
 
-Execute Phase 1 of HF1 V2 runtime QA using the installed Databricks ETL
-Copilot extension.
+Work only inside the Software Development Environment:
 
-This is a DEVELOPMENT_TEST_WORKSPACE.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-It is not:
+This task corrects the current live state:
 
-- the software development source repository;
-- SIT;
-- production;
-- a real consumer deployment repository.
+* the last confirmed built and active Extension version is 0.3.140;
+* version 0.3.141 has not yet been built;
+* Runtime QA Phase 1 for 0.3.141 must not start until this build/package gate passes;
+* any earlier handoff claim that a verified 0.3.141 VSIX or its SHA already
+    exists is not live evidence and must not be trusted.
 
-This workspace is disposable and contains synthetic QA inputs only.
-
-Do not inspect or modify the extension source repository.
-Do not inspect or modify etl-framework-adb.
+Do not use web search.
+Do not access or modify any Development Test Workspace.
+Do not access or modify etl-framework-adb.
 Do not install or download dependencies.
-Do not commit or push.
-Do not execute a Databricks job.
-Do not connect to or mutate real data.
-Do not approve or execute a filesystem write during this phase.
-Do not repair source code.
+Do not use npm version.
+Do not create package-lock.json.
+Do not commit, push, merge, tag, stash, reset, clean, or delete files.
+Do not modify protected .github/** assets.
+Do not modify tests or baselines to make failures disappear.
+Do not reopen or redesign Repairs 3–8.
+Do not install the resulting VSIX.
+Do not start Runtime QA.
 
 ==================================================
-1. EXPECTED RUNTIME IDENTITY
-==================================================
 
-Expected extension ID:
+1. VERIFY SOFTWARE DEVELOPMENT ENVIRONMENT IDENTITY
+    ==================================================
 
-td-etl.databricks-etl-copilot
+Before making any change, verify and report:
 
-Expected active extension version:
+EXPECTED_REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-0.3.141
+EXPECTED_ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-Expected workspace topology:
+EXPECTED_BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-- exactly one open workspace root;
-- Development Test Workspace;
-- no extension-source checkout;
-- no etl-framework-adb;
-- no existing job_conf/**;
-- no existing env_conf/**;
-- workflow customization already initialized;
-- STTM file present at:
+EXPECTED_BASE_HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-  sttm/qa_hf1v2_demo_sttm.md
+Capture:
 
-Use runtime tools such as etl_capabilities and the live ETL Copilot output to
-verify the installed extension identity.
+* absolute repository root;
+* origin URL;
+* current branch;
+* current HEAD;
+* staged file count;
+* tracked-modified paths;
+* untracked paths;
+* current package.json version;
+* package-lock.json presence;
+* existing VSIX files matching 0.3.140 and 0.3.141.
 
-Do not treat package metadata alone as runtime activation proof.
+A large existing local working-tree overlay is expected. Preserve it exactly.
 
-If the active extension is not 0.3.141, stop with:
+Do not assume the working tree is clean.
+Do not reset, restore, stash, clean, or remove any existing user changes.
 
-QA_PHASE_1_RESULT: BLOCKED
+If repository root, origin, branch, or HEAD conflicts with the expected identity,
+stop without changing anything and return:
 
-==================================================
-2. FIXED QA INPUTS
-==================================================
+BUILD_0_3_141_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-Do not ask the user to provide these values again.
+If staged changes exist, report them and stop without changing anything:
 
-Job name:
+BUILD_0_3_141_RESULT: BLOCKED_STAGED_CHANGES
 
-qa_hf1v2_demo
+If an unexpected 0.3.141 VSIX already exists, do not overwrite or delete it.
+Inspect and report its path, version metadata, size, and SHA-256, then stop with:
 
-Malcode:
-
-acz9999
-
-Environment:
-
-dev
-
-Strategy:
-
-generic_dataframe_write
-
-Source:
-
-- type: Delta;
-- physical mode: ADLS-path-backed;
-- path:
-  abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/raw/qa_hf1v2_customer
-
-Target:
-
-- type: Delta;
-- physical mode: ADLS-path-backed;
-- path:
-  abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/curated/qa_hf1v2_customer
-- format: delta;
-- write mode: append.
-
-Primary key:
-
-customer_id
-
-The primary key is informational for this append-only QA case.
-
-Explicitly excluded behavior:
-
-- direct Unity Catalog table-name write;
-- merge;
-- upsert;
-- CDC;
-- SCD2;
-- database_out;
-- Synapse;
-- JDBC;
-- TIBCO;
-- production connectivity.
-
-Any raw/curated labels in the STTM are logical zone names, not Unity Catalog
-table identifiers.
+BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
 
 ==================================================
-3. WORKSPACE BASELINE
-==================================================
+2. VERIFY CURRENT VERSION STATE
 
-After workflow setup is complete, capture the runtime-QA baseline.
+Read the authoritative live version from package.json.
 
-Confirm:
+Accepted starting states:
 
-- workspace root count;
-- workspace root path;
-- active extension version;
-- existing job_conf file count;
-- existing env_conf file count;
-- existing generated ETL artifact count;
-- STTM path;
-- workflow customization presence.
+A. package.json version is 0.3.140:
 
-The expected pre-preview state is:
+* authorize exactly one intentional source edit;
+* change only the package.json version token:
+    “version”: “0.3.140”
+    to
+    “version”: “0.3.141”
 
-EXISTING_JOB_CONF_COUNT: 0
-EXISTING_ENV_CONF_COUNT: 0
+B. package.json version is already 0.3.141, but no 0.3.141 VSIX exists:
 
-Do not modify workflow customization assets during this QA phase.
+* do not edit package.json again;
+* continue to validation and packaging.
 
-==================================================
-4. FRAMEWORK-INDEPENDENT DISCOVERY
-==================================================
+Any other source version is a conflict. Stop without changing it:
 
-Use only installed-extension runtime tools.
+BUILD_0_3_141_RESULT: BLOCKED_VERSION_MISMATCH
 
-Verify:
+Do not use npm version.
+Do not generate or modify a lockfile.
+Do not modify publisher, extension ID, scripts, dependencies, source,
+resources, tests, contracts, or package policy.
 
-- framework source checkout is absent;
-- packaged framework fallback is used;
-- the trusted Job Config envelope contract resolves;
-- criticalConfigKeys are non-empty;
-- approved packaged examples can be searched without local example roots;
-- no consumer-editable context is treated as machine authority.
+Expected extension identity:
 
-Use, where applicable:
-
-- etl_get_framework_rules;
-- etl_search_examples;
-- etl_describe_module;
-- etl_interpret_sttm.
-
-Do not access the software source repository to obtain missing syntax.
-
-If the packaged contract cannot be resolved, stop without preview or write.
+PUBLISHER: td-etl
+PACKAGE_NAME: databricks-etl-copilot
+EXTENSION_ID: td-etl.databricks-etl-copilot
+TARGET_VERSION: 0.3.141
 
 ==================================================
-5. STTM INTERPRETATION
+3. PRE-BUILD CHANGE BOUNDARY
+
+After the conditional version edit, compare the working tree with the captured
+baseline.
+
+The only task-attributable intentional source change permitted is:
+
+package.json
+
+* version 0.3.140 → 0.3.141
+
+Existing changes that predate this task must remain untouched.
+
+Generated output produced by existing compile/package commands must be reported
+separately and must not be described as an intentional source edit.
+
+If any other task-attributable source/resource/test/configuration path changes,
+stop and report:
+
+BUILD_0_3_141_RESULT: FAIL_UNAUTHORIZED_CHANGE
+
 ==================================================
+4. RUN EXISTING VALIDATION GATES
 
-Read:
+Inspect package.json and the existing repository validation scripts to identify
+the canonical local commands already used by this project.
 
-sttm/qa_hf1v2_demo_sttm.md
+Use only existing local dependencies and existing repository scripts.
+Do not download packages or change validation configuration.
 
-The `Field Mapping` section must be recognized as a mapping section.
+Run and report:
+
+1. TypeScript compile;
+2. lint;
+3. trusted Job Config envelope direct suite;
+4. Repair 8 focused suites;
+5. Repair 5/6/7 regression suites;
+6. the full unit suite.
+
+Do not modify tests, baselines, snapshots, prompts, contracts, or source to
+change the result.
+
+For every gate report:
+
+* exact command;
+* exit code;
+* passing count;
+* pending/skipped count;
+* failing count;
+* failure names;
+* whether each failure is historical/known or new;
+* whether any new functional regression exists;
+* whether any new security regression exists.
+
+Known historical failures may remain visible, but they must not be hidden.
+Any new functional or security regression blocks packaging acceptance.
+
+Required:
+
+COMPILE_PASS: YES
+LINT_PASS: YES
+TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES
+REPAIR_8_FOCUSED_SUITES_PASS: YES
+REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+If any required gate fails, do not repair source during this task.
+Stop, preserve all evidence, and return:
+
+BUILD_0_3_141_RESULT: FAIL_VALIDATION_GATE
+
+==================================================
+5. BUILD THE FINAL 0.3.141 VSIX
+
+Use the existing canonical local packaging workflow.
+
+Build exactly one final Development-Test artifact named:
+
+databricks-etl-copilot-0.3.141.vsix
+
+Expected final path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
+
+Do not publish it.
+Do not install it.
+Do not overwrite an unexpected pre-existing 0.3.141 artifact.
+Do not create a Git tag or commit.
+
+==================================================
+6. VERIFY THE EXACT FINAL PACKAGE
+
+Run the repository’s existing exact-package verifier against the explicit final
+0.3.141 VSIX path. Do not allow a “newest VSIX” selector to choose another file.
+
+Independently inspect the produced archive and verify:
+
+* the archive opens successfully;
+* internal package.json version is exactly 0.3.141;
+* internal extension.vsixmanifest version is exactly 0.3.141;
+* publisher is td-etl;
+* extension ID resolves to td-etl.databricks-etl-copilot;
+* resources/framework/contracts/job-config-envelope.v1.json is present;
+* the packaged Job Config envelope contract is byte-equal to source;
+* the trusted Oracle contract is present;
+* the packaged Oracle contract is byte-equal to source;
+* packaged trusted contracts resolve from installed-layout structure;
+* no etl-framework-adb checkout is required;
+* no source-checkout path is embedded as a runtime dependency;
+* no forbidden package-hygiene entries are present;
+* no .tmp/** content is present;
+* no nested .git/** content is present;
+* no .tsbuildinfo* content is present;
+* no source tests or out-test content is present;
+* package entry and size limits pass.
+
+If the exact verified 0.3.140 package is available locally, compare the
+decompressed entry sets and entry bytes.
+
+Expected comparison:
+
+* the same package entry set;
+* all non-version content bytes unchanged;
+* only package/manifest version metadata differs.
+
+Ignore ZIP container timestamps when comparing; compare entry names and
+decompressed bytes.
+
+If the exact trusted 0.3.140 comparison artifact cannot be identified
+deterministically, report:
+
+GATE_TO_FINAL_COMPARISON: NOT_PERFORMED_NO_TRUSTED_BASELINE
+
+Do not guess or select an artifact only by newest modification time.
+
+==================================================
+7. COMPUTE THE REAL ARTIFACT IDENTITY
+
+After all verification passes, calculate from the actual newly built file:
+
+* absolute VSIX path;
+* file size in bytes;
+* SHA-256.
+
+Do not reuse or expect any SHA recorded in the earlier handoff.
+The SHA must be computed from the actual new artifact.
 
 Report:
 
-- mapping count;
-- source evidence;
-- target evidence;
-- filters;
-- write strategy;
-- whether STTM parsing required a raw-content fallback.
-
-Do not silently reinterpret the target as a Unity Catalog table.
-
-If the structured parser still reports zero mappings, record that fact
-honestly, but continue only if the installed runtime can derive the exact same
-six mappings deterministically from the supplied STTM without guessing.
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
 
 ==================================================
-6. TARGET DECISION
-==================================================
+8. POST-BUILD SAFETY CHECK
 
-Because the workspace contains no existing job_conf or env_conf for this job,
-the expected decision is:
+Capture final Git status and compare it with the initial baseline.
 
-CREATE_NEW_JOB
+Report separately:
 
-This decision must be based on the Development Test Workspace contents, not on
-the absence of etl-framework-adb.
+* pre-existing tracked modifications;
+* pre-existing untracked files;
+* task-attributable package.json version edit;
+* generated build/package artifacts;
+* unexpected changes;
+* staged files.
 
 Required:
 
-TARGET_DECISION: CREATE_NEW_JOB
-FRAMEWORK_SOURCE_REQUIRED: NO
+TASK_ATTRIBUTABLE_INTENTIONAL_SOURCE_CHANGES:
+
+* package.json version token only, or NONE if it was already 0.3.141
+
+STAGED_FILES: 0
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+PACKAGE_LOCK_CREATED: NO
+DEVELOPMENT_TEST_WORKSPACE_TOUCHED: NO
+RUNTIME_QA_STARTED: NO
+
+Do not commit or clean the repository.
 
 ==================================================
-7. CANONICAL JOB CONFIG
-==================================================
-
-Generate the proposed Job Config using the trusted packaged contract.
-
-The output must use the canonical HOCON envelope:
-
-modules {
-  <stage_key> {
-    ...
-    options {
-      module = <module_type>
-      method = process
-    }
-  }
-}
-
-Requirements:
-
-- `modules` is an object, not an array;
-- stage entries are keyed by stage name;
-- every stage has `options.module`;
-- every executable stage has the required method and option fields;
-- the final writer is dataframe_writer;
-- the writer destination is path-based;
-- output format is delta;
-- write mode is append;
-- no direct Unity Catalog table target is present;
-- no quoted-JSON modules envelope is present;
-- no non-canonical top-level module blocks are present.
-
-Use the installed packaged examples and trusted contract rather than inventing
-a new envelope.
-
-==================================================
-8. PREVIEW ARTIFACTS
-==================================================
-
-Render and validate the complete proposed artifact set.
-
-It must contain at least:
-
-- one job configuration;
-- one environment configuration.
-
-Likely canonical destinations include:
-
-job_conf/conf/acz9999/qa_hf1v2_demo.json
-
-env_conf/dev/env_conf_dev_qa_hf1v2_demo.yaml
-
-Additional include or SQL artifacts are permitted only when deterministically
-required by the selected strategy and STTM.
-
-Every artifact path must be inside the single Development Test Workspace root.
-
-Report the complete preview manifest, including:
-
-- relative path;
-- artifact type;
-- disposition;
-- content hash/checksum;
-- writable decision;
-- validation result.
-
-==================================================
-9. REQUEST PREVIEW ONLY
-==================================================
-
-Call the installed trusted write workflow only far enough to create a real
-preview record.
-
-Do not provide a previewId on the first request.
-
-The expected first-call behavior is:
-
-- deterministic validation passes;
-- a real Preview ID is issued;
-- the complete artifact manifest is frozen;
-- zero files are created;
-- zero files are modified;
-- zero files are deleted;
-- explicit approval remains pending;
-- no write authorization is consumed;
-- no user approval is fabricated.
-
-Do not approve the preview in this phase.
-
-Do not invoke the second write turn.
-
-Do not simulate or fabricate a Preview ID.
-
-==================================================
-10. ZERO-WRITE VERIFICATION
-==================================================
-
-After preview creation, verify directly that:
-
-- job_conf/** is still absent;
-- env_conf/** is still absent;
-- no include or SQL file was created;
-- no workflow customization asset changed;
-- the STTM did not change;
-- no protected root was modified;
-- no artifact exists merely because it appeared in the preview manifest.
-
-Required:
-
-PREVIEW_ZERO_NEW_FILES: YES
-PREVIEW_ZERO_MODIFIED_FILES: YES
-PREVIEW_ZERO_DELETED_FILES: YES
-WRITE_EXECUTED: NO
-
-==================================================
-11. STOP POINT
-==================================================
-
-Stop immediately after a valid Preview ID and zero-write proof are obtained.
-
-Do not accept the preview.
-Do not reject the preview unless deterministic validation itself fails.
-Do not continue to approval/write testing.
-Do not close or discard the active preview state.
-
-Preserve the Chat/session because Phase 2 will use the exact Preview ID and
-identical content.
-
-==================================================
-12. FINAL REPORT
-==================================================
+9. FINAL REPORT
 
 Return:
 
-ACTIVE_EXTENSION_ID: <value>
-ACTIVE_EXTENSION_VERSION: <value>
-WORKSPACE_CLASSIFICATION: DEVELOPMENT_TEST_WORKSPACE
-WORKSPACE_ROOT: <absolute path>
-WORKSPACE_ROOT_COUNT: <number>
-WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
-STTM_INPUT_FOUND: YES/NO
-STTM_STRUCTURED_MAPPING_COUNT: <number>
-STTM_RAW_FALLBACK_REQUIRED: YES/NO
-CONTEXT_FILES_CONSUMED: <exact list>
-TARGET_DECISION: <value>
-FRAMEWORK_SOURCE_REQUIRED: YES/NO
-PACKAGED_CONTRACT_RESOLVED: YES/NO
-CRITICAL_CONFIG_KEYS_COUNT: <number>
-PACKAGED_EXAMPLE_SEARCH_PASS: YES/NO
-CANONICAL_MODULE_ENVELOPE: YES/NO
-MODULE_COUNT: <number>
-DATAFRAME_WRITER_PATH_BASED: YES/NO
-UNITY_CATALOG_DIRECT_WRITE_REQUESTED: NO
-UNSUPPORTED_UNITY_CATALOG_DIAGNOSTIC_TRIGGERED: YES/NO
-PREVIEW_ID: <real value or NONE>
-PREVIEW_ARTIFACT_COUNT: <number>
-PREVIEW_ARTIFACT_MANIFEST: <complete list>
-PREVIEW_ZERO_NEW_FILES: YES/NO
-PREVIEW_ZERO_MODIFIED_FILES: YES/NO
-PREVIEW_ZERO_DELETED_FILES: YES/NO
-PREVIEW_PATHS_INSIDE_WORKSPACE_ROOT: YES/NO
-EXPLICIT_APPROVAL_REQUIRED: YES/NO
-APPROVAL_STILL_PENDING: YES/NO
-WRITE_EXECUTED: NO
-SOURCE_CODE_MODIFIED: NO
-REAL_DATA_ACCESSED: NO
-DEVELOPMENT_TEST_WORKSPACE_MUTATED: NO
-DEFERRED_CONTEXT_TRUST_FINDING_RECORDED: YES/NO
+REPOSITORY_ROOT: 
+ORIGIN: 
+BRANCH: 
+HEAD: 
+SOURCE_VERSION_BEFORE: 
+SOURCE_VERSION_AFTER: 
+VERSION_EDIT_REQUIRED: YES/NO
+AUTHORIZED_SOURCE_CHANGED_PATHS: 
+UNAUTHORIZED_SOURCE_CHANGED_PATHS: 
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+TRUSTED_JOB_CONFIG_ENVELOPE_DIRECT_SUITE_PASS: YES/NO
+REPAIR_8_FOCUSED_SUITES_PASS: YES/NO
+REPAIR_5_6_7_REGRESSION_SUITES_PASS: YES/NO
+FULL_UNIT_PASSING_COUNT: 
+FULL_UNIT_PENDING_COUNT: 
+FULL_UNIT_FAILURE_COUNT: 
+FULL_UNIT_FAILURES: 
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
+FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+INTERNAL_PACKAGE_VERSION: 
+INTERNAL_MANIFEST_VERSION: 
+JOB_CONFIG_CONTRACT_PRESENT: YES/NO
+JOB_CONFIG_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
+ORACLE_CONTRACT_PRESENT: YES/NO
+ORACLE_CONTRACT_SOURCE_PACKAGE_HASH_MATCH: YES/NO
+GATE_TO_FINAL_COMPARISON: PASS/FAIL/NOT_PERFORMED_NO_TRUSTED_BASELINE
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
+STAGED_FILES: 
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+PACKAGE_LOCK_CREATED: NO
+READY_TO_INSTALL_0_3_141: YES/NO
+READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
+SAFE_TO_COMMIT: NO
+SAFE_TO_RELEASE: NO
 
 PASS requires:
 
-- active extension 0.3.141;
-- exactly one Development Test Workspace root;
-- CREATE_NEW_JOB;
-- no framework source;
-- trusted packaged contract resolved;
-- at least one canonical module;
-- path-based dataframe_writer;
-- deterministic validation success;
-- a real Preview ID;
-- a complete manifest;
-- zero workspace writes;
-- explicit approval still pending.
+* correct repository identity;
+* source version 0.3.141;
+* only the authorized version-token source edit;
+* all required compile/lint/focused/regression gates pass;
+* zero new functional regressions;
+* zero new security regressions;
+* exact final VSIX verification passes;
+* internal package and manifest versions are 0.3.141;
+* trusted contracts are present and match source;
+* actual SHA-256 is calculated;
+* zero staged files;
+* no commit, push, tag, install, or Runtime QA.
 
 End exactly with one:
 
-QA_PHASE_1_RESULT: PASS
+BUILD_0_3_141_RESULT: PASS
 
-QA_PHASE_1_RESULT: FAIL
+BUILD_0_3_141_RESULT: FAIL_VALIDATION_GATE
 
-QA_PHASE_1_RESULT: BLOCKED
+BUILD_0_3_141_RESULT: FAIL_PACKAGE_VERIFICATION
+
+BUILD_0_3_141_RESULT: FAIL_UNAUTHORIZED_CHANGE
+
+BUILD_0_3_141_RESULT: BLOCKED_IDENTITY_MISMATCH
+
+BUILD_0_3_141_RESULT: BLOCKED_STAGED_CHANGES
+
+BUILD_0_3_141_RESULT: BLOCKED_VERSION_MISMATCH
+
+BUILD_0_3_141_RESULT: BLOCKED_UNEXPECTED_EXISTING_ARTIFACT
