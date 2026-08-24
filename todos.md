@@ -1,302 +1,315 @@
-TASK: PHASE_2D_PR16_POST_PR15_MERGE_VERIFICATION_AND_RETARGET
+TASK: HF1_V2_INSTALL_EXACT_VERIFIED_0_3_141_AND_VERIFY_RUNTIME_ACTIVATION
 
-Perform one bounded post-merge verification and, only if every gate passes,
-retarget PR #16 from its current stacked base to main.
+Execute this task only from the single-root Development Test Workspace.
 
-Repository:
-TD-Enterprise/kmai-td-genie
+Expected workspace:
 
-Required logical repository root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+* classification: DEVELOPMENT_TEST_WORKSPACE;
+* expected root folder name: etl-acz9999-hf1v2-qa;
+* exactly one open workspace root;
+* no extension-source checkout;
+* no etl-framework-adb;
+* synthetic QA inputs only;
+* workflow customization already initialized;
+* STTM present at:
+    sttm/qa_hf1v2_demo_sttm.md
 
-The equivalent physical path under /app1 is acceptable only if realpath proves
-that it is the same permanent Phase 2E worktree.
+This task installs the exact independently verified 0.3.141 VSIX and determines
+whether the current Extension Host is actually running it.
 
-This task authorizes exactly one GitHub mutation:
+Do not run Runtime QA Phase 1.
+Do not create a Preview ID.
+Do not approve or execute ETL writes.
+Do not create job_conf/** or env_conf/**.
+Do not modify the STTM or workflow customization.
+Do not access Databricks or real data.
+Do not commit, push, install dependencies, or modify source code.
 
-    Change PR #16 base branch from:
-        phase2/provider-abstraction-foundation
-    to:
-        main
+The only permitted access outside the Development Test Workspace is read-only
+access to this exact verified artifact:
 
-No other mutation is authorized.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
 
-==================================================
-1. MANDATORY WORKSPACE GATE
-==================================================
-
-Before reading any repository file, verify:
-
-- pwd;
-- pwd -P;
-- realpath of the required logical root;
-- current repository identity;
-- current branch and HEAD;
-- git status --porcelain.
-
-The active workspace must resolve to the permanent Phase 2E repository root.
-
-Do not read, search, inspect, or modify:
-
-- the stale primary checkout;
-- branch asktd_v2;
-- sibling repositories;
-- ETL/UCA workspaces;
-- /tmp worktrees.
-
-If the workspace does not match, stop without mutation and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_WRONG_WORKSPACE
-
-Do not change branches, fetch, pull, reset, stash, clean, rebase, merge,
-cherry-pick, or modify Git configuration.
+Do not inspect the containing source repository or any other file within it.
 
 ==================================================
-2. PERMITTED PRIOR EVIDENCE
-==================================================
 
-Read these reports completely, from outside the Git repository:
+1. VERIFY DEVELOPMENT TEST WORKSPACE
+    ==================================================
 
-1.
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR_STACK_READINESS_2026-08-23.md
+Capture and report:
 
-2.
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_FINALIZATION_2026-08-23.md
+* absolute workspace root;
+* workspace root count;
+* root folder name;
+* STTM presence;
+* workflow customization presence;
+* existing job_conf file count;
+* existing env_conf file count;
+* existing generated ETL artifact count;
+* extension-source checkout absence;
+* etl-framework-adb absence.
 
-Treat them as evidence indexes only. Independently verify all decisive live
-values.
+Required:
 
-Do not read unrelated reports, the stale checkout, Library exports, or Phase 2F
-decision documents.
+WORKSPACE_CLASSIFICATION: DEVELOPMENT_TEST_WORKSPACE
+WORKSPACE_ROOT_COUNT: 1
+STTM_INPUT_FOUND: YES
+WORKFLOW_SETUP_ALREADY_PRESENT: YES
+EXISTING_JOB_CONF_COUNT: 0
+EXISTING_ENV_CONF_COUNT: 0
+SOURCE_CHECKOUT_PRESENT: NO
+ETL_FRAMEWORK_ADB_PRESENT: NO
 
-==================================================
-3. AUTHENTICATION AND SAFETY
-==================================================
+If the workspace fails these requirements, do not install anything. Stop with:
 
-Use authenticated GitHub read access already available in the environment.
-
-If the stored gh account token is invalid, do not repair it, log in, log out,
-rewrite hosts.yml, print credentials, or persist a token.
-
-You may use the same existing credential-helper-based method that previously
-authorized GitHub reads and the PR #17 push/creation.
-
-Never print, copy, save, or expose any credential.
-
-All GitHub requests before section 6 must be read-only.
-
-If authenticated access is unavailable, stop without mutation and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_GITHUB_ACCESS
+INSTALL_0_3_141_RESULT: BLOCKED_WORKSPACE_MISMATCH
 
 ==================================================
-4. VERIFY PR #15 POST-MERGE STATE
-==================================================
+2. VERIFY THE EXACT ARTIFACT BEFORE INSTALLATION
 
-Independently query the live GitHub state and verify:
+Verify the exact file:
 
-PR #15:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix
 
-- state: closed;
-- merged: true;
-- base branch: main;
-- head branch: phase2/provider-abstraction-foundation;
-- original candidate head SHA exactly:
+Expected identity:
 
-  d5472ae31081879329c224922244d87962737e8c
+EXPECTED_SIZE_BYTES:
+1250393
 
-- changed files: exactly 7;
-- additions/deletions: exactly +430/-28;
-- at least one eligible non-author approval exists;
-- the five previously reported checks succeeded;
-- exact full merge-commit SHA is obtained from GitHub.
+EXPECTED_SHA256:
+437427A915BEB7C0867DD2CE53C968161C99F43730004C702D87799390446B51
 
-Verify the merge commit:
+EXPECTED_EXTENSION_ID:
+td-etl.databricks-etl-copilot
 
-- is the current live main SHA;
-- has exactly two parents;
-- first parent is the previous main:
+EXPECTED_VERSION:
+0.3.141
 
-  9ca6567571772a9f4e1ab555d8a678e678c45d49
+Calculate the size and SHA-256 directly from the file immediately before
+installation.
 
-- second parent is the accepted Phase 2C.5 candidate:
+Read the internal package and manifest metadata and confirm:
 
-  d5472ae31081879329c224922244d87962737e8c
+* package version is 0.3.141;
+* manifest version is 0.3.141;
+* publisher is td-etl;
+* extension ID is td-etl.databricks-etl-copilot.
 
-- therefore Phase 2C.5 was merged using a merge commit, not squash or rebase;
-- d5472ae31081879329c224922244d87962737e8c is now an ancestor of main.
+If any identity value differs, do not install. Stop with:
 
-Do not silently trust the short SHA shown in the browser. Record the exact
-40-character merge SHA.
-
-If any value differs, stop without changing PR #16 and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_POSTMERGE_IDENTITY
+INSTALL_0_3_141_RESULT: BLOCKED_ARTIFACT_IDENTITY_MISMATCH
 
 ==================================================
-5. VERIFY PR #16 BEFORE RETARGETING
-==================================================
+3. CAPTURE PRE-INSTALL STATE
 
-Verify live PR #16 before making any mutation:
+Determine the VS Code product and profile used by this current Development Test
+Workspace.
 
-- state: open;
-- Draft: true;
-- merged: false;
-- base branch:
+Use the CLI associated with this exact VS Code product.
 
-  phase2/provider-abstraction-foundation
+Do not switch between VS Code Stable and Insiders.
+Do not guess an active profile name.
+Do not install into an unrelated profile.
 
-- head branch:
+Capture:
 
-  phase2/approved-recipe-pilot
+* VS Code product;
+* VS Code CLI executable;
+* active profile, when deterministically available;
+* installed version of td-etl.databricks-etl-copilot;
+* runtime-active version, when obtainable from etl_capabilities or live ETL
+    Copilot output.
 
-- exact head SHA:
+An extension listing is installation inventory only. It is not runtime activation
+proof.
 
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
+Expected prior runtime evidence is 0.3.140, but report the actual current value.
 
-- the head commit has the accepted Phase 2C.5 candidate as its single parent:
+If the active VS Code product/profile cannot be resolved safely, stop with:
 
-  d5472ae31081879329c224922244d87962737e8c
-
-- changed files: exactly 9;
-- additions/deletions: exactly +1431/-6;
-- no merge conflict;
-- no unexpected review, comment, head-force-push, base change, or candidate
-  drift has occurred.
-
-Also verify that the remote branch
-phase2/provider-abstraction-foundation still exists.
-
-Do not delete that branch. It must remain until PR #16 has been successfully
-retargeted and verified.
-
-If PR #16 does not match every expected identity and scope value, stop without
-mutation and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_CANDIDATE_DRIFT
+INSTALL_0_3_141_RESULT: BLOCKED_PROFILE_UNRESOLVED
 
 ==================================================
-6. THE ONLY AUTHORIZED MUTATION
-==================================================
+4. INSTALL THE EXACT VERIFIED VSIX
 
-Only after sections 1–5 pass, change PR #16’s base branch from:
+Install the exact verified artifact into the VS Code product/profile used by this
+Development Test Workspace.
 
-    phase2/provider-abstraction-foundation
+Use the equivalent of this canonical command, with the resolved current VS Code
+CLI and active profile when required:
 
-to:
+code –install-extension “C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.141.vsix” –force
 
-    main
+Do not install from Marketplace.
+Do not use another VSIX.
+Do not copy the VSIX into the Development Test Workspace.
+Do not uninstall the extension first.
+Do not modify the VSIX.
+Do not install dependencies.
 
-Use the GitHub API or another authenticated GitHub mechanism that performs only
-this base change.
+Capture:
 
-Do not:
+* exact installation command;
+* exit code;
+* complete installation output;
+* installed extension inventory after the command.
 
-- modify PR #16’s head;
-- push or force-push;
-- rebase or merge locally;
-- edit its title or description;
-- mark it ready for review;
-- request a reviewer;
-- submit an approval;
-- add a comment, label, milestone, or assignee;
-- close, reopen, or merge it;
-- trigger a workflow deliberately;
-- delete either parent branch;
-- modify PR #15 or PR #17.
+Required installed inventory:
 
-==================================================
-7. POST-RETARGET VERIFICATION
-==================================================
+td-etl.databricks-etl-copilot@0.3.141
 
-After the base change, independently re-read PR #16 and verify:
+If installation fails, stop with:
 
-- state remains open;
-- Draft remains true;
-- base is now main;
-- head remains phase2/approved-recipe-pilot;
-- head SHA remains exactly:
-
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-
-- changed files remain exactly 9;
-- additions/deletions remain exactly +1431/-6;
-- mergeable is true;
-- merge state is clean, or its equivalent indicates no conflict;
-- no head commit changed;
-- no approval was submitted;
-- no ready-for-review transition occurred.
-
-GitHub may temporarily return mergeability as unknown/null while recalculating.
-Use bounded read-only polling. If it remains unresolved, report it as a blocker;
-do not make another mutation.
-
-Verify additionally:
-
-- current main SHA is still the exact PR #15 merge commit obtained in section 4;
-- PR #15 remains merged;
-- PR #17 remains untouched with:
-  - state open;
-  - Draft true;
-  - base phase2/approved-recipe-pilot;
-  - head phase2/governed-field-records;
-  - exact head SHA:
-
-    0430613e6a9f1680338d8fc099e7960e5d46cac2
-
-- phase2/provider-abstraction-foundation still exists;
-- phase2/approved-recipe-pilot still exists;
-- the permanent worktree/index remains clean;
-- no repository file or local Git ref changed.
-
-Record whether retargeting created any check or workflow run, but do not trigger
-one manually. Zero new checks is not, by itself, candidate drift because the
-current pull_request workflow does not listen for the base-change edited event.
-
-If the post-retarget scope is not exactly 9 files and +1431/-6, or any other
-identity changed, stop and end with:
-
-PHASE_2D_PR16_RETARGET_BLOCKED_POSTCHANGE_VALIDATION
-
-Do not attempt to undo or compensate automatically. Report the exact live state.
+INSTALL_0_3_141_RESULT: FAIL_INSTALLATION
 
 ==================================================
-8. REPORT
+5. HANDLE EXTENSION HOST RELOAD SAFELY
+
+Do not claim that 0.3.141 is runtime-active merely because installation succeeded
+or the installed-extension inventory reports 0.3.141.
+
+Check the live Extension Host through:
+
+* etl_capabilities, when available;
+* live Databricks ETL Copilot output;
+* explicit extension activation output.
+
+If the current Extension Host still reports 0.3.140, a reload is required.
+
+If a supported VS Code action is available to request:
+
+Developer: Reload Window
+
+invoke that action.
+
+Do not terminate VS Code forcibly.
+Do not kill processes.
+Do not use a different VS Code window.
+Do not continue Runtime QA in the old Extension Host.
+
+If reloading interrupts this agent turn, preserve the Development Test Workspace
+unchanged. After VS Code reloads, this same task may be rerun; it must recognize
+the already-installed 0.3.141 and skip unnecessary reinstallation when the exact
+artifact identity and installed version already match.
+
+If the Agent cannot invoke the supported reload action, stop cleanly with:
+
+HOST_RELOAD_REQUIRED: YES
+INSTALL_0_3_141_RESULT: PASS_RELOAD_REQUIRED
+
 ==================================================
+6. POST-RELOAD RUNTIME ACTIVATION PROOF
 
-Write one report outside the Git repository:
+This section may run only in a freshly reloaded Extension Host.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2D_PR16_RETARGET_2026-08-24.md
+Use installed-extension runtime evidence such as etl_capabilities and live ETL
+Copilot activation output.
 
-The report must include:
+Required:
 
-1. exact workspace and no-change attestation;
-2. exact PR #15 merge commit and both parents;
-3. verified current main SHA;
-4. PR #15 final approval/check/merge evidence;
-5. PR #16 complete before-retarget state;
-6. the exact single mutation performed;
-7. PR #16 complete after-retarget state;
-8. changed-file inventory/count and additions/deletions;
-9. mergeability and conflict state;
-10. check/workflow state before and after;
-11. confirmation that PR #17 was untouched;
-12. confirmation that no parent branch was deleted;
-13. confirmation that no repository file, commit, branch head, runtime flag, or
-    Git configuration was changed;
-14. exact next permitted action.
+ACTIVE_EXTENSION_ID:
+td-etl.databricks-etl-copilot
 
-The next permitted action after a successful report is only:
+ACTIVE_EXTENSION_VERSION:
+0.3.141
 
-- mark PR #16 ready for review;
-- obtain its one eligible non-author approval;
-- reverify its exact head and 9-file scope;
-- then merge it using a merge commit.
+INSTALLED_VERSION:
+0.3.141
 
-Those actions are not authorized by this prompt.
+Do not treat package metadata, the VSIX filename, CLI installation output, or an
+installed-directory listing alone as runtime activation proof.
 
-End with exactly one terminal token:
+If the installed inventory is 0.3.141 but the freshly reloaded runtime still
+reports 0.3.140, stop with:
 
-PHASE_2D_PR16_RETARGET_COMPLETE
+INSTALL_0_3_141_RESULT: FAIL_STALE_RUNTIME_ACTIVATION
 
-or one applicable BLOCKED token defined above.
+If runtime identity cannot be obtained, stop with:
+
+INSTALL_0_3_141_RESULT: BLOCKED_RUNTIME_IDENTITY_UNPROVEN
+
+If runtime identity is exactly 0.3.141:
+
+RUNTIME_ACTIVATION_PROVEN: YES
+READY_FOR_RUNTIME_QA_PHASE_1: YES
+
+Stop without starting Runtime QA Phase 1.
+
+==================================================
+7. ZERO-WORKSPACE-MUTATION CHECK
+
+Compare the Development Test Workspace before and after installation/activation.
+
+Required:
+
+NEW_JOB_CONF_FILES: 0
+NEW_ENV_CONF_FILES: 0
+NEW_GENERATED_ETL_ARTIFACTS: 0
+STTM_MODIFIED: NO
+WORKFLOW_CUSTOMIZATION_MODIFIED: NO
+WORKSPACE_FILES_CREATED: 0
+WORKSPACE_FILES_MODIFIED: 0
+WORKSPACE_FILES_DELETED: 0
+PREVIEW_ID_CREATED: NO
+ETL_WRITE_EXECUTED: NO
+REAL_DATA_ACCESSED: NO
+SOURCE_REPOSITORY_MODIFIED: NO
+RUNTIME_QA_STARTED: NO
+
+==================================================
+8. FINAL REPORT
+
+Return:
+
+WORKSPACE_CLASSIFICATION: 
+WORKSPACE_ROOT: 
+WORKSPACE_ROOT_COUNT: 
+STTM_INPUT_FOUND: YES/NO
+WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
+EXISTING_JOB_CONF_COUNT: 
+EXISTING_ENV_CONF_COUNT: 
+VS_CODE_PRODUCT: 
+VS_CODE_CLI: 
+ACTIVE_PROFILE: 
+VERIFIED_VSIX_PATH: 
+VERIFIED_VSIX_SIZE_BYTES: 
+VERIFIED_VSIX_SHA256: 
+ARTIFACT_IDENTITY_MATCH: YES/NO
+INSTALLED_VERSION_BEFORE: 
+RUNTIME_VERSION_BEFORE: 
+INSTALL_COMMAND: 
+INSTALL_EXIT_CODE: 
+INSTALLED_VERSION_AFTER: 
+HOST_RELOAD_REQUESTED: YES/NO
+HOST_RELOAD_REQUIRED: YES/NO
+POST_RELOAD_RUNTIME_CHECK_EXECUTED: YES/NO
+ACTIVE_EXTENSION_ID: 
+ACTIVE_EXTENSION_VERSION: 
+RUNTIME_ACTIVATION_PROVEN: YES/NO
+WORKSPACE_FILES_CREATED: 
+WORKSPACE_FILES_MODIFIED: 
+WORKSPACE_FILES_DELETED: 
+PREVIEW_ID_CREATED: NO
+ETL_WRITE_EXECUTED: NO
+SOURCE_REPOSITORY_MODIFIED: NO
+RUNTIME_QA_STARTED: NO
+READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
+
+End exactly with one:
+
+INSTALL_0_3_141_RESULT: PASS
+
+INSTALL_0_3_141_RESULT: PASS_RELOAD_REQUIRED
+
+INSTALL_0_3_141_RESULT: FAIL_INSTALLATION
+
+INSTALL_0_3_141_RESULT: FAIL_STALE_RUNTIME_ACTIVATION
+
+INSTALL_0_3_141_RESULT: BLOCKED_WORKSPACE_MISMATCH
+
+INSTALL_0_3_141_RESULT: BLOCKED_ARTIFACT_IDENTITY_MISMATCH
+
+INSTALL_0_3_141_RESULT: BLOCKED_PROFILE_UNRESOLVED
+
+INSTALL_0_3_141_RESULT: BLOCKED_RUNTIME_IDENTITY_UNPROVEN
