@@ -1,410 +1,468 @@
-TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_INDEPENDENT_READ_ONLY_REAUDIT
+TASK: ASKTD_PHASE_2F_BOUNDED_READ_ONLY_DISCOVERY
 
-Perform an independent, adversarial, READ-ONLY re-audit of the current
-Repair-8 working tree.
+You are performing one bounded, read-only discovery task for the existing AskTD / KMAI implementation.
 
-IMPORTANT:
+This is not an implementation task.
 
-Do NOT trust the prior implementation report as evidence.
-Reconstruct conclusions independently from the live working tree, tests,
-existing build artifacts, and executable code.
+Do not redesign the system, start Phase 2F coding, or make any repository or GitHub mutation.
 
-DO NOT modify any file.
-DO NOT repair anything.
-DO NOT build a VSIX.
-DO NOT install or download dependencies.
-DO NOT stage, commit, push, reset, restore, checkout, stash, clean, rename,
-delete, or regenerate anything.
-DO NOT regenerate Phase-H baselines.
-DO NOT modify any development test workspace or consumer repository.
+1. Objective
 
-This is an independent release-gate investigation only.
+Determine the smallest safe and evidence-backed Phase 2F scope for governed Approved Recipe dependency-lifecycle evaluation, building directly on the finalized Phase 2E implementation.
 
-==================================================
-1. VERIFY REPOSITORY IDENTITY
-==================================================
+The candidate lifecycle vocabulary to investigate is:
 
-Expected software-development repository:
+* VALID
+* REVIEW_REQUIRED
+* BROKEN
+* NOT_APPROVED
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Do not assume these states, their precedence, persistence model, approval evidence, or transition rules are already approved.
 
-Expected branch:
+Classify every conclusion as one of:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+* CURRENT / IMPLEMENTED
+* TECHNICALLY VALIDATED
+* WORKING DECISION
+* WORKING ASSUMPTION
+* RECOMMENDED
+* OPEN
+* DEFERRED
 
-Expected base HEAD:
+The output must be a discovery report and recommendation only. Do not create an implementation prompt.
 
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Current PR-workflow clarification
 
-Expected source version:
+The owner has confirmed that each existing PR requires only one approval from an eligible person other than the PR author.
 
-0.3.140
+That approval is being handled separately.
 
-Expected publisher:
+Do not:
 
-td-etl
+* reopen the PR approval-policy investigation;
+* treat CODEOWNERS repair as part of Phase 2F;
+* request reviewers;
+* approve, mark ready, retarget, merge, or modify PRs #15, #16, or #17.
 
-Verify independently.
+2. Required workspace gate
 
-Capture:
+The required logical repository root is:
 
-- current changed paths;
-- untracked paths;
-- staged count;
-- .github/** status;
-- package.json version;
-- package-lock.json status;
-- existing VSIX artifacts and their mtimes;
-- source mtimes for Repair-8 files.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Do not mutate anything while collecting evidence.
+The accepted physical equivalent is:
 
-==================================================
-2. RECONSTRUCT REPAIR-8 CHANGE SURFACE
-==================================================
+/app1/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Independently determine whether Repair 8 changed exactly the authorized
-21-path set:
+Before reading any project file:
 
-NEW:
-1. src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-2. resources/framework/contracts/job-config-envelope.v1.json
-3. src/test/suite/trustedJobConfigEnvelope.test.ts
+1. run pwd;
+2. run pwd -P;
+3. resolve the real path of the required logical root;
+4. confirm that the current physical directory and required logical root resolve to the same directory.
 
-AUTHORIZED EXISTING PATHS:
-4. src/core/trusted/FirstRenderInvariantGuard.ts
-5. src/core/trusted/index.ts
-6. src/core/utils/ModuleSequenceExtractor.ts
-7. src/core/framework/FrameworkDiscoveryService.ts
-8. src/tools/EtlReadOnlyToolService.ts
-9. src/core/readiness/ReadinessProfileCatalog.ts
-10. src/core/readiness/JobDevelopmentReadinessEvaluator.ts
-11. resources/copilot/context/etl-module-reference.md
-12. resources/copilot/knowledge/examples/dataframe-writer-export.example.json
-13. resources/copilot/knowledge/examples/curated-load-enrich.example.json
-14. src/test/verifyVsixContents.ts
-15. src/test/suite/configExplain.test.ts
-16. src/test/suite/firstRenderInvariantGuard.test.ts
-17. src/test/suite/EtlReadOnlyToolService.test.ts
-18. src/test/suite/jobDevelopmentReadiness.test.ts
-19. src/test/suite/packageAssets.test.ts
-20. src/test/suite/etlActionTools.test.ts
-21. src/test/suite/hf1OracleFreshConsumer.test.ts
+If they are not aliases of the same permanent Phase 2E worktree, stop immediately.
 
-Distinguish:
+Do not read or search:
 
-- Repair-8 changes;
-- accepted Repair-5/6/7 pre-existing changes;
-- unrelated pre-existing working-tree changes;
-- any unauthorized Repair-8 mutation.
+* the stale primary checkout;
+* branch asktd_v2;
+* any sibling repository;
+* ETL or UCA workspaces;
+* /tmp worktrees.
 
-Do not infer scope only from git status.
+Do not perform a recursive search from any parent directory.
 
-==================================================
-3. AUDIT THE TRUSTED CONTRACT
-==================================================
+3. Required Phase 2E identity
 
-Inspect independently:
+Verify read-only that:
 
-resources/framework/contracts/job-config-envelope.v1.json
+* branch is phase2/governed-field-records;
+* local HEAD is exactly:
+    0430613e6a9f1680338d8fc099e7960e5d46cac2
+* the worktree and index are clean;
+* there are no commits beyond this finalized Phase 2E commit;
+* remote phase2/governed-field-records resolves to the same SHA through read-only remote inspection;
+* PR #17 base remains phase2/approved-recipe-pilot;
+* PR #17 head remains phase2/governed-field-records;
+* PR #17 head SHA remains the exact Phase 2E SHA;
+* the Phase 2E committed 12-file digest remains:
+    d24d75ddc9cd38f699aefbda7392292d7b0cb708d06416cbb53b846a293915be
+* no Phase 2F branch, commit, push, worktree, or PR exists unexpectedly.
 
-and:
+Record current PR states, but do not mutate them.
 
-src/core/framework/TrustedJobConfigEnvelopeResolver.ts
+A Draft/review-state-only change is not candidate drift. A head-SHA, base, ancestry, committed-content, or unexpected Phase 2F implementation change is material drift.
 
-Verify:
+Do not run git fetch, update local refs, switch branches, or authenticate/reconfigure GitHub.
 
-- canonical modules-object envelope;
-- stage-keyed modules;
-- options.module;
-- options.method;
-- supported module types;
-- required/optional fields;
-- dataframe_writer destination semantics;
-- critical config keys;
-- strict whitelist;
-- version validation;
-- integrity validation;
-- deterministic fingerprint;
-- secret/content scanning;
-- installed-resource resolution;
-- no normal process.cwd() dependency;
-- mutation isolation;
-- fail-closed behavior;
-- consumer-editable context cannot override authority.
+If authenticated read-only GitHub access is unavailable, report exactly what could and could not be verified. Do not repair credentials.
 
-Confirm the contract is machine-authoritative and:
+4. Permitted external reports
+
+Read these reports completely from the reports directory outside the repository:
+
+1. ASKTD_PHASE_2E_F01_TARGETED_INDEPENDENT_REREVIEW_RERUN_2026-08-23.md
+2. ASKTD_PHASE_2E_FINALIZATION_2026-08-23.md
+3. ASKTD_PHASE_2E_PR_STACK_READINESS_2026-08-23.md
+
+Treat the final committed code as authoritative for implementation details and use the reports only as evidence indexes and completion-state records.
+
+Do not read:
+
+* the procedurally failed targeted re-review report;
+* unrelated reports;
+* ETL or UCA reports;
+* Library exports not explicitly listed here.
+
+The PR-stack report’s CODEOWNERS observation remains a separate governance backlog item and is not a Phase 2F discovery blocker.
+
+5. Repository evidence to inspect
+
+Read the relevant files completely, including at minimum:
+
+* docs/adr/0004-phase2d-approved-recipe-pilot.md
+* docs/adr/0005-phase2e-governed-field-records.md
+* docs/adr/README.md
+* src/backend/app/available_data/registry_contract.py
+* src/backend/app/available_data/field_evidence.py
+* src/backend/app/recipes/approved_recipes.py
+* src/backend/app/recipes/dependency_fingerprint.py
+* every current production call site for:
+    * Approved Recipe validation;
+    * Governed Semantic Plan validation;
+    * dependency resolution;
+    * dependency fingerprinting;
+    * authoritative builder resolution and invocation;
+* all directly relevant Phase 2D and Phase 2E tests.
+
+Search only within this repository root for existing lifecycle, approval, fingerprint, registry-version, recipe-version, provenance, and recipe-state concepts.
+
+Do not infer behavior from names alone. Trace actual production call paths and test evidence.
+
+6. Exact research questions
+
+Answer every question with file, function, and line evidence.
+
+A. Existing approval and lifecycle contract
+
+1. What approval, lifecycle, enabled/disabled, version, and provenance attributes already exist on ApprovedRecipe or adjacent contracts?
+2. Does the current single pilot recipe contain durable evidence of:
+    * who or what approved it;
+    * when it was approved;
+    * which recipe version was approved;
+    * which governed dependencies were approved?
+3. Is any historical approved dependency fingerprint currently stored or compared?
+4. Which current checks are deterministic contracts and which are only names, constants, or hard-coded assumptions?
+5. Does any existing state already overlap with:
+    * VALID;
+    * REVIEW_REQUIRED;
+    * BROKEN;
+    * NOT_APPROVED?
+6. Does the current APPROVED recipe state represent approval evidence, runtime validity, or both?
+
+B. Current Phase 2E dependency behavior
+
+1. Where is the current dependency fingerprint computed?
+2. Which exact dataset and field attributes participate?
+3. Which unrelated metadata edits are intentionally fingerprint-invariant?
+4. Which referenced material changes alter the fingerprint?
+5. Which missing, renamed, unknown, duplicated, or conflicting references fail closed?
+6. At what exact point does validation occur relative to:
+    * recipe resolution;
+    * parameter validation;
+    * registry/version resolution;
+    * semantic-plan validation;
+    * dependency resolution;
+    * fingerprint computation;
+    * builder resolution;
+    * data-source creation;
+    * schema probing;
+    * SQL generation;
+    * SQL execution?
+7. Can a failed lifecycle or dependency decision be guaranteed to occur before all builder, I/O, and execution activity?
 
-resources/copilot/context/**
+C. Approved baseline and self-blessing risk
 
-remains advisory only.
+Investigate how an immutable approved dependency fingerprint could be represented without allowing the runtime to calculate the current fingerprint and immediately treat that same value as approved.
 
-==================================================
-4. AUDIT CANONICAL JOB-CONFIG ENFORCEMENT
-==================================================
+This self-blessing scenario must explicitly fail:
 
-Trace the real runtime call path.
+current fingerprint → store as approved automatically → compare with itself → VALID
 
-Verify that fresh-consumer agent-authored job config reaches deterministic
-enforcement before preview/write.
+For every option, answer:
 
-Specifically determine whether:
+* What is the source of approval authority?
+* When is the approved fingerprint captured?
+* Is it immutable after approval?
+* How is recipe-version identity represented?
+* How is approval provenance represented?
+* What happens when no approved baseline exists?
+* What prevents silent automatic approval?
+* What requires explicit reapproval?
+* Can application startup or registry construction silently replace the approved baseline?
+* Does the option require persistence, migration, API, UI, or workflow changes?
 
-NON_CANONICAL_JOB_CONFIG_ENVELOPE
+Do not decide that the approved baseline belongs inside ApprovedRecipe, a separate registry, or a persistent store before comparing the evidence-backed options.
 
-is enforced for all relevant paths.
+D. Lifecycle semantics and precedence
 
-Test/reason about:
+Produce a proposed deterministic decision matrix covering at least:
 
-- canonical colon HOCON;
-- canonical equals HOCON;
-- legal omitted-separator-before-{ HOCON;
-- quoted JSON;
-- modules array;
-- missing modules envelope;
-- missing options.module;
-- malformed module structure.
+* recipe has no valid approval evidence;
+* recipe approval exists and all referenced entities resolve unchanged;
+* approval exists but a referenced entity materially changes;
+* approval exists but a referenced field is missing or renamed;
+* approval exists but dependency records conflict;
+* recipe definition changes without reapproval;
+* recipe version changes without matching approval evidence;
+* unrelated metadata changes;
+* semantically equivalent reference reordering;
+* feature flag OFF;
+* malformed or unavailable registry evidence.
 
-Confirm no alternate production route bypasses the invariant.
+For each case, state:
 
-==================================================
-5. AUDIT DATAFRAME_WRITER / UNITY CATALOG BEHAVIOR
-==================================================
+* proposed lifecycle result;
+* whether execution is allowed;
+* whether builder resolution is allowed;
+* whether reapproval is required;
+* whether the result is a technical conclusion or an open policy decision.
 
-Independently inspect executable framework evidence and extension behavior.
+Explicitly investigate precedence when multiple conditions apply, especially:
 
-Confirm whether the current dataframe_writer supports direct Unity Catalog
-three-part table-name writes.
+* NOT_APPROVED versus BROKEN;
+* REVIEW_REQUIRED versus BROKEN;
+* recipe-definition change versus dependency change;
+* malformed evidence versus missing approval;
+* unknown reference versus material fingerprint change.
 
-Do NOT assume the implementation report is correct.
+Do not silently decide product or governance policy. Mark unresolved rules OPEN with an owner and confirmation requirement.
 
-If unsupported, verify:
+E. Separation of concerns
 
-- canonical module detection still succeeds;
-- explicit UNSUPPORTED_UNITY_CATALOG_TARGET is produced;
-- readiness returns unsupported_unity_catalog_target;
-- it does not degrade to "No modules detected in job config";
-- it does not degrade only to "Confirm output path or table";
-- no Preview ID is issued;
-- no write occurs.
+Confirm that lifecycle state:
 
-Also confirm supported path-based dataframe_writer behavior still succeeds.
+* is not authorization;
+* cannot grant dataset, field, row, or column access;
+* is determined by deterministic code rather than an LLM;
+* cannot bypass existing authorization or SQL policy;
+* fails closed before builder, data-source, schema-probe, or SQL activity;
+* does not expose physical-object details through new denial messages;
+* does not treat descriptive metadata as permission evidence;
+* does not change the existing denial-message backlog item;
+* does not introduce relationship or graph semantics.
 
-==================================================
-6. AUDIT FRESH-CONSUMER FALLBACK
-==================================================
+F. Feature-flag and rollback boundary
 
-With no framework checkout available, verify from tests/code that:
+Determine the smallest safe feature-flag boundary for Phase 2F.
 
-- trusted packaged contract resolves;
-- criticalConfigKeys are non-empty;
-- packaged examples are searchable;
-- zero local search roots does not incorrectly produce
-  no_search_roots_available when packaged examples exist;
-- local/package precedence is deterministic;
-- no framework source is required;
-- no consumer-editable context becomes authoritative.
+The recommendation must preserve exact Phase 2E behavior when the Phase 2F flag is absent or false.
 
-==================================================
-7. AUDIT PREVIEW / WRITE SECURITY
-==================================================
+Identify:
+
+* proposed flag ownership and default;
+* exact flag-off behavior;
+* whether flag-off avoids reading approval-baseline evidence;
+* whether existing Phase 2E traces remain byte-for-byte or semantically identical;
+* rollback proof;
+* tests required to prove no Phase 2E registry, fingerprint, recipe, authorization, or SQL behavior changes.
+
+Do not enable any flag in an environment.
+
+G. Options analysis
+
+Compare at least these bounded alternatives without implementing them:
 
-Verify independently that the Repair-8 positive fresh-consumer path:
+2F-A
 
-- classifies CREATE_NEW_JOB;
-- produces canonical job config;
-- issues a real Preview ID;
-- performs zero filesystem writes during preview;
-- requires explicit approval before write;
-- remains protected by Repair-5/6/7 authorization and physical-containment
-  controls.
+Immutable approved dependency snapshot or fingerprint attached to the single pilot recipe.
 
-Trace production code rather than relying only on test names.
+2F-B
 
-Confirm Repair 8 did not weaken:
+Separate deterministic in-process approval-record registry keyed by recipe ID and recipe version.
 
-- TrustedWriteApprovalStore;
-- WriteAuthorization;
-- physical containment;
-- root selection;
-- replay protection;
-- stale-preview protection;
-- manifest binding.
+2F-C
 
-==================================================
-8. RUN READ-ONLY VALIDATION
-==================================================
+Persistent approval/control-plane store and approval/reapproval workflow.
 
-Using already-installed dependencies only, run:
+For each option provide:
+
+* benefits;
+* risks;
+* source of approval authority;
+* self-blessing protections;
+* affected contracts;
+* migration or persistence requirements;
+* testability;
+* rollback behavior;
+* scalability;
+* security implications;
+* operational ownership;
+* whether it is appropriate for Phase 2F or should be deferred.
 
-- compile;
-- lint;
-- all 8 Repair-8 focused suites;
-- relevant Repair-5/6/7 regression suites;
-- full unit suite.
+Recommend one option only when repository evidence supports it.
 
-Do not alter source or fixtures to make tests pass.
+Explain why the recommendation is the smallest safe continuation of Phase 2E and not a replacement architecture.
+
+H. Proposed bounded implementation surface
+
+Without editing anything, identify the exact likely file inventory for the recommended option:
+
+* existing files likely requiring modification;
+* files that might need creation;
+* coupled test files;
+* ADR additions or updates;
+* files explicitly not requiring changes.
 
-List every full-suite failure by exact test name.
+Explain why each proposed file belongs in scope.
 
-Classify each as exactly one:
+Do not include speculative refactors or unrelated cleanup.
 
-A. HISTORICAL_PROTECTED_FAILURE
-B. REPAIR_8_FUNCTIONAL_REGRESSION
-C. REPAIR_8_SECURITY_REGRESSION
-D. STALE_BUILD_ARTIFACT_FAILURE
-E. TEST_INFRASTRUCTURE_DEFECT
-F. UNRELATED_PRE_EXISTING_FAILURE
-G. UNKNOWN
+Do not create the files or prepare an implementation branch.
 
-Provide evidence for every classification.
+I. Acceptance criteria
 
-==================================================
-9. INVESTIGATE THE SIXTH FAILURE ADVERSARIALLY
-==================================================
+Produce a precise acceptance matrix for a later implementation, including:
 
-The implementation report claimed one additional full-suite failure:
-
-"VSIX machine-specific path scan > built VSIX (when present) contains no
-machine-specific absolute path"
-
-with missing entry:
-
-extension/resources/framework/contracts/job-config-envelope.v1.json
-
-Do NOT accept that explanation automatically.
-
-Investigate independently.
-
-Determine:
-
-1. Which exact VSIX file the test selected.
-2. Its absolute path.
-3. Its filename.
-4. Its internal extension version.
-5. Its creation/modification timestamp.
-6. Whether it predates Repair 8.
-7. Whether it contains the new job-config-envelope contract.
-8. Why the test selected that VSIX.
-9. Whether the source tree/package policy would include the new contract in a
-   freshly built VSIX.
-10. Whether the failure is caused by stale artifact selection, source/package
-    omission, verifier logic, or another defect.
-
-Inspect the VSIX read-only.
-
-Do NOT rebuild, rename, delete, or modify it.
-
-Also inspect every existing .vsix candidate and determine whether the test's
-selection algorithm can accidentally bind the unit suite to stale build
-artifacts.
-
-Answer explicitly:
-
-SIXTH_FAILURE_CAUSED_BY_REPAIR8_SOURCE_DEFECT: YES/NO/UNKNOWN
-
-SIXTH_FAILURE_CAUSED_BY_STALE_VSIX: YES/NO/UNKNOWN
-
-VSIX_SELECTION_LOGIC_ROBUST: YES/NO
-
-FRESH_VSIX_BUILD_REQUIRED_TO_CLOSE_GATE: YES/NO
-
-If the selection logic itself is defective, identify the exact code path and
-smallest future repair, but DO NOT implement it.
-
-==================================================
-10. FALSE-GREEN CHECK
-==================================================
-
-Determine whether the Repair-8 focused suite could pass while the actual
-runtime feature is broken.
-
-Use mutation/adversarial reasoning where possible without modifying source.
-
-Verify specifically that tests genuinely fail conceptually if:
-
-- trusted contract resolution is disabled;
-- canonical envelope guard is disabled;
-- packaged fallback criticalConfigKeys become empty;
-- packaged example search is disabled;
-- Unity Catalog rejection is removed;
-- preview writes to disk;
-- framework checkout becomes required.
-
-Do not claim mutation evidence unless actually executed safely without source
-mutation.
-
-==================================================
-11. NO-TOUCH / VERSION PROOF
-==================================================
-
-Confirm:
-
-VERSION: 0.3.140
-
-and verify:
-
-- package.json was not version-bumped by Repair 8;
-- no VSIX was built during this audit;
-- no dependencies installed/downloaded;
-- no consumer/development-test workspace mutated;
-- etl-framework-adb not mutated;
-- no Git mutation;
-- no .github/** mutation;
-- no Phase-H baseline regeneration.
-
-==================================================
-12. DECISION
-==================================================
-
-Return these markers:
-
-REPOSITORY_IDENTITY_MATCH: YES/NO
-REPAIR_8_SCOPE_MATCH: YES/NO
-UNAUTHORIZED_REPAIR_8_PATHS: <count>
-TRUSTED_CONTRACT_VALID: YES/NO
-TRUSTED_RESOLVER_VALID: YES/NO
-CANONICAL_ENVELOPE_RUNTIME_ENFORCED: YES/NO
-MODULE_EXTRACTION_CORRECT: YES/NO
-UNITY_CATALOG_DIRECT_WRITE_SUPPORTED: YES/NO
-UNITY_CATALOG_NEGATIVE_DIAGNOSTIC_CORRECT: YES/NO
-PACKAGED_FALLBACK_CORRECT: YES/NO
-PACKAGED_EXAMPLE_SEARCH_CORRECT: YES/NO
-FRESH_CONSUMER_PREVIEW_PATH_CORRECT: YES/NO
-PREVIEW_ZERO_WRITE_PROVEN: YES/NO
-REPAIR_5_6_7_SECURITY_PRESERVED: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-FOCUSED_REPAIR_8_TESTS_PASS: YES/NO
-FULL_UNIT_FAILURE_COUNT: <number>
-HISTORICAL_PROTECTED_FAILURE_COUNT: <number>
-REPAIR_8_FUNCTIONAL_REGRESSION_COUNT: <number>
-REPAIR_8_SECURITY_REGRESSION_COUNT: <number>
-STALE_BUILD_ARTIFACT_FAILURE_COUNT: <number>
-SIXTH_FAILURE_CAUSED_BY_REPAIR8_SOURCE_DEFECT: YES/NO/UNKNOWN
-SIXTH_FAILURE_CAUSED_BY_STALE_VSIX: YES/NO/UNKNOWN
-VSIX_SELECTION_LOGIC_ROBUST: YES/NO
-FRESH_VSIX_BUILD_REQUIRED_TO_CLOSE_GATE: YES/NO
-VERSION_REMAINS_0_3_140: YES/NO
-WORKING_TREE_MUTATED_BY_AUDIT: NO
-
-Then make exactly one recommendation:
-
-A. REPAIR_8_SOURCE_FIX_REQUIRED
-B. REPAIR_8_SOURCE_VALID_BUILD_GATE_REQUIRED
-C. REPAIR_8_READY_FOR_VERSION_BUMP
-D. REPAIR_8_SCOPE_AMENDMENT_REQUIRED
-
-Do not equate a stale VSIX failure with a source defect without proving it.
-
-Do not authorize version 0.3.141 yet unless all source/runtime findings are
-clean and the only unresolved condition is the intentionally deferred fresh
-package build.
-
-End exactly with one:
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_PASS
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_FAIL
-
-LOCAL_HOTFIX_HF1_V2_REPAIR_8_INDEPENDENT_REAUDIT_BLOCKED
+* exact approved-baseline match → VALID;
+* missing approval evidence → deterministic fail-closed result;
+* current fingerprint must never automatically become its own approved baseline;
+* material referenced change → fingerprint change and non-executable state;
+* missing or renamed reference → BROKEN or an explicitly identified open-policy result;
+* unrelated metadata change → remains valid;
+* reordered semantically equivalent dependencies → no false invalidation;
+* genuine duplicate conflict → fail closed;
+* recipe-definition or recipe-version change → explicit non-valid state until reapproval;
+* feature flag OFF → exact Phase 2E compatibility;
+* authorization-negative regressions;
+* provider-neutrality regressions;
+* golden baseline;
+* no builder, data-source, schema-probe, or SQL activity for non-executable states;
+* deterministic traces without sensitive metadata disclosure.
+
+7. Scope exclusions
+
+Do not implement, design in detail, or pull into Phase 2F:
+
+* relationship emission;
+* metadata, join, or lineage graphs;
+* graph databases;
+* additional Approved Recipe migration;
+* Redis or distributed/query-result caching;
+* Databricks, Genie, Unity Catalog, or Collibra integration;
+* cross-source execution or joins;
+* SQL-dialect compilation;
+* new authorization engines;
+* row/column authorization changes;
+* frontend changes;
+* deployment, Terraform, or runtime activation;
+* Orchestrator decomposition;
+* KPI, glossary, reporting, visualization, or output-template work;
+* repair of the existing denial-message disclosure backlog;
+* governed-dataset-reference versus emitted-table cross-check;
+* CI/workflow changes;
+* CODEOWNERS repair;
+* PR #15/#16/#17 review, readiness, retarget, approval, or merge actions;
+* Phase 2F branch/worktree creation;
+* Phase 2F implementation.
+
+Do not start Phase 2G or any later phase.
+
+8. Validation conduct
+
+This is read-only discovery.
+
+You may run existing focused tests or process-local probes only when necessary to resolve an ambiguity, with:
+
+* PYTHONDONTWRITEBYTECODE=1;
+* pytest cache disabled;
+* all coverage, JUnit, and temporary output directed outside the repository.
+
+Do not:
+
+* change tests;
+* regenerate baselines;
+* format files;
+* run tools that rewrite files;
+* create repository artifacts;
+* stage files;
+* commit;
+* push;
+* create or modify PRs;
+* change Git configuration.
+
+Record git status --porcelain and candidate identity before and after discovery.
+
+9. Decision register
+
+For every unresolved decision or assumption, record:
+
+* decision or assumption;
+* why it matters;
+* current evidence;
+* recommended owner;
+* confirmation required;
+* whether it blocks:
+    * Core implementation;
+    * runtime activation;
+    * integration;
+    * production;
+    * or only a later phase.
+
+Do not make enterprise architecture, product-policy, or approval-governance decisions on behalf of architects or owners.
+
+10. Required report
+
+Write exactly one persistent output outside the repository:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2F_DISCOVERY_2026-08-24.md
+
+The report must include:
+
+1. final discovery verdict;
+2. workspace, branch, SHA, remote, digest, and PR identity;
+3. evidence read;
+4. current implemented facts;
+5. Phase 2E-to-2F gap analysis;
+6. current production execution order;
+7. lifecycle decision matrix;
+8. approved-baseline and self-blessing analysis;
+9. option comparison;
+10. recommended bounded option;
+11. exact proposed file inventory;
+12. acceptance matrix;
+13. security and authorization-separation proof;
+14. feature-flag and rollback boundary;
+15. scope exclusions;
+16. decision register;
+17. implementation preconditions;
+18. exact recommended next action;
+19. no-change attestation.
+
+Do not place the report inside the Git repository.
+
+Do not generate a Phase 2F implementation prompt during this task.
+
+11. Terminal verdict
+
+End the report and final response with exactly one applicable terminal token:
+
+* PHASE_2F_DISCOVERY_COMPLETE
+* PHASE_2F_DISCOVERY_BLOCKED_WRONG_WORKSPACE
+* PHASE_2F_DISCOVERY_BLOCKED_PHASE2E_DRIFT
+* PHASE_2F_DISCOVERY_BLOCKED_EVIDENCE
+* PHASE_2F_DISCOVERY_BLOCKED_ENVIRONMENT
+
+A COMPLETE verdict means only that discovery and recommendation are complete.
+
+It does not authorize:
+
+* Phase 2F implementation;
+* branch or worktree creation;
+* commit or push;
+* PR changes;
+* runtime activation;
+* merging PRs;
+* CODEOWNERS or workflow repair;
+* Phase 2G.
