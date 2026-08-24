@@ -1,300 +1,859 @@
-AskTD / KMAI — Phase 2E F-01 Bounded Remediation Prompt
+TASK: LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_IMPLEMENTATION
 
-You are performing a narrowly bounded remediation of the single defect identified by the Phase 2E independent review.
+Implement the frozen Repair-8 scope in the SOFTWARE DEVELOPMENT ENVIRONMENT.
 
-This is not a redesign, general cleanup, commit, push, PR, runtime-activation, or Phase 2F task.
+This is a bounded source-code implementation and local-validation task.
 
-1. Required workspace
+Do NOT perform further architecture discovery unless a direct contradiction is
+found in one of the authorized files.
 
-Use only the permanent Phase 2E worktree:
+Do NOT change the extension version.
+Do NOT build or install a VSIX.
+Do NOT regenerate Phase-H baselines.
+Do NOT commit or push.
+Do NOT modify etl-framework-adb.
+Do NOT modify a development test workspace or any consumer repository.
+Do NOT install or download dependencies.
+Use only the already-installed dependencies.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records
+==================================================
+1. ACCEPTED AUTHORITATIVE DISCOVERY
+==================================================
 
-Repository implementation root:
+The previous discovery and scope amendment are accepted.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+Do not re-litigate these facts:
+
+CANONICAL_JOB_CONFIG_ENVELOPE_PROVEN: YES
+CANONICAL_MODULE_REPRESENTATION_PROVEN: YES
+DATAFRAME_WRITER_CONTRACT_PROVEN: YES
+UNITY_CATALOG_TABLE_WRITE_SUPPORTED: NO
+CRITICAL_CONFIG_KEYS_FALLBACK_DEFECT_CONFIRMED: YES
+PACKAGED_EXAMPLE_SEARCH_DEFECT_CONFIRMED: YES
+PACKAGE_SELF_CONSISTENCY_DEFECT_CONFIRMED: YES
+STTM_PARSER_REPAIR_REQUIRED: NO
+FRESH_CONSUMER_INTEGRATION_PATH_PROVEN: YES
+ETL_ACTION_TOOL_SERVICE_CHANGE_REQUIRED: NO
+ARTIFACT_GENERATION_PIPELINE_CHANGE_REQUIRED: NO
+JOB_CONFIG_RENDERER_RUNTIME_INTEGRATION_REQUIRED: NO
+VALIDATOR_PRODUCTION_CHANGE_REQUIRED: YES
+READINESS_PROFILE_PRODUCTION_CHANGE_REQUIRED: YES
+EXACT_TEST_FILE_INVENTORY_PROVEN: YES
+POSITIVE_PATH_BASED_QA_FIXTURE_PROVEN: YES
+UNITY_CATALOG_NEGATIVE_TEST_DEFINED: YES
+CONTEXT_TRUST_BOUNDARY_REMAINS_DEFERRED: YES
+NEXT_QA_VERSION_REMAINS_0_3_141: YES
+REPAIR_8_SCOPE_AMENDMENT_FROZEN: YES
+
+Canonical executable HOCON shape:
+
+modules {
+  <stage_key> {
+    ...
+    options {
+      module = <module_type>
+      method = process
+    }
+  }
+}
+
+The `modules` value is an object keyed by stage name.
+
+The following representations are non-canonical:
+
+- top-level module blocks without `modules { ... }`;
+- modules represented as a JSON array;
+- quoted-JSON `"modules"` syntax;
+- module entries without `options.module`;
+- packaged planning DTOs used directly as final HOCON.
+
+The current `dataframe_writer` does NOT support a Unity Catalog table by
+three-part table name.
+
+Its supported output contract is path-based, with JDBC/Synapse variants where
+explicitly documented by executable framework evidence.
+
+Do not add Unity Catalog support in Repair 8.
+
+==================================================
+2. SOFTWARE DEVELOPMENT ENVIRONMENT PREFLIGHT
+==================================================
+
+Expected root:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
 Expected branch:
 
-phase2/governed-field-records
+hotfix/hf1-oracle-fresh-consumer-v2
 
-Do not use or modify the stale primary checkout on asktd_v2.
+Expected base HEAD:
 
-2. Read the evidence first
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-Before editing anything, read these two reports completely:
+Expected current version:
 
-1. Implementation report:
-    /home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_IMPLEMENTATION_2026-08-23.md
-2. Independent-review report:
-    /home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_INDEPENDENT_REVIEW_2026-08-23.md
+0.3.140
 
-Treat the independent-review finding F-01 as the complete remediation scope.
+Expected publisher:
 
-Do not modify either existing report.
+td-etl
 
-3. Pre-remediation identity gate
+Verify all values before editing.
 
-Before editing, verify:
+The working tree already contains accepted Repair-5, Repair-6, and Repair-7
+changes.
 
-* local branch is phase2/governed-field-records;
-* local HEAD is exactly the accepted Phase 2D SHA:
-    5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-* the Git index is clean;
-* no commit exists beyond the Phase 2D parent;
-* the candidate remains unstaged and uncommitted;
-* the candidate still consists of exactly the expected 12 files;
-* no unrelated file has entered the candidate;
-* the pre-remediation combined candidate SHA-256 is exactly:
-    1c72d47be76b7e8d2f768005cca0254dd43761212a15637950fcfb0ed6d7cc35
+Do not reset, clean, restore, checkout, stash, rebase, or otherwise alter those
+accepted bytes.
 
-If any identity check differs, make no edits and return:
+Capture before-edit hashes for all 21 authorized files that already exist.
 
-PHASE_2E_F01_REMEDIATION_BLOCKED_CANDIDATE_DRIFT
+Capture the initial changed-path inventory and staged-file count.
 
-Remote verification is read-only. If remote access is available, confirm that no Phase 2E remote branch or PR exists and that the Phase 2D parent ref remains unchanged. If unavailable, report that explicitly without guessing.
+If repository identity does not match, stop without editing.
 
-4. Exact defect to remediate
+==================================================
+3. EXACT FROZEN AUTHORIZED FILE SET
+==================================================
 
-The independent review identified one Medium-severity correctness defect:
+Only the following 21 paths are authorized.
 
-F-01 — semantic duplicate datasets can be falsely classified as conflicting
+------------------------------
+NEW PRODUCTION/CONTRACT FILES
+------------------------------
 
-Relevant implementation locations are currently in:
+1. src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 
-src/backend/app/recipes/dependency_fingerprint.py
+2. resources/framework/contracts/job-config-envelope.v1.json
 
-The review identified duplicate-record comparisons around the current lines 87 and 113.
+------------------------------
+MODIFIED PRODUCTION FILES
+------------------------------
 
-The code currently canonicalizes DatasetRecord.required_columns by sorting it when producing the semantic entity payload and fingerprint. However, duplicate detection uses raw Pydantic model equality.
+3. src/core/trusted/FirstRenderInvariantGuard.ts
 
-Consequently, two records with:
+4. src/core/trusted/index.ts
 
-* the same entity reference;
-* the same semantic attributes;
-* required_columns=("A", "B") in one record;
-* required_columns=("B", "A") in the other;
+5. src/core/utils/ModuleSequenceExtractor.ts
 
-produce the same entity fingerprint but are incorrectly rejected as conflicting duplicates.
+6. src/core/framework/FrameworkDiscoveryService.ts
 
-This violates the accepted requirement that semantically equivalent duplicates be insensitive to ordering while genuinely different records still fail closed.
+7. src/tools/EtlReadOnlyToolService.ts
 
-5. Permitted repository edits
+8. src/core/readiness/ReadinessProfileCatalog.ts
 
-Modify only:
+9. src/core/readiness/JobDevelopmentReadinessEvaluator.ts
 
-1. kmai-td-genie/src/backend/app/recipes/dependency_fingerprint.py
-2. kmai-td-genie/test/test_recipe_dependency_fingerprint.py
+------------------------------
+MODIFIED PACKAGED GUIDANCE
+------------------------------
 
-Do not modify any other source, test, ADR, configuration, deployment, frontend, orchestration, authorization, provider, recipe, or metadata file.
+10. resources/copilot/context/etl-module-reference.md
 
-If correct remediation genuinely requires another repository file, stop without expanding scope and return:
+11. resources/copilot/knowledge/examples/dataframe-writer-export.example.json
 
-PHASE_2E_F01_REMEDIATION_BLOCKED_SCOPE_EXPANSION
+12. resources/copilot/knowledge/examples/curated-load-enrich.example.json
 
-6. Required implementation behavior
+------------------------------
+PACKAGE VERIFIER
+------------------------------
 
-Implement one consistent semantic-equivalence definition for governed dependency records.
+13. src/test/verifyVsixContents.ts
 
-Use the same canonical semantic payload that defines entity identity and entity fingerprints.
+------------------------------
+MODIFIED TEST FILES
+------------------------------
 
-Correct both duplicate-detection paths:
+14. src/test/suite/configExplain.test.ts
 
-1. direct dependency-fingerprint input processing;
-2. snapshot-based dependency resolution through resolve_dependency_records().
+15. src/test/suite/firstRenderInvariantGuard.test.ts
 
-Requirements:
+16. src/test/suite/EtlReadOnlyToolService.test.ts
 
-* Do not use raw Pydantic model equality to decide semantic duplicate equivalence.
-* Prefer comparing canonical semantic payloads directly.
-* Do not make required_columns order semantically significant.
-* Do not remove the existing canonical sorting of required_columns.
-* Do not compare only truncated or collision-prone values.
-* Preserve rejection of genuinely conflicting duplicate records.
-* Preserve deterministic unknown-reference failure.
-* Preserve entity-reference ordering and input-order independence.
-* Preserve the existing ef- and df- full SHA-256 fingerprint formats.
-* Preserve the current pilot fingerprint when its governed entities have not changed.
-* Preserve all current Phase 2E behavior outside F-01.
-* Do not add lifecycle, persistence, caching, graph, authorization, provider, runtime-activation, or Phase 2F behavior.
+17. src/test/suite/jobDevelopmentReadiness.test.ts
 
-Avoid unrelated refactoring, renaming, formatting, abstraction, or cleanup.
+18. src/test/suite/packageAssets.test.ts
 
-7. Required focused regression tests
+19. src/test/suite/etlActionTools.test.ts
 
-Add narrowly focused tests to:
+20. src/test/suite/hf1OracleFreshConsumer.test.ts
 
-test/test_recipe_dependency_fingerprint.py
+------------------------------
+NEW TEST FILE
+------------------------------
 
-At minimum, prove all three cases:
+21. src/test/suite/trustedJobConfigEnvelope.test.ts
 
-Case 1 — direct iterable semantic duplicate
+No other file may be created, modified, deleted, renamed, reformatted, or
+regenerated.
+
+If another file is genuinely required, stop before editing it and return:
+
+REPAIR_8_SCOPE_AMENDMENT_REQUIRED
+
+Name the exact additional path and explain why none of the 21 authorized files
+can satisfy the requirement.
+
+==================================================
+4. EXPLICITLY NO-CHANGE FILES
+==================================================
+
+Do not modify:
+
+- src/tools/EtlActionToolService.ts
+- src/core/session/ArtifactGenerationPipeline.ts
+- src/renderers/JobConfigRenderer.ts
+- src/core/validate/FrameworkParseValidator.ts
+- src/core/sttm/SttmMarkdownBundleParser.ts
+- .vscodeignore
+- resources/copilot/skills/etl-create-job/SKILL.md
+- package.json
+- package-lock.json
+- resources/prompts/**
+- .github/**
+- AGENT.md
+- AGENTS.md
+
+Reasons already proven:
+
+- EtlActionToolService already invokes FirstRenderInvariantGuard.
+- ArtifactGenerationPipeline already uses JobConfigRenderer.
+- JobConfigRenderer is already the canonical deterministic renderer.
+- FrameworkParseValidator's strict zero-module check is correct.
+- The STTM parser did not cause the two runtime blockers.
+- `.vscodeignore` already re-includes `resources/framework/**`.
+- The create-job skill does not define the module envelope and must not become
+  another authority.
+- Version bump is a later independent task.
 
-Create two DatasetRecord values with:
+==================================================
+5. TRUSTED JOB-CONFIG CONTRACT
+==================================================
 
-* the same dataset/entity reference;
-* otherwise identical semantic attributes;
-* reversed required_columns ordering.
+Create:
 
-Verify:
+resources/framework/contracts/job-config-envelope.v1.json
 
-* their canonical entity fingerprints are identical;
-* dependency fingerprint computation does not raise a conflict;
-* the result is equivalent to supplying only one canonical record;
-* input ordering does not alter the result.
+The contract must be:
 
-Case 2 — snapshot resolution semantic duplicate
+- extension-owned;
+- machine-readable;
+- strictly allow-listed;
+- versioned;
+- integrity-validated;
+- deterministic to fingerprint;
+- free of credentials, secrets, hostnames, developer paths, URLs, or consumer
+  business values;
+- derived from executable framework evidence, not invented prose.
 
-Construct the equivalent duplicate condition inside a snapshot or snapshot-like input used by resolve_dependency_records().
+It must encode at minimum:
 
-Verify:
+- canonical `modules` object envelope;
+- stage-keyed module entries;
+- `options.module`;
+- `options.method`;
+- supported module types;
+- required and optional fields by module type;
+- required module ordering where applicable;
+- supported dataframe_writer destination modes;
+- path-based dataframe_writer requirements;
+- unsupported Unity Catalog table-by-name semantics;
+- critical config keys needed by fresh-consumer planning.
 
-* both equivalent records resolve as one semantic dependency;
-* no ConflictingDependencyRecordError is raised;
-* the dependency fingerprint remains deterministic and stable.
+Use the same integrity and fail-closed principles already used by the trusted
+Oracle delivery-control contract.
 
-Case 3 — genuine semantic conflict
+Do not merge the Oracle contract and the Job Config envelope contract into one
+unrelated schema.
 
-Use the same entity reference with a materially different required_columns set, not merely reordered values.
+==================================================
+6. TRUSTED RESOLVER
+==================================================
 
-Verify:
+Create:
 
-* ConflictingDependencyRecordError is still raised;
-* both the direct path and snapshot-resolution path remain fail-closed where applicable.
+src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 
-Do not weaken or delete any existing tests.
+Implement it according to the frozen design:
 
-8. Mandatory invariants
+- reuse the proven validation, whitelist, integrity, fingerprint, and installed
+  resource-resolution pattern from TrustedFrameworkDefinitionResolver;
+- resolve the installed packaged contract without depending on a framework
+  checkout;
+- use `__dirname`/installed-resource ancestor resolution before any development
+  fallback;
+- do not depend on `process.cwd()` for normal installed operation;
+- fail closed on malformed JSON;
+- fail closed on unknown fields;
+- fail closed on unsupported schema/contract version;
+- fail closed when secret/content scanning has not passed;
+- return immutable/cloned resolution objects so caller mutation cannot corrupt
+  cached authority;
+- provide deterministic fingerprints;
+- never treat `resources/copilot/context/**` as the authoritative contract;
+- never allow consumer-editable context to override the trusted contract.
 
-After remediation, independently prove that:
+Export it through:
 
-* existing normal entity fingerprints are unchanged;
-* the current pilot dependency fingerprint remains unchanged:
-    df-5018e97c00917aaa455c71b0c7ca7d42eeac2ea01c0cab2b7449bd490559b425a
-* unrelated metadata remains fingerprint-insensitive;
-* material changes to referenced entities still change fingerprints;
-* removed, renamed, or unknown references still fail deterministically;
-* reverse-index behavior is unchanged;
-* authorization behavior is unchanged;
-* feature-flag-OFF behavior remains exact Phase 2D behavior;
-* Phase 2D registry version remains:
-    sv-a9dd6c5ac25e1b42
-* no relationship is emitted;
-* no out-of-scope technology or behavior is introduced.
+src/core/trusted/index.ts
 
-9. Validation requirements
+Do not create a second authorization or approval subsystem.
 
-Run all commands from the permanent Phase 2E repository root.
+==================================================
+7. FIRST-RENDER DETERMINISTIC ENFORCEMENT
+==================================================
 
-Avoid test artifacts inside the candidate:
+Modify:
 
-* set PYTHONDONTWRITEBYTECODE=1;
-* disable the pytest cache provider;
-* direct coverage and JUnit outputs outside the worktree;
-* do not run formatters or rewriting tools.
+src/core/trusted/FirstRenderInvariantGuard.ts
 
-Run, at minimum:
+Use TrustedJobConfigEnvelopeResolver inside the existing deterministic guard
+path already called by EtlActionToolService.
 
-1. the focused dependency-fingerprint test file;
-2. the independent-review F-01 reproduction probe;
-3. new field-evidence and fingerprint tests together;
-4. registry, hierarchy, cache, and version regressions;
-5. semantic-plan regressions;
-6. Approved Recipe pilot regressions;
-7. authorization/no-access regressions;
-8. provider-abstraction contract tests;
-9. query-recipe and SQL-policy regressions;
-10. golden baseline;
-11. the complete configured backend suite;
-12. the configured coverage gate;
-13. git diff --check;
-14. checks for every untracked candidate file;
-15. provider-neutrality and excluded-technology scans;
-16. diagnostics for all changed Python files.
+Do not modify EtlActionToolService itself.
 
-The pre-remediation full-suite baseline was:
+Add deterministic invariant handling for:
 
-* 996 passed;
-* 3 skipped;
-* 8 warnings;
-* coverage 86.87%;
-* required coverage 75%;
-* golden baseline 10 passed.
+NON_CANONICAL_JOB_CONFIG_ENVELOPE
 
-The pass count should increase according to the newly added tests. Do not hardcode success based only on an expected count. Report and explain any difference.
+and:
 
-10. Candidate-integrity verification
+UNSUPPORTED_UNITY_CATALOG_TARGET
 
-After remediation and validation:
+Required behavior:
 
-1. confirm only the two permitted repository files changed relative to the pre-remediation candidate;
-2. confirm the complete candidate still contains the same 12 paths;
-3. confirm the index remains clean;
-4. confirm no commit was created;
-5. recompute every candidate file SHA-256;
-6. recompute the combined candidate digest using the established manifest algorithm;
-7. record both the old and new combined digests;
-8. prove the post-validation digest matches the post-edit digest;
-9. confirm no test or validation command changed candidate bytes.
+A. Non-canonical envelope
 
-The new digest must differ from:
+- reject missing `modules { ... }`;
+- reject JSON-array modules;
+- reject quoted-JSON job config;
+- reject missing `options.module`;
+- reject a module shape inconsistent with the trusted contract;
+- provide a clear, actionable diagnostic;
+- perform no write;
+- do not mint a trusted Preview ID.
 
-1c72d47be76b7e8d2f768005cca0254dd43761212a15637950fcfb0ed6d7cc35
+B. Unsupported Unity Catalog target
 
-because the source and test corrections are intentional.
+For a dataframe_writer module whose destination is a catalog-qualified table
+name with no supported path/JDBC/Synapse destination:
 
-11. Prohibited actions
+- retain successful module detection;
+- return `UNSUPPORTED_UNITY_CATALOG_TARGET`;
+- do not return `No modules detected in job config`;
+- do not return only the ambiguous `Confirm output path or table`;
+- perform no write;
+- do not mint a trusted Preview ID.
 
-Do not:
+Do not duplicate rendering or parsing logic inside the guard.
 
-* modify the independent-review report;
-* modify the original implementation report;
-* modify ADR 0005 unless a new contradiction is discovered—in that case stop and report it instead;
-* stage files;
-* commit or amend;
-* push;
-* create or modify a PR;
-* alter PR #15 or PR #16;
-* rebase, merge, cherry-pick, reset, stash, clean, or switch branches;
-* modify Git configuration;
-* enable runtime configuration;
-* start Phase 2F;
-* implement any deferred lifecycle;
-* introduce Redis, graphs, relationships, Databricks, Genie, Unity Catalog, Collibra, frontend, deployment, Terraform, or authorization changes.
+==================================================
+8. MODULE SEQUENCE EXTRACTION
+==================================================
 
-12. Remediation report
+Modify:
 
-Write the remediation report outside the Git candidate:
+src/core/utils/ModuleSequenceExtractor.ts
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_F01_REMEDIATION_2026-08-23.md
+Support the HOCON forms proven by real framework configs:
 
-The report must include:
+- colon separator;
+- equals separator;
+- separator omitted before an opening `{` where legal HOCON permits it.
 
-1. final verdict;
-2. pre-remediation identity and digest;
-3. exact F-01 root cause;
-4. exact source correction;
-5. why canonical semantic-payload comparison is correct;
-6. complete changed-line and changed-file inventory;
-7. focused tests added;
-8. direct-path reproduction before and after;
-9. snapshot-resolution reproduction before and after;
-10. genuine-conflict preservation proof;
-11. all focused and full validation commands and results;
-12. coverage and golden-baseline results;
-13. pilot fingerprint and flag-off compatibility proof;
-14. authorization and scope-boundary proof;
-15. new per-file hashes and combined digest;
-16. pre-validation versus post-validation candidate identity;
-17. attestation that nothing was staged, committed, pushed, or opened as a PR;
-18. exact targeted re-review scope.
+Examples of accepted concepts:
 
-End with exactly one token:
+modules {
+  stage_name {
+    options {
+      module = dataframe_writer
+      method = process
+    }
+  }
+}
 
-* PHASE_2E_F01_REMEDIATION_READY_FOR_TARGETED_REREVIEW
-* PHASE_2E_F01_REMEDIATION_FAILED
-* PHASE_2E_F01_REMEDIATION_BLOCKED_CANDIDATE_DRIFT
-* PHASE_2E_F01_REMEDIATION_BLOCKED_SCOPE_EXPANSION
-* PHASE_2E_F01_REMEDIATION_BLOCKED_ENVIRONMENT
+and equivalent colon/equals HOCON variants.
 
-A successful remediation does not authorize commit, push, PR creation, runtime activation, merge, or Phase 2F. The next permitted action is a targeted independent re-review of F-01 plus full validation.
+Preserve strict rejection of:
+
+- JSON array module forms;
+- quoted-JSON `"modules"` forms;
+- malformed strings;
+- missing module types.
+
+Do not weaken FrameworkParseValidator.
+
+Its existing:
+
+"No modules detected in job config"
+
+check must remain strict and unchanged.
+
+==================================================
+9. PACKAGED FALLBACK AND EXAMPLE SEARCH
+==================================================
+
+Modify:
+
+src/core/framework/FrameworkDiscoveryService.ts
+
+Replace the hard-coded empty fresh-consumer `criticalConfigKeys` fallback with
+the trusted packaged Job Config contract.
+
+Modify:
+
+src/tools/EtlReadOnlyToolService.ts
+
+Required results:
+
+- `etl_get_framework_rules` returns non-empty, contract-backed
+  `criticalConfigKeys` when no framework workspace is present;
+- packaged-contract fallback is identified clearly;
+- `etl_search_examples` searches approved packaged examples even when there are
+  no local workspace example roots;
+- fresh consumers must not receive `no_search_roots_available` while approved
+  packaged examples exist;
+- local examples and packaged examples have explicit, deterministic precedence;
+- no framework checkout is required;
+- no arbitrary consumer context becomes trusted authority.
+
+Do not make the LLM guidance path the sole enforcement mechanism.
+
+==================================================
+10. READINESS DIAGNOSTICS
+==================================================
+
+Modify:
+
+src/core/readiness/ReadinessProfileCatalog.ts
+
+Add the distinct generic_dataframe_write blocker code and message for an
+unsupported Unity Catalog table-by-name target.
+
+Use the established readiness-code naming convention, including:
+
+unsupported_unity_catalog_target
+
+Modify:
+
+src/core/readiness/JobDevelopmentReadinessEvaluator.ts
+
+Ensure that a catalog-qualified table target without a supported writer
+destination does not silently satisfy `path_or_table`.
+
+Required outcome:
+
+- canonical module is still detected;
+- unsupported Unity Catalog destination is rejected explicitly;
+- no generic missing-target diagnostic replaces the specific result;
+- supported path-based dataframe_writer destinations continue to pass;
+- no Unity Catalog writer capability is added.
+
+==================================================
+11. PACKAGED GUIDANCE CONSISTENCY
+==================================================
+
+Modify:
+
+resources/copilot/context/etl-module-reference.md
+
+Replace non-canonical top-level `type` examples with canonical:
+
+modules {
+  <stage_key> {
+    ...
+    options {
+      module = <module_type>
+      method = process
+    }
+  }
+}
+
+The prose file remains advisory only.
+
+It must explicitly state that executable authority comes from:
+
+resources/framework/contracts/job-config-envelope.v1.json
+
+Modify:
+
+resources/copilot/knowledge/examples/dataframe-writer-export.example.json
+
+Replace the array/flattened planning representation with a canonical envelope
+representation compatible with the actual renderer and validator.
+
+Use only a supported path-based destination.
+
+Modify:
+
+resources/copilot/knowledge/examples/curated-load-enrich.example.json
+
+Apply the same canonical representation.
+
+Do not claim direct Unity Catalog table-name write support.
+
+All shipped examples must agree with:
+
+- the trusted contract;
+- ModuleSequenceExtractor;
+- FirstRenderInvariantGuard;
+- FrameworkParseValidator;
+- readiness evaluation;
+- JobConfigRenderer output.
+
+==================================================
+12. POSITIVE DEVELOPMENT QA FIXTURE
+==================================================
+
+In:
+
+src/test/suite/hf1OracleFreshConsumer.test.ts
+
+Use an inline, sanitized path-based QA mapping.
+
+Do not create a repository fixture file.
+
+Use the proven supported shape:
+
+- target path based on the existing synthetic `adl.destination.root`;
+- sanitized relative target such as `curated/qa_hf1v2_customer`;
+- target format: delta;
+- write mode: append;
+- dataframe_writer module;
+- method: process;
+- required path/format/mode fields;
+- canonical modules envelope.
+
+No real storage credentials or real data access may be required.
+
+The test is planning/validation/preview-only and must prove:
+
+- CREATE_NEW_JOB;
+- a real Preview ID is issued;
+- preview produces zero filesystem writes;
+- no framework checkout is required;
+- no consumer repository outside the test fixture is touched.
+
+==================================================
+13. NEGATIVE UNITY CATALOG TEST
+==================================================
+
+Use a canonical dataframe_writer module whose destination is a table name such
+as:
+
+curated.qa_hf1v2_customer
+
+with no supported path destination.
+
+Required result:
+
+- module detection succeeds;
+- FirstRenderInvariantGuard returns
+  `UNSUPPORTED_UNITY_CATALOG_TARGET`;
+- readiness returns `unsupported_unity_catalog_target`;
+- no Preview ID is issued;
+- no write occurs;
+- no Unity Catalog support is added;
+- the error is not reduced to `No modules detected in job config`;
+- the error is not only `Confirm output path or table`.
+
+Place the tests only in the already-authorized existing suites.
+
+==================================================
+14. PACKAGE VERIFIER
+==================================================
+
+Modify:
+
+src/test/verifyVsixContents.ts
+
+Require the packaged VSIX to contain both trusted framework contracts:
+
+- resources/framework/contracts/oracle-delivery-controls.v1.json
+- resources/framework/contracts/job-config-envelope.v1.json
+
+Do not weaken any existing:
+
+- required-entry checks;
+- forbidden-content checks;
+- size ceilings;
+- manifest checks;
+- content-marker checks;
+- machine-path scans;
+- package provenance checks.
+
+This task does not build a VSIX, but verifier source and tests must compile.
+
+==================================================
+15. REQUIRED TEST IMPLEMENTATION
+==================================================
+
+Create:
+
+src/test/suite/trustedJobConfigEnvelope.test.ts
+
+Cover:
+
+- valid contract loading;
+- deterministic fingerprint;
+- strict field whitelist;
+- bad schema/contract version;
+- invalid contract identity;
+- secret-scan status failure;
+- malformed JSON;
+- installed-resource ancestor resolution;
+- cache stability;
+- returned-object mutation isolation.
+
+Modify:
+
+src/test/suite/configExplain.test.ts
+
+Cover ModuleSequenceExtractor for:
+
+- canonical colon HOCON;
+- canonical equals HOCON;
+- legal omitted-before-`{` HOCON;
+- quoted JSON rejected;
+- array representation rejected;
+- malformed/missing module rejected.
+
+Modify:
+
+src/test/suite/firstRenderInvariantGuard.test.ts
+
+Cover:
+
+- canonical Job Config accepted;
+- non-canonical envelope rejected;
+- dataframe_writer contract fields;
+- unsupported Unity Catalog target rejected;
+- supported path-based target accepted;
+- Repair-5/6/7 guard behavior unchanged.
+
+Modify:
+
+src/test/suite/EtlReadOnlyToolService.test.ts
+
+Cover:
+
+- non-empty criticalConfigKeys from packaged fallback;
+- packaged examples searchable with zero local roots;
+- deterministic precedence;
+- no `no_search_roots_available` when packaged examples exist;
+- current STTM behavior remains regression-only and unchanged.
+
+Modify:
+
+src/test/suite/jobDevelopmentReadiness.test.ts
+
+Cover:
+
+- supported path destination passes;
+- Unity Catalog table-by-name yields
+  `unsupported_unity_catalog_target`;
+- no silent `path_or_table` success;
+- no ambiguous generic message replaces the explicit blocker.
+
+Modify:
+
+src/test/suite/packageAssets.test.ts
+
+Cover:
+
+- both trusted contract files exist;
+- both packaged examples conform to the canonical envelope;
+- advisory context agrees with the trusted contract;
+- package self-consistency;
+- no version expectation is changed yet;
+- source/package authority cannot silently drift.
+
+Modify:
+
+src/test/suite/etlActionTools.test.ts
+
+Without modifying EtlActionToolService production code, prove its existing guard
+path:
+
+- blocks NON_CANONICAL_JOB_CONFIG_ENVELOPE;
+- blocks UNSUPPORTED_UNITY_CATALOG_TARGET;
+- produces no Preview ID;
+- produces zero writes;
+- allows a canonical supported path-based config to proceed to preview.
+
+Modify:
+
+src/test/suite/hf1OracleFreshConsumer.test.ts
+
+Cover:
+
+- end-to-end fresh-consumer CREATE_NEW_JOB positive path;
+- canonical path-based dataframe_writer config;
+- real Preview ID;
+- zero-write preview;
+- no framework source;
+- explicit negative Unity Catalog case;
+- all Repair-5/6/7 security invariants remain green.
+
+Modify:
+
+src/test/verifyVsixContents.ts
+
+as specified in Section 14.
+
+No source-text-only assertions may substitute for behavior tests, except direct
+validation of the packaged JSON/Markdown assets themselves.
+
+==================================================
+16. CONTEXT TRUST BOUNDARY
+==================================================
+
+Record but do not redesign:
+
+CONTEXT_OWNERSHIP_AND_TRUST_BOUNDARY
+
+Repair 8 must not make:
+
+resources/copilot/context/**
+
+the machine-authoritative contract.
+
+Authority must remain:
+
+resources/framework/contracts/job-config-envelope.v1.json
+
+The context file may explain or reference the authority but cannot override it.
+
+No broader agent/skill/context redesign is authorized in this task.
+
+==================================================
+17. VALIDATION
+==================================================
+
+Use only existing dependencies.
+
+Run:
+
+1. production compile;
+2. lint;
+3. all focused Repair-8 test files;
+4. affected Repair-5/6/7 regression suites;
+5. the full unit suite.
+
+At minimum, directly exercise all eight test files:
+
+- trustedJobConfigEnvelope.test.ts
+- configExplain.test.ts
+- firstRenderInvariantGuard.test.ts
+- EtlReadOnlyToolService.test.ts
+- jobDevelopmentReadiness.test.ts
+- packageAssets.test.ts
+- etlActionTools.test.ts
+- hf1OracleFreshConsumer.test.ts
+
+Acceptance rules:
+
+- compile must pass;
+- lint must pass;
+- all Repair-8 focused tests must pass;
+- positive fresh-consumer path must issue a Preview ID;
+- preview must remain zero-write;
+- Unity Catalog negative test must return the explicit unsupported diagnostic;
+- no new functional or security failure is accepted;
+- Repair-5/6/7 focused regressions must remain green.
+
+The full unit suite may still contain the known historical failures.
+
+Classify historical failures by exact test name, not only by count.
+
+Expected historical families are:
+
+- two EvalGating/Phase-H baseline freshness failures;
+- three protected Copilot workflow-customization failures.
+
+Do not repair, suppress, regenerate, or relabel those protected failures.
+
+Any additional failure is a Repair-8 regression and must be resolved within the
+authorized scope or reported as:
+
+REPAIR_8_VALIDATION_FAILED
+
+Do not regenerate Phase-H baselines.
+
+==================================================
+18. SCOPE AND BYTE-PRESERVATION PROOF
+==================================================
+
+At task end report:
+
+- exact actual changed paths;
+- exact new files;
+- staged count;
+- whether any unauthorized path changed;
+- whether package.json remains at 0.3.140;
+- whether Repair-5/6/7 protected file hashes changed only where explicitly
+  authorized;
+- whether etl-framework-adb remained untouched;
+- whether any development test workspace was touched;
+- whether any dependency was installed/downloaded;
+- whether any VSIX was built or installed;
+- whether any commit or push occurred.
+
+Required:
+
+AUTHORIZED_FILE_COUNT: 21
+NEW_FILE_COUNT: 3
+UNAUTHORIZED_CHANGED_PATH_COUNT: 0
+VERSION_AFTER_IMPLEMENTATION: 0.3.140
+
+Do not stage, commit, push, package, install, or press Keep as part of this task.
+
+==================================================
+19. FINAL REPORT
+==================================================
+
+Report:
+
+REPOSITORY_IDENTITY_MATCH: YES/NO
+AUTHORIZED_SCOPE_MATCH: YES/NO
+ACTUAL_CHANGED_PATHS: <exact list>
+NEW_FILES_CREATED: <exact list>
+TRUSTED_JOB_CONFIG_CONTRACT_IMPLEMENTED: YES/NO
+TRUSTED_JOB_CONFIG_RESOLVER_IMPLEMENTED: YES/NO
+CANONICAL_ENVELOPE_GUARD_ENFORCED: YES/NO
+MODULE_EXTRACTOR_CANONICAL_FORMS_PASS: YES/NO
+UNITY_CATALOG_SUPPORT_ADDED: NO
+UNITY_CATALOG_UNSUPPORTED_DIAGNOSTIC_PASS: YES/NO
+CRITICAL_CONFIG_KEYS_FALLBACK_PASS: YES/NO
+PACKAGED_EXAMPLE_SEARCH_PASS: YES/NO
+PACKAGE_SELF_CONSISTENCY_PASS: YES/NO
+FRESH_CONSUMER_PATH_BASED_PREVIEW_ID_ISSUED: YES/NO
+FRESH_CONSUMER_PREVIEW_ZERO_WRITES: YES/NO
+FRAMEWORK_SOURCE_REQUIRED: NO
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+FOCUSED_REPAIR_8_TESTS_PASS: YES/NO
+REPAIR_5_6_7_REGRESSIONS_PASS: YES/NO
+FULL_UNIT_HISTORICAL_FAILURES_ONLY: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS: YES/NO
+NEW_SECURITY_REGRESSIONS: YES/NO
+VERSION_REMAINS_0_3_140: YES/NO
+VSIX_BUILT: NO
+GIT_MUTATION_PERFORMED: NO
+UNAUTHORIZED_SCOPE_DRIFT: YES/NO
+READY_FOR_INDEPENDENT_READ_ONLY_REAUDIT: YES/NO
+
+Do not declare Repair 8 release-ready.
+
+End exactly with one:
+
+LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_IMPLEMENTED_AWAITING_INDEPENDENT_REAUDIT
+
+or:
+
+LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_IMPLEMENTATION_BLOCKED
+
+or:
+
+LOCAL_HOTFIX_HF1_V2_QA_CONTRACT_BLOCKER_REPAIR_8_VALIDATION_FAILED
