@@ -24,6 +24,7 @@ from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.host_chat import HostChatCompletionsProvider
 from universal_coding_agent.providers.host_subprocess import HostSubprocessProvider
 from universal_coding_agent.safe.testing import SafeTestRunner
+from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 
 
 def _wait_for(path: Path) -> None:
@@ -274,6 +275,177 @@ def create_cancellable_completion(**kwargs):
 
     reopened = TaskControlService(tmp_path / "host-chat-control.sqlite")
     assert reopened.cancellation_report("cancel-host-chat-task") == report
+    reopened.close()
+
+
+def test_cancel_requests_owned_openai_background_response_and_persists_report(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    created = threading.Event()
+    cancel_dispatched = threading.Event()
+    calls: list[tuple[str, str]] = []
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        endpoint="https://example.test/v1/responses",
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        calls.append((method, endpoint))
+        if method == "POST" and endpoint == provider.endpoint:
+            created.set()
+            return {
+                "id": "resp_cancel",
+                "status": "queued",
+                "model": "test-model",
+            }
+        if method == "POST" and endpoint.endswith("/resp_cancel/cancel"):
+            cancel_dispatched.set()
+            return {
+                "id": "resp_cancel",
+                "status": "in_progress",
+                "model": "test-model",
+            }
+        if method == "GET" and endpoint.endswith("/resp_cancel"):
+            return {
+                "id": "resp_cancel",
+                "status": "cancelled" if cancel_dispatched.is_set() else "in_progress",
+                "model": "test-model",
+            }
+        raise AssertionError(f"unexpected lifecycle request: {method} {endpoint}")
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    monkeypatch.setattr(
+        "universal_coding_agent.testlab.openai_responses._BACKGROUND_POLL_INTERVAL_SECONDS",
+        0.001,
+    )
+    control_path = tmp_path / "openai-control.sqlite"
+    control = TaskControlService(control_path)
+    signal = control.cancellation.signal("cancel-openai-task")
+    errors: list[BaseException] = []
+
+    class Payload(BaseModel):
+        status: str
+
+    def invoke() -> None:
+        try:
+            invoke_structured(
+                provider,
+                ModelRequest(
+                    role="implementer",
+                    system_prompt="Return JSON.",
+                    user_prompt="Return status.",
+                ),
+                Payload,
+                cancellation=signal,
+            )
+        except BaseException as exc:  # captured for assertion in the parent thread
+            errors.append(exc)
+
+    worker = threading.Thread(target=invoke)
+    worker.start()
+    assert created.wait(timeout=5)
+    control.cancel_task("cancel-openai-task", reason="operator cancelled remote response")
+    worker.join(timeout=5)
+
+    report = control.cancellation_report("cancel-openai-task")
+    assert worker.is_alive() is False
+    assert len(errors) == 1
+    assert isinstance(errors[0], StructuredOutputError)
+    assert errors[0].code == "control_cancelled"  # type: ignore[union-attr]
+    assert ("POST", f"{provider.endpoint}/resp_cancel/cancel") in calls
+    assert report is not None
+    assert report.active_operation_kinds == ("provider",)
+    assert report.owned_processes_observed == 0
+    assert report.owned_cancellable_operations_observed == 1
+    assert report.terminate_requests == 0
+    assert report.kill_requests == 0
+    assert report.cancellable_operation_cancel_requests == 1
+    assert report.processes_still_active == 0
+    assert report.cancellable_operations_still_active == 0
+    assert report.cooperative_fallback is False
+    control.close()
+
+    reopened = TaskControlService(control_path)
+    assert reopened.cancellation_report("cancel-openai-task") == report
+    reopened.close()
+
+
+def test_slow_openai_background_creation_is_durably_reported_still_active(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    create_started = threading.Event()
+    release_create = threading.Event()
+    cancel_called = threading.Event()
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        endpoint="https://example.test/v1/responses",
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        if method == "POST" and endpoint == provider.endpoint:
+            create_started.set()
+            assert release_create.wait(timeout=5)
+            return {
+                "id": "resp_slow_create",
+                "status": "queued",
+                "model": "test-model",
+            }
+        if method == "POST" and endpoint.endswith("/resp_slow_create/cancel"):
+            cancel_called.set()
+            return {
+                "id": "resp_slow_create",
+                "status": "cancelled",
+                "model": "test-model",
+            }
+        raise AssertionError(f"unexpected lifecycle request: {method} {endpoint}")
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    control_path = tmp_path / "slow-openai-control.sqlite"
+    control = TaskControlService(control_path)
+    signal = control.cancellation.signal("slow-openai-task")
+    errors: list[BaseException] = []
+
+    def invoke() -> None:
+        try:
+            provider.invoke_cancellable(
+                ModelRequest(
+                    role="implementer",
+                    system_prompt="Return text.",
+                    user_prompt="Return done.",
+                ),
+                signal,
+            )
+        except BaseException as exc:  # captured for assertion in the parent thread
+            errors.append(exc)
+
+    worker = threading.Thread(target=invoke)
+    worker.start()
+    assert create_started.wait(timeout=5)
+    control.cancel_task("slow-openai-task", reason="operator cancelled slow creation")
+
+    report = control.cancellation_report("slow-openai-task")
+    assert report is not None
+    assert report.owned_cancellable_operations_observed == 1
+    assert report.cancellable_operation_cancel_requests == 1
+    assert report.cancellable_operations_still_active == 1
+    assert report.cooperative_fallback is False
+
+    release_create.set()
+    worker.join(timeout=5)
+    assert worker.is_alive() is False
+    assert cancel_called.wait(timeout=1)
+    assert len(errors) == 1
+    assert isinstance(errors[0], CancellationRequested)
+    control.close()
+
+    reopened = TaskControlService(control_path)
+    assert reopened.cancellation_report("slow-openai-task") == report
     reopened.close()
 
 

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import json
+import time
 
 import pytest
 
+from universal_coding_agent.core.cancellation import CancellationCoordinator
 from universal_coding_agent.core.models import ModelRequest
 from universal_coding_agent.core.safe_models import StructuredEditProposal
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.testlab.live import _provider_preflight
 from universal_coding_agent.testlab.openai_responses import (
+    OPENAI_BACKGROUND_CANCELLATION_ENV,
     OpenAIResponsesProvider,
     _openai_strict_schema,
 )
@@ -44,6 +47,7 @@ def test_openai_testlab_provider_uses_responses_structured_output() -> None:
         api_key="test-key",
         model="test-model",
         transport=transport,
+        background_cancellation=True,
     )
     response = provider.invoke(
         ModelRequest(
@@ -62,6 +66,7 @@ def test_openai_testlab_provider_uses_responses_structured_output() -> None:
 
     assert captured["model"] == "test-model"
     assert captured["store"] is False
+    assert "background" not in captured
     assert captured["text"]["format"]["type"] == "json_schema"
     assert captured["text"]["format"]["strict"] is True
     assert response.structured == {"answer": 43}
@@ -125,6 +130,259 @@ def test_openai_testlab_provider_requires_environment_configuration(monkeypatch)
         OpenAIResponsesProvider.from_env()
 
     assert exc_info.value.code == "openai_configuration_missing"
+
+
+def test_openai_testlab_provider_reads_background_cancellation_opt_in(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("UCA_OPENAI_MODEL", "test-model")
+    monkeypatch.setenv(OPENAI_BACKGROUND_CANCELLATION_ENV, "true")
+
+    provider = OpenAIResponsesProvider.from_env()
+
+    assert provider.background_cancellation is True
+
+
+def test_openai_testlab_provider_rejects_ambiguous_background_opt_in(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("UCA_OPENAI_MODEL", "test-model")
+    monkeypatch.setenv(OPENAI_BACKGROUND_CANCELLATION_ENV, "tru")
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        OpenAIResponsesProvider.from_env()
+
+    assert exc_info.value.code == "openai_configuration_invalid"
+
+
+def test_openai_cancellable_invoke_is_cooperative_without_opt_in() -> None:
+    captured = {}
+
+    def transport(payload):
+        captured.update(payload)
+        return {
+            "id": "resp_cooperative",
+            "status": "completed",
+            "model": "test-model",
+            "output": [
+                {
+                    "type": "message",
+                    "content": [{"type": "output_text", "text": "done"}],
+                }
+            ],
+        }
+
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        transport=transport,
+    )
+    signal = CancellationCoordinator().signal("openai-cooperative")
+
+    response = provider.invoke_cancellable(
+        ModelRequest(
+            role="implementer",
+            system_prompt="Return text.",
+            user_prompt="Return done.",
+        ),
+        signal,
+    )
+
+    assert "background" not in captured
+    assert response.safe_diagnostics["cancellation_mode"] == "cooperative"
+
+
+def test_openai_background_handle_completes_through_remote_lifecycle(
+    monkeypatch,
+) -> None:
+    calls = []
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        endpoint="https://example.test/v1/responses",
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        calls.append((method, endpoint, dict(payload or {})))
+        if method == "POST" and endpoint == provider.endpoint:
+            return {
+                "id": "resp_background",
+                "status": "queued",
+                "model": "test-model",
+            }
+        if method == "GET" and endpoint.endswith("/resp_background"):
+            return {
+                "id": "resp_background",
+                "status": "completed",
+                "model": "test-model-resolved",
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "done"}],
+                    }
+                ],
+            }
+        raise AssertionError(f"unexpected lifecycle request: {method} {endpoint}")
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    monkeypatch.setattr(
+        "universal_coding_agent.testlab.openai_responses._BACKGROUND_POLL_INTERVAL_SECONDS",
+        0.001,
+    )
+    signal = CancellationCoordinator().signal("openai-background-completion")
+
+    response = provider.invoke_cancellable(
+        ModelRequest(
+            role="implementer",
+            system_prompt="Return text.",
+            user_prompt="Return done.",
+        ),
+        signal,
+    )
+
+    assert calls[0][0:2] == ("POST", provider.endpoint)
+    assert calls[0][2]["background"] is True
+    assert calls[0][2]["store"] is False
+    assert calls[1][0] == "GET"
+    assert response.content == "done"
+    assert response.safe_diagnostics["cancellation_mode"] == "owned_background_handle"
+    assert response.safe_diagnostics["background"] is True
+    assert response.safe_diagnostics["temporary_background_retention"] is True
+
+
+def test_openai_background_handle_fails_closed_for_unknown_remote_state(
+    monkeypatch,
+) -> None:
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        return {
+            "id": "resp_unknown",
+            "status": "unknown",
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    signal = CancellationCoordinator().signal("openai-background-unknown")
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        provider.invoke_cancellable(
+            ModelRequest(
+                role="implementer",
+                system_prompt="Return text.",
+                user_prompt="Return done.",
+            ),
+            signal,
+        )
+
+    assert exc_info.value.code == "openai_background_state_unconfirmed"
+
+
+def test_openai_background_handle_fails_closed_for_response_id_drift(
+    monkeypatch,
+) -> None:
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        if method == "POST":
+            return {
+                "id": "resp_expected",
+                "status": "queued",
+                "model": "test-model",
+            }
+        return {
+            "id": "resp_different",
+            "status": "completed",
+            "model": "test-model",
+            "output": [],
+        }
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    monkeypatch.setattr(
+        "universal_coding_agent.testlab.openai_responses._BACKGROUND_POLL_INTERVAL_SECONDS",
+        0.001,
+    )
+    signal = CancellationCoordinator().signal("openai-background-id-drift")
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        provider.invoke_cancellable(
+            ModelRequest(
+                role="implementer",
+                system_prompt="Return text.",
+                user_prompt="Return done.",
+            ),
+            signal,
+        )
+
+    assert exc_info.value.code == "openai_background_state_unconfirmed"
+
+
+def test_openai_background_handle_has_bounded_lifecycle_timeout(
+    monkeypatch,
+) -> None:
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        timeout_seconds=0.05,
+        background_cancellation=True,
+    )
+
+    def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
+        return {
+            "id": "resp_never_terminal",
+            "status": "queued" if method == "POST" else "in_progress",
+            "model": "test-model",
+        }
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    monkeypatch.setattr(
+        "universal_coding_agent.testlab.openai_responses._BACKGROUND_POLL_INTERVAL_SECONDS",
+        0.005,
+    )
+    signal = CancellationCoordinator().signal("openai-background-timeout")
+    started = time.monotonic()
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        provider.invoke_cancellable(
+            ModelRequest(
+                role="implementer",
+                system_prompt="Return text.",
+                user_prompt="Return done.",
+            ),
+            signal,
+        )
+
+    assert exc_info.value.code == "openai_background_timeout"
+    assert time.monotonic() - started < 0.5
+
+
+def test_openai_background_opt_in_rejects_foreground_only_test_transport() -> None:
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        transport=lambda _payload: {},
+        background_cancellation=True,
+    )
+    signal = CancellationCoordinator().signal("openai-background-test-transport")
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        provider.invoke_cancellable(
+            ModelRequest(
+                role="implementer",
+                system_prompt="Return text.",
+                user_prompt="Return done.",
+            ),
+            signal,
+        )
+
+    assert exc_info.value.code == "openai_background_transport_unsupported"
 
 
 def test_openai_testlab_provider_rejects_non_json_structured_output() -> None:

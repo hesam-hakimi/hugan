@@ -177,6 +177,7 @@ from universal_coding_agent.product.program_orchestrator import DiscoveredSafeEx
 from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIResponsesProvider
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
@@ -196,12 +197,14 @@ assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 assert CancellationCoordinator and CancellationReport and CancellationSignal
 assert OwnedCancellableOperation and HostChatCompletionsProvider
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
+assert OpenAIResponsesProvider and OPENAI_BACKGROUND_CANCELLATION_ENV
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
+print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -215,6 +218,7 @@ Cmd 3
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
+  tests/test_openai_testlab_provider.py \
   tests/test_host_chat_provider.py \
   tests/test_host_subprocess_provider.py \
   tests/test_requirement_draft_repair.py \
@@ -234,7 +238,8 @@ echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
 echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
-echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS"
+echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
+echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -327,6 +332,7 @@ Cmd 9
 
 ```bash
 export UCA_OPENAI_MODEL="${UCA_OPENAI_MODEL:-gpt-5.6}"
+unset UCA_OPENAI_BACKGROUND_CANCELLATION
 test -n "${AZURE_OPENAI_API_KEY:-}" || { echo "AZURE_OPENAI_API_KEY_NOT_SET"; exit 1; }
 export OPENAI_API_KEY="$AZURE_OPENAI_API_KEY"
 echo "UCA_OPENAI_MODEL=$UCA_OPENAI_MODEL"

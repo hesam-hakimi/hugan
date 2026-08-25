@@ -149,6 +149,31 @@ control, and cancel requests active termination only for registered UCA-owned pr
 explicitly owned handles. The displayed counts are evidence of the observed outcome, not a blanket
 claim that every provider or network transport was forcibly stopped.
 
+P1.2d adds exactly one more opt-in owned-handle adapter to the already-supported pre-transfer
+OpenAI Responses transport. `UCA_OPENAI_BACKGROUND_CANCELLATION=1` makes cancellable invocations
+create a background response, poll its response identifier, and dispatch the documented remote
+cancel request from a UCA-owned worker. The handle is registered before UCA waits; `cancel()` only
+latches a non-blocking worker signal, and `done()` is a non-blocking read that becomes true only
+after a terminal response status is observed. A cancel requested before the response identifier is
+available is retained and dispatched as soon as creation returns an active response. The configured
+request timeout also bounds the complete create/poll/cancel lifecycle, with only the remaining
+budget passed to each HTTP call. During cancellation, network ambiguity, an unknown status, or a
+cancel/retrieve call that outlives the existing bounded coordinator grace remains reported as still
+active rather than forcibly terminated.
+
+Durable still-active evidence is the cancellation-time snapshot of a currently registered handle.
+If the lifecycle itself times out or fails before a later cancellation request, UCA ends its local
+wait with unconfirmed termination and unregisters the handle; it does not persist a remote lease or
+claim that the response terminated. Persisting and reconciling failed remote-operation leases is
+outside this slice.
+
+The opt-in preserves `store=false`, but background execution necessarily has temporary provider
+retention of roughly ten minutes for asynchronous execution and polling. Plain `invoke()`, the
+default environment configuration, and foreground-only test transports remain synchronous and
+cooperative; a foreground-only test transport combined with the background opt-in fails closed.
+This slice adds no second transport, active pause, arbitrary shell access, publication path, or
+broader hard-cancellation claim.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

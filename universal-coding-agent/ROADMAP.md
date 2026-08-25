@@ -30,7 +30,8 @@
 - [x] durable cancellation report and cooperative fallback for providers without an active termination contract;
 - [x] opt-in cancellable handle adapter for the trusted in-process host-chat transport;
 - [x] typed durable cancellation evidence in the local Product Control Center;
-- [ ] cancellable adapters for additional supported in-process/remote provider transports;
+- [x] opt-in cancellable background-response adapter for the pre-transfer OpenAI Responses transport;
+- [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;
 - commit, push, and optional Draft PR through a source-control adapter.

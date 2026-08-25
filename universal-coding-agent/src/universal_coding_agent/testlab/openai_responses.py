@@ -3,11 +3,18 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable
+from threading import Event, Thread
 from typing import Any
 
+from universal_coding_agent.core.cancellation import (
+    CancellationSignal,
+    OwnedOperationKind,
+)
 from universal_coding_agent.core.models import (
     ModelCapabilities,
     ModelRequest,
@@ -17,7 +24,14 @@ from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
 Transport = Callable[[dict[str, Any]], dict[str, Any]]
+OPENAI_BACKGROUND_CANCELLATION_ENV = "UCA_OPENAI_BACKGROUND_CANCELLATION"
 _SCHEMA_NAME = re.compile(r"[^A-Za-z0-9_-]+")
+_BACKGROUND_POLL_INTERVAL_SECONDS = 2.0
+_BACKGROUND_CANCEL_POLL_INTERVAL_SECONDS = 0.25
+_BACKGROUND_ACTIVE_STATUSES = frozenset({"in_progress", "queued"})
+_BACKGROUND_TERMINAL_STATUSES = frozenset(
+    {"cancelled", "completed", "failed", "incomplete"}
+)
 _SCHEMA_GENERATION_ONLY_KEYWORDS = frozenset(
     {
         "default",
@@ -44,8 +58,9 @@ class OpenAIResponsesProvider:
         api_key: str,
         model: str,
         endpoint: str = "https://api.openai.com/v1/responses",
-        timeout_seconds: int = 180,
+        timeout_seconds: float = 180,
         transport: Transport | None = None,
+        background_cancellation: bool = False,
     ) -> None:
         api_key = api_key.strip()
         model = model.strip()
@@ -53,11 +68,14 @@ class OpenAIResponsesProvider:
             raise ValueError("api_key must not be empty")
         if not model:
             raise ValueError("model must not be empty")
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be positive")
         self.api_key = api_key
         self.model = model
         self.endpoint = endpoint
         self.timeout_seconds = timeout_seconds
         self._transport = transport
+        self.background_cancellation = background_cancellation
 
     @classmethod
     def from_env(cls) -> OpenAIResponsesProvider:
@@ -73,7 +91,13 @@ class OpenAIResponsesProvider:
                 "openai_configuration_missing",
                 "UCA_OPENAI_MODEL is required for live pre-transfer qualification",
             )
-        return cls(api_key=api_key, model=model)
+        return cls(
+            api_key=api_key,
+            model=model,
+            background_cancellation=_background_cancellation_enabled(
+                os.environ.get(OPENAI_BACKGROUND_CANCELLATION_ENV)
+            ),
+        )
 
     def capabilities(self) -> ModelCapabilities:
         return ModelCapabilities(
@@ -97,6 +121,60 @@ class OpenAIResponsesProvider:
         return bool(response.content.strip())
 
     def invoke(self, request: ModelRequest) -> ModelResponse:
+        payload = self._payload(request)
+        data = self._send(payload)
+        return self._response(request, data)
+
+    def invoke_cancellable(
+        self,
+        request: ModelRequest,
+        cancellation: CancellationSignal,
+    ) -> ModelResponse:
+        cancellation.raise_if_cancelled()
+        payload = self._payload(request)
+        if not self.background_cancellation:
+            data = self._send(payload)
+            cancellation.raise_if_cancelled()
+            return self._response(
+                request,
+                data,
+                cancellation_mode="cooperative",
+            )
+        if self._transport is not None:
+            raise ModelProviderError(
+                "openai_background_transport_unsupported",
+                "configured test transport does not own the OpenAI background lifecycle",
+            )
+
+        payload["background"] = True
+
+        def start_operation() -> _OpenAIBackgroundResponseHandle:
+            return _OpenAIBackgroundResponseHandle(self, payload)
+
+        with cancellation.owned_cancellable_operation(
+            OwnedOperationKind.PROVIDER,
+            start_operation,
+        ) as operation:
+            handle = operation
+            if not isinstance(handle, _OpenAIBackgroundResponseHandle):
+                raise ModelProviderError(
+                    "openai_background_handle_invalid",
+                    "OpenAI background lifecycle returned an invalid owned handle",
+                )
+            data = handle.result()
+            if not handle.done():
+                raise ModelProviderError(
+                    "openai_background_state_unconfirmed",
+                    "OpenAI background response termination was not confirmed",
+                )
+
+        return self._response(
+            request,
+            data,
+            cancellation_mode="owned_background_handle",
+        )
+
+    def _payload(self, request: ModelRequest) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": self.model,
             "instructions": request.system_prompt,
@@ -113,8 +191,15 @@ class OpenAIResponsesProvider:
                     "strict": True,
                 }
             }
+        return payload
 
-        data = self._send(payload)
+    def _response(
+        self,
+        request: ModelRequest,
+        data: dict[str, Any],
+        *,
+        cancellation_mode: str | None = None,
+    ) -> ModelResponse:
         output_text = _output_text(data)
         if not output_text:
             raise ModelProviderError(
@@ -156,6 +241,17 @@ class OpenAIResponsesProvider:
             finish_reason = status
 
         response_id = str(data.get("id") or "")
+        diagnostics: dict[str, str | int | bool | None] = {
+            "provider": "openai_responses",
+            "response_id": response_id,
+            "store": False,
+        }
+        if cancellation_mode is not None:
+            diagnostics["cancellation_mode"] = cancellation_mode
+        if cancellation_mode == "owned_background_handle":
+            diagnostics["background"] = True
+            diagnostics["temporary_background_retention"] = True
+
         return ModelResponse(
             content=output_text,
             structured=structured,
@@ -163,11 +259,7 @@ class OpenAIResponsesProvider:
             finish_reason=finish_reason,
             completion_tokens=_optional_nonnegative_int(usage.get("output_tokens")),
             reasoning_tokens=_optional_nonnegative_int(output_details.get("reasoning_tokens")),
-            safe_diagnostics={
-                "provider": "openai_responses",
-                "response_id": response_id,
-                "store": False,
-            },
+            safe_diagnostics=diagnostics,
         )
 
     def _send(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -180,17 +272,37 @@ class OpenAIResponsesProvider:
                 )
             return value
 
+        return self._request_json(
+            method="POST",
+            endpoint=self.endpoint,
+            payload=payload,
+        )
+
+    def _request_json(
+        self,
+        *,
+        method: str,
+        endpoint: str,
+        payload: dict[str, Any] | None = None,
+        timeout_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        body = (
+            json.dumps(payload, separators=(",", ":")).encode()
+            if payload is not None
+            else None
+        )
+        request_timeout = self.timeout_seconds if timeout_seconds is None else timeout_seconds
         request = urllib.request.Request(
-            self.endpoint,
-            data=json.dumps(payload, separators=(",", ":")).encode(),
+            endpoint,
+            data=body,
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
             },
-            method="POST",
+            method=method,
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            with urllib.request.urlopen(request, timeout=request_timeout) as response:
                 raw = response.read()
         except urllib.error.HTTPError as exc:
             try:
@@ -226,6 +338,186 @@ class OpenAIResponsesProvider:
                 "OpenAI Responses API response was not one JSON object",
             )
         return decoded
+
+
+class _OpenAIBackgroundResponseHandle:
+    """Own one opt-in OpenAI background response lifecycle."""
+
+    def __init__(
+        self,
+        provider: OpenAIResponsesProvider,
+        payload: dict[str, Any],
+    ) -> None:
+        self._provider = provider
+        self._payload = dict(payload)
+        self._deadline = time.monotonic() + provider.timeout_seconds
+        self._cancel_requested = Event()
+        self._terminal_confirmed = Event()
+        self._worker_finished = Event()
+        self._result: dict[str, Any] | None = None
+        self._error: Exception | None = None
+        self._worker = Thread(
+            target=self._run,
+            name="uca-openai-background-response",
+            daemon=True,
+        )
+        self._worker.start()
+
+    def result(self) -> dict[str, Any]:
+        self._worker_finished.wait()
+        if self._error is not None:
+            raise self._error
+        if self._result is None:
+            raise ModelProviderError(
+                "openai_background_response_invalid",
+                "OpenAI background lifecycle returned no response",
+            )
+        return self._result
+
+    def cancel(self) -> None:
+        """Latch one non-blocking request for the owned worker to cancel remotely."""
+
+        self._cancel_requested.set()
+
+    def done(self) -> bool:
+        """Report only a remotely observed terminal response status."""
+
+        return self._terminal_confirmed.is_set()
+
+    def _run(self) -> None:
+        try:
+            self._run_lifecycle()
+        except Exception as exc:
+            self._error = exc
+        finally:
+            self._worker_finished.set()
+
+    def _run_lifecycle(self) -> None:
+        data = self._request_json(
+            method="POST",
+            endpoint=self._provider.endpoint,
+            payload=self._payload,
+        )
+        response_id = _background_response_id(data)
+        status = _background_status(data)
+        if status in _BACKGROUND_TERMINAL_STATUSES:
+            self._record_terminal(data)
+            return
+        if status not in _BACKGROUND_ACTIVE_STATUSES:
+            raise ModelProviderError(
+                "openai_background_state_unconfirmed",
+                "OpenAI background response returned an unknown lifecycle status",
+            )
+
+        cancel_dispatched = False
+        response_endpoint = (
+            f"{self._provider.endpoint.rstrip('/')}"
+            f"/{urllib.parse.quote(response_id, safe='')}"
+        )
+        while True:
+            if self._cancel_requested.is_set() and not cancel_dispatched:
+                data = self._request_json(
+                    method="POST",
+                    endpoint=f"{response_endpoint}/cancel",
+                )
+                cancel_dispatched = True
+            else:
+                if cancel_dispatched:
+                    poll_delay = min(
+                        _BACKGROUND_CANCEL_POLL_INTERVAL_SECONDS,
+                        self._remaining_seconds(),
+                    )
+                    time.sleep(poll_delay)
+                else:
+                    poll_delay = min(
+                        _BACKGROUND_POLL_INTERVAL_SECONDS,
+                        self._remaining_seconds(),
+                    )
+                    if self._cancel_requested.wait(poll_delay):
+                        continue
+                data = self._request_json(
+                    method="GET",
+                    endpoint=response_endpoint,
+                )
+
+            _validate_background_response_id(data, response_id)
+            status = _background_status(data)
+            if status in _BACKGROUND_TERMINAL_STATUSES:
+                self._record_terminal(data)
+                return
+            if status not in _BACKGROUND_ACTIVE_STATUSES:
+                raise ModelProviderError(
+                    "openai_background_state_unconfirmed",
+                    "OpenAI background response returned an unknown lifecycle status",
+                )
+
+    def _request_json(
+        self,
+        *,
+        method: str,
+        endpoint: str,
+        payload: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        remaining = self._remaining_seconds()
+        try:
+            return self._provider._request_json(
+                method=method,
+                endpoint=endpoint,
+                payload=payload,
+                timeout_seconds=remaining,
+            )
+        except ModelProviderError as exc:
+            if time.monotonic() >= self._deadline:
+                raise _background_timeout_error() from exc
+            raise
+
+    def _remaining_seconds(self) -> float:
+        remaining = self._deadline - time.monotonic()
+        if remaining <= 0:
+            raise _background_timeout_error()
+        return remaining
+
+    def _record_terminal(self, data: dict[str, Any]) -> None:
+        self._result = data
+        self._terminal_confirmed.set()
+
+
+def _background_response_id(data: dict[str, Any]) -> str:
+    response_id = str(data.get("id") or "").strip()
+    if not response_id:
+        raise ModelProviderError(
+            "openai_background_response_invalid",
+            "OpenAI background response omitted its lifecycle identifier",
+        )
+    return response_id
+
+
+def _validate_background_response_id(
+    data: dict[str, Any],
+    expected_response_id: str,
+) -> None:
+    if _background_response_id(data) != expected_response_id:
+        raise ModelProviderError(
+            "openai_background_state_unconfirmed",
+            "OpenAI background lifecycle returned a different response identifier",
+        )
+
+
+def _background_status(data: dict[str, Any]) -> str:
+    status = str(data.get("status") or "").strip().lower()
+    if not status:
+        raise ModelProviderError(
+            "openai_background_response_invalid",
+            "OpenAI background response omitted its lifecycle status",
+        )
+    return status
+
+
+def _background_timeout_error() -> ModelProviderError:
+    return ModelProviderError(
+        "openai_background_timeout",
+        "OpenAI background response exceeded its bounded lifecycle timeout",
+    )
 
 
 def _openai_strict_schema(schema: dict[str, Any]) -> dict[str, Any]:
@@ -292,3 +584,15 @@ def _optional_nonnegative_int(value: Any) -> int | None:
     if isinstance(value, int) and value >= 0:
         return value
     return None
+
+
+def _background_cancellation_enabled(value: str | None) -> bool:
+    normalized = str(value or "").strip().lower()
+    if normalized in {"", "0", "false", "no", "off"}:
+        return False
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    raise ModelProviderError(
+        "openai_configuration_invalid",
+        f"{OPENAI_BACKGROUND_CANCELLATION_ENV} must be an explicit boolean value",
+    )
