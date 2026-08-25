@@ -1,651 +1,614 @@
-TASK: HF1_V2_RUNTIME_QA_PHASE_1_PREVIEW_ONLY_0_3_144_REPAIR_11
+TASK: HF1_V2_ROOT_CAUSE_12_STTM_PUBLIC_OUTPUT_GAP_0_3_144_READ_ONLY
 
-Execute Phase 1 Runtime QA against the installed Databricks ETL Copilot extension
-after Repair 11 finalization.
+Perform a deep, read-only root-cause investigation of the live Runtime QA failure
+observed after Repair 11.
 
-Run only in the already-open Development Test Workspace window after:
+This task must determine whether the missing STTM evidence is caused by:
 
-Developer: Reload Window
+* parser data loss;
+* normalized-model data loss;
+* evidence-provider loss;
+* public tool serialization or projection omission;
+* packaged or installed artifact drift;
+* agent-side summary omission;
+* or an unsupported/overconstrained QA expectation.
 
-Use:
+Produce a bounded Repair 12 plan only.
 
-AGENT: ETL Orchestrator
-
-Do not use a source-coding Agent, Claude coding session, Explore mode, or Plan
-mode.
-
-Bypass Permissions may remain enabled. It permits unattended tool execution but
-is NOT explicit ETL approval and MUST NOT be interpreted as permission to accept
-a Preview or perform a filesystem write.
-
-This phase is PREVIEW ONLY.
+Do not implement Repair 12.
 
 ==================================================
 
-1. AUTHORIZED ENVIRONMENT
+1. SOFTWARE DEVELOPMENT ENVIRONMENT
     ==================================================
 
-Expected workspace root:
+Work only inside:
 
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Expected workspace classification:
+Expected identity:
 
-DEVELOPMENT_TEST_WORKSPACE
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-Expected extension identity:
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-EXTENSION_ID:
-td-etl.databricks-etl-copilot
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-ACTIVE_RUNTIME_VERSION:
+SOURCE_VERSION:
 0.3.144
 
-Expected topology:
+EXPECTED_VSIX:
 
-* exactly one open workspace root;
-* no extension-source checkout;
-* no etl-framework-adb checkout;
-* no existing job_conf/**;
-* no existing env_conf/**;
-* no existing generated ETL artifacts;
-* ETL Copilot workflow assets already initialized;
-* exact STTM present at:
-    sttm/qa_hf1v2_demo_sttm.md
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.144.vsix
 
-This workspace may not be a Git repository. Do not require Git metadata as
-consumer-workspace evidence.
+A large dirty working-tree overlay from Repairs 5–11 is expected.
 
-Do not access the Software Development Environment.
-Do not inspect or modify extension source.
-Do not access etl-framework-adb.
-Do not install, build, or reinstall an extension.
-Do not download dependencies.
-Do not initialize, stage, commit, or push Git.
-Do not execute a Databricks job.
-Do not connect to ADLS, Databricks, Unity Catalog, or real data.
-Do not modify workflow customization assets.
-Do not modify the STTM.
-Do not approve, consume, reject, close, or discard a valid Preview.
-Do not execute any filesystem write.
+Preserve it exactly.
+
+Do not reset, restore, stash, clean, delete, stage, commit, push, merge, tag, or
+modify any existing file.
+
+Do not access or inspect etl-framework-adb.
+
+If repository root, origin, branch, HEAD, or source version differs, stop:
+
+ROOT_CAUSE_12_RESULT: BLOCKED_IDENTITY
+
+If staged files exist, stop:
+
+ROOT_CAUSE_12_RESULT: BLOCKED_STAGED_CHANGES
 
 ==================================================
-2. LIVE RUNTIME ACTIVATION GATE
+2. NATIVE PROCESS PREFLIGHT
 
-Prove live activation from the reloaded QA Extension Host.
+Before analysis, prove that this Local execution environment can launch real
+native processes.
 
-Use:
+Run:
 
-* etl_capabilities;
-* live ETL Copilot Output;
-* other installed runtime identity evidence exposed by the extension, if needed.
+* cmd.exe /c echo PROCESS_EXECUTION_OK
+* git.exe –version
+* node.exe –version
+* npm.cmd –version
 
-Required:
+Every command must produce visible output and exit code 0.
 
-ACTIVE_EXTENSION_ID: td-etl.databricks-etl-copilot
-ACTIVE_EXTENSION_VERSION: 0.3.144
-RUNTIME_TARGET_TYPE: consumer-etl-workspace
-RUNTIME_READY: YES
-RUNTIME_AVAILABLE: YES
-RUNTIME_BLOCKER_COUNT: 0
+Do not substitute PowerShell-only static inspection if native processes cannot
+execute.
 
-The live ETL Copilot Output must identify version 0.3.144.
+If this gate fails, make no changes and stop:
 
-An extension listing, VSIX filename, package.json, manifest, or CLI output alone
-is not runtime activation proof.
-
-If the active runtime is not exactly 0.3.144, or the workspace is not classified
-as consumer-etl-workspace with zero blockers, stop before STTM interpretation,
-discovery, rendering, validation, or Preview creation:
-
-QA_PHASE_1_RESULT: BLOCKED_RUNTIME_IDENTITY
-
-Do not reinstall from this workspace.
+ROOT_CAUSE_12_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
 
 ==================================================
-3. FILESYSTEM BASELINE
+3. STRICT READ-ONLY BOUNDARY
 
-Before STTM interpretation or Preview, capture a read-only filesystem baseline.
+Do not modify:
 
-Record:
+* source;
+* tests;
+* fixtures;
+* resources;
+* skills;
+* contracts;
+* documentation;
+* package.json;
+* compiled output;
+* VSIX files;
+* installed extensions;
+* VS Code settings;
+* QA workspace files;
+* the QA STTM.
 
-* absolute workspace root;
-* workspace-root count;
-* complete recursive file inventory;
-* relative path, type, size, last-write time, and SHA-256 of every file;
-* job_conf file count;
-* env_conf file count;
-* generated ETL artifact count;
-* workflow customization paths and hashes;
-* .github/** and resources/copilot/context/** hashes;
-* STTM size, last-write time, and SHA-256;
-* extension-source checkout absence;
-* etl-framework-adb absence;
-* active/pre-existing Preview ID count.
+Do not:
 
-Expected STTM:
+* compile;
+* package;
+* install or uninstall an extension;
+* reload another VS Code window;
+* start Runtime QA;
+* create a Preview;
+* approve or execute a write;
+* access real data;
+* edit the Phase 1 QA prompt to make it pass.
 
-RELATIVE_PATH:
-sttm/qa_hf1v2_demo_sttm.md
+Network access and dependency downloads are forbidden.
 
-EXPECTED_SIZE_BYTES:
+Read-only dynamic probes are authorized.
+
+If temporary scripts or extracted VSIX entries are deterministically required,
+write them only under a new task-owned directory such as:
+
+%TEMP%\hf1v2-root-cause-12\
+
+Report every temporary path created. Never write temporary evidence into either
+repository or the QA workspace.
+
+Capture a path-and-content-hash working-tree baseline before investigation and
+prove the same baseline remains afterward.
+
+==================================================
+4. AUTHORITATIVE LIVE QA RESULT
+
+Treat the following as the captured live 0.3.144 Runtime QA evidence:
+
+ACTIVE_EXTENSION_ID:
+td-etl.databricks-etl-copilot
+
+ACTIVE_EXTENSION_VERSION:
+0.3.144
+
+RUNTIME_TARGET_TYPE:
+consumer-etl-workspace
+
+RUNTIME_READY:
+YES
+
+RUNTIME_AVAILABLE:
+YES
+
+RUNTIME_BLOCKER_COUNT:
+0
+
+WORKSPACE_ROOT:
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa
+
+WORKSPACE_ROOT_COUNT:
+1
+
+SOURCE_CHECKOUT_PRESENT:
+NO
+
+ETL_FRAMEWORK_ADB_PRESENT:
+NO
+
+STTM file:
+
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
+
+Expected STTM identity:
+
+SIZE_BYTES:
 1437
 
-EXPECTED_SHA256:
+SHA256:
 F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-Expected initial state:
+Live Runtime successes:
 
-EXISTING_JOB_CONF_COUNT: 0
-EXISTING_ENV_CONF_COUNT: 0
-EXISTING_GENERATED_ETL_ARTIFACT_COUNT: 0
-EXISTING_ACTIVE_PREVIEW_COUNT: 0
+* exactly one STTM file parsed;
+* no sibling file enumerated;
+* all five sections recognized:
+    Source, Target, Column mapping, Filters, Notes;
+* six ordered mappings returned;
+* one source-evidence object reported;
+* one target-evidence object reported;
+* two schema-evidence objects reported;
+* two exact filters returned:
+    * status_cd IS NOT NULL
+    * updated_ts >= ${etl.effective.start.date}
+* no raw-content fallback;
+* no obsolete filter values fabricated.
 
-Do not create a baseline file inside the workspace. Keep comparison data in
-session memory or a task-owned temporary path outside the workspace.
+Live Runtime stop findings:
 
-If the STTM identity or workspace baseline conflicts, stop without Preview:
+1. Notes section was recognized, but exposed Notes count was 0 instead of 2.
+2. Source evidence count was 1, but its exact literal identifier was not exposed.
+3. Target evidence count was 1, but its exact literal identifier was not exposed.
+4. Mapping IDs and their uniqueness were not exposed.
+5. The runtime therefore reported material section loss and stopped before
+    Framework discovery, rendering, validation, or Preview.
 
-QA_PHASE_1_RESULT: BLOCKED_INPUT_OR_WORKSPACE
+Required safety evidence:
 
-==================================================
-4. FIXED QA JOB CONTRACT
+PREVIEW_ID:
+NONE
 
-Use these fixed values without asking the user again.
+WRITE_EXECUTED:
+NO
 
-JOB_NAME:
-qa_hf1v2_demo
+QA_WORKSPACE_MUTATED:
+NO
 
-MALCODE:
-acz9999
-
-ENVIRONMENT:
-dev
-
-STRATEGY:
-generic_dataframe_write
-
-SOURCE_TYPE:
-Delta
-
-SOURCE_PHYSICAL_MODE:
-ADLS-path-backed
-
-SOURCE_PATH:
-abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/raw/qa_hf1v2_customer
-
-TARGET_TYPE:
-Delta
-
-TARGET_PHYSICAL_MODE:
-ADLS-path-backed
-
-TARGET_PATH:
-abfss://qa@qaetlhf1v2dev.dfs.core.windows.net/curated/qa_hf1v2_customer
-
-OUTPUT_FORMAT:
-delta
-
-WRITE_MODE:
-append
-
-PRIMARY_KEY:
-customer_id
-
-The primary key is informational for this append-only QA case.
-
-Explicitly excluded:
-
-* direct Unity Catalog table-name write;
-* merge;
-* upsert;
-* CDC;
-* SCD2;
-* database_out;
-* Synapse;
-* JDBC;
-* TIBCO;
-* production connectivity.
-
-Logical raw/curated evidence in the STTM must not be converted into direct Unity
-Catalog table identifiers. The fixed physical destination remains the ADLS path.
+Do not reinterpret this failure as a general parser failure: five sections,
+six mappings, and both filters already passed.
 
 ==================================================
-5. REPAIR 11 LIVE STTM INTERPRETATION
+5. EXACT INPUT INSPECTION
 
-Invoke the installed 0.3.144 runtime against exactly:
+Read only the exact authorized QA STTM file above.
 
-sttm/qa_hf1v2_demo_sttm.md
+Do not enumerate or inspect sibling files in its directory.
 
-Use etl_interpret_sttm and installed runtime tools only.
+Verify its size and SHA-256 before and after the investigation.
 
-Do not:
+Capture with exact line references:
 
-* enumerate or read sibling files;
-* replace the requested file with its parent-directory Markdown bundle;
-* use raw-content guessing;
-* use an LLM fallback;
-* fabricate source, target, filter, note, schema, or mapping values.
+* both Notes rows and their exact contents;
+* Source section structure and literal physical identifier;
+* Target section structure and literal physical identifier;
+* the six mapping rows;
+* any mapping IDs explicitly present in the file;
+* headings, table headers, list structure, casing, whitespace, and delimiters
+    relevant to the failed fields.
 
-Required structured result:
+Do not normalize or rewrite the file.
 
-STTM_FILES_PARSED: 1
-STTM_SECTIONS_TOTAL: 5
-STTM_SECTIONS_RECOGNIZED: 5
-
-Recognized sections:
-
-* Source;
-* Target;
-* Column mapping;
-* Filters;
-* Notes.
-
-Required mappings in document order:
-
-1. customer_id -> customer_id
-2. first_name -> first_name
-3. last_name -> last_name
-4. email -> email_address
-5. status_cd -> status_code
-6. updated_ts -> updated_ts
-
-Required evidence:
-
-STTM_STRUCTURED_MAPPING_COUNT: 6
-STTM_SOURCE_EVIDENCE_COUNT: 1
-STTM_TARGET_EVIDENCE_COUNT: 1
-STTM_SCHEMA_EVIDENCE_COUNT: 2
-STTM_FILTER_COUNT: 2
-STTM_NOTES_COUNT: 2
-
-Required literal filters:
-
-* status_cd IS NOT NULL
-* updated_ts >= ${etl.effective.start.date}
-
-The following obsolete expectations are forbidden and must not be substituted:
-
-* status_code = ‘ACTIVE’
-* updated_ts IS NOT NULL
-
-Report Source and Target sections verbatim, including exact logical identifiers.
-
-Expected logical evidence:
-
-SOURCE_LOGICAL_EVIDENCE:
-raw.qa_hf1v2_customer
-
-TARGET_LOGICAL_EVIDENCE:
-curated.qa_hf1v2_customer
-
-These are logical STTM values, not direct Unity Catalog write targets.
-
-The exact STTM bytes remain authoritative. If an identifier differs, report the
-exact file value and stop rather than guessing or silently normalizing it.
-
-Required Repair 11 behavior:
-
-* sibling files enumerated: NO;
-* sibling evidence returned: NO;
-* mappings remain in document order;
-* mapping IDs, if exposed, are unique;
-* mapping IDs contain no absolute machine path;
-* obsolete values fabricated: NO;
-* material sections silently dropped: NO;
-* raw fallback required: NO.
-
-Expected non-blocking information diagnostics may include:
-
-* STTM_MARKDOWN_LOSSY_FORMATTING;
-* STTM_XLSX_REQUIRED_FOR_FORMATTING_VERIFICATION.
-
-These may be reported only at information level. There must be no blocking,
-warning, or error diagnostic for an unrecognized material section, including:
-
-STTM_MATERIAL_SECTION_UNRECOGNIZED
-
-The following results are failures:
-
-* zero or fewer than six mappings;
-* fewer than five recognized sections;
-* missing Source, Target, Filters, or Notes;
-* a successful/high-confidence result with a material section dropped;
-* source or target inferred from unrelated prose;
-* direct table-name or Unity Catalog inference;
-* raw fallback or guessing.
-
-If any required result differs, stop before discovery, rendering, validation, or
-Preview:
-
-QA_PHASE_1_RESULT: FAIL_STTM_RUNTIME
+Do not assume two visually separate lines automatically represent two structured
+Notes rows. Determine the intended Notes contract from authoritative source and
+tests.
 
 ==================================================
-6. TRUSTED FRAMEWORK-INDEPENDENT DISCOVERY
+6. END-TO-END DATA-BOUNDARY TRACE
 
-Only after the STTM gate passes, use installed runtime tools such as:
+Locate the actual production symbols rather than relying only on these likely
+file names.
 
-* etl_capabilities;
-* etl_get_framework_rules;
-* etl_search_examples;
-* etl_describe_module;
-* etl_interpret_sttm.
+Trace the exact STTM through every relevant boundary:
+
+1. filesystem reader and single-file routing;
+2. Markdown section segmentation;
+3. sheet classification;
+4. individual section parsers;
+5. canonical internal STTM document model;
+6. evidence normalization;
+7. reference/evidence provider;
+8. etl_interpret_sttm handler;
+9. language-model-tool response builder;
+10. structuredContent/content/text projection;
+11. registered tool schema and description;
+12. final information visible to the ETL Orchestrator.
+
+Inspect, where applicable:
+
+* src/core/solution/FileSystemSttmDocumentReader.ts
+* src/core/sttm/SttmMarkdownBundleParser.ts
+* src/core/sttm/SttmTypes.ts
+* src/core/sttm/SttmReferenceResolver.ts
+* src/core/solution/SttmEvidenceProvider.ts
+* src/tools/EtlReadOnlyToolService.ts
+* tool registration and package.json languageModelTools declarations;
+* relevant renderer, wrapper, serializer, and result types;
+* Repair 10 and Repair 11 tests;
+* Golden Path pre-package tests;
+* compiled out/** equivalents;
+* extracted 0.3.144 VSIX entries;
+* installed-layout 0.3.144 entries.
+
+Search for the actual call chain and report it. Do not assume the candidate list
+is complete.
+
+For each stage capture:
+
+* Notes collection and exact values;
+* Source evidence count and literal value;
+* Target evidence count and literal value;
+* Mapping count;
+* mapping IDs;
+* mapping-ID uniqueness;
+* diagnostics;
+* confidence/status;
+* property names and nesting;
+* whether a field exists but is excluded from public output.
+
+The report must identify the first boundary where every missing datum:
+
+* ceases to exist; or
+* still exists but ceases to be externally observable.
+
+==================================================
+7. READ-ONLY DYNAMIC PROBES
+
+Use existing production code and existing local dependencies only.
+
+Do not implement a parallel parser or hard-code expected output in the probe.
+
+Using the exact QA STTM, compare:
+
+A. current compiled repository runtime;
+B. the exact 0.3.144 VSIX packaged runtime;
+C. the installed-layout 0.3.144 runtime;
+D. the public etl_interpret_sttm adapter/response surface.
+
+Where an existing repository test harness can invoke the real public tool
+adapter without mutation, use it.
+
+Otherwise, create the smallest possible temporary probe under the authorized
+%TEMP% directory that imports and invokes the existing production entry points.
+
+Run each deterministic probe twice and compare results.
+
+Do not compile or rebuild source during this investigation.
+
+For every probe report:
+
+* exact command;
+* exact production entry point invoked;
+* input path and input SHA-256;
+* exit code;
+* output object shape;
+* Notes count and values;
+* Source/Target fields and values;
+* mapping IDs and uniqueness;
+* diagnostics;
+* whether the result is internal or public;
+* whether repeated results are byte-stable.
+
+If invoking the public adapter requires an unavailable VS Code Extension Host,
+do not simulate a successful public response. Inspect the adapter and existing
+tests, report the limitation, and classify any unsupported conclusion as
+UNRESOLVED.
+
+==================================================
+8. SOURCE / COMPILED / VSIX / INSTALLED PARITY
 
 Verify:
 
-* framework-source checkout is absent;
-* framework source is not required;
-* packaged framework fallback is active;
-* trusted Job Config envelope contract resolves from installed packaged resources;
-* criticalConfigKeys are non-empty;
-* approved packaged examples are searchable without a local Framework root;
-* installed-layout resolution passes;
-* consumer resources/copilot/context/** files are advisory only;
-* consumer context is never used as machine authority.
+* source package version is 0.3.144;
+* VSIX internal package.json version is 0.3.144;
+* VSIX internal manifest version is 0.3.144;
+* publisher and extension ID are correct;
+* the inspected compiled files are the files packaged in the explicit VSIX;
+* packaged relevant entries match installed-layout 0.3.144 entries;
+* Repair 11 logic is present in compiled, packaged, and installed artifacts;
+* no 0.3.142 file is accidentally loaded or compared as 0.3.144.
 
-Machine authority must come from installed trusted runtime code and packaged
-resources, including:
+Stream or extract archive entries only under the authorized temporary directory.
 
-resources/framework/contracts/**
+Do not use modification time or a “newest VSIX” selector to choose the artifact.
 
-Do not recover syntax from the Software Development Environment.
-Do not infer contracts from consumer-authored context.
+Report ARTIFACT_DRIFT: YES only when content evidence proves a semantic
+source/compiled/package/installed mismatch.
 
-If packaged contract, critical keys, or examples cannot resolve, stop:
-
-QA_PHASE_1_RESULT: FAIL_PACKAGED_DISCOVERY
+The mere presence of an old 0.3.142 installation directory is not artifact drift.
 
 ==================================================
-7. TARGET DECISION AND CANONICAL CONFIG
+9. PUBLIC CONTRACT AUTHORITY
 
-Because no job_conf or env_conf exists for this job, require:
+For each failed expectation, identify whether it is promised by an authoritative
+public contract.
 
-TARGET_DECISION: CREATE_NEW_JOB
-FRAMEWORK_SOURCE_REQUIRED: NO
+Inspect:
 
-Generate the proposed Job Config only from:
+* registered language-model-tool schema and description;
+* installed packaged skill instructions;
+* trusted packaged contracts;
+* package model descriptions;
+* public result types;
+* runtime consumer code;
+* production downstream render/discovery consumers;
+* focused and Golden Path tests.
 
-* exact structured STTM model;
-* fixed physical QA inputs;
-* trusted packaged contract;
-* trusted packaged examples.
+Consumer-editable context is advisory and cannot establish machine authority.
 
-Required canonical envelope:
+An internal TypeScript property alone is not automatically a public promise.
+A failing QA assertion alone is not contract authority.
 
-modules {
-<stage_key> {
-…
-options {
-module = <module_type>
-method = process
-}
-}
-}
+Determine separately:
 
-Validate:
+A. NOTES
 
-* modules is an object, not an array;
-* stages are keyed by stage name;
-* every stage has options.module;
-* executable stages have required method/options;
-* mappings preserve STTM document order;
-* both literal filters are preserved;
-* final writer is dataframe_writer;
-* destination is the fixed ADLS target path;
-* format is delta;
-* mode is append;
-* no merge, CDC, SCD2, database_out, or direct Unity Catalog target;
-* no quoted-JSON modules envelope;
-* no noncanonical top-level module blocks;
-* no invented source, target, filter, schema, or note value.
+* Were both Notes parsed internally?
+* Were they normalized into the canonical model?
+* Were they intentionally advisory?
+* Did a serializer or projection convert them to an empty collection?
+* Does the public contract promise Notes content or count?
 
-If deterministic rendering or validation fails, stop without Preview:
+B. SOURCE AND TARGET
 
-QA_PHASE_1_RESULT: FAIL_DETERMINISTIC_VALIDATION
+* Are the exact path-backed Delta identifiers preserved internally?
+* Are they exposed under another documented property?
+* Does the public contract require literal values or only evidence counts?
+* Can deterministic downstream rendering obtain the physical paths without
+    raw-content guessing or consumer-context authority?
 
-==================================================
-8. COMPLETE PREVIEW ARTIFACT SET
+C. MAPPING IDS
 
-Render and validate the proposed artifact set in memory.
+* Do six deterministic internal IDs exist?
+* Are all six unique?
+* Are IDs file/section scoped as Repair 11 intended?
+* Does the public contract promise the IDs themselves?
+* Does it promise an explicit uniqueness field, or is uniqueness only an
+    internal invariant?
 
-It must contain at least:
+D. GOLDEN PATH COVERAGE
 
-* one Job Config;
-* one Environment Config.
+Determine whether the existing Repair 11 Golden Path test:
 
-Likely canonical paths include:
+* invokes the real public etl_interpret_sttm result surface; or
+* stops at an internal parser/evidence model and therefore misses the runtime
+    projection seam.
 
-job_conf/conf/acz9999/qa_hf1v2_demo.json
-env_conf/dev/env_conf_dev_qa_hf1v2_demo.yaml
-
-Do not force these paths if the installed trusted contract deterministically
-produces other canonical consumer-relative paths. Report the actual paths and
-contract evidence.
-
-Additional SQL/include artifacts are permitted only when deterministically
-required. Do not create convenience artifacts.
-
-Every proposed path must:
-
-* resolve inside the single Development Test Workspace root;
-* pass traversal and containment validation;
-* be absent from the filesystem before Preview.
-
-For every artifact report:
-
-* relative path;
-* normalized absolute destination;
-* artifact type;
-* disposition;
-* SHA-256 of exact proposed content;
-* writable decision;
-* deterministic validation result;
-* reason/evidence.
+This determination must be explicit.
 
 ==================================================
-9. REQUEST EXACTLY ONE REAL PREVIEW
+10. ROOT-CAUSE CLASSIFICATION
 
-Only after all preceding gates pass, invoke the installed guarded-write workflow
-exactly once and only far enough to create a Preview record.
+Classify each symptom independently using the earliest proven divergence:
 
-Use the canonical guarded-write tool exposed by etl_capabilities.
+* PARSER_DATA_LOSS
+* MODEL_NORMALIZATION_LOSS
+* EVIDENCE_PROVIDER_LOSS
+* PUBLIC_TOOL_SERIALIZATION_OMISSION
+* PUBLIC_TOOL_SCHEMA_OMISSION
+* AGENT_SUMMARY_OMISSION
+* TEST_OVERCONSTRAINT
+* ARTIFACT_DRIFT
+* COMPOSITE
+* UNRESOLVED
 
-For the first request:
+Do not weaken the QA contract merely because the current tool does not expose a
+field.
 
-* do not provide previewId;
-* do not provide approval;
-* do not set accept, consume, or write to true;
-* submit the complete validated manifest and exact proposed contents;
-* request Preview only.
+Do not modify production code merely because the QA prompt requested an
+unsupported presentation field.
 
-Required result:
+For Source and Target, explicitly decide whether the missing literals prevent a
+real consumer from rendering the requested path-based dataframe_writer.
 
-* a real extension-issued Preview ID;
-* complete manifest frozen;
-* exact proposed-content hashes frozen;
-* deterministic validation passed;
-* zero files created;
-* zero files modified;
-* zero files deleted;
-* explicit ETL approval required;
-* approval still pending;
-* write authorization not consumed.
+For Notes, explicitly decide whether zero exposed Notes constitutes material
+section loss or an intentionally documented advisory projection.
 
-Bypass Permissions is not ETL approval.
+For mapping IDs, explicitly separate:
 
-Do not:
-
-* fabricate a Preview ID;
-* invoke a second guarded-write turn;
-* call beginConsume;
-* accept the Preview;
-* reject the Preview;
-* approve the Preview;
-* write an artifact;
-* close or discard the Preview state.
-
-If no real Preview ID is issued, report the exact runtime failure and stop:
-
-QA_PHASE_1_RESULT: FAIL_PREVIEW_CREATION
+* IDs being internally correct;
+* IDs being externally visible;
+* uniqueness being externally asserted.
 
 ==================================================
-10. POST-PREVIEW ZERO-WRITE PROOF
+11. TEST-COVERAGE GAP ANALYSIS
 
-Immediately after Preview creation, compare the workspace with the baseline.
+Report which existing test should have detected this exact live discrepancy and
+why it did not.
 
-Verify:
+Determine whether a future test must cross this full seam:
 
-* no job_conf/** exists;
-* no env_conf/** exists;
-* no include or SQL artifact exists;
-* no artifact exists merely because it appeared in the Preview manifest;
-* no existing file size, hash, or last-write time changed;
-* STTM size, hash, and last-write time remain identical;
-* workflow customization hashes remain identical;
-* .github/** and context hashes remain identical;
-* no file was created, modified, renamed, or deleted;
-* no protected root was changed;
-* no real data was accessed;
-* no Preview approval was consumed.
+exact single-file Markdown
+→ production reader
+→ production parser
+→ canonical model
+→ evidence provider
+→ actual public etl_interpret_sttm response
+→ packaged installed-layout runtime.
 
-Required:
+Do not add or edit tests in this task.
 
-PREVIEW_ZERO_NEW_FILES: YES
-PREVIEW_ZERO_MODIFIED_FILES: YES
-PREVIEW_ZERO_DELETED_FILES: YES
-STTM_UNCHANGED: YES
-WORKFLOW_CUSTOMIZATION_UNCHANGED: YES
-WRITE_EXECUTED: NO
-DEVELOPMENT_TEST_WORKSPACE_MUTATED: NO
+List the exact future positive and negative assertions needed, including:
 
-If any delta exists, report it and fail. Do not delete, restore, clean, or repair
-the evidence.
+* two Notes retained or intentionally excluded according to contract;
+* exact Source and Target path evidence;
+* six deterministic unique mapping IDs;
+* no sibling enumeration;
+* no raw-content fallback;
+* no loss of existing five-section/six-mapping/two-filter behavior;
+* public response and internal model parity for contract-required fields.
 
 ==================================================
-11. REQUIRED STOP POINT
+12. BOUNDED REPAIR 12 PLAN — DO NOT IMPLEMENT
 
-Stop immediately after obtaining:
+Produce one evidence-based Repair 12 plan.
 
-1. a real Preview ID;
-2. direct zero-write proof.
+Maximum:
 
-Preserve this exact Chat/session and active Preview state. Phase 2 must use the
-same Preview ID and byte-identical manifest/content.
+* eight ordered implementation actions;
+* eight production/test/contract files.
 
-Do not continue to approval or write testing.
+Choose only the proven repair branch:
+
+A. parser/model repair;
+B. evidence-provider repair;
+C. public serializer/schema repair;
+D. QA-contract correction;
+E. artifact-chain repair;
+F. a proven minimal composite.
+
+For every proposed file report:
+
+* exact symbol;
+* evidence proving it must change;
+* intended behavior;
+* focused tests;
+* security/trust boundary preserved.
+
+Do not propose:
+
+* a general parser redesign;
+* fuzzy inference;
+* raw-content or LLM fallback;
+* fabricated identifiers;
+* consumer context as machine authority;
+* unrelated cleanup;
+* dependency upgrades;
+* changes to Repairs 9–11 that are not proven necessary.
+
+If the root cause is not proven strongly enough, set:
+
+REPAIR_12_PLAN: BLOCKED
+
+Do not speculate.
+
+A future implementation, independent review, version bump to 0.3.145, package,
+installation, and Runtime QA will require separate authorization. Do none of
+them now.
 
 ==================================================
-12. FINAL REPORT
+13. FINAL REPORT
 
 Return:
 
-ACTIVE_EXTENSION_ID: 
-ACTIVE_EXTENSION_VERSION: 
-RUNTIME_ACTIVATION_PROVEN: YES/NO
-RUNTIME_TARGET_TYPE: 
-RUNTIME_READY: YES/NO
-RUNTIME_AVAILABLE: YES/NO
-RUNTIME_BLOCKER_COUNT: 
+REPOSITORY_ROOT: 
+ORIGIN: 
+BRANCH: 
+HEAD: 
+SOURCE_VERSION: 
+PROCESS_EXECUTION_PREFLIGHT: PASS/FAIL
+STAGED_FILES: 
+WORKTREE_BASELINE_PRESERVED: YES/NO
 
-WORKSPACE_CLASSIFICATION: 
-WORKSPACE_ROOT: 
-WORKSPACE_ROOT_COUNT: 
-WORKFLOW_SETUP_ALREADY_PRESENT: YES/NO
-SOURCE_CHECKOUT_PRESENT: YES/NO
-ETL_FRAMEWORK_ADB_PRESENT: YES/NO
+QA_STTM_PATH: 
+QA_STTM_SIZE_BYTES: 
+QA_STTM_SHA256_BEFORE: 
+QA_STTM_SHA256_AFTER: 
+QA_STTM_UNCHANGED: YES/NO
+QA_NOTES_RAW_COUNT: 
+QA_SOURCE_LITERAL: 
+QA_TARGET_LITERAL: 
+QA_MAPPING_ROWS: 
+QA_MAPPING_IDS_IN_INPUT: 
 
-STTM_INPUT_FOUND: YES/NO
-STTM_SIZE_BYTES: 
-STTM_SHA256: 
-STTM_FILES_PARSED: 
-STTM_SECTIONS_TOTAL: 
-STTM_SECTIONS_RECOGNIZED: 
-STTM_RECOGNIZED_SECTION_LIST: 
-STTM_STRUCTURED_MAPPING_COUNT: 
-STTM_MAPPINGS: 
-STTM_MAPPING_IDS_UNIQUE: YES/NO/NOT_EXPOSED
-STTM_SOURCE_EVIDENCE_COUNT: 
-STTM_SOURCE_EVIDENCE: 
-STTM_TARGET_EVIDENCE_COUNT: 
-STTM_TARGET_EVIDENCE: 
-STTM_SCHEMA_EVIDENCE_COUNT: 
-STTM_FILTER_COUNT: 
-STTM_FILTERS: 
-STTM_NOTES_COUNT: 
-STTM_RAW_FALLBACK_REQUIRED: YES/NO
-STTM_SIBLING_FILES_ENUMERATED: YES/NO
-STTM_SIBLING_EVIDENCE_RETURNED: YES/NO
-STTM_PARSER_WARNINGS: 
-STTM_MATERIAL_SECTION_LOSS: YES/NO
+SOURCE_INTERNAL_NOTES_COUNT: <number/NOT_PRESENT/UNRESOLVED>
+COMPILED_INTERNAL_NOTES_COUNT: <number/NOT_PRESENT/UNRESOLVED>
+PACKAGED_INTERNAL_NOTES_COUNT: <number/NOT_PRESENT/UNRESOLVED>
+PUBLIC_TOOL_NOTES_COUNT: <number/NOT_EXPOSED/UNRESOLVED>
 
-CONTEXT_FILES_CONSUMED: 
-CONSUMER_CONTEXT_USED_AS_MACHINE_AUTHORITY: NO
-FRAMEWORK_SOURCE_REQUIRED: YES/NO
-PACKAGED_CONTRACT_RESOLVED: YES/NO
-CRITICAL_CONFIG_KEYS_COUNT: 
-PACKAGED_EXAMPLE_SEARCH_PASS: YES/NO
+SOURCE_LITERAL_INTERNAL_STATUS: PRESENT/ABSENT/UNRESOLVED
+TARGET_LITERAL_INTERNAL_STATUS: PRESENT/ABSENT/UNRESOLVED
+PUBLIC_SOURCE_LITERAL_STATUS: PRESENT/ABSENT/NOT_PROMISED/UNRESOLVED
+PUBLIC_TARGET_LITERAL_STATUS: PRESENT/ABSENT/NOT_PROMISED/UNRESOLVED
 
-TARGET_DECISION: 
-CANONICAL_MODULE_ENVELOPE: YES/NO
-MODULE_COUNT: 
-DATAFRAME_WRITER_PATH_BASED: YES/NO
-SOURCE_PHYSICAL_PATH_BASED: YES/NO
-TARGET_PHYSICAL_PATH_BASED: YES/NO
-WRITE_MODE_APPEND: YES/NO
-UNITY_CATALOG_DIRECT_WRITE_REQUESTED: NO
-OBSOLETE_FILTER_VALUE_FABRICATED: NO
-DETERMINISTIC_VALIDATION_PASS: YES/NO
+INTERNAL_MAPPING_ID_COUNT: <number/UNRESOLVED>
+INTERNAL_MAPPING_IDS_UNIQUE: YES/NO/UNRESOLVED
+PUBLIC_MAPPING_IDS_EXPOSED: YES/NO/UNRESOLVED
+PUBLIC_MAPPING_ID_UNIQUENESS_PROMISED: YES/NO/UNRESOLVED
 
-PREVIEW_ID: 
-PREVIEW_ARTIFACT_COUNT: 
-PREVIEW_ARTIFACT_MANIFEST: <complete list with path, type, disposition, SHA-256,
-containment, and validation>
-PREVIEW_PATHS_INSIDE_WORKSPACE_ROOT: YES/NO
-PREVIEW_ZERO_NEW_FILES: YES/NO
-PREVIEW_ZERO_MODIFIED_FILES: YES/NO
-PREVIEW_ZERO_DELETED_FILES: YES/NO
-EXPLICIT_APPROVAL_REQUIRED: YES/NO
-APPROVAL_STILL_PENDING: YES/NO
-WRITE_AUTHORIZATION_CONSUMED: YES/NO
+GOLDEN_PATH_CROSSES_PUBLIC_TOOL_BOUNDARY: YES/NO
+SOURCE_COMPILED_PARITY: PASS/FAIL/UNRESOLVED
+COMPILED_VSIX_PARITY: PASS/FAIL/UNRESOLVED
+VSIX_INSTALLED_LAYOUT_PARITY: PASS/FAIL/UNRESOLVED
+ARTIFACT_DRIFT: YES/NO/UNRESOLVED
+
+NOTES_ROOT_CAUSE: 
+SOURCE_TARGET_ROOT_CAUSE: 
+MAPPING_IDS_ROOT_CAUSE: 
+PRIMARY_ROOT_CAUSE: 
+SECONDARY_ROOT_CAUSES: 
+QA_EXPECTATION_CORRECTION_REQUIRED: YES/NO/UNRESOLVED
+PRODUCTION_REPAIR_REQUIRED: YES/NO/UNRESOLVED
+REPAIR_12_PLAN: READY/BLOCKED
+REPAIR_12_PROPOSED_PATHS: 
+
+SOURCE_FILES_MODIFIED: 0
+TEST_FILES_MODIFIED: 0
+PACKAGE_JSON_MODIFIED: NO
+VSIX_MODIFIED: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
-
-STTM_UNCHANGED: YES/NO
-WORKFLOW_CUSTOMIZATION_UNCHANGED: YES/NO
-SOURCE_CODE_MODIFIED: NO
-REAL_DATA_ACCESSED: NO
-DEVELOPMENT_TEST_WORKSPACE_MUTATED: NO
-REPAIR_11_LIVE_RUNTIME_PASS: YES/NO
-CHAT_AND_PREVIEW_STATE_PRESERVED: YES/NO
-
-PASS requires:
-
-* active runtime exactly 0.3.144;
-* exactly one valid Development Test Workspace root;
-* consumer-etl-workspace classification with zero blockers;
-* exact STTM identity;
-* exactly one requested STTM file and no sibling enumeration;
-* all five material sections recognized;
-* exactly six ordered mappings;
-* exact Source and Target evidence;
-* exact two current QA filters;
-* no obsolete filter fabrication;
-* no raw fallback;
-* trusted packaged contract and examples resolved;
-* CREATE_NEW_JOB;
-* canonical modules-object envelope;
-* path-backed Delta dataframe_writer in append mode;
-* deterministic validation success;
-* a real Preview ID;
-* complete frozen artifact manifest;
-* zero workspace writes;
-* explicit approval still pending.
+QA_WORKSPACE_MUTATED: NO
+TEMP_ARTIFACTS: 
 
 End exactly with one:
 
-QA_PHASE_1_RESULT: PASS
-QA_PHASE_1_RESULT: FAIL_STTM_RUNTIME
-QA_PHASE_1_RESULT: FAIL_PACKAGED_DISCOVERY
-QA_PHASE_1_RESULT: FAIL_DETERMINISTIC_VALIDATION
-QA_PHASE_1_RESULT: FAIL_PREVIEW_CREATION
-QA_PHASE_1_RESULT: BLOCKED_RUNTIME_IDENTITY
-QA_PHASE_1_RESULT: BLOCKED_INPUT_OR_WORKSPACE
+ROOT_CAUSE_12_RESULT: CONFIRMED_PUBLIC_OUTPUT_GAP
+ROOT_CAUSE_12_RESULT: CONFIRMED_PARSER_OR_MODEL_LOSS
+ROOT_CAUSE_12_RESULT: CONFIRMED_QA_OVERCONSTRAINT
+ROOT_CAUSE_12_RESULT: CONFIRMED_ARTIFACT_DRIFT
+ROOT_CAUSE_12_RESULT: CONFIRMED_COMPOSITE
+ROOT_CAUSE_12_RESULT: INCONCLUSIVE
+ROOT_CAUSE_12_RESULT: BLOCKED_IDENTITY
+ROOT_CAUSE_12_RESULT: BLOCKED_STAGED_CHANGES
+ROOT_CAUSE_12_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
