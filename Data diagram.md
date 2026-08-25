@@ -1,17 +1,12 @@
-TASK: HF1_V2_INDEPENDENT_REVIEW_RETRY_REPAIR_10_AND_VSIX_0_3_143
+TASK: HF1_V2_ROOT_CAUSE_11_INDEPENDENT_CONFIRMATION_NO_BUILD_NO_WRITE
 
-Perform a fresh, independent, read-only review of Repair 10 and the exact
-Databricks ETL Copilot 0.3.143 VSIX.
+Perform a genuinely independent, read-only confirmation of the findings reported
+against Repair 10 and Databricks ETL Copilot 0.3.143.
 
-This review supersedes the previous blocked review only with respect to:
+This must run in a completely new Chat/session that did not implement Repair 10
+and did not produce the 0.3.143 VSIX.
 
-1. the corrected expected SHA-256;
-2. the requirement to verify external-process execution before starting.
-
-Do not rely on the implementation agent’s PASS conclusion.
-Verify all material claims independently.
-
-Work in the Software Development Environment:
+Work only in the Software Development Environment:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
@@ -29,20 +24,14 @@ b2e44c3a1a051aa7fa6008831d225bc06d22e847
 SOURCE VERSION:
 0.3.143
 
-EXACT VSIX:
+EXISTING VSIX:
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
 
-EXPECTED VSIX SIZE:
-1255490 bytes
+VSIX SIZE:
+1255490
 
-CORRECTED EXPECTED VSIX SHA-256:
+VSIX SHA-256:
 8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44B76F3C0EACBDB3CFFA
-
-The earlier expected hash ending with:
-
-…DC5F44876E3C0EACBD03CFFA
-
-was mistranscribed and is explicitly superseded. Do not use it.
 
 Authorized read-only QA input:
 
@@ -52,347 +41,332 @@ Expected QA STTM SHA-256:
 
 F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-Do not modify the QA workspace or STTM.
+==================================================
+0. INDEPENDENCE AND ZERO-WRITE RULES
 
-Do not edit source, tests, fixtures, contracts, documentation, package.json,
-compiled output, the VSIX, or any workflow asset.
+Before inspection, report whether this Chat/session previously:
 
-Do not install the extension.
-Do not start Runtime QA.
-Do not create a Preview ID.
-Do not execute any ETL write.
-Do not commit, push, tag, stage, stash, reset, restore, clean, or delete files.
-Do not download dependencies.
-Do not create package-lock.json.
+* implemented Repair 10;
+* modified its source or tests;
+* built version 0.3.143;
+* issued the earlier Repair 10 PASS.
+
+If YES to any item, stop with:
+
+ROOT_CAUSE_11_RESULT: BLOCKED_NOT_INDEPENDENT
+
+This task is investigation only.
+
+Do not:
+
+* edit any repository or QA file;
+* run npm run compile;
+* run npm run package:prepare;
+* run vsce package;
+* build or rebuild a VSIX;
+* modify or regenerate out/**;
+* install an extension;
+* start Runtime QA;
+* create a Preview ID;
+* execute an ETL write;
+* stage, commit, push, tag, stash, reset, restore, clean, or delete;
+* download dependencies;
+* create package-lock.json.
+
+Read-only Git commands are permitted.
+
+Runtime probes may use only:
+
+* the existing compiled output;
+* the exact existing 0.3.143 VSIX;
+* task-owned files under %TEMP%.
+
+Do not write test fixtures into the repository.
+
+Capture repository status and hashes before and after. They must remain identical.
 
 ==================================================
-0. EXTERNAL-PROCESS EXECUTION PREFLIGHT
 
-Before the repository identity gate, prove this Chat can execute local processes.
+1. IDENTITY GATE
+    ==================================================
 
-Resolve and execute:
+Verify:
 
-* git.exe –version
-* node.exe –version
-* npm.cmd –version
-* cmd.exe /c echo PROCESS_EXECUTION_OK
+* repository root;
+* origin;
+* branch;
+* HEAD;
+* source version;
+* staged-file count;
+* VSIX path, size, SHA-256;
+* QA STTM path and SHA-256.
+
+If any value conflicts, stop without further work.
+
+==================================================
+2. FINDING A — SIBLING-FILE READ AMPLIFICATION
+
+Independently trace the complete Markdown read path beginning with a request for
+one specific .md file.
+
+Inspect at minimum:
+
+* FileSystemSttmDocumentReader;
+* parseSttmMarkdownBundle;
+* SttmMarkdownBundleParser;
+* SttmEvidenceProvider;
+* the tool-facing STTM interpretation path.
+
+Determine whether requesting:
+
+\requested.md
+
+causes the runtime to enumerate and parse other sibling .md files in the same
+directory.
+
+Create an isolated %TEMP% reproduction:
+
+1. requested.md contains one valid mapping section and one identifiable mapping;
+2. unrelated-sibling.md contains a different valid mapping section and a unique
+    sentinel mapping;
+3. invoke the same public/runtime read path while naming only requested.md;
+4. inspect whether the sentinel mapping from unrelated-sibling.md appears.
+
+Repeat the reproduction against:
+
+* existing compiled output;
+* the exact extracted 0.3.143 packaged runtime.
+
+Required report:
+
+REQUESTED_FILE_ONLY_READ: YES/NO
+SIBLING_FILE_ENUMERATION_OCCURRED: YES/NO
+SIBLING_SENTINEL_MAPPING_LEAKED: YES/NO
+CROSS_FILE_AMBIGUITY_REJECTED: YES/NO
+SOURCE_COMPILED_PACKAGED_BEHAVIOR_MATCH: YES/NO
+
+If the sibling sentinel is returned without explicit authorization, classify it
+as a HIGH correctness and trust-boundary defect.
+
+Determine whether the correct boundary should be:
+
+* exact-file parsing for a single-file STTM request; and
+* explicit directory enumeration only when the caller explicitly supplies a
+    bundle directory.
+
+Do not implement the correction.
+
+==================================================
+3. FINDING B — MAPPING-ID UNIQUENESS
+
+Inspect how mapping IDs are generated for:
+
+* canonical bundle rows;
+* single-file sectioned Markdown rows;
+* mappings originating from different files;
+* mappings originating from different logical sections.
+
+Determine whether IDs such as:
+
+FM_
+
+can collide across separate files or sections.
+
+Use a %TEMP% reproduction with two logical inputs having mappings on the same
+source line.
 
 Report:
 
-GIT_PROCESS_EXIT_CODE
-GIT_PROCESS_OUTPUT
-NODE_PROCESS_EXIT_CODE
-NODE_PROCESS_OUTPUT
-NPM_PROCESS_EXIT_CODE
-NPM_PROCESS_OUTPUT
-CMD_PROCESS_EXIT_CODE
-CMD_PROCESS_OUTPUT
+MAPPING_ID_COLLISION_REPRODUCED: YES/NO
+CURRENT_ID_FILE_SCOPED: YES/NO
+CURRENT_ID_SECTION_SCOPED: YES/NO
+TRACEABILITY_JOIN_RISK: HIGH/MEDIUM/LOW/NONE
 
-Required:
+Propose a deterministic stable identity input, but do not implement it.
 
-* every process produces visible output;
-* every exit code is zero;
-* cmd output contains PROCESS_EXECUTION_OK.
-
-If any command returns empty output, has no exit code, cannot launch, or is
-intercepted by the execution environment, stop without inspecting or changing
-the repository and return:
-
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
-
-Do not substitute PowerShell-only inspection for the required node/npm/git
-validation.
+It must not expose absolute machine paths and must not use random values.
 
 ==================================================
+4. FINDING C — PARTIAL-RECOGNITION CONFIDENCE
 
-1. IDENTITY AND ARTIFACT GATE
-    ==================================================
+Run the existing packaged parser against the exact unmodified QA STTM.
 
-Verify independently:
+Report:
 
-* absolute repository root;
-* origin;
-* current branch;
-* HEAD;
-* package.json version;
-* staged-file count;
-* exact VSIX path;
-* VSIX size;
-* internal package.json version;
-* internal extension.vsixmanifest version;
-* publisher;
-* extension ID;
-* archive entry count.
+* total logical sections;
+* recognized sections;
+* unrecognized sections;
+* extracted mappings;
+* extracted source evidence;
+* extracted target evidence;
+* extracted filters;
+* extracted notes;
+* diagnostics;
+* confidence;
+* status.
 
-Compute the VSIX SHA-256 twice using independent implementations:
+Determine whether recognizing only the mapping section while dropping the
+Source, Target, Filters, and Notes sections can still produce approximately
+0.90 confidence.
 
-1. PowerShell Get-FileHash;
-2. raw System.Security.Cryptography.SHA256 over the file bytes.
+Report:
 
-Both results must equal exactly:
+PARTIAL_RECOGNITION_CONFIDENCE_OVERSTATED: YES/NO
+ZERO_RECOGNIZED_FAIL_CLOSED: YES/NO
+PARTIAL_RECOGNITION_PENALIZED: YES/NO
+MISSING_MATERIAL_SECTION_DIAGNOSTIC_PRESENT: YES/NO
 
-8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44B76F3C0EACBDB3CFFA
+Determine which sections are material for the advertised interpretation
+contract and whether confidence/status should reflect missing material sections.
 
-Do not use a “latest VSIX” selector.
-
-If the two independently computed hashes disagree, or the file differs from the
-corrected expected hash, stop with:
-
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-If staged changes exist, stop with:
-
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_STAGED_CHANGES
+Do not invent a new confidence formula and do not implement a change.
 
 ==================================================
-2. CAPTURE AND PRESERVE THE WORKING-TREE BASELINE
+5. FINDING D — UTF-8 BOM HANDLING
 
-The repository is expected to contain a large pre-existing uncommitted overlay.
+Create two byte-identical logical STTM inputs under %TEMP%:
 
-Capture before review:
+* UTF-8 without BOM;
+* UTF-8 with BOM.
 
-* tracked-modified paths and hashes;
-* untracked paths and hashes;
-* staged paths;
-* repository porcelain status.
+Run the existing compiled and packaged parser against both.
 
-Preserve this baseline exactly.
+Report:
 
-The review must make zero repository changes.
+NO_BOM_MAPPING_COUNT: 
+BOM_MAPPING_COUNT: 
+BOM_CHANGES_SECTION_SEGMENTATION: YES/NO
+BOM_DIAGNOSTIC_ACCURATE: YES/NO
+BOM_FINDING_SEVERITY: HIGH/MEDIUM/LOW/INFORMATIONAL
 
-==================================================
-3. REVIEW THE REPAIR 10 CHANGE BOUNDARY
-
-Review the actual diff and implementation in these Repair 10 areas:
-
-Source:
-
-* src/core/sttm/SttmMarkdownBundleParser.ts
-* src/core/sttm/SttmReferenceResolver.ts
-* src/core/solution/SttmEvidenceProvider.ts
-
-Tests and fixture:
-
-* src/test/suite/sttmMarkdownParser.test.ts
-* src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/**
-
-Contract and documentation:
-
-* package.json
-* resources/copilot/skills/etl-sttm-document-understanding/SKILL.md
-
-Confirm that package.json changes are limited to:
-
-* version 0.3.142 → 0.3.143;
-* the supported STTM modelDescription contract.
-
-Identify any Repair 10 change outside this boundary.
+Do not modify the parser.
 
 ==================================================
-4. INDEPENDENT CORRECTNESS REVIEW
+6. FINDING E — RESIDUAL FIRST-TABLE ASSUMPTIONS
 
-Verify from code rather than from the implementation report that:
+Search for remaining firstTable(…) or tables[0] behavior in all Markdown STTM
+section parsers.
 
-* a single self-contained sectioned Markdown STTM is supported;
-* section segmentation occurs only on explicit recognized headings;
-* the mapping-section alias set is small, explicit, and enumerable;
-* fuzzy or substring-based heading guessing is not used;
-* the mapping table is selected by deterministic header matching;
-* human-readable Source column and Target column headers are supported;
-* rows without canonical Excel IDs can be accepted deterministically;
-* fake schema, business-rule, transformation-rule, or join IDs are not created;
-* duplicate mapping sections are rejected;
-* ambiguous mapping tables are rejected;
-* zero recognized sheets or zero mappings fail closed;
-* zero extraction cannot return a successful high-confidence read;
-* canonical multi-file Markdown bundles retain their previous behavior;
-* the Excel STTM path is unchanged;
-* targeted retrieval and path-containment protections are not weakened;
-* consumer context is not treated as machine authority.
+Distinguish:
 
-Explicitly look for:
+* mapping parsing changed by Repair 10;
+* revision-history parsing;
+* business-rule/schema/filter/source/target parsing;
+* unrelated pre-existing behavior.
 
-* accidental broadening of trusted input;
-* arbitrary prose being interpreted as structured mappings;
-* nondeterministic table selection;
-* first-table assumptions;
-* silent ambiguity resolution;
-* fail-open behavior;
-* path traversal or sibling-root access;
-* regressions to Repairs 5–9;
-* duplicated contract logic that can drift.
-
-Report findings by severity with exact file and line references.
+Report every remaining first-table assumption with exact file and line evidence
+and whether it can affect the Phase 1 QA input.
 
 ==================================================
-5. QA STTM INDEPENDENT PARSER PROBE
+7. QA CONTRACT AND PROMPT DISCREPANCY
 
-Read only the authorized QA STTM file.
+Read the exact QA STTM content and report its literal filter expressions.
 
-First verify:
+Do not rely on the earlier Runtime QA prompt.
 
-QA_STTM_SHA256:
-F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
+Specifically verify whether the file contains:
 
-Run independent source, compiled, and packaged parser probes against the exact
-unmodified file.
+* status_cd IS NOT NULL;
+* updated_ts >= ${etl.effective.start.date};
 
-Required deterministic result:
+and whether it contains or does not contain:
 
-* structured mapping count: 6;
-* identical source, compiled, and packaged payloads;
-* source and target field names preserved;
-* status_code = ‘ACTIVE’ preserved;
-* updated_ts IS NOT NULL preserved;
-* Delta source and target evidence preserved;
-* path-backed target preserved;
-* append writer evidence preserved;
-* no Unity Catalog table-name inference;
-* no raw-content guessing fallback;
-* no modification of the QA STTM.
+* status_code = ‘ACTIVE’;
+* updated_ts IS NOT NULL.
 
-Report the complete six-mapping payload, not only the count.
+Report:
 
-==================================================
-6. VALIDATION GATES
+QA_STTM_LITERAL_FILTERS: 
+EARLIER_RUNTIME_PROMPT_FILTERS_MATCH_FILE: YES/NO
+QA_STTM_WAS_MODIFIED: NO
 
-Use existing local dependencies and repository scripts only.
+Also separate:
 
-Run and report exact command, exit code, passing, pending, and failing counts for:
+* evidence explicitly present in the STTM;
+* fixed QA inputs supplied externally by the Runtime QA prompt;
+* evidence currently lost because a section is unrecognized.
 
-1. TypeScript compile;
-2. lint;
-3. Repair 10 focused tests;
-4. STTM Markdown parser regression tests;
-5. STTM reference resolver and evidence-provider tests;
-6. Repair 9 regression tests;
-7. Repair 8 regression tests;
-8. Repair 5/6/7 regression tests;
-9. trusted Job Config envelope direct suite;
-10. workspace-root and path-containment security tests;
-11. the canonical full unit suite.
-
-Expected full-unit baseline after Repair 10:
-
-FULL_UNIT_PASSING_COUNT: 2180
-FULL_UNIT_PENDING_COUNT: 1
-FULL_UNIT_FAILURE_COUNT: 5
-
-The five failures must be independently matched to the previously historical:
-
-* two EvalGating baseline-report failures;
-* three Copilot workflow-customization failures.
-
-Do not merely label them historical. Reproduce or compare their exact identities
-against the appropriate unchanged baseline evidence.
-
-Required:
-
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
+This discrepancy is a test-specification issue and must not be “fixed” by
+editing the STTM or making the parser fabricate missing values.
 
 ==================================================
-7. EXACT PACKAGE REVIEW
+8. ROOT-CAUSE AND BOUNDED REPAIR PLAN
 
-Run the existing exact-package verifier against the explicit 0.3.143 path.
+If the findings are confirmed, provide a bounded Repair 11 plan covering only
+the confirmed defects.
 
-Independently inspect the archive and verify:
+The plan must preserve:
 
-* valid ZIP archive;
-* exactly 66 entries;
-* internal package version 0.3.143;
-* internal manifest version 0.3.143;
-* publisher td-etl;
-* extension ID td-etl.databricks-etl-copilot;
-* trusted contracts are present and byte-equal to source;
-* installed-layout contract resolution works;
-* no source-checkout runtime dependency exists;
-* no machine-specific paths are embedded;
-* no forbidden package-hygiene entries exist;
-* no tests, temporary files, nested Git data, or tsbuildinfo files are packaged;
-* repaired parser logic is present in the packaged runtime.
+* exact workspace-root containment;
+* no sibling or traversal escape;
+* explicit single-file versus bundle-directory semantics;
+* deterministic parsing;
+* explicit enumerated aliases;
+* rejection of ambiguous sections/tables;
+* fail-closed behavior;
+* consumer context remaining advisory only;
+* canonical Markdown bundle compatibility;
+* Excel STTM compatibility;
+* Repairs 5–10 behavior;
+* preview/write approval boundaries.
 
-Compare source, compiled, and packaged behavior on both:
+Identify:
 
-* the Repair 10 synthetic fixture;
-* the exact QA STTM.
+* exact source files;
+* exact functions;
+* exact tests and fixtures to add;
+* negative/security controls;
+* package/documentation changes, if contract behavior changes;
+* whether the next version should be 0.3.144.
+
+Do not implement, build, install, or run Runtime QA.
 
 ==================================================
-8. INDEPENDENT VERDICT
-
-A PASS requires:
-
-* process-execution preflight passes;
-* corrected artifact identity matches;
-* zero staged files;
-* no high- or medium-severity finding;
-* six exact QA mappings from source, compiled, and packaged runtimes;
-* deterministic and fail-closed parsing;
-* canonical bundle compatibility;
-* no security-boundary weakening;
-* all required validation gates pass;
-* only the five independently confirmed historical unit failures remain;
-* exact-package verification passes;
-* zero files changed by the review.
+9. FINAL REPORT
 
 Return:
 
-PROCESS_EXECUTION_PREFLIGHT_PASS: YES/NO
+INDEPENDENT_SESSION_CONFIRMED: YES/NO
 REPOSITORY_IDENTITY_PASS: YES/NO
-CORRECTED_VSIX_SHA256_MATCH: YES/NO
-VSIX_SHA256_METHOD_1: 
-VSIX_SHA256_METHOD_2: 
-ARTIFACT_IDENTITY_PASS: YES/NO
-REPAIR_10_CHANGE_BOUNDARY_PASS: YES/NO
-QA_STTM_SHA256_MATCH: YES/NO
-SOURCE_STRUCTURED_MAPPING_COUNT: 
-COMPILED_STRUCTURED_MAPPING_COUNT: 
-PACKAGED_STRUCTURED_MAPPING_COUNT: 
-SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES/NO
-QA_STTM_MODIFIED: NO
-DETERMINISTIC_PARSER_PASS: YES/NO
-ZERO_EXTRACTION_FAIL_CLOSED: YES/NO
-CANONICAL_BUNDLE_REGRESSION_PASS: YES/NO
-PATH_CONTAINMENT_PASS: YES/NO
-TRUST_BOUNDARY_PASS: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_10_FOCUSED_PASS: YES/NO
-STTM_REGRESSION_PASS: YES/NO
-REPAIR_9_REGRESSION_PASS: YES/NO
-REPAIR_8_REGRESSION_PASS: YES/NO
-REPAIR_5_6_7_REGRESSION_PASS: YES/NO
-TRUSTED_ENVELOPE_PASS: YES/NO
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-HISTORICAL_FAILURE_IDENTITY_CONFIRMED: YES/NO
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-EXACT_PACKAGE_VERIFIER_PASS: YES/NO
-INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+VSIX_IDENTITY_PASS: YES/NO
+QA_STTM_IDENTITY_PASS: YES/NO
+SIBLING_FILE_ENUMERATION_OCCURRED: YES/NO
+SIBLING_SENTINEL_MAPPING_LEAKED: YES/NO
+CROSS_FILE_AMBIGUITY_REJECTED: YES/NO
+MAPPING_ID_COLLISION_REPRODUCED: YES/NO
+PARTIAL_RECOGNITION_CONFIDENCE_OVERSTATED: YES/NO
+BOM_CHANGES_SECTION_SEGMENTATION: YES/NO
+RESIDUAL_FIRST_TABLE_ASSUMPTIONS: 
+QA_STTM_LITERAL_FILTERS: 
+EARLIER_RUNTIME_PROMPT_FILTERS_MATCH_FILE: YES/NO
 HIGH_FINDING_COUNT: 
 MEDIUM_FINDING_COUNT: 
-LOW_FINDINGS: 
-FILES_CHANGED_BY_REVIEW: 
-STAGED_FILES: 
+LOW_FINDING_COUNT: 
+CONFIRMED_FINDINGS: 
+REJECTED_FINDINGS: 
+PROPOSED_REPAIR_VERSION: 
+PROPOSED_CHANGED_SOURCE_PATHS: 
+PROPOSED_CHANGED_TEST_PATHS: 
+REPOSITORY_FILES_CHANGED: 0
+QA_FILES_CHANGED: 0
+OUT_REGENERATED: NO
+VSIX_BUILT: NO
 EXTENSION_INSTALLED: NO
 RUNTIME_QA_STARTED: NO
 PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
-READY_TO_INSTALL_0_3_143: YES/NO
-READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
+READY_FOR_BOUNDED_REPAIR: YES/NO
 
 End exactly with one:
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: PASS
+ROOT_CAUSE_11_RESULT: CONFIRMED
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_FINDINGS
+ROOT_CAUSE_11_RESULT: PARTIALLY_CONFIRMED
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_VALIDATION
+ROOT_CAUSE_11_RESULT: REJECTED
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+ROOT_CAUSE_11_RESULT: BLOCKED_NOT_INDEPENDENT
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_IDENTITY_MISMATCH
+ROOT_CAUSE_11_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_STAGED_CHANGES
+ROOT_CAUSE_11_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
