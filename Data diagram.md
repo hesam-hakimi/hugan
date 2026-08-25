@@ -1,183 +1,33 @@
-TASK: PHASE_2D_PR16_MARK_READY_FOR_REVIEW
+## Product Goal
 
-Perform one bounded verification and, only if every identity gate passes,
-mark PR #16 ready for review.
+askAlpha turns a business question into a safe, governed, and repeatable answer\. The long\-term goal is to provide trusted answers, tables, charts, and reports across approved enterprise data platforms—not just generate SQL\.
 
-Repository:
-TD-Enterprise/kmai-td-genie
+## What We Have Designed and Added
 
-Required workspace:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+|Phase                                       |Capability Added                                                                                                                    |Simple Business Value                                                                                                         |Current Position                                          |
+|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+|**Phase 1 — Secure Foundation**             |Enterprise sign-in, access checks, read-only data access, safe query controls, and answers in table/chart form.                     |Users can ask questions without bypassing security or changing source data.                                                   |**Delivered foundation**                                  |
+|**Phase 2A — Governed Metadata**            |A common structure for describing Product Groups, Schemas, Datasets, and Fields.                                                    |The product understands approved data through consistent definitions instead of guesses.                                      |**Completed and accepted**                                |
+|**Phase 2B — Versioned Registry**           |A service that stores and retrieves current and previous metadata versions, with a small safe cache.                                |Answers can be traced to the exact data definition used at that time.                                                         |**Completed and accepted**                                |
+|**Phase 2C — Governed Semantic Plan**       |A validated plan is created before any query runs, including the selected data, fields, relationships, filters, and expected output.|The system checks that a question is mapped to the right governed data before execution.                                      |**Completed and accepted**                                |
+|**Phase 2C.5 — Provider-Neutral Foundation**|The core product was separated from one specific database implementation.                                                           |askAlpha can support SQL today and add Databricks or another approved platform later without redesigning the core.            |**Completed and merged**                                  |
+|**Phase 2D — Approved Recipe Pilot**        |A repeatable business calculation can be stored as a governed, versioned recipe with approved parameters and validation rules.      |Important answers no longer depend on the AI improvising the calculation each time.                                           |**Implemented; review/merge workflow in progress**        |
+|**Phase 2E — Field-Level Change Protection**|Recipes identify the exact governed fields they depend on and detect relevant changes.                                              |If a required field is removed, renamed, or materially changed, the answer stops instead of silently returning a wrong result.|**Implemented; stacked review/merge workflow in progress**|
+|**Phase 2F — Recipe Approval and Lifecycle**|Proposed states such as **Valid**, **Review Required**, **Broken**, and **Not Approved**, supported by explicit approval evidence.  |The business can clearly see whether a trusted answer is still safe to run after a change.                                    |**Discovery complete; owner decisions pending**           |
 
-Equivalent /app1 physical path is acceptable only when realpath proves it is
-the same permanent worktree.
+## What We Plan to Do Next
 
-This task authorizes exactly one GitHub mutation:
+1. **Finish the current merge sequence** — complete review and merge of the Phase 2D and Phase 2E changes\.
+2. **Implement Phase 2F** — finalize approval ownership and add controlled recipe lifecycle and reapproval rules\.
+3. **Add certified business meaning** — governed KPIs, glossary terms, business rules, ownership, and reusable report templates\.
+4. **Support governed relationships** — approved joins and multi\-dataset reasoning without allowing the AI to invent relationships\.
+5. **Expand data\-platform support** — introduce Databricks and other providers through the provider\-neutral foundation, and define the coexistence boundary with Databricks Genie\.
+6. **Strengthen data safety** — improve join, grain, duplicate\-counting, row, and column controls\.
+7. **Measure quality and operations** — add audit evidence, traceability, answer\-quality evaluation, and regression monitoring\.
+8. **Improve scale and cost** — benchmark first, then add scope\-aware caching or Redis only if evidence shows it is needed\.
+9. **Enable governed self\-service** — allow approved teams to onboard metadata and recipes through a controlled review and publishing process\.
+10. **Improve the presentation experience** — richer charts, polished reports, downloads, exports, and approved integrations\.
 
-    Convert PR #16 from Draft to Ready for review.
+## Management Takeaway
 
-No other mutation is authorized.
-
-==================================================
-1. WORKSPACE AND EVIDENCE GATE
-==================================================
-
-Verify:
-
-- pwd, pwd -P, and realpath;
-- repository remote identity;
-- current branch:
-  phase2/governed-field-records
-- local HEAD:
-  0430613e6a9f1680338d8fc099e7960e5d46cac2
-- git status --porcelain is clean.
-
-Read completely:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2D_PR16_RETARGET_2026-08-24.md
-
-Do not use the stale primary checkout, asktd_v2, sibling repositories,
-ETL/UCA workspaces, or temporary worktrees.
-
-Do not fetch, pull, switch branches, reset, stash, clean, merge, rebase,
-cherry-pick, or change Git configuration.
-
-If identity or cleanliness differs, stop without mutation and report:
-
-PHASE_2D_PR16_READY_BLOCKED_WRONG_WORKSPACE
-
-==================================================
-2. LIVE PRE-MUTATION VERIFICATION
-==================================================
-
-Using existing authenticated GitHub access, independently verify:
-
-PR #15:
-
-- state: closed;
-- merged: true;
-- base: main;
-- merge-commit SHA:
-  9db7e6b86c596bdf613f3180c2a1c927625233a1
-
-Current main SHA must still equal that merge commit.
-
-PR #16:
-
-- state: open;
-- Draft: true;
-- merged: false;
-- base: main;
-- head branch:
-  phase2/approved-recipe-pilot
-- exact head SHA:
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-- changed files: exactly 9;
-- additions/deletions: exactly +1431/-6;
-- mergeable: true;
-- no merge conflict;
-- zero approvals;
-- review requirement is the only policy blocker.
-
-PR #17:
-
-- state: open;
-- Draft: true;
-- base:
-  phase2/approved-recipe-pilot
-- head:
-  phase2/governed-field-records
-- exact head SHA:
-  0430613e6a9f1680338d8fc099e7960e5d46cac2
-
-Also verify both remote branches still exist:
-
-- phase2/provider-abstraction-foundation
-- phase2/approved-recipe-pilot
-
-If any expected identity or PR #16 scope differs, stop without mutation and
-report:
-
-PHASE_2D_PR16_READY_BLOCKED_CANDIDATE_DRIFT
-
-==================================================
-3. ONLY AUTHORIZED MUTATION
-==================================================
-
-Mark PR #16 ready for review.
-
-Do not:
-
-- change its base or head;
-- push or force-push;
-- edit title or description;
-- request or add a reviewer;
-- submit a review or approval;
-- comment, label, assign, close, or merge the PR;
-- change PR #15 or PR #17;
-- delete any branch;
-- modify any repository file or local Git ref;
-- enable any runtime flag.
-
-==================================================
-4. POST-MUTATION VERIFICATION
-==================================================
-
-Re-read the live PR state and verify:
-
-- PR #16 remains open;
-- Draft is now false;
-- base remains main;
-- head branch remains phase2/approved-recipe-pilot;
-- head SHA remains:
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-- changed files remain exactly 9;
-- additions/deletions remain exactly +1431/-6;
-- mergeable remains true;
-- no conflict exists;
-- no approval was submitted;
-- review remains required until an eligible non-author approves;
-- PR #15 remains merged;
-- PR #17 remains byte-identical in GitHub metadata;
-- both parent branches still exist;
-- local HEAD and clean status remain unchanged.
-
-Record any automatically triggered workflow/check runs. Do not trigger,
-rerun, cancel, or modify a workflow manually.
-
-==================================================
-5. REPORT
-==================================================
-
-Create exactly one report outside the repository:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2D_PR16_READY_FOR_REVIEW_2026-08-24.md
-
-Include:
-
-1. workspace and clean-state verification;
-2. PR #15 and current main identity;
-3. PR #16 state before mutation;
-4. exact single mutation performed;
-5. PR #16 state after mutation;
-6. unchanged head SHA and 9-file / +1431/-6 scope;
-7. mergeability, review, and workflow/check state;
-8. PR #17 untouched confirmation;
-9. branch-preservation confirmation;
-10. repository no-change attestation;
-11. exact next action:
-    obtain one eligible non-author approval for PR #16, then reverify the
-    candidate before merge.
-
-Do not approve or merge PR #16 during this task.
-
-End with exactly one applicable token:
-
-PHASE_2D_PR16_READY_FOR_REVIEW_COMPLETE
-
-or:
-
-PHASE_2D_PR16_READY_BLOCKED_WRONG_WORKSPACE
-PHASE_2D_PR16_READY_BLOCKED_GITHUB_ACCESS
-PHASE_2D_PR16_READY_BLOCKED_CANDIDATE_DRIFT
-PHASE_2D_PR16_READY_BLOCKED_POSTCHANGE_VALIDATION
+The project has progressed from a secure question\-and\-answer application to the foundation of a governed analytics platform\. The current focus is making business answers **repeatable, explainable, change\-aware, and safe** before expanding to more data platforms, more datasets, and broader self\-service\.
