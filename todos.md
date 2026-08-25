@@ -1,35 +1,39 @@
-TASK: HF1_V2_ROOT_CAUSE_10_MARKDOWN_FIELD_MAPPING_ZERO_MAPPINGS
+TASK: HF1_V2_REPAIR_10_SINGLE_FILE_MARKDOWN_STTM_AND_BUILD_0_3_143
 
-Perform a read-only root-cause investigation of the installed 0.3.142 Runtime QA
-failure where the Markdown STTM Field Mapping section produced zero structured
-mappings.
+Implement the bounded contract-first Repair 10 for deterministic support of a
+single self-contained, sectioned Markdown STTM, then build and verify version
+0.3.143.
 
-Work primarily inside:
+Work only inside:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-This is an investigation-only task.
+This task implements Resolution A from the completed Root Cause 10 investigation:
 
-Do not implement the repair.
-Do not change the package version.
-Do not modify source, tests, resources, contracts, prompts, baselines, or package
-policy.
-Do not rebuild or overwrite the 0.3.142 VSIX.
-Do not install another Extension version.
-Do not start Runtime QA.
-Do not create a Preview.
-Do not execute a filesystem write in the QA workspace.
-Do not access real data.
+Extend the trusted Markdown STTM contract so one self-contained .md document
+containing explicitly recognized sections can be parsed as multiple logical STTM
+sheets.
+
+Do not implement a QA-specific workaround.
+Do not modify the QA STTM.
+Do not use LLM extraction, fuzzy inference, or guessing.
+Do not redesign Excel parsing, existing Markdown bundles, targeted retrieval, or
+Repairs 3–9.
+Do not access etl-framework-adb.
 Do not install or download dependencies.
+Do not use npm version.
+Do not create package-lock.json.
 Do not use web search.
-Do not commit, push, merge, tag, stage, stash, reset, restore, clean, or delete
-files.
-
-A dirty source working tree is expected. Preserve it exactly.
+Do not modify protected .github/**.
+Do not modify tests or baselines to hide failures.
+Do not commit, push, merge, tag, stage, stash, reset, restore, clean, publish, or
+install the resulting VSIX.
+Do not start Runtime QA.
+Do not create a Preview or execute a write.
 
 ==================================================
 
-1. SOURCE REPOSITORY IDENTITY
+1. REPOSITORY IDENTITY AND BASELINE
     ==================================================
 
 Expected repository root:
@@ -52,416 +56,582 @@ Expected working source version:
 
 0.3.142
 
-Expected verified VSIX:
+Expected existing verified artifact:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
 
-Expected VSIX size:
+Expected 0.3.142 size:
 
 1251308 bytes
 
-Expected VSIX SHA-256:
+Expected 0.3.142 SHA-256:
 
 B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23
 
-Capture before investigation:
-
-* repository root;
-* origin;
-* branch;
-* HEAD;
-* package.json version;
-* staged file count;
-* complete tracked-modified and untracked path lists;
-* VSIX path, size, and SHA-256.
-
-If repository identity differs or staged files exist, stop without changing
-anything:
-
-ROOT_CAUSE_10_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-==================================================
-2. AUTHORITATIVE RUNTIME FAILURE EVIDENCE
-
-Treat the following as the authoritative observed 0.3.142 Runtime QA result:
-
-ACTIVE_EXTENSION_ID:
-td-etl.databricks-etl-copilot
-
-ACTIVE_EXTENSION_VERSION:
-0.3.142
-
-RUNTIME_ACTIVATION_PROVEN:
-YES
-
-WORKSPACE_CLASSIFICATION:
-DEVELOPMENT_TEST_WORKSPACE
-
-RUNTIME_TARGET_TYPE:
-consumer-etl-workspace
-
-RUNTIME_READY:
-YES
-
-RUNTIME_AVAILABLE:
-YES
-
-RUNTIME_BLOCKER_COUNT:
-0
-
-REPAIR_9_FRESH_CONSUMER_RUNTIME_PASS:
-YES
-
-STTM_INPUT_FOUND:
-YES
-
-STTM_STRUCTURED_MAPPING_COUNT:
-0
-
-STTM_MAPPINGS:
-none parsed by installed runtime parser
-
-STTM_SOURCE_EVIDENCE:
-none parsed
-
-STTM_TARGET_EVIDENCE:
-none parsed
-
-STTM_FILTERS:
-none parsed
-
-STTM_WRITE_STRATEGY:
-unresolved by parser
-
-STTM_RAW_FALLBACK_REQUIRED:
-YES
-
-Observed parser warnings include:
-
-* template variant unknown;
-* fieldMapping missing;
-* revisionHistory missing;
-* businessRules missing;
-* transformationRules missing;
-* joinClauses missing;
-* tableSchema missing;
-* Markdown lossy-format warning.
-
-The Runtime QA also performed a targeted retry for sheet/section:
-
-Field Mapping
-
-The targeted retry still returned zero mappings.
-
-Because deterministic extraction failed:
-
-* rendering was not attempted;
-* validation was not attempted;
-* Preview was not requested;
-* Preview ID was not created;
-* no workspace files were created, modified, or deleted;
-* no write occurred.
-
-This is not a Repair 9 classification regression.
-
-==================================================
-3. LIMITED QA INPUT ACCESS
-
-The only Development Test Workspace file authorized for read-only inspection is:
+Expected QA STTM:
 
 C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
 
-Do not inspect any other QA workspace file or directory.
+Expected QA STTM size:
 
-Before reading it, record:
+1437 bytes
 
-* absolute path;
-* size;
-* SHA-256;
-* encoding/BOM;
-* newline style.
+Expected QA STTM SHA-256:
 
-Read the file byte-for-byte and as decoded text.
+F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-After the investigation, recalculate its size and SHA-256 and prove it remains
-unchanged.
+Before editing, capture:
 
-Do not copy it into the source repository.
+* repository identity;
+* package version;
+* complete Git status;
+* staged file count;
+* hashes of every tracked-modified and untracked file;
+* exact 0.3.142 VSIX identity;
+* exact QA STTM identity;
+* whether a 0.3.143 VSIX already exists.
 
-If a diagnostic script or capture is required, place it only in a unique
-task-owned directory under %TEMP%, never inside either repository or QA
-workspace. Report every temporary path created.
+A dirty working-tree overlay is expected:
 
-==================================================
-4. DOCUMENT THE EXACT MARKDOWN SHAPE
+* 50 tracked-modified files;
+* 28 untracked files;
+* zero staged files.
 
-Without changing the STTM, report:
+Preserve all pre-existing changes exactly.
 
-* exact heading hierarchy;
-* exact heading text and Markdown level for Field Mapping;
-* whitespace before and after the heading text;
-* whether the heading contains singular/plural wording;
-* mapping-table column names in exact order;
-* table delimiter/alignment row;
-* exact number of mapping rows;
-* whether cells contain code formatting, quotes, pipes, escaped characters,
-    blank values, or multiline content;
-* whether a code fence or HTML block surrounds the table;
-* source section and physical path evidence;
-* target section and physical path evidence;
-* filter representation;
-* writer strategy representation;
-* encoding, BOM, and newline details.
+If identity differs or staged changes exist, stop:
 
-Report the expected six mappings exactly as present in the STTM.
+REPAIR_10_RESULT: BLOCKED_IDENTITY_MISMATCH
 
-Do not infer or rewrite missing information.
+If an unexpected 0.3.143 VSIX already exists, do not overwrite or delete it:
+
+REPAIR_10_RESULT: BLOCKED_EXISTING_0_3_143_ARTIFACT
 
 ==================================================
-5. TRACE THE COMPLETE PARSER PATH
+2. AUTHORIZED CHANGE BOUNDARY
 
-Trace the actual source path used by:
+Primary authorized source paths:
 
-etl_interpret_sttm
+* src/core/sttm/SttmMarkdownBundleParser.ts
+* src/core/sttm/SttmReferenceResolver.ts
+* src/core/solution/SttmEvidenceProvider.ts
 
-for a .md input.
+Authorized contract/documentation paths:
 
-Identify, with exact files/functions:
+* package.json
+* resources/copilot/skills/etl-sttm-document-understanding/SKILL.md
 
-1. tool request validation;
-2. workspace/path resolution;
-3. file type detection;
-4. Markdown decoding;
-5. template-variant detection;
-6. section/sheet-name normalization;
-7. Field Mapping alias resolution;
-8. Markdown-table recognition;
-9. table header mapping;
-10. mapping-row extraction;
-11. source/target/filter/write-strategy extraction;
-12. raw-content fallback;
-13. warning construction;
-14. structured response serialization.
+Authorized test paths:
 
-For every stage report:
+* src/test/suite/sttmMarkdownParser.test.ts
+* a new synthetic fixture directory under:
+    src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/**
 
-* source file;
-* function/class;
-* relevant line or symbol;
-* input shape;
-* output shape;
-* whether the exact QA STTM reaches the stage;
-* whether information is discarded or renamed;
-* exact reason the stage succeeds or fails.
+Only if compilation proves an existing shared STTM type must change, stop before
+editing that additional path and report:
 
-Do not assume the failure is only a heading alias.
+REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
 
-Prove the first point where the six mappings are lost.
+Do not silently expand the source boundary.
+
+The authorized package.json changes are:
+
+1. version 0.3.142 → 0.3.143;
+2. the existing etl_interpret_sttm.modelDescription text necessary to state the
+    supported Markdown shapes accurately.
+
+No other package.json field may change.
 
 ==================================================
-6. INSPECT ALL FORMAT AND ALIAS CONTRACTS
+3. CONTRACT DECISION
 
-Search the source, tests, trusted packaged contracts, approved packaged examples,
-compiled output, and exact VSIX for:
+Implement this explicit supported-input contract:
 
-* Field Mapping;
-* Field Mappings;
-* fieldMapping;
-* fieldMappings;
-* mapping;
-* Markdown STTM support;
-* Markdown table parsing;
-* sheet-name selection;
-* template-variant detection;
-* raw fallback;
-* lossy-format warnings.
+1. .xlsx and .xlsm workbook input remains supported and unchanged.
+2. Existing canonical Markdown bundle remains supported:
+    * one .md file per logical Excel worksheet;
+    * canonical sheet headings;
+    * canonical Excel-style headers and IDs.
+3. A new first-class single-file sectioned Markdown shape is supported:
+    * one .md document;
+    * one document title;
+    * multiple explicitly recognized Markdown sections;
+    * deterministic pipe tables within those sections;
+    * mapping rows may use human-standard field names without canonical
+        S_SCHM/T_SCHM/BR/TR/JC IDs.
 
-Determine:
+Update both:
 
-* whether singular Field Mapping is supported;
-* whether only an Excel sheet/object key is supported;
-* whether Markdown headings are normalized into sheet names;
-* whether heading case, spacing, punctuation, or Markdown level matters;
-* whether parser code expects fieldMapping before Markdown conversion;
-* whether table headers must match a fixed schema;
-* whether Markdown input is intentionally supported by the public/runtime contract;
-* whether the packaged examples contain a structurally equivalent Markdown STTM;
-* whether current tests cover the exact QA format.
+* package.json tool description;
+* resources/copilot/skills/etl-sttm-document-understanding/SKILL.md.
 
-Do not treat consumer-editable examples or context as machine authority.
+The descriptions must distinguish:
+
+* Markdown directory bundle;
+* single-file sectioned Markdown;
+* deterministic extraction requirements.
+
+Do not imply that arbitrary prose Markdown can be interpreted structurally.
 
 ==================================================
-7. REPRODUCE THE FAILURE DETERMINISTICALLY
+4. CANONICAL SECTION SEGMENTATION
 
-Using only existing local dependencies and task-owned %TEMP% scratch files,
-reproduce the parser behavior against the exact read-only STTM bytes.
+Implement segmentation only in the canonical Markdown parser:
 
-Run the closest existing source and compiled parser entry points.
+src/core/sttm/SttmMarkdownBundleParser.ts
 
-Where possible compare:
+Do not add parsing logic to the ETL tool handler or Evidence Provider.
 
-* source implementation;
-* compiled out/** implementation;
-* exact packaged VSIX implementation;
-* installed Runtime QA result.
+For each Markdown file:
 
-Required reproduction evidence:
+* preserve the existing whole-file bundle behavior when it matches the canonical
+    one-file-per-sheet contract;
+* when one file contains multiple recognized section headings, segment it into
+    logical sheets before classification;
+* preserve the document title as document metadata, not as every logical sheet
+    name;
+* retain each section heading, scoped body, scoped tables, and source location.
 
-* exact command or invocation;
+Use a small explicit, reviewable, versioned heading alias map.
+
+Required mapping-section normalized aliases include:
+
+* column mapping
+* field mapping
+* field mappings
+
+Normalization may include:
+
+* case folding;
+* trimming;
+* collapsing repeated whitespace;
+* deterministic removal of Markdown heading syntax.
+
+Do not use substring matching such as “contains mapping”.
+Do not use fuzzy matching.
+Do not classify unrelated prose headings as mapping sections.
+
+Recognized section headings must come from declared aliases for known STTM
+logical sheets.
+
+If duplicate or ambiguous mapping sections exist, reject them with an actionable
+diagnostic. Do not silently select the first one.
+
+==================================================
+5. DETERMINISTIC MAPPING TABLE SELECTION
+
+Within the recognized mapping logical sheet:
+
+* do not assume tables[0];
+* examine only tables scoped to that mapping section;
+* select a table by an explicit deterministic header signature;
+* require exactly one matching mapping table;
+* reject zero or multiple matching tables with diagnostics.
+
+Support the existing canonical header contract unchanged.
+
+Add a declared secondary header-alias contract for the QA/human-readable shape:
+
+* # — optional ordinal column and not machine authority;
+* Source column — required;
+* Source type — optional structured metadata;
+* Target column — required;
+* Target type — optional structured metadata;
+* Transformation — optional structured mapping expression;
+* Nullable — optional structured metadata.
+
+Header normalization may perform only:
+
+* case folding;
+* trimming;
+* deterministic whitespace normalization;
+* declared exact alias lookup.
+
+Do not accept arbitrary similar headers.
+
+==================================================
+6. DETERMINISTIC ROW VALIDATION
+
+Preserve support for canonical S_SCHM/T_SCHM/BR/TR/JC row identifiers.
+
+For the new single-file sectioned Markdown contract, accept a mapping row without
+canonical IDs only when:
+
+* normalized source field name is non-empty;
+* normalized target field name is non-empty;
+* the row belongs to the uniquely recognized mapping table;
+* the table passed the declared header contract;
+* the row structure is complete and unambiguous.
+
+Do not invent fake schema IDs, business-rule IDs, transformation IDs, join IDs,
+or trusted source/target authorities.
+
+A row ordinal may be retained only as diagnostic provenance.
+
+Do not derive physical source or target paths from the field mapping table.
+
+Physical source/target paths remain separate explicit runtime evidence.
+
+Reject:
+
+* blank source fields;
+* blank target fields;
+* malformed rows;
+* inconsistent column counts;
+* duplicate ambiguous rows when the existing contract treats them as ambiguous;
+* prose or code blocks masquerading as mapping rows.
+
+For the exact unchanged QA STTM, the parser must return exactly six mappings.
+
+==================================================
+7. FAIL-CLOSED ZERO-EXTRACTION BEHAVIOR
+
+Fix the contributing fail-open behavior.
+
+Current defective behavior:
+
+* recognizedSheets = 0;
+* fieldMappings = 0;
+* confidence reported as 0.90;
+* tool status reported as read.
+
+Required behavior:
+
+* zero recognized sheets must produce an actionable
+    STTM_SHEET_UNRECOGNIZED warning or stronger diagnostic;
+* confidence must not remain high when no structured evidence was recognized;
+* when the whole document yields both zero recognized sheets and zero mappings,
+    SttmEvidenceProvider must return the existing appropriate blocking/non-success
+    status;
+* downstream planning must not proceed on an empty structured model.
+
+Use existing status and diagnostic types.
+
+Do not introduce a broad new public status model unless compilation proves it is
+required; if required, stop with:
+
+REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+
+Valid recognized non-mapping sheets must not be incorrectly rejected merely
+because they contain zero mappings.
+
+==================================================
+8. TRUST AND SECURITY BOUNDARIES
+
+The implementation must preserve:
+
+* deterministic parsing only;
+* no LLM extraction;
+* no fuzzy inference;
+* no raw-prose guessing fallback;
+* explicit section aliases;
+* explicit header aliases;
+* duplicate/ambiguity rejection;
+* workspace-root containment;
+* traversal rejection;
+* UNC and different-drive rejection;
+* advisory-only consumer context;
+* trusted packaged contracts as machine authority;
+* interpretation as zero-write;
+* approval and guarded-write behavior unchanged.
+
+A heading containing the word mapping in unrelated prose must not become a
+trusted mapping section.
+
+Do not use the QA filename, job name, malcode, ADLS paths, or six field names as
+production-code conditions.
+
+==================================================
+9. REQUIRED TEST FIXTURE
+
+Create a synthetic test fixture structurally equivalent to the QA input under:
+
+src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/
+
+The fixture must remain fully synthetic.
+
+It must include:
+
+* one document title;
+* multiple H2 sections;
+* a ## Column mapping section;
+* at least one non-mapping table before the mapping table;
+* mapping headers:
+    | Source column | Source type | Target column | Target type |
+    Transformation | Nullable
+* exactly six mapping rows;
+* no S_SCHM/T_SCHM/BR/TR/JC canonical IDs;
+* synthetic source and target field names only;
+* no real data or credentials.
+
+Do not modify or copy the QA workspace file into the repository byte-for-byte if
+a minimized structurally equivalent fixture is sufficient.
+
+==================================================
+10. REQUIRED TESTS
+
+Add focused tests covering:
+
+Positive:
+
+1. exact single-file sectioned Markdown shape produces six mappings;
+2. Column mapping exact normalized alias is recognized;
+3. Field Mapping and Field Mappings declared aliases are recognized;
+4. mapping table is selected by headers when it is not the first table;
+5. rows without canonical IDs parse when deterministic source and target field
+    names exist;
+6. source type, target type, transformation, and nullable metadata are preserved;
+7. CRLF UTF-8 without BOM parses correctly;
+8. the existing canonical multi-file Markdown bundle produces byte/semantic
+    equivalent output;
+9. Excel STTM behavior remains unchanged.
+
+Negative/security:
+
+10. unrelated prose heading containing “mapping” is not recognized;
+11. duplicate recognized mapping sections are rejected;
+12. two header-matching mapping tables are rejected;
+13. missing Source column is rejected;
+14. missing Target column is rejected;
+15. blank source/target rows are rejected;
+16. malformed/inconsistent table rows are rejected;
+17. zero recognized sheets does not return confidence 0.90;
+18. zero recognized sheets plus zero mappings does not return status read;
+19. workspace traversal/UNC/different-drive tests remain unchanged;
+20. consumer context cannot influence heading or header recognition.
+
+Tests must assert structured values, not only counts.
+
+Do not weaken, delete, skip, quarantine, or rewrite existing tests to obtain a
+pass.
+
+==================================================
+11. PRE-BUILD VALIDATION
+
+Use only existing local dependencies and repository scripts.
+
+Run and report:
+
+1. TypeScript compile;
+2. lint;
+3. Repair 10 focused Markdown parser tests;
+4. complete existing Markdown/Excel STTM parser suites;
+5. SttmReferenceResolver tests;
+6. SttmEvidenceProvider tests;
+7. STTM auditor and agent-integration tests;
+8. workspace containment/security tests;
+9. Repair 9 fresh-consumer and classification parity tests;
+10. trusted Job Config envelope direct suite;
+11. Repair 8 focused suites;
+12. Repair 5/6/7 regression suites;
+13. full unit suite;
+14. GitHub protected-path guard.
+
+For every gate report:
+
+* exact command;
 * exit code;
-* structured mapping count;
-* extracted mapping payload;
-* warnings;
-* detected template variant;
-* requested section/sheet name;
-* raw fallback behavior.
+* passing count;
+* pending count;
+* failure count;
+* complete failure identities.
 
-Do not edit the STTM to make the parser pass.
+Known 0.3.142 full-unit baseline:
 
-You may construct temporary diagnostic variants under %TEMP% only to isolate
-the predicate. If used, change exactly one characteristic per variant, such as:
+* passing: 2154;
+* pending: 1;
+* failing: 5.
 
-* Field Mapping → Field Mappings;
-* heading level;
-* table column alias;
-* removal of code formatting;
-* newline style;
-* BOM;
-* section order.
-
-For each variant report the one changed characteristic and result.
-
-Diagnostic variants are evidence only and must not become the proposed solution
-without contract analysis.
-
-==================================================
-8. DETERMINE THE ROOT-CAUSE CATEGORY
-
-Classify the proven root cause using one or more exact categories:
-
-* MARKDOWN_INPUT_NOT_ROUTED_TO_STRUCTURED_PARSER;
-* FIELD_MAPPING_HEADING_ALIAS_MISSING;
-* HEADING_NORMALIZATION_DEFECT;
-* MARKDOWN_TABLE_HEADER_ALIAS_MISMATCH;
-* MARKDOWN_TABLE_EXTRACTION_DEFECT;
-* TEMPLATE_VARIANT_DETECTION_DEFECT;
-* RAW_FALLBACK_DOES_NOT_EXTRACT_STRUCTURED_MAPPINGS;
-* SOURCE_COMPILED_PACKAGE_DRIFT;
-* QA_STTM_CONTRACT_MISMATCH;
-* MULTIPLE_CONTRIBUTING_DEFECTS;
-* OTHER_PROVEN_CAUSE.
-
-Do not classify based only on symptom correlation.
+The same five historical failures may remain only if their exact identities and
+fingerprints are unchanged.
 
 Required:
 
-FIRST_FAILED_FUNCTION: 
-EXACT_FAILED_PREDICATE_OR_TRANSFORMATION: 
-WHY_TARGETED_FIELD_MAPPING_RETRY_FAILED: 
-WHY_RAW_FALLBACK_RETURNED_ZERO_MAPPINGS: 
+COMPILE_PASS: YES
+LINT_PASS: YES
+REPAIR_10_FOCUSED_PASS: YES
+STTM_REGRESSION_SUITES_PASS: YES
+REPAIR_9_REGRESSION_PASS: YES
+REPAIR_8_REGRESSION_PASS: YES
+REPAIR_5_6_7_REGRESSION_PASS: YES
+TRUSTED_ENVELOPE_SUITE_PASS: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+If a required gate fails, do not modify tests or unrelated source to suppress it.
+Stop:
+
+REPAIR_10_RESULT: FAIL_VALIDATION_GATE
 
 ==================================================
-9. SECURITY AND TRUST BOUNDARY
+12. EXACT QA INPUT OFFLINE PROOF
 
-The proposed repair must not turn arbitrary Markdown or raw consumer content into
-machine authority.
+Read only this QA file:
 
-Confirm that a safe repair would:
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
 
-* extract mappings only from an explicitly recognized mapping section;
-* require deterministic table headers;
-* validate every row structure;
-* reject duplicate or ambiguous mapping sections;
-* reject malformed or incomplete rows;
-* preserve path containment;
-* preserve consumer-context advisory-only rules;
-* preserve trusted packaged contracts as machine authority;
-* preserve zero-write interpretation;
-* preserve unsupported target diagnostics;
-* fail closed when exact deterministic extraction is impossible.
+Do not access any other QA workspace path.
 
-Determine whether broad fuzzy heading matching would create a security or
-correctness risk.
+Verify before and after:
 
-==================================================
-10. EXISTING TEST COVERAGE AND MISSING TESTS
+SIZE:
+1437 bytes
 
-Report all existing relevant tests and what they actually cover.
+SHA-256:
+F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-Specifically determine whether tests cover:
-
-* a real Markdown .md file;
-* exact heading Field Mapping;
-* exact QA mapping-table headers;
-* six direct mappings;
-* source and target ADLS paths;
-* both QA filters;
-* append-only dataframe writer evidence;
-* singular/plural heading aliases;
-* heading-level and whitespace normalization;
-* duplicate mapping sections;
-* malformed table rows;
-* ambiguous headings;
-* context/prompt injection near a mapping section;
-* source/compiled/VSIX parity.
-
-Identify the precise missing test that allowed version 0.3.142 to pass while the
-installed runtime returned zero mappings.
-
-==================================================
-11. BOUNDED REPAIR PLAN — DO NOT IMPLEMENT
-
-If the root cause is proven, propose the smallest safe Repair 10.
-
-The plan must include:
-
-* exact source paths to modify;
-* exact functions/symbols to modify;
-* whether a shared normalizer/parser must be reused or extracted;
-* exact test paths to add or modify;
-* positive tests;
-* negative/security tests;
-* regression suites;
-* source/compiled/VSIX parity checks;
-* installed-runtime QA repetition;
-* expected version after repair: 0.3.143.
-
-Prefer extending one canonical Markdown section/table parser.
-
-Do not add independent parsing logic inside the ETL tool handler.
-Do not use an LLM or guessing fallback to derive mappings.
-Do not hard-code this specific job, path, field names, or STTM filename.
-Do not weaken deterministic validation.
-Do not redesign unrelated STTM formats or Repairs 3–9.
-
-If the source contract explicitly does not support Markdown STTM, report that
-honestly and propose the smallest contract-aligned resolution. Do not silently
-change the QA input.
-
-==================================================
-12. CHANGE-BOUNDARY VERIFICATION
-
-At the end, compare the repository and QA STTM against their initial baselines.
+Run the repaired source parser and compiled parser against the exact unchanged
+bytes.
 
 Required:
 
-SOURCE_FILES_MODIFIED: 0
-TEST_FILES_MODIFIED: 0
-PACKAGE_JSON_MODIFIED: NO
-VSIX_MODIFIED: NO
+SOURCE_STRUCTURED_MAPPING_COUNT: 6
+COMPILED_STRUCTURED_MAPPING_COUNT: 6
+SOURCE_COMPILED_MAPPING_PAYLOAD_MATCH: YES
+RECOGNIZED_MAPPING_SECTION: Column mapping
+MAPPING_TABLE_SELECTED_BY_HEADERS: YES
+RAW_CONTENT_GUESSING_USED: NO
+ZERO_RECOGNIZED_SHEETS: NO
+FAIL_OPEN_STATUS_RETURNED: NO
 QA_STTM_MODIFIED: NO
-QA_WORKSPACE_FILES_CREATED: 0
-QA_WORKSPACE_FILES_MODIFIED: 0
-QA_WORKSPACE_FILES_DELETED: 0
+
+Report the exact six extracted mappings.
+
+Do not render artifacts or create a Preview.
+
+==================================================
+13. VERSION BUMP
+
+Only after all pre-build validation passes, change package.json:
+
+* version 0.3.142 → 0.3.143;
+* update only the necessary etl_interpret_sttm.modelDescription wording for the
+    expanded Markdown contract.
+
+Do not use npm version.
+Do not create or modify package-lock.json.
+
+Run compile and Repair 10 focused tests again after the version edit.
+
+==================================================
+14. BUILD 0.3.143
+
+Build exactly one final artifact:
+
+databricks-etl-copilot-0.3.143.vsix
+
+Expected path:
+
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
+
+Use the existing canonical packaging workflow and existing local dependencies.
+
+Do not install, publish, tag, commit, or run Runtime QA.
+
+==================================================
+15. EXACT PACKAGE VERIFICATION
+
+Run the existing exact-package verifier against the explicit 0.3.143 path.
+
+Do not use newest-file selection.
+
+Independently verify:
+
+* archive readability;
+* internal package.json version = 0.3.143;
+* internal extension.vsixmanifest version = 0.3.143;
+* publisher = td-etl;
+* Extension ID = td-etl.databricks-etl-copilot;
+* trusted contracts present and byte-equal to source;
+* updated STTM skill documentation present;
+* updated tool model description present;
+* compiled repaired parser present;
+* installed-layout contract resolution passes;
+* no source checkout dependency;
+* no etl-framework-adb dependency;
+* no absolute machine path;
+* package hygiene passes;
+* no tests or test fixtures shipped unless package policy explicitly requires
+    them;
+* no .tmp/**, nested .git/**, .tsbuildinfo*, source tests, or out-test.
+
+Run a packaged-parser proof against the exact unchanged QA STTM bytes without
+installing the Extension.
+
+Required:
+
+PACKAGED_STRUCTURED_MAPPING_COUNT: 6
+SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES
+
+==================================================
+16. PACKAGE DELTA 0.3.142 TO 0.3.143
+
+Compare normalized archive entry names and decompressed bytes.
+
+Ignore ZIP timestamps.
+
+Report:
+
+* identical entries;
+* changed entries;
+* added entries;
+* removed entries;
+* exact reason for every changed entry.
+
+Expected legitimate changes may include:
+
+* package/manifest version metadata;
+* compiled runtime bundle containing Repair 10;
+* packaged STTM skill documentation;
+* package.json model description.
+
+No unrelated runtime or resource delta is permitted.
+
+==================================================
+17. REAL ARTIFACT IDENTITY
+
+Compute from the actual final file:
+
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
+
+Do not predict or reuse a hash.
+
+==================================================
+18. POST-BUILD CHANGE BOUNDARY
+
+Compare final repository status with the initial baseline.
+
+Report separately:
+
+* pre-existing changed paths;
+* task-attributable source changes;
+* task-attributable test/fixture changes;
+* task-attributable contract/documentation changes;
+* package.json version/model-description changes;
+* generated compile/package output;
+* unexpected changes;
+* staged files.
+
+Required:
+
+UNAUTHORIZED_CHANGED_PATHS: NONE
 STAGED_FILES: 0
+PACKAGE_LOCK_CREATED: NO
+QA_STTM_MODIFIED: NO
+QA_WORKSPACE_MUTATED: NO
+EXISTING_0_3_142_VSIX_MODIFIED: NO
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
+TAG_CREATED: NO
+EXTENSION_INSTALLED: NO
 RUNTIME_QA_STARTED: NO
 PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
 
 ==================================================
-13. FINAL REPORT
+19. FINAL REPORT
 
 Return:
 
@@ -469,69 +639,96 @@ REPOSITORY_ROOT:
 ORIGIN: 
 BRANCH: 
 HEAD: 
-SOURCE_VERSION: 
-VSIX_PATH: 
-VSIX_SIZE_BYTES: 
-VSIX_SHA256: 
-QA_STTM_PATH: 
-QA_STTM_SIZE_BYTES_BEFORE: 
-QA_STTM_SIZE_BYTES_AFTER: 
+SOURCE_VERSION_BEFORE: 0.3.142
+SOURCE_VERSION_AFTER: 
+CONTRACT_DECISION: SUPPORT_SINGLE_FILE_SECTIONED_MARKDOWN
+AUTHORIZED_SOURCE_CHANGED_PATHS: 
+AUTHORIZED_TEST_CHANGED_PATHS: 
+AUTHORIZED_CONTRACT_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+SECTION_SEGMENTATION_IMPLEMENTED: YES/NO
+EXPLICIT_MAPPING_ALIAS_SET: 
+FUZZY_HEADING_MATCHING_USED: NO
+MAPPING_TABLE_SELECTED_BY_HEADERS: YES/NO
+HUMAN_HEADER_ALIAS_SET_IMPLEMENTED: YES/NO
+ROWS_WITHOUT_CANONICAL_IDS_SUPPORTED_DETERMINISTICALLY: YES/NO
+FAKE_IDS_SYNTHESIZED: NO
+DUPLICATE_MAPPING_SECTION_REJECTED: YES/NO
+AMBIGUOUS_MAPPING_TABLE_REJECTED: YES/NO
+ZERO_EXTRACTION_FAIL_CLOSED: YES/NO
+SOURCE_STRUCTURED_MAPPING_COUNT: 
+COMPILED_STRUCTURED_MAPPING_COUNT: 
+PACKAGED_STRUCTURED_MAPPING_COUNT: 
+SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES/NO
+EXACT_QA_MAPPING_PAYLOAD: 
 QA_STTM_SHA256_BEFORE: 
 QA_STTM_SHA256_AFTER: 
-QA_STTM_ENCODING: 
-QA_STTM_NEWLINE_STYLE: 
-FIELD_MAPPING_HEADING_EXACT: 
-FIELD_MAPPING_HEADING_LEVEL: 
-FIELD_MAPPING_TABLE_HEADERS: 
-FIELD_MAPPING_ROW_COUNT: 
-EXPECTED_MAPPING_COUNT_FROM_FILE: 
-EXPECTED_MAPPINGS_FROM_FILE: 
-SOURCE_EVIDENCE_IN_FILE: 
-TARGET_EVIDENCE_IN_FILE: 
-FILTER_EVIDENCE_IN_FILE: 
-WRITE_STRATEGY_EVIDENCE_IN_FILE: 
-MARKDOWN_RUNTIME_SUPPORT_CONTRACT: YES/NO/AMBIGUOUS
-SOURCE_PARSER_REPRODUCED_ZERO: YES/NO
-COMPILED_PARSER_REPRODUCED_ZERO: YES/NO
-PACKAGED_PARSER_REPRODUCED_ZERO: YES/NO
-SOURCE_COMPILED_VSIX_PARITY: PASS/FAIL/NOT_PROVEN
-FIRST_FAILED_SOURCE_FILE: 
-FIRST_FAILED_FUNCTION: 
-EXACT_FAILED_PREDICATE_OR_TRANSFORMATION: 
-WHY_TARGETED_FIELD_MAPPING_RETRY_FAILED: 
-WHY_RAW_FALLBACK_RETURNED_ZERO_MAPPINGS: 
-ROOT_CAUSE_CATEGORY: 
-ROOT_CAUSE_PROVEN: YES/NO
-EXISTING_RELEVANT_TESTS: 
-MISSING_TEST_SCENARIOS: 
-SECURITY_BOUNDARY_PRESERVED_BY_PLAN: YES/NO
-PROPOSED_SOURCE_PATHS: 
-PROPOSED_TEST_PATHS: 
-PROPOSED_VERSION_AFTER_REPAIR: 0.3.143
-SOURCE_FILES_MODIFIED: 0
-TEST_FILES_MODIFIED: 0
-PACKAGE_JSON_MODIFIED: NO
-VSIX_MODIFIED: NO
 QA_STTM_MODIFIED: NO
-QA_WORKSPACE_FILES_CREATED: 0
-QA_WORKSPACE_FILES_MODIFIED: 0
-QA_WORKSPACE_FILES_DELETED: 0
-STAGED_FILES: 0
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_10_FOCUSED_PASS: YES/NO
+STTM_REGRESSION_SUITES_PASS: YES/NO
+REPAIR_9_REGRESSION_PASS: YES/NO
+REPAIR_8_REGRESSION_PASS: YES/NO
+REPAIR_5_6_7_REGRESSION_PASS: YES/NO
+TRUSTED_ENVELOPE_SUITE_PASS: YES/NO
+FULL_UNIT_PASSING_COUNT: 
+FULL_UNIT_PENDING_COUNT: 
+FULL_UNIT_FAILURE_COUNT: 
+FULL_UNIT_FAILURES: 
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
+FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+INTERNAL_PACKAGE_VERSION: 
+INTERNAL_MANIFEST_VERSION: 
+TRUSTED_CONTRACTS_SOURCE_PACKAGE_MATCH: YES/NO
+PACKAGE_DELTA_EXPECTED_ONLY: YES/NO
+FINAL_VSIX_PATH: 
+FINAL_VSIX_SIZE_BYTES: 
+FINAL_VSIX_SHA256: 
+STAGED_FILES: 
+PACKAGE_LOCK_CREATED: NO
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
+TAG_CREATED: NO
+EXTENSION_INSTALLED: NO
 RUNTIME_QA_STARTED: NO
 PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
-READY_FOR_BOUNDED_REPAIR_10: YES/NO
+READY_TO_INSTALL_0_3_143: YES/NO
+READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
+SAFE_TO_COMMIT: NO
+SAFE_TO_RELEASE: NO
+
+PASS requires:
+
+* bounded contract extension implemented;
+* single canonical parser;
+* explicit aliases with no fuzzy matching;
+* deterministic mapping-table selection;
+* exact six mappings extracted from the unchanged QA STTM;
+* zero-extraction fail-closed;
+* all required focused/regression/security gates pass;
+* zero new functional/security regressions;
+* exact packaged parser returns the same six mappings;
+* exact 0.3.143 package verification passes;
+* actual size and SHA-256 calculated;
+* zero unauthorized or staged changes;
+* no install, Runtime QA, Preview, Write, commit, push, or tag.
 
 End exactly with one:
 
-ROOT_CAUSE_10_RESULT: CONFIRMED_MARKDOWN_PARSER_DEFECT
+REPAIR_10_RESULT: PASS
 
-ROOT_CAUSE_10_RESULT: CONFIRMED_QA_STTM_CONTRACT_MISMATCH
+REPAIR_10_RESULT: FAIL_VALIDATION_GATE
 
-ROOT_CAUSE_10_RESULT: CONFIRMED_MULTIPLE_CAUSES
+REPAIR_10_RESULT: FAIL_PACKAGE_VERIFICATION
 
-ROOT_CAUSE_10_RESULT: BLOCKED_INSUFFICIENT_EVIDENCE
+REPAIR_10_RESULT: FAIL_UNAUTHORIZED_CHANGE
 
-ROOT_CAUSE_10_RESULT: BLOCKED_IDENTITY_MISMATCH
+REPAIR_10_RESULT: BLOCKED_IDENTITY_MISMATCH
+
+REPAIR_10_RESULT: BLOCKED_EXISTING_0_3_143_ARTIFACT
+
+REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
