@@ -1,734 +1,941 @@
-TASK: HF1_V2_REPAIR_10_SINGLE_FILE_MARKDOWN_STTM_AND_BUILD_0_3_143
+# AskAlpha 13\.3 Logical\-to\-Physical Model Mapping
 
-Implement the bounded contract-first Repair 10 for deterministic support of a
-single self-contained, sectioned Markdown STTM, then build and verify version
-0.3.143.
+## Diagram Text and Microsoft Visio Build Instructions
 
-Work only inside:
+This document provides:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+- copy/paste\-ready English text for every major shape;
+- connector labels;
+- layout guidance;
+- styling guidance;
+- ABP\-ready wording for Section 13\.3;
+- step\-by\-step instructions for recreating the diagram in Microsoft Visio\.
 
-This task implements Resolution A from the completed Root Cause 10 investigation:
+> **Important architecture wording**
+> 
+> - Use **single source of truth**, not “single version of truth.”
+> - Do not present Unity Catalog as universally available. Use:  
+>   **Unity Catalog when available and approved**.
+> - Databricks is a **planned integration option**, not a required current dependency.
+> - AskAlpha owns the governed logical/semantic model. Authoritative source platforms own their physical models.
 
-Extend the trusted Markdown STTM contract so one self-contained .md document
-containing explicitly recognized sections can be parsed as multiple logical STTM
-sheets.
+---
 
-Do not implement a QA-specific workaround.
-Do not modify the QA STTM.
-Do not use LLM extraction, fuzzy inference, or guessing.
-Do not redesign Excel parsing, existing Markdown bundles, targeted retrieval, or
-Repairs 3–9.
-Do not access etl-framework-adb.
-Do not install or download dependencies.
-Do not use npm version.
-Do not create package-lock.json.
-Do not use web search.
-Do not modify protected .github/**.
-Do not modify tests or baselines to hide failures.
-Do not commit, push, merge, tag, stage, stash, reset, restore, clean, publish, or
-install the resulting VSIX.
-Do not start Runtime QA.
-Do not create a Preview or execute a write.
+# 1\. Diagram Title
 
-==================================================
+```text
+13.3 Logical-to-Physical Model Mapping — AskAlpha
+```
 
-1. REPOSITORY IDENTITY AND BASELINE
-    ==================================================
+---
 
-Expected repository root:
+# 2\. Layer Labels
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Place these labels on the left side of the diagram:
 
-Expected origin:
+```text
+1. Logical / Semantic Layer
+```
 
-https://github.com/TD-Universe/agentic_etl.git
+```text
+2. Provider Mapping Layer
+```
 
-Expected branch:
+```text
+3. Physical Layer (Sources)
+```
 
-hotfix/hf1-oracle-fresh-consumer-v2
+---
 
-Expected HEAD:
+# 3\. Logical / Semantic Layer
 
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+## Container Title
 
-Expected working source version:
+```text
+AskAlpha Governed Logical / Semantic Model
+```
 
-0.3.142
+## Product Group
 
-Expected existing verified artifact:
+```text
+Product Group
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.142.vsix
+Logical entity representing
+a collection of related products.
+```
 
-Expected 0.3.142 size:
+## Schema
 
-1251308 bytes
+```text
+Schema
 
-Expected 0.3.142 SHA-256:
+Logical grouping of datasets
+within a product group.
+```
 
-B392329A4B45C26D6DC17E91F14604B5731286F74B3AFE03603EE57A5F046E23
+## Dataset
 
-Expected QA STTM:
+```text
+Dataset
 
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
+Business dataset defined
+at the logical level.
+```
 
-Expected QA STTM size:
+## Field / Column
 
-1437 bytes
+```text
+Field / Column
 
-Expected QA STTM SHA-256:
+Logical data element
+with business meaning.
+```
 
-F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
+## Business Term
 
-Before editing, capture:
+```text
+Business Term
 
-* repository identity;
-* package version;
-* complete Git status;
-* staged file count;
-* hashes of every tracked-modified and untracked file;
-* exact 0.3.142 VSIX identity;
-* exact QA STTM identity;
-* whether a 0.3.143 VSIX already exists.
+Business concepts and definitions
+used across domains.
+```
 
-A dirty working-tree overlay is expected:
+## KPI / Metric
 
-* 50 tracked-modified files;
-* 28 untracked files;
-* zero staged files.
+```text
+KPI / Metric
 
-Preserve all pre-existing changes exactly.
+Business metrics and calculations
+based on logical data.
+```
 
-If identity differs or staged changes exist, stop:
+---
 
-REPAIR_10_RESULT: BLOCKED_IDENTITY_MISMATCH
+# 4\. AskAlpha Registry Provider
 
-If an unexpected 0.3.143 VSIX already exists, do not overwrite or delete it:
+```text
+AskAlpha Registry Provider
 
-REPAIR_10_RESULT: BLOCKED_EXISTING_0_3_143_ARTIFACT
+Canonical metadata
+and business glossary
+(source of truth).
+```
 
-==================================================
-2. AUTHORIZED CHANGE BOUNDARY
+Suggested status label:
 
-Primary authorized source paths:
+```text
+Current / Core
+```
 
-* src/core/sttm/SttmMarkdownBundleParser.ts
-* src/core/sttm/SttmReferenceResolver.ts
-* src/core/solution/SttmEvidenceProvider.ts
+Suggested border:
 
-Authorized contract/documentation paths:
+```text
+Dashed border
+```
 
-* package.json
-* resources/copilot/skills/etl-sttm-document-understanding/SKILL.md
+Suggested connector type:
 
-Authorized test paths:
+```text
+Metadata / governance flow
+```
 
-* src/test/suite/sttmMarkdownParser.test.ts
-* a new synthetic fixture directory under:
-    src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/**
+---
 
-Only if compilation proves an existing shared STTM type must change, stop before
-editing that additional path and report:
+# 5\. Provider Mapping Layer
 
-REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+## Container Title
 
-Do not silently expand the source boundary.
+```text
+Provider Mapping Layer
+```
 
-The authorized package.json changes are:
+## DataGovernanceProvider
 
-1. version 0.3.142 → 0.3.143;
-2. the existing etl_interpret_sttm.modelDescription text necessary to state the
-    supported Markdown shapes accurately.
+```text
+DataGovernanceProvider
+(Authoritative Metadata)
 
-No other package.json field may change.
+• AskAlpha Registry
+• Unity Catalog (Databricks)
+• Collibra (Metadata / Glossary)
+• HopeX (Enterprise Model Reference)
+• Future Governance Provider
+• Authorization & Policy Metadata
+```
 
-==================================================
-3. CONTRACT DECISION
+## DataSourceAdapter
 
-Implement this explicit supported-input contract:
+```text
+DataSourceAdapter
+(Physical Object Mapping)
 
-1. .xlsx and .xlsm workbook input remains supported and unchanged.
-2. Existing canonical Markdown bundle remains supported:
-    * one .md file per logical Excel worksheet;
-    * canonical sheet headings;
-    * canonical Excel-style headers and IDs.
-3. A new first-class single-file sectioned Markdown shape is supported:
-    * one .md document;
-    * one document title;
-    * multiple explicitly recognized Markdown sections;
-    * deterministic pipe tables within those sections;
-    * mapping rows may use human-standard field names without canonical
-        S_SCHM/T_SCHM/BR/TR/JC IDs.
+• Maps logical objects to physical objects
+• Manages source-specific naming
+• Maintains mapping rules and lineage
+• Supports schema evolution
+• Applies source-specific query capabilities
+• Supports read-only execution controls
+```
 
-Update both:
+## Connector Label Between the Two Provider Components
 
-* package.json tool description;
-* resources/copilot/skills/etl-sttm-document-understanding/SKILL.md.
+Preferred label:
 
-The descriptions must distinguish:
+```text
+metadata alignment
+```
 
-* Markdown directory bundle;
-* single-file sectioned Markdown;
-* deterministic extraction requirements.
+Alternative shorter label:
 
-Do not imply that arbitrary prose Markdown can be interpreted structurally.
+```text
+governed mapping
+```
 
-==================================================
-4. CANONICAL SECTION SEGMENTATION
+Suggested connector:
 
-Implement segmentation only in the canonical Markdown parser:
+```text
+Two-way connector
+```
 
-src/core/sttm/SttmMarkdownBundleParser.ts
+---
 
-Do not add parsing logic to the ETL tool handler or Evidence Provider.
+# 6\. Physical Layer
 
-For each Markdown file:
+## SQL Server / Azure SQL Physical Model
 
-* preserve the existing whole-file bundle behavior when it matches the canonical
-    one-file-per-sheet contract;
-* when one file contains multiple recognized section headings, segment it into
-    logical sheets before classification;
-* preserve the document title as document metadata, not as every logical sheet
-    name;
-* retain each section heading, scoped body, scoped tables, and source location.
+```text
+SQL Server / Azure SQL
+Physical Model
 
-Use a small explicit, reviewable, versioned heading alias map.
+• Databases
+• Schemas
+• Tables
+• Views
+• Columns
+• Keys / Relationships
+• Stored Procedures
+• Functions
+• Indexes
+• Security Policies / RLS
+```
 
-Required mapping-section normalized aliases include:
+Suggested identifier format:
 
-* column mapping
-* field mapping
-* field mappings
+```text
+Database.Schema.Table.Column
+```
 
-Normalization may include:
+Suggested status:
 
-* case folding;
-* trimming;
-* collapsing repeated whitespace;
-* deterministic removal of Markdown heading syntax.
+```text
+Current / Supported
+```
 
-Do not use substring matching such as “contains mapping”.
-Do not use fuzzy matching.
-Do not classify unrelated prose headings as mapping sections.
+Ownership statement:
 
-Recognized section headings must come from declared aliases for known STTM
-logical sheets.
+```text
+Owned by the authoritative SQL source platform
+and the relevant data owner.
+```
 
-If duplicate or ambiguous mapping sections exist, reject them with an actionable
-diagnostic. Do not silently select the first one.
+---
 
-==================================================
-5. DETERMINISTIC MAPPING TABLE SELECTION
+## Databricks Physical Model
 
-Within the recognized mapping logical sheet:
+```text
+Databricks Physical Model
+Unity Catalog when available and approved
 
-* do not assume tables[0];
-* examine only tables scoped to that mapping section;
-* select a table by an explicit deterministic header signature;
-* require exactly one matching mapping table;
-* reject zero or multiple matching tables with diagnostics.
+• Catalogs
+• Schemas
+• Delta Tables
+• Views
+• Columns
+• Governed Delta Data
+• Row Filters / Column Masks
+• Notebooks / Jobs
+• Volumes
+• Lineage References
+```
 
-Support the existing canonical header contract unchanged.
+Suggested identifier format:
 
-Add a declared secondary header-alias contract for the QA/human-readable shape:
+```text
+Catalog.Schema.Table.Column
+```
 
-* # — optional ordinal column and not machine authority;
-* Source column — required;
-* Source type — optional structured metadata;
-* Target column — required;
-* Target type — optional structured metadata;
-* Transformation — optional structured mapping expression;
-* Nullable — optional structured metadata.
+Suggested status:
 
-Header normalization may perform only:
+```text
+Planned / Integration Option
+```
 
-* case folding;
-* trimming;
-* deterministic whitespace normalization;
-* declared exact alias lookup.
+Ownership statement:
 
-Do not accept arbitrary similar headers.
+```text
+Owned by the authoritative Databricks / Rahona platform
+and the relevant data-product owner.
+```
 
-==================================================
-6. DETERMINISTIC ROW VALIDATION
+Important note:
 
-Preserve support for canonical S_SCHM/T_SCHM/BR/TR/JC row identifiers.
+```text
+Do not assume Unity Catalog, a SQL Warehouse,
+or a specific Databricks access pattern is available
+in every environment without architecture confirmation.
+```
 
-For the new single-file sectioned Markdown contract, accept a mapping row without
-canonical IDs only when:
+---
 
-* normalized source field name is non-empty;
-* normalized target field name is non-empty;
-* the row belongs to the uniquely recognized mapping table;
-* the table passed the declared header contract;
-* the row structure is complete and unambiguous.
+## Future Approved Provider Physical Model
 
-Do not invent fake schema IDs, business-rule IDs, transformation IDs, join IDs,
-or trusted source/target authorities.
+```text
+Future Approved Provider
+Physical Model
 
-A row ordinal may be retained only as diagnostic provenance.
+• Provider-Specific Database / Catalog
+• Schemas / Datasets
+• Tables / Views / Objects
+• Fields / Attributes
+• Files / Containers
+• APIs / Endpoints
+• Streaming Sources
+• Provider-Specific Security Controls
+```
 
-Do not derive physical source or target paths from the field mapping table.
+Suggested status:
 
-Physical source/target paths remain separate explicit runtime evidence.
+```text
+Future / Optional
+```
 
-Reject:
+---
 
-* blank source fields;
-* blank target fields;
-* malformed rows;
-* inconsistent column counts;
-* duplicate ambiguous rows when the existing contract treats them as ambiguous;
-* prose or code blocks masquerading as mapping rows.
+# 7\. Example: Logical\-to\-Physical Mapping
 
-For the exact unchanged QA STTM, the parser must return exactly six mappings.
+## Example Box Title
 
-==================================================
-7. FAIL-CLOSED ZERO-EXTRACTION BEHAVIOR
+```text
+Example: Logical-to-Physical Mapping
+(Lending Domain)
+```
 
-Fix the contributing fail-open behavior.
+## Copy/Paste Content
 
-Current defective behavior:
+```text
+Logical (AskAlpha)                    Physical (Example)
 
-* recognizedSheets = 0;
-* fieldMappings = 0;
-* confidence reported as 0.90;
-* tool status reported as read.
+Product Group: Lending      →         Catalog / Database: lending
+Schema: Consumer            →         Schema: consumer
+Dataset: Loan               →         Table / View: loan
+Field: Current Balance      →         Column: current_balance
+```
 
-Required behavior:
+## SQL Server Example
 
-* zero recognized sheets must produce an actionable
-    STTM_SHEET_UNRECOGNIZED warning or stronger diagnostic;
-* confidence must not remain high when no structured evidence was recognized;
-* when the whole document yields both zero recognized sheets and zero mappings,
-    SttmEvidenceProvider must return the existing appropriate blocking/non-success
-    status;
-* downstream planning must not proceed on an empty structured model.
+```text
+SQL Server Mapping
 
-Use existing status and diagnostic types.
+Database: LendingDB
+Schema: Consumer
+Table: Loan
+Column: CurrentBalance
 
-Do not introduce a broad new public status model unless compilation proves it is
-required; if required, stop with:
+Identifier:
+LendingDB.Consumer.Loan.CurrentBalance
+```
 
-REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+## Databricks Example
 
-Valid recognized non-mapping sheets must not be incorrectly rejected merely
-because they contain zero mappings.
+```text
+Databricks Mapping
 
-==================================================
-8. TRUST AND SECURITY BOUNDARIES
+Catalog: lending
+Schema: consumer
+Table: loan
+Column: current_balance
 
-The implementation must preserve:
+Identifier:
+lending.consumer.loan.current_balance
+```
 
-* deterministic parsing only;
-* no LLM extraction;
-* no fuzzy inference;
-* no raw-prose guessing fallback;
-* explicit section aliases;
-* explicit header aliases;
-* duplicate/ambiguity rejection;
-* workspace-root containment;
-* traversal rejection;
-* UNC and different-drive rejection;
-* advisory-only consumer context;
-* trusted packaged contracts as machine authority;
-* interpretation as zero-write;
-* approval and guarded-write behavior unchanged.
+Suggested connector label:
 
-A heading containing the word mapping in unrelated prose must not become a
-trusted mapping section.
+```text
+metadata mapping
+```
 
-Do not use the QA filename, job name, malcode, ADLS paths, or six field names as
-production-code conditions.
+Architecture note:
 
-==================================================
-9. REQUIRED TEST FIXTURE
+```text
+The governed business meaning remains stable
+even when the authoritative physical source changes.
+```
 
-Create a synthetic test fixture structurally equivalent to the QA input under:
+---
 
-src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/
+# 8\. Legend
 
-The fixture must remain fully synthetic.
+```text
+Legend
 
-It must include:
+────────  Data / mapping flow
 
-* one document title;
-* multiple H2 sections;
-* a ## Column mapping section;
-* at least one non-mapping table before the mapping table;
-* mapping headers:
-    | Source column | Source type | Target column | Target type |
-    Transformation | Nullable
-* exactly six mapping rows;
-* no S_SCHM/T_SCHM/BR/TR/JC canonical IDs;
-* synthetic source and target field names only;
-* no real data or credentials.
+- - - -   Metadata / governance flow
 
-Do not modify or copy the QA workspace file into the repository byte-for-byte if
-a minimized structurally equivalent fixture is sufficient.
+Solid border   Current / supported
 
-==================================================
-10. REQUIRED TESTS
+Dashed border  Planned / optional / future
+```
 
-Add focused tests covering:
+---
 
-Positive:
+# 9\. Key Principles
 
-1. exact single-file sectioned Markdown shape produces six mappings;
-2. Column mapping exact normalized alias is recognized;
-3. Field Mapping and Field Mappings declared aliases are recognized;
-4. mapping table is selected by headers when it is not the first table;
-5. rows without canonical IDs parse when deterministic source and target field
-    names exist;
-6. source type, target type, transformation, and nullable metadata are preserved;
-7. CRLF UTF-8 without BOM parses correctly;
-8. the existing canonical multi-file Markdown bundle produces byte/semantic
-    equivalent output;
-9. Excel STTM behavior remains unchanged.
+```text
+Key Principles
 
-Negative/security:
+• The AskAlpha logical model is technology-agnostic and governed.
 
-10. unrelated prose heading containing “mapping” is not recognized;
-11. duplicate recognized mapping sections are rejected;
-12. two header-matching mapping tables are rejected;
-13. missing Source column is rejected;
-14. missing Target column is rejected;
-15. blank source/target rows are rejected;
-16. malformed/inconsistent table rows are rejected;
-17. zero recognized sheets does not return confidence 0.90;
-18. zero recognized sheets plus zero mappings does not return status read;
-19. workspace traversal/UNC/different-drive tests remain unchanged;
-20. consumer context cannot influence heading or header recognition.
+• AskAlpha owns the business definitions, semantic relationships,
+  KPI definitions, and mapping contracts.
 
-Tests must assert structured values, not only counts.
+• The Provider Mapping Layer ensures consistent mapping,
+  metadata alignment, and traceability.
 
-Do not weaken, delete, skip, quarantine, or rewrite existing tests to obtain a
-pass.
+• Physical models are optimized and governed by each
+  authoritative source platform.
 
-==================================================
-11. PRE-BUILD VALIDATION
+• Governance metadata flows through provider contracts
+  into the canonical AskAlpha model.
 
-Use only existing local dependencies and repository scripts.
+• Changing a physical provider should not require redesign
+  of business terms, KPIs, recipes, or the semantic plan.
+```
 
-Run and report:
+---
 
-1. TypeScript compile;
-2. lint;
-3. Repair 10 focused Markdown parser tests;
-4. complete existing Markdown/Excel STTM parser suites;
-5. SttmReferenceResolver tests;
-6. SttmEvidenceProvider tests;
-7. STTM auditor and agent-integration tests;
-8. workspace containment/security tests;
-9. Repair 9 fresh-consumer and classification parity tests;
-10. trusted Job Config envelope direct suite;
-11. Repair 8 focused suites;
-12. Repair 5/6/7 regression suites;
-13. full unit suite;
-14. GitHub protected-path guard.
+# 10\. Notes
 
-For every gate report:
+```text
+Notes
 
-* exact command;
-* exit code;
-* passing count;
-* pending count;
-* failure count;
-* complete failure identities.
+• The logical model in AskAlpha is the single source of truth
+  for business definitions and semantic meaning.
 
-Known 0.3.142 full-unit baseline:
+• Physical implementations may vary by source system
+  and are managed through the provider-mapping layer.
 
-* passing: 2154;
-* pending: 1;
-* failing: 5.
+• Mappings support lineage, impact analysis,
+  reproducibility, and controlled source replacement.
 
-The same five historical failures may remain only if their exact identities and
-fingerprints are unchanged.
+• AskAlpha does not create an uncontrolled duplicate
+  of each provider's physical metadata catalog.
+```
 
-Required:
+---
 
-COMPILE_PASS: YES
-LINT_PASS: YES
-REPAIR_10_FOCUSED_PASS: YES
-STTM_REGRESSION_SUITES_PASS: YES
-REPAIR_9_REGRESSION_PASS: YES
-REPAIR_8_REGRESSION_PASS: YES
-REPAIR_5_6_7_REGRESSION_PASS: YES
-TRUSTED_ENVELOPE_SUITE_PASS: YES
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
+# 11\. Future Provider Examples
 
-If a required gate fails, do not modify tests or unrelated source to suppress it.
-Stop:
+```text
+Future Providers (Examples)
 
-REPAIR_10_RESULT: FAIL_VALIDATION_GATE
+• Snowflake
+• Microsoft Fabric
+• SAP / S4HANA
+• Oracle
+• REST / GraphQL APIs
+• File / Object Storage
+• Streaming Platforms
+```
 
-==================================================
-12. EXACT QA INPUT OFFLINE PROOF
+---
 
-Read only this QA file:
+# 12\. Ownership Statement
 
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
+```text
+AskAlpha owns the governed logical and semantic model.
 
-Do not access any other QA workspace path.
+Authoritative source platforms own their physical data models.
 
-Verify before and after:
+Provider contracts map the AskAlpha logical model
+to each approved physical implementation.
+```
 
-SIZE:
-1437 bytes
+---
 
-SHA-256:
-F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
+# 13\. Recommended Visio Layout
 
-Run the repaired source parser and compiled parser against the exact unchanged
-bytes.
+Use this three\-layer arrangement:
 
-Required:
+```text
+┌──────────────────────────────────────────────────────────────┐
+│       AskAlpha Governed Logical / Semantic Model             │
+│                                                              │
+│ Product Group | Schema | Dataset | Field | Term | KPI        │
+└─────────────────────────────┬────────────────────────────────┘
+                              │
+                              ▼
+          ┌─────────────────────────────────────────┐
+          │         Provider Mapping Layer          │
+          │                                         │
+          │ DataGovernanceProvider ↔ DataSourceAdapter
+          └────────────────────┬────────────────────┘
+                               │
+                   ┌───────────┼───────────┐
+                   ▼           ▼           ▼
+             SQL Server    Databricks    Future
+             Physical      Physical      Physical
+             Model         Model         Model
+```
 
-SOURCE_STRUCTURED_MAPPING_COUNT: 6
-COMPILED_STRUCTURED_MAPPING_COUNT: 6
-SOURCE_COMPILED_MAPPING_PAYLOAD_MATCH: YES
-RECOGNIZED_MAPPING_SECTION: Column mapping
-MAPPING_TABLE_SELECTED_BY_HEADERS: YES
-RAW_CONTENT_GUESSING_USED: NO
-ZERO_RECOGNIZED_SHEETS: NO
-FAIL_OPEN_STATUS_RETURNED: NO
-QA_STTM_MODIFIED: NO
+Place the following reference boxes on the right:
 
-Report the exact six extracted mappings.
+```text
+AskAlpha Registry Provider
+```
 
-Do not render artifacts or create a Preview.
+```text
+Example: Logical-to-Physical Mapping
+```
 
-==================================================
-13. VERSION BUMP
+```text
+Legend
+```
 
-Only after all pre-build validation passes, change package.json:
+```text
+Key Principles
+```
 
-* version 0.3.142 → 0.3.143;
-* update only the necessary etl_interpret_sttm.modelDescription wording for the
-    expanded Markdown contract.
+Place the following wide information band at the bottom:
 
-Do not use npm version.
-Do not create or modify package-lock.json.
+```text
+Notes | Future Providers
+```
 
-Run compile and Repair 10 focused tests again after the version edit.
+---
 
-==================================================
-14. BUILD 0.3.143
+# 14\. Microsoft Visio Build Instructions
 
-Build exactly one final artifact:
+## Step 1 — Create a New Page
 
-databricks-etl-copilot-0.3.143.vsix
+Do not use a Cross\-Functional Flowchart for 13\.3\.
 
-Expected path:
+1. Click the `+` icon at the bottom of Visio\.
+2. Add a new blank page\.
+3. Select:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
+```text
+Design → Orientation → Landscape
+```
 
-Use the existing canonical packaging workflow and existing local dependencies.
+4. For more space, use:
 
-Do not install, publish, tag, commit, or run Runtime QA.
+```text
+Design → Size → A3
+```
 
-==================================================
-15. EXACT PACKAGE VERIFICATION
+or another wide custom page size\.
 
-Run the existing exact-package verifier against the explicit 0.3.143 path.
+---
 
-Do not use newest-file selection.
+## Step 2 — Open the Required Shape Libraries
 
-Independently verify:
+Open:
 
-* archive readability;
-* internal package.json version = 0.3.143;
-* internal extension.vsixmanifest version = 0.3.143;
-* publisher = td-etl;
-* Extension ID = td-etl.databricks-etl-copilot;
-* trusted contracts present and byte-equal to source;
-* updated STTM skill documentation present;
-* updated tool model description present;
-* compiled repaired parser present;
-* installed-layout contract resolution passes;
-* no source checkout dependency;
-* no etl-framework-adb dependency;
-* no absolute machine path;
-* package hygiene passes;
-* no tests or test fixtures shipped unless package policy explicitly requires
-    them;
-* no .tmp/**, nested .git/**, .tsbuildinfo*, source tests, or out-test.
+```text
+More Shapes → General → Basic Shapes
+```
 
-Run a packaged-parser proof against the exact unchanged QA STTM bytes without
-installing the Extension.
+For layer grouping, use:
 
-Required:
+```text
+Insert → Container
+```
 
-PACKAGED_STRUCTURED_MAPPING_COUNT: 6
-SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES
+For platform icons, use:
 
-==================================================
-16. PACKAGE DELTA 0.3.142 TO 0.3.143
+```text
+Insert → Icons
+```
 
-Compare normalized archive entry names and decompressed bytes.
+Search for:
 
-Ignore ZIP timestamps.
+```text
+database
+layers
+cloud
+metadata
+registry
+catalog
+```
 
-Report:
+---
 
-* identical entries;
-* changed entries;
-* added entries;
-* removed entries;
-* exact reason for every changed entry.
+## Step 3 — Create the Logical / Semantic Layer
 
-Expected legitimate changes may include:
+1. Insert one wide container at the top\.
+2. Set its title to:
 
-* package/manifest version metadata;
-* compiled runtime bundle containing Repair 10;
-* packaged STTM skill documentation;
-* package.json model description.
+```text
+AskAlpha Governed Logical / Semantic Model
+```
 
-No unrelated runtime or resource delta is permitted.
+3. Insert six equal\-size rectangles inside the container:
+  - Product Group
+  - Schema
+  - Dataset
+  - Field / Column
+  - Business Term
+  - KPI / Metric
+4. Select all six rectangles\.
+5. Use:
 
-==================================================
-17. REAL ARTIFACT IDENTITY
+```text
+Home → Position → Align Middle
+```
 
-Compute from the actual final file:
+6. Then use:
 
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
+```text
+Home → Position → Distribute Horizontally
+```
 
-Do not predict or reuse a hash.
+Suggested visual style:
 
-==================================================
-18. POST-BUILD CHANGE BOUNDARY
+- dark\-blue border;
+- very light\-blue fill;
+- white title bar or dark\-blue title text;
+- font size 9–11 pt\.
 
-Compare final repository status with the initial baseline.
+---
 
-Report separately:
+## Step 4 — Add the AskAlpha Registry Provider
 
-* pre-existing changed paths;
-* task-attributable source changes;
-* task-attributable test/fixture changes;
-* task-attributable contract/documentation changes;
-* package.json version/model-description changes;
-* generated compile/package output;
-* unexpected changes;
-* staged files.
+1. Place a rectangle to the right of the logical\-model container\.
+2. Paste:
 
-Required:
+```text
+AskAlpha Registry Provider
 
-UNAUTHORIZED_CHANGED_PATHS: NONE
-STAGED_FILES: 0
-PACKAGE_LOCK_CREATED: NO
-QA_STTM_MODIFIED: NO
-QA_WORKSPACE_MUTATED: NO
-EXISTING_0_3_142_VSIX_MODIFIED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-EXTENSION_INSTALLED: NO
-RUNTIME_QA_STARTED: NO
-PREVIEW_CREATED: NO
-WRITE_EXECUTED: NO
+Canonical metadata
+and business glossary
+(source of truth).
+```
 
-==================================================
-19. FINAL REPORT
+3. Apply a dashed border:
 
-Return:
+```text
+Home → Line → Dashes
+```
 
-REPOSITORY_ROOT: 
-ORIGIN: 
-BRANCH: 
-HEAD: 
-SOURCE_VERSION_BEFORE: 0.3.142
-SOURCE_VERSION_AFTER: 
-CONTRACT_DECISION: SUPPORT_SINGLE_FILE_SECTIONED_MARKDOWN
-AUTHORIZED_SOURCE_CHANGED_PATHS: 
-AUTHORIZED_TEST_CHANGED_PATHS: 
-AUTHORIZED_CONTRACT_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-SECTION_SEGMENTATION_IMPLEMENTED: YES/NO
-EXPLICIT_MAPPING_ALIAS_SET: 
-FUZZY_HEADING_MATCHING_USED: NO
-MAPPING_TABLE_SELECTED_BY_HEADERS: YES/NO
-HUMAN_HEADER_ALIAS_SET_IMPLEMENTED: YES/NO
-ROWS_WITHOUT_CANONICAL_IDS_SUPPORTED_DETERMINISTICALLY: YES/NO
-FAKE_IDS_SYNTHESIZED: NO
-DUPLICATE_MAPPING_SECTION_REJECTED: YES/NO
-AMBIGUOUS_MAPPING_TABLE_REJECTED: YES/NO
-ZERO_EXTRACTION_FAIL_CLOSED: YES/NO
-SOURCE_STRUCTURED_MAPPING_COUNT: 
-COMPILED_STRUCTURED_MAPPING_COUNT: 
-PACKAGED_STRUCTURED_MAPPING_COUNT: 
-SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES/NO
-EXACT_QA_MAPPING_PAYLOAD: 
-QA_STTM_SHA256_BEFORE: 
-QA_STTM_SHA256_AFTER: 
-QA_STTM_MODIFIED: NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_10_FOCUSED_PASS: YES/NO
-STTM_REGRESSION_SUITES_PASS: YES/NO
-REPAIR_9_REGRESSION_PASS: YES/NO
-REPAIR_8_REGRESSION_PASS: YES/NO
-REPAIR_5_6_7_REGRESSION_PASS: YES/NO
-TRUSTED_ENVELOPE_SUITE_PASS: YES/NO
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURES: 
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-FINAL_EXACT_VSIX_VERIFIER_PASS: YES/NO
-FINAL_INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
-INTERNAL_PACKAGE_VERSION: 
-INTERNAL_MANIFEST_VERSION: 
-TRUSTED_CONTRACTS_SOURCE_PACKAGE_MATCH: YES/NO
-PACKAGE_DELTA_EXPECTED_ONLY: YES/NO
-FINAL_VSIX_PATH: 
-FINAL_VSIX_SIZE_BYTES: 
-FINAL_VSIX_SHA256: 
-STAGED_FILES: 
-PACKAGE_LOCK_CREATED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-EXTENSION_INSTALLED: NO
-RUNTIME_QA_STARTED: NO
-PREVIEW_CREATED: NO
-WRITE_EXECUTED: NO
-READY_TO_INSTALL_0_3_143: YES/NO
-READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
-SAFE_TO_COMMIT: NO
-SAFE_TO_RELEASE: NO
+4. Connect the logical model to the registry provider with a dashed connector\.
 
-PASS requires:
+---
 
-* bounded contract extension implemented;
-* single canonical parser;
-* explicit aliases with no fuzzy matching;
-* deterministic mapping-table selection;
-* exact six mappings extracted from the unchanged QA STTM;
-* zero-extraction fail-closed;
-* all required focused/regression/security gates pass;
-* zero new functional/security regressions;
-* exact packaged parser returns the same six mappings;
-* exact 0.3.143 package verification passes;
-* actual size and SHA-256 calculated;
-* zero unauthorized or staged changes;
-* no install, Runtime QA, Preview, Write, commit, push, or tag.
+## Step 5 — Create the Provider Mapping Layer
 
-End exactly with one:
+1. Insert a green container below the logical layer\.
+2. Set the title:
 
-REPAIR_10_RESULT: PASS
+```text
+Provider Mapping Layer
+```
 
-REPAIR_10_RESULT: FAIL_VALIDATION_GATE
+3. Add two large rectangles:
+  - DataGovernanceProvider
+  - DataSourceAdapter
+4. Connect them with a two\-way connector\.
+5. Use:
 
-REPAIR_10_RESULT: FAIL_PACKAGE_VERIFICATION
+```text
+Design → Connectors → Right Angle
+```
 
-REPAIR_10_RESULT: FAIL_UNAUTHORIZED_CHANGE
+6. Add arrowheads to both ends\.
+7. Label the connector:
 
-REPAIR_10_RESULT: BLOCKED_IDENTITY_MISMATCH
+```text
+metadata alignment
+```
 
-REPAIR_10_RESULT: BLOCKED_EXISTING_0_3_143_ARTIFACT
+Suggested visual style:
 
-REPAIR_10_RESULT: BLOCKED_SCOPE_EXPANSION_REQUIRED
+- green title;
+- very light\-green fill;
+- medium green border\.
+
+---
+
+## Step 6 — Create the Physical Models
+
+Place three equal\-size rectangles at the bottom:
+
+1. SQL Server / Azure SQL Physical Model
+2. Databricks Physical Model
+3. Future Approved Provider Physical Model
+
+Select all three and use:
+
+```text
+Home → Position → Align Top
+```
+
+Then:
+
+```text
+Home → Position → Distribute Horizontally
+```
+
+Connect `DataSourceAdapter` to all three\.
+
+Recommended line styles:
+
+- SQL Server: solid line;
+- Databricks: dashed line or solid line with status label;
+- Future Provider: dashed line\.
+
+Recommended status label for Databricks:
+
+```text
+Planned / Integration Option
+```
+
+---
+
+## Step 7 — Add the Logical\-to\-Physical Example
+
+1. Insert a light\-orange rectangle or container on the right\.
+2. Paste the example content from Section 7\.
+3. Connect it to `DataSourceAdapter` using a dashed connector\.
+4. Label the connector:
+
+```text
+metadata mapping
+```
+
+---
+
+## Step 8 — Add the Legend
+
+Create a small rectangle titled:
+
+```text
+Legend
+```
+
+Inside it, draw:
+
+- one solid connector;
+- one dashed connector\.
+
+Add these labels:
+
+```text
+Data / mapping flow
+```
+
+```text
+Metadata / governance flow
+```
+
+---
+
+## Step 9 — Add Key Principles
+
+Create a small rectangle titled:
+
+```text
+Key Principles
+```
+
+Paste the content from Section 9\.
+
+Use a smaller font such as 8–9 pt\.
+
+---
+
+## Step 10 — Add the Bottom Notes Band
+
+1. Add one wide rectangle at the bottom\.
+2. Divide it visually into two sections:
+  - Notes
+  - Future Providers
+3. Paste the text from Sections 10 and 11\.
+4. Use:
+  - very light fill;
+  - thin border;
+  - 8–9 pt font\.
+
+---
+
+## Step 11 — Clean Up the Diagram
+
+Use right\-angle connectors:
+
+```text
+Design → Connectors → Right Angle
+```
+
+Align and distribute shapes:
+
+```text
+Home → Position → Align
+```
+
+```text
+Home → Position → Distribute
+```
+
+Use automatic spacing carefully:
+
+```text
+Home → Position → Auto Align & Space
+```
+
+For containers:
+
+```text
+Home → Arrange → Send to Back
+```
+
+For labels and important boxes:
+
+```text
+Home → Arrange → Bring to Front
+```
+
+---
+
+# 15\. Suggested Shape Sizes
+
+|Diagram Element           |Suggested Width     |
+|--------------------------|-------------------:|
+|Logical Layer Container   |70–75% of page width|
+|Each Logical Entity       |1.5–1.8 inches      |
+|Provider Mapping Container|55–60% of page width|
+|Each Provider Box         |3–3.5 inches        |
+|Each Physical Model Box   |2.7–3 inches        |
+|Example Mapping Box       |3.2–3.8 inches      |
+|Right-Side Reference Box  |2.8–3.2 inches      |
+
+---
+
+# 16\. ABP\-Ready Text for Section 13\.3
+
+```text
+The AskAlpha logical model is represented by the governed semantic
+registry, including Product Group, Schema, Dataset, Field,
+Relationship, Business Term, KPI, Recipe, Governance Metadata,
+Registry Version, and Authorization Scope.
+
+AskAlpha is provider-agnostic and does not maintain an uncontrolled
+duplicate of each source platform's physical data model.
+
+Physical models remain owned by the authoritative source platforms.
+For SQL Server / Azure SQL sources, the physical model is represented
+by the approved database, schema, table/view, column, key, and security
+definitions.
+
+For Databricks-based sources, the physical model will reference the
+approved catalog/schema/table/view/column model and governed
+data-product documentation when that integration path is confirmed.
+
+Provider contracts map the AskAlpha logical model to these
+authoritative physical models.
+```
+
+---
+
+# 17\. Link Placeholders for the ABP
+
+Do not invent URLs\. Use these placeholders until the authoritative owners provide them\.
+
+```text
+AskAlpha Logical / Semantic Model:
+[TBD — link to AskAlpha semantic registry or approved project documentation]
+```
+
+```text
+SQL Server / Azure SQL Physical Model:
+[TBD — link to the authoritative physical model in HopeX
+or the approved source-system repository]
+```
+
+```text
+Databricks / Rahona Physical Model:
+[TBD — link to the authoritative data-product or catalog model
+in HopeX, Unity Catalog, or approved architecture documentation]
+```
+
+```text
+Enterprise Business Glossary / Governance Model:
+[TBD — link to Collibra or the approved enterprise governance system]
+```
+
+---
+
+# 18\. Explanation When a Single Physical Model Is Not Applicable
+
+```text
+A single application-owned physical data model is not applicable
+because AskAlpha is designed to consume governed datasets from
+multiple authoritative data platforms.
+
+AskAlpha owns the logical / semantic model and maps it to
+provider-specific physical models through governed adapter contracts.
+
+Each source platform and data-product owner remains responsible
+for its authoritative physical model.
+```
+
+---
+
+# 19\. Minimal Version
+
+If the full diagram becomes too busy, keep only these shapes:
+
+```text
+AskAlpha Governed Logical / Semantic Model
+
+DataGovernanceProvider
+
+DataSourceAdapter
+
+SQL Server / Azure SQL Physical Model
+
+Databricks Physical Model
+
+Future Approved Provider Physical Model
+```
+
+Minimal layout:
+
+```text
+AskAlpha Logical / Semantic Model
+                 │
+                 ▼
+      DataGovernanceProvider
+                 ↕
+         DataSourceAdapter
+                 │
+       ┌─────────┼─────────┐
+       ▼         ▼         ▼
+      SQL    Databricks   Future
+```
+
+Do not include these runtime components in 13\.3:
+
+```text
+Azure OpenAI
+Azure AI Search
+React
+FastAPI
+App Service
+Event Hubs
+Redis
+Genie
+SQL Warehouse
+```
+
+Those belong in runtime/application architecture diagrams, not in the logical\-to\-physical mapping\.
