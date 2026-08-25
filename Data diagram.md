@@ -1,102 +1,169 @@
-TASK: INDEPENDENT_REVIEW_HF1_V2_REPAIR_10_AND_VSIX_0_3_143
+TASK: HF1_V2_INDEPENDENT_REVIEW_RETRY_REPAIR_10_AND_VSIX_0_3_143
 
-Perform an independent, adversarial, read-only review of Repair 10 and the
-already-built VSIX version 0.3.143.
+Perform a fresh, independent, read-only review of Repair 10 and the exact
+Databricks ETL Copilot 0.3.143 VSIX.
 
-Work inside:
+This review supersedes the previous blocked review only with respect to:
+
+1. the corrected expected SHA-256;
+2. the requirement to verify external-process execution before starting.
+
+Do not rely on the implementation agent’s PASS conclusion.
+Verify all material claims independently.
+
+Work in the Software Development Environment:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-This review must be performed in a fresh Chat that did not implement Repair 10.
+Expected identity:
 
-Do not trust the implementation report as proof.
-Independently inspect the actual source, tests, working-tree diff, compiled output,
-package contents, and exact QA-input behavior.
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-Do not modify or repair any file.
-Do not change tests or baselines.
-Do not change package.json.
-Do not rebuild or overwrite the VSIX.
-Do not install the Extension.
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
+
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
+
+SOURCE VERSION:
+0.3.143
+
+EXACT VSIX:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
+
+EXPECTED VSIX SIZE:
+1255490 bytes
+
+CORRECTED EXPECTED VSIX SHA-256:
+8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44B76F3C0EACBDB3CFFA
+
+The earlier expected hash ending with:
+
+…DC5F44876E3C0EACBD03CFFA
+
+was mistranscribed and is explicitly superseded. Do not use it.
+
+Authorized read-only QA input:
+
+C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
+
+Expected QA STTM SHA-256:
+
+F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
+
+Do not modify the QA workspace or STTM.
+
+Do not edit source, tests, fixtures, contracts, documentation, package.json,
+compiled output, the VSIX, or any workflow asset.
+
+Do not install the extension.
 Do not start Runtime QA.
-Do not create a Preview or execute a write.
-Do not access real data.
-Do not install or download dependencies.
-Do not use web search.
-Do not commit, push, merge, tag, stage, stash, reset, restore, clean, or delete
-files.
+Do not create a Preview ID.
+Do not execute any ETL write.
+Do not commit, push, tag, stage, stash, reset, restore, clean, or delete files.
+Do not download dependencies.
+Do not create package-lock.json.
 
-If a defect is found, report it with evidence. Do not fix it during this review.
+==================================================
+0. EXTERNAL-PROCESS EXECUTION PREFLIGHT
+
+Before the repository identity gate, prove this Chat can execute local processes.
+
+Resolve and execute:
+
+* git.exe –version
+* node.exe –version
+* npm.cmd –version
+* cmd.exe /c echo PROCESS_EXECUTION_OK
+
+Report:
+
+GIT_PROCESS_EXIT_CODE
+GIT_PROCESS_OUTPUT
+NODE_PROCESS_EXIT_CODE
+NODE_PROCESS_OUTPUT
+NPM_PROCESS_EXIT_CODE
+NPM_PROCESS_OUTPUT
+CMD_PROCESS_EXIT_CODE
+CMD_PROCESS_OUTPUT
+
+Required:
+
+* every process produces visible output;
+* every exit code is zero;
+* cmd output contains PROCESS_EXECUTION_OK.
+
+If any command returns empty output, has no exit code, cannot launch, or is
+intercepted by the execution environment, stop without inspecting or changing
+the repository and return:
+
+INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+
+Do not substitute PowerShell-only inspection for the required node/npm/git
+validation.
 
 ==================================================
 
 1. IDENTITY AND ARTIFACT GATE
     ==================================================
 
-Expected repository root:
+Verify independently:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+* absolute repository root;
+* origin;
+* current branch;
+* HEAD;
+* package.json version;
+* staged-file count;
+* exact VSIX path;
+* VSIX size;
+* internal package.json version;
+* internal extension.vsixmanifest version;
+* publisher;
+* extension ID;
+* archive entry count.
 
-Expected origin:
+Compute the VSIX SHA-256 twice using independent implementations:
 
-https://github.com/TD-Universe/agentic_etl.git
+1. PowerShell Get-FileHash;
+2. raw System.Security.Cryptography.SHA256 over the file bytes.
 
-Expected branch:
+Both results must equal exactly:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44B76F3C0EACBDB3CFFA
 
-Expected HEAD:
+Do not use a “latest VSIX” selector.
 
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
-
-Expected working source version:
-
-0.3.143
-
-Expected staged file count:
-
-0
-
-Expected VSIX:
-
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
-
-Expected VSIX size:
-
-1255490 bytes
-
-Expected VSIX SHA-256:
-
-8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44876E3C0EACBD03CFFA
-
-Expected internal package version:
-
-0.3.143
-
-Expected internal manifest version:
-
-0.3.143
-
-Capture:
-
-* repository identity;
-* complete Git status;
-* staged paths;
-* package version;
-* VSIX path, size, SHA-256;
-* archive identity;
-* internal Extension ID and publisher.
-
-If identity differs, stop:
+If the two independently computed hashes disagree, or the file differs from the
+corrected expected hash, stop with:
 
 INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_IDENTITY_MISMATCH
 
+If staged changes exist, stop with:
+
+INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_STAGED_CHANGES
+
 ==================================================
-2. REVIEW THE ACTUAL CHANGE SET
+2. CAPTURE AND PRESERVE THE WORKING-TREE BASELINE
 
-Inspect the complete actual implementation, not only the summarized file list.
+The repository is expected to contain a large pre-existing uncommitted overlay.
 
-Reported Repair 10 paths include:
+Capture before review:
+
+* tracked-modified paths and hashes;
+* untracked paths and hashes;
+* staged paths;
+* repository porcelain status.
+
+Preserve this baseline exactly.
+
+The review must make zero repository changes.
+
+==================================================
+3. REVIEW THE REPAIR 10 CHANGE BOUNDARY
+
+Review the actual diff and implementation in these Repair 10 areas:
 
 Source:
 
@@ -109,503 +176,223 @@ Tests and fixture:
 * src/test/suite/sttmMarkdownParser.test.ts
 * src/test/fixtures/sttm/synthetic_single_file_sectioned_markdown/**
 
-Contract/documentation:
+Contract and documentation:
 
 * package.json
 * resources/copilot/skills/etl-sttm-document-understanding/SKILL.md
 
-Determine independently:
+Confirm that package.json changes are limited to:
 
-* the complete changed-path list attributable to Repair 10;
-* whether any implementation change exists outside the authorized scope;
-* whether unrelated Repairs 3–9 behavior changed;
-* whether pre-existing working-tree changes were overwritten or reformatted;
-* whether package.json changed only in version and
-    etl_interpret_sttm.modelDescription;
-* whether protected .github/** remained unchanged.
+* version 0.3.142 → 0.3.143;
+* the supported STTM modelDescription contract.
 
-Report every unauthorized or unexplained change.
+Identify any Repair 10 change outside this boundary.
 
 ==================================================
-3. CONTRACT REVIEW
+4. INDEPENDENT CORRECTNESS REVIEW
 
-Verify that the implementation explicitly supports three distinct shapes:
+Verify from code rather than from the implementation report that:
 
-1. Excel .xlsx/.xlsm;
-2. canonical multi-file Markdown bundle;
-3. single-file sectioned Markdown.
+* a single self-contained sectioned Markdown STTM is supported;
+* section segmentation occurs only on explicit recognized headings;
+* the mapping-section alias set is small, explicit, and enumerable;
+* fuzzy or substring-based heading guessing is not used;
+* the mapping table is selected by deterministic header matching;
+* human-readable Source column and Target column headers are supported;
+* rows without canonical Excel IDs can be accepted deterministically;
+* fake schema, business-rule, transformation-rule, or join IDs are not created;
+* duplicate mapping sections are rejected;
+* ambiguous mapping tables are rejected;
+* zero recognized sheets or zero mappings fail closed;
+* zero extraction cannot return a successful high-confidence read;
+* canonical multi-file Markdown bundles retain their previous behavior;
+* the Excel STTM path is unchanged;
+* targeted retrieval and path-containment protections are not weakened;
+* consumer context is not treated as machine authority.
 
-Confirm that the updated package.json model description and packaged STTM skill
-describe these shapes consistently and unambiguously.
+Explicitly look for:
 
-Check that:
+* accidental broadening of trusted input;
+* arbitrary prose being interpreted as structured mappings;
+* nondeterministic table selection;
+* first-table assumptions;
+* silent ambiguity resolution;
+* fail-open behavior;
+* path traversal or sibling-root access;
+* regressions to Repairs 5–9;
+* duplicated contract logic that can drift.
 
-* the contract does not claim arbitrary Markdown support;
-* consumers can understand the difference between a bundle and a sectioned file;
-* single-file support is implemented as a first-class contract;
-* the behavior is not hard-coded to the QA filename, job, malcode, paths, IDs, or
-    field names;
-* the documentation and runtime behavior agree.
-
-==================================================
-4. SECTION SEGMENTATION REVIEW
-
-Review the actual section-segmentation algorithm.
-
-Confirm:
-
-* the document title is metadata and not reused as every sheet name;
-* multiple recognized sections become scoped logical sheets;
-* section bodies and tables do not leak into adjacent sections;
-* existing canonical one-file-per-sheet bundle behavior remains unchanged;
-* files without recognized sectioned-document structure preserve valid legacy
-    behavior;
-* duplicate and ambiguous sections are rejected;
-* unrecognized headings do not become trusted sections.
-
-Inspect the exact alias implementation.
-
-Required declared mapping aliases should include normalized forms of:
-
-* column mapping;
-* column mappings;
-* field mapping;
-* field mappings.
-
-Reject the review if production logic uses:
-
-* substring matching;
-* regex that broadly accepts anything containing mapping;
-* fuzzy matching;
-* LLM classification;
-* consumer-context-controlled aliases;
-* first-heading or first-section guessing.
-
-Test boundary cases independently using %TEMP% only:
-
-* alias with different case;
-* leading/trailing whitespace;
-* repeated whitespace;
-* unrelated prose heading containing “mapping”;
-* Mapping notes;
-* duplicate Column mapping sections;
-* mapping heading inside a code fence;
-* mapping-like text inside a table cell;
-* H1 document title plus H2 sections;
-* multiple non-mapping sections before and after the mapping section.
-
-Do not write these probes into the repository.
+Report findings by severity with exact file and line references.
 
 ==================================================
-5. MAPPING TABLE SELECTION REVIEW
+5. QA STTM INDEPENDENT PARSER PROBE
 
-Confirm the parser:
+Read only the authorized QA STTM file.
 
-* scopes tables to the recognized mapping section;
-* does not use tables[0];
-* selects by deterministic declared headers;
-* requires exactly one matching table;
-* rejects zero or multiple matching mapping tables.
+First verify:
 
-Review both canonical and human-readable header aliases.
-
-Required human-readable fields:
-
-* Source column;
-* Target column.
-
-Supported optional fields:
-
-* Source type;
-* Target type;
-* Transformation;
-* Nullable;
-* ordinal #.
-
-Verify normalization is bounded to explicit deterministic behavior.
-
-Reject if arbitrary similar headers are accepted.
-
-Independently test:
-
-* a non-mapping table before the mapping table;
-* two mapping-compatible tables;
-* missing Source column;
-* missing Target column;
-* duplicated header names;
-* extra unknown columns;
-* reordered supported columns;
-* malformed delimiter rows;
-* uneven row widths.
-
-==================================================
-6. ROW VALIDATION AND IDENTITY REVIEW
-
-Confirm:
-
-* canonical S_SCHM/T_SCHM/BR/TR/JC rows still work unchanged;
-* human-readable rows require non-empty deterministic source and target fields;
-* no fake canonical IDs are created;
-* row ordinal is diagnostic provenance only;
-* blank or malformed rows are rejected;
-* physical source/target paths are not invented from field mappings;
-* no consumer prose becomes trusted physical authority.
-
-Inspect the exact six mappings produced from the QA STTM and ensure they match the
-actual six table rows without substitution, omission, reordering, or guessed
-content.
-
-==================================================
-7. FAIL-CLOSED REVIEW
-
-Independently inspect:
-
-* SttmReferenceResolver confidence calculation;
-* SttmEvidenceProvider status selection;
-* diagnostics returned for unrecognized documents.
-
-Confirm that the previous defect is closed:
-
-Previous invalid behavior:
-
-* recognizedSheets = 0;
-* mappings = 0;
-* confidence = 0.90;
-* status = read.
-
-Required behavior:
-
-* zero recognized sheets produces an actionable diagnostic;
-* confidence is capped/floored to a safe non-success value;
-* zero recognized sheets plus zero mappings cannot return successful read;
-* downstream planning cannot continue with an empty structured model.
-
-Also prove the fix does not incorrectly block:
-
-* recognized business-rule-only input;
-* recognized filter-only input;
-* valid canonical bundles;
-* valid Excel workbooks;
-* targeted read operations that legitimately return no mappings.
-
-Reject overly broad fail-closed logic that treats every zero-mapping partial
-document as invalid.
-
-==================================================
-8. SECURITY AND TRUST REVIEW
-
-Attempt to falsify the implementation’s security claims.
-
-Verify:
-
-* no LLM extraction;
-* no raw-prose guessing fallback;
-* no fuzzy heading/header inference;
-* no consumer-controlled alias registration;
-* no consumer context used as machine authority;
-* duplicate/ambiguity rejection;
-* deterministic output;
-* path containment unchanged;
-* traversal rejection unchanged;
-* UNC and different-drive rejection unchanged;
-* interpretation remains zero-write;
-* Preview/approval/write behavior is untouched.
-
-Search for any newly introduced direct filesystem mutation.
-
-A Markdown parser must not write, rename, create, or delete consumer files.
-
-==================================================
-9. TEST QUALITY REVIEW
-
-Inspect every Repair 10 test and fixture.
-
-Confirm tests assert actual structured values, not only counts.
-
-Verify coverage includes:
-
-* exact single-file sectioned Markdown shape;
-* exactly six mappings;
-* mapping section not first;
-* mapping table not first;
-* declared aliases;
-* human-readable headers;
-* rows without canonical IDs;
-* canonical bundle regression;
-* Excel regression;
-* duplicate sections;
-* ambiguous tables;
-* unrelated mapping prose;
-* malformed rows;
-* zero-extraction fail-closed;
-* containment/security regressions.
-
-Check for false-positive testing patterns:
-
-* assertions against implementation constants only;
-* snapshots created from current defective output;
-* tautological source/expected construction;
-* mocked code path different from production;
-* skipped or quarantined failures;
-* overly broad assertions;
-* tests that never invoke the actual production parser;
-* fixture content that is easier than the real QA shape.
-
-Identify every missing negative or boundary test.
-
-==================================================
-10. INDEPENDENT VALIDATION
-
-Use only existing local dependencies.
-
-Run independently:
-
-1. compile;
-2. lint;
-3. Repair 10 focused tests;
-4. complete Markdown and Excel parser suites;
-5. SttmReferenceResolver tests;
-6. SttmEvidenceProvider tests;
-7. STTM auditor and agent-integration tests;
-8. workspace containment/security tests;
-9. Repair 9 classification parity;
-10. Repairs 5–8 regression suites;
-11. trusted Job Config envelope suite;
-12. full unit suite;
-13. GitHub protected-path guard.
-
-Expected implementation report baseline:
-
-* full-unit passing: 2180;
-* pending: 1;
-* historical failures: 5;
-* new functional regressions: 0;
-* new security regressions: 0.
-
-Do not accept historical failures by count alone.
-
-Verify the exact identities and fingerprints of all five failures.
-
-Do not edit anything if a test fails.
-
-==================================================
-11. EXACT QA INPUT REVIEW
-
-The only QA workspace file authorized for read-only inspection is:
-
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
-
-Expected size:
-
-1437 bytes
-
-Expected SHA-256:
-
+QA_STTM_SHA256:
 F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-Do not inspect any other QA workspace path.
+Run independent source, compiled, and packaged parser probes against the exact
+unmodified file.
 
-Using task-owned %TEMP% probes only, independently run:
+Required deterministic result:
 
-* source parser;
-* compiled parser;
-* parser extracted from the exact VSIX.
+* structured mapping count: 6;
+* identical source, compiled, and packaged payloads;
+* source and target field names preserved;
+* status_code = ‘ACTIVE’ preserved;
+* updated_ts IS NOT NULL preserved;
+* Delta source and target evidence preserved;
+* path-backed target preserved;
+* append writer evidence preserved;
+* no Unity Catalog table-name inference;
+* no raw-content guessing fallback;
+* no modification of the QA STTM.
+
+Report the complete six-mapping payload, not only the count.
+
+==================================================
+6. VALIDATION GATES
+
+Use existing local dependencies and repository scripts only.
+
+Run and report exact command, exit code, passing, pending, and failing counts for:
+
+1. TypeScript compile;
+2. lint;
+3. Repair 10 focused tests;
+4. STTM Markdown parser regression tests;
+5. STTM reference resolver and evidence-provider tests;
+6. Repair 9 regression tests;
+7. Repair 8 regression tests;
+8. Repair 5/6/7 regression tests;
+9. trusted Job Config envelope direct suite;
+10. workspace-root and path-containment security tests;
+11. the canonical full unit suite.
+
+Expected full-unit baseline after Repair 10:
+
+FULL_UNIT_PASSING_COUNT: 2180
+FULL_UNIT_PENDING_COUNT: 1
+FULL_UNIT_FAILURE_COUNT: 5
+
+The five failures must be independently matched to the previously historical:
+
+* two EvalGating baseline-report failures;
+* three Copilot workflow-customization failures.
+
+Do not merely label them historical. Reproduce or compare their exact identities
+against the appropriate unchanged baseline evidence.
 
 Required:
 
-SOURCE_MAPPING_COUNT: 6
-COMPILED_MAPPING_COUNT: 6
-PACKAGED_MAPPING_COUNT: 6
-SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES
-QA_STTM_MODIFIED: NO
-RAW_OR_LLM_FALLBACK_USED: NO
-
-Report all six mappings completely.
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
 
 ==================================================
-12. PACKAGE REVIEW
+7. EXACT PACKAGE REVIEW
 
-Run the exact package verifier against this explicit path:
+Run the existing exact-package verifier against the explicit 0.3.143 path.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.143.vsix
+Independently inspect the archive and verify:
 
-Do not select by newest modification time.
-
-Verify independently:
-
+* valid ZIP archive;
+* exactly 66 entries;
 * internal package version 0.3.143;
 * internal manifest version 0.3.143;
 * publisher td-etl;
-* Extension ID td-etl.databricks-etl-copilot;
-* trusted contracts present and byte-equal to source;
-* updated STTM skill present;
-* updated model description present;
-* repaired compiled parser present;
-* package hygiene clean;
-* no source-checkout dependency;
-* no etl-framework-adb dependency;
-* no absolute development-machine path;
-* no test fixture accidentally shipped.
+* extension ID td-etl.databricks-etl-copilot;
+* trusted contracts are present and byte-equal to source;
+* installed-layout contract resolution works;
+* no source-checkout runtime dependency exists;
+* no machine-specific paths are embedded;
+* no forbidden package-hygiene entries exist;
+* no tests, temporary files, nested Git data, or tsbuildinfo files are packaged;
+* repaired parser logic is present in the packaged runtime.
 
-Compare decompressed 0.3.142 and 0.3.143 packages.
+Compare source, compiled, and packaged behavior on both:
 
-Expected report:
-
-* 66 entries in each;
-* 61 identical;
-* 0 added;
-* 0 removed;
-* 5 changed.
-
-Report the exact five changed entries and justify each one.
-
-Any unrelated package delta is a blocking finding.
-
-Recalculate:
-
-VSIX_SIZE_BYTES:
-1255490
-
-VSIX_SHA256:
-8819E0902BF5FE1F8EFE9BA302EB196D3715AF17DC5F44876E3C0EACBD03CFFA
+* the Repair 10 synthetic fixture;
+* the exact QA STTM.
 
 ==================================================
-13. FINDINGS FORMAT
+8. INDEPENDENT VERDICT
 
-Classify every finding:
+A PASS requires:
 
-* BLOCKER;
-* HIGH;
-* MEDIUM;
-* LOW;
-* INFORMATIONAL.
+* process-execution preflight passes;
+* corrected artifact identity matches;
+* zero staged files;
+* no high- or medium-severity finding;
+* six exact QA mappings from source, compiled, and packaged runtimes;
+* deterministic and fail-closed parsing;
+* canonical bundle compatibility;
+* no security-boundary weakening;
+* all required validation gates pass;
+* only the five independently confirmed historical unit failures remain;
+* exact-package verification passes;
+* zero files changed by the review.
 
-For every non-informational finding provide:
+Return:
 
-* severity;
-* exact file and symbol;
-* evidence;
-* reproducible scenario;
-* impact;
-* violated contract or security boundary;
-* smallest recommended correction;
-* missing test that should detect it.
-
-Do not mark the review PASS if any BLOCKER or HIGH finding exists.
-
-A MEDIUM finding must be explicitly evaluated for whether it blocks Runtime QA.
-
-Do not repair findings in this task.
-
-==================================================
-14. CHANGE-BOUNDARY VERIFICATION
-
-Compare repository, VSIX, and QA STTM with their initial review baselines.
-
-Required:
-
-SOURCE_FILES_MODIFIED_BY_REVIEW: 0
-TEST_FILES_MODIFIED_BY_REVIEW: 0
-PACKAGE_JSON_MODIFIED_BY_REVIEW: NO
-VSIX_MODIFIED_BY_REVIEW: NO
-QA_STTM_MODIFIED_BY_REVIEW: NO
-STAGED_FILES: 0
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+PROCESS_EXECUTION_PREFLIGHT_PASS: YES/NO
+REPOSITORY_IDENTITY_PASS: YES/NO
+CORRECTED_VSIX_SHA256_MATCH: YES/NO
+VSIX_SHA256_METHOD_1: 
+VSIX_SHA256_METHOD_2: 
+ARTIFACT_IDENTITY_PASS: YES/NO
+REPAIR_10_CHANGE_BOUNDARY_PASS: YES/NO
+QA_STTM_SHA256_MATCH: YES/NO
+SOURCE_STRUCTURED_MAPPING_COUNT: 
+COMPILED_STRUCTURED_MAPPING_COUNT: 
+PACKAGED_STRUCTURED_MAPPING_COUNT: 
+SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES/NO
+QA_STTM_MODIFIED: NO
+DETERMINISTIC_PARSER_PASS: YES/NO
+ZERO_EXTRACTION_FAIL_CLOSED: YES/NO
+CANONICAL_BUNDLE_REGRESSION_PASS: YES/NO
+PATH_CONTAINMENT_PASS: YES/NO
+TRUST_BOUNDARY_PASS: YES/NO
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_10_FOCUSED_PASS: YES/NO
+STTM_REGRESSION_PASS: YES/NO
+REPAIR_9_REGRESSION_PASS: YES/NO
+REPAIR_8_REGRESSION_PASS: YES/NO
+REPAIR_5_6_7_REGRESSION_PASS: YES/NO
+TRUSTED_ENVELOPE_PASS: YES/NO
+FULL_UNIT_PASSING_COUNT: 
+FULL_UNIT_PENDING_COUNT: 
+FULL_UNIT_FAILURE_COUNT: 
+HISTORICAL_FAILURE_IDENTITY_CONFIRMED: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+EXACT_PACKAGE_VERIFIER_PASS: YES/NO
+INDEPENDENT_PACKAGE_INSPECTION_CLEAN: YES/NO
+HIGH_FINDING_COUNT: 
+MEDIUM_FINDING_COUNT: 
+LOW_FINDINGS: 
+FILES_CHANGED_BY_REVIEW: 
+STAGED_FILES: 
 EXTENSION_INSTALLED: NO
 RUNTIME_QA_STARTED: NO
 PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
-
-Temporary diagnostic files may exist only under a task-owned %TEMP% directory
-and must be reported.
-
-==================================================
-15. FINAL REPORT
-
-Return:
-
-REPOSITORY_ROOT: 
-ORIGIN: 
-BRANCH: 
-HEAD: 
-SOURCE_VERSION: 
-VSIX_PATH: 
-VSIX_SIZE_BYTES: 
-VSIX_SHA256: 
-ARTIFACT_IDENTITY_MATCH: YES/NO
-ACTUAL_REPAIR_10_CHANGED_PATHS: 
-UNAUTHORIZED_OR_UNEXPLAINED_PATHS: 
-CONTRACT_IMPLEMENTATION_MATCH: YES/NO
-DOCUMENTATION_RUNTIME_CONSISTENT: YES/NO
-CANONICAL_BUNDLE_REGRESSION_PASS: YES/NO
-EXCEL_REGRESSION_PASS: YES/NO
-SECTION_SCOPING_CORRECT: YES/NO
-EXPLICIT_ALIAS_MATCHING_ONLY: YES/NO
-FUZZY_OR_SUBSTRING_MATCHING_FOUND: YES/NO
-MAPPING_TABLE_SELECTED_DETERMINISTICALLY: YES/NO
-DUPLICATE_SECTION_REJECTION_PASS: YES/NO
-AMBIGUOUS_TABLE_REJECTION_PASS: YES/NO
-ROWS_WITHOUT_CANONICAL_IDS_SAFE: YES/NO
-FAKE_IDS_FOUND: YES/NO
-ZERO_EXTRACTION_FAIL_CLOSED: YES/NO
-VALID_PARTIAL_DOCUMENTS_PRESERVED: YES/NO
-DIRECT_FILESYSTEM_MUTATION_INTRODUCED: YES/NO
-CONSUMER_CONTEXT_USED_AS_AUTHORITY: YES/NO
-SOURCE_MAPPING_COUNT: 
-COMPILED_MAPPING_COUNT: 
-PACKAGED_MAPPING_COUNT: 
-SOURCE_COMPILED_PACKAGED_PAYLOAD_MATCH: YES/NO
-EXACT_SIX_MAPPINGS: 
-QA_STTM_MODIFIED: YES/NO
-COMPILE_PASS: YES/NO
-LINT_PASS: YES/NO
-FOCUSED_TESTS_PASS: YES/NO
-STTM_REGRESSION_TESTS_PASS: YES/NO
-REPAIRS_5_TO_9_REGRESSION_PASS: YES/NO
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURE_IDENTITIES_MATCH: YES/NO
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-EXACT_PACKAGE_VERIFIER_PASS: YES/NO
-PACKAGE_DELTA_EXPECTED_ONLY: YES/NO
-BLOCKER_FINDING_COUNT: 
-HIGH_FINDING_COUNT: 
-MEDIUM_FINDING_COUNT: 
-LOW_FINDING_COUNT: 
-FINDINGS: 
-SOURCE_FILES_MODIFIED_BY_REVIEW: 0
-TEST_FILES_MODIFIED_BY_REVIEW: 0
-PACKAGE_JSON_MODIFIED_BY_REVIEW: NO
-VSIX_MODIFIED_BY_REVIEW: NO
-QA_STTM_MODIFIED_BY_REVIEW: NO
-STAGED_FILES: 0
-EXTENSION_INSTALLED: NO
-RUNTIME_QA_STARTED: NO
 READY_TO_INSTALL_0_3_143: YES/NO
 READY_FOR_RUNTIME_QA_PHASE_1: YES/NO
-
-PASS requires:
-
-* zero BLOCKER and HIGH findings;
-* no Runtime-QA-blocking MEDIUM finding;
-* contract and runtime behavior match;
-* deterministic security boundaries pass;
-* all six exact mappings match across source, compiled, and packaged parser;
-* zero-extraction is fail-closed;
-* canonical Markdown bundle and Excel behavior remain valid;
-* all required tests pass with unchanged historical failure identities;
-* exact VSIX and package delta pass;
-* review performs zero repository, artifact, and QA mutations.
 
 End exactly with one:
 
 INDEPENDENT_REVIEW_0_3_143_RESULT: PASS
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_BLOCKING_FINDINGS
+INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_FINDINGS
 
-INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_PACKAGE_VERIFICATION
+INDEPENDENT_REVIEW_0_3_143_RESULT: FAIL_VALIDATION
+
+INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
 
 INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_IDENTITY_MISMATCH
+
+INDEPENDENT_REVIEW_0_3_143_RESULT: BLOCKED_STAGED_CHANGES
