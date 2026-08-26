@@ -1,39 +1,84 @@
-Please update the existing AskTD Business Poster 2. Do not redesign it from scratch. Preserve the current TD visual identity, green-and-white colour palette, clean executive style, page dimensions, and Print/Save as PDF functionality.
+Additional business-focused improvements
 
-Apply the following changes:
+Incorporate the strongest business-oriented ideas from the reference design while preserving the approved clean, minimal, green-and-white AskTD poster.
 
-1. Make the AskTD name and branding at the top more prominent. Increase its size and visual emphasis while keeping the official TD logo unchanged.
-2. Keep the main headline exactly as:
-    Stop searching dashboards.
-    Just ask.
-3. Replace the current supporting sentence:
-    “Ask a business question. Get one clear answer from approved data.”
-    with:
-    Ask a business question. Get one clear answer from authoritative data.
-4. Keep the supporting line at the bottom of the main message area, but correct its wording to:
-    No report building • No dashboard hopping • No technical queries
-5. Remove the current illustration from the green right-hand panel, including the multiple dashboard/chart boxes, connecting lines, output arrow, speech bubble, and the sentence “Many views become one clear answer.”
-6. Replace that illustration with a simple, executive-friendly AskTD Key Features section. Use four short features with clean, minimal icons:
-    * Ask in plain business language
-    * Use authoritative data
-    * Get tables, charts, and summaries
-    * Access answers securely
-7. Keep the right-hand panel visually simple. Do not add architecture diagrams, data-flow diagrams, technical components, databases, APIs, or detailed explanations.
-8. Ensure the poster remains readable from a distance:
-    * Use large text and strong visual hierarchy.
-    * Keep enough white space.
-    * Avoid dense content and small text.
-    * Use consistent alignment and spacing.
-    * Do not introduce unnecessary decorative elements.
-9. Keep the bottom call to action:
-    Ask us a real business question.
-10. Do not include the AskTD architecture in this poster. The architecture will be maintained separately and shown only when requested.
+Add a concise value statement
 
-After implementing the changes:
+Add the following line near the main headline, using a smaller but prominent type style:
 
-* Preview the poster at its intended print size.
-* Verify that no text overlaps or gets clipped.
-* Verify that both screen view and Print/Save as PDF work correctly.
-* Check the final wording for spelling and consistency.
-* Summarize the files changed and the changes made.
-* If the project already supports poster variants, create two additional visual variations using the same approved wording and content. Only vary the layout of the four feature items; do not change the message or introduce new claims.
+Trusted Data. Instant Insights. Better Decisions.
+
+This should reinforce the business value of AskTD without competing with the main headline.
+
+Keep the hierarchy in this order:
+
+1. AskTD brand
+2. “Stop searching dashboards. Just ask.”
+3. “Trusted Data. Instant Insights. Better Decisions.”
+4. Supporting explanation
+
+Do not add a long product description.
+
+Make the feature cards outcome-oriented
+
+Update the four cards in the right panel so they communicate business outcomes rather than technical functionality.
+
+Use the following final content:
+
+Card 1
+
+Faster answers
+Get clear answers in seconds
+
+Card 2
+
+Trusted data
+Grounded in authoritative, governed data
+
+Card 3
+
+Actionable insights
+Understand trends, drivers, KPIs, and visuals
+
+Card 4
+
+Less effort
+Reduce manual reporting and dashboard searching
+
+Use simple icons that represent speed, trust, insight, and reduced effort.
+
+Keep the cards in a clean 2×2 grid. Do not add a fifth “AI Ready” card because it is too vague and would make the layout crowded.
+
+Add one subtle example question
+
+If the left panel has sufficient unused space, add one small, elegant example-question card above the final call to action.
+
+Use:
+
+Try asking:
+“What changed in our business this quarter—and why?”
+
+Design this as a simple business-question bubble or pale-green outlined card. It must not look like a full chat interface.
+
+The purpose is to help the audience immediately understand how they could interact with AskTD.
+
+If adding this example creates crowding, reduce its size or omit it. Maintaining simplicity is more important than filling empty space.
+
+Elements that must not be copied from the reference
+
+Do not add:
+
+* People or meeting-room photography
+* Large dashboard screenshots
+* A simulated product interface
+* Dark or black backgrounds
+* Neon glow effects
+* Technical workflows
+* Architecture or data-flow diagrams
+* More than four feature cards
+* Long product descriptions
+* Small text that cannot be read from a distance
+
+The finished poster should borrow the reference’s strong business messaging, but not its visual density.
+
+The final result must remain a simple executive poster—not a product brochure, dashboard, or technical presentation.
