@@ -1,297 +1,185 @@
-Update the current Option 4 AskTD poster by replacing the generic product question on the right with a small set of genuine business question-and-answer examples.
+Update Option 4 only by redesigning the current right-side AskTD interaction as one polished business question, one direct answer, and one elegant data chart.
 
-This is a focused enhancement to the existing Option 4 implementation. Preserve the approved layout, visual theme, headline, tagline, benefit row, preview controls, and print behavior.
+This instruction supersedes the previous multi-question carousel requirement.
 
-Do not modify the other poster options.
+Do not modify any other poster option.
 
 Objective
 
-The current question:
+Replace the current generic Q&A with a realistic demonstration of how AskTD answers a business question using a clear written insight and a supporting visualization.
 
-How can AskTD help me understand business performance?
+Show only one fixed question-and-answer example. Do not add rotation, navigation dots, counters, timers, or carousel controls.
 
-is too generic and sounds like product documentation.
+1. Use this exact example
 
-Replace it with real business-style analytical questions that demonstrate how someone would genuinely use AskTD.
+Status label
 
-The screen version should rotate through up to three approved question-and-answer examples.
+ILLUSTRATIVE DEMO · SYNTHETIC DATA
 
-The printed/PDF version should display only the strongest approved example.
+This label must be visible but visually restrained. It must be clear that the values are not production results.
 
-1. Find approved question-and-answer content first
+Question
 
-Before changing the poster content, inspect the current project for:
-
-* Approved AskTD demo questions
-* Synthetic-data examples
-* Existing fixtures
-* Mock API responses
-* Demo screenshots
-* Approved sample reports
-* Existing static Q&A content
-* Documentation containing validated examples
-
-Use only content that is clearly approved for demonstration or based on synthetic data.
-
-Do not:
-
-* Query production systems
-* Use production credentials
-* Include customer information
-* Include PII or PCI data
-* Copy confidential business data
-* Fabricate percentages or financial results
-* Invent regional or customer performance claims
-* Alter the meaning of an approved answer
-
-If only one or two approved Q&A pairs are available, use only those. Do not fabricate a third example merely to complete the carousel.
-
-If no approved business answer is available, implement the rotation framework but keep the current safe product-capability example as a temporary fallback and clearly report that approved demo answers are still required.
-
-2. Preferred business questions
-
-Prefer the following questions when matching approved demo answers exist:
-
-Question 1
+Under YOU ASKED, display:
 
 What is driving deposit growth this quarter?
 
-Question 2
+Answer
 
-Which customer segments contributed most to the change?
+Under ASKTD ANSWERED, display:
 
-Question 3
+High-Interest Savings and Term Deposits are the primary drivers, together contributing 78% of the simulated quarterly increase.
 
-Where are we seeing the largest regional variance?
+Keep the answer concise, prominent, and readable from a distance.
 
-These questions form a natural analytical sequence:
+2. Add one meaningful chart
 
-1. Understand what changed
-2. Investigate who or what drove it
-3. Explore where the difference occurred
+Below the answer, create a premium horizontal contribution chart titled:
 
-However, the accuracy of the answer is more important than preserving these exact questions. If the repository contains different approved business questions with complete answers, use the approved pairs instead.
+Share of simulated deposit growth
 
-Never attach an unrelated answer to one of these questions.
+Use this synthetic dataset:
 
-3. Create structured content
+* High-Interest Savings — 46%
+* Term Deposits — 32%
+* Everyday Savings — 22%
 
-Represent each approved example as structured data rather than duplicating HTML.
+The three values must total 100%.
 
-Use a structure similar to:
+Chart design
 
-{
-  question: "...",
-  answer: "...",
-  drivers: ["...", "..."],
-  sourceLabel: "...",
-  chartData: [],
-  isApprovedDemo: true
-}
+Create an elegant horizontal bar chart with:
 
-Requirements:
+* Rounded bar ends
+* Direct category and percentage labels
+* TD green for the leading category
+* Deep emerald for the second category
+* A softer muted green for the third category
+* Consistent bar height and spacing
+* No unnecessary legend
+* No heavy gridlines
+* No axis border
+* No tooltip dependency
+* No fake trend line
+* No decorative chart elements without meaning
 
-* question must contain the complete user question.
-* answer must directly answer that question.
-* drivers should be included only when supported by approved content.
-* sourceLabel must accurately identify the approved demo or synthetic source.
-* chartData should be included only when actual approved demo values exist.
-* Do not create fake chart points merely for decoration.
+Use subtle entrance animation for screen only:
 
-Keep the content deterministic so screen and PDF rendering do not depend on a live API call.
+* Bars grow once from left to right
+* Duration approximately 600–800ms
+* Calm easing
+* No repeated animation
 
-4. Keep one question visible at a time
+Disable the animation in print and under prefers-reduced-motion.
 
-Do not show three question cards simultaneously.
+Use inline SVG or the project’s existing chart implementation. Prefer inline SVG if it provides sharper and more deterministic PDF output. Do not add a large charting dependency solely for this visualization.
 
-The poster must retain one clear focal point.
+3. Include the source label
 
-Within the existing right-side product surface, show:
+Below the chart, display:
 
-YOU ASKED
+Source: Synthetic AskTD demonstration data
 
-followed by the currently selected question.
+The source must remain legible in screen and PDF output.
 
-Then show:
+Do not use a verified-production-data icon. A small information or demonstration indicator is acceptable.
 
-ASKTD ANSWERED
+4. Refine the product surface
 
-followed by its matching approved answer.
+Keep the interaction as one unified premium AskTD surface.
 
-Only one complete question-and-answer pair should be visible at any moment.
+Organize it into this visual hierarchy:
 
-Maintain a fixed container size across all examples to prevent the poster from shifting when the content changes.
-
-5. Add a restrained rotation experience
-
-For the screen version:
-
-* Rotate to the next approved example approximately every 8–10 seconds.
-* Use a subtle 350–500ms crossfade.
-* Do not slide large panels horizontally.
-* Do not bounce, flip, spin, or use dramatic carousel effects.
-* Pause rotation while the user hovers over or focuses within the Q&A surface.
-* Restart carefully after interaction.
-* Avoid visible layout movement.
-
-Add a minimal status indicator such as:
-
-01 / 03
-
-or three very small navigation dots.
-
-The indicator should remain secondary and must not make the design resemble a slideshow.
-
-Allow manual navigation using:
-
-* Previous/next controls with accessible labels
-* Keyboard left/right arrows when the Q&A surface has focus
-* Clickable indicator dots if appropriate
-
-Keep controls visually subtle.
-
-6. Respect reduced-motion settings
-
-Under prefers-reduced-motion: reduce:
-
-* Disable automatic rotation.
-* Disable transition animations.
-* Show the first approved example.
-* Preserve manual navigation if it remains accessible.
-
-7. Configure the print/PDF version
-
-The print version must not rotate or display carousel controls.
-
-Inside @media print:
-
-* Disable all timers and transitions.
-* Hide navigation dots, counters, and previous/next controls.
-* Display exactly one approved Q&A pair.
-* Use the strongest approved example as the print default.
-* Prefer “What is driving deposit growth this quarter?” only when a matching approved answer exists.
-* Otherwise use the strongest available approved demo pair.
-* Ensure the complete answer fits without clipping.
-* Preserve background colours and print-safe contrast.
-
-The PDF must remain deterministic: printing the same page should always produce the same selected example.
-
-8. Present a complete answer
-
-Each response should feel like a genuine AskTD answer, not a marketing statement.
-
-The answer area may include:
-
-* One concise answer of approximately one or two sentences
-* Two or three validated key drivers
-* A small trusted-source indicator
-* One restrained chart only when approved chart data is available
-
-Do not use the generic sentence:
-
-“One clear answer, grounded in authoritative data.”
-
-as the entire answer.
-
-That phrase may appear as a supporting trust statement, but it does not replace the actual answer.
-
-If no approved numeric data exists, omit the chart rather than drawing an invented trend.
-
-9. Preserve the premium Option 4 design
-
-Keep:
-
-* The existing premium green visual field
-* The Apple-inspired simplicity
-* The headline:
-    Stop searching dashboards.
-    Just ask.
-* The tagline:
-    Trusted data. Instant insights. Better decisions.
-* The four business benefits at the bottom
-* The CTA:
-    Ask us a real business question.
-
-Do not add:
-
-* Multiple visible Q&A cards
-* A large carousel container
-* Dashboard screenshots
-* Technical workflows
-* Architecture diagrams
-* Additional explanatory paragraphs
-* A white footer bar
-* Fake data visualizations
-
-10. Improve readability
-
-Ensure every question and answer remains readable at the intended 1600 × 1120 poster size.
+1. Illustrative-demo label
+2. “YOU ASKED”
+3. Business question
+4. Subtle divider
+5. “ASKTD ANSWERED”
+6. Direct answer
+7. Contribution chart
+8. Synthetic-data source
 
 Use:
 
-* Clear distinction between question and answer
-* Strong answer typography
-* Sufficient line height
-* Consistent internal spacing
-* High contrast
-* A stable Q&A surface height
+* One large rounded surface
+* Subtle translucent border
+* Restrained layered shadow
+* Generous internal spacing
+* Clear alignment
+* Excellent contrast
+* Crisp inline SVG icons
+* Stable dimensions
 
-Handle longer content gracefully without:
+Do not split the content into separate cards.
 
-* Shrinking text excessively
-* Clipping
-* Overflow
-* Uneven card height
-* Moving the feature row
+Ensure the answer and chart fit naturally without shrinking the typography excessively.
 
-If an approved answer is too long, create a concise poster-safe summary without changing its facts. Preserve the full original approved answer in a source comment or content file for traceability.
+5. Preserve the rest of Option 4
 
-11. Validate the implementation
+Keep unchanged:
+
+* The TD and AskTD brand lockup
+* Stop searching dashboards. Just ask.
+* Trusted data. Instant insights. Better decisions.
+* Ask us a real business question.
+* The four benefits along the bottom
+* The existing premium green background
+* Fit to Screen
+* Reset Zoom
+* Print / Save as PDF
+
+Do not add:
+
+* Additional questions
+* Multiple charts
+* Dashboard panels
+* KPI cards
+* White footer containers
+* Technical workflows
+* Architecture diagrams
+* Production or customer data
+
+6. Print requirements
+
+For Print / Save as PDF:
+
+* Show the same fixed question, answer, and chart.
+* Disable all animation.
+* Preserve chart colours.
+* Keep SVG text and bars sharp.
+* Hide preview controls.
+* Ensure the full answer and every percentage are visible.
+* Prevent clipping or overflow.
+* Keep the poster on one landscape page.
+
+7. Mandatory visual validation
 
 After implementation:
 
-1. Run the application.
-2. Open Option 4.
-3. Confirm that only approved Q&A examples are used.
-4. Confirm that every answer matches its question.
-5. Observe at least two complete automatic rotation cycles.
-6. Test manual navigation.
-7. Test keyboard navigation.
-8. Test pause on hover and focus.
-9. Test reduced-motion behavior.
-10. Confirm there is no layout shift.
-11. Render at 1600 × 1120.
-12. Inspect at approximately 25% thumbnail size.
-13. Test Print / Save as PDF.
-14. Confirm the PDF always displays the same approved example.
-15. Confirm carousel controls are absent from print.
-16. Confirm other poster options remain unchanged.
-17. Check the browser console for errors.
+1. Run the application and open Option 4.
+2. Render the poster at 1600 × 1120.
+3. Inspect the full-size rendering.
+4. Inspect it at approximately 25% thumbnail size.
+5. Confirm the question is immediately understandable.
+6. Confirm the answer directly addresses the question.
+7. Confirm the chart visually supports the answer.
+8. Verify that 46% + 32% equals the stated 78%.
+9. Verify that all three chart values total 100%.
+10. Confirm the synthetic-data label is visible.
+11. Test reduced-motion behavior.
+12. Test Print / Save as PDF.
+13. Confirm the chart remains sharp in the PDF.
+14. Perform one refinement pass for typography, spacing, chart proportions, and visual balance.
+15. Confirm all other poster options remain unchanged.
 
-Acceptance criteria
-
-The enhancement is complete only when:
-
-* The generic product question has been replaced by real business-style questions.
-* Every displayed question has a matching approved answer.
-* No confidential or fabricated data is present.
-* Only one Q&A pair is visible at a time.
-* The screen version rotates calmly through the approved examples.
-* The printed version displays one fixed example.
-* The design remains simple and premium.
-* No layout shifting or text clipping occurs.
-* Option 4’s existing headline, tagline, benefits, and CTA remain intact.
-* All other poster options remain unchanged.
-
-Implement and validate the enhancement fully.
+Implement the enhancement fully. Do not stop after describing recommendations.
 
 Finally, report:
 
 * Files changed
-* Q&A examples found
-* Source of each approved example
-* Whether synthetic/demo data was used
-* Which example is used for print
-* Screen rotation validation
-* Print/PDF validation
-* Confirmation that no fabricated data was introduced
+* Q&A content implemented
+* Chart implementation method
+* Screen validation completed
+* Print/PDF validation completed
+* Confirmation that only synthetic demonstration data was used
+* Confirmation that other poster options were preserved
