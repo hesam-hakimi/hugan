@@ -6,6 +6,7 @@
 - universal-coding-agent/src/universal_coding_agent/context/safe_compiler.py
 - universal-coding-agent/src/universal_coding_agent/core/safe_models.py
 - universal-coding-agent/src/universal_coding_agent/core/cancellation.py
+- universal-coding-agent/src/universal_coding_agent/core/remote_operations.py
 - universal-coding-agent/src/universal_coding_agent/providers/base.py
 - universal-coding-agent/src/universal_coding_agent/providers/host_chat.py
 - universal-coding-agent/src/universal_coding_agent/providers/host_subprocess.py
@@ -42,6 +43,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_cancellation_live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/openai_background_reconciliation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
@@ -51,6 +53,8 @@
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_openai_background_cancellation_live.py
+- universal-coding-agent/tests/test_openai_background_reconciliation_live.py
+- universal-coding-agent/tests/test_remote_operation_reconciliation.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
 - universal-coding-agent/tests/test_repository.py
@@ -67,6 +71,7 @@
 - universal-coding-agent/ARCHITECTURE.md
 - universal-coding-agent/ROADMAP.md
 - universal-coding-agent/src/universal_coding_agent/product/task_control.py
+- universal-coding-agent/src/universal_coding_agent/product/remote_operations.py
 - universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
@@ -96,6 +101,7 @@ for FILE in \
   src/universal_coding_agent/context/safe_compiler.py \
   src/universal_coding_agent/core/safe_models.py \
   src/universal_coding_agent/core/cancellation.py \
+  src/universal_coding_agent/core/remote_operations.py \
   src/universal_coding_agent/providers/base.py \
   src/universal_coding_agent/providers/host_chat.py \
   src/universal_coding_agent/providers/host_subprocess.py \
@@ -132,6 +138,7 @@ for FILE in \
   src/universal_coding_agent/testlab/synthetic.py \
   src/universal_coding_agent/testlab/openai_responses.py \
   src/universal_coding_agent/testlab/openai_background_cancellation_live.py \
+  src/universal_coding_agent/testlab/openai_background_reconciliation_live.py \
   src/universal_coding_agent/testlab/live.py \
   src/universal_coding_agent/testlab/hard_reasoning.py \
   src/universal_coding_agent/testlab/large_solution.py \
@@ -141,6 +148,10 @@ for FILE in \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
+  tests/test_openai_background_reconciliation_live.py \
+  tests/test_remote_operation_reconciliation.py \
+  tests/test_openai_background_reconciliation_live.py \
+  tests/test_remote_operation_reconciliation.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_repository.py \
@@ -157,6 +168,7 @@ for FILE in \
   ARCHITECTURE.md \
   ROADMAP.md \
   src/universal_coding_agent/product/task_control.py \
+  src/universal_coding_agent/product/remote_operations.py \
   src/universal_coding_agent/product/controlled_safe_graph.py \
   src/universal_coding_agent/product/workspace.py \
   tests/test_product_foundation.py \
@@ -174,14 +186,17 @@ done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
-from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, TaskControlService
+from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
+from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
 from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
+from universal_coding_agent.providers.base import RemoteOperationLeaseAwareProvider, RestartReconciliationModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
+from universal_coding_agent.testlab.openai_background_reconciliation_live import run_openai_background_reconciliation_live
 from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
@@ -204,6 +219,9 @@ assert OwnedCancellableOperation and HostChatCompletionsProvider
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
+assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
+assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
+assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
@@ -212,6 +230,7 @@ print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
+print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -248,7 +267,8 @@ echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
 echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
 echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
-echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS"
+echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
+echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -299,6 +319,7 @@ for path in (
     "/api/programs/{program_id}/executions",
     "/api/programs/{program_id}/executions/start-next",
     "/api/programs/{program_id}/executions/{task_id}/continue",
+    "/api/tasks/{task_id}/remote-operation/reconcile",
 ):
     assert path in openapi["paths"]
 asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
@@ -316,6 +337,7 @@ for marker in (
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
 print("PROGRAM_EXECUTION_UI_HTTP_SMOKE_PASS")
 print("CANCELLATION_EVIDENCE_UI_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_RECONCILIATION_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
@@ -352,6 +374,7 @@ Cmd 10
 ```bash
 CANCELLATION_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-background-cancellation-$(date -u +%Y%m%dT%H%M%SZ)"
 CANCELLATION_RC=0
+RECONCILIATION_RC=0
 UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
   UCA_OPENAI_BACKGROUND_CANCEL_TIMEOUT_SECONDS=45 \
   PATH="$PWD/.venv/bin:$PATH" \
@@ -360,7 +383,17 @@ UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
 test -f "$CANCELLATION_STATE_ROOT/background-cancellation-live-summary.json"
 .venv/bin/python -m json.tool "$CANCELLATION_STATE_ROOT/background-cancellation-live-summary.json"
 test "$CANCELLATION_RC" -eq 0
+UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+  UCA_OPENAI_BACKGROUND_CANCEL_TIMEOUT_SECONDS=45 \
+  PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.openai_background_reconciliation_live \
+    --state-root "$CANCELLATION_STATE_ROOT" || RECONCILIATION_RC=$?
+test -f "$CANCELLATION_STATE_ROOT/background-reconciliation-live-summary.json"
+.venv/bin/python -m json.tool "$CANCELLATION_STATE_ROOT/background-reconciliation-live-summary.json"
+test -f "$CANCELLATION_STATE_ROOT/private-remote-operations.sqlite"
+test "$RECONCILIATION_RC" -eq 0
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PASS"
+echo "OPENAI_BACKGROUND_RESTART_RECONCILIATION_LIVE_QUALIFICATION_PASS"
 ```
 
 Cmd 11

@@ -59,7 +59,7 @@ jobs:
           echo "PRETRANSFER_LIVE_OPENAI_SKIPPED_NO_SECRET"
           echo "### Live OpenAI qualification skipped: AZURE_OPENAI_API_KEY secret is not configured." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Run live OpenAI background cancellation qualification
+      - name: Run live OpenAI cancellation and restart reconciliation qualifications
         id: cancellation
         if: env.OPENAI_API_KEY != ''
         continue-on-error: true
@@ -70,21 +70,35 @@ jobs:
           UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
             python -m universal_coding_agent.testlab.openai_background_cancellation_live \
               --state-root "$STATE_ROOT"
-          RC=$?
+          CANCELLATION_RC=$?
+          RECONCILIATION_RC=97
+          if [[ "$CANCELLATION_RC" -eq 0 ]]; then
+            UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+              python -m universal_coding_agent.testlab.openai_background_reconciliation_live \
+                --state-root "$STATE_ROOT"
+            RECONCILIATION_RC=$?
+          fi
           set -e
           echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
           if [[ -f "$STATE_ROOT/background-cancellation-live-summary.json" ]]; then
             cat "$STATE_ROOT/background-cancellation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
           fi
-          exit "$RC"
+          if [[ -f "$STATE_ROOT/background-reconciliation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/background-reconciliation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ "$CANCELLATION_RC" -ne 0 ]]; then
+            exit "$CANCELLATION_RC"
+          fi
+          exit "$RECONCILIATION_RC"
 
-      - name: Upload OpenAI background cancellation diagnostics
+      - name: Upload OpenAI cancellation and reconciliation diagnostics
         if: env.OPENAI_API_KEY != '' && always() && steps.cancellation.outcome != 'skipped'
         uses: actions/upload-artifact@v4
         with:
           name: uca-openai-background-cancellation-live-diagnostics
           path: |
             ${{ runner.temp }}/uca-openai-background-cancellation-live/background-cancellation-live-summary.json
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/background-reconciliation-live-summary.json
             ${{ runner.temp }}/uca-openai-background-cancellation-live/task-control.sqlite
           if-no-files-found: error
           retention-days: 14

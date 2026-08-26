@@ -14,6 +14,9 @@ from universal_coding_agent.core.safe_models import (
     SafeTaskRequest,
     safe_json,
 )
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.base import ModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
@@ -44,6 +47,7 @@ class DiscoveredSafeAgentService:
     provider: ModelProvider
     allow_local_sources: bool = False
     control: TaskControlService | None = None
+    remote_operations: SqliteRemoteOperationLeaseStore | None = None
 
     @classmethod
     def create(
@@ -53,12 +57,14 @@ class DiscoveredSafeAgentService:
         *,
         allow_local_sources: bool = False,
         control: TaskControlService | None = None,
+        remote_operations: SqliteRemoteOperationLeaseStore | None = None,
     ) -> DiscoveredSafeAgentService:
         return cls(
             state_root=state_root.resolve(),
             provider=provider,
             allow_local_sources=allow_local_sources,
             control=control,
+            remote_operations=remote_operations,
         )
 
     def start(
@@ -275,6 +281,7 @@ class DiscoveredSafeAgentService:
             self.provider,
             allow_local_sources=self.allow_local_sources,
             control=self.control,
+            remote_operations=self.remote_operations,
         )
 
     @staticmethod

@@ -20,6 +20,9 @@ from universal_coding_agent.orchestration.structured_output import (
     StructuredOutputError,
     invoke_structured,
 )
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.host_chat import HostChatCompletionsProvider
 from universal_coding_agent.providers.host_subprocess import HostSubprocessProvider
@@ -291,6 +294,10 @@ def test_cancel_requests_owned_openai_background_response_and_persists_report(
         endpoint="https://example.test/v1/responses",
         background_cancellation=True,
     )
+    remote_operations = SqliteRemoteOperationLeaseStore(
+        tmp_path / "private-openai-operations.sqlite"
+    )
+    provider.bind_remote_operation_store(remote_operations)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         calls.append((method, endpoint))
@@ -366,7 +373,11 @@ def test_cancel_requests_owned_openai_background_response_and_persists_report(
     assert report.processes_still_active == 0
     assert report.cancellable_operations_still_active == 0
     assert report.cooperative_fallback is False
+    remote_snapshot = remote_operations.public_snapshot("cancel-openai-task")
+    assert remote_snapshot is not None
+    assert remote_snapshot.last_status == "cancelled"
     control.close()
+    remote_operations.close()
 
     reopened = TaskControlService(control_path)
     assert reopened.cancellation_report("cancel-openai-task") == report
@@ -386,6 +397,10 @@ def test_slow_openai_background_creation_is_durably_reported_still_active(
         endpoint="https://example.test/v1/responses",
         background_cancellation=True,
     )
+    remote_operations = SqliteRemoteOperationLeaseStore(
+        tmp_path / "private-slow-openai-operations.sqlite"
+    )
+    provider.bind_remote_operation_store(remote_operations)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         if method == "POST" and endpoint == provider.endpoint:
@@ -442,7 +457,11 @@ def test_slow_openai_background_creation_is_durably_reported_still_active(
     assert cancel_called.wait(timeout=1)
     assert len(errors) == 1
     assert isinstance(errors[0], CancellationRequested)
+    remote_snapshot = remote_operations.public_snapshot("slow-openai-task")
+    assert remote_snapshot is not None
+    assert remote_snapshot.last_status == "cancelled"
     control.close()
+    remote_operations.close()
 
     reopened = TaskControlService(control_path)
     assert reopened.cancellation_report("slow-openai-task") == report

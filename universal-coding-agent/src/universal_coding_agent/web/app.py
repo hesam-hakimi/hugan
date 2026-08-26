@@ -15,6 +15,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.remote_operations import (
+    RemoteOperationAction,
+    RemoteOperationState,
+)
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.product.context_documents import DocumentValidationError
 from universal_coding_agent.product.models import (
@@ -25,6 +29,10 @@ from universal_coding_agent.product.models import (
     RequirementContract,
 )
 from universal_coding_agent.product.workspace import ProductWorkspace
+from universal_coding_agent.providers.base import (
+    ModelProviderError,
+    RestartReconciliationModelProvider,
+)
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
 
@@ -85,6 +93,10 @@ class ScopeDecisionRequest(BaseModel):
     approved: bool
 
 
+class RemoteOperationReconcileRequest(BaseModel):
+    action: RemoteOperationAction
+
+
 class SafeTaskStartRequest(BaseModel):
     task_id: str | None = None
     thread_id: str | None = None
@@ -136,6 +148,7 @@ class ProductWebRuntime:
     def task_status(self, task_id: str) -> dict[str, Any]:
         with self._lock:
             record = dict(self._runs.get(task_id, {}))
+            runtime_record_exists = task_id in self._runs
         control = self.workspace.control.get_task(task_id)
         if not record and control is None:
             raise KeyError(task_id)
@@ -144,7 +157,57 @@ class ProductWebRuntime:
         cancellation = self.workspace.control.cancellation_report(task_id)
         if cancellation is not None:
             record["cancellation_report"] = cancellation.to_json()
+        remote_operation = self.workspace.remote_operations.public_snapshot(task_id)
+        if remote_operation is not None:
+            record["remote_operation"] = self._remote_operation_snapshot(
+                remote_operation.model_dump(mode="json"),
+                busy=bool(record.get("busy", False)),
+                recovered=not runtime_record_exists,
+            )
         return record
+
+    def reconcile_remote_operation(
+        self,
+        task_id: str,
+        action: RemoteOperationAction,
+    ) -> dict[str, Any]:
+        if self.workspace.control.get_task(task_id) is None:
+            raise KeyError(task_id)
+        if self._remote_reconciliation_busy(task_id):
+            raise ValueError(
+                "remote-operation reconciliation requires no active local task worker"
+            )
+        provider = self.workspace.provider
+        if not isinstance(provider, RestartReconciliationModelProvider):
+            raise ValueError(
+                "configured provider does not support restart reconciliation"
+            )
+        snapshot = provider.reconcile_remote_operation(task_id, action)
+        return {
+            "task_id": task_id,
+            "action": action.value,
+            "remote_operation": self._remote_operation_snapshot(
+                snapshot.model_dump(mode="json"),
+                busy=False,
+                recovered=task_id not in self._runs,
+            ),
+        }
+
+    def _remote_reconciliation_busy(self, task_id: str) -> bool:
+        with self._lock:
+            standalone = self._runs.get(task_id)
+            if standalone is not None and standalone.get("busy"):
+                return True
+        try:
+            binding = self.workspace.programs.execution_binding(task_id)
+        except KeyError:
+            return False
+        with self._lock:
+            runtime = self._program_execution_runs.get(binding.program_id)
+            if runtime is None or not runtime.get("busy"):
+                return False
+            runtime_task_id = str(runtime.get("task_id", ""))
+            return not runtime_task_id or runtime_task_id == task_id
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:
         with self._lock:
@@ -203,7 +266,10 @@ class ProductWebRuntime:
                 "error": str(runtime_record.get("error", "")),
             },
             "bindings": [
-                self._program_execution_binding_snapshot(binding)
+                self._program_execution_binding_snapshot(
+                    binding,
+                    runtime_record=runtime_record,
+                )
                 for binding in bindings
             ],
         }
@@ -434,6 +500,8 @@ class ProductWebRuntime:
     def _program_execution_binding_snapshot(
         self,
         binding: ProgramExecutionBinding,
+        *,
+        runtime_record: dict[str, Any],
     ) -> dict[str, Any]:
         snapshot = binding.model_dump(mode="json")
         control = self.workspace.control.get_task(binding.task_id)
@@ -442,6 +510,32 @@ class ProductWebRuntime:
         cancellation = self.workspace.control.cancellation_report(binding.task_id)
         if cancellation is not None:
             snapshot["cancellation_report"] = cancellation.to_json()
+        remote_operation = self.workspace.remote_operations.public_snapshot(
+            binding.task_id
+        )
+        if remote_operation is not None:
+            runtime_task_id = str(runtime_record.get("task_id", ""))
+            matching_runtime = bool(
+                runtime_record
+                and (not runtime_task_id or runtime_task_id == binding.task_id)
+            )
+            snapshot["remote_operation"] = self._remote_operation_snapshot(
+                remote_operation.model_dump(mode="json"),
+                busy=bool(matching_runtime and runtime_record.get("busy", False)),
+                recovered=not matching_runtime,
+            )
+        return snapshot
+
+    @staticmethod
+    def _remote_operation_snapshot(
+        snapshot: dict[str, Any],
+        *,
+        busy: bool,
+        recovered: bool,
+    ) -> dict[str, Any]:
+        active = snapshot.get("state") == RemoteOperationState.ACTIVE.value
+        snapshot["recovered_pending"] = bool(active and recovered)
+        snapshot["requires_explicit_action"] = bool(active and not busy)
         return snapshot
 
 
@@ -480,6 +574,18 @@ def create_product_app(
         return JSONResponse(
             status_code=400,
             content={"detail": sanitize_text(str(exc))[:2000]},
+        )
+
+    @app.exception_handler(ModelProviderError)
+    async def provider_error(_request: Request, exc: ModelProviderError):
+        return JSONResponse(
+            status_code=409,
+            content={
+                "detail": {
+                    "code": exc.code,
+                    "message": sanitize_text(str(exc))[:2000],
+                }
+            },
         )
 
     @app.get("/api/health")
@@ -635,6 +741,13 @@ def create_product_app(
     @app.post("/api/tasks/{task_id}/cancel")
     def cancel_task(task_id: str, request: ControlRequest) -> dict[str, Any]:
         return runtime.cancel_task(task_id, request.reason)
+
+    @app.post("/api/tasks/{task_id}/remote-operation/reconcile")
+    def reconcile_remote_operation(
+        task_id: str,
+        request: RemoteOperationReconcileRequest,
+    ) -> dict[str, Any]:
+        return runtime.reconcile_remote_operation(task_id, request.action)
 
     resolved_ui = ui_dist.resolve() if ui_dist is not None else None
     if resolved_ui is not None and resolved_ui.is_dir():

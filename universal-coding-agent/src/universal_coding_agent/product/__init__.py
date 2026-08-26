@@ -24,6 +24,10 @@ _EXPORTS = {
         "universal_coding_agent.product.search_service",
         "SearchService",
     ),
+    "SqliteRemoteOperationLeaseStore": (
+        "universal_coding_agent.product.remote_operations",
+        "SqliteRemoteOperationLeaseStore",
+    ),
     "TaskControlService": (
         "universal_coding_agent.product.task_control",
         "TaskControlService",

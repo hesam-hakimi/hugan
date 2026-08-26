@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import time
+from pathlib import Path
 
 import pytest
 
 from universal_coding_agent.core.cancellation import CancellationCoordinator
 from universal_coding_agent.core.models import ModelRequest
 from universal_coding_agent.core.safe_models import StructuredEditProposal
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.testlab.live import _provider_preflight
 from universal_coding_agent.testlab.openai_responses import (
@@ -74,7 +79,10 @@ def test_openai_testlab_provider_uses_responses_structured_output() -> None:
     assert response.actual_model == "test-model-resolved"
     assert response.completion_tokens == 12
     assert response.reasoning_tokens == 3
-    assert response.safe_diagnostics["response_id"] == "resp_test"
+    assert response.safe_diagnostics["response_ref"] == (
+        "sha256:" + hashlib.sha256(b"resp_test").hexdigest()
+    )
+    assert "response_id" not in response.safe_diagnostics
 
 
 def test_openai_strict_schema_requires_every_object_property_recursively() -> None:
@@ -198,6 +206,7 @@ def test_openai_cancellable_invoke_is_cooperative_without_opt_in() -> None:
 
 
 def test_openai_background_handle_completes_through_remote_lifecycle(
+    tmp_path: Path,
     monkeypatch,
 ) -> None:
     calls = []
@@ -207,6 +216,7 @@ def test_openai_background_handle_completes_through_remote_lifecycle(
         endpoint="https://example.test/v1/responses",
         background_cancellation=True,
     )
+    store = _bind_private_store(provider, tmp_path)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         calls.append((method, endpoint, dict(payload or {})))
@@ -242,6 +252,10 @@ def test_openai_background_handle_completes_through_remote_lifecycle(
             role="implementer",
             system_prompt="Return text.",
             user_prompt="Return done.",
+            metadata={
+                "task_id": "openai-background-completion",
+                "base_sha": "a" * 40,
+            },
         ),
         signal,
     )
@@ -254,9 +268,17 @@ def test_openai_background_handle_completes_through_remote_lifecycle(
     assert response.safe_diagnostics["cancellation_mode"] == "owned_background_handle"
     assert response.safe_diagnostics["background"] is True
     assert response.safe_diagnostics["temporary_background_retention"] is True
+    snapshot = store.public_snapshot("openai-background-completion")
+    assert snapshot is not None
+    assert snapshot.state.value == "terminal"
+    assert snapshot.last_status == "completed"
+    assert snapshot.base_sha == "a" * 40
+    assert "resp_background" not in json.dumps(snapshot.model_dump(mode="json"))
+    store.close()
 
 
 def test_openai_background_handle_fails_closed_for_unknown_remote_state(
+    tmp_path: Path,
     monkeypatch,
 ) -> None:
     provider = OpenAIResponsesProvider(
@@ -264,6 +286,7 @@ def test_openai_background_handle_fails_closed_for_unknown_remote_state(
         model="test-model",
         background_cancellation=True,
     )
+    store = _bind_private_store(provider, tmp_path)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         return {
@@ -286,9 +309,14 @@ def test_openai_background_handle_fails_closed_for_unknown_remote_state(
         )
 
     assert exc_info.value.code == "openai_background_state_unconfirmed"
+    snapshot = store.public_snapshot("openai-background-unknown")
+    assert snapshot is not None
+    assert snapshot.state.value == "unavailable"
+    store.close()
 
 
 def test_openai_background_handle_fails_closed_for_response_id_drift(
+    tmp_path: Path,
     monkeypatch,
 ) -> None:
     provider = OpenAIResponsesProvider(
@@ -296,6 +324,7 @@ def test_openai_background_handle_fails_closed_for_response_id_drift(
         model="test-model",
         background_cancellation=True,
     )
+    store = _bind_private_store(provider, tmp_path)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         if method == "POST":
@@ -329,9 +358,14 @@ def test_openai_background_handle_fails_closed_for_response_id_drift(
         )
 
     assert exc_info.value.code == "openai_background_state_unconfirmed"
+    snapshot = store.public_snapshot("openai-background-id-drift")
+    assert snapshot is not None
+    assert snapshot.state.value == "active"
+    store.close()
 
 
 def test_openai_background_handle_has_bounded_lifecycle_timeout(
+    tmp_path: Path,
     monkeypatch,
 ) -> None:
     provider = OpenAIResponsesProvider(
@@ -340,6 +374,7 @@ def test_openai_background_handle_has_bounded_lifecycle_timeout(
         timeout_seconds=0.05,
         background_cancellation=True,
     )
+    store = _bind_private_store(provider, tmp_path)
 
     def request_json(*, method, endpoint, payload=None, timeout_seconds=None):
         return {
@@ -368,6 +403,10 @@ def test_openai_background_handle_has_bounded_lifecycle_timeout(
 
     assert exc_info.value.code == "openai_background_timeout"
     assert time.monotonic() - started < 0.5
+    snapshot = store.public_snapshot("openai-background-timeout")
+    assert snapshot is not None
+    assert snapshot.state.value == "active"
+    store.close()
 
 
 def test_openai_background_opt_in_rejects_foreground_only_test_transport() -> None:
@@ -390,6 +429,38 @@ def test_openai_background_opt_in_rejects_foreground_only_test_transport() -> No
         )
 
     assert exc_info.value.code == "openai_background_transport_unsupported"
+
+
+def test_openai_background_opt_in_requires_private_lease_before_provider_work(
+    monkeypatch,
+) -> None:
+    provider = OpenAIResponsesProvider(
+        api_key="test-key",
+        model="test-model",
+        background_cancellation=True,
+    )
+    calls = 0
+
+    def request_json(**_kwargs):
+        nonlocal calls
+        calls += 1
+        return {}
+
+    monkeypatch.setattr(provider, "_request_json", request_json)
+    signal = CancellationCoordinator().signal("openai-background-no-store")
+
+    with pytest.raises(ModelProviderError) as exc_info:
+        provider.invoke_cancellable(
+            ModelRequest(
+                role="implementer",
+                system_prompt="Return text.",
+                user_prompt="Return done.",
+            ),
+            signal,
+        )
+
+    assert exc_info.value.code == "remote_operation_store_missing"
+    assert calls == 0
 
 
 def test_openai_testlab_provider_rejects_non_json_structured_output() -> None:
@@ -521,3 +592,14 @@ def test_live_provider_preflight_reports_safe_structured_http_failure() -> None:
     assert result["failed_stage"] == "structured_schema"
     assert result["error"]["code"] == "openai_http_error"
     assert "invalid schema" in result["error"]["message"]
+
+
+def _bind_private_store(
+    provider: OpenAIResponsesProvider,
+    tmp_path: Path,
+) -> SqliteRemoteOperationLeaseStore:
+    store = SqliteRemoteOperationLeaseStore(
+        tmp_path / "private-remote-operations.sqlite"
+    )
+    provider.bind_remote_operation_store(store)
+    return store

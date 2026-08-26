@@ -161,11 +161,10 @@ budget passed to each HTTP call. During cancellation, network ambiguity, an unkn
 cancel/retrieve call that outlives the existing bounded coordinator grace remains reported as still
 active rather than forcibly terminated.
 
-Durable still-active evidence is the cancellation-time snapshot of a currently registered handle.
-If the lifecycle itself times out or fails before a later cancellation request, UCA ends its local
-wait with unconfirmed termination and unregisters the handle; it does not persist a remote lease or
-claim that the response terminated. Persisting and reconciling failed remote-operation leases is
-outside this slice.
+At the P1.2d baseline, durable still-active evidence was only the cancellation-time snapshot of a
+currently registered handle. If the lifecycle timed out or failed, UCA ended its local wait with
+unconfirmed termination and unregistered the handle; that slice did not persist or reconcile a
+remote lease. P1.2f below deliberately closes only that restart-reconciliation gap.
 
 The opt-in preserves `store=false`, but background execution necessarily has temporary provider
 retention of roughly ten minutes for asynchronous execution and polling. Plain `invoke()`, the
@@ -185,8 +184,49 @@ provider lifecycle timeout. The recorded lifecycle evidence deliberately omits t
 response identifier. Existing foreground live qualifications remain unchanged and the final live
 aggregator fails closed on the additional cancellation outcome.
 
-P1.2e adds qualification evidence only. It does not persist a remote-operation lease, add another
-provider adapter, change active pause, widen cancellation authority, or introduce publication.
+The P1.2e baseline added qualification evidence only. It did not persist a remote-operation lease,
+add another provider adapter, change active pause, widen cancellation authority, or introduce
+publication.
+
+P1.2f adds restart-safe reconciliation to that same opt-in OpenAI background-response transport.
+Immediately after an asynchronous response is created, the provider writes one typed lease before
+polling. The lease binds task identity, optional thread identity, immutable Base SHA when present in
+the model request, transport type, a hash-addressed endpoint scope, creation/update times, lifecycle
+status, cancel intent, action counters, and revision. The opaque provider response identifier is
+stored only in `private-remote-operations.sqlite`, a database separate from task control, product
+databases, artifacts, and workflow uploads. Public snapshots expose only a SHA-256 reference. They
+never expose the identifier through API/UI state, safe diagnostics, logs, reports, or artifacts, and
+no provider credential is persisted. UCA requests owner-only file permissions where supported but
+does not claim that file mode alone supplies host isolation or encryption at rest.
+
+Opening the Product workspace or reading task/Program execution state after a process restart only
+reopens and displays the redacted lease; it starts no provider request. An active recovered lease is
+marked as requiring an explicit action. The
+`POST /api/tasks/{task_id}/remote-operation/reconcile` endpoint accepts exactly `observe` or
+`cancel`. Each action performs one endpoint-scoped request with a ten-second-or-shorter request
+bound, validates that the
+returned identifier and lifecycle status match the lease, and durably records the outcome. Cancel
+intent is committed before the remote cancel request. A confirmed terminal lease is idempotent and
+causes no further network call. A missing/expired response (HTTP 404/410), endpoint-scope drift, an
+unknown lifecycle state, or invalid persistence fails closed; unavailable remote state is recorded
+durably where it can be established. Failure to persist a newly created response triggers a bounded
+best-effort remote cancel and never enters the normal polling wait.
+
+Recovery does not resume the interrupted graph, consume a completed response as model output,
+retry a request, or advance a Program phase. The operator may only observe or request cancellation
+of the orphaned remote operation. Deterministic tests reopen the private store and prove zero
+network work before the explicit action. The live qualification creates an actual background
+response in a child process, terminates only that local qualification process, reopens the lease,
+explicitly observes and cancels the response, requires a provider-observed terminal `cancelled`
+state and a durable redacted reload, and preserves the source checkout. The existing live
+cancellation outcome remains the fail-closed aggregator boundary; the private lease database is
+deliberately excluded from diagnostics uploads.
+
+P1.2f still uses the provider's temporary background retention (roughly ten minutes even with
+`store=false`). It adds no webhook, automatic restart work, output recovery, retry/replan policy,
+second transport, active pause, arbitrary shell access, publication path, or broader hard-
+cancellation claim. Remote termination is claimed only after a terminal `cancelled` status is
+observed.
 
 ## Context management
 

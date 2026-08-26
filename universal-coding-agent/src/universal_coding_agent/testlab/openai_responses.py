@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -21,6 +22,12 @@ from universal_coding_agent.core.models import (
     ModelRequest,
     ModelResponse,
 )
+from universal_coding_agent.core.remote_operations import (
+    RemoteOperationAction,
+    RemoteOperationLeaseStore,
+    RemoteOperationSnapshot,
+    RemoteOperationState,
+)
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
@@ -29,6 +36,8 @@ OPENAI_BACKGROUND_CANCELLATION_ENV = "UCA_OPENAI_BACKGROUND_CANCELLATION"
 _SCHEMA_NAME = re.compile(r"[^A-Za-z0-9_-]+")
 _BACKGROUND_POLL_INTERVAL_SECONDS = 2.0
 _BACKGROUND_CANCEL_POLL_INTERVAL_SECONDS = 0.25
+_RECONCILIATION_REQUEST_TIMEOUT_SECONDS = 10.0
+_REMOTE_OPERATION_TRANSPORT = "openai_responses"
 _BACKGROUND_ACTIVE_STATUSES = frozenset({"in_progress", "queued"})
 _BACKGROUND_TERMINAL_STATUSES = frozenset(
     {"cancelled", "completed", "failed", "incomplete"}
@@ -146,6 +155,8 @@ class OpenAIResponsesProvider:
         self._transport = transport
         self.background_cancellation = background_cancellation
         self.background_lifecycle_recorder = background_lifecycle_recorder
+        self._remote_operation_store: RemoteOperationLeaseStore | None = None
+        self._reconciliation_lock = Lock()
 
     @classmethod
     def from_env(
@@ -183,6 +194,136 @@ class OpenAIResponsesProvider:
             reasoning_tokens=True,
             actual_model_identity=True,
         )
+
+    def bind_remote_operation_store(self, store: RemoteOperationLeaseStore) -> None:
+        self._remote_operation_store = store
+
+    def remote_operation_snapshot(
+        self,
+        task_id: str,
+    ) -> RemoteOperationSnapshot | None:
+        store = self._remote_operation_store
+        return store.public_snapshot(task_id) if store is not None else None
+
+    def reconcile_remote_operation(
+        self,
+        task_id: str,
+        action: RemoteOperationAction,
+    ) -> RemoteOperationSnapshot:
+        with self._reconciliation_lock:
+            return self._reconcile_remote_operation(task_id, action)
+
+    def _reconcile_remote_operation(
+        self,
+        task_id: str,
+        action: RemoteOperationAction,
+    ) -> RemoteOperationSnapshot:
+        if not self.background_cancellation:
+            raise ModelProviderError(
+                "openai_background_cancellation_not_enabled",
+                "OpenAI background reconciliation requires the explicit cancellation opt-in",
+            )
+        store = self._remote_operation_store
+        if store is None:
+            raise ModelProviderError(
+                "remote_operation_store_missing",
+                "private remote-operation persistence is not configured",
+            )
+        lease = store.private_lease(task_id)
+        if lease is None:
+            raise ModelProviderError(
+                "remote_operation_not_found",
+                "no private remote-operation lease exists for this task",
+            )
+        if (
+            lease.transport != _REMOTE_OPERATION_TRANSPORT
+            or lease.transport_scope != self._transport_scope()
+        ):
+            raise ModelProviderError(
+                "remote_operation_transport_mismatch",
+                "the persisted remote operation belongs to a different transport scope",
+            )
+        if lease.state is RemoteOperationState.UNAVAILABLE:
+            raise ModelProviderError(
+                "remote_state_unavailable",
+                "the remote operation is no longer available for safe reconciliation",
+            )
+        if lease.state is RemoteOperationState.TERMINAL:
+            snapshot = store.public_snapshot(task_id)
+            if snapshot is None:
+                raise ModelProviderError(
+                    "remote_operation_state_invalid",
+                    "the durable remote-operation snapshot is missing",
+                )
+            return snapshot
+
+        lease = store.record_action(task_id, action, reconciliation=True)
+        if lease.state is not RemoteOperationState.ACTIVE:
+            snapshot = store.public_snapshot(task_id)
+            if snapshot is None:
+                raise ModelProviderError(
+                    "remote_operation_state_invalid",
+                    "the durable remote-operation snapshot is missing",
+                )
+            return snapshot
+
+        response_endpoint = self._response_endpoint(lease.operation_id)
+        try:
+            if action is RemoteOperationAction.CANCEL:
+                data = self._request_json(
+                    method="POST",
+                    endpoint=f"{response_endpoint}/cancel",
+                    timeout_seconds=min(
+                        self.timeout_seconds,
+                        _RECONCILIATION_REQUEST_TIMEOUT_SECONDS,
+                    ),
+                )
+            else:
+                data = self._request_json(
+                    method="GET",
+                    endpoint=response_endpoint,
+                    timeout_seconds=min(
+                        self.timeout_seconds,
+                        _RECONCILIATION_REQUEST_TIMEOUT_SECONDS,
+                    ),
+                )
+        except _OpenAIHTTPError as exc:
+            if exc.status_code in {404, 410}:
+                recorded = store.mark_unavailable(task_id)
+                if recorded.state is RemoteOperationState.TERMINAL:
+                    snapshot = store.public_snapshot(task_id)
+                    if snapshot is not None:
+                        return snapshot
+                raise ModelProviderError(
+                    "remote_state_unavailable",
+                    "the remote operation is no longer available for safe reconciliation",
+                ) from exc
+            raise ModelProviderError(
+                exc.code,
+                "OpenAI remote-operation reconciliation failed safely",
+            ) from exc
+        except ModelProviderError as exc:
+            raise ModelProviderError(
+                exc.code,
+                "OpenAI remote-operation reconciliation failed safely",
+            ) from exc
+
+        _validate_background_response_id(data, lease.operation_id)
+        status = _background_status(data)
+        state = _remote_operation_state(status, unknown_as_unavailable=True)
+        recorded = store.record_status(task_id, status=status, state=state)
+        if recorded.state is RemoteOperationState.UNAVAILABLE:
+            raise ModelProviderError(
+                "remote_state_unavailable",
+                "the remote operation returned an unsupported lifecycle status",
+            )
+        snapshot = store.public_snapshot(task_id)
+        if snapshot is None:
+            raise ModelProviderError(
+                "remote_operation_state_invalid",
+                "the durable remote-operation snapshot is missing",
+            )
+        return snapshot
 
     def probe(self) -> bool:
         request = ModelRequest(
@@ -222,11 +363,29 @@ class OpenAIResponsesProvider:
                 "openai_background_transport_unsupported",
                 "configured test transport does not own the OpenAI background lifecycle",
             )
+        if self._remote_operation_store is None:
+            raise ModelProviderError(
+                "remote_operation_store_missing",
+                "private remote-operation persistence must be configured before provider work",
+            )
+
+        request_task_id = request.metadata.get("task_id", "")
+        if request_task_id and request_task_id != cancellation.task_id:
+            raise ModelProviderError(
+                "openai_background_task_identity_mismatch",
+                "model request task identity does not match its cancellation signal",
+            )
 
         payload["background"] = True
 
         def start_operation() -> _OpenAIBackgroundResponseHandle:
-            return _OpenAIBackgroundResponseHandle(self, payload)
+            return _OpenAIBackgroundResponseHandle(
+                self,
+                payload,
+                task_id=cancellation.task_id,
+                thread_id=request.metadata.get("thread_id", ""),
+                base_sha=request.metadata.get("base_sha", ""),
+            )
 
         with cancellation.owned_cancellable_operation(
             OwnedOperationKind.PROVIDER,
@@ -320,7 +479,7 @@ class OpenAIResponsesProvider:
         response_id = str(data.get("id") or "")
         diagnostics: dict[str, str | int | bool | None] = {
             "provider": "openai_responses",
-            "response_id": response_id,
+            "response_ref": _response_ref(response_id) if response_id else "",
             "store": False,
         }
         if cancellation_mode is not None:
@@ -387,7 +546,8 @@ class OpenAIResponsesProvider:
             except Exception:
                 detail = ""
             safe_detail = sanitize_text(detail)[:2_000]
-            raise ModelProviderError(
+            raise _OpenAIHTTPError(
+                exc.code,
                 "openai_http_error",
                 f"OpenAI Responses API HTTP {exc.code}: {safe_detail}",
             ) from exc
@@ -416,6 +576,22 @@ class OpenAIResponsesProvider:
             )
         return decoded
 
+    def _transport_scope(self) -> str:
+        normalized_endpoint = self.endpoint.rstrip("/")
+        return _response_ref(normalized_endpoint)
+
+    def _response_endpoint(self, response_id: str) -> str:
+        return (
+            f"{self.endpoint.rstrip('/')}"
+            f"/{urllib.parse.quote(response_id, safe='')}"
+        )
+
+
+class _OpenAIHTTPError(ModelProviderError):
+    def __init__(self, status_code: int, code: str, message: str) -> None:
+        self.status_code = status_code
+        super().__init__(code, message)
+
 
 class _OpenAIBackgroundResponseHandle:
     """Own one opt-in OpenAI background response lifecycle."""
@@ -424,9 +600,16 @@ class _OpenAIBackgroundResponseHandle:
         self,
         provider: OpenAIResponsesProvider,
         payload: dict[str, Any],
+        *,
+        task_id: str,
+        thread_id: str,
+        base_sha: str,
     ) -> None:
         self._provider = provider
         self._payload = dict(payload)
+        self._task_id = task_id
+        self._thread_id = thread_id
+        self._base_sha = base_sha
         self._deadline = time.monotonic() + provider.timeout_seconds
         self._cancel_requested = Event()
         self._terminal_confirmed = Event()
@@ -479,6 +662,8 @@ class _OpenAIBackgroundResponseHandle:
         )
         response_id = _background_response_id(data)
         status = _background_status(data)
+        state = _remote_operation_state(status, unknown_as_unavailable=True)
+        self._register_lease(response_id, status, state)
         recorder = self._provider.background_lifecycle_recorder
         if recorder is not None:
             recorder._record_created(
@@ -486,23 +671,22 @@ class _OpenAIBackgroundResponseHandle:
                 status,
                 str(data.get("model") or self._provider.model),
             )
-        if status in _BACKGROUND_TERMINAL_STATUSES:
+        if state is RemoteOperationState.TERMINAL:
             self._record_terminal(data)
             return
-        if status not in _BACKGROUND_ACTIVE_STATUSES:
+        if state is RemoteOperationState.UNAVAILABLE:
+            self._best_effort_cancel(response_id)
             raise ModelProviderError(
                 "openai_background_state_unconfirmed",
                 "OpenAI background response returned an unknown lifecycle status",
             )
 
         cancel_dispatched = False
-        response_endpoint = (
-            f"{self._provider.endpoint.rstrip('/')}"
-            f"/{urllib.parse.quote(response_id, safe='')}"
-        )
+        response_endpoint = self._provider._response_endpoint(response_id)
         while True:
             cancel_request = False
             if self._cancel_requested.is_set() and not cancel_dispatched:
+                self._record_action(RemoteOperationAction.CANCEL)
                 data = self._request_json(
                     method="POST",
                     endpoint=f"{response_endpoint}/cancel",
@@ -530,15 +714,17 @@ class _OpenAIBackgroundResponseHandle:
 
             _validate_background_response_id(data, response_id)
             status = _background_status(data)
+            state = _remote_operation_state(status, unknown_as_unavailable=True)
+            self._record_status(status, state)
             if cancel_request and recorder is not None:
                 recorder._record_cancel_dispatched(
                     status,
                     str(data.get("model") or self._provider.model),
                 )
-            if status in _BACKGROUND_TERMINAL_STATUSES:
+            if state is RemoteOperationState.TERMINAL:
                 self._record_terminal(data)
                 return
-            if status not in _BACKGROUND_ACTIVE_STATUSES:
+            if state is RemoteOperationState.UNAVAILABLE:
                 raise ModelProviderError(
                     "openai_background_state_unconfirmed",
                     "OpenAI background response returned an unknown lifecycle status",
@@ -562,7 +748,10 @@ class _OpenAIBackgroundResponseHandle:
         except ModelProviderError as exc:
             if time.monotonic() >= self._deadline:
                 raise _background_timeout_error() from exc
-            raise
+            raise ModelProviderError(
+                exc.code,
+                "OpenAI background lifecycle request failed safely",
+            ) from exc
 
     def _remaining_seconds(self) -> float:
         remaining = self._deadline - time.monotonic()
@@ -579,6 +768,84 @@ class _OpenAIBackgroundResponseHandle:
                 str(data.get("model") or self._provider.model),
             )
         self._terminal_confirmed.set()
+
+    def _register_lease(
+        self,
+        response_id: str,
+        status: str,
+        state: RemoteOperationState,
+    ) -> None:
+        store = self._provider._remote_operation_store
+        if store is None:
+            self._best_effort_cancel(response_id)
+            raise ModelProviderError(
+                "remote_operation_store_missing",
+                "private remote-operation persistence disappeared during provider work",
+            )
+        try:
+            store.register(
+                task_id=self._task_id,
+                thread_id=self._thread_id,
+                transport=_REMOTE_OPERATION_TRANSPORT,
+                transport_scope=self._provider._transport_scope(),
+                operation_id=response_id,
+                base_sha=self._base_sha,
+                status=status,
+                state=state,
+            )
+        except Exception as exc:
+            self._best_effort_cancel(response_id)
+            raise ModelProviderError(
+                "remote_operation_persistence_failed",
+                "the remote operation could not be persisted before bounded waiting",
+            ) from exc
+
+    def _record_action(self, action: RemoteOperationAction) -> None:
+        store = self._provider._remote_operation_store
+        if store is None:
+            raise ModelProviderError(
+                "remote_operation_store_missing",
+                "private remote-operation persistence disappeared during provider work",
+            )
+        try:
+            store.record_action(self._task_id, action, reconciliation=False)
+        except Exception as exc:
+            raise ModelProviderError(
+                "remote_operation_persistence_failed",
+                "the remote cancellation request could not be persisted safely",
+            ) from exc
+
+    def _record_status(
+        self,
+        status: str,
+        state: RemoteOperationState,
+    ) -> None:
+        store = self._provider._remote_operation_store
+        if store is None:
+            raise ModelProviderError(
+                "remote_operation_store_missing",
+                "private remote-operation persistence disappeared during provider work",
+            )
+        try:
+            store.record_status(self._task_id, status=status, state=state)
+        except Exception as exc:
+            raise ModelProviderError(
+                "remote_operation_persistence_failed",
+                "the remote lifecycle status could not be persisted safely",
+            ) from exc
+
+    def _best_effort_cancel(self, response_id: str) -> None:
+        try:
+            self._provider._request_json(
+                method="POST",
+                endpoint=f"{self._provider._response_endpoint(response_id)}/cancel",
+                timeout_seconds=min(
+                    self._provider.timeout_seconds,
+                    _RECONCILIATION_REQUEST_TIMEOUT_SECONDS,
+                ),
+            )
+        except Exception:
+            return
 
 
 def _background_response_id(data: dict[str, Any]) -> str:
@@ -610,6 +877,27 @@ def _background_status(data: dict[str, Any]) -> str:
             "OpenAI background response omitted its lifecycle status",
         )
     return status
+
+
+def _remote_operation_state(
+    status: str,
+    *,
+    unknown_as_unavailable: bool = False,
+) -> RemoteOperationState:
+    if status in _BACKGROUND_ACTIVE_STATUSES:
+        return RemoteOperationState.ACTIVE
+    if status in _BACKGROUND_TERMINAL_STATUSES:
+        return RemoteOperationState.TERMINAL
+    if unknown_as_unavailable:
+        return RemoteOperationState.UNAVAILABLE
+    raise ModelProviderError(
+        "openai_background_state_unconfirmed",
+        "OpenAI background response returned an unknown lifecycle status",
+    )
+
+
+def _response_ref(value: str) -> str:
+    return "sha256:" + hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def _background_timeout_error() -> ModelProviderError:

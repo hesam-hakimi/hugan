@@ -19,8 +19,14 @@ from universal_coding_agent.product.controlled_safe_graph import (
     ControlledSafeModeGraph,
     ControlledShardedLineAddressedSafeModeGraph,
 )
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.product.task_control import TaskControlService
-from universal_coding_agent.providers.base import ModelProvider
+from universal_coding_agent.providers.base import (
+    ModelProvider,
+    RemoteOperationLeaseAwareProvider,
+)
 from universal_coding_agent.repository.indexer import RepositoryIndexer
 from universal_coding_agent.safe.model_line_addressing import (
     ModelFacingLineAddressedEditEngine,
@@ -37,7 +43,9 @@ class SafeAgentService:
     connection: sqlite3.Connection
     artifacts: ArtifactStore
     control: TaskControlService
+    remote_operations: SqliteRemoteOperationLeaseStore
     owns_control: bool = False
+    owns_remote_operations: bool = False
 
     @classmethod
     def create(
@@ -47,6 +55,7 @@ class SafeAgentService:
         *,
         allow_local_sources: bool = False,
         control: TaskControlService | None = None,
+        remote_operations: SqliteRemoteOperationLeaseStore | None = None,
     ) -> SafeAgentService:
         state_root = state_root.resolve()
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
@@ -54,6 +63,12 @@ class SafeAgentService:
         artifacts = ArtifactStore(state_root / "artifacts")
         owns_control = control is None
         control_service = control or TaskControlService(state_root / "task-control.sqlite")
+        owns_remote_operations = remote_operations is None
+        remote_operation_store = remote_operations or SqliteRemoteOperationLeaseStore(
+            state_root / "private-remote-operations.sqlite"
+        )
+        if isinstance(provider, RemoteOperationLeaseAwareProvider):
+            provider.bind_remote_operation_store(remote_operation_store)
 
         protocol = os.environ.get("UCA_SAFE_EDIT_PROTOCOL", "v1").strip().lower()
         if protocol in {"v2", "v2-line-addressed", "line-addressed"}:
@@ -67,6 +82,8 @@ class SafeAgentService:
         else:
             if owns_control:
                 control_service.close()
+            if owns_remote_operations:
+                remote_operation_store.close()
             raise ValueError(
                 "UCA_SAFE_EDIT_PROTOCOL must be v1 or v2-line-addressed"
             )
@@ -97,13 +114,17 @@ class SafeAgentService:
             connection=connection,
             artifacts=artifacts,
             control=control_service,
+            remote_operations=remote_operation_store,
             owns_control=owns_control,
+            owns_remote_operations=owns_remote_operations,
         )
 
     def close(self) -> None:
         self.connection.close()
         if self.owns_control:
             self.control.close()
+        if self.owns_remote_operations:
+            self.remote_operations.close()
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
         self.control.ensure_task(task.task_id)

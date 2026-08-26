@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 
@@ -87,6 +88,9 @@ def test_live_background_cancellation_observes_cancelled_and_persists_report(
         "cancellable_operation_cancel_requests"
     ] == 1
     assert summary["durable_report_reloaded"] is True
+    assert summary["remote_operation_qualified"] is True
+    assert summary["remote_operation"]["state"] == "terminal"
+    assert "resp_live_cancel" not in json.dumps(summary, sort_keys=True)
     assert summary["source"]["source_preserved"] is True
 
 

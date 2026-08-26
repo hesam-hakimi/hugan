@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import time
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.remote_operations import RemoteOperationState
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
 from universal_coding_agent.product.models import (
     AcceptanceCriterion,
@@ -460,6 +462,52 @@ def test_program_execution_api_recovers_binding_without_automatic_work(
         completed = _wait_for_program_execution(client, program_id, "completed")
         assert completed["program_status"] == "completed"
         assert recovered_executor.resumes == [(binding.thread_id, True)]
+
+
+def test_program_execution_binding_exposes_only_redacted_remote_operation(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    program_id = "program-api-remote-recovery"
+    requirement_hash = _approved_program(workspace, program_id)
+    binding = workspace.programs.start_next_execution(
+        program_id=program_id,
+        current_requirement_hash=requirement_hash,
+        repository=RepositorySpec(
+            url="https://example.test/repository.git",
+            base_ref="main",
+        ),
+        policy=_policy(),
+        test_profiles=("trusted-contract",),
+        executor=RecordingProgramExecutor(),
+    )
+    response_id = "resp_private_program_binding"
+    endpoint = "https://example.test/v1/responses"
+    workspace.remote_operations.register(
+        task_id=binding.task_id,
+        thread_id=binding.thread_id,
+        transport="openai_responses",
+        transport_scope=(
+            "sha256:" + hashlib.sha256(endpoint.encode("utf-8")).hexdigest()
+        ),
+        operation_id=response_id,
+        base_sha="d" * 40,
+        status="in_progress",
+        state=RemoteOperationState.ACTIVE,
+    )
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        recovered = client.get(f"/api/programs/{program_id}/executions")
+        assert recovered.status_code == 200
+        remote = recovered.json()["bindings"][0]["remote_operation"]
+        assert remote["state"] == "active"
+        assert remote["recovered_pending"] is True
+        assert remote["requires_explicit_action"] is True
+        assert response_id not in recovered.text
 
 
 def test_unknown_task_control_is_not_silently_created(tmp_path) -> None:

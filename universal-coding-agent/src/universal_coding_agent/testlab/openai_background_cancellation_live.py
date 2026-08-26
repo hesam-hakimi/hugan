@@ -13,6 +13,9 @@ from universal_coding_agent.core.cancellation import (
     OwnedOperationKind,
 )
 from universal_coding_agent.core.models import ModelRequest
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safety.sanitizer import sanitize_text
@@ -42,6 +45,10 @@ def run_openai_background_cancellation_live(
     worker: Thread | None = None
     control_path = state_root / "task-control.sqlite"
     control = TaskControlService(control_path)
+    remote_operations = SqliteRemoteOperationLeaseStore(
+        state_root / "private-remote-operations.sqlite"
+    )
+    provider.bind_remote_operation_store(remote_operations)
 
     if provider.background_cancellation:
         signal = control.cancellation.signal(_TASK_ID)
@@ -82,7 +89,9 @@ def run_openai_background_cancellation_live(
         report = control.cancellation_report(_TASK_ID)
         worker.join(timeout=provider.timeout_seconds + 1.0)
 
+    remote_snapshot = remote_operations.public_snapshot(_TASK_ID)
     control.close()
+    remote_operations.close()
     reopened = TaskControlService(control_path)
     try:
         persisted_report = reopened.cancellation_report(_TASK_ID)
@@ -113,6 +122,18 @@ def run_openai_background_cancellation_live(
         and report.cancellable_operations_still_active in {0, 1}
         and report.cooperative_fallback is False
     )
+    remote_operation_json = (
+        remote_snapshot.model_dump(mode="json")
+        if remote_snapshot is not None
+        else None
+    )
+    remote_operation_qualified = bool(
+        remote_snapshot
+        and remote_snapshot.state.value == "terminal"
+        and remote_snapshot.last_status == "cancelled"
+        and remote_snapshot.cancellation_requested
+        and remote_snapshot.cancel_requests == 1
+    )
     qualified = bool(
         provider.background_cancellation
         and lifecycle.handle_started
@@ -124,6 +145,7 @@ def run_openai_background_cancellation_live(
         and invocation_finished
         and invocation_cancelled
         and report_qualified
+        and remote_operation_qualified
         and durable_report_reloaded
         and source_preserved
     )
@@ -138,6 +160,8 @@ def run_openai_background_cancellation_live(
         "invocation_errors": [_safe_error(error) for error in errors],
         "cancellation_report": report_json,
         "cancellation_report_qualified": report_qualified,
+        "remote_operation": remote_operation_json,
+        "remote_operation_qualified": remote_operation_qualified,
         "durable_report_reloaded": durable_report_reloaded,
         "source": {
             "head_sha": source_after["head_sha"],

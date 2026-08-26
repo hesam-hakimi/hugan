@@ -32,6 +32,7 @@
 - [x] typed durable cancellation evidence in the local Product Control Center;
 - [x] opt-in cancellable background-response adapter for the pre-transfer OpenAI Responses transport;
 - [x] dedicated live qualification of the opt-in OpenAI background cancellation lifecycle and durable report;
+- [x] private restart-safe OpenAI response lease with explicit observe/cancel reconciliation and deterministic/live restart qualification;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

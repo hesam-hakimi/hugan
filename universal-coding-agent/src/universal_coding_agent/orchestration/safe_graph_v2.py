@@ -43,6 +43,7 @@ class LineAddressedSafeModeGraph(SafeModeGraph):
             max_output_tokens=16_000,
             metadata={
                 "task_id": task.task_id,
+                "thread_id": task.thread_id,
                 "scope_hash": state["scope_hash"],
                 "base_sha": task.manifest.base_sha,
                 "structured_edit_protocol": "v2-line-addressed",

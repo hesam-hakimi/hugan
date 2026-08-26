@@ -14,10 +14,16 @@ from universal_coding_agent.product.models import (
     ProgramExecutionBinding,
 )
 from universal_coding_agent.product.program_orchestrator import ProgramOrchestrator
+from universal_coding_agent.product.remote_operations import (
+    SqliteRemoteOperationLeaseStore,
+)
 from universal_coding_agent.product.requirement_alignment import RequirementAlignmentService
 from universal_coding_agent.product.search_service import SearchService
 from universal_coding_agent.product.task_control import TaskControlService
-from universal_coding_agent.providers.base import ModelProvider
+from universal_coding_agent.providers.base import (
+    ModelProvider,
+    RemoteOperationLeaseAwareProvider,
+)
 from universal_coding_agent.storage.artifacts import ArtifactStore
 
 
@@ -31,6 +37,7 @@ class ProductWorkspace:
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
     control: TaskControlService
+    remote_operations: SqliteRemoteOperationLeaseStore
 
     @classmethod
     def create(cls, root: Path, provider: ModelProvider) -> ProductWorkspace:
@@ -39,6 +46,11 @@ class ProductWorkspace:
         artifacts = ArtifactStore(root / "artifacts")
         search = SearchService(root / "knowledge.sqlite")
         control = TaskControlService(root / "control.sqlite")
+        remote_operations = SqliteRemoteOperationLeaseStore(
+            root / "private-remote-operations.sqlite"
+        )
+        if isinstance(provider, RemoteOperationLeaseAwareProvider):
+            provider.bind_remote_operation_store(remote_operations)
         documents = ContextDocumentService(root / "documents.sqlite", artifacts)
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
@@ -57,6 +69,7 @@ class ProductWorkspace:
             requirements=requirements,
             programs=programs,
             control=control,
+            remote_operations=remote_operations,
         )
 
     def close(self) -> None:
@@ -64,6 +77,7 @@ class ProductWorkspace:
         self.documents.close()
         self.search.close()
         self.control.close()
+        self.remote_operations.close()
 
     def upload_document(
         self,
@@ -106,6 +120,7 @@ class ProductWorkspace:
             self.provider,
             allow_local_sources=allow_local_sources,
             control=self.control,
+            remote_operations=self.remote_operations,
         )
 
     def start_next_program_execution(

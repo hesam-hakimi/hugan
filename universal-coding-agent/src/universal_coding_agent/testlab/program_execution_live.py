@@ -123,7 +123,7 @@ class ProgramExecutionQualificationProvider:
                 "finish_reason": response.finish_reason,
                 "completion_tokens": response.completion_tokens,
                 "reasoning_tokens": response.reasoning_tokens,
-                "response_id": str(response.safe_diagnostics.get("response_id", "")),
+                "response_ref": str(response.safe_diagnostics.get("response_ref", "")),
                 "stored_by_provider": bool(response.safe_diagnostics.get("store", False)),
             }
         )

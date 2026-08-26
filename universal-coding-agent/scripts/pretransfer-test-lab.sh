@@ -22,6 +22,8 @@ env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
+  tests/test_openai_background_reconciliation_live.py \
+  tests/test_remote_operation_reconciliation.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_repository.py \
