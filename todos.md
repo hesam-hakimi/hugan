@@ -1,296 +1,340 @@
-Create a new final AskTD poster variant based on Option 1, which received the strongest team support.
+Update Option 4 only using the final feedback from the latest design-review meeting.
 
-Do not overwrite or delete Options 1–4. Preserve them for comparison. Using the project’s existing poster-variant structure, create a new variant named:
+This prompt supersedes earlier design instructions for Option 4.
 
-Final — Refined Option 1
+Do not modify, overwrite, or delete Options 1, 2, 3, 5, or any unrelated poster. Preserve all existing poster variants for comparison.
 
-If the project numbers variants, this may be presented as Option 5.
+Final agreed direction
 
-Design direction
+The team likes the premium, minimal, Apple-inspired visual direction of Option 4.
 
-Keep the strongest characteristic of Option 1:
+However, Option 4 must now:
 
-* Straight, clean visual lines
-* Simple two-section composition
-* Immediate readability
-* Business-focused feature presentation
+1. Keep its premium and minimal visual theme.
+2. Use the four business benefits and their supporting text from Option 3.
+3. Make those benefits significantly more readable.
+4. Present the benefits directly on the background without copying Option 3’s white footer bar.
+5. Show a complete, realistic AskTD answer—not a generic placeholder.
+6. Remove or replace the unclear oversized “ONE” background text.
+7. Preserve straight, well-aligned visual flow.
+8. Remain simple and suitable for a printed executive poster.
 
-Apply only the premium refinements learned from Option 4:
+Do not redesign Option 4 from scratch. Refine its current composition.
 
-* Better typography
-* More deliberate spacing
-* Stronger visual hierarchy
-* More negative space
-* Refined colours
-* Higher-quality alignment
-* Restrained visual depth
+1. Preserve the strongest parts of Option 4
 
-Do not copy Option 4’s curved green shape or question-and-answer card.
+Keep:
 
-The result should feel like a premium corporate campaign poster while preserving the simplicity that the reviewers preferred.
-
-1. Preserve the straight composition
-
-Use a clean, straight vertical division:
-
-* Left off-white section: approximately 54–56%
-* Right TD-green section: approximately 44–46%
-
-Do not use:
-
-* Curved boundaries
-* Organic blobs
-* Clip-path waves
-* Diagonal cuts
-* Overlapping panels
-* Floating question-and-answer cards
-
-The straight structure is intentional and reflects the team feedback that straight lines flow better for a printed poster.
-
-Use a subtle green tonal gradient in the right section so it does not feel completely flat, but keep the boundary straight.
-
-2. Refine the left section
-
-Keep the TD logo and AskTD name at the top.
-
-Use a precise brand lockup with:
-
-* Official TD logo proportions
-* AskTD aligned vertically with the logo
-* No decorative underline
-* Sufficient surrounding space
-
-Optionally retain a small descriptor:
-
-Conversational Analytics
-
-Keep it subtle and secondary.
-
-Use the approved headline:
-
-Stop searching dashboards.
-Just ask.
-
-Typography requirements:
-
-* Large editorial display type
-* Tight but readable letter spacing
-* Strong line-height control
-* Dark charcoal for “Stop searching dashboards.”
-* TD green for “Just ask.”
-* No text container
-* No shadow
-* No decorative effects
-
-Add the approved supporting sentence:
-
-Ask a business question. Get one clear answer from authoritative data.
-
-Keep it concise, readable, and limited to approximately two lines.
-
-Below it, display these three messages in one restrained row:
-
-* No report building
-* No dashboard hopping
-* No technical queries
-
-Use thin separators or small green dots. Do not turn them into large cards or buttons.
-
-Keep the CTA near the bottom-left:
-
-Ask us a real business question.
-
-Present it with a short green rule or minimal conversation icon. It must not look like a clickable web button.
-
-3. Refine the right section
-
-Use only one heading:
-
-What AskTD Makes Easier
-
-Remove duplicate headings such as:
-
-* “AskTD Key Features”
-* “What AskTD Makes Easier” appearing together
-
-Display these four approved features:
-
-1. Ask in plain business language
-2. Use authoritative data
-3. Get tables, charts, and summaries
-4. Access answers securely
-
-Present them as four clean horizontal rows—not cards.
-
-Each row should include:
-
-* One minimal white line icon
-* One feature statement
-* A very subtle horizontal separator
-* Generous vertical spacing
-
-Do not add paragraphs beneath the features.
-
-Do not use:
-
-* A 2×2 card grid
-* Numbered cards
-* Large bordered containers
-* Heavy shadows
-* Repeated background boxes
-* Technical descriptions
-
-Use consistent icon size, baseline alignment, and text spacing.
-
-4. Remove the technical workflow
-
-Completely remove the small workflow currently displayed at the bottom of Option 1, including:
-
-* Identify & Scope
-* Governed Plan
-* Read-Only Data
-* Validate & Respond
-* Security / Privacy / Audit text
-* Numbered workflow circles
-* Connecting lines
-
-Do not replace it with another process diagram.
-
-Use the recovered space to improve breathing room and vertical balance in the feature section.
-
-5. Apply premium visual refinement
-
-Use the following visual principles:
-
-* Warm off-white rather than stark white
-* Charcoal rather than pure black
-* Official TD green as the primary colour
-* A slightly deeper green near the bottom or edge of the right section
-* Crisp SVG icons
-* Restrained 1px separators
-* Consistent spacing tokens
-* Precise optical alignment
-* No unnecessary decoration
-
-Avoid:
-
-* Generic PowerPoint styling
-* Feature cards
-* Architecture diagrams
-* Product dashboards
-* Question-and-answer mockups
-* Stock photography
-* Neon effects
-* Excessive gradients
-* Excessive shadows
-* Tiny text
-* Long product descriptions
-
-6. Improve typography
-
-Use the best locally available modern font stack already supported by the project.
-
-Suggested fallback:
-
-font-family:
-  Inter,
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  Helvetica,
-  Arial,
-  sans-serif;
-
-Do not add a remote font dependency unless the project already uses it.
-
-Use:
-
-* Display weight for the main headline
-* Semibold for feature statements
-* Regular weight for supporting copy
-* Slight negative tracking only on large display text
-* Comfortable line height for all supporting text
-
-Ensure all content remains readable from a distance and in the printed version.
-
-7. Preserve other variants
-
-Do not modify the visual output of Options 1–4.
-
-The new final variant should reuse shared components and styles where appropriate, but changes must not unintentionally alter the existing poster options.
-
-Do not duplicate large amounts of code if the project already has reusable poster primitives.
-
-8. Do not add a question-and-answer example
-
-The feedback requesting a real answer applies only to the question-and-answer design represented by Option 3.
-
-Because this final variant is based on Option 1, do not add a question-and-answer card to it.
-
-Also do not invent:
-
-* Business metrics
-* Financial numbers
-* Customer information
-* Example answers
-* Product claims
-
-Option 3 can be updated separately after an approved real or demo-data answer becomes available.
-
-9. Screen and print requirements
-
-Preserve:
-
+* The premium editorial composition
+* The generous white space
+* The soft green visual field
+* The prominent AskTD headline
+* The question-and-answer product moment
+* The restrained colour palette
+* The refined typography
+* The minimal CTA
 * Fit to Screen
 * Reset Zoom
 * Print / Save as PDF
 
+Do not return to:
+
+* A rigid PowerPoint-style 50/50 split
+* A 2×2 feature-card grid
+* The large white footer container from Option 3
+* Technical workflows
+* Architecture diagrams
+* Dense product descriptions
+
+2. Preserve the approved headline and tagline
+
+Use:
+
+Stop searching dashboards.
+Just ask.
+
+Directly below it, use:
+
+Trusted data. Instant insights. Better decisions.
+
+Use sentence case exactly as shown.
+
+The tagline should be clearly readable but remain secondary to the main headline.
+
+Do not add another explanatory paragraph beneath it unless required for layout balance. The poster should remain concise.
+
+3. Improve the question-and-answer experience
+
+Keep the question-and-answer interaction on the right side, but make it feel like one polished AskTD product experience.
+
+Use the labels:
+
+YOU ASKED
+
+and:
+
+ASKTD ANSWERED
+
+Do not use generic labels such as “Question” and “AskTD Answer.”
+
+The answer must demonstrate how a real AskTD response would appear. Do not use a placeholder such as:
+
+“One clear answer, grounded in authoritative data.”
+
+That statement alone does not answer the displayed question.
+
+Approved-content priority
+
+Before writing the example:
+
+1. Search the existing project, approved demo assets, existing AskTD screenshots, fixtures, or sample content for an already approved question-and-answer pair.
+2. If an approved pair exists, use it exactly and do not alter its business facts.
+3. Do not use production data, customer data, PII, PCI information, or confidential metrics.
+4. Do not invent percentages, financial results, regional results, or business claims.
+
+Safe fallback if no approved demo answer exists
+
+If no approved business-data example is available, use this product-capability example instead:
+
+YOU ASKED
+
+How can AskTD help me understand business performance?
+
+ASKTD ANSWERED
+
+AskTD turns plain-language business questions into clear answers, key drivers, charts, and summaries grounded in authoritative data.
+
+This fallback is complete, realistic, and does not fabricate business results.
+
+Do not use an unanswered question or a fake numerical result.
+
+Answer presentation
+
+Within the AskTD response, visually distinguish:
+
+* The concise answer
+* Key insight or drivers
+* The authoritative-data indicator
+
+Keep the response short enough to read from a distance.
+
+Use one subtle visual detail if helpful, such as:
+
+* A minimal trend line
+* A trusted-source indicator
+* A small verified checkmark
+
+Do not display a full dashboard.
+
+4. Remove or replace the background “ONE”
+
+Remove the oversized background word:
+
+ONE
+
+It was unclear to reviewers and does not communicate AskTD strongly enough.
+
+If a background wordmark materially improves the design, replace it with:
+
+ASKTD
+
+Requirements:
+
+* Approximately 3–5% opacity
+* Large but unobtrusive
+* Partially cropped if visually appropriate
+* Must not reduce text contrast
+* Must not compete with the headline or product interaction
+
+If the ASKTD watermark makes the design busier, omit the watermark entirely.
+
+Do not insert a person’s name or any unapproved phrase in the background.
+
+5. Copy the four benefits from Option 3
+
+Use the following content exactly:
+
+01 — Faster answers
+
+Clear answers in seconds
+
+02 — Trusted data
+
+Authoritative and governed
+
+03 — Actionable insights
+
+Trends, drivers, and visuals
+
+04 — Less effort
+
+Fewer reports and less dashboard searching
+
+Do not change these messages or create new marketing claims.
+
+6. Do not copy Option 3’s white footer bar
+
+The team specifically rejected the large white rectangular bar sitting over the green background.
+
+Therefore:
+
+* Do not create a white footer container.
+* Do not place all four benefits inside a box.
+* Do not use individual cards.
+* Do not add filled backgrounds behind the benefits.
+* Do not use a swim-lane appearance.
+
+Place the four benefits directly on the Option 4 background.
+
+Use only:
+
+* A subtle top hairline if needed
+* Equal spacing
+* Shared baseline alignment
+* Clean typography
+* Small numerical labels
+* Consistent text widths
+
+The benefits should feel integrated into the poster—not overlaid on top of it.
+
+7. Make the benefit row readable
+
+The current bottom benefits are too small and faint.
+
+At the intended 1600 × 1120 poster size:
+
+* Make benefit titles clearly bold.
+* Increase title size substantially.
+* Increase description size enough for print readability.
+* Increase contrast.
+* Provide sufficient spacing between title and description.
+* Prevent descriptions from wrapping awkwardly.
+* Keep all four columns optically aligned.
+
+Suggested hierarchy:
+
+* Number: small, semibold
+* Benefit title: bold and prominent
+* Description: regular or medium weight
+* Adequate contrast against the local background
+
+Adjust the underlying gradient so the entire benefit area has consistent contrast.
+
+If the feature row sits over green, use white or near-white text.
+
+If it sits over a light background, use charcoal text.
+
+Do not place a box behind the text merely to solve contrast.
+
+8. Preserve straight visual flow
+
+Although Option 4 uses a premium soft background, the content alignment should follow clean, straight lines.
+
 Ensure:
 
-* Preview controls are hidden in print
-* Background colours print accurately
-* The poster fits on one landscape page
-* No clipping or overflow occurs
-* Icons remain sharp in PDF
-* All important content stays within safe margins
-* The straight vertical division remains aligned from top to bottom
+* The brand, headline, tagline, CTA, and benefit row use a consistent alignment system.
+* All four benefits follow one shared horizontal baseline.
+* The question-and-answer interface is optically aligned with the rest of the composition.
+* No element appears randomly floated.
+* The bottom content does not feel detached from the poster.
 
-10. Mandatory visual validation
+Use a defined grid even though the final composition appears minimal.
+
+9. Keep the CTA
+
+Use:
+
+Ask us a real business question.
+
+Keep it understated but clearly readable.
+
+Use:
+
+* A short green rule
+* Or one small conversation indicator
+
+Do not use a button or a large container.
+
+10. Support visual consistency with the other event poster
+
+Option 4’s theme may later be reused for Yasin’s related poster.
+
+Extract or organize the following as reusable CSS design tokens where practical:
+
+* Background colours
+* TD green shades
+* Typography
+* Spacing
+* Border radius
+* Shadows
+* Hairlines
+* Poster-safe margins
+
+Do not modify Yasin’s poster in this task. Only make the theme reusable for later alignment.
+
+11. Print and screen requirements
+
+Preserve all existing preview functionality.
+
+Verify:
+
+* Fit to Screen
+* Reset Zoom
+* Print / Save as PDF
+* One-page landscape printing
+* Exact background-colour printing
+* No clipped text
+* No overflowing benefit descriptions
+* Sharp SVG elements
+* Hidden preview controls in print
+* No animation in printed output
+
+Any screen-only motion must also respect prefers-reduced-motion.
+
+12. Mandatory validation
 
 After implementation:
 
 1. Run the application.
-2. Open the new Final — Refined Option 1 variant.
+2. Open Option 4.
 3. Render it at 1600 × 1120.
 4. Inspect it at full size.
 5. Inspect it at approximately 25% thumbnail size.
-6. Verify that the headline remains immediately readable.
-7. Verify that the right-side features can be scanned quickly.
-8. Test Fit to Screen.
-9. Test Reset Zoom.
-10. Test Print / Save as PDF.
-11. Confirm that Options 1–4 remain unchanged.
-12. Perform one additional refinement pass for spacing, typography, and alignment.
+6. Confirm the four benefits remain readable.
+7. Confirm the feature titles are visibly bolder.
+8. Confirm there is no white footer bar.
+9. Confirm the Q&A contains an actual complete answer.
+10. Confirm no business metrics were fabricated.
+11. Confirm the “ONE” background word is removed.
+12. Test Print / Save as PDF.
+13. Perform a second refinement pass for typography, spacing, contrast, and alignment.
+14. Confirm all other poster options remain unchanged.
 
 Acceptance criteria
 
-The new variant is complete only when:
+Option 4 is complete only when:
 
-* It clearly derives from Option 1
-* It retains straight visual lines
-* It contains no technical workflow
-* It contains no feature cards
-* It contains no question-and-answer mockup
-* It uses only one right-side heading
-* It feels more polished and premium than Option 1
-* It remains simpler than Options 3 and 4
-* It works correctly at screen and print sizes
-* Options 1–4 remain available and unchanged
+* It retains its premium visual identity.
+* It includes the exact four benefits from Option 3.
+* Benefit titles and descriptions are readable from a distance.
+* The benefits appear directly on the background.
+* There is no white footer container.
+* There are no individual benefit cards.
+* The Q&A shows a complete, realistic answer.
+* No confidential or fabricated business data is used.
+* “YOU ASKED” and “ASKTD ANSWERED” are clearly shown.
+* The unclear “ONE” background word is gone.
+* Straight visual alignment is preserved.
+* Print / Save as PDF works correctly.
+* All other options remain unchanged.
 
-Implement the new variant fully and then report:
+Implement the changes fully. Do not stop after providing recommendations.
+
+Finally, report:
 
 * Files changed
-* How the new variant was added
-* Visual refinements applied
-* Validation completed
-* Confirmation that Options 1–4 were preserved
+* Exact content used for the Q&A
+* Whether approved demo content or the safe fallback was used
+* How the Option 3 benefits were integrated
+* Print and visual validation completed
+* Confirmation that other poster variants were preserved
