@@ -1,248 +1,303 @@
-TASK: PHASE_2E_PR17_MARK_READY_FOR_REVIEW
+TASK: HF1_V2_REPAIR_12_REGISTER_CANONICAL_TEST_SUITE_AND_REVERIFY
 
-Perform one bounded verification and, only if every gate passes, convert PR #17
-from Draft to Ready for Review.
+Continue the existing Repair 12 implementation task in the same Software
+Development Environment and the same Chat.
 
-Repository:
-TD-Enterprise/kmai-td-genie
+This is a narrowly authorized follow-up. Do not repeat Root Cause 12 and do not
+redesign or modify the Repair 12 implementation.
 
-Required logical repository root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
+The implementation report established:
 
-The equivalent physical /app1 path is acceptable only if realpath proves it is
-the same permanent Phase 2E worktree.
+* Repair 12 focused suite: 21 passing;
+* EtlReadOnlyToolService suite: 49 passing;
+* canonical full unit suite: 2222 passing, 1 pending, 5 failing;
+* src/test/suite/sttmRepair12.test.ts is not included in
+    PURE_UNIT_TEST_PATTERNS;
+* therefore its 21 tests pass in focused execution but are absent from
+    npm run test:unit.
 
-This task authorizes exactly one GitHub mutation:
-
-    Mark PR #17 ready for review.
-
-No other mutation is authorized.
+This violates the required canonical-suite coverage gate and must be corrected
+before independent review.
 
 ==================================================
-1. WORKSPACE GATE
-==================================================
 
-Before reading repository files or reports, verify:
+1. IDENTITY AND BASELINE
+    ==================================================
 
-- pwd;
-- pwd -P;
-- realpath of the required logical root;
-- Git repository identity and origin;
-- current branch;
-- current HEAD;
-- git status --porcelain.
+Work only inside:
 
-Required identity:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Branch:
-phase2/governed-field-records
+Required:
+
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
+
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
 HEAD:
-0430613e6a9f1680338d8fc099e7960e5d46cac2
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-The worktree and index must be completely clean.
+SOURCE_VERSION:
+0.3.144
 
-Do not use or inspect:
+Before editing, verify:
 
-- the stale primary checkout;
-- branch asktd_v2;
-- sibling repositories;
-- ETL/UCA workspaces;
-- temporary worktrees.
+* native git, node, npm, and cmd execution still works;
+* staged file count is zero;
+* package version remains 0.3.144;
+* existing 0.3.144 VSIX size and SHA-256 match the Repair 12 baseline;
+* the six Repair 12 implementation paths are unchanged since the completed
+    implementation report;
+* the QA STTM remains size 1437 with SHA-256:
+    F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
 
-Do not fetch, pull, switch branches, reset, stash, clean, merge, rebase,
-cherry-pick, push, or modify Git configuration.
+If another process or agent changed the repository after the Repair 12 report,
+stop without editing:
 
-If identity or cleanliness differs, stop without mutation and end with:
-
-PHASE_2E_PR17_READY_FOR_REVIEW_BLOCKED_WORKSPACE
-
-==================================================
-2. REQUIRED PRIOR EVIDENCE
-==================================================
-
-Read this report completely before the first live GitHub query:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_RETARGET_2026-08-25.md
-
-Use it only as an evidence index. Independently verify every decisive live value.
-
-Do not read unrelated reports or repository files.
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_CONCURRENT_MUTATION
 
 ==================================================
-3. VERIFY MAIN AND PR #16
-==================================================
+2. ADDITIONAL AUTHORIZED PATH
 
-Independently verify:
+Authorize exactly one additional changed path:
 
-Current main SHA:
-409fed3fb98fc87547a7d05a68292fc28c3c1e7c
+src/test/testPatterns.ts
 
-PR #16:
+The only authorized change in this file is registering:
 
-- state: closed;
-- merged: true;
-- base: main;
-- head: phase2/approved-recipe-pilot;
-- head SHA:
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-- merge commit:
-  409fed3fb98fc87547a7d05a68292fc28c3c1e7c
-- changed files: 9;
-- additions/deletions: +1431/-6.
+src/test/suite/sttmRepair12.test.ts
 
-If main or PR #16 differs, stop without changing PR #17 and end with:
-
-PHASE_2E_PR17_READY_FOR_REVIEW_BLOCKED_BASE_DRIFT
-
-==================================================
-4. VERIFY PR #17 BEFORE MUTATION
-==================================================
-
-Independently verify live PR #17:
-
-- state: open;
-- Draft: true;
-- merged: false;
-- base branch: main;
-- base SHA:
-  409fed3fb98fc87547a7d05a68292fc28c3c1e7c
-- head branch:
-  phase2/governed-field-records
-- exact head SHA:
-  0430613e6a9f1680338d8fc099e7960e5d46cac2
-- exactly one commit;
-- the head commit’s parent is:
-  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
-- changed files: exactly 12;
-- additions/deletions: exactly +1760/-18;
-- reviews/approvals: 0/0;
-- issue comments/review comments: 0/0;
-- requested reviewers/teams: 0/0;
-- no force-push;
-- no unexpected base change after the authorized retarget;
-- no ready-for-review event yet;
-- mergeable: true / MERGEABLE;
-- no merge conflict.
-
-`mergeStateStatus: BLOCKED` or `REVIEW_REQUIRED` is expected before this mutation
-because PR #17 is still Draft and has no approval. Do not treat that policy state
-as a merge conflict.
-
-Verify the exact twelve-file inventory remains identical to the retarget report.
-
-Also verify all three branches still exist:
-
-- phase2/provider-abstraction-foundation
-- phase2/approved-recipe-pilot
-- phase2/governed-field-records
-
-If any candidate or scope value differs, stop without mutation and end with:
-
-PHASE_2E_PR17_READY_FOR_REVIEW_BLOCKED_CANDIDATE_DRIFT
-
-==================================================
-5. ONLY AUTHORIZED MUTATION
-==================================================
-
-Only after sections 1–4 pass, mark PR #17 ready for review using GitHub’s dedicated
-GraphQL ready-for-review mutation or an equivalent operation that changes only
-Draft status.
+in the existing PURE_UNIT_TEST_PATTERNS allowlist, following the exact existing
+format and ordering convention.
 
 Do not:
 
-- edit the PR title or description;
-- change base or head;
-- push or force-push;
-- request a reviewer or team;
-- submit a review or approval;
-- create a comment;
-- add a label, assignee, project, or milestone;
-- trigger or rerun a workflow;
-- close, reopen, or merge the PR;
-- modify PR #15 or PR #16;
-- delete any branch;
-- modify a repository file or local Git state.
+* change another pattern;
+* remove or broaden an existing pattern;
+* replace the allowlist with a glob;
+* change test-runner logic;
+* change sttmRepair12.test.ts;
+* modify production source;
+* modify EtlReadOnlyToolService.test.ts;
+* modify package.json;
+* modify the QA STTM;
+* modify the 0.3.144 VSIX.
+
+The final Repair 12 change boundary may therefore contain the previous six paths
+plus this newly authorized seventh path.
+
+If another path is required, stop:
+
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_CHANGE_BOUNDARY
 
 ==================================================
-6. POST-MUTATION VERIFICATION
-==================================================
+3. VERIFY REGISTRATION DIRECTLY
 
-After the mutation, independently verify:
+After the one-line registration:
 
-- PR #17 remains open;
-- Draft is now false;
-- merged remains false;
-- base remains main;
-- base SHA remains:
-  409fed3fb98fc87547a7d05a68292fc28c3c1e7c
-- head branch remains phase2/governed-field-records;
-- head SHA remains:
-  0430613e6a9f1680338d8fc099e7960e5d46cac2
-- changed files remain exactly 12;
-- additions/deletions remain exactly +1760/-18;
-- reviews/approvals remain 0/0;
-- no reviewer or team was requested;
-- no comment was added;
-- exactly one new ready-for-review timeline event exists;
-- no force-push or head change occurred;
-- mergeable remains true with no conflict.
+1. inspect the resolved PURE_UNIT_TEST_PATTERNS;
+2. prove sttmRepair12.test.ts matches exactly once;
+3. prove no existing test pattern was removed or broadened;
+4. prove the canonical unit runner discovers the Repair 12 suite;
+5. prove the 21 Repair 12 tests are not executed twice.
 
-Record whether the transition created a workflow or check run. Do not trigger,
-rerun, cancel, or modify one manually.
+Required:
 
-Also verify:
-
-- main remains unchanged;
-- PR #15 and PR #16 remain closed and merged;
-- all three phase branches still exist;
-- the local branch, HEAD, refs, index, tracked files, and Git configuration remain
-  unchanged;
-- git status --porcelain remains empty.
-
-If any unauthorized property changed, stop and report the exact live state. Do not
-attempt an automatic rollback.
-
-End the blocked case with:
-
-PHASE_2E_PR17_READY_FOR_REVIEW_BLOCKED_POSTCHANGE_VALIDATION
+REPAIR_12_PATTERN_MATCH_COUNT: 1
+REPAIR_12_DUPLICATE_EXECUTION: NO
+EXISTING_PATTERNS_REMOVED: 0
+EXISTING_PATTERNS_BROADENED: 0
 
 ==================================================
-7. REPORT
+4. VALIDATION
+
+Run and report exact commands and exit codes for:
+
+1. TypeScript compile;
+2. lint;
+3. Repair 12 focused suite;
+4. canonical full unit suite;
+5. the repository’s guarded unit command, if it is an existing local command
+    that does not download dependencies.
+
+Required focused result:
+
+REPAIR_12_FOCUSED:
+21 passing, 0 pending, 0 failing
+
+Previous canonical baseline before registration:
+
+2222 passing
+1 pending
+5 failing
+
+Expected canonical result after registration:
+
+2243 passing
+1 pending
+5 failing
+
+The increase must be exactly 21 and must correspond exactly to the newly
+registered Repair 12 tests.
+
+The five existing failure identities must remain exactly:
+
+* two EvalGating committed Phase-H baseline failures;
+* maintainer delivery prompt references real repo-local agents;
+* repository customization assets use valid frontmatter and agent naming;
+* source tree uses standard AGENTS.md guidance instead of module AGENT.md files.
+
+Required:
+
+FULL_UNIT_PASSING_COUNT: 2243
+FULL_UNIT_PENDING_COUNT: 1
+FULL_UNIT_FAILURE_COUNT: 5
+FULL_UNIT_PASSING_DELTA: 21
+FULL_UNIT_FAILURE_IDENTITIES_UNCHANGED: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+If the total is not exactly 2243/1/5, investigate only test discovery and
+duplicate execution. Do not change production code or weaken tests.
+
 ==================================================
+5. DETERMINISM TEST DECISION
 
-Create exactly one report outside the repository:
+Do not modify the existing determinism test in this follow-up.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_READY_FOR_REVIEW_2026-08-25.md
+The existing test permits only the documented wall-clock Audited at line to
+differ and asserts that all other semantic output remains stable.
 
-Include:
+Leave this behavior unchanged for the independent reviewer to evaluate.
 
-1. workspace identity and clean-state evidence;
-2. prior report read;
-3. main and PR #16 identity;
-4. PR #17 complete pre-mutation state;
-5. exact twelve-file inventory and +1760/-18 totals;
-6. mergeability and conflict evidence;
-7. exact single GitHub mutation;
-8. PR #17 complete post-mutation state;
-9. ready-for-review timeline evidence;
-10. workflow/check state before and after;
-11. confirmation that no reviewer or approval was added;
-12. confirmation that PR #15 and PR #16 were untouched;
-13. branch-preservation evidence;
-14. local and repository no-change attestation;
-15. exact next permitted action.
+Report:
 
-After successful completion, the next permitted action is only:
+AUDIT_TIMESTAMP_EXCEPTION_CHANGED: NO
+OTHER_NONDETERMINISTIC_FIELDS_FOUND: YES/NO
 
-- obtain one eligible non-author approval for PR #17;
-- reverify the exact head SHA and 12-file / +1760/-18 scope;
-- merge PR #17 using a genuine merge commit.
+==================================================
+6. SAFETY AND CHANGE BOUNDARY
 
-Approval and merge are not authorized by this task.
+Recapture the final working-tree baseline.
 
-End with exactly one terminal token:
+Required task-attributable change in this follow-up:
 
-PHASE_2E_PR17_READY_FOR_REVIEW_COMPLETE
+src/test/testPatterns.ts
 
-or one applicable BLOCKED token defined above.
+* exactly one Repair 12 registration entry.
+
+Required:
+
+PRODUCTION_FILES_CHANGED_BY_FOLLOWUP: 0
+TEST_CONTENT_FILES_CHANGED_BY_FOLLOWUP: 0
+PACKAGE_JSON_CHANGED_BY_FOLLOWUP: NO
+PACKAGE_VERSION: 0.3.144
+PACKAGE_LOCK_CREATED: NO
+EXISTING_0_3_144_VSIX_MODIFIED: NO
+QA_STTM_MODIFIED: NO
+STAGED_FILES: 0
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+VSIX_BUILT: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+PREVIEW_CREATED: NO
+WRITE_EXECUTED: NO
+
+Do not clean, restore, reset, stash, stage, commit, package, or install.
+
+==================================================
+7. STOP POINT
+
+Stop after the canonical suite proves that all 21 Repair 12 tests are registered
+and executed exactly once.
+
+Do not perform the independent review in this Chat.
+
+The next step after PASS is a new Chat containing a genuinely independent
+reviewer prompt.
+
+==================================================
+8. FINAL REPORT
+
+Return:
+
+REPOSITORY_ROOT: 
+ORIGIN: 
+BRANCH: 
+HEAD: 
+SOURCE_VERSION: 
+PROCESS_EXECUTION_PREFLIGHT: PASS/FAIL
+STAGED_FILES_AT_START: 
+STAGED_FILES_AT_END: 
+
+REPAIR_12_PATTERN_REGISTERED: YES/NO
+REPAIR_12_PATTERN_MATCH_COUNT: 
+REPAIR_12_DUPLICATE_EXECUTION: YES/NO
+EXISTING_PATTERNS_REMOVED: 
+EXISTING_PATTERNS_BROADENED: 
+FOLLOWUP_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+
+COMPILE_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_12_FOCUSED_PASS: YES/NO
+REPAIR_12_FOCUSED_PASSING_COUNT: 
+FULL_UNIT_PASSING_COUNT_BEFORE: 2222
+FULL_UNIT_PASSING_COUNT_AFTER: 
+FULL_UNIT_PASSING_DELTA: 
+FULL_UNIT_PENDING_COUNT: 
+FULL_UNIT_FAILURE_COUNT: 
+FULL_UNIT_FAILURES: 
+FULL_UNIT_FAILURE_IDENTITIES_UNCHANGED: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+
+AUDIT_TIMESTAMP_EXCEPTION_CHANGED: NO
+OTHER_NONDETERMINISTIC_FIELDS_FOUND: YES/NO
+
+PACKAGE_VERSION_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+EXISTING_0_3_144_VSIX_MODIFIED: NO
+QA_STTM_MODIFIED: NO
+PRODUCTION_FILES_CHANGED_BY_FOLLOWUP: 0
+TEST_CONTENT_FILES_CHANGED_BY_FOLLOWUP: 0
+VSIX_BUILT: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+PREVIEW_CREATED: NO
+WRITE_EXECUTED: NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+
+READY_FOR_GENUINELY_INDEPENDENT_REVIEW: YES/NO
+READY_TO_BUMP_VERSION: NO
+READY_TO_PACKAGE: NO
+READY_TO_INSTALL: NO
+
+PASS requires:
+
+* exactly one new test registration entry;
+* all 21 Repair 12 tests executed exactly once by the canonical unit runner;
+* final canonical count exactly 2243 passing, 1 pending, 5 failing;
+* accepted five failure identities unchanged;
+* zero production or test-content changes in this follow-up;
+* zero new functional or security regressions;
+* source version remains 0.3.144;
+* no VSIX, install, Runtime QA, Preview, write, commit, push, or tag.
+
+End exactly with one:
+
+REPAIR_12_REGISTRATION_RESULT: PASS_READY_FOR_INDEPENDENT_REVIEW
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_IDENTITY
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_STAGED_CHANGES
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_CONCURRENT_MUTATION
+REPAIR_12_REGISTRATION_RESULT: BLOCKED_CHANGE_BOUNDARY
+REPAIR_12_REGISTRATION_RESULT: FAIL_TEST_DISCOVERY
+REPAIR_12_REGISTRATION_RESULT: FAIL_REGRESSION
+REPAIR_12_REGISTRATION_RESULT: FAIL_CHANGE_BOUNDARY
