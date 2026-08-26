@@ -1,286 +1,296 @@
-Refine the current AskTD poster using Apple-inspired design principles: radical simplicity, exceptional typography, generous negative space, a single product hero, precise alignment, and restrained visual depth.
+Create a new final AskTD poster variant based on Option 1, which received the strongest team support.
 
-Do not copy Apple branding, assets, product interfaces, or trade dress. Apply only the underlying principles of premium product design.
+Do not overwrite or delete Options 1–4. Preserve them for comparison. Using the project’s existing poster-variant structure, create a new variant named:
 
-This is a focused refinement of the current implementation. Do not return to the previous PowerPoint-style split layout or feature-card grid.
+Final — Refined Option 1
 
-Core design decision
+If the project numbers variants, this may be presented as Option 5.
 
-Reduce the poster to six essential elements:
+Design direction
 
-1. TD / AskTD branding
-2. One dominant headline
-3. One short value statement
-4. One beautifully rendered AskTD product interaction
-5. Four minimal benefit labels
-6. One understated call to action
+Keep the strongest characteristic of Option 1:
 
-Everything else should be removed.
+* Straight, clean visual lines
+* Simple two-section composition
+* Immediate readability
+* Business-focused feature presentation
 
-1. Remove visual and content noise
+Apply only the premium refinements learned from Option 4:
 
-Remove:
+* Better typography
+* More deliberate spacing
+* Stronger visual hierarchy
+* More negative space
+* Refined colours
+* Higher-quality alignment
+* Restrained visual depth
 
-* The current large irregular green shape
-* The separate question and answer cards
-* The supporting paragraph beneath the campaign line
-* The large white feature strip at the bottom
-* Feature numbers 01–04
-* Feature descriptions
-* Decorative lines that do not guide the eye
-* Duplicate statements about authoritative data
-* Any small text that cannot be read from a distance
+Do not copy Option 4’s curved green shape or question-and-answer card.
 
-Do not replace removed content with more content.
+The result should feel like a premium corporate campaign poster while preserving the simplicity that the reviewers preferred.
 
-The page should become noticeably simpler.
+1. Preserve the straight composition
 
-2. Replace the green shape with a premium light field
+Use a clean, straight vertical division:
 
-Create a restrained emerald-green radial or mesh-gradient light field behind the AskTD interaction.
+* Left off-white section: approximately 54–56%
+* Right TD-green section: approximately 44–46%
 
-It should feel like soft studio lighting behind a premium product—not a coloured panel.
+Do not use:
 
-Suggested direction:
+* Curved boundaries
+* Organic blobs
+* Clip-path waves
+* Diagonal cuts
+* Overlapping panels
+* Floating question-and-answer cards
 
-* White or warm off-white canvas
-* Deep emerald at the far-right edge
-* Brighter TD green glow behind the product interaction
-* A soft falloff into the white background
-* No hard vertical boundary
-* No clip-path wave
-* No large rectangular green area
-* No obvious decorative blob
+The straight structure is intentional and reflects the team feedback that straight lines flow better for a printed poster.
 
-The gradient should support the product object and gently connect the left and right sides.
+Use a subtle green tonal gradient in the right section so it does not feel completely flat, but keep the boundary straight.
 
-Use CSS gradients or a print-safe inline SVG. Keep the result sharp in PDF output.
+2. Refine the left section
 
-3. Make the typography more editorial
+Keep the TD logo and AskTD name at the top.
 
-Keep the headline:
+Use a precise brand lockup with:
+
+* Official TD logo proportions
+* AskTD aligned vertically with the logo
+* No decorative underline
+* Sufficient surrounding space
+
+Optionally retain a small descriptor:
+
+Conversational Analytics
+
+Keep it subtle and secondary.
+
+Use the approved headline:
 
 Stop searching dashboards.
 Just ask.
 
-Make it the strongest element on the page.
-
 Typography requirements:
 
-* Large display size
-* Precise line breaks
-* Tight but readable tracking
-* Approximately 0.94–1.0 line height
-* Dark charcoal rather than pure black
-* “Just ask.” in TD green
-* No text box
-* No decorative underline
-* Generous surrounding white space
+* Large editorial display type
+* Tight but readable letter spacing
+* Strong line-height control
+* Dark charcoal for “Stop searching dashboards.”
+* TD green for “Just ask.”
+* No text container
+* No shadow
+* No decorative effects
 
-Use sentence case for the campaign line:
+Add the approved supporting sentence:
 
-Trusted data. Instant insights. Better decisions.
+Ask a business question. Get one clear answer from authoritative data.
 
-Do not use title case for every word.
+Keep it concise, readable, and limited to approximately two lines.
 
-Place it below the headline with enough separation to feel intentional.
+Below it, display these three messages in one restrained row:
 
-Remove this separate paragraph from the left side:
+* No report building
+* No dashboard hopping
+* No technical queries
 
-“Ask what matters to your business. Get one clear answer grounded in authoritative data.”
+Use thin separators or small green dots. Do not turn them into large cards or buttons.
 
-Its meaning is already communicated by the product interaction.
-
-4. Turn the AskTD interaction into one product hero
-
-Replace the two separate white cards with one unified, premium AskTD interaction surface.
-
-The result should feel like one carefully designed product object floating above the green light field.
-
-Use:
-
-* One large rounded surface
-* Approximately 28–36px corner radius
-* A subtle 1px translucent border
-* Layered but restrained shadow
-* Excellent internal spacing
-* A very subtle translucent or frosted treatment
-* High-quality inline SVG icons
-* No emojis
-* No excessive glass effect
-
-Inside the single surface, create two clearly related areas:
-
-User question
-
-Use a compact, quiet treatment:
-
-What changed this quarter—and why?
-
-Do not place a large “QUESTION” heading above it. A small conversation icon or a subtle “You asked” label is enough.
-
-AskTD response
-
-Make the response the dominant part:
-
-One clear answer—grounded in authoritative data.
-
-Below it, include only one restrained supporting detail:
-
-Clear insight. Key drivers. Trusted source.
-
-You may include one elegant abstract trend line or insight indicator, but it must be visually meaningful and extremely simple.
-
-Do not display fake numbers, fake financial results, dashboards, tables, or fabricated business claims.
-
-Add a small AskTD mark or green confidence indicator so the response feels branded and complete.
-
-5. Present benefits without a container
-
-Remove the white footer panel completely.
-
-Place the following four benefit labels directly on the canvas near the bottom:
-
-* Faster answers
-* Trusted data
-* Actionable insights
-* Less effort
-
-Use:
-
-* No numbers
-* No descriptions
-* No cards
-* No icons unless they materially improve the composition
-* No large background container
-* Thin separators or carefully controlled spacing only
-* Small but highly legible typography
-
-These labels should function like quiet product proof points, not a feature section.
-
-They may span the lower part of the canvas, but they must remain visually secondary to the product hero.
-
-6. Refine the brand area
-
-Keep the official TD logo and AskTD name.
-
-Make the brand lockup slightly smaller and give it more surrounding space.
-
-Keep “Conversational Analytics” only if it remains legible and visually balanced. Use it as a subtle descriptor, not a second headline.
-
-Do not underline AskTD.
-
-Align the brand lockup precisely with the left edge of the headline.
-
-7. Refine the CTA
-
-Keep:
+Keep the CTA near the bottom-left:
 
 Ask us a real business question.
 
-Place it near the lower-left area.
+Present it with a short green rule or minimal conversation icon. It must not look like a clickable web button.
 
-Use an understated treatment:
+3. Refine the right section
 
-* Small conversation arrow or thin green rule
-* No button shape
-* No large container
-* No heavy bolding
+Use only one heading:
 
-It should feel like a confident invitation, not a PowerPoint footer.
+What AskTD Makes Easier
 
-8. Apply premium spacing
+Remove duplicate headings such as:
 
-Use a clear alignment system and generous margins.
+* “AskTD Key Features”
+* “What AskTD Makes Easier” appearing together
 
-At 1600 × 1120:
+Display these four approved features:
 
-* Maintain approximately 80–100px safe margins
-* Keep the headline and brand on the same left alignment
-* Allow the product interaction to occupy the visual centre-right
-* Prevent the product object from touching the canvas edges
-* Preserve intentional empty space
-* Avoid placing something in every available area
+1. Ask in plain business language
+2. Use authoritative data
+3. Get tables, charts, and summaries
+4. Access answers securely
 
-Empty space is part of the design and must not be “filled.”
+Present them as four clean horizontal rows—not cards.
 
-9. Add restrained screen-only motion
+Each row should include:
 
-Add subtle motion that makes the HTML experience feel alive:
+* One minimal white line icon
+* One feature statement
+* A very subtle horizontal separator
+* Generous vertical spacing
 
-* Product surface enters with a soft 500–700ms fade and upward movement
-* Green light field slowly breathes or drifts
-* Insight line draws once when the page loads
-* Confidence indicator appears with a restrained fade
+Do not add paragraphs beneath the features.
 
 Do not use:
 
-* Bouncing
-* Continuous card floating
-* Flashing
-* Spinning
-* Particle effects
-* Dramatic parallax
+* A 2×2 card grid
+* Numbered cards
+* Large bordered containers
+* Heavy shadows
+* Repeated background boxes
+* Technical descriptions
 
-Disable animations for print and under prefers-reduced-motion.
+Use consistent icon size, baseline alignment, and text spacing.
 
-10. Improve fine visual details
+4. Remove the technical workflow
 
-Use:
+Completely remove the small workflow currently displayed at the bottom of Option 1, including:
 
-* Warm off-white instead of stark white
-* Charcoal instead of pure black
-* One primary TD green
-* One deeper emerald shade
-* Extremely subtle muted grey
-* Consistent optical alignment
-* Crisp SVG rendering
-* Carefully tuned shadow blur and opacity
+* Identify & Scope
+* Governed Plan
+* Read-Only Data
+* Validate & Respond
+* Security / Privacy / Audit text
+* Numbered workflow circles
+* Connecting lines
+
+Do not replace it with another process diagram.
+
+Use the recovered space to improve breathing room and vertical balance in the feature section.
+
+5. Apply premium visual refinement
+
+Use the following visual principles:
+
+* Warm off-white rather than stark white
+* Charcoal rather than pure black
+* Official TD green as the primary colour
+* A slightly deeper green near the bottom or edge of the right section
+* Crisp SVG icons
+* Restrained 1px separators
+* Consistent spacing tokens
+* Precise optical alignment
+* No unnecessary decoration
 
 Avoid:
 
-* Multiple green shades competing for attention
-* Thick borders
-* Harsh shadows
-* Small uppercase headings everywhere
-* Excessively bold secondary text
-* Generic feature-card styling
+* Generic PowerPoint styling
+* Feature cards
+* Architecture diagrams
+* Product dashboards
+* Question-and-answer mockups
+* Stock photography
+* Neon effects
+* Excessive gradients
+* Excessive shadows
+* Tiny text
+* Long product descriptions
 
-11. Mandatory visual QA
+6. Improve typography
+
+Use the best locally available modern font stack already supported by the project.
+
+Suggested fallback:
+
+font-family:
+  Inter,
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  Helvetica,
+  Arial,
+  sans-serif;
+
+Do not add a remote font dependency unless the project already uses it.
+
+Use:
+
+* Display weight for the main headline
+* Semibold for feature statements
+* Regular weight for supporting copy
+* Slight negative tracking only on large display text
+* Comfortable line height for all supporting text
+
+Ensure all content remains readable from a distance and in the printed version.
+
+7. Preserve other variants
+
+Do not modify the visual output of Options 1–4.
+
+The new final variant should reuse shared components and styles where appropriate, but changes must not unintentionally alter the existing poster options.
+
+Do not duplicate large amounts of code if the project already has reusable poster primitives.
+
+8. Do not add a question-and-answer example
+
+The feedback requesting a real answer applies only to the question-and-answer design represented by Option 3.
+
+Because this final variant is based on Option 1, do not add a question-and-answer card to it.
+
+Also do not invent:
+
+* Business metrics
+* Financial numbers
+* Customer information
+* Example answers
+* Product claims
+
+Option 3 can be updated separately after an approved real or demo-data answer becomes available.
+
+9. Screen and print requirements
+
+Preserve:
+
+* Fit to Screen
+* Reset Zoom
+* Print / Save as PDF
+
+Ensure:
+
+* Preview controls are hidden in print
+* Background colours print accurately
+* The poster fits on one landscape page
+* No clipping or overflow occurs
+* Icons remain sharp in PDF
+* All important content stays within safe margins
+* The straight vertical division remains aligned from top to bottom
+
+10. Mandatory visual validation
 
 After implementation:
 
-1. Render the poster at 1600 × 1120.
-2. Inspect it at full size.
-3. Inspect it at approximately 25% thumbnail size.
-4. Test Print / Save as PDF.
-5. Verify that preview controls are excluded from print.
-6. Verify that the green gradient prints accurately.
-7. Verify that the product object remains sharp.
-8. Confirm there is no clipping or overflow.
+1. Run the application.
+2. Open the new Final — Refined Option 1 variant.
+3. Render it at 1600 × 1120.
+4. Inspect it at full size.
+5. Inspect it at approximately 25% thumbnail size.
+6. Verify that the headline remains immediately readable.
+7. Verify that the right-side features can be scanned quickly.
+8. Test Fit to Screen.
+9. Test Reset Zoom.
+10. Test Print / Save as PDF.
+11. Confirm that Options 1–4 remain unchanged.
+12. Perform one additional refinement pass for spacing, typography, and alignment.
 
-Then perform a second refinement pass focused only on:
+Acceptance criteria
 
-* Typography
-* Optical alignment
-* Spacing
-* Shadow quality
-* Gradient quality
-* Visual balance
+The new variant is complete only when:
 
-Final acceptance test
+* It clearly derives from Option 1
+* It retains straight visual lines
+* It contains no technical workflow
+* It contains no feature cards
+* It contains no question-and-answer mockup
+* It uses only one right-side heading
+* It feels more polished and premium than Option 1
+* It remains simpler than Options 3 and 4
+* It works correctly at screen and print sizes
+* Options 1–4 remain available and unchanged
 
-The poster is complete only if:
+Implement the new variant fully and then report:
 
-* It contains substantially less content than the current version
-* It has no hard split between white and green
-* It has no feature cards
-* It has no large footer container
-* The AskTD interaction looks like one premium product object
-* The headline can be understood immediately at thumbnail size
-* The eye naturally moves from headline to product interaction to CTA
-* The page feels calm, deliberate, and premium
-* It no longer resembles a PowerPoint slide
-* Print / Save as PDF still works correctly
-
-Implement the redesign fully. Do not only describe recommendations, and do not make another conservative iteration.
+* Files changed
+* How the new variant was added
+* Visual refinements applied
+* Validation completed
+* Confirmation that Options 1–4 were preserved
