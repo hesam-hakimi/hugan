@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Protocol
+from typing import Literal, Protocol
 
 from pydantic import Field
 
@@ -18,6 +18,11 @@ class RemoteOperationState(StrEnum):
 class RemoteOperationAction(StrEnum):
     OBSERVE = "observe"
     CANCEL = "cancel"
+
+
+class RemoteOperationDispositionOutcome(StrEnum):
+    CANCELLED = "cancelled"
+    FAILED = "failed"
 
 
 @dataclass(frozen=True)
@@ -60,6 +65,37 @@ class RemoteOperationSnapshot(FrozenModel):
     reconciliation_attempts: int = Field(ge=0)
     cancel_requests: int = Field(ge=0)
     last_action: RemoteOperationAction | None = None
+
+
+class RemoteOperationDisposition(FrozenModel):
+    """Durable operator disposition derived only from a redacted terminal lease."""
+
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    audit_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    outcome: RemoteOperationDispositionOutcome
+    reason: str = Field(min_length=1, max_length=2000)
+    recorded_at: str
+    program_id: str = Field(default="", max_length=128)
+    phase_id: str = Field(default="", max_length=64)
+    slice_id: str = Field(default="", max_length=64)
+    transport: str = Field(pattern=r"^[a-z][a-z0-9._-]{2,63}$")
+    transport_scope: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    operation_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    base_sha: str = Field(default="", max_length=64)
+    remote_state: Literal[
+        RemoteOperationState.TERMINAL,
+        RemoteOperationState.UNAVAILABLE,
+    ]
+    remote_status: str = Field(min_length=1, max_length=64)
+    remote_revision: int = Field(ge=0)
+    remote_updated_at: str
+    provider_confirmed_cancelled: bool
+    confirmed_by_operator: Literal[True]
+    provider_calls_made: int = Field(default=0, ge=0, le=0)
+    output_consumed: Literal[False] = False
+    graph_resumed: Literal[False] = False
+    program_phase_advanced: Literal[False] = False
 
 
 class RemoteOperationLeaseStore(Protocol):

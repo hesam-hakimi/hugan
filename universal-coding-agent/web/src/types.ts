@@ -99,12 +99,46 @@ export type RemoteOperationSnapshot = {
   last_action: "observe" | "cancel" | null;
   recovered_pending: boolean;
   requires_explicit_action: boolean;
+  requires_explicit_disposition: boolean;
 };
 
 export type RemoteOperationReconciliationResult = {
   task_id: string;
   action: "observe" | "cancel";
   remote_operation: RemoteOperationSnapshot;
+};
+
+export type RemoteOperationDisposition = {
+  schema_version: "1";
+  audit_ref: string;
+  task_id: string;
+  outcome: "cancelled" | "failed";
+  reason: string;
+  recorded_at: string;
+  program_id: string;
+  phase_id: string;
+  slice_id: string;
+  transport: string;
+  transport_scope: string;
+  operation_ref: string;
+  base_sha: string;
+  remote_state: "terminal" | "unavailable";
+  remote_status: string;
+  remote_revision: number;
+  remote_updated_at: string;
+  provider_confirmed_cancelled: boolean;
+  confirmed_by_operator: boolean;
+  provider_calls_made: 0;
+  output_consumed: false;
+  graph_resumed: false;
+  program_phase_advanced: false;
+};
+
+export type RemoteOperationDispositionResult = {
+  task_id: string;
+  outcome: "cancelled" | "failed";
+  program_id: string;
+  remote_operation_disposition: RemoteOperationDisposition;
 };
 
 export type ProgramExecutionBinding = {
@@ -122,9 +156,11 @@ export type ProgramExecutionBinding = {
   accepted_evidence_ref: string;
   accepted_evidence_hash: string;
   expected_base_sha: string;
+  remote_disposition_ref: string;
   control?: ControlSnapshot;
   cancellation_report?: CancellationReport;
   remote_operation?: RemoteOperationSnapshot;
+  remote_operation_disposition?: RemoteOperationDisposition;
 };
 
 export type ProgramExecutionSnapshot = {
@@ -174,5 +210,6 @@ export type TaskSnapshot = {
   control?: ControlSnapshot;
   cancellation_report?: CancellationReport;
   remote_operation?: RemoteOperationSnapshot;
+  remote_operation_disposition?: RemoteOperationDisposition;
   result?: Record<string, unknown>;
 };

@@ -4,6 +4,7 @@ import type {
   CancellationReport,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationDisposition,
   RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
@@ -12,10 +13,12 @@ import {
   activeProgramExecutionBinding,
   canApproveScope,
   canContinueProgramExecution,
+  canDisposeRemoteOperation,
   canReconcileRemoteOperation,
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
+  remoteOperationDispositionPresentation,
   remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
@@ -87,6 +90,38 @@ function remoteOperation(
     last_action: null,
     recovered_pending: true,
     requires_explicit_action: true,
+    requires_explicit_disposition: false,
+    ...overrides,
+  };
+}
+
+function remoteDisposition(
+  overrides: Partial<RemoteOperationDisposition> = {},
+): RemoteOperationDisposition {
+  return {
+    schema_version: "1",
+    audit_ref: `sha256:${"d".repeat(64)}`,
+    task_id: "task-1",
+    outcome: "cancelled",
+    reason: "Operator confirmed terminal closure.",
+    recorded_at: "2026-08-26T12:02:00Z",
+    program_id: "",
+    phase_id: "",
+    slice_id: "",
+    transport: "openai_responses",
+    transport_scope: `sha256:${"a".repeat(64)}`,
+    operation_ref: `sha256:${"b".repeat(64)}`,
+    base_sha: "c".repeat(40),
+    remote_state: "terminal",
+    remote_status: "cancelled",
+    remote_revision: 2,
+    remote_updated_at: "2026-08-26T12:01:00Z",
+    provider_confirmed_cancelled: true,
+    confirmed_by_operator: true,
+    provider_calls_made: 0,
+    output_consumed: false,
+    graph_resumed: false,
+    program_phase_advanced: false,
     ...overrides,
   };
 }
@@ -159,6 +194,7 @@ describe("control-center view models", () => {
         accepted_evidence_ref: "",
         accepted_evidence_hash: "",
         expected_base_sha: "",
+        remote_disposition_ref: "",
       },
       {
         program_id: "program-1",
@@ -175,6 +211,7 @@ describe("control-center view models", () => {
         accepted_evidence_ref: "artifact://accepted-phase-1.json",
         accepted_evidence_hash: "b".repeat(64),
         expected_base_sha: "c".repeat(40),
+        remote_disposition_ref: "",
       },
     ];
 
@@ -215,6 +252,7 @@ describe("control-center view models", () => {
         accepted_evidence_ref: "",
         accepted_evidence_hash: "",
         expected_base_sha: "",
+        remote_disposition_ref: "",
         control: {
           state: "running",
           reason: "",
@@ -309,6 +347,7 @@ describe("control-center view models", () => {
       last_status: "cancelled",
       cancellation_requested: true,
       requires_explicit_action: false,
+      requires_explicit_disposition: true,
     });
     const presentation = remoteOperationPresentation(operation);
 
@@ -324,6 +363,7 @@ describe("control-center view models", () => {
         state: "terminal",
         last_status: "completed",
         requires_explicit_action: false,
+        requires_explicit_disposition: true,
       }),
     );
 
@@ -337,6 +377,7 @@ describe("control-center view models", () => {
       state: "unavailable",
       last_status: "remote_state_unavailable",
       requires_explicit_action: false,
+      requires_explicit_disposition: true,
     });
     const presentation = remoteOperationPresentation(operation);
 
@@ -344,5 +385,46 @@ describe("control-center view models", () => {
     expect(presentation.tone).toBe("bad");
     expect(presentation.summary).toContain("Do not infer completion or termination");
     expect(canReconcileRemoteOperation(operation)).toBe(false);
+  });
+
+  it("enables disposition only for an undisposed terminal or unavailable lease", () => {
+    const terminal = remoteOperation({
+      state: "terminal",
+      last_status: "cancelled",
+      requires_explicit_action: false,
+      requires_explicit_disposition: true,
+    });
+
+    expect(canDisposeRemoteOperation(terminal)).toBe(true);
+    expect(canDisposeRemoteOperation(terminal, undefined, true)).toBe(false);
+    expect(canDisposeRemoteOperation(terminal, remoteDisposition())).toBe(false);
+    expect(canDisposeRemoteOperation(remoteOperation())).toBe(false);
+  });
+
+  it("keeps unavailable disposition distinct from confirmed termination", () => {
+    const presentation = remoteOperationDispositionPresentation(
+      remoteDisposition({
+        outcome: "failed",
+        remote_state: "unavailable",
+        remote_status: "remote_state_unavailable",
+        provider_confirmed_cancelled: false,
+      }),
+    );
+
+    expect(presentation.label).toBe("Task closed as failed");
+    expect(presentation.tone).toBe("bad");
+    expect(presentation.summary).toContain(
+      "does not confirm provider completion or termination",
+    );
+  });
+
+  it("describes provider-confirmed cancellation without broadening recovery", () => {
+    const presentation = remoteOperationDispositionPresentation(remoteDisposition());
+
+    expect(presentation.label).toBe("Task closed as cancelled");
+    expect(presentation.tone).toBe("good");
+    expect(presentation.summary).toContain(
+      "did not consume output, resume the graph, or advance a Program phase",
+    );
   });
 });

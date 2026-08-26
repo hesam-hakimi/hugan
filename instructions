@@ -186,7 +186,7 @@ done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
-from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
+from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
@@ -204,6 +204,7 @@ from universal_coding_agent.web import ProductWebRuntime, create_product_app
 from universal_coding_agent.web.app import (
     ProgramExecutionContinueRequest,
     ProgramExecutionStartRequest,
+    RemoteOperationDispositionRequest,
 )
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
@@ -220,8 +221,10 @@ assert CANCELLABLE_COMPLETION_FACTORY_ENV
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
+assert RemoteOperationDisposition and RemoteOperationDispositionOutcome
 assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
+assert RemoteOperationDispositionRequest
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
@@ -231,6 +234,7 @@ print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
+print("REMOTE_OPERATION_DISPOSITION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -269,6 +273,7 @@ echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS"
+echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -291,6 +296,7 @@ echo "PRODUCT_CONTROL_CENTER_FRONTEND_PASS"
 echo "PROGRAM_EXECUTION_UI_FRONTEND_PASS"
 echo "CANCELLATION_EVIDENCE_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_RECONCILIATION_UI_FRONTEND_PASS"
+echo "REMOTE_OPERATION_DISPOSITION_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -321,6 +327,7 @@ for path in (
     "/api/programs/{program_id}/executions/start-next",
     "/api/programs/{program_id}/executions/{task_id}/continue",
     "/api/tasks/{task_id}/remote-operation/reconcile",
+    "/api/tasks/{task_id}/remote-operation/dispose",
 ):
     assert path in openapi["paths"]
 asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
@@ -337,6 +344,10 @@ for marker in (
     "Load existing task",
     "Observe remote operation",
     "Request remote cancellation",
+    "Explicit orphan disposition",
+    "Close task as cancelled",
+    "Close task as failed",
+    "Durable operator disposition",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -344,6 +355,8 @@ print("PROGRAM_EXECUTION_UI_HTTP_SMOKE_PASS")
 print("CANCELLATION_EVIDENCE_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RECONCILIATION_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RECONCILIATION_UI_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_DISPOSITION_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_DISPOSITION_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
@@ -400,6 +413,7 @@ test -f "$CANCELLATION_STATE_ROOT/private-remote-operations.sqlite"
 test "$RECONCILIATION_RC" -eq 0
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PASS"
 echo "OPENAI_BACKGROUND_RESTART_RECONCILIATION_LIVE_QUALIFICATION_PASS"
+echo "REMOTE_OPERATION_DISPOSITION_LIVE_QUALIFICATION_PASS"
 ```
 
 Cmd 11

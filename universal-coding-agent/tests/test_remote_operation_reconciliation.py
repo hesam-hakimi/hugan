@@ -10,8 +10,10 @@ from fastapi.testclient import TestClient
 
 from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
+    RemoteOperationDispositionOutcome,
     RemoteOperationState,
 )
+from universal_coding_agent.product.models import ControlState
 from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
@@ -263,6 +265,17 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert calls == []
         assert _RESPONSE_ID not in status.text
 
+        active_disposition = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "failed",
+                "reason": "Operator cannot establish a terminal remote state.",
+                "confirmed": True,
+            },
+        )
+        assert active_disposition.status_code == 400
+        assert calls == []
+
         runtime._runs[_TASK_ID] = {"task_id": _TASK_ID, "busy": True}
         busy = client.post(
             f"/api/tasks/{_TASK_ID}/remote-operation/reconcile",
@@ -283,6 +296,124 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert result["requires_explicit_action"] is False
         assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
         assert _RESPONSE_ID not in reconciled.text
+
+        missing_confirmation = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "cancelled",
+                "reason": "Provider reported terminal cancellation.",
+                "confirmed": False,
+            },
+        )
+        assert missing_confirmation.status_code == 422
+
+        runtime._runs[_TASK_ID] = {"task_id": _TASK_ID, "busy": True}
+        busy_disposition = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "cancelled",
+                "reason": "Provider reported terminal cancellation.",
+                "confirmed": True,
+            },
+        )
+        assert busy_disposition.status_code == 400
+        runtime._runs.pop(_TASK_ID)
+
+        disposed = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "cancelled",
+                "reason": "Provider reported terminal cancellation.",
+                "confirmed": True,
+            },
+        )
+        assert disposed.status_code == 200
+        evidence = disposed.json()["remote_operation_disposition"]
+        assert evidence["outcome"] == "cancelled"
+        assert evidence["remote_state"] == "terminal"
+        assert evidence["provider_confirmed_cancelled"] is True
+        assert evidence["provider_calls_made"] == 0
+        assert evidence["output_consumed"] is False
+        assert evidence["graph_resumed"] is False
+        assert evidence["program_phase_advanced"] is False
+        assert evidence["audit_ref"].startswith("sha256:")
+        assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
+        assert _RESPONSE_ID not in disposed.text
+
+        repeated = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "cancelled",
+                "reason": "Provider reported terminal cancellation.",
+                "confirmed": True,
+            },
+        )
+        assert repeated.status_code == 200
+        assert repeated.json()["remote_operation_disposition"] == evidence
+
+        conflict = client.post(
+            f"/api/tasks/{_TASK_ID}/remote-operation/dispose",
+            json={
+                "outcome": "failed",
+                "reason": "Conflicting replacement.",
+                "confirmed": True,
+            },
+        )
+        assert conflict.status_code == 400
+
+        final_status = client.get(f"/api/tasks/{_TASK_ID}")
+        assert final_status.status_code == 200
+        assert final_status.json()["status"] == "cancelled"
+        assert final_status.json()["control"]["state"] == "cancelled"
+        assert (
+            final_status.json()["remote_operation"][
+                "requires_explicit_disposition"
+            ]
+            is False
+        )
+
+    durable = ProductWorkspace.create(product_root, provider)
+    try:
+        disposition = durable.control.remote_operation_disposition(_TASK_ID)
+        assert disposition is not None
+        assert disposition.outcome is RemoteOperationDispositionOutcome.CANCELLED
+        assert disposition.provider_confirmed_cancelled is True
+        assert durable.control.get_task(_TASK_ID).state is ControlState.CANCELLED
+    finally:
+        durable.close()
+
+
+def test_unavailable_remote_operation_can_close_failed_without_termination_claim(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(
+        tmp_path / "product",
+        OpenAIResponsesProvider(
+            api_key="test-key",
+            model="test-model",
+            endpoint=_ENDPOINT,
+            background_cancellation=True,
+        ),
+    )
+    workspace.control.ensure_task(_TASK_ID)
+    _register(workspace.remote_operations)
+    workspace.remote_operations.mark_unavailable(_TASK_ID)
+    snapshot = workspace.remote_operations.public_snapshot(_TASK_ID)
+    assert snapshot is not None
+
+    disposition = workspace.control.record_remote_operation_disposition(
+        snapshot,
+        RemoteOperationDispositionOutcome.FAILED,
+        reason="Remote lifecycle state is unavailable; termination is not inferred.",
+        confirmed=True,
+    )
+
+    assert disposition.outcome is RemoteOperationDispositionOutcome.FAILED
+    assert disposition.remote_state is RemoteOperationState.UNAVAILABLE
+    assert disposition.provider_confirmed_cancelled is False
+    assert disposition.provider_calls_made == 0
+    assert workspace.control.get_task(_TASK_ID).state is ControlState.FAILED
+    workspace.close()
 
 
 def _register(

@@ -6,6 +6,7 @@ import type {
   ContextDocument,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationDisposition,
   RemoteOperationSnapshot,
   RequirementResult,
   SearchHit,
@@ -15,10 +16,12 @@ import {
   activeProgramExecutionBinding,
   canApproveScope,
   canContinueProgramExecution,
+  canDisposeRemoteOperation,
   canReconcileRemoteOperation,
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
+  remoteOperationDispositionPresentation,
   remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
@@ -264,6 +267,29 @@ export default function App() {
     );
   }
 
+  function disposeProgramRemoteOperation(
+    taskId: string,
+    outcome: "cancelled" | "failed",
+    reason: string,
+  ) {
+    if (!program) return;
+    if (
+      !window.confirm(
+        `Close ${taskId} as ${outcome}? This records a terminal UCA disposition without contacting the provider, consuming output, resuming the graph, or advancing the Program phase. Unavailable remote state does not prove termination.`,
+      )
+    ) {
+      return;
+    }
+    void perform(
+      async () => {
+        await api.disposeRemoteOperation(taskId, outcome, reason);
+        return readProgramState(program.program_id);
+      },
+      applyProgramState,
+      `Program binding closed as ${outcome} with durable operator evidence.`,
+    );
+  }
+
   function createProgram() {
     if (!requirement || requirement.contract.status !== "approved") return;
     void perform(
@@ -485,6 +511,29 @@ export default function App() {
       action === "observe"
         ? "Remote state observed without resuming task work."
         : "Remote cancellation requested; the displayed provider state is the bounded outcome.",
+    );
+  }
+
+  function disposeTaskRemoteOperation(
+    outcome: "cancelled" | "failed",
+    reason: string,
+  ) {
+    if (!task) return;
+    if (
+      !window.confirm(
+        `Close ${task.task_id} as ${outcome}? This records a terminal UCA disposition without contacting the provider, consuming output, or resuming the graph. Unavailable remote state does not prove termination.`,
+      )
+    ) {
+      return;
+    }
+    const taskId = task.task_id;
+    void perform(
+      async () => {
+        await api.disposeRemoteOperation(taskId, outcome, reason);
+        return api.task(taskId);
+      },
+      applyTaskState,
+      `Task closed as ${outcome} with durable operator evidence.`,
     );
   }
 
@@ -953,12 +1002,20 @@ export default function App() {
                         {binding.remote_operation && (
                           <RemoteOperationPanel
                             operation={binding.remote_operation}
+                            disposition={binding.remote_operation_disposition}
                             blocked={busy || programExecution.runtime.busy}
                             onObserve={() =>
                               reconcileProgramRemoteOperation(binding.task_id, "observe")
                             }
                             onCancel={() =>
                               reconcileProgramRemoteOperation(binding.task_id, "cancel")
+                            }
+                            onDispose={(outcome, reason) =>
+                              disposeProgramRemoteOperation(
+                                binding.task_id,
+                                outcome,
+                                reason,
+                              )
                             }
                           />
                         )}
@@ -1118,9 +1175,11 @@ export default function App() {
                   {task.remote_operation && (
                     <RemoteOperationPanel
                       operation={task.remote_operation}
+                      disposition={task.remote_operation_disposition}
                       blocked={busy || Boolean(task.busy)}
                       onObserve={() => reconcileTaskRemoteOperation("observe")}
                       onCancel={() => reconcileTaskRemoteOperation("cancel")}
+                      onDispose={disposeTaskRemoteOperation}
                     />
                   )}
                   {canApproveScope(task) && (
@@ -1202,17 +1261,26 @@ function CancellationReportPanel({ report }: { report: CancellationReport }) {
 
 function RemoteOperationPanel({
   operation,
+  disposition,
   blocked,
   onObserve,
   onCancel,
+  onDispose,
 }: {
   operation: RemoteOperationSnapshot;
+  disposition?: RemoteOperationDisposition;
   blocked: boolean;
   onObserve: () => void;
   onCancel: () => void;
+  onDispose: (outcome: "cancelled" | "failed", reason: string) => void;
 }) {
+  const [dispositionReason, setDispositionReason] = useState("");
   const presentation = remoteOperationPresentation(operation);
   const canReconcile = canReconcileRemoteOperation(operation, blocked);
+  const canDispose = canDisposeRemoteOperation(operation, disposition, blocked);
+  const dispositionEvidence = disposition
+    ? remoteOperationDispositionPresentation(disposition)
+    : undefined;
 
   return (
     <section className="remoteOperationEvidence">
@@ -1258,6 +1326,67 @@ function RemoteOperationPanel({
           Request remote cancellation
         </button>
       </div>
+      {dispositionEvidence && disposition && (
+        <section className="remoteDispositionEvidence">
+          <div className="cancellationEvidenceHeader">
+            <div>
+              <span className="kicker">Durable operator disposition</span>
+              <h3>{dispositionEvidence.label}</h3>
+            </div>
+            <span className={`status ${dispositionEvidence.tone}`}>audited</span>
+          </div>
+          <p className="cancellationSummary">{dispositionEvidence.summary}</p>
+          <div className="remoteOperationMeta">
+            <span>Recorded: <code>{disposition.recorded_at}</code></span>
+            <span>Remote state: <code>{disposition.remote_state}</code></span>
+            <span>Remote status: <code>{disposition.remote_status}</code></span>
+            <span>Provider calls: <code>{disposition.provider_calls_made}</code></span>
+          </div>
+          <div className="remoteOperationRefs">
+            <span>Audit reference</span>
+            <code>{disposition.audit_ref}</code>
+          </div>
+          <p className="cancellationReason">
+            <strong>Operator reason:</strong> {disposition.reason}
+          </p>
+        </section>
+      )}
+      {!disposition && operation.state !== "active" && (
+        <section className="remoteDispositionControls">
+          <span className="kicker">Explicit orphan disposition</span>
+          <p className="cancellationSummary">
+            Close only UCA task state after a terminal or unavailable lease. This action makes no
+            provider request and does not recover output or resume execution.
+          </p>
+          <Field
+            label="Disposition reason"
+            value={dispositionReason}
+            onChange={setDispositionReason}
+          />
+          <div className="controlRow remoteOperationActions">
+            <button
+              className="dangerGhost"
+              onClick={() => onDispose("cancelled", dispositionReason.trim())}
+              disabled={!canDispose || !dispositionReason.trim()}
+            >
+              Close task as cancelled
+            </button>
+            <button
+              className="dangerGhost"
+              onClick={() => onDispose("failed", dispositionReason.trim())}
+              disabled={!canDispose || !dispositionReason.trim()}
+            >
+              Close task as failed
+            </button>
+          </div>
+          {operation.state === "unavailable" && (
+            <p className="remoteOperationBlocked">
+              Remote state is unavailable. Either disposition closes only UCA state and must not
+              be interpreted as confirmed provider termination.
+            </p>
+          )}
+        </section>
+      )}
       {operation.state === "active" && !operation.requires_explicit_action && (
         <p className="remoteOperationBlocked">
           Explicit reconciliation is unavailable while the local task worker is active.
@@ -1266,7 +1395,9 @@ function RemoteOperationPanel({
       <p className="cancellationBoundaryNote">
         Loading, refresh, and polling are read-only. Observe makes one bounded provider status
         request. Cancel records durable intent before requesting remote cancellation. Neither
-        action resumes the graph, consumes output, or advances a Program phase.
+        reconciliation nor disposition resumes the graph, consumes output, or advances a Program
+        phase. Disposition is available only after terminal or unavailable remote state and with no
+        active local worker.
       </p>
     </section>
   );

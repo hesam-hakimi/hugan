@@ -2,6 +2,7 @@ import type {
   ContextDocument,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationDispositionResult,
   RemoteOperationReconciliationResult,
   RequirementContract,
   RequirementResult,
@@ -149,6 +150,19 @@ export const api = {
       {
         method: "POST",
         body: JSON.stringify({ action }),
+      },
+    ),
+
+  disposeRemoteOperation: (
+    taskId: string,
+    outcome: "cancelled" | "failed",
+    reason: string,
+  ) =>
+    request<RemoteOperationDispositionResult>(
+      `/api/tasks/${encodeURIComponent(taskId)}/remote-operation/dispose`,
+      {
+        method: "POST",
+        body: JSON.stringify({ outcome, reason, confirmed: true }),
       },
     ),
 

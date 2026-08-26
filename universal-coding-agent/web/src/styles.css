@@ -168,6 +168,9 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .remoteOperationRefs code { color: #526176; overflow-wrap: anywhere; }
 .remoteOperationActions { margin-top: 12px; }
 .remoteOperationBlocked { color: #8b671d; font-size: 11px; line-height: 1.45; margin: 10px 0 0; }
+.remoteDispositionControls, .remoteDispositionEvidence { border-top: 1px solid #e3e7ed; margin-top: 13px; padding-top: 13px; }
+.remoteDispositionControls .field { margin-top: 10px; }
+.remoteDispositionEvidence { border: 1px solid #d7dfeb; border-radius: 9px; padding: 12px; background: #fff; }
 
 .fileDrop { border: 1px dashed #aeb9c8; border-radius: 11px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; }
 .fileDrop input { display: none; }

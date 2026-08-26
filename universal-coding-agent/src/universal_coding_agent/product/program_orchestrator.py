@@ -10,6 +10,10 @@ from typing import Any, Protocol
 from pydantic import TypeAdapter
 
 from universal_coding_agent.core.models import ModelRequest, RepositorySpec, SlicePlan
+from universal_coding_agent.core.remote_operations import (
+    RemoteOperationDisposition,
+    RemoteOperationDispositionOutcome,
+)
 from universal_coding_agent.core.safe_models import SafeContextEvidence, SafeModePolicy
 from universal_coding_agent.orchestration.structured_output import (
     StructuredOutputError,
@@ -161,6 +165,7 @@ class ProgramOrchestrator:
                 accepted_evidence_ref TEXT NOT NULL DEFAULT '',
                 accepted_evidence_hash TEXT NOT NULL DEFAULT '',
                 expected_base_sha TEXT NOT NULL DEFAULT '',
+                remote_disposition_ref TEXT NOT NULL DEFAULT '',
                 PRIMARY KEY(program_id, phase_id, unit_key)
             )
             """
@@ -172,6 +177,9 @@ class ProgramOrchestrator:
             "accepted_evidence_hash", "TEXT NOT NULL DEFAULT ''"
         )
         self._ensure_execution_column("expected_base_sha", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_execution_column(
+            "remote_disposition_ref", "TEXT NOT NULL DEFAULT ''"
+        )
         self.connection.commit()
 
     def close(self) -> None:
@@ -469,7 +477,8 @@ class ProgramOrchestrator:
                 SELECT program_id, phase_id, slice_id, task_id, thread_id,
                        requirement_hash, status, safe_status, result_ref,
                        phase_report_ref, error_ref, accepted_evidence_ref,
-                       accepted_evidence_hash, expected_base_sha
+                       accepted_evidence_hash, expected_base_sha,
+                       remote_disposition_ref
                 FROM program_executions WHERE task_id = ?
                 """,
                 (task_id,),
@@ -485,12 +494,89 @@ class ProgramOrchestrator:
                 SELECT program_id, phase_id, slice_id, task_id, thread_id,
                        requirement_hash, status, safe_status, result_ref,
                        phase_report_ref, error_ref, accepted_evidence_ref,
-                       accepted_evidence_hash, expected_base_sha
+                       accepted_evidence_hash, expected_base_sha,
+                       remote_disposition_ref
                 FROM program_executions WHERE program_id = ? ORDER BY rowid
                 """,
                 (program_id,),
             ).fetchall()
             return tuple(self._binding_from_row(row) for row in rows)
+
+    def record_remote_operation_disposition(
+        self,
+        disposition: RemoteOperationDisposition,
+    ) -> ProgramExecutionBinding:
+        """Stop one orphaned Program binding without resuming its Safe graph."""
+
+        with self._lock:
+            binding = self.execution_binding(disposition.task_id)
+            if (
+                disposition.program_id != binding.program_id
+                or disposition.phase_id != binding.phase_id
+                or disposition.slice_id != (binding.slice_id or "")
+            ):
+                raise ProgramExecutionError(
+                    "remote-operation disposition does not match execution binding"
+                )
+
+            target_status = (
+                ProgramExecutionStatus.CANCELLED
+                if disposition.outcome
+                is RemoteOperationDispositionOutcome.CANCELLED
+                else ProgramExecutionStatus.FAILED
+            )
+            target_phase_status = (
+                PhaseStatus.CANCELLED
+                if disposition.outcome
+                is RemoteOperationDispositionOutcome.CANCELLED
+                else PhaseStatus.FAILED
+            )
+            if binding.remote_disposition_ref:
+                payload = self.artifacts.read_json(binding.remote_disposition_ref)
+                if (
+                    binding.status is target_status
+                    and payload.get("audit_ref") == disposition.audit_ref
+                ):
+                    return binding
+                raise ProgramExecutionError(
+                    "execution binding already has a different remote disposition"
+                )
+            if binding.status not in _ACTIVE_EXECUTION_STATUSES:
+                raise ProgramExecutionError("execution binding is already terminal")
+
+            reference = self.artifacts.write_json(
+                (
+                    f"programs/{binding.program_id}/phases/{binding.phase_id}/executions/"
+                    f"{binding.task_id}/remote-operation-disposition.json"
+                ),
+                disposition.model_dump(mode="json"),
+            )
+            self.connection.execute(
+                """
+                UPDATE program_executions
+                SET status = ?, remote_disposition_ref = ?
+                WHERE task_id = ?
+                """,
+                (target_status.value, reference.uri, binding.task_id),
+            )
+            self.connection.execute(
+                """
+                UPDATE program_phases SET status = ?
+                WHERE program_id = ? AND phase_id = ?
+                """,
+                (
+                    target_phase_status.value,
+                    binding.program_id,
+                    binding.phase_id,
+                ),
+            )
+            self.connection.execute(
+                "UPDATE programs SET status = ? WHERE program_id = ?",
+                (ProgramStatus.BLOCKED.value, binding.program_id),
+            )
+            self.connection.commit()
+            self._write_phase_execution_report(binding.program_id, binding.phase_id)
+            return self.execution_binding(binding.task_id)
 
     def complete_phase(self, program_id: str, result: PhaseResult) -> str:
         if self.phase_status(program_id, result.phase_id) is not PhaseStatus.RUNNING:
@@ -931,8 +1017,8 @@ class ProgramOrchestrator:
                 program_id, phase_id, unit_key, slice_id, task_id, thread_id,
                 requirement_hash, status, safe_status, result_ref,
                 phase_report_ref, error_ref, accepted_evidence_ref,
-                accepted_evidence_hash, expected_base_sha
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                accepted_evidence_hash, expected_base_sha, remote_disposition_ref
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 binding.program_id,
@@ -950,6 +1036,7 @@ class ProgramOrchestrator:
                 binding.accepted_evidence_ref,
                 binding.accepted_evidence_hash,
                 binding.expected_base_sha,
+                binding.remote_disposition_ref,
             ),
         )
         self.connection.commit()
@@ -1209,6 +1296,7 @@ class ProgramOrchestrator:
             accepted_evidence_ref=row[11],
             accepted_evidence_hash=row[12],
             expected_base_sha=row[13],
+            remote_disposition_ref=row[14],
         )
 
     def _ensure_execution_column(self, name: str, declaration: str) -> None:

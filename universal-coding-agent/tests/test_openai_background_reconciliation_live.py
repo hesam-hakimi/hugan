@@ -100,6 +100,15 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["explicit_cancel_calls"] == 1
     assert summary["terminal_cancelled"] is True
     assert summary["durable_terminal_reloaded"] is True
+    assert summary["provider_calls_during_disposition"] == 0
+    assert summary["disposition_matches_remote"] is True
+    assert summary["durable_disposition_reloaded"] is True
+    disposition = summary["durable_terminal_disposition"]
+    assert disposition["outcome"] == "cancelled"
+    assert disposition["provider_confirmed_cancelled"] is True
+    assert disposition["output_consumed"] is False
+    assert disposition["graph_resumed"] is False
+    assert disposition["program_phase_advanced"] is False
     assert summary["identity_and_base_bound"] is True
     assert summary["private_identifier_fields_absent"] is True
     assert summary["source"]["source_preserved"] is True

@@ -388,6 +388,7 @@ class ProgramExecutionBinding(FrozenModel):
     accepted_evidence_ref: str = Field(default="", max_length=1024)
     accepted_evidence_hash: str = Field(default="", max_length=64)
     expected_base_sha: str = Field(default="", max_length=64)
+    remote_disposition_ref: str = Field(default="", max_length=1024)
 
 
 class ControlEntityType(StrEnum):
@@ -401,6 +402,7 @@ class ControlState(StrEnum):
     PAUSED = "paused"
     CANCEL_REQUESTED = "cancel_requested"
     CANCELLED = "cancelled"
+    FAILED = "failed"
     COMPLETED = "completed"
 
 

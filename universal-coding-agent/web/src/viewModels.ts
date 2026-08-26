@@ -3,6 +3,7 @@ import type {
   ProgramExecutionBinding,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationDisposition,
   RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
@@ -17,6 +18,12 @@ export type CancellationEvidencePresentation = {
 };
 
 export type RemoteOperationPresentation = {
+  label: string;
+  summary: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+};
+
+export type RemoteOperationDispositionPresentation = {
   label: string;
   summary: string;
   tone: "good" | "warn" | "bad" | "neutral";
@@ -82,6 +89,47 @@ export function canReconcileRemoteOperation(
       operation.requires_explicit_action &&
       !blocked,
   );
+}
+
+export function canDisposeRemoteOperation(
+  operation?: RemoteOperationSnapshot,
+  disposition?: RemoteOperationDisposition,
+  blocked = false,
+): boolean {
+  return Boolean(
+    operation &&
+      operation.state !== "active" &&
+      operation.requires_explicit_disposition &&
+      !disposition &&
+      !blocked,
+  );
+}
+
+export function remoteOperationDispositionPresentation(
+  disposition: RemoteOperationDisposition,
+): RemoteOperationDispositionPresentation {
+  const outcome = disposition.outcome === "cancelled" ? "cancelled" : "failed";
+  if (disposition.provider_confirmed_cancelled) {
+    return {
+      label: `Task closed as ${outcome}`,
+      summary:
+        "The provider had reported terminal cancellation. The operator disposition closed only UCA task state; it did not consume output, resume the graph, or advance a Program phase.",
+      tone: disposition.outcome === "cancelled" ? "good" : "bad",
+    };
+  }
+  if (disposition.remote_state === "unavailable") {
+    return {
+      label: `Task closed as ${outcome}`,
+      summary:
+        "Remote lifecycle state was unavailable. This audited operator disposition does not confirm provider completion or termination.",
+      tone: "bad",
+    };
+  }
+  return {
+    label: `Task closed as ${outcome}`,
+    summary: `The provider reported terminal status ${disposition.remote_status}. UCA did not consume remote output, resume the graph, or advance a Program phase.`,
+    tone: disposition.outcome === "cancelled" ? "warn" : "bad",
+  };
 }
 
 export function cancellationEvidencePresentation(

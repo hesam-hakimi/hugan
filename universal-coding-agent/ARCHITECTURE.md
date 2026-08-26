@@ -252,6 +252,36 @@ active-pause behavior, workflow threshold, live aggregator, or publication bound
 local and single-user. The P1.2f temporary-retention and private-store limitations continue to
 apply.
 
+P1.2h adds one explicit terminal disposition for an orphaned remote operation after reconciliation
+can no longer proceed: the durable lease must already be `terminal` or `unavailable`, and no local
+standalone or Program worker may be active. The operator chooses exactly `cancelled` or `failed`,
+supplies a reason, and sends `confirmed=true` to
+`POST /api/tasks/{task_id}/remote-operation/dispose`. Active leases fail closed and retain the
+P1.2f observe/cancel path. The disposition implementation does not reference the provider and makes
+zero provider calls.
+
+Task control stores one immutable redacted disposition with a SHA-256 audit reference, operator
+confirmation, outcome and reason, the public operation/transport hashes, optional immutable Base
+SHA, and the exact remote state, status, revision, and timestamp on which the decision was based.
+It also records that no provider call was made, no output was consumed, the graph was not resumed,
+and no Program phase was advanced. An exact repeat is idempotent; a conflicting replacement is
+rejected. The task control record becomes terminal `cancelled` or `failed`, and a disposed task ID
+cannot be reused or continued.
+
+For a persisted Program binding, the same disposition is written as an artifact and its reference
+is added to the binding. The binding and phase become `cancelled` or `failed`, and the Program
+becomes `blocked`; it does not select or start another unit. UI controls require browser
+confirmation and show the durable audit evidence for standalone and Program tasks. A lease marked
+`unavailable` is explicitly described as unknown remote lifecycle state, never as confirmed
+completion or termination. Provider-confirmed cancellation is claimed only when the captured
+terminal status is exactly `cancelled`.
+
+The restart live qualification now records and reloads this disposition after the existing real
+provider cancellation proof and requires zero additional provider calls, redacted durable
+evidence, and unchanged source. P1.2h adds no output recovery, graph resume, retry/replan, Program
+phase advancement, automatic restart action, another provider transport, active pause,
+publication, or broader cancellation claim.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

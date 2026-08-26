@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
+    RemoteOperationDispositionOutcome,
     RemoteOperationState,
 )
 from universal_coding_agent.core.safe_models import SafeModePolicy
@@ -97,6 +98,12 @@ class RemoteOperationReconcileRequest(BaseModel):
     action: RemoteOperationAction
 
 
+class RemoteOperationDispositionRequest(BaseModel):
+    outcome: RemoteOperationDispositionOutcome
+    reason: str = Field(min_length=1, max_length=2000)
+    confirmed: Literal[True]
+
+
 class SafeTaskStartRequest(BaseModel):
     task_id: str | None = None
     thread_id: str | None = None
@@ -132,6 +139,8 @@ class ProductWebRuntime:
         task_id = request.task_id or f"safe-ui-{uuid.uuid4().hex[:16]}"
         thread_id = request.thread_id or task_id
         with self._lock:
+            if self.workspace.control.remote_operation_disposition(task_id) is not None:
+                raise ValueError("disposed task identity cannot be reused")
             if task_id in self._runs:
                 raise ValueError(f"task already exists: {task_id}")
             self.workspace.control.ensure_task(task_id)
@@ -150,8 +159,10 @@ class ProductWebRuntime:
             record = dict(self._runs.get(task_id, {}))
             runtime_record_exists = task_id in self._runs
         control = self.workspace.control.get_task(task_id)
-        if not record and control is None:
+        disposition = self.workspace.control.remote_operation_disposition(task_id)
+        if not record and control is None and disposition is None:
             raise KeyError(task_id)
+        record.setdefault("task_id", task_id)
         if control is not None:
             record["control"] = control.model_dump(mode="json")
         cancellation = self.workspace.control.cancellation_report(task_id)
@@ -159,11 +170,17 @@ class ProductWebRuntime:
             record["cancellation_report"] = cancellation.to_json()
         remote_operation = self.workspace.remote_operations.public_snapshot(task_id)
         if remote_operation is not None:
+            record.setdefault("thread_id", remote_operation.thread_id)
             record["remote_operation"] = self._remote_operation_snapshot(
                 remote_operation.model_dump(mode="json"),
                 busy=bool(record.get("busy", False)),
                 recovered=not runtime_record_exists,
+                disposed=disposition is not None,
             )
+        if disposition is not None:
+            record["status"] = disposition.outcome.value
+            record["busy"] = False
+            record["remote_operation_disposition"] = disposition.model_dump(mode="json")
         return record
 
     def reconcile_remote_operation(
@@ -173,6 +190,8 @@ class ProductWebRuntime:
     ) -> dict[str, Any]:
         if self.workspace.control.get_task(task_id) is None:
             raise KeyError(task_id)
+        if self.workspace.control.remote_operation_disposition(task_id) is not None:
+            raise ValueError("disposed remote operation cannot be reconciled")
         if self._remote_reconciliation_busy(task_id):
             raise ValueError(
                 "remote-operation reconciliation requires no active local task worker"
@@ -190,8 +209,60 @@ class ProductWebRuntime:
                 snapshot.model_dump(mode="json"),
                 busy=False,
                 recovered=task_id not in self._runs,
+                disposed=False,
             ),
         }
+
+    def dispose_remote_operation(
+        self,
+        task_id: str,
+        outcome: RemoteOperationDispositionOutcome,
+        *,
+        reason: str,
+        confirmed: bool,
+    ) -> dict[str, Any]:
+        """Persist terminal local disposition without making a provider request."""
+
+        with self._lock:
+            if self.workspace.control.get_task(task_id) is None:
+                raise KeyError(task_id)
+            if self._remote_reconciliation_busy(task_id):
+                raise ValueError(
+                    "remote-operation disposition requires no active local task worker"
+                )
+            snapshot = self.workspace.remote_operations.public_snapshot(task_id)
+            if snapshot is None:
+                raise ValueError("task has no durable remote-operation lease")
+            if snapshot.state is RemoteOperationState.ACTIVE:
+                raise ValueError(
+                    "active remote-operation lease requires explicit observe or cancel"
+                )
+
+            try:
+                binding = self.workspace.programs.execution_binding(task_id)
+            except KeyError:
+                binding = None
+            disposition = self.workspace.control.record_remote_operation_disposition(
+                snapshot,
+                outcome,
+                reason=reason,
+                confirmed=confirmed,
+                program_id=binding.program_id if binding is not None else "",
+                phase_id=binding.phase_id if binding is not None else "",
+                slice_id=(binding.slice_id or "") if binding is not None else "",
+            )
+            if binding is not None:
+                self.workspace.programs.record_remote_operation_disposition(disposition)
+            run = self._runs.get(task_id)
+            if run is not None:
+                run.update(status=outcome.value, busy=False)
+
+            return {
+                "task_id": task_id,
+                "outcome": disposition.outcome.value,
+                "program_id": disposition.program_id,
+                "remote_operation_disposition": disposition.model_dump(mode="json"),
+            }
 
     def _remote_reconciliation_busy(self, task_id: str) -> bool:
         with self._lock:
@@ -211,6 +282,8 @@ class ProductWebRuntime:
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:
         with self._lock:
+            if self.workspace.control.remote_operation_disposition(task_id) is not None:
+                raise ValueError("disposed task cannot resume Safe work")
             record = self._runs.get(task_id)
             if record is None:
                 raise KeyError(task_id)
@@ -311,16 +384,18 @@ class ProductWebRuntime:
         task_id: str,
         request: ProgramExecutionContinueRequest,
     ) -> dict[str, Any]:
-        binding = self.workspace.programs.execution_binding(task_id)
-        if binding.program_id != program_id:
-            raise ValueError("execution binding belongs to another program")
-        if binding.status not in {
-            ProgramExecutionStatus.STARTING,
-            ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL,
-            ProgramExecutionStatus.RUNNING,
-        }:
-            raise ValueError("execution binding is not awaiting an explicit action")
         with self._lock:
+            binding = self.workspace.programs.execution_binding(task_id)
+            if binding.program_id != program_id:
+                raise ValueError("execution binding belongs to another program")
+            if binding.status not in {
+                ProgramExecutionStatus.STARTING,
+                ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL,
+                ProgramExecutionStatus.RUNNING,
+            }:
+                raise ValueError("execution binding is not awaiting an explicit action")
+            if self.workspace.control.remote_operation_disposition(task_id) is not None:
+                raise ValueError("disposed execution binding cannot continue")
             current = self._program_execution_runs.get(program_id)
             if current is not None and current.get("busy"):
                 raise ValueError("program execution is currently busy")
@@ -350,6 +425,8 @@ class ProductWebRuntime:
         with self._lock:
             if task_id not in self._runs:
                 raise KeyError(task_id)
+            if self.workspace.control.remote_operation_disposition(task_id) is not None:
+                raise ValueError("disposed task is terminal")
 
     def _start_safe_worker(
         self,
@@ -513,6 +590,7 @@ class ProductWebRuntime:
         remote_operation = self.workspace.remote_operations.public_snapshot(
             binding.task_id
         )
+        disposition = self.workspace.control.remote_operation_disposition(binding.task_id)
         if remote_operation is not None:
             runtime_task_id = str(runtime_record.get("task_id", ""))
             matching_runtime = bool(
@@ -523,6 +601,11 @@ class ProductWebRuntime:
                 remote_operation.model_dump(mode="json"),
                 busy=bool(matching_runtime and runtime_record.get("busy", False)),
                 recovered=not matching_runtime,
+                disposed=disposition is not None,
+            )
+        if disposition is not None:
+            snapshot["remote_operation_disposition"] = disposition.model_dump(
+                mode="json"
             )
         return snapshot
 
@@ -532,10 +615,14 @@ class ProductWebRuntime:
         *,
         busy: bool,
         recovered: bool,
+        disposed: bool,
     ) -> dict[str, Any]:
         active = snapshot.get("state") == RemoteOperationState.ACTIVE.value
         snapshot["recovered_pending"] = bool(active and recovered)
-        snapshot["requires_explicit_action"] = bool(active and not busy)
+        snapshot["requires_explicit_action"] = bool(active and not busy and not disposed)
+        snapshot["requires_explicit_disposition"] = bool(
+            not active and not busy and not disposed
+        )
         return snapshot
 
 
@@ -748,6 +835,18 @@ def create_product_app(
         request: RemoteOperationReconcileRequest,
     ) -> dict[str, Any]:
         return runtime.reconcile_remote_operation(task_id, request.action)
+
+    @app.post("/api/tasks/{task_id}/remote-operation/dispose")
+    def dispose_remote_operation(
+        task_id: str,
+        request: RemoteOperationDispositionRequest,
+    ) -> dict[str, Any]:
+        return runtime.dispose_remote_operation(
+            task_id,
+            request.outcome,
+            reason=request.reason,
+            confirmed=request.confirmed,
+        )
 
     resolved_ui = ui_dist.resolve() if ui_dist is not None else None
     if resolved_ui is not None and resolved_ui.is_dir():

@@ -12,6 +12,9 @@ from universal_coding_agent.core.remote_operations import RemoteOperationState
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
 from universal_coding_agent.product.models import (
     AcceptanceCriterion,
+    PhaseStatus,
+    ProgramExecutionStatus,
+    ProgramStatus,
     RequirementContract,
     RequirementItem,
     RequirementStatus,
@@ -470,6 +473,7 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
     workspace = ProductWorkspace.create(tmp_path / "product", _provider())
     program_id = "program-api-remote-recovery"
     requirement_hash = _approved_program(workspace, program_id)
+    executor = RecordingProgramExecutor()
     binding = workspace.programs.start_next_execution(
         program_id=program_id,
         current_requirement_hash=requirement_hash,
@@ -479,7 +483,7 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         ),
         policy=_policy(),
         test_profiles=("trusted-contract",),
-        executor=RecordingProgramExecutor(),
+        executor=executor,
     )
     response_id = "resp_private_program_binding"
     endpoint = "https://example.test/v1/responses"
@@ -507,7 +511,94 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         assert remote["state"] == "active"
         assert remote["recovered_pending"] is True
         assert remote["requires_explicit_action"] is True
+        assert remote["requires_explicit_disposition"] is False
         assert response_id not in recovered.text
+
+        active_disposition = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json={
+                "outcome": "failed",
+                "reason": "Interrupted Program binding requires explicit closure.",
+                "confirmed": True,
+            },
+        )
+        assert active_disposition.status_code == 400
+
+        workspace.remote_operations.mark_unavailable(binding.task_id)
+        terminal = client.get(f"/api/programs/{program_id}/executions")
+        terminal_remote = terminal.json()["bindings"][0]["remote_operation"]
+        assert terminal_remote["state"] == "unavailable"
+        assert terminal_remote["requires_explicit_disposition"] is True
+
+        runtime._program_execution_runs[program_id] = {
+            "busy": True,
+            "task_id": binding.task_id,
+        }
+        busy_disposition = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json={
+                "outcome": "failed",
+                "reason": "Program worker is still active.",
+                "confirmed": True,
+            },
+        )
+        assert busy_disposition.status_code == 400
+        runtime._program_execution_runs.pop(program_id)
+
+        disposed = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json={
+                "outcome": "failed",
+                "reason": "Remote state is unavailable; termination is not inferred.",
+                "confirmed": True,
+            },
+        )
+        assert disposed.status_code == 200
+        disposition = disposed.json()["remote_operation_disposition"]
+        assert disposition["program_id"] == program_id
+        assert disposition["phase_id"] == binding.phase_id
+        assert disposition["provider_confirmed_cancelled"] is False
+        assert disposition["provider_calls_made"] == 0
+
+        final = client.get(f"/api/programs/{program_id}/executions")
+        final_body = final.json()
+        final_binding = final_body["bindings"][0]
+        assert final_body["program_status"] == "blocked"
+        assert final_body["runtime"]["requires_explicit_action"] is False
+        assert final_binding["status"] == "failed"
+        assert final_binding["control"]["state"] == "failed"
+        assert final_binding["remote_disposition_ref"].startswith("artifact://")
+        assert final_binding["remote_operation_disposition"] == disposition
+        assert (
+            final_binding["remote_operation"]["requires_explicit_disposition"]
+            is False
+        )
+        assert response_id not in final.text
+        assert executor.resumes == []
+
+        persisted = workspace.programs.execution_binding(binding.task_id)
+        assert persisted.status is ProgramExecutionStatus.FAILED
+        assert persisted.remote_disposition_ref.startswith("artifact://")
+        assert workspace.programs.phase_status(
+            program_id,
+            binding.phase_id,
+        ) is PhaseStatus.FAILED
+        assert workspace.programs.status(program_id) is ProgramStatus.BLOCKED
+        artifact = workspace.artifacts.read_json(persisted.remote_disposition_ref)
+        assert artifact["audit_ref"] == disposition["audit_ref"]
+        report = workspace.artifacts.read_json(persisted.phase_report_ref)
+        assert report["phase_status"] == "failed"
+        assert report["program_status"] == "blocked"
+
+        blocked_continue = client.post(
+            f"/api/programs/{program_id}/executions/{binding.task_id}/continue",
+            json={
+                "current_requirement_hash": requirement_hash,
+                "approved": True,
+            },
+        )
+        assert blocked_continue.status_code == 400
+        assert executor.resumes == []
 
 
 def test_unknown_task_control_is_not_silently_created(tmp_path) -> None:

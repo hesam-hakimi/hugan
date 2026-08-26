@@ -14,12 +14,15 @@ from universal_coding_agent.core.cancellation import CancellationCoordinator
 from universal_coding_agent.core.models import ModelRequest
 from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
+    RemoteOperationDisposition,
+    RemoteOperationDispositionOutcome,
     RemoteOperationSnapshot,
     RemoteOperationState,
 )
 from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
+from universal_coding_agent.product.task_control import TaskControlService
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safety.sanitizer import sanitize_text
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
@@ -155,6 +158,35 @@ def run_openai_background_reconciliation_live(
     finally:
         durable_store.close()
 
+    disposition: RemoteOperationDisposition | None = None
+    durable_disposition: RemoteOperationDisposition | None = None
+    provider_calls_during_disposition = -1
+    calls_before_disposition = len(request_events)
+    task_control_path = state_root / "task-control.sqlite"
+    task_control = TaskControlService(task_control_path)
+    try:
+        task_control.ensure_task(_TASK_ID)
+        if durable_snapshot is not None:
+            disposition = task_control.record_remote_operation_disposition(
+                durable_snapshot,
+                RemoteOperationDispositionOutcome.CANCELLED,
+                reason="Live qualification confirmed terminal remote cancellation.",
+                confirmed=True,
+            )
+        provider_calls_during_disposition = (
+            len(request_events) - calls_before_disposition
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        task_control.close()
+
+    reopened_control = TaskControlService(task_control_path)
+    try:
+        durable_disposition = reopened_control.remote_operation_disposition(_TASK_ID)
+    finally:
+        reopened_control.close()
+
     source_after = _source_snapshot(source_root)
     source_preserved = source_before == source_after and not source_before["status"]
     created_json = _snapshot_json(created_snapshot)
@@ -163,6 +195,8 @@ def run_openai_background_reconciliation_live(
     cancelled_json = _snapshot_json(cancelled_snapshot)
     terminal_json = _snapshot_json(terminal_snapshot)
     durable_json = _snapshot_json(durable_snapshot)
+    disposition_json = _disposition_json(disposition)
+    durable_disposition_json = _disposition_json(durable_disposition)
     stable_reference = bool(
         created_snapshot
         and recovered_snapshot
@@ -194,6 +228,24 @@ def run_openai_background_reconciliation_live(
         and durable_snapshot
         and terminal_snapshot == durable_snapshot
     )
+    disposition_matches_remote = bool(
+        disposition
+        and durable_snapshot
+        and disposition.outcome is RemoteOperationDispositionOutcome.CANCELLED
+        and disposition.operation_ref == durable_snapshot.operation_ref
+        and disposition.remote_revision == durable_snapshot.revision
+        and disposition.remote_state is RemoteOperationState.TERMINAL
+        and disposition.remote_status == "cancelled"
+        and disposition.provider_confirmed_cancelled
+        and disposition.confirmed_by_operator
+        and disposition.provider_calls_made == 0
+        and not disposition.output_consumed
+        and not disposition.graph_resumed
+        and not disposition.program_phase_advanced
+    )
+    durable_disposition_reloaded = bool(
+        disposition and durable_disposition and disposition == durable_disposition
+    )
     summary = {
         "provider": "openai_responses",
         "model": provider.model,
@@ -217,6 +269,11 @@ def run_openai_background_reconciliation_live(
         "identity_and_base_bound": identity_and_base_bound,
         "terminal_cancelled": terminal_cancelled,
         "durable_terminal_reloaded": durable_terminal_reloaded,
+        "explicit_terminal_disposition": disposition_json,
+        "durable_terminal_disposition": durable_disposition_json,
+        "provider_calls_during_disposition": provider_calls_during_disposition,
+        "disposition_matches_remote": disposition_matches_remote,
+        "durable_disposition_reloaded": durable_disposition_reloaded,
         "errors": [_safe_error(error) for error in errors],
         "source": {
             "head_sha": source_after["head_sha"],
@@ -240,6 +297,9 @@ def run_openai_background_reconciliation_live(
         and identity_and_base_bound
         and terminal_cancelled
         and durable_terminal_reloaded
+        and provider_calls_during_disposition == 0
+        and disposition_matches_remote
+        and durable_disposition_reloaded
         and not errors
         and identifier_fields_absent
         and source_preserved
@@ -348,6 +408,12 @@ def _snapshot_json(
     snapshot: RemoteOperationSnapshot | None,
 ) -> dict[str, Any] | None:
     return snapshot.model_dump(mode="json") if snapshot is not None else None
+
+
+def _disposition_json(
+    disposition: RemoteOperationDisposition | None,
+) -> dict[str, Any] | None:
+    return disposition.model_dump(mode="json") if disposition is not None else None
 
 
 def _contains_private_identifier_field(value: Any) -> bool:

@@ -7,6 +7,10 @@ from typing import Any
 import pytest
 
 from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.remote_operations import (
+    RemoteOperationDispositionOutcome,
+    RemoteOperationState,
+)
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
 from universal_coding_agent.product.models import (
     AcceptanceCriterion,
@@ -293,6 +297,53 @@ def test_safe_failure_blocks_program_and_prevents_later_work(tmp_path: Path) -> 
         assert failed.status is ProgramExecutionStatus.FAILED
         assert workspace.programs.phase_status(program_id, "phase-1") is PhaseStatus.FAILED
         assert workspace.programs.status(program_id) is ProgramStatus.BLOCKED
+        with pytest.raises(ProgramExecutionError, match="not running"):
+            _start_next(workspace, program_id, requirement_hash, executor)
+        assert len(executor.starts) == 1
+    finally:
+        workspace.close()
+
+
+def test_cancelled_orphan_disposition_stops_program_without_advancement(
+    tmp_path: Path,
+) -> None:
+    workspace, program_id, requirement_hash = _approved_workspace(tmp_path)
+    executor = RecordingDiscoveredSafeExecutor()
+    try:
+        binding = _start_next(workspace, program_id, requirement_hash, executor)
+        workspace.remote_operations.register(
+            task_id=binding.task_id,
+            thread_id=binding.thread_id,
+            transport="openai_responses",
+            transport_scope=f"sha256:{'a' * 64}",
+            operation_id="private-program-response-id",
+            base_sha="b" * 40,
+            status="cancelled",
+            state=RemoteOperationState.TERMINAL,
+        )
+        snapshot = workspace.remote_operations.public_snapshot(binding.task_id)
+        assert snapshot is not None
+        disposition = workspace.control.record_remote_operation_disposition(
+            snapshot,
+            RemoteOperationDispositionOutcome.CANCELLED,
+            reason="Provider reported terminal cancellation after local interruption.",
+            confirmed=True,
+            program_id=binding.program_id,
+            phase_id=binding.phase_id,
+            slice_id=binding.slice_id or "",
+        )
+
+        final = workspace.programs.record_remote_operation_disposition(disposition)
+
+        assert final.status is ProgramExecutionStatus.CANCELLED
+        assert final.remote_disposition_ref.startswith("artifact://")
+        assert workspace.programs.phase_status(
+            program_id,
+            binding.phase_id,
+        ) is PhaseStatus.CANCELLED
+        assert workspace.programs.status(program_id) is ProgramStatus.BLOCKED
+        assert workspace.control.get_task(binding.task_id).state is ControlState.CANCELLED
+        assert executor.resumes == []
         with pytest.raises(ProgramExecutionError, match="not running"):
             _start_next(workspace, program_id, requirement_hash, executor)
         assert len(executor.starts) == 1

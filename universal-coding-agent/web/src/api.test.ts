@@ -104,4 +104,29 @@ describe("Program execution API client", () => {
       expect(JSON.parse(String(request[1].body))).toEqual({ action });
     },
   );
+
+  it.each(["cancelled", "failed"] as const)(
+    "disposes remote task state only through an explicit confirmed %s POST",
+    async (outcome) => {
+      const fetchMock = vi.fn(async () => successfulJson());
+      vi.stubGlobal("fetch", fetchMock);
+
+      await api.disposeRemoteOperation(
+        "task/1",
+        outcome,
+        "Operator-confirmed orphan disposition.",
+      );
+
+      const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+      expect(request[0]).toBe(
+        "/api/tasks/task%2F1/remote-operation/dispose",
+      );
+      expect(request[1].method).toBe("POST");
+      expect(JSON.parse(String(request[1].body))).toEqual({
+        outcome,
+        reason: "Operator-confirmed orphan disposition.",
+        confirmed: true,
+      });
+    },
+  );
 });
