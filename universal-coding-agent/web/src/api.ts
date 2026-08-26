@@ -2,6 +2,7 @@ import type {
   ContextDocument,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationReconciliationResult,
   RequirementContract,
   RequirementResult,
   SearchHit,
@@ -141,6 +142,15 @@ export const api = {
     }),
 
   task: (taskId: string) => request<TaskSnapshot>(`/api/tasks/${encodeURIComponent(taskId)}`),
+
+  reconcileRemoteOperation: (taskId: string, action: "observe" | "cancel") =>
+    request<RemoteOperationReconciliationResult>(
+      `/api/tasks/${encodeURIComponent(taskId)}/remote-operation/reconcile`,
+      {
+        method: "POST",
+        body: JSON.stringify({ action }),
+      },
+    ),
 
   taskControl: (taskId: string, action: "pause" | "resume" | "cancel", reason = "") =>
     request<TaskSnapshot>(`/api/tasks/${encodeURIComponent(taskId)}/${action}`, {

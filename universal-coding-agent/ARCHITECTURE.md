@@ -228,6 +228,30 @@ second transport, active pause, arbitrary shell access, publication path, or bro
 cancellation claim. Remote termination is claimed only after a terminal `cancelled` status is
 observed.
 
+P1.2g exposes that bounded P1.2f recovery surface in the local Product Control Center without
+adding backend authority. Standalone task snapshots and persisted Program execution bindings use
+one typed remote-operation presentation containing only the redacted public lease: task and
+transport identity, hash-addressed endpoint scope and operation reference, optional immutable Base
+SHA, provider lifecycle status, durable cancel intent, revision, action counters, and timestamps.
+The opaque provider response identifier remains absent. Recovered active operations, cancellation
+intent without confirmed termination, terminal states, and unavailable state have distinct copy;
+the UI claims remote cancellation only when the provider-reported state is terminal `cancelled`.
+A terminal completion is not represented as recovered model output.
+
+Loading an existing standalone task, loading or refreshing a Program, refreshing a task, and all
+busy polling remain GET-only and start no provider work. An active lease becomes actionable only
+when the API marks it as requiring explicit action and no local UI or Program worker is busy.
+`Observe remote operation` performs the existing bounded observe action. `Request remote
+cancellation` requires browser confirmation before calling the existing cancel action. After a
+Program action the UI rereads Program and execution state; after a standalone action it applies the
+returned public snapshot. Neither path resumes the interrupted graph, consumes output, advances a
+Program phase, retries a request, or changes source.
+
+P1.2g changes no provider transport, persistence schema, safety gate, cancellation coordinator,
+active-pause behavior, workflow threshold, live aggregator, or publication boundary. The UI remains
+local and single-user. The P1.2f temporary-retention and private-store limitations continue to
+apply.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

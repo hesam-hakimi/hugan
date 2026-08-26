@@ -81,6 +81,32 @@ export type CancellationReport = {
   cooperative_fallback: boolean;
 };
 
+export type RemoteOperationSnapshot = {
+  task_id: string;
+  thread_id: string;
+  transport: string;
+  transport_scope: string;
+  operation_ref: string;
+  base_sha: string;
+  created_at: string;
+  updated_at: string;
+  last_status: string;
+  state: "active" | "terminal" | "unavailable";
+  cancellation_requested: boolean;
+  revision: number;
+  reconciliation_attempts: number;
+  cancel_requests: number;
+  last_action: "observe" | "cancel" | null;
+  recovered_pending: boolean;
+  requires_explicit_action: boolean;
+};
+
+export type RemoteOperationReconciliationResult = {
+  task_id: string;
+  action: "observe" | "cancel";
+  remote_operation: RemoteOperationSnapshot;
+};
+
 export type ProgramExecutionBinding = {
   program_id: string;
   phase_id: string;
@@ -98,6 +124,7 @@ export type ProgramExecutionBinding = {
   expected_base_sha: string;
   control?: ControlSnapshot;
   cancellation_report?: CancellationReport;
+  remote_operation?: RemoteOperationSnapshot;
 };
 
 export type ProgramExecutionSnapshot = {
@@ -146,5 +173,6 @@ export type TaskSnapshot = {
   error_type?: string;
   control?: ControlSnapshot;
   cancellation_report?: CancellationReport;
+  remote_operation?: RemoteOperationSnapshot;
   result?: Record<string, unknown>;
 };

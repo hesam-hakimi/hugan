@@ -6,6 +6,7 @@ import type {
   ContextDocument,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationSnapshot,
   RequirementResult,
   SearchHit,
   TaskSnapshot,
@@ -14,9 +15,11 @@ import {
   activeProgramExecutionBinding,
   canApproveScope,
   canContinueProgramExecution,
+  canReconcileRemoteOperation,
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
+  remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
 } from "./viewModels";
@@ -89,6 +92,7 @@ export default function App() {
   const [testProfiles, setTestProfiles] = useState("focused-tests");
   const [policyText, setPolicyText] = useState(defaultPolicy);
   const [task, setTask] = useState<TaskSnapshot>();
+  const [taskLookupId, setTaskLookupId] = useState("");
 
   useEffect(() => {
     api.health()
@@ -102,7 +106,7 @@ export default function App() {
       return;
     }
     const timer = window.setInterval(() => {
-      api.task(task.task_id).then(setTask).catch(() => undefined);
+      api.task(task.task_id).then(applyTaskState).catch(() => undefined);
     }, 1600);
     return () => window.clearInterval(timer);
   }, [task?.task_id, task?.status]);
@@ -189,6 +193,11 @@ export default function App() {
     setProgramId(state.program.program_id);
   }
 
+  function applyTaskState(snapshot: TaskSnapshot) {
+    setTask(snapshot);
+    setTaskLookupId(snapshot.task_id);
+  }
+
   async function readProgramState(id: string): Promise<ProgramState> {
     const loadedProgram = await api.program(id);
     const execution = await api.programExecutions(loadedProgram.program_id);
@@ -227,6 +236,31 @@ export default function App() {
       () => readProgramState(program.program_id),
       applyProgramState,
       "Program execution status refreshed without starting work.",
+    );
+  }
+
+  function reconcileProgramRemoteOperation(
+    taskId: string,
+    action: "observe" | "cancel",
+  ) {
+    if (!program) return;
+    if (
+      action === "cancel" &&
+      !window.confirm(
+        `Request bounded remote cancellation for ${taskId}? The UI will report termination only after the provider confirms a terminal state.`,
+      )
+    ) {
+      return;
+    }
+    void perform(
+      async () => {
+        await api.reconcileRemoteOperation(taskId, action);
+        return readProgramState(program.program_id);
+      },
+      applyProgramState,
+      action === "observe"
+        ? "Remote state observed without resuming Program work."
+        : "Remote cancellation requested; the displayed provider state is the bounded outcome.",
     );
   }
 
@@ -372,6 +406,25 @@ export default function App() {
     );
   }
 
+  function loadTask() {
+    const requestedTaskId = taskLookupId.trim();
+    if (!requestedTaskId) return;
+    void perform(
+      () => api.task(requestedTaskId),
+      applyTaskState,
+      "Task state loaded without starting provider work.",
+    );
+  }
+
+  function refreshTask() {
+    if (!task) return;
+    void perform(
+      () => api.task(task.task_id),
+      applyTaskState,
+      "Task state refreshed without starting provider work.",
+    );
+  }
+
   function startTask() {
     let policy: Record<string, unknown>;
     try {
@@ -395,7 +448,7 @@ export default function App() {
           test_profiles: profiles,
           acceptance_criteria: requirement?.contract.acceptance_criteria.map((item) => item.statement) ?? [],
         }),
-      setTask,
+      applyTaskState,
       "Safe task queued. Discovery has no write authority.",
     );
   }
@@ -404,8 +457,34 @@ export default function App() {
     if (!task) return;
     void perform(
       () => api.taskControl(task.task_id, action, "Operator action from Control Center"),
-      setTask,
+      applyTaskState,
       `Task ${action} requested.`,
+    );
+  }
+
+  function reconcileTaskRemoteOperation(action: "observe" | "cancel") {
+    if (!task) return;
+    if (
+      action === "cancel" &&
+      !window.confirm(
+        `Request bounded remote cancellation for ${task.task_id}? The UI will report termination only after the provider confirms a terminal state.`,
+      )
+    ) {
+      return;
+    }
+    const taskId = task.task_id;
+    void perform(
+      () => api.reconcileRemoteOperation(taskId, action),
+      (result) => {
+        setTask((current) =>
+          current?.task_id === result.task_id
+            ? { ...current, remote_operation: result.remote_operation }
+            : current,
+        );
+      },
+      action === "observe"
+        ? "Remote state observed without resuming task work."
+        : "Remote cancellation requested; the displayed provider state is the bounded outcome.",
     );
   }
 
@@ -413,7 +492,7 @@ export default function App() {
     if (!task) return;
     void perform(
       () => api.scopeDecision(task.task_id, approved),
-      setTask,
+      applyTaskState,
       approved ? "Scope approved; Safe Mode may implement." : "Scope rejected; no implementation approved.",
     );
   }
@@ -871,6 +950,18 @@ export default function App() {
                         {binding.cancellation_report && (
                           <CancellationReportPanel report={binding.cancellation_report} />
                         )}
+                        {binding.remote_operation && (
+                          <RemoteOperationPanel
+                            operation={binding.remote_operation}
+                            blocked={busy || programExecution.runtime.busy}
+                            onObserve={() =>
+                              reconcileProgramRemoteOperation(binding.task_id, "observe")
+                            }
+                            onCancel={() =>
+                              reconcileProgramRemoteOperation(binding.task_id, "cancel")
+                            }
+                          />
+                        )}
                         {binding.phase_report_ref && (
                           <div className="artifactRef">
                             Phase report: <code>{binding.phase_report_ref}</code>
@@ -975,6 +1066,23 @@ export default function App() {
             <article className="card formCard">
               <span className="kicker">Solution-level Safe Mode</span>
               <h2>Discover the right components first</h2>
+              <div className="recoveryLoad">
+                <Field
+                  label="Existing task ID"
+                  value={taskLookupId}
+                  onChange={setTaskLookupId}
+                />
+                <button
+                  className="secondary"
+                  onClick={loadTask}
+                  disabled={busy || !taskLookupId.trim()}
+                >
+                  Load existing task
+                </button>
+              </div>
+              <p className="muted">
+                Loading an existing task is read-only and never reconciles a remote operation.
+              </p>
               <Field label="Repository URL or approved local path" value={repository} onChange={setRepository} />
               <Field label="Branch / ref" value={ref} onChange={setRef} />
               <Field label="Task title" value={taskTitle} onChange={setTaskTitle} />
@@ -999,12 +1107,21 @@ export default function App() {
                     <div><span>Control state</span><strong>{task.control?.state ?? "pending"}</strong></div>
                   </div>
                   <div className="controlRow">
+                    <button className="secondary" onClick={refreshTask} disabled={busy}>Refresh status</button>
                     <button className="secondary" onClick={() => controlTask("pause")} disabled={busy}>Pause</button>
                     <button className="secondary" onClick={() => controlTask("resume")} disabled={busy}>Resume</button>
                     <button className="dangerGhost" onClick={() => controlTask("cancel")} disabled={busy}>Stop</button>
                   </div>
                   {task.cancellation_report && (
                     <CancellationReportPanel report={task.cancellation_report} />
+                  )}
+                  {task.remote_operation && (
+                    <RemoteOperationPanel
+                      operation={task.remote_operation}
+                      blocked={busy || Boolean(task.busy)}
+                      onObserve={() => reconcileTaskRemoteOperation("observe")}
+                      onCancel={() => reconcileTaskRemoteOperation("cancel")}
+                    />
                   )}
                   {canApproveScope(task) && (
                     <div className="approvalBox">
@@ -1053,23 +1170,23 @@ function CancellationReportPanel({ report }: { report: CancellationReport }) {
         <strong>Reason:</strong> {report.reason || "Not provided"}
       </p>
       <div className="cancellationMetrics">
-        <CancellationMetric label="Owned processes observed" value={report.owned_processes_observed} />
-        <CancellationMetric
+        <EvidenceMetric label="Owned processes observed" value={report.owned_processes_observed} />
+        <EvidenceMetric
           label="Owned handles observed"
           value={report.owned_cancellable_operations_observed}
         />
-        <CancellationMetric label="Terminate requests" value={report.terminate_requests} />
-        <CancellationMetric
+        <EvidenceMetric label="Terminate requests" value={report.terminate_requests} />
+        <EvidenceMetric
           label="Handle cancel requests"
           value={report.cancellable_operation_cancel_requests}
         />
-        <CancellationMetric label="Kill requests" value={report.kill_requests} />
-        <CancellationMetric label="Processes still active" value={report.processes_still_active} />
-        <CancellationMetric
+        <EvidenceMetric label="Kill requests" value={report.kill_requests} />
+        <EvidenceMetric label="Processes still active" value={report.processes_still_active} />
+        <EvidenceMetric
           label="Handles still active"
           value={report.cancellable_operations_still_active}
         />
-        <CancellationMetric
+        <EvidenceMetric
           label="Cooperative fallback"
           value={report.cooperative_fallback ? "yes" : "no"}
         />
@@ -1083,7 +1200,79 @@ function CancellationReportPanel({ report }: { report: CancellationReport }) {
   );
 }
 
-function CancellationMetric({ label, value }: { label: string; value: number | string }) {
+function RemoteOperationPanel({
+  operation,
+  blocked,
+  onObserve,
+  onCancel,
+}: {
+  operation: RemoteOperationSnapshot;
+  blocked: boolean;
+  onObserve: () => void;
+  onCancel: () => void;
+}) {
+  const presentation = remoteOperationPresentation(operation);
+  const canReconcile = canReconcileRemoteOperation(operation, blocked);
+
+  return (
+    <section className="remoteOperationEvidence">
+      <div className="cancellationEvidenceHeader">
+        <div>
+          <span className="kicker">Redacted remote-operation evidence</span>
+          <h3>{presentation.label}</h3>
+        </div>
+        <span className={`status ${presentation.tone}`}>{operation.state}</span>
+      </div>
+      <p className="cancellationSummary">{presentation.summary}</p>
+      <div className="remoteOperationMeta">
+        <span>Task: <code>{operation.task_id}</code></span>
+        <span>Transport: <code>{operation.transport}</code></span>
+        <span>Provider status: <code>{operation.last_status}</code></span>
+        <span>Last action: <code>{operation.last_action ?? "none"}</code></span>
+        <span>Updated: <code>{operation.updated_at}</code></span>
+        {operation.base_sha && <span>Immutable Base SHA: <code>{operation.base_sha}</code></span>}
+      </div>
+      <div className="remoteOperationRefs">
+        <span>Endpoint scope hash</span>
+        <code>{operation.transport_scope}</code>
+        <span>Operation reference hash</span>
+        <code>{operation.operation_ref}</code>
+      </div>
+      <div className="cancellationMetrics">
+        <EvidenceMetric label="Revision" value={operation.revision} />
+        <EvidenceMetric
+          label="Reconciliation attempts"
+          value={operation.reconciliation_attempts}
+        />
+        <EvidenceMetric label="Cancel requests" value={operation.cancel_requests} />
+        <EvidenceMetric
+          label="Cancellation intent"
+          value={operation.cancellation_requested ? "recorded" : "not recorded"}
+        />
+      </div>
+      <div className="controlRow remoteOperationActions">
+        <button className="secondary" onClick={onObserve} disabled={!canReconcile}>
+          Observe remote operation
+        </button>
+        <button className="dangerGhost" onClick={onCancel} disabled={!canReconcile}>
+          Request remote cancellation
+        </button>
+      </div>
+      {operation.state === "active" && !operation.requires_explicit_action && (
+        <p className="remoteOperationBlocked">
+          Explicit reconciliation is unavailable while the local task worker is active.
+        </p>
+      )}
+      <p className="cancellationBoundaryNote">
+        Loading, refresh, and polling are read-only. Observe makes one bounded provider status
+        request. Cancel records durable intent before requesting remote cancellation. Neither
+        action resumes the graph, consumes output, or advances a Program phase.
+      </p>
+    </section>
+  );
+}
+
+function EvidenceMetric({ label, value }: { label: string; value: number | string }) {
   return <div><span>{label}</span><strong>{value}</strong></div>;
 }
 

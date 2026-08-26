@@ -147,7 +147,8 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .errorText, .errorText code { color: #9d3f3f; }
 .executionPanel details .field { margin-top: 12px; }
 
-.cancellationEvidence { margin-top: 12px; border: 1px solid #d8dee7; border-radius: 10px; padding: 14px; background: #fff; }
+.cancellationEvidence, .remoteOperationEvidence { margin-top: 12px; border: 1px solid #d8dee7; border-radius: 10px; padding: 14px; background: #fff; }
+.remoteOperationEvidence { border-color: #cfd9e8; background: #fbfcff; }
 .cancellationEvidenceHeader { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
 .cancellationEvidenceHeader h3 { margin: 3px 0 0; font-size: 15px; }
 .cancellationSummary { color: #59677a; font-size: 12px; line-height: 1.5; margin: 10px 0; }
@@ -160,6 +161,13 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .cancellationMetrics span { min-height: 24px; color: #7b8798; font-size: 9px; line-height: 1.35; text-transform: uppercase; letter-spacing: .05em; }
 .cancellationMetrics strong { color: #273348; font-size: 13px; margin-top: 3px; text-transform: capitalize; }
 .cancellationBoundaryNote { border-top: 1px solid #e3e7ed; color: #6f7b8e; font-size: 11px; line-height: 1.5; margin: 11px 0 0; padding-top: 10px; }
+.remoteOperationMeta { display: flex; flex-wrap: wrap; gap: 7px 16px; color: #667387; font-size: 11px; }
+.remoteOperationMeta code { color: #526176; }
+.remoteOperationRefs { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 12px; align-items: start; margin: 11px 0; color: #7b8798; font-size: 10px; }
+.remoteOperationRefs span { text-transform: uppercase; letter-spacing: .05em; font-weight: 750; }
+.remoteOperationRefs code { color: #526176; overflow-wrap: anywhere; }
+.remoteOperationActions { margin-top: 12px; }
+.remoteOperationBlocked { color: #8b671d; font-size: 11px; line-height: 1.45; margin: 10px 0 0; }
 
 .fileDrop { border: 1px dashed #aeb9c8; border-radius: 11px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; }
 .fileDrop input { display: none; }
@@ -185,6 +193,7 @@ button:disabled { opacity: .5; cursor: not-allowed; }
 .taskFacts span, .taskFacts strong { display: block; }
 .taskFacts span { font-size: 9px; color: #7b8798; text-transform: uppercase; letter-spacing: .06em; }
 .taskFacts strong { font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
+.recoveryLoad { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding-bottom: 2px; }
 .approvalBox { border: 1px solid #e4d39f; background: #fff9e9; border-radius: 10px; padding: 15px; margin: 17px 0; }
 .approvalBox p { color: #76633a; font-size: 12px; line-height: 1.45; }
 details { margin-top: 16px; }

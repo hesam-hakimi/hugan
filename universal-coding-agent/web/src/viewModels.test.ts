@@ -4,6 +4,7 @@ import type {
   CancellationReport,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
 } from "./types";
@@ -11,9 +12,11 @@ import {
   activeProgramExecutionBinding,
   canApproveScope,
   canContinueProgramExecution,
+  canReconcileRemoteOperation,
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
+  remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
 } from "./viewModels";
@@ -59,6 +62,31 @@ function cancellationReport(
     processes_still_active: 0,
     cancellable_operations_still_active: 0,
     cooperative_fallback: false,
+    ...overrides,
+  };
+}
+
+function remoteOperation(
+  overrides: Partial<RemoteOperationSnapshot> = {},
+): RemoteOperationSnapshot {
+  return {
+    task_id: "task-1",
+    thread_id: "thread-1",
+    transport: "openai_responses",
+    transport_scope: `sha256:${"a".repeat(64)}`,
+    operation_ref: `sha256:${"b".repeat(64)}`,
+    base_sha: "c".repeat(40),
+    created_at: "2026-08-26T12:00:00Z",
+    updated_at: "2026-08-26T12:01:00Z",
+    last_status: "in_progress",
+    state: "active",
+    cancellation_requested: false,
+    revision: 1,
+    reconciliation_attempts: 0,
+    cancel_requests: 0,
+    last_action: null,
+    recovered_pending: true,
+    requires_explicit_action: true,
     ...overrides,
   };
 }
@@ -246,5 +274,75 @@ describe("control-center view models", () => {
     expect(evidence.label).toBe("Owned work still active");
     expect(evidence.tone).toBe("bad");
     expect(evidence.summary).toContain("1 registered owned operation still active");
+  });
+
+  it("presents a recovered active lease without implying provider work", () => {
+    const presentation = remoteOperationPresentation(remoteOperation());
+
+    expect(presentation).toEqual({
+      label: "Recovered remote operation",
+      summary:
+        "A redacted durable lease was recovered. Loading this view made no provider request; observe or cancel requires an explicit action.",
+      tone: "warn",
+    });
+    expect(canReconcileRemoteOperation(remoteOperation())).toBe(true);
+    expect(canReconcileRemoteOperation(remoteOperation(), true)).toBe(false);
+  });
+
+  it("does not claim termination while remote cancellation remains pending", () => {
+    const operation = remoteOperation({
+      cancellation_requested: true,
+      cancel_requests: 1,
+      last_action: "cancel",
+    });
+    const presentation = remoteOperationPresentation(operation);
+
+    expect(presentation.label).toBe("Remote cancellation pending");
+    expect(presentation.tone).toBe("bad");
+    expect(presentation.summary).toContain("termination has not been confirmed");
+    expect(canReconcileRemoteOperation(operation)).toBe(true);
+  });
+
+  it("claims remote cancellation only for a provider-confirmed terminal state", () => {
+    const operation = remoteOperation({
+      state: "terminal",
+      last_status: "cancelled",
+      cancellation_requested: true,
+      requires_explicit_action: false,
+    });
+    const presentation = remoteOperationPresentation(operation);
+
+    expect(presentation.label).toBe("Provider confirmed cancellation");
+    expect(presentation.tone).toBe("good");
+    expect(presentation.summary).toContain("did not recover output or resume the graph");
+    expect(canReconcileRemoteOperation(operation)).toBe(false);
+  });
+
+  it("keeps non-cancelled terminal output outside recovery", () => {
+    const presentation = remoteOperationPresentation(
+      remoteOperation({
+        state: "terminal",
+        last_status: "completed",
+        requires_explicit_action: false,
+      }),
+    );
+
+    expect(presentation.label).toBe("Provider reported terminal state");
+    expect(presentation.tone).toBe("neutral");
+    expect(presentation.summary).toContain("did not consume output");
+  });
+
+  it("fails closed when the remote lifecycle is unavailable", () => {
+    const operation = remoteOperation({
+      state: "unavailable",
+      last_status: "remote_state_unavailable",
+      requires_explicit_action: false,
+    });
+    const presentation = remoteOperationPresentation(operation);
+
+    expect(presentation.label).toBe("Remote state unavailable");
+    expect(presentation.tone).toBe("bad");
+    expect(presentation.summary).toContain("Do not infer completion or termination");
+    expect(canReconcileRemoteOperation(operation)).toBe(false);
   });
 });

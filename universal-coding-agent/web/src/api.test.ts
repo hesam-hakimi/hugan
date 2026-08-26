@@ -35,6 +35,18 @@ describe("Program execution API client", () => {
     expect(executionRequest[1].body).toBeUndefined();
   });
 
+  it("loads task state with a read-only request", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.task("task/with spaces");
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe("/api/tasks/task%2Fwith%20spaces");
+    expect(request[1].method).toBeUndefined();
+    expect(request[1].body).toBeUndefined();
+  });
+
   it("starts the next execution unit only through an explicit POST", async () => {
     const fetchMock = vi.fn(async () => successfulJson());
     vi.stubGlobal("fetch", fetchMock);
@@ -75,4 +87,21 @@ describe("Program execution API client", () => {
       approved: false,
     });
   });
+
+  it.each(["observe", "cancel"] as const)(
+    "reconciles a remote operation only through an explicit %s POST",
+    async (action) => {
+      const fetchMock = vi.fn(async () => successfulJson());
+      vi.stubGlobal("fetch", fetchMock);
+
+      await api.reconcileRemoteOperation("task/1", action);
+
+      const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+      expect(request[0]).toBe(
+        "/api/tasks/task%2F1/remote-operation/reconcile",
+      );
+      expect(request[1].method).toBe("POST");
+      expect(JSON.parse(String(request[1].body))).toEqual({ action });
+    },
+  );
 });

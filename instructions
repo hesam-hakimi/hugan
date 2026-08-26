@@ -290,6 +290,7 @@ test -f web/dist/index.html
 echo "PRODUCT_CONTROL_CENTER_FRONTEND_PASS"
 echo "PROGRAM_EXECUTION_UI_FRONTEND_PASS"
 echo "CANCELLATION_EVIDENCE_UI_FRONTEND_PASS"
+echo "REMOTE_OPERATION_RECONCILIATION_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -332,12 +333,17 @@ for marker in (
     "Start next unit",
     "Approve & continue",
     "Durable cancellation evidence",
+    "Redacted remote-operation evidence",
+    "Load existing task",
+    "Observe remote operation",
+    "Request remote cancellation",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
 print("PROGRAM_EXECUTION_UI_HTTP_SMOKE_PASS")
 print("CANCELLATION_EVIDENCE_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RECONCILIATION_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_RECONCILIATION_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

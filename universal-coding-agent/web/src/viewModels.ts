@@ -3,6 +3,7 @@ import type {
   ProgramExecutionBinding,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
 } from "./types";
@@ -14,6 +15,74 @@ export type CancellationEvidencePresentation = {
   summary: string;
   tone: "good" | "warn" | "bad" | "neutral";
 };
+
+export type RemoteOperationPresentation = {
+  label: string;
+  summary: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+};
+
+export function remoteOperationPresentation(
+  operation: RemoteOperationSnapshot,
+): RemoteOperationPresentation {
+  if (operation.state === "unavailable") {
+    return {
+      label: "Remote state unavailable",
+      summary:
+        "Endpoint-scoped reconciliation could not establish a valid remote lifecycle state. Do not infer completion or termination.",
+      tone: "bad",
+    };
+  }
+  if (operation.state === "terminal") {
+    if (operation.last_status === "cancelled") {
+      return {
+        label: "Provider confirmed cancellation",
+        summary:
+          "The provider reported terminal status cancelled. This confirms remote termination only; UCA did not recover output or resume the graph.",
+        tone: "good",
+      };
+    }
+    return {
+      label: "Provider reported terminal state",
+      summary: `The provider reported terminal status ${operation.last_status}. UCA did not consume output or resume the graph.`,
+      tone: "neutral",
+    };
+  }
+  if (operation.cancellation_requested) {
+    return {
+      label: "Remote cancellation pending",
+      summary:
+        "Cancellation intent is durable, but provider termination has not been confirmed. Explicit reconciliation is still required.",
+      tone: "bad",
+    };
+  }
+  if (operation.recovered_pending) {
+    return {
+      label: "Recovered remote operation",
+      summary:
+        "A redacted durable lease was recovered. Loading this view made no provider request; observe or cancel requires an explicit action.",
+      tone: "warn",
+    };
+  }
+  return {
+    label: "Remote operation active",
+    summary:
+      "Provider state was last observed as active. No terminal outcome has been confirmed.",
+    tone: "warn",
+  };
+}
+
+export function canReconcileRemoteOperation(
+  operation?: RemoteOperationSnapshot,
+  blocked = false,
+): boolean {
+  return Boolean(
+    operation &&
+      operation.state === "active" &&
+      operation.requires_explicit_action &&
+      !blocked,
+  );
+}
 
 export function cancellationEvidencePresentation(
   report: CancellationReport,
