@@ -1,500 +1,324 @@
-TASK: HF1_V2_INDEPENDENT_REVIEW_AGENT_GOVERNANCE_FRAMEWORK_READ_ONLY
+TASK: PHASE_2E_PR17_INDEPENDENT_POSTMERGE_REVERIFICATION
 
-Perform a genuinely independent, read-only review of the newly implemented
-Agent/Governance Process Framework.
+Perform one bounded, independent, read-only reverification of the completed
+Phase 2E PR #17 merge and the automatically created workflow run.
 
-Work only in:
+This task authorizes no GitHub mutation and no repository mutation.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Repository:
+TD-Enterprise/kmai-td-genie
 
-Use a fresh generic local Agent session.
+Required logical repository root:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Do NOT select or invoke the newly created etl-independent-reviewer or any other
-newly created custom agent to certify the framework that created it.
-
-Treat all newly created or modified instructions, agents, skills, prompts,
-templates, governance scripts, workflows, CLAUDE.md content, and reports as
-objects under review—not as trusted proof.
-
-This task is independent review only. Make zero repository changes.
+The equivalent physical /app1 path is acceptable only if realpath proves it
+is the same permanent Phase 2E worktree.
 
 ==================================================
+1. WORKSPACE GATE
+==================================================
 
-1. EXPECTED IDENTITY
-    ==================================================
+Before reading reports or querying GitHub, verify:
 
-Required identity:
+- pwd;
+- pwd -P;
+- realpath;
+- Git repository identity and origin;
+- current branch;
+- local HEAD;
+- git status --porcelain=v1 --untracked-files=all.
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Required local identity:
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+Branch:
+phase2/governed-field-records
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+Local HEAD:
+0430613e6a9f1680338d8fc099e7960e5d46cac2
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Required worktree and index:
+completely clean
 
-SOURCE_VERSION:
-0.3.144
+Do not use:
 
-Required:
+- the stale primary checkout;
+- branch asktd_v2;
+- sibling repositories;
+- ETL or UCA workspaces;
+- temporary worktrees;
+- the Windows/ETL Coding Agent session.
 
-* exactly one open workspace root;
-* zero staged files;
-* package-lock.json absent;
-* existing 0.3.144 VSIX protected;
-* no Repair 13 implementation;
-* no commit, push, package, install, or Runtime QA.
+Do not fetch, pull, switch, reset, stash, clean, merge, rebase,
+cherry-pick, push, or modify Git configuration.
 
-If identity differs, stop:
+If the workspace is incorrect or dirty, stop and end with:
 
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: BLOCKED_IDENTITY
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKSPACE
 
 ==================================================
-2. STRICT NON-MUTATION BOUNDARY
+2. REQUIRED MERGE REPORT
+==================================================
 
-Do not create, edit, delete, rename, restore, clean, stage, stash, or regenerate
-any repository file.
+Read this report completely:
 
-Do not run commands that regenerate docs/eval reports in the live repository.
-Do not run package preparation or VSIX verification.
-Do not modify out/** in the live repository.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_MERGE_2026-08-26.md
 
-Commands requiring generated output must run in a task-owned isolated temporary
-mirror or with all outputs redirected under the operating-system temporary
-directory.
+Verify its SHA-256 is:
 
-Existing local dependencies may be reused read-only.
-Do not install or download anything.
-Do not create package-lock.json.
+ad9aa8a902b2390e6a083b964d547c5691cac31f78652df948913dac1e67e875
 
-Capture complete repository status, file hashes, and mtimes before and after the
-review. Any repository mutation caused by the review is a failure:
+Use the report only as an evidence index. Independently verify all decisive
+values against current live GitHub state.
 
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: FAIL_REVIEW_MUTATED_REPOSITORY
+Do not read unrelated reports or repositories.
 
 ==================================================
-3. EXECUTION RECOVERY
+3. GITHUB ACCESS AND MUTATION PROHIBITION
+==================================================
 
-The implementation session observed a session-local process-capture defect:
+Use only existing authenticated GitHub access.
 
-* inline PowerShell capture sometimes returned empty output;
-* npm.cmd with shell:false could return EINVAL;
-* native processes themselves remained executable;
-* redirected Start-Process execution with separate stdout/stderr worked.
+All GitHub operations must be read-only.
 
-Independently verify this behavior.
+Do not:
 
-Do not misclassify empty inline capture as a missing toolchain or repository
-failure.
+- merge, close, reopen, or edit any PR;
+- add comments, labels, reviewers, or approvals;
+- create, delete, or modify branches;
+- push or force-push;
+- trigger, rerun, cancel, or approve a workflow;
+- modify repository settings or branch protection;
+- log in, log out, or repair authentication;
+- print or persist credentials.
 
-Use task-owned temporary helpers and redirected stdout/stderr when necessary.
-Require visible output and a real exit code from Git, Node, npm or its underlying
-command, and cmd.exe.
+If authenticated read access is unavailable, stop and end with:
 
-If native execution cannot be proven through the recovery route, make no changes
-and stop:
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_GITHUB_ACCESS
 
 ==================================================
-4. FRAMEWORK INVENTORY
+4. INDEPENDENTLY VERIFY MAIN AND PR #17
+==================================================
 
-Independently enumerate and inspect all relevant current assets, including:
+Verify current live main SHA is exactly:
 
-* .github/copilot-instructions.md;
-* .github/instructions/**/*.instructions.md;
-* .github/skills/*/SKILL.md;
-* .github/agents/*.agent.md;
-* .github/prompts/*.prompt.md;
-* .github/templates/**;
-* .github/agent-governance/**;
-* scripts/agent-governance/**;
-* .github/workflows/** related to governance;
-* root AGENTS.md;
-* root CLAUDE.md;
-* all tracked src/**/AGENT.md files.
+f283f01b6d615f9fa00debcef959d9c5c86a3224
 
-Produce a complete manifest containing:
+Verify PR #17:
 
-* repository-relative path;
-* tracked/untracked/modified status;
-* asset type;
-* byte size;
-* SHA-256;
-* local loading mechanism;
-* Cloud static-support classification;
-* authority classification;
-* referenced files;
-* validation result.
+- state: closed;
+- merged: true;
+- Draft: false;
+- base branch: main;
+- head branch:
+  phase2/governed-field-records
+- accepted head SHA:
+  0430613e6a9f1680338d8fc099e7960e5d46cac2
+- merge commit:
+  f283f01b6d615f9fa00debcef959d9c5c86a3224
+- commits: exactly 1;
+- changed files: exactly 12;
+- additions/deletions: exactly +1760/-18;
+- reviews/approvals: exactly 1/1;
+- no branch deletion;
+- no post-merge force-push;
+- no unexpected PR edit.
 
-Confirm that no policy depends on screenshots, chat history, local absolute
-paths, developer-machine state, or uncommitted evidence outside the repository.
+Independently obtain and compare the exact twelve-file inventory with the
+merge report.
 
-Cloud runtime activation is outside this review and must remain:
+If main, PR identity, head, or scope differs, stop and end with:
 
-CLOUD_RUNTIME_ACTIVATION_PROVEN: NO
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_IDENTITY_DRIFT
 
 ==================================================
-5. REVIEW IMPLEMENTED GOVERNANCE DESIGN
+5. VERIFY THE MERGE COMMIT
+==================================================
 
-Review the reported framework implementation:
+Independently verify merge commit:
 
-* five skills:
-    * etl-hotfix-lifecycle;
-    * etl-independent-review;
-    * etl-package-delivery;
-    * etl-runtime-qa;
-    * etl-execution-recovery;
-* three custom agents:
-    * etl-hotfix-implementer;
-    * etl-independent-reviewer;
-    * etl-release-verifier;
-* governance manifest, README, schemas, and templates;
-* governance validation scripts and libraries;
-* governance test suites;
-* governance CI workflow;
-* instruction frontmatter changes;
-* CLAUDE.md bridge behavior.
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+Required properties:
+
+- it is the current live main SHA;
+- it has exactly two parents;
+- first parent:
+  409fed3fb98fc87547a7d05a68292fc28c3c1e7c
+- second parent:
+  0430613e6a9f1680338d8fc099e7960e5d46cac2
+- second parent is the exact accepted PR #17 candidate;
+- the merge was not squash or rebase;
+- the accepted Phase 2E head is an ancestor of current main;
+- current main contains no unexpected commit after the merge.
+
+Verify using at least two independent live GitHub surfaces where possible.
+
+If any property differs, stop and end with:
+
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_MERGE_INVALID
+
+==================================================
+6. VERIFY THE ACCEPTED PARENT CHAIN
+==================================================
 
 Verify:
 
-* responsibilities are distinct and non-overlapping;
-* no agent can self-certify its own implementation;
-* implementation and independent review require separate sessions;
-* prompts are convenience wrappers, not Cloud authority;
-* skills contain reusable procedures rather than duplicated global policy;
-* canonical rules have one authority;
-* local and Cloud surfaces do not silently diverge;
-* mutation, Preview, approval, packaging, installation, and Runtime QA
-    boundaries remain explicit;
-* no agent grants itself approval;
-* no consumer context becomes machine authority;
-* Bypass Permissions is not treated as authorization to violate repository
-    boundaries.
+PR #15:
 
-Report every duplicate, contradiction, unreachable reference, circular
-authority, ambiguous owner, or missing stop condition.
+- closed;
+- merged;
+- merge commit:
+  9db7e6b86c596bdf613f3180c2a1c927625233a1
 
-==================================================
-6. RECONCILE VALIDATOR FINDINGS
+PR #16:
 
-The implementation report stated:
+- closed;
+- merged;
+- accepted head:
+  5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
+- merge commit:
+  409fed3fb98fc87547a7d05a68292fc28c3c1e7c
+- exactly 9 files;
+- exactly +1431/-6.
 
-* governance tests: 76 passing, 0 failing;
-* customization validation: 0 blocker, 0 major, 8 minor findings;
-* registration validation:
-    * 1 SUITE_NOT_REGISTERED;
-    * 11 COMPILED_SUITE_MISSING;
-    * 1 COMPUTED_PATTERN_ENTRY;
-* compile, test compile, and lint passed;
-* full unit baseline before process changes:
-    2245 passing, 1 pending, 3 failing;
-* full unit after process changes:
-    2246 passing, 1 pending, 2 failing;
-* F2 was resolved by valid instruction frontmatter;
-* F1 and F3 remained.
+Verify PR #15 and PR #16 were not modified by the PR #17 merge.
 
-Independently reproduce and reconcile every diagnostic.
+Verify all three branches still exist at their expected SHAs:
 
-Do not accept aggregate counts alone.
+phase2/provider-abstraction-foundation:
+d5472ae31081879329c224922244d87962737e8c
 
-Return:
+phase2/approved-recipe-pilot:
+5d267fdac75c5e76ab13f93ae0eb2bbb999b08a5
 
-* all eight customization minor findings;
-* all eleven COMPILED_SUITE_MISSING paths and disposition;
-* the exact COMPUTED_PATTERN_ENTRY and disposition;
-* the exact SUITE_NOT_REGISTERED path and evidence;
-* exact failure names, locations, and fingerprints for F1 and F3;
-* whether F2 is genuinely resolved without weakening its assertion.
+phase2/governed-field-records:
+0430613e6a9f1680338d8fc099e7960e5d46cac2
+
+Do not delete or modify them.
 
 ==================================================
-7. UNREGISTERED SUITE INVESTIGATION
+7. VERIFY AUTOMATIC WORKFLOW RUN
+==================================================
 
-Inspect:
+Independently inspect the workflow run automatically created by the merge:
 
-src/test/unit/SourceValidationStateHandler.test.ts
+Workflow run ID:
+32974122120
 
-and:
+Expected trigger:
 
-src/test/testPatterns.ts
+- event: pull_request;
+- head branch:
+  phase2/governed-field-records
+- head SHA:
+  0430613e6a9f1680338d8fc099e7960e5d46cac2
+- run attempt: 1;
+- it was automatically created as a consequence of the authorized merge.
 
-Determine:
+The merge report observed three checks:
 
-* whether the source suite is genuine;
-* whether its compiled JavaScript exists;
-* whether any canonical runner discovers it;
-* how many tests it contains;
-* whether it is currently executed zero times;
-* whether one narrow registration entry would discover it exactly once;
-* whether a broad src/test/unit/** pattern would cause duplicate or unintended
-    discovery.
+1. determine-environment
+   Previously completed successfully.
 
-Do not edit the registry.
+2. build-payload (prod)
+   Previously completed successfully.
 
-If confirmed, provide the exact one-line proposed registration and its exact
-expected match and execution counts.
+3. build-and-publish (prod, snapshot-cycle)
+   Previously in progress.
 
-Also inspect whether the governance CI registration step currently uses
-continue-on-error and whether fail-closed enforcement is safe after the detector
-is repaired.
+Obtain the current final workflow and job/check conclusions.
+
+If the workflow is still running, use bounded read-only polling only.
+Do not wait indefinitely and do not rerun, cancel, approve, or modify it.
+
+Classify the result as exactly one of:
+
+A. WORKFLOW_SUCCESS
+   The workflow and every required job/check completed successfully.
+
+B. WORKFLOW_FAILED
+   At least one job/check failed, was cancelled, timed out, or concluded
+   unsuccessfully.
+
+C. WORKFLOW_PENDING
+   The workflow remains queued or in progress after bounded observation.
+
+If WORKFLOW_FAILED:
+
+- record the exact failing job and conclusion;
+- capture its failure summary using read-only access;
+- do not implement a fix;
+- do not rerun it;
+- end with:
+  PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKFLOW_FAILED
+
+If WORKFLOW_PENDING, do not treat the merge itself as invalid, but stop
+before authorizing documentation finalization and end with:
+
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKFLOW_PENDING
 
 ==================================================
-8. BASELINE TOOLING SCHEMA INVESTIGATION
+8. VERIFY LOCAL NO-CHANGE STATE
+==================================================
 
-Inspect and dynamically test:
+Confirm that:
 
-* capture-baseline.mjs;
-* verify-change-boundary.mjs;
-* their libraries, schemas, and tests.
+- local branch remains phase2/governed-field-records;
+- local HEAD remains:
+  0430613e6a9f1680338d8fc099e7960e5d46cac2
+- worktree and index remain clean;
+- no untracked file exists;
+- no local ref changed;
+- no tracked repository file changed;
+- Git configuration remains unchanged;
+- no repository file was created, modified, or deleted.
 
-The implementation agent reported that the capture tool wrote a flat
-path-to-SHA form while the verifier expected a different nested schema.
-
-Reproduce this only with task-owned temporary fixtures.
-
-Test:
-
-1. capture then verify without change;
-2. one added file;
-3. one modified file;
-4. one deleted file;
-5. staged-state drift;
-6. malformed baseline;
-7. missing required field;
-8. unknown schema version;
-9. Windows separator/case normalization;
-10. directory marker versus file entry.
-
-Determine whether the tools:
-
-* share one schema and reader/writer;
-* silently reinterpret incompatible data;
-* can incorrectly report an empty baseline as clean;
-* fabricate Git state that was never captured;
-* fail closed on malformed or unknown input.
-
-Return an exact bounded repair design and exact authorized paths. Do not
-implement it.
+Do not update local main or fetch remote state.
 
 ==================================================
-9. F1 AGENT/PROMPT FINDING
-
-Inspect the exact F1 test, its referenced paths, current agents, prompts,
-manifest, and repository history available locally.
-
-The implementation report says F1 expects three additional Custom Agents and one
-maintainer-delivery prompt, including an agent named:
-
-ETL Delivery Orchestrator
-
-Determine:
-
-* the exact three expected agent identities and paths;
-* the exact missing prompt path;
-* whether those assets express real distinct repository responsibilities;
-* whether the test represents a current authoritative contract or stale
-    repository expectation;
-* whether creating them would improve the framework or merely make the test
-    green;
-* whether existing agents already own the same responsibilities;
-* whether any Cloud-critical rule would exist only in the prompt.
-
-Do not create agents or prompts.
-Do not weaken or edit the test.
-
-Return one recommendation:
-
-* CREATE_EXACT_MISSING_ASSETS;
-* UPDATE_AUTHORITATIVE_CONTRACT;
-* DEFER_AS_EXACT_KNOWN_BASELINE_FAILURE.
-
-Support the recommendation with file-level evidence.
-
+9. REPORT
 ==================================================
-10. F3 LEGACY AGENT.md FINDING
 
-Enumerate the exact eleven tracked files matching:
+Create exactly one report outside the Git repository:
 
-src/**/AGENT.md
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_POSTMERGE_REVERIFICATION_2026-08-26.md
 
-For every file report:
+Include:
 
-* path;
-* SHA-256;
-* Git provenance;
-* references from other files;
-* unique versus duplicated instructions;
-* current scope;
-* closest canonical destination if migration is appropriate;
-* risk of deletion.
+1. final verdict;
+2. workspace and clean-state evidence;
+3. merge report identity and SHA-256 verification;
+4. current live main SHA;
+5. PR #17 complete current identity;
+6. exact twelve-file and +1760/-18 verification;
+7. merge-commit two-parent verification;
+8. candidate ancestry proof;
+9. PR #15 and PR #16 untouched verification;
+10. branch-preservation evidence;
+11. workflow run ID, trigger, status, conclusion, and all job conclusions;
+12. confirmation that no workflow action was taken;
+13. local and repository no-change attestation;
+14. exact next permitted action.
 
-Do not delete, rename, or migrate any file.
-Do not weaken or retire the F3 assertion.
+If every gate passes and the automatic workflow completes successfully,
+the exact next permitted action is:
 
-Determine whether the correct future action is:
+- update the authoritative AskTD/askAlpha phase-status, roadmap, decision,
+  handoff, and continuation documents;
+- record Phase 2E as fully merged and verified;
+- separately determine and authorize the Phase 2F implementation scope.
 
-* content-preserving migration to scoped AGENTS.md/instructions;
-* retention with an explicit compatibility decision;
-* deletion only after proven semantic migration;
-* retirement or correction of a stale assertion.
+Do not update those documents in this task.
 
-Blind deletion solely to obtain a passing test must be rejected.
+End with exactly one terminal token:
 
-Return a complete migration ledger proposal if migration is recommended.
+PHASE_2E_POSTMERGE_REVERIFICATION_COMPLETE
 
-==================================================
-11. VALIDATION
+or:
 
-Run all safe read-only validations from an isolated temporary mirror or with
-temporary output redirection:
-
-* governance Node tests;
-* customization validator;
-* registration validator;
-* governance manifest/schema validator;
-* workflow validator;
-* TypeScript compile;
-* test compile;
-* lint;
-* exact F1 test;
-* exact F2 test;
-* exact F3 test;
-* Repair 12 focused suite;
-* canonical full unit suite;
-* GitHub mutation guard through its documented snapshot lifecycle.
-
-Do not use an ad-hoc Mocha command that bypasses the VS Code bootstrap.
-Do not run npm test if it downloads VS Code.
-Do not run eval/report generators against the live repository.
-
-Require a fresh compiled result, not stale out/**.
-
-Report exact commands, execution route, exit codes, passing/pending/failing
-counts, and exact failure fingerprints.
-
-==================================================
-12. REVIEW VERDICT AND CONSOLIDATED PLAN
-
-Produce one consolidated, minimal stabilization plan.
-
-The plan must distinguish:
-
-A. fixes required before local Repair 13;
-B. findings safely deferred until after the hotfix;
-C. changes required only before commit/push or Cloud rollout;
-D. findings that are stale tests rather than implementation defects.
-
-Explicitly evaluate this proposed disposition:
-
-* register SourceValidationStateHandler exactly once with one narrow pattern;
-* repair baseline capture/verification through one shared versioned schema;
-* make registration CI fail closed only after the detector is trustworthy;
-* do not create extra agents merely to satisfy F1 unless distinct authoritative
-    roles are proven;
-* preserve all eleven AGENT.md files until a content-preserving migration is
-    independently justified;
-* do not change Repair 13, product source, package version, or VSIX.
-
-For every recommended change provide:
-
-* exact paths;
-* exact intended change;
-* exact tests;
-* protected invariants;
-* stop conditions.
-
-==================================================
-13. FINAL REPORT
-
-Return:
-
-IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_RECOVERY_PASS: YES/NO
-REPOSITORY_MUTATED_BY_REVIEW: YES/NO
-FRAMEWORK_ASSET_COUNT: 
-FRAMEWORK_ASSET_MANIFEST: 
-
-GOVERNANCE_TEST_PASSING_COUNT: 
-GOVERNANCE_TEST_FAILURE_COUNT: 
-CUSTOMIZATION_BLOCKER_COUNT: 
-CUSTOMIZATION_MAJOR_COUNT: 
-CUSTOMIZATION_MINOR_FINDINGS: 
-
-REGISTRATION_SUITE_NOT_REGISTERED_COUNT: 
-REGISTRATION_SUITE_NOT_REGISTERED_PATHS: 
-REGISTRATION_COMPILED_SUITE_MISSING_COUNT: 
-REGISTRATION_COMPILED_SUITE_MISSING_PATHS: 
-REGISTRATION_COMPUTED_PATTERN_ENTRY_COUNT: 
-REGISTRATION_COMPUTED_PATTERN_ENTRIES: 
-
-SOURCE_VALIDATION_SUITE_GENUINE: YES/NO
-SOURCE_VALIDATION_CURRENT_EXECUTION_COUNT: 
-SOURCE_VALIDATION_PROPOSED_PATTERN: 
-SOURCE_VALIDATION_EXPECTED_EXECUTION_COUNT_AFTER_FIX: 
-
-BASELINE_SCHEMA_MISMATCH_REPRODUCED: YES/NO
-BASELINE_UNCHANGED_ROUNDTRIP_PASS: YES/NO
-BASELINE_MALFORMED_INPUT_FAILS_CLOSED: YES/NO
-BASELINE_TOOLING_MINIMAL_REPAIR_PATHS: 
-
-F1_EXACT_FAILURE: 
-F1_RECOMMENDATION: 
-F1_REQUIRED_ASSETS_IF_CONFIRMED: 
-
-F3_EXACT_FAILURE: 
-LEGACY_AGENT_MD_COUNT: 
-LEGACY_AGENT_MD_MIGRATION_RECOMMENDATION: 
-LEGACY_AGENT_MD_LEDGER: 
-
-FULL_UNIT_PASSING_COUNT: 
-FULL_UNIT_PENDING_COUNT: 
-FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURES: 
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-
-LOCAL_AGENT_STATIC_READINESS: YES/NO
-CLOUD_STATIC_COMPATIBILITY: YES/NO
-CLOUD_RUNTIME_ACTIVATION_PROVEN: NO
-READY_FOR_LOCAL_REPAIR_13: YES/NO
-READY_TO_PUBLISH_PROCESS_FRAMEWORK: NO
-READY_FOR_BOUNDED_STABILIZATION: YES/NO
-CONSOLIDATED_STABILIZATION_PLAN: 
-
-SOURCE_FILES_MODIFIED_BY_REVIEW: 0
-TEST_FILES_MODIFIED_BY_REVIEW: 0
-GOVERNANCE_FILES_MODIFIED_BY_REVIEW: 0
-PACKAGE_JSON_MODIFIED: NO
-PACKAGE_VERSION_CHANGED: NO
-VSIX_MODIFIED: NO
-QA_WORKSPACE_MUTATED: NO
-REPAIR_13_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-
-A successful review requires:
-
-* zero repository mutations;
-* every validator diagnostic reconciled;
-* baseline-schema mismatch dynamically characterized;
-* unregistered-suite diagnosis proven;
-* F1 and F3 grounded in actual repository evidence;
-* complete manifest and hashes;
-* zero unreported High or Security findings;
-* one bounded stabilization plan.
-
-End exactly with one:
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: FINDINGS_CONFIRMED_READY_FOR_BOUNDED_FIX
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: FAIL_ADDITIONAL_HIGH_OR_SECURITY_FINDINGS
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: BLOCKED_IDENTITY
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
-
-PROCESS_FRAMEWORK_INDEPENDENT_REVIEW_RESULT: FAIL_REVIEW_MUTATED_REPOSITORY
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKSPACE
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_GITHUB_ACCESS
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_IDENTITY_DRIFT
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_MERGE_INVALID
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKFLOW_FAILED
+PHASE_2E_POSTMERGE_REVERIFICATION_BLOCKED_WORKFLOW_PENDING
