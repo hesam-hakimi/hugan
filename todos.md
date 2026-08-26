@@ -1,185 +1,219 @@
-Update Option 4 only by redesigning the current right-side AskTD interaction as one polished business question, one direct answer, and one elegant data chart.
+Refine Option 4 only based on the latest visual and content review.
 
-This instruction supersedes the previous multi-question carousel requirement.
+Do not redesign the poster or modify any other poster option. Preserve the current layout, green light field, benefit row, CTA, AskTD card, preview controls, and print functionality.
 
-Do not modify any other poster option.
+This task has two focused objectives:
 
-Objective
+1. Make the banking question, answer, and chart analytically consistent.
+2. Replace and correctly typeset the main headline so no letters touch or overlap.
 
-Replace the current generic Q&A with a realistic demonstration of how AskTD answers a business question using a clear written insight and a supporting visualization.
+1. Replace the main headline
 
-Show only one fixed question-and-answer example. Do not add rotation, navigation dots, counters, timers, or carousel controls.
+Replace:
 
-1. Use this exact example
+Stop searching dashboards.
+Just ask.
 
-Status label
+with:
 
-ILLUSTRATIVE DEMO · SYNTHETIC DATA
+Stop searching
+for answers.
+Just ask.
 
-This label must be visible but visually restrained. It must be clear that the values are not production results.
+Use these exact manually controlled line breaks.
 
-Question
+This wording is intentionally broader than “dashboards” or “reports.” It communicates that AskTD helps users find answers without restricting the product to one type of analytical content.
 
-Under YOU ASKED, display:
+Do not allow the browser to determine the line wrapping.
+
+Use separate block-level elements:
+
+<h1
+  class="hero-title"
+  aria-label="Stop searching for answers. Just ask."
+>
+  <span class="hero-title__line">Stop searching</span>
+  <span class="hero-title__line">for answers.</span>
+  <span class="hero-title__line hero-title__accent">Just ask.</span>
+</h1>
+
+2. Fix the headline collision
+
+The current headline has insufficient vertical spacing. The descenders in letters such as p in “Stop” and g in “searching” enter the next line.
+
+This is a typography defect and must not be solved merely by reducing the font size.
+
+Use independently spaced headline lines:
+
+.hero-title {
+  display: grid;
+  justify-items: start;
+  row-gap: 0.08em;
+  margin: 0;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--charcoal);
+}
+.hero-title__line {
+  display: block;
+  line-height: 1;
+  white-space: nowrap;
+}
+.hero-title__accent {
+  margin-top: 0.14em;
+  color: var(--td-green);
+}
+
+Adapt the selectors to the existing project structure.
+
+Requirements:
+
+* Preserve approximately the current headline size.
+* Do not use a headline line-height below 0.98.
+* Do not use negative vertical margins.
+* Do not use translateY or absolute positioning to tighten the lines.
+* Do not tighten tracking beyond approximately -0.04em.
+* Maintain a visible optical gap between the first two lines.
+* Provide slightly more separation before the green “Just ask.” line.
+* Keep all three lines aligned with the TD/AskTD brand lockup.
+* Preserve exactly the same line breaks in screen and print output.
+
+3. Correct the business question
+
+Replace:
 
 What is driving deposit growth this quarter?
 
-Answer
+with:
 
-Under ASKTD ANSWERED, display:
+Which deposit products contributed most to this quarter’s growth?
 
-High-Interest Savings and Term Deposits are the primary drivers, together contributing 78% of the simulated quarterly increase.
+The original question asks for causal drivers, while the chart only shows product-level contribution. The revised question accurately matches the information presented.
 
-Keep the answer concise, prominent, and readable from a distance.
+Keep the question to approximately two lines within the current card.
 
-2. Add one meaningful chart
+4. Correct and simplify the answer
 
-Below the answer, create a premium horizontal contribution chart titled:
+Replace the current answer with:
 
-Share of simulated deposit growth
+High-interest savings accounts and term deposits were the largest contributors, accounting for 78% of the simulated increase.
 
-Use this synthetic dataset:
+Use sentence case.
 
-* High-Interest Savings — 46%
-* Term Deposits — 32%
-* Everyday Savings — 22%
+Do not capitalize the category names as though they were official branded TD product names.
 
-The three values must total 100%.
+5. Refine the chart terminology
 
-Chart design
+Change the chart title to:
 
-Create an elegant horizontal bar chart with:
+Contribution to simulated deposit growth
 
-* Rounded bar ends
-* Direct category and percentage labels
-* TD green for the leading category
-* Deep emerald for the second category
-* A softer muted green for the third category
-* Consistent bar height and spacing
-* No unnecessary legend
-* No heavy gridlines
-* No axis border
-* No tooltip dependency
-* No fake trend line
-* No decorative chart elements without meaning
+Use these labels and values:
 
-Use subtle entrance animation for screen only:
+* High-interest savings accounts — 46%
+* Term deposits — 32%
+* Everyday savings accounts — 22%
 
-* Bars grow once from left to right
-* Duration approximately 600–800ms
-* Calm easing
-* No repeated animation
+Important semantic rule:
 
-Disable the animation in print and under prefers-reduced-motion.
+The percentages represent each product category’s share of the total simulated increase. They are not individual product growth rates.
 
-Use inline SVG or the project’s existing chart implementation. Prefer inline SVG if it provides sharper and more deterministic PDF output. Do not add a large charting dependency solely for this visualization.
+Do not describe 46%, 32%, or 22% as rates of growth.
 
-3. Include the source label
+Use one structured data source for the chart, for example:
 
-Below the chart, display:
+const depositContributionData = [
+  { label: "High-interest savings accounts", value: 46 },
+  { label: "Term deposits", value: 32 },
+  { label: "Everyday savings accounts", value: 22 }
+];
+
+Derive the 78% statement from the first two chart values instead of maintaining an unrelated hard-coded number. This prevents the written answer and chart from becoming inconsistent later.
+
+Confirm programmatically or through validation that:
+
+* 46 + 32 = 78
+* 46 + 32 + 22 = 100
+
+6. Preserve the synthetic-data disclosure
+
+Keep a visible label above the question:
+
+ILLUSTRATIVE EXAMPLE · SYNTHETIC DATA
+
+Use this source below the chart:
 
 Source: Synthetic AskTD demonstration data
 
-The source must remain legible in screen and PDF output.
+The example must never appear to represent actual TD performance.
 
-Do not use a verified-production-data icon. A small information or demonstration indicator is acceptable.
+Do not introduce:
 
-4. Refine the product surface
+* Production data
+* Customer data
+* Confidential metrics
+* Actual regional results
+* Real financial claims
 
-Keep the interaction as one unified premium AskTD surface.
+7. Preserve and refine the chart design
 
-Organize it into this visual hierarchy:
+Keep the existing premium horizontal-bar presentation, but ensure:
 
-1. Illustrative-demo label
-2. “YOU ASKED”
-3. Business question
-4. Subtle divider
-5. “ASKTD ANSWERED”
-6. Direct answer
-7. Contribution chart
-8. Synthetic-data source
+* All labels remain readable.
+* Category names do not collide with percentages.
+* Percentages are right-aligned.
+* Bar widths accurately represent 46%, 32%, and 22%.
+* The three bars share the same baseline and scale.
+* The leading bar uses TD green.
+* Secondary bars use restrained green tones.
+* No dashboard-style grid, axis, or legend is added.
+* The chart remains sharp in PDF output.
+* The chart is visually meaningful rather than merely decorative.
 
-Use:
+Do not add another chart, KPI card, trend line, or carousel.
 
-* One large rounded surface
-* Subtle translucent border
-* Restrained layered shadow
-* Generous internal spacing
-* Clear alignment
-* Excellent contrast
-* Crisp inline SVG icons
-* Stable dimensions
-
-Do not split the content into separate cards.
-
-Ensure the answer and chart fit naturally without shrinking the typography excessively.
-
-5. Preserve the rest of Option 4
+8. Preserve all other Option 4 content
 
 Keep unchanged:
 
-* The TD and AskTD brand lockup
-* Stop searching dashboards. Just ask.
+* TD and AskTD branding
 * Trusted data. Instant insights. Better decisions.
 * Ask us a real business question.
-* The four benefits along the bottom
-* The existing premium green background
+* The four benefits at the bottom
+* Existing premium background treatment
 * Fit to Screen
 * Reset Zoom
 * Print / Save as PDF
 
-Do not add:
+Do not modify other poster options.
 
-* Additional questions
-* Multiple charts
-* Dashboard panels
-* KPI cards
-* White footer containers
-* Technical workflows
-* Architecture diagrams
-* Production or customer data
-
-6. Print requirements
-
-For Print / Save as PDF:
-
-* Show the same fixed question, answer, and chart.
-* Disable all animation.
-* Preserve chart colours.
-* Keep SVG text and bars sharp.
-* Hide preview controls.
-* Ensure the full answer and every percentage are visible.
-* Prevent clipping or overflow.
-* Keep the poster on one landscape page.
-
-7. Mandatory visual validation
+9. Mandatory visual validation
 
 After implementation:
 
-1. Run the application and open Option 4.
-2. Render the poster at 1600 × 1120.
-3. Inspect the full-size rendering.
+1. Render Option 4 at its native 1600 × 1120 size.
+2. Inspect the headline at 100%.
+3. Inspect it at the current 90% preview zoom.
 4. Inspect it at approximately 25% thumbnail size.
-5. Confirm the question is immediately understandable.
-6. Confirm the answer directly addresses the question.
-7. Confirm the chart visually supports the answer.
-8. Verify that 46% + 32% equals the stated 78%.
-9. Verify that all three chart values total 100%.
-10. Confirm the synthetic-data label is visible.
-11. Test reduced-motion behavior.
-12. Test Print / Save as PDF.
-13. Confirm the chart remains sharp in the PDF.
-14. Perform one refinement pass for typography, spacing, chart proportions, and visual balance.
-15. Confirm all other poster options remain unchanged.
+5. Confirm that no part of p, g, y, or any other glyph touches the following line.
+6. Confirm that the first two headline lines have a visible optical gap.
+7. Confirm there is slightly more space before “Just ask.”
+8. Verify that the headline does not reflow when using Fit to Screen or Reset Zoom.
+9. Confirm that the question, answer, and chart describe the same analytical result.
+10. Confirm that all chart values total 100%.
+11. Confirm that the written 78% matches the first two bars.
+12. Test Print / Save as PDF after fonts are fully loaded.
+13. Inspect the PDF at 100% and confirm identical headline line breaks.
+14. Confirm there is no clipping or overflow.
+15. Perform one final refinement pass for headline spacing, chart readability, and optical alignment.
 
-Implement the enhancement fully. Do not stop after describing recommendations.
-
-Finally, report:
+Implement the changes fully and then report:
 
 * Files changed
-* Q&A content implemented
-* Chart implementation method
+* Final headline used
+* Final question and answer
+* How the 78% value is derived
 * Screen validation completed
-* Print/PDF validation completed
-* Confirmation that only synthetic demonstration data was used
+* PDF validation completed
 * Confirmation that other poster options were preserved
