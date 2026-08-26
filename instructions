@@ -41,6 +41,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/__init__.py
 - universal-coding-agent/src/universal_coding_agent/testlab/synthetic.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
+- universal-coding-agent/src/universal_coding_agent/testlab/openai_background_cancellation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
@@ -49,6 +50,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/program_execution_live.py
 - universal-coding-agent/tests/test_pretransfer_lab.py
 - universal-coding-agent/tests/test_openai_testlab_provider.py
+- universal-coding-agent/tests/test_openai_background_cancellation_live.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
 - universal-coding-agent/tests/test_repository.py
@@ -129,6 +131,7 @@ for FILE in \
   src/universal_coding_agent/testlab/__init__.py \
   src/universal_coding_agent/testlab/synthetic.py \
   src/universal_coding_agent/testlab/openai_responses.py \
+  src/universal_coding_agent/testlab/openai_background_cancellation_live.py \
   src/universal_coding_agent/testlab/live.py \
   src/universal_coding_agent/testlab/hard_reasoning.py \
   src/universal_coding_agent/testlab/large_solution.py \
@@ -137,6 +140,7 @@ for FILE in \
   src/universal_coding_agent/testlab/program_execution_live.py \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
+  tests/test_openai_background_cancellation_live.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_repository.py \
@@ -177,7 +181,8 @@ from universal_coding_agent.product.program_orchestrator import DiscoveredSafeEx
 from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
-from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIResponsesProvider
+from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
+from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
@@ -197,7 +202,8 @@ assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 assert CancellationCoordinator and CancellationReport and CancellationSignal
 assert OwnedCancellableOperation and HostChatCompletionsProvider
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
-assert OpenAIResponsesProvider and OPENAI_BACKGROUND_CANCELLATION_ENV
+assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
+assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
@@ -205,6 +211,7 @@ print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
+print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -219,6 +226,7 @@ Cmd 3
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
   tests/test_openai_testlab_provider.py \
+  tests/test_openai_background_cancellation_live.py \
   tests/test_host_chat_provider.py \
   tests/test_host_subprocess_provider.py \
   tests/test_requirement_draft_repair.py \
@@ -239,7 +247,8 @@ echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
 echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
 echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
-echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS"
+echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
+echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -341,6 +350,22 @@ echo "UCA_OPENAI_MODEL=$UCA_OPENAI_MODEL"
 Cmd 10
 
 ```bash
+CANCELLATION_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-background-cancellation-$(date -u +%Y%m%dT%H%M%SZ)"
+CANCELLATION_RC=0
+UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+  UCA_OPENAI_BACKGROUND_CANCEL_TIMEOUT_SECONDS=45 \
+  PATH="$PWD/.venv/bin:$PATH" \
+  .venv/bin/python -m universal_coding_agent.testlab.openai_background_cancellation_live \
+    --state-root "$CANCELLATION_STATE_ROOT" || CANCELLATION_RC=$?
+test -f "$CANCELLATION_STATE_ROOT/background-cancellation-live-summary.json"
+.venv/bin/python -m json.tool "$CANCELLATION_STATE_ROOT/background-cancellation-live-summary.json"
+test "$CANCELLATION_RC" -eq 0
+echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PASS"
+```
+
+Cmd 11
+
+```bash
 LIVE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-strict-schema-$(date -u +%Y%m%dT%H%M%SZ)"
 LIVE_RC=0
 UCA_LIVE_RUNS=1 UCA_LIVE_MIN_SUCCESS_RATE=1.0 PATH="$PWD/.venv/bin:$PATH" \
@@ -350,7 +375,7 @@ test -f "$LIVE_STATE_ROOT/live-summary.json"
 test "$LIVE_RC" -eq 0
 ```
 
-Cmd 11
+Cmd 12
 
 ```bash
 PRODUCT_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-product-foundation-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -363,7 +388,7 @@ test "$PRODUCT_RC" -eq 0
 echo "PRODUCT_FOUNDATION_LIVE_QUALIFICATION_PASS"
 ```
 
-Cmd 12
+Cmd 13
 
 ```bash
 PROGRAM_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-program-execution-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -377,7 +402,7 @@ echo "PROGRAM_EXECUTION_LIVE_QUALIFICATION_PASS"
 echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_LIVE_QUALIFICATION_PASS"
 ```
 
-Cmd 13
+Cmd 14
 
 ```bash
 HARD_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-hard-cdc-mapping-op-contract-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -392,7 +417,7 @@ test "$HARD_RC" -eq 0
 echo "HARD_CDC_MAPPING_OPERATION_QUALIFICATION_PASS"
 ```
 
-Cmd 14
+Cmd 15
 
 ```bash
 LARGE_STATE_ROOT="$HOME/.uca-pretransfer-live/openai-production-large-solution-discovery-repair-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -408,13 +433,13 @@ test "$LARGE_RC" -eq 0
 echo "PRODUCTION_DISCOVERED_SAFE_WORKFLOW_QUALIFICATION_PASS"
 ```
 
-Cmd 15
+Cmd 16
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
 ```
 
-Cmd 16
+Cmd 17
 
 ```bash
 STATE_ROOT="$HOME/.uca-safe-host-runs/pretransfer-model-line-ref-v2-$(date -u +%Y%m%dT%H%M%SZ)"
@@ -424,7 +449,7 @@ bash scripts/qualify-line-addressed-host-provider.sh \
   --state-root "$STATE_ROOT" --skip-install --skip-quality
 ```
 
-Cmd 17
+Cmd 18
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -442,7 +467,7 @@ bash scripts/safe-workflow.sh start \
   --title "Phase 2C real Safe Mode - product control center pre-transfer qualified"
 ```
 
-Cmd 18
+Cmd 19
 
 ```bash
 export UCA_SAFE_EDIT_PROTOCOL=v2-line-addressed
@@ -450,7 +475,7 @@ PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"
 bash scripts/safe-workflow.sh approve --context-file "$PHASE2C_STATE_ROOT/safe-workflow-context.json"
 ```
 
-Cmd 19
+Cmd 20
 
 ```bash
 PHASE2C_STATE_ROOT="$(cat "$HOME/.uca-phase2c-line-addressed-v2-current")"

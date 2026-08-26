@@ -8,7 +8,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
-from threading import Event, Thread
+from dataclasses import asdict, dataclass
+from threading import Event, Lock, Thread
 from typing import Any
 
 from universal_coding_agent.core.cancellation import (
@@ -49,6 +50,73 @@ _SCHEMA_GENERATION_ONLY_KEYWORDS = frozenset(
 )
 
 
+@dataclass(frozen=True)
+class OpenAIBackgroundLifecycleSnapshot:
+    handle_started: bool
+    response_id_observed: bool
+    actual_model: str | None
+    initial_status: str | None
+    cancel_dispatched: bool
+    cancel_response_status: str | None
+    terminal_status: str | None
+    terminal_confirmed: bool
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+class OpenAIBackgroundLifecycleRecorder:
+    """Thread-safe, identifier-free evidence for one trusted live lifecycle probe."""
+
+    def __init__(self) -> None:
+        self._lock = Lock()
+        self._handle_started = Event()
+        self._response_id_observed = False
+        self._actual_model: str | None = None
+        self._initial_status: str | None = None
+        self._cancel_dispatched = False
+        self._cancel_response_status: str | None = None
+        self._terminal_status: str | None = None
+        self._terminal_confirmed = False
+
+    def wait_for_handle(self, timeout_seconds: float) -> bool:
+        return self._handle_started.wait(timeout_seconds)
+
+    def snapshot(self) -> OpenAIBackgroundLifecycleSnapshot:
+        with self._lock:
+            return OpenAIBackgroundLifecycleSnapshot(
+                handle_started=self._handle_started.is_set(),
+                response_id_observed=self._response_id_observed,
+                actual_model=self._actual_model,
+                initial_status=self._initial_status,
+                cancel_dispatched=self._cancel_dispatched,
+                cancel_response_status=self._cancel_response_status,
+                terminal_status=self._terminal_status,
+                terminal_confirmed=self._terminal_confirmed,
+            )
+
+    def _record_handle_started(self) -> None:
+        self._handle_started.set()
+
+    def _record_created(self, response_id: str, status: str, actual_model: str) -> None:
+        with self._lock:
+            self._response_id_observed = bool(response_id)
+            self._actual_model = actual_model
+            self._initial_status = status
+
+    def _record_cancel_dispatched(self, status: str, actual_model: str) -> None:
+        with self._lock:
+            self._cancel_dispatched = True
+            self._cancel_response_status = status
+            self._actual_model = actual_model
+
+    def _record_terminal(self, status: str, actual_model: str) -> None:
+        with self._lock:
+            self._terminal_status = status
+            self._terminal_confirmed = True
+            self._actual_model = actual_model
+
+
 class OpenAIResponsesProvider:
     """Opt-in OpenAI Responses API provider used only by the pre-transfer test lab."""
 
@@ -61,6 +129,7 @@ class OpenAIResponsesProvider:
         timeout_seconds: float = 180,
         transport: Transport | None = None,
         background_cancellation: bool = False,
+        background_lifecycle_recorder: OpenAIBackgroundLifecycleRecorder | None = None,
     ) -> None:
         api_key = api_key.strip()
         model = model.strip()
@@ -76,9 +145,15 @@ class OpenAIResponsesProvider:
         self.timeout_seconds = timeout_seconds
         self._transport = transport
         self.background_cancellation = background_cancellation
+        self.background_lifecycle_recorder = background_lifecycle_recorder
 
     @classmethod
-    def from_env(cls) -> OpenAIResponsesProvider:
+    def from_env(
+        cls,
+        *,
+        timeout_seconds: float = 180,
+        background_lifecycle_recorder: OpenAIBackgroundLifecycleRecorder | None = None,
+    ) -> OpenAIResponsesProvider:
         api_key = os.environ.get("OPENAI_API_KEY", "").strip()
         model = os.environ.get("UCA_OPENAI_MODEL", "").strip()
         if not api_key:
@@ -94,9 +169,11 @@ class OpenAIResponsesProvider:
         return cls(
             api_key=api_key,
             model=model,
+            timeout_seconds=timeout_seconds,
             background_cancellation=_background_cancellation_enabled(
                 os.environ.get(OPENAI_BACKGROUND_CANCELLATION_ENV)
             ),
+            background_lifecycle_recorder=background_lifecycle_recorder,
         )
 
     def capabilities(self) -> ModelCapabilities:
@@ -361,6 +438,8 @@ class _OpenAIBackgroundResponseHandle:
             name="uca-openai-background-response",
             daemon=True,
         )
+        if self._provider.background_lifecycle_recorder is not None:
+            self._provider.background_lifecycle_recorder._record_handle_started()
         self._worker.start()
 
     def result(self) -> dict[str, Any]:
@@ -400,6 +479,13 @@ class _OpenAIBackgroundResponseHandle:
         )
         response_id = _background_response_id(data)
         status = _background_status(data)
+        recorder = self._provider.background_lifecycle_recorder
+        if recorder is not None:
+            recorder._record_created(
+                response_id,
+                status,
+                str(data.get("model") or self._provider.model),
+            )
         if status in _BACKGROUND_TERMINAL_STATUSES:
             self._record_terminal(data)
             return
@@ -415,12 +501,14 @@ class _OpenAIBackgroundResponseHandle:
             f"/{urllib.parse.quote(response_id, safe='')}"
         )
         while True:
+            cancel_request = False
             if self._cancel_requested.is_set() and not cancel_dispatched:
                 data = self._request_json(
                     method="POST",
                     endpoint=f"{response_endpoint}/cancel",
                 )
                 cancel_dispatched = True
+                cancel_request = True
             else:
                 if cancel_dispatched:
                     poll_delay = min(
@@ -442,6 +530,11 @@ class _OpenAIBackgroundResponseHandle:
 
             _validate_background_response_id(data, response_id)
             status = _background_status(data)
+            if cancel_request and recorder is not None:
+                recorder._record_cancel_dispatched(
+                    status,
+                    str(data.get("model") or self._provider.model),
+                )
             if status in _BACKGROUND_TERMINAL_STATUSES:
                 self._record_terminal(data)
                 return
@@ -478,7 +571,13 @@ class _OpenAIBackgroundResponseHandle:
         return remaining
 
     def _record_terminal(self, data: dict[str, Any]) -> None:
+        status = _background_status(data)
         self._result = data
+        if self._provider.background_lifecycle_recorder is not None:
+            self._provider.background_lifecycle_recorder._record_terminal(
+                status,
+                str(data.get("model") or self._provider.model),
+            )
         self._terminal_confirmed.set()
 
 

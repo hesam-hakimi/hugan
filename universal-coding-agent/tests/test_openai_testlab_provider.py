@@ -12,6 +12,7 @@ from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.testlab.live import _provider_preflight
 from universal_coding_agent.testlab.openai_responses import (
     OPENAI_BACKGROUND_CANCELLATION_ENV,
+    OpenAIBackgroundLifecycleRecorder,
     OpenAIResponsesProvider,
     _openai_strict_schema,
 )
@@ -137,9 +138,15 @@ def test_openai_testlab_provider_reads_background_cancellation_opt_in(monkeypatc
     monkeypatch.setenv("UCA_OPENAI_MODEL", "test-model")
     monkeypatch.setenv(OPENAI_BACKGROUND_CANCELLATION_ENV, "true")
 
-    provider = OpenAIResponsesProvider.from_env()
+    recorder = OpenAIBackgroundLifecycleRecorder()
+    provider = OpenAIResponsesProvider.from_env(
+        timeout_seconds=9,
+        background_lifecycle_recorder=recorder,
+    )
 
     assert provider.background_cancellation is True
+    assert provider.timeout_seconds == 9
+    assert provider.background_lifecycle_recorder is recorder
 
 
 def test_openai_testlab_provider_rejects_ambiguous_background_opt_in(monkeypatch) -> None:

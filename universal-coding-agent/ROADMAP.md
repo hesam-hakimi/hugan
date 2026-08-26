@@ -31,6 +31,7 @@
 - [x] opt-in cancellable handle adapter for the trusted in-process host-chat transport;
 - [x] typed durable cancellation evidence in the local Product Control Center;
 - [x] opt-in cancellable background-response adapter for the pre-transfer OpenAI Responses transport;
+- [x] dedicated live qualification of the opt-in OpenAI background cancellation lifecycle and durable report;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

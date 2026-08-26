@@ -31,6 +31,7 @@ jobs:
       UCA_HARD_LIVE_MIN_SUCCESS_RATE: "1.0"
       UCA_LARGE_SOLUTION_RUNS: "1"
       UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE: "1.0"
+      UCA_OPENAI_BACKGROUND_CANCEL_TIMEOUT_SECONDS: "45"
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -57,6 +58,36 @@ jobs:
         run: |
           echo "PRETRANSFER_LIVE_OPENAI_SKIPPED_NO_SECRET"
           echo "### Live OpenAI qualification skipped: AZURE_OPENAI_API_KEY secret is not configured." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run live OpenAI background cancellation qualification
+        id: cancellation
+        if: env.OPENAI_API_KEY != ''
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-openai-background-cancellation-live"
+          set +e
+          UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+            python -m universal_coding_agent.testlab.openai_background_cancellation_live \
+              --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/background-cancellation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/background-cancellation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload OpenAI background cancellation diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.cancellation.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-openai-background-cancellation-live-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/background-cancellation-live-summary.json
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/task-control.sqlite
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Run live OpenAI pre-transfer qualification
         id: live
@@ -250,11 +281,13 @@ jobs:
       - name: Enforce all live qualification outcomes
         if: ${{ always() && env.OPENAI_API_KEY != '' }}
         run: |
+          echo "CANCELLATION_OUTCOME=${{ steps.cancellation.outcome }}"
           echo "LIVE_OUTCOME=${{ steps.live.outcome }}"
           echo "PRODUCT_OUTCOME=${{ steps.product.outcome }}"
           echo "PROGRAM_OUTCOME=${{ steps.program.outcome }}"
           echo "HARD_OUTCOME=${{ steps.hard.outcome }}"
           echo "PRODUCTION_LARGE_OUTCOME=${{ steps.large.outcome }}"
+          test "${{ steps.cancellation.outcome }}" = "success"
           test "${{ steps.live.outcome }}" = "success"
           test "${{ steps.product.outcome }}" = "success"
           test "${{ steps.program.outcome }}" = "success"

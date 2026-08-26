@@ -174,6 +174,20 @@ cooperative; a foreground-only test transport combined with the background opt-i
 This slice adds no second transport, active pause, arbitrary shell access, publication path, or
 broader hard-cancellation claim.
 
+P1.2e adds a dedicated, fail-closed live qualification of that exact opt-in lifecycle. The probe
+registers the real owned handle, latches cancellation immediately after handle registration, and
+requires an active initial provider state, a returned cancel request, an observed terminal
+`cancelled` state, one durable cancellation report, and an unchanged source checkout. A response
+that completes before the remote cancel is dispatched does not qualify. The cancellation-time
+report may accurately record the handle as still active when the provider needs longer than the
+existing grace period; the probe then separately requires terminal cancellation within the
+provider lifecycle timeout. The recorded lifecycle evidence deliberately omits the provider
+response identifier. Existing foreground live qualifications remain unchanged and the final live
+aggregator fails closed on the additional cancellation outcome.
+
+P1.2e adds qualification evidence only. It does not persist a remote-operation lease, add another
+provider adapter, change active pause, widen cancellation authority, or introduce publication.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
