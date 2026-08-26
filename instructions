@@ -150,8 +150,6 @@ for FILE in \
   tests/test_openai_background_cancellation_live.py \
   tests/test_openai_background_reconciliation_live.py \
   tests/test_remote_operation_reconciliation.py \
-  tests/test_openai_background_reconciliation_live.py \
-  tests/test_remote_operation_reconciliation.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
   tests/test_repository.py \
@@ -186,7 +184,7 @@ done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
-from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
+from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
@@ -205,6 +203,7 @@ from universal_coding_agent.web.app import (
     ProgramExecutionContinueRequest,
     ProgramExecutionStartRequest,
     RemoteOperationDispositionRequest,
+    RemoteOperationLeaseRetirementRequest,
 )
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
@@ -221,10 +220,13 @@ assert CANCELLABLE_COMPLETION_FACTORY_ENV
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
+assert not hasattr(RemoteOperationLeaseStore, "retire")
 assert RemoteOperationDisposition and RemoteOperationDispositionOutcome
+assert RemoteOperationLeaseRetirement
 assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 assert RemoteOperationDispositionRequest
+assert RemoteOperationLeaseRetirementRequest
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
@@ -235,6 +237,7 @@ print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_DISPOSITION_IMPORT_PREFLIGHT_PASS")
+print("REMOTE_OPERATION_LEASE_RETIREMENT_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -262,6 +265,8 @@ Cmd 3
   tests/test_discovered_safe_service.py \
   tests/test_hard_reasoning_lab.py \
   tests/test_solution_discovery.py \
+  tests/test_openai_background_reconciliation_live.py \
+  tests/test_remote_operation_reconciliation.py \
   tests/test_repository.py && \
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_BINDING_BACKEND_PREFLIGHT_PASS" && \
@@ -272,8 +277,9 @@ echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
 echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
-echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS"
-echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS"
+echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS" && \
+echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS" && \
+echo "REMOTE_OPERATION_LEASE_RETIREMENT_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -297,6 +303,7 @@ echo "PROGRAM_EXECUTION_UI_FRONTEND_PASS"
 echo "CANCELLATION_EVIDENCE_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_RECONCILIATION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_DISPOSITION_UI_FRONTEND_PASS"
+echo "REMOTE_OPERATION_LEASE_RETIREMENT_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -328,6 +335,7 @@ for path in (
     "/api/programs/{program_id}/executions/{task_id}/continue",
     "/api/tasks/{task_id}/remote-operation/reconcile",
     "/api/tasks/{task_id}/remote-operation/dispose",
+    "/api/tasks/{task_id}/remote-operation/retire",
 ):
     assert path in openapi["paths"]
 asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
@@ -348,6 +356,10 @@ for marker in (
     "Close task as cancelled",
     "Close task as failed",
     "Durable operator disposition",
+    "Private lease retained by default",
+    "Retire private lease",
+    "Durable private-lease retirement",
+    "Local private lease retired",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -357,6 +369,8 @@ print("REMOTE_OPERATION_RECONCILIATION_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RECONCILIATION_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_DISPOSITION_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_DISPOSITION_UI_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_LEASE_RETIREMENT_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_LEASE_RETIREMENT_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
@@ -414,6 +428,7 @@ test "$RECONCILIATION_RC" -eq 0
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PASS"
 echo "OPENAI_BACKGROUND_RESTART_RECONCILIATION_LIVE_QUALIFICATION_PASS"
 echo "REMOTE_OPERATION_DISPOSITION_LIVE_QUALIFICATION_PASS"
+echo "REMOTE_OPERATION_LEASE_RETIREMENT_LIVE_QUALIFICATION_PASS"
 ```
 
 Cmd 11

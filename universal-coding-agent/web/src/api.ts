@@ -3,6 +3,7 @@ import type {
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDispositionResult,
+  RemoteOperationLeaseRetirementResult,
   RemoteOperationReconciliationResult,
   RequirementContract,
   RequirementResult,
@@ -163,6 +164,23 @@ export const api = {
       {
         method: "POST",
         body: JSON.stringify({ outcome, reason, confirmed: true }),
+      },
+    ),
+
+  retireRemoteOperationLease: (
+    taskId: string,
+    dispositionAuditRef: string,
+    reason: string,
+  ) =>
+    request<RemoteOperationLeaseRetirementResult>(
+      `/api/tasks/${encodeURIComponent(taskId)}/remote-operation/retire`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          disposition_audit_ref: dispositionAuditRef,
+          reason,
+          confirmed: true,
+        }),
       },
     ),
 

@@ -48,7 +48,7 @@ def run_openai_background_cancellation_live(
     remote_operations = SqliteRemoteOperationLeaseStore(
         state_root / "private-remote-operations.sqlite"
     )
-    provider.bind_remote_operation_store(remote_operations)
+    provider.bind_remote_operation_store(remote_operations.provider_store())
 
     if provider.background_cancellation:
         signal = control.cancellation.signal(_TASK_ID)

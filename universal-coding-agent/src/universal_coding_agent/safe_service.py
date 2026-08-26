@@ -68,7 +68,7 @@ class SafeAgentService:
             state_root / "private-remote-operations.sqlite"
         )
         if isinstance(provider, RemoteOperationLeaseAwareProvider):
-            provider.bind_remote_operation_store(remote_operation_store)
+            provider.bind_remote_operation_store(remote_operation_store.provider_store())
 
         protocol = os.environ.get("UCA_SAFE_EDIT_PROTOCOL", "v1").strip().lower()
         if protocol in {"v2", "v2-line-addressed", "line-addressed"}:

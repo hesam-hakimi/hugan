@@ -103,12 +103,26 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["provider_calls_during_disposition"] == 0
     assert summary["disposition_matches_remote"] is True
     assert summary["durable_disposition_reloaded"] is True
+    assert summary["provider_calls_during_retirement"] == 0
+    assert summary["retirement_matches_disposition"] is True
+    assert summary["private_lease_absent_after_retirement"] is True
+    assert summary["durable_private_lease_absent"] is True
+    assert summary["durable_retirement_reloaded"] is True
+    assert summary["disposition_preserved_after_retirement"] is True
+    assert summary["private_identifier_absent_from_active_database"] is True
     disposition = summary["durable_terminal_disposition"]
     assert disposition["outcome"] == "cancelled"
     assert disposition["provider_confirmed_cancelled"] is True
     assert disposition["output_consumed"] is False
     assert disposition["graph_resumed"] is False
     assert disposition["program_phase_advanced"] is False
+    retirement = summary["durable_private_lease_retirement"]
+    assert retirement["disposition_audit_ref"] == disposition["audit_ref"]
+    assert retirement["private_lease_rows_retired"] == 1
+    assert retirement["private_identifier_retained_in_active_store"] is False
+    assert retirement["provider_calls_made"] == 0
+    assert retirement["task_outcome_changes_made"] == 0
+    assert retirement["program_outcome_changes_made"] == 0
     assert summary["identity_and_base_bound"] is True
     assert summary["private_identifier_fields_absent"] is True
     assert summary["source"]["source_preserved"] is True
@@ -117,6 +131,16 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert response_id not in serialized
     assert "operation_id" not in serialized
     assert "response_id" not in serialized
+
+    private_database = tmp_path / "state" / "private-remote-operations.sqlite"
+    private_store = SqliteRemoteOperationLeaseStore(private_database)
+    try:
+        assert private_store.private_lease(_TASK_ID) is None
+        assert private_store.public_snapshot(_TASK_ID) is None
+        assert private_store.retirement(_TASK_ID) is not None
+    finally:
+        private_store.close()
+    assert response_id.encode("utf-8") not in private_database.read_bytes()
 
 
 def test_live_workflow_runs_restart_reconciliation_without_uploading_private_lease(

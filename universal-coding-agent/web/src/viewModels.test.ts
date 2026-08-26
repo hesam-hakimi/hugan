@@ -5,6 +5,7 @@ import type {
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDisposition,
+  RemoteOperationLeaseRetirement,
   RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
@@ -15,10 +16,13 @@ import {
   canContinueProgramExecution,
   canDisposeRemoteOperation,
   canReconcileRemoteOperation,
+  canRetireRemoteOperationLease,
   canStartProgramExecution,
   cancellationEvidencePresentation,
+  hasRemoteOperationEvidence,
   phaseProgress,
   remoteOperationDispositionPresentation,
+  remoteOperationLeaseRetirementPresentation,
   remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
@@ -121,6 +125,41 @@ function remoteDisposition(
     provider_calls_made: 0,
     output_consumed: false,
     graph_resumed: false,
+    program_phase_advanced: false,
+    ...overrides,
+  };
+}
+
+function remoteLeaseRetirement(
+  overrides: Partial<RemoteOperationLeaseRetirement> = {},
+): RemoteOperationLeaseRetirement {
+  return {
+    schema_version: "1",
+    retirement_ref: `sha256:${"e".repeat(64)}`,
+    task_id: "task-1",
+    disposition_audit_ref: `sha256:${"d".repeat(64)}`,
+    disposition_outcome: "cancelled",
+    program_id: "",
+    phase_id: "",
+    slice_id: "",
+    reason: "Operator approved local private lease retirement.",
+    retired_at: "2026-08-26T12:03:00Z",
+    transport: "openai_responses",
+    transport_scope: `sha256:${"a".repeat(64)}`,
+    operation_ref: `sha256:${"b".repeat(64)}`,
+    base_sha: "c".repeat(40),
+    remote_state: "terminal",
+    remote_status: "cancelled",
+    remote_revision: 2,
+    remote_updated_at: "2026-08-26T12:01:00Z",
+    confirmed_by_operator: true,
+    private_lease_rows_retired: 1,
+    private_identifier_retained_in_active_store: false,
+    provider_calls_made: 0,
+    output_consumed: false,
+    graph_resumed: false,
+    task_outcome_changes_made: 0,
+    program_outcome_changes_made: 0,
     program_phase_advanced: false,
     ...overrides,
   };
@@ -426,5 +465,65 @@ describe("control-center view models", () => {
     expect(presentation.summary).toContain(
       "did not consume output, resume the graph, or advance a Program phase",
     );
+  });
+
+  it("enables retirement only for an exact disposed non-active lease", () => {
+    const terminal = remoteOperation({
+      state: "terminal",
+      last_status: "cancelled",
+      revision: 2,
+      requires_explicit_action: false,
+      requires_explicit_disposition: false,
+    });
+    const disposition = remoteDisposition();
+
+    expect(canRetireRemoteOperationLease(terminal, disposition)).toBe(true);
+    expect(
+      canRetireRemoteOperationLease(terminal, disposition, undefined, true),
+    ).toBe(false);
+    expect(
+      canRetireRemoteOperationLease(
+        terminal,
+        disposition,
+        remoteLeaseRetirement(),
+      ),
+    ).toBe(false);
+    expect(
+      canRetireRemoteOperationLease(
+        terminal,
+        remoteDisposition({ remote_revision: 3 }),
+      ),
+    ).toBe(false);
+    expect(canRetireRemoteOperationLease(remoteOperation(), disposition)).toBe(false);
+  });
+
+  it("presents logical local retirement without remote or forensic claims", () => {
+    const terminal = remoteOperationLeaseRetirementPresentation(
+      remoteLeaseRetirement(),
+    );
+    const unavailable = remoteOperationLeaseRetirementPresentation(
+      remoteLeaseRetirement({
+        remote_state: "unavailable",
+        remote_status: "remote_state_unavailable",
+      }),
+    );
+
+    expect(terminal.label).toBe("Local private lease retired");
+    expect(terminal.summary).toContain(
+      "retirement action made no provider call or Task/Program outcome change",
+    );
+    expect(terminal.summary).toContain("not a claim of forensic storage erasure or remote deletion");
+    expect(unavailable.summary).toContain("does not confirm provider completion, termination");
+  });
+
+  it("keeps durable evidence visible after the private lease row is gone", () => {
+    expect(
+      hasRemoteOperationEvidence(
+        undefined,
+        remoteDisposition(),
+        remoteLeaseRetirement(),
+      ),
+    ).toBe(true);
+    expect(hasRemoteOperationEvidence()).toBe(false);
   });
 });

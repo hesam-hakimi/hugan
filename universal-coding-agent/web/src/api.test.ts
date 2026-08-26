@@ -129,4 +129,27 @@ describe("Program execution API client", () => {
       });
     },
   );
+
+  it("retires a private lease only through an explicit disposition-bound POST", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+    const auditRef = `sha256:${"d".repeat(64)}`;
+
+    await api.retireRemoteOperationLease(
+      "task/1",
+      auditRef,
+      "Operator approved local private lease retirement.",
+    );
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe(
+      "/api/tasks/task%2F1/remote-operation/retire",
+    );
+    expect(request[1].method).toBe("POST");
+    expect(JSON.parse(String(request[1].body))).toEqual({
+      disposition_audit_ref: auditRef,
+      reason: "Operator approved local private lease retirement.",
+      confirmed: true,
+    });
+  });
 });

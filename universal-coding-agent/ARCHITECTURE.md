@@ -282,6 +282,56 @@ evidence, and unchanged source. P1.2h adds no output recovery, graph resume, ret
 phase advancement, automatic restart action, another provider transport, active pause,
 publication, or broader cancellation claim.
 
+P1.2i adds explicit local retirement of the private opaque lease only after that complete P1.2h
+disposition exists. Retention remains the default. The operator must supply the exact durable
+disposition audit reference, a non-empty retirement reason, and `confirmed=true` to
+`POST /api/tasks/{task_id}/remote-operation/retire`. An active lease, missing or drifted
+disposition, active local worker or lifecycle action, or mismatch in task, transport, endpoint
+scope, operation reference, immutable Base SHA, remote state/status/revision/timestamp fails
+closed before deletion. The action has no provider dependency and makes zero provider calls.
+The destructive method is deliberately absent from the provider-facing
+`RemoteOperationLeaseStore` protocol. Providers receive a restricted store view with only lease
+registration, lifecycle update, and reconciliation reads. UCA-owned Product control and the
+dedicated qualification retain access to the concrete private store's retirement capability.
+
+The private SQLite store runs one `BEGIN IMMEDIATE` transaction that writes a typed redacted
+retirement receipt and conditionally deletes exactly one matching opaque lease row. Either both
+changes commit or both roll back. The receipt retains the disposition identity and outcome,
+Program/phase/slice identity where applicable, public transport and operation hashes, immutable
+Base SHA, exact remote lifecycle evidence, reason and timestamp, and explicit zero-work facts; it
+never retains the opaque provider identifier in the active private store. The receipt hash is
+recomputed and validated whenever it is loaded. An exact repeat returns the same receipt after a
+lost response or restart, a conflicting repeat is rejected, and the durable tombstone prevents
+reuse of the retired task identity. SQLite `secure_delete` is enabled for this private store to
+overwrite deleted content in the active database where SQLite supports it, but P1.2i claims only
+logical local row retirement—not remote provider deletion, encrypted erasure, backup cleanup, or
+forensic destruction across storage layers.
+
+Standalone retirement first proves that task control already has the matching terminal outcome.
+For a Program task it additionally proves the persisted binding identity and terminal status, the
+exact disposition artifact, terminal phase report, blocked Program status, and phase outcome.
+The retirement action invokes no Task or Program mutation method, and its receipt records zero
+Task/Program outcome changes made. Deterministic tests compare those records before and after the
+action. One runtime reservation atomically excludes local workers and competing lifecycle actions;
+the same reservation prevents a worker from starting concurrently. Reuse of a retained or retired
+remote-operation task identity is rejected before discovery or provider work. An exact repeat of a
+partially propagated P1.2h Program disposition first repairs and verifies its binding, artifact,
+phase, Program, and report before retirement can proceed. The local Product Control Center
+requires a separate browser confirmation, explains destructive local scope, keeps disposition and
+redacted receipt visible after the private lease disappears, and never describes unavailable
+remote state as termination.
+
+Deterministic coverage proves default retention, explicit confirmation, atomic rollback after an
+injected delete failure, exact-repeat concurrency, additive reopening of a P1.2h private database,
+redaction, restart durability, identity drift rejection, Program evidence requirements, zero
+provider work, and unchanged Task/Program outcomes. The existing restart live qualification now
+retires the real disposed qualification lease, reloads its receipt and preserved disposition,
+requires zero additional provider calls and absence of the opaque identifier from the active
+private database, and preserves source. Workflow thresholds and the fail-closed live aggregator
+are unchanged. P1.2i adds no output recovery, graph resume, retry/replan, automatic retention
+policy, another provider transport, active pause, publication, remote deletion, or broader
+cancellation claim.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

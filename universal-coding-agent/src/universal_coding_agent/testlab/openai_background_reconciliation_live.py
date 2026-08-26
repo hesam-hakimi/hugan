@@ -16,6 +16,7 @@ from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
     RemoteOperationDisposition,
     RemoteOperationDispositionOutcome,
+    RemoteOperationLeaseRetirement,
     RemoteOperationSnapshot,
     RemoteOperationState,
 )
@@ -86,7 +87,7 @@ def run_openai_background_reconciliation_live(
     explicit_cancel_calls = 0
 
     reopened = SqliteRemoteOperationLeaseStore(private_database)
-    provider.bind_remote_operation_store(reopened)
+    provider.bind_remote_operation_store(reopened.provider_store())
     original_request_json = provider._request_json
 
     def counted_request_json(
@@ -187,6 +188,61 @@ def run_openai_background_reconciliation_live(
     finally:
         reopened_control.close()
 
+    retirement: RemoteOperationLeaseRetirement | None = None
+    durable_retirement: RemoteOperationLeaseRetirement | None = None
+    disposition_after_retirement: RemoteOperationDisposition | None = None
+    provider_calls_during_retirement = -1
+    private_lease_absent_after_retirement = False
+    durable_private_lease_absent = False
+    private_identifier_absent_from_active_database = False
+    private_identifier = ""
+    calls_before_retirement = len(request_events)
+    retirement_store = SqliteRemoteOperationLeaseStore(private_database)
+    try:
+        private_lease = retirement_store.private_lease(_TASK_ID)
+        if private_lease is not None:
+            private_identifier = private_lease.operation_id
+        if durable_disposition is not None:
+            retirement = retirement_store.retire(
+                durable_disposition,
+                reason="Live qualification explicitly retired the local private lease.",
+                confirmed=True,
+            )
+            private_lease_absent_after_retirement = bool(
+                retirement_store.private_lease(_TASK_ID) is None
+                and retirement_store.public_snapshot(_TASK_ID) is None
+            )
+        provider_calls_during_retirement = (
+            len(request_events) - calls_before_retirement
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        retirement_store.close()
+
+    if private_identifier:
+        private_identifier_absent_from_active_database = (
+            private_identifier.encode("utf-8") not in private_database.read_bytes()
+        )
+
+    reopened_retirement_store = SqliteRemoteOperationLeaseStore(private_database)
+    try:
+        durable_retirement = reopened_retirement_store.retirement(_TASK_ID)
+        durable_private_lease_absent = bool(
+            reopened_retirement_store.private_lease(_TASK_ID) is None
+            and reopened_retirement_store.public_snapshot(_TASK_ID) is None
+        )
+    finally:
+        reopened_retirement_store.close()
+
+    control_after_retirement = TaskControlService(task_control_path)
+    try:
+        disposition_after_retirement = (
+            control_after_retirement.remote_operation_disposition(_TASK_ID)
+        )
+    finally:
+        control_after_retirement.close()
+
     source_after = _source_snapshot(source_root)
     source_preserved = source_before == source_after and not source_before["status"]
     created_json = _snapshot_json(created_snapshot)
@@ -197,6 +253,8 @@ def run_openai_background_reconciliation_live(
     durable_json = _snapshot_json(durable_snapshot)
     disposition_json = _disposition_json(disposition)
     durable_disposition_json = _disposition_json(durable_disposition)
+    retirement_json = _retirement_json(retirement)
+    durable_retirement_json = _retirement_json(durable_retirement)
     stable_reference = bool(
         created_snapshot
         and recovered_snapshot
@@ -246,6 +304,38 @@ def run_openai_background_reconciliation_live(
     durable_disposition_reloaded = bool(
         disposition and durable_disposition and disposition == durable_disposition
     )
+    retirement_matches_disposition = bool(
+        retirement
+        and durable_disposition
+        and retirement.task_id == durable_disposition.task_id
+        and retirement.disposition_audit_ref == durable_disposition.audit_ref
+        and retirement.disposition_outcome is durable_disposition.outcome
+        and retirement.transport == durable_disposition.transport
+        and retirement.transport_scope == durable_disposition.transport_scope
+        and retirement.operation_ref == durable_disposition.operation_ref
+        and retirement.base_sha == durable_disposition.base_sha
+        and retirement.remote_state is durable_disposition.remote_state
+        and retirement.remote_status == durable_disposition.remote_status
+        and retirement.remote_revision == durable_disposition.remote_revision
+        and retirement.remote_updated_at == durable_disposition.remote_updated_at
+        and retirement.confirmed_by_operator
+        and retirement.private_lease_rows_retired == 1
+        and not retirement.private_identifier_retained_in_active_store
+        and retirement.provider_calls_made == 0
+        and not retirement.output_consumed
+        and not retirement.graph_resumed
+        and retirement.task_outcome_changes_made == 0
+        and retirement.program_outcome_changes_made == 0
+        and not retirement.program_phase_advanced
+    )
+    durable_retirement_reloaded = bool(
+        retirement and durable_retirement and retirement == durable_retirement
+    )
+    disposition_preserved_after_retirement = bool(
+        durable_disposition
+        and disposition_after_retirement
+        and durable_disposition == disposition_after_retirement
+    )
     summary = {
         "provider": "openai_responses",
         "model": provider.model,
@@ -274,6 +364,21 @@ def run_openai_background_reconciliation_live(
         "provider_calls_during_disposition": provider_calls_during_disposition,
         "disposition_matches_remote": disposition_matches_remote,
         "durable_disposition_reloaded": durable_disposition_reloaded,
+        "explicit_private_lease_retirement": retirement_json,
+        "durable_private_lease_retirement": durable_retirement_json,
+        "provider_calls_during_retirement": provider_calls_during_retirement,
+        "retirement_matches_disposition": retirement_matches_disposition,
+        "private_lease_absent_after_retirement": (
+            private_lease_absent_after_retirement
+        ),
+        "durable_private_lease_absent": durable_private_lease_absent,
+        "durable_retirement_reloaded": durable_retirement_reloaded,
+        "disposition_preserved_after_retirement": (
+            disposition_preserved_after_retirement
+        ),
+        "private_identifier_absent_from_active_database": (
+            private_identifier_absent_from_active_database
+        ),
         "errors": [_safe_error(error) for error in errors],
         "source": {
             "head_sha": source_after["head_sha"],
@@ -300,6 +405,13 @@ def run_openai_background_reconciliation_live(
         and provider_calls_during_disposition == 0
         and disposition_matches_remote
         and durable_disposition_reloaded
+        and provider_calls_during_retirement == 0
+        and retirement_matches_disposition
+        and private_lease_absent_after_retirement
+        and durable_private_lease_absent
+        and durable_retirement_reloaded
+        and disposition_preserved_after_retirement
+        and private_identifier_absent_from_active_database
         and not errors
         and identifier_fields_absent
         and source_preserved
@@ -311,7 +423,7 @@ def run_openai_background_reconciliation_live(
 def _worker_main(state_root: Path, base_sha: str, timeout_seconds: float) -> int:
     store = SqliteRemoteOperationLeaseStore(state_root / _PRIVATE_DATABASE_NAME)
     provider = OpenAIResponsesProvider.from_env(timeout_seconds=timeout_seconds)
-    provider.bind_remote_operation_store(store)
+    provider.bind_remote_operation_store(store.provider_store())
     signal = CancellationCoordinator().signal(_TASK_ID)
     try:
         provider.invoke_cancellable(
@@ -416,6 +528,12 @@ def _disposition_json(
     return disposition.model_dump(mode="json") if disposition is not None else None
 
 
+def _retirement_json(
+    retirement: RemoteOperationLeaseRetirement | None,
+) -> dict[str, Any] | None:
+    return retirement.model_dump(mode="json") if retirement is not None else None
+
+
 def _contains_private_identifier_field(value: Any) -> bool:
     if isinstance(value, dict):
         return any(
@@ -503,6 +621,7 @@ def main() -> int:
     if not summary["qualified"]:
         return 2
     print("OPENAI_BACKGROUND_RECONCILIATION_LIVE_QUALIFICATION_PASS")
+    print("REMOTE_OPERATION_LEASE_RETIREMENT_LIVE_QUALIFICATION_PASS")
     return 0
 
 

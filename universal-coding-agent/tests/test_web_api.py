@@ -469,6 +469,7 @@ def test_program_execution_api_recovers_binding_without_automatic_work(
 
 def test_program_execution_binding_exposes_only_redacted_remote_operation(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
     workspace = ProductWorkspace.create(tmp_path / "product", _provider())
     program_id = "program-api-remote-recovery"
@@ -545,15 +546,44 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         assert busy_disposition.status_code == 400
         runtime._program_execution_runs.pop(program_id)
 
+        original_record_disposition = (
+            workspace.programs.record_remote_operation_disposition
+        )
+        disposition_attempts = 0
+
+        def fail_first_program_disposition(disposition):
+            nonlocal disposition_attempts
+            disposition_attempts += 1
+            if disposition_attempts == 1:
+                raise ValueError("injected Program disposition persistence failure")
+            return original_record_disposition(disposition)
+
+        monkeypatch.setattr(
+            workspace.programs,
+            "record_remote_operation_disposition",
+            fail_first_program_disposition,
+        )
+        disposition_payload = {
+            "outcome": "failed",
+            "reason": "Remote state is unavailable; termination is not inferred.",
+            "confirmed": True,
+        }
+        partial_disposition = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json=disposition_payload,
+        )
+        assert partial_disposition.status_code == 400
+        assert workspace.control.remote_operation_disposition(binding.task_id) is not None
+        partial_binding = workspace.programs.execution_binding(binding.task_id)
+        assert partial_binding.status is ProgramExecutionStatus.AWAITING_SCOPE_APPROVAL
+        assert not partial_binding.remote_disposition_ref
+
         disposed = client.post(
             f"/api/tasks/{binding.task_id}/remote-operation/dispose",
-            json={
-                "outcome": "failed",
-                "reason": "Remote state is unavailable; termination is not inferred.",
-                "confirmed": True,
-            },
+            json=disposition_payload,
         )
         assert disposed.status_code == 200
+        assert disposition_attempts == 2
         disposition = disposed.json()["remote_operation_disposition"]
         assert disposition["program_id"] == program_id
         assert disposition["phase_id"] == binding.phase_id
@@ -589,6 +619,104 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         report = workspace.artifacts.read_json(persisted.phase_report_ref)
         assert report["phase_status"] == "failed"
         assert report["program_status"] == "blocked"
+
+        workspace.artifacts.write_json(
+            persisted.phase_report_ref.removeprefix("artifact://"),
+            {**report, "bindings": []},
+        )
+        repaired_report_disposition = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json=disposition_payload,
+        )
+        assert repaired_report_disposition.status_code == 200
+        repaired_report = workspace.artifacts.read_json(persisted.phase_report_ref)
+        assert any(
+            item["task_id"] == binding.task_id
+            and item["remote_disposition_ref"] == persisted.remote_disposition_ref
+            for item in repaired_report["bindings"]
+        )
+
+        control_before_retirement = workspace.control.get_task(binding.task_id)
+        binding_before_retirement = workspace.programs.execution_binding(binding.task_id)
+        phase_before_retirement = workspace.programs.phase_status(
+            program_id,
+            binding.phase_id,
+        )
+        program_before_retirement = workspace.programs.status(program_id)
+        report_before_retirement = workspace.artifacts.read_json(
+            binding_before_retirement.phase_report_ref
+        )
+        starts_before_retirement = tuple(executor.starts)
+        resumes_before_retirement = tuple(executor.resumes)
+        workspace.programs.connection.execute(
+            "UPDATE program_executions SET remote_disposition_ref = '' WHERE task_id = ?",
+            (binding.task_id,),
+        )
+        workspace.programs.connection.commit()
+        missing_program_evidence = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/retire",
+            json={
+                "disposition_audit_ref": disposition["audit_ref"],
+                "reason": "Retirement requires complete Program disposition evidence.",
+                "confirmed": True,
+            },
+        )
+        assert missing_program_evidence.status_code == 400
+        assert workspace.remote_operations.private_lease(binding.task_id) is not None
+        workspace.programs.connection.execute(
+            "UPDATE program_executions SET remote_disposition_ref = ? WHERE task_id = ?",
+            (binding_before_retirement.remote_disposition_ref, binding.task_id),
+        )
+        workspace.programs.connection.commit()
+
+        retired = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/retire",
+            json={
+                "disposition_audit_ref": disposition["audit_ref"],
+                "reason": "The closed Program task no longer needs its private lease.",
+                "confirmed": True,
+            },
+        )
+        assert retired.status_code == 200
+        retirement = retired.json()["remote_operation_lease_retirement"]
+        assert retirement["program_id"] == program_id
+        assert retirement["phase_id"] == binding.phase_id
+        assert retirement["disposition_audit_ref"] == disposition["audit_ref"]
+        assert retirement["private_lease_rows_retired"] == 1
+        assert retirement["provider_calls_made"] == 0
+        assert retirement["task_outcome_changes_made"] == 0
+        assert retirement["program_outcome_changes_made"] == 0
+        assert workspace.remote_operations.private_lease(binding.task_id) is None
+        assert workspace.control.get_task(binding.task_id) == control_before_retirement
+        assert (
+            workspace.programs.execution_binding(binding.task_id)
+            == binding_before_retirement
+        )
+        assert (
+            workspace.programs.phase_status(program_id, binding.phase_id)
+            is phase_before_retirement
+        )
+        assert workspace.programs.status(program_id) is program_before_retirement
+        assert (
+            workspace.artifacts.read_json(binding_before_retirement.phase_report_ref)
+            == report_before_retirement
+        )
+        after_retirement = client.get(f"/api/programs/{program_id}/executions")
+        after_binding = after_retirement.json()["bindings"][0]
+        assert "remote_operation" not in after_binding
+        assert after_binding["remote_operation_disposition"] == disposition
+        assert after_binding["remote_operation_lease_retirement"] == retirement
+        assert response_id not in after_retirement.text
+        assert tuple(executor.starts) == starts_before_retirement
+        assert tuple(executor.resumes) == resumes_before_retirement
+
+        repeated_disposition = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/dispose",
+            json=disposition_payload,
+        )
+        assert repeated_disposition.status_code == 200
+        assert repeated_disposition.json()["remote_operation_disposition"] == disposition
+        assert workspace.remote_operations.private_lease(binding.task_id) is None
 
         blocked_continue = client.post(
             f"/api/programs/{program_id}/executions/{binding.task_id}/continue",

@@ -141,6 +141,44 @@ export type RemoteOperationDispositionResult = {
   remote_operation_disposition: RemoteOperationDisposition;
 };
 
+export type RemoteOperationLeaseRetirement = {
+  schema_version: "1";
+  retirement_ref: string;
+  task_id: string;
+  disposition_audit_ref: string;
+  disposition_outcome: "cancelled" | "failed";
+  program_id: string;
+  phase_id: string;
+  slice_id: string;
+  reason: string;
+  retired_at: string;
+  transport: string;
+  transport_scope: string;
+  operation_ref: string;
+  base_sha: string;
+  remote_state: "terminal" | "unavailable";
+  remote_status: string;
+  remote_revision: number;
+  remote_updated_at: string;
+  confirmed_by_operator: true;
+  private_lease_rows_retired: 1;
+  private_identifier_retained_in_active_store: false;
+  provider_calls_made: 0;
+  output_consumed: false;
+  graph_resumed: false;
+  task_outcome_changes_made: 0;
+  program_outcome_changes_made: 0;
+  program_phase_advanced: false;
+};
+
+export type RemoteOperationLeaseRetirementResult = {
+  task_id: string;
+  outcome: "cancelled" | "failed";
+  program_id: string;
+  remote_operation_disposition: RemoteOperationDisposition;
+  remote_operation_lease_retirement: RemoteOperationLeaseRetirement;
+};
+
 export type ProgramExecutionBinding = {
   program_id: string;
   phase_id: string;
@@ -161,6 +199,7 @@ export type ProgramExecutionBinding = {
   cancellation_report?: CancellationReport;
   remote_operation?: RemoteOperationSnapshot;
   remote_operation_disposition?: RemoteOperationDisposition;
+  remote_operation_lease_retirement?: RemoteOperationLeaseRetirement;
 };
 
 export type ProgramExecutionSnapshot = {
@@ -211,5 +250,6 @@ export type TaskSnapshot = {
   cancellation_report?: CancellationReport;
   remote_operation?: RemoteOperationSnapshot;
   remote_operation_disposition?: RemoteOperationDisposition;
+  remote_operation_lease_retirement?: RemoteOperationLeaseRetirement;
   result?: Record<string, unknown>;
 };

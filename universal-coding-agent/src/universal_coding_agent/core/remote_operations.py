@@ -98,6 +98,41 @@ class RemoteOperationDisposition(FrozenModel):
     program_phase_advanced: Literal[False] = False
 
 
+class RemoteOperationLeaseRetirement(FrozenModel):
+    """Redacted receipt proving explicit retirement of one private lease row."""
+
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    retirement_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    disposition_audit_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    disposition_outcome: RemoteOperationDispositionOutcome
+    program_id: str = Field(default="", max_length=128)
+    phase_id: str = Field(default="", max_length=64)
+    slice_id: str = Field(default="", max_length=64)
+    reason: str = Field(min_length=1, max_length=2000)
+    retired_at: str
+    transport: str = Field(pattern=r"^[a-z][a-z0-9._-]{2,63}$")
+    transport_scope: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    operation_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    base_sha: str = Field(default="", max_length=64)
+    remote_state: Literal[
+        RemoteOperationState.TERMINAL,
+        RemoteOperationState.UNAVAILABLE,
+    ]
+    remote_status: str = Field(min_length=1, max_length=64)
+    remote_revision: int = Field(ge=0)
+    remote_updated_at: str
+    confirmed_by_operator: Literal[True]
+    private_lease_rows_retired: int = Field(default=1, ge=1, le=1)
+    private_identifier_retained_in_active_store: Literal[False] = False
+    provider_calls_made: int = Field(default=0, ge=0, le=0)
+    output_consumed: Literal[False] = False
+    graph_resumed: Literal[False] = False
+    task_outcome_changes_made: int = Field(default=0, ge=0, le=0)
+    program_outcome_changes_made: int = Field(default=0, ge=0, le=0)
+    program_phase_advanced: Literal[False] = False
+
+
 class RemoteOperationLeaseStore(Protocol):
     """Private persistence boundary used by explicitly lease-aware providers."""
 

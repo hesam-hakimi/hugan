@@ -4,6 +4,7 @@ import type {
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDisposition,
+  RemoteOperationLeaseRetirement,
   RemoteOperationSnapshot,
   RequirementContract,
   TaskSnapshot,
@@ -24,6 +25,12 @@ export type RemoteOperationPresentation = {
 };
 
 export type RemoteOperationDispositionPresentation = {
+  label: string;
+  summary: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+};
+
+export type RemoteOperationLeaseRetirementPresentation = {
   label: string;
   summary: string;
   tone: "good" | "warn" | "bad" | "neutral";
@@ -129,6 +136,57 @@ export function remoteOperationDispositionPresentation(
     label: `Task closed as ${outcome}`,
     summary: `The provider reported terminal status ${disposition.remote_status}. UCA did not consume remote output, resume the graph, or advance a Program phase.`,
     tone: disposition.outcome === "cancelled" ? "warn" : "bad",
+  };
+}
+
+export function canRetireRemoteOperationLease(
+  operation?: RemoteOperationSnapshot,
+  disposition?: RemoteOperationDisposition,
+  retirement?: RemoteOperationLeaseRetirement,
+  blocked = false,
+): boolean {
+  return Boolean(
+    operation &&
+      disposition &&
+      operation.state !== "active" &&
+      operation.task_id === disposition.task_id &&
+      operation.transport === disposition.transport &&
+      operation.transport_scope === disposition.transport_scope &&
+      operation.operation_ref === disposition.operation_ref &&
+      operation.base_sha === disposition.base_sha &&
+      operation.state === disposition.remote_state &&
+      operation.last_status === disposition.remote_status &&
+      operation.revision === disposition.remote_revision &&
+      operation.updated_at === disposition.remote_updated_at &&
+      !retirement &&
+      !blocked,
+  );
+}
+
+export function hasRemoteOperationEvidence(
+  operation?: RemoteOperationSnapshot,
+  disposition?: RemoteOperationDisposition,
+  retirement?: RemoteOperationLeaseRetirement,
+): boolean {
+  return Boolean(operation || disposition || retirement);
+}
+
+export function remoteOperationLeaseRetirementPresentation(
+  retirement: RemoteOperationLeaseRetirement,
+): RemoteOperationLeaseRetirementPresentation {
+  if (retirement.remote_state === "unavailable") {
+    return {
+      label: "Local private lease retired",
+      summary:
+        "The opaque provider identifier was retired from UCA's active private SQLite lease store. Remote lifecycle state remained unavailable, so this does not confirm provider completion, termination, or remote deletion.",
+      tone: "warn",
+    };
+  }
+  return {
+    label: "Local private lease retired",
+    summary:
+      "The matching row was deleted from UCA's active private SQLite lease table after durable disposition. The retirement action made no provider call or Task/Program outcome change. This is not a claim of forensic storage erasure or remote deletion.",
+    tone: "neutral",
   };
 }
 

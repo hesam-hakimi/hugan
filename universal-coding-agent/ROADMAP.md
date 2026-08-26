@@ -35,6 +35,7 @@
 - [x] private restart-safe OpenAI response lease with explicit observe/cancel reconciliation and deterministic/live restart qualification;
 - [x] typed redacted remote-operation evidence plus explicit observe and confirmed-cancel controls in the local Product Control Center;
 - [x] explicit durable orphan disposition after terminal/unavailable remote state, with audited standalone and Program closure and no provider call;
+- [x] explicit disposition-bound local retirement of one private opaque remote-operation lease, with an atomic redacted receipt, default retention, zero provider calls, and zero Task/Program outcome changes;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

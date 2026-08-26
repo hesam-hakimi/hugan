@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
+    RemoteOperationDisposition,
     RemoteOperationDispositionOutcome,
     RemoteOperationState,
 )
@@ -24,9 +25,12 @@ from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.product.context_documents import DocumentValidationError
 from universal_coding_agent.product.models import (
     ContextScope,
+    ControlState,
     DocumentRole,
+    PhaseStatus,
     ProgramExecutionBinding,
     ProgramExecutionStatus,
+    ProgramStatus,
     RequirementContract,
 )
 from universal_coding_agent.product.workspace import ProductWorkspace
@@ -104,6 +108,12 @@ class RemoteOperationDispositionRequest(BaseModel):
     confirmed: Literal[True]
 
 
+class RemoteOperationLeaseRetirementRequest(BaseModel):
+    disposition_audit_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    reason: str = Field(min_length=1, max_length=2000)
+    confirmed: Literal[True]
+
+
 class SafeTaskStartRequest(BaseModel):
     task_id: str | None = None
     thread_id: str | None = None
@@ -129,6 +139,7 @@ class ProductWebRuntime:
     )
     _runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _program_execution_runs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    _remote_operation_actions: set[str] = field(default_factory=set)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
@@ -139,8 +150,15 @@ class ProductWebRuntime:
         task_id = request.task_id or f"safe-ui-{uuid.uuid4().hex[:16]}"
         thread_id = request.thread_id or task_id
         with self._lock:
+            if task_id in self._remote_operation_actions:
+                raise ValueError("remote-operation lifecycle action is active")
             if self.workspace.control.remote_operation_disposition(task_id) is not None:
                 raise ValueError("disposed task identity cannot be reused")
+            if (
+                self.workspace.remote_operations.public_snapshot(task_id) is not None
+                or self.workspace.remote_operations.retirement(task_id) is not None
+            ):
+                raise ValueError("remote-operation task identity cannot be reused")
             if task_id in self._runs:
                 raise ValueError(f"task already exists: {task_id}")
             self.workspace.control.ensure_task(task_id)
@@ -181,6 +199,11 @@ class ProductWebRuntime:
             record["status"] = disposition.outcome.value
             record["busy"] = False
             record["remote_operation_disposition"] = disposition.model_dump(mode="json")
+        retirement = self.workspace.remote_operations.retirement(task_id)
+        if retirement is not None:
+            record["remote_operation_lease_retirement"] = retirement.model_dump(
+                mode="json"
+            )
         return record
 
     def reconcile_remote_operation(
@@ -192,26 +215,26 @@ class ProductWebRuntime:
             raise KeyError(task_id)
         if self.workspace.control.remote_operation_disposition(task_id) is not None:
             raise ValueError("disposed remote operation cannot be reconciled")
-        if self._remote_reconciliation_busy(task_id):
-            raise ValueError(
-                "remote-operation reconciliation requires no active local task worker"
-            )
         provider = self.workspace.provider
         if not isinstance(provider, RestartReconciliationModelProvider):
             raise ValueError(
                 "configured provider does not support restart reconciliation"
             )
-        snapshot = provider.reconcile_remote_operation(task_id, action)
-        return {
-            "task_id": task_id,
-            "action": action.value,
-            "remote_operation": self._remote_operation_snapshot(
-                snapshot.model_dump(mode="json"),
-                busy=False,
-                recovered=task_id not in self._runs,
-                disposed=False,
-            ),
-        }
+        self._begin_remote_operation_action(task_id)
+        try:
+            snapshot = provider.reconcile_remote_operation(task_id, action)
+            return {
+                "task_id": task_id,
+                "action": action.value,
+                "remote_operation": self._remote_operation_snapshot(
+                    snapshot.model_dump(mode="json"),
+                    busy=False,
+                    recovered=task_id not in self._runs,
+                    disposed=False,
+                ),
+            }
+        finally:
+            self._end_remote_operation_action(task_id)
 
     def dispose_remote_operation(
         self,
@@ -223,13 +246,44 @@ class ProductWebRuntime:
     ) -> dict[str, Any]:
         """Persist terminal local disposition without making a provider request."""
 
+        existing = self.workspace.control.remote_operation_disposition(task_id)
+        if existing is not None:
+            normalized_reason = reason.strip()
+            if not confirmed:
+                raise ValueError(
+                    "remote-operation disposition requires explicit confirmation"
+                )
+            if existing.outcome is not outcome or existing.reason != normalized_reason:
+                raise ValueError("remote-operation disposition is immutable")
+            self._begin_remote_operation_action(task_id)
+            try:
+                self._complete_existing_disposition(existing)
+                return self._disposition_result(existing)
+            finally:
+                self._end_remote_operation_action(task_id)
+
+        self._begin_remote_operation_action(task_id)
+        try:
+            return self._dispose_remote_operation(
+                task_id,
+                outcome,
+                reason=reason,
+                confirmed=confirmed,
+            )
+        finally:
+            self._end_remote_operation_action(task_id)
+
+    def _dispose_remote_operation(
+        self,
+        task_id: str,
+        outcome: RemoteOperationDispositionOutcome,
+        *,
+        reason: str,
+        confirmed: bool,
+    ) -> dict[str, Any]:
         with self._lock:
             if self.workspace.control.get_task(task_id) is None:
                 raise KeyError(task_id)
-            if self._remote_reconciliation_busy(task_id):
-                raise ValueError(
-                    "remote-operation disposition requires no active local task worker"
-                )
             snapshot = self.workspace.remote_operations.public_snapshot(task_id)
             if snapshot is None:
                 raise ValueError("task has no durable remote-operation lease")
@@ -257,33 +311,183 @@ class ProductWebRuntime:
             if run is not None:
                 run.update(status=outcome.value, busy=False)
 
+            return self._disposition_result(disposition)
+
+    def retire_remote_operation_lease(
+        self,
+        task_id: str,
+        *,
+        disposition_audit_ref: str,
+        reason: str,
+        confirmed: bool,
+    ) -> dict[str, Any]:
+        """Retire local opaque lease persistence without contacting the provider."""
+
+        if self.workspace.control.get_task(task_id) is None:
+            raise KeyError(task_id)
+        disposition = self.workspace.control.remote_operation_disposition(task_id)
+        if disposition is None:
+            raise ValueError(
+                "private lease retirement requires a durable remote disposition"
+            )
+        if disposition.audit_ref != disposition_audit_ref:
+            raise ValueError("private lease retirement disposition audit mismatch")
+
+        self._begin_remote_operation_action(task_id)
+        try:
+            control = self.workspace.control.get_task(task_id)
+            if control is None:
+                raise KeyError(task_id)
+            expected_control = (
+                ControlState.CANCELLED
+                if disposition.outcome is RemoteOperationDispositionOutcome.CANCELLED
+                else ControlState.FAILED
+            )
+            if control.state is not expected_control:
+                raise ValueError(
+                    "task control state does not match the durable disposition"
+                )
+            self._validate_program_retirement_evidence(disposition)
+            retirement = self.workspace.remote_operations.retire(
+                disposition,
+                reason=reason,
+                confirmed=confirmed,
+            )
             return {
                 "task_id": task_id,
                 "outcome": disposition.outcome.value,
                 "program_id": disposition.program_id,
                 "remote_operation_disposition": disposition.model_dump(mode="json"),
+                "remote_operation_lease_retirement": retirement.model_dump(
+                    mode="json"
+                ),
             }
+        finally:
+            self._end_remote_operation_action(task_id)
 
-    def _remote_reconciliation_busy(self, task_id: str) -> bool:
-        with self._lock:
-            standalone = self._runs.get(task_id)
-            if standalone is not None and standalone.get("busy"):
-                return True
+    @staticmethod
+    def _disposition_result(
+        disposition: RemoteOperationDisposition,
+    ) -> dict[str, Any]:
+        return {
+            "task_id": disposition.task_id,
+            "outcome": disposition.outcome.value,
+            "program_id": disposition.program_id,
+            "remote_operation_disposition": disposition.model_dump(mode="json"),
+        }
+
+    def _complete_existing_disposition(
+        self,
+        disposition: RemoteOperationDisposition,
+    ) -> None:
+        try:
+            self.workspace.programs.execution_binding(disposition.task_id)
+        except KeyError:
+            if disposition.program_id:
+                raise ValueError(
+                    "Program disposition has no persisted execution binding"
+                ) from None
+            return
+        if not disposition.program_id:
+            raise ValueError("standalone disposition conflicts with a Program binding")
+        self.workspace.programs.record_remote_operation_disposition(disposition)
+        self._validate_program_retirement_evidence(disposition)
+
+    def _validate_program_retirement_evidence(
+        self,
+        disposition: RemoteOperationDisposition,
+    ) -> tuple[Any, ...] | None:
+        try:
+            binding = self.workspace.programs.execution_binding(disposition.task_id)
+        except KeyError:
+            if disposition.program_id:
+                raise ValueError(
+                    "Program disposition has no persisted execution binding"
+                ) from None
+            return None
+        if not disposition.program_id:
+            raise ValueError("standalone disposition conflicts with a Program binding")
+        if (
+            binding.program_id != disposition.program_id
+            or binding.phase_id != disposition.phase_id
+            or (binding.slice_id or "") != disposition.slice_id
+        ):
+            raise ValueError("Program binding does not match the durable disposition")
+        expected_binding = (
+            ProgramExecutionStatus.CANCELLED
+            if disposition.outcome is RemoteOperationDispositionOutcome.CANCELLED
+            else ProgramExecutionStatus.FAILED
+        )
+        expected_phase = (
+            PhaseStatus.CANCELLED
+            if disposition.outcome is RemoteOperationDispositionOutcome.CANCELLED
+            else PhaseStatus.FAILED
+        )
+        if binding.status is not expected_binding or not binding.remote_disposition_ref:
+            raise ValueError("Program binding has no matching terminal disposition")
+        artifact = self.workspace.artifacts.read_json(binding.remote_disposition_ref)
+        if artifact != disposition.model_dump(mode="json"):
+            raise ValueError("Program disposition artifact does not match task control")
+        phase_status = self.workspace.programs.phase_status(
+            binding.program_id,
+            binding.phase_id,
+        )
+        program_status = self.workspace.programs.status(binding.program_id)
+        if phase_status is not expected_phase or program_status is not ProgramStatus.BLOCKED:
+            raise ValueError("Program terminal state does not match the disposition")
+        if not binding.phase_report_ref:
+            raise ValueError("Program disposition has no durable phase report")
+        phase_report = self.workspace.artifacts.read_json(binding.phase_report_ref)
+        reported_bindings = phase_report.get("bindings")
+        if (
+            phase_report.get("program_id") != binding.program_id
+            or phase_report.get("requirement_hash") != binding.requirement_hash
+            or phase_report.get("phase_id") != binding.phase_id
+            or phase_report.get("phase_status") != expected_phase.value
+            or phase_report.get("program_status") != ProgramStatus.BLOCKED.value
+            or not isinstance(reported_bindings, list)
+            or binding.model_dump(mode="json") not in reported_bindings
+        ):
+            raise ValueError("Program phase report does not match the disposition")
+        return binding, phase_status, program_status, phase_report
+
+    def _begin_remote_operation_action(self, task_id: str) -> None:
         try:
             binding = self.workspace.programs.execution_binding(task_id)
         except KeyError:
-            return False
+            binding = None
         with self._lock:
-            runtime = self._program_execution_runs.get(binding.program_id)
-            if runtime is None or not runtime.get("busy"):
-                return False
-            runtime_task_id = str(runtime.get("task_id", ""))
-            return not runtime_task_id or runtime_task_id == task_id
+            if task_id in self._remote_operation_actions:
+                raise ValueError("remote-operation lifecycle action is already active")
+            standalone = self._runs.get(task_id)
+            if standalone is not None and standalone.get("busy"):
+                raise ValueError(
+                    "remote-operation action requires no active local worker"
+                )
+            if binding is not None:
+                runtime = self._program_execution_runs.get(binding.program_id)
+                if runtime is not None and runtime.get("busy"):
+                    runtime_task_id = str(runtime.get("task_id", ""))
+                    if not runtime_task_id or runtime_task_id == task_id:
+                        raise ValueError(
+                            "remote-operation action requires no active Program worker"
+                        )
+            self._remote_operation_actions.add(task_id)
+
+    def _end_remote_operation_action(self, task_id: str) -> None:
+        with self._lock:
+            self._remote_operation_actions.discard(task_id)
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:
         with self._lock:
+            if task_id in self._remote_operation_actions:
+                raise ValueError("remote-operation lifecycle action is active")
             if self.workspace.control.remote_operation_disposition(task_id) is not None:
                 raise ValueError("disposed task cannot resume Safe work")
+            if self.workspace.remote_operations.public_snapshot(task_id) is not None:
+                raise ValueError(
+                    "remote operation requires explicit reconciliation and disposition"
+                )
             record = self._runs.get(task_id)
             if record is None:
                 raise KeyError(task_id)
@@ -353,7 +557,13 @@ class ProductWebRuntime:
         request: ProgramExecutionStartRequest,
     ) -> dict[str, Any]:
         self.workspace.programs.plan(program_id)
+        bindings = self.workspace.programs.execution_bindings(program_id)
         with self._lock:
+            if any(
+                binding.task_id in self._remote_operation_actions
+                for binding in bindings
+            ):
+                raise ValueError("remote-operation lifecycle action is active")
             current = self._program_execution_runs.get(program_id)
             if current is not None and current.get("busy"):
                 raise ValueError("program execution is currently busy")
@@ -394,8 +604,14 @@ class ProductWebRuntime:
                 ProgramExecutionStatus.RUNNING,
             }:
                 raise ValueError("execution binding is not awaiting an explicit action")
+            if task_id in self._remote_operation_actions:
+                raise ValueError("remote-operation lifecycle action is active")
             if self.workspace.control.remote_operation_disposition(task_id) is not None:
                 raise ValueError("disposed execution binding cannot continue")
+            if self.workspace.remote_operations.public_snapshot(task_id) is not None:
+                raise ValueError(
+                    "remote operation requires explicit reconciliation and disposition"
+                )
             current = self._program_execution_runs.get(program_id)
             if current is not None and current.get("busy"):
                 raise ValueError("program execution is currently busy")
@@ -425,6 +641,8 @@ class ProductWebRuntime:
         with self._lock:
             if task_id not in self._runs:
                 raise KeyError(task_id)
+            if task_id in self._remote_operation_actions:
+                raise ValueError("remote-operation lifecycle action is active")
             if self.workspace.control.remote_operation_disposition(task_id) is not None:
                 raise ValueError("disposed task is terminal")
 
@@ -605,6 +823,11 @@ class ProductWebRuntime:
             )
         if disposition is not None:
             snapshot["remote_operation_disposition"] = disposition.model_dump(
+                mode="json"
+            )
+        retirement = self.workspace.remote_operations.retirement(binding.task_id)
+        if retirement is not None:
+            snapshot["remote_operation_lease_retirement"] = retirement.model_dump(
                 mode="json"
             )
         return snapshot
@@ -844,6 +1067,18 @@ def create_product_app(
         return runtime.dispose_remote_operation(
             task_id,
             request.outcome,
+            reason=request.reason,
+            confirmed=request.confirmed,
+        )
+
+    @app.post("/api/tasks/{task_id}/remote-operation/retire")
+    def retire_remote_operation_lease(
+        task_id: str,
+        request: RemoteOperationLeaseRetirementRequest,
+    ) -> dict[str, Any]:
+        return runtime.retire_remote_operation_lease(
+            task_id,
+            disposition_audit_ref=request.disposition_audit_ref,
             reason=request.reason,
             confirmed=request.confirmed,
         )

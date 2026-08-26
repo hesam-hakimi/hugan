@@ -50,7 +50,7 @@ class ProductWorkspace:
             root / "private-remote-operations.sqlite"
         )
         if isinstance(provider, RemoteOperationLeaseAwareProvider):
-            provider.bind_remote_operation_store(remote_operations)
+            provider.bind_remote_operation_store(remote_operations.provider_store())
         documents = ContextDocumentService(root / "documents.sqlite", artifacts)
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(

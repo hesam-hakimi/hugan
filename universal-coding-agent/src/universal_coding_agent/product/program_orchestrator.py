@@ -535,9 +535,34 @@ class ProgramOrchestrator:
                 payload = self.artifacts.read_json(binding.remote_disposition_ref)
                 if (
                     binding.status is target_status
-                    and payload.get("audit_ref") == disposition.audit_ref
+                    and payload == disposition.model_dump(mode="json")
                 ):
-                    return binding
+                    if self._remote_operation_disposition_report_is_complete(
+                        binding,
+                        target_phase_status,
+                    ):
+                        return binding
+                    self.connection.execute(
+                        """
+                        UPDATE program_phases SET status = ?
+                        WHERE program_id = ? AND phase_id = ?
+                        """,
+                        (
+                            target_phase_status.value,
+                            binding.program_id,
+                            binding.phase_id,
+                        ),
+                    )
+                    self.connection.execute(
+                        "UPDATE programs SET status = ? WHERE program_id = ?",
+                        (ProgramStatus.BLOCKED.value, binding.program_id),
+                    )
+                    self.connection.commit()
+                    self._write_phase_execution_report(
+                        binding.program_id,
+                        binding.phase_id,
+                    )
+                    return self.execution_binding(binding.task_id)
                 raise ProgramExecutionError(
                     "execution binding already has a different remote disposition"
                 )
@@ -577,6 +602,34 @@ class ProgramOrchestrator:
             self.connection.commit()
             self._write_phase_execution_report(binding.program_id, binding.phase_id)
             return self.execution_binding(binding.task_id)
+
+    def _remote_operation_disposition_report_is_complete(
+        self,
+        binding: ProgramExecutionBinding,
+        phase_status: PhaseStatus,
+    ) -> bool:
+        if (
+            self.phase_status(binding.program_id, binding.phase_id) is not phase_status
+            or self.status(binding.program_id) is not ProgramStatus.BLOCKED
+            or not binding.phase_report_ref
+        ):
+            return False
+        try:
+            report = self.artifacts.read_json(binding.phase_report_ref)
+        except (FileNotFoundError, ValueError):
+            return False
+        if not isinstance(report, dict):
+            return False
+        reported_bindings = report.get("bindings")
+        return bool(
+            report.get("program_id") == binding.program_id
+            and report.get("program_status") == ProgramStatus.BLOCKED.value
+            and report.get("requirement_hash") == binding.requirement_hash
+            and report.get("phase_id") == binding.phase_id
+            and report.get("phase_status") == phase_status.value
+            and isinstance(reported_bindings, list)
+            and binding.model_dump(mode="json") in reported_bindings
+        )
 
     def complete_phase(self, program_id: str, result: PhaseResult) -> str:
         if self.phase_status(program_id, result.phase_id) is not PhaseStatus.RUNNING:

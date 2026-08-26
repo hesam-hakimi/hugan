@@ -7,6 +7,7 @@ import type {
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDisposition,
+  RemoteOperationLeaseRetirement,
   RemoteOperationSnapshot,
   RequirementResult,
   SearchHit,
@@ -18,10 +19,13 @@ import {
   canContinueProgramExecution,
   canDisposeRemoteOperation,
   canReconcileRemoteOperation,
+  canRetireRemoteOperationLease,
+  hasRemoteOperationEvidence,
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
   remoteOperationDispositionPresentation,
+  remoteOperationLeaseRetirementPresentation,
   remoteOperationPresentation,
   statusTone,
   unresolvedClarifications,
@@ -290,6 +294,29 @@ export default function App() {
     );
   }
 
+  function retireProgramRemoteOperation(
+    taskId: string,
+    dispositionAuditRef: string,
+    reason: string,
+  ) {
+    if (!program) return;
+    if (
+      !window.confirm(
+        `Retire the private lease for ${taskId}? This deletes the matching row from UCA's active private SQLite lease table. It makes no provider request or Task/Program outcome change and does not claim remote deletion or forensic storage erasure.`,
+      )
+    ) {
+      return;
+    }
+    void perform(
+      async () => {
+        await api.retireRemoteOperationLease(taskId, dispositionAuditRef, reason);
+        return readProgramState(program.program_id);
+      },
+      applyProgramState,
+      "Private lease retired; durable disposition and redacted retirement evidence remain.",
+    );
+  }
+
   function createProgram() {
     if (!requirement || requirement.contract.status !== "approved") return;
     void perform(
@@ -534,6 +561,29 @@ export default function App() {
       },
       applyTaskState,
       `Task closed as ${outcome} with durable operator evidence.`,
+    );
+  }
+
+  function retireTaskRemoteOperation(
+    dispositionAuditRef: string,
+    reason: string,
+  ) {
+    if (!task) return;
+    if (
+      !window.confirm(
+        `Retire the private lease for ${task.task_id}? This deletes the matching row from UCA's active private SQLite lease table. It makes no provider request or Task outcome change and does not claim remote deletion or forensic storage erasure.`,
+      )
+    ) {
+      return;
+    }
+    const taskId = task.task_id;
+    void perform(
+      async () => {
+        await api.retireRemoteOperationLease(taskId, dispositionAuditRef, reason);
+        return api.task(taskId);
+      },
+      applyTaskState,
+      "Private lease retired; durable disposition and redacted retirement evidence remain.",
     );
   }
 
@@ -999,10 +1049,15 @@ export default function App() {
                         {binding.cancellation_report && (
                           <CancellationReportPanel report={binding.cancellation_report} />
                         )}
-                        {binding.remote_operation && (
+                        {hasRemoteOperationEvidence(
+                          binding.remote_operation,
+                          binding.remote_operation_disposition,
+                          binding.remote_operation_lease_retirement,
+                        ) && (
                           <RemoteOperationPanel
                             operation={binding.remote_operation}
                             disposition={binding.remote_operation_disposition}
+                            retirement={binding.remote_operation_lease_retirement}
                             blocked={busy || programExecution.runtime.busy}
                             onObserve={() =>
                               reconcileProgramRemoteOperation(binding.task_id, "observe")
@@ -1014,6 +1069,13 @@ export default function App() {
                               disposeProgramRemoteOperation(
                                 binding.task_id,
                                 outcome,
+                                reason,
+                              )
+                            }
+                            onRetire={(dispositionAuditRef, reason) =>
+                              retireProgramRemoteOperation(
+                                binding.task_id,
+                                dispositionAuditRef,
                                 reason,
                               )
                             }
@@ -1172,14 +1234,20 @@ export default function App() {
                   {task.cancellation_report && (
                     <CancellationReportPanel report={task.cancellation_report} />
                   )}
-                  {task.remote_operation && (
+                  {hasRemoteOperationEvidence(
+                    task.remote_operation,
+                    task.remote_operation_disposition,
+                    task.remote_operation_lease_retirement,
+                  ) && (
                     <RemoteOperationPanel
                       operation={task.remote_operation}
                       disposition={task.remote_operation_disposition}
+                      retirement={task.remote_operation_lease_retirement}
                       blocked={busy || Boolean(task.busy)}
                       onObserve={() => reconcileTaskRemoteOperation("observe")}
                       onCancel={() => reconcileTaskRemoteOperation("cancel")}
                       onDispose={disposeTaskRemoteOperation}
+                      onRetire={retireTaskRemoteOperation}
                     />
                   )}
                   {canApproveScope(task) && (
@@ -1262,70 +1330,90 @@ function CancellationReportPanel({ report }: { report: CancellationReport }) {
 function RemoteOperationPanel({
   operation,
   disposition,
+  retirement,
   blocked,
   onObserve,
   onCancel,
   onDispose,
+  onRetire,
 }: {
-  operation: RemoteOperationSnapshot;
+  operation?: RemoteOperationSnapshot;
   disposition?: RemoteOperationDisposition;
+  retirement?: RemoteOperationLeaseRetirement;
   blocked: boolean;
   onObserve: () => void;
   onCancel: () => void;
   onDispose: (outcome: "cancelled" | "failed", reason: string) => void;
+  onRetire: (dispositionAuditRef: string, reason: string) => void;
 }) {
   const [dispositionReason, setDispositionReason] = useState("");
-  const presentation = remoteOperationPresentation(operation);
+  const [retirementReason, setRetirementReason] = useState("");
+  const presentation = operation
+    ? remoteOperationPresentation(operation)
+    : undefined;
   const canReconcile = canReconcileRemoteOperation(operation, blocked);
   const canDispose = canDisposeRemoteOperation(operation, disposition, blocked);
+  const canRetire = canRetireRemoteOperationLease(
+    operation,
+    disposition,
+    retirement,
+    blocked,
+  );
   const dispositionEvidence = disposition
     ? remoteOperationDispositionPresentation(disposition)
+    : undefined;
+  const retirementEvidence = retirement
+    ? remoteOperationLeaseRetirementPresentation(retirement)
     : undefined;
 
   return (
     <section className="remoteOperationEvidence">
-      <div className="cancellationEvidenceHeader">
-        <div>
-          <span className="kicker">Redacted remote-operation evidence</span>
-          <h3>{presentation.label}</h3>
-        </div>
-        <span className={`status ${presentation.tone}`}>{operation.state}</span>
-      </div>
-      <p className="cancellationSummary">{presentation.summary}</p>
-      <div className="remoteOperationMeta">
-        <span>Task: <code>{operation.task_id}</code></span>
-        <span>Transport: <code>{operation.transport}</code></span>
-        <span>Provider status: <code>{operation.last_status}</code></span>
-        <span>Last action: <code>{operation.last_action ?? "none"}</code></span>
-        <span>Updated: <code>{operation.updated_at}</code></span>
-        {operation.base_sha && <span>Immutable Base SHA: <code>{operation.base_sha}</code></span>}
-      </div>
-      <div className="remoteOperationRefs">
-        <span>Endpoint scope hash</span>
-        <code>{operation.transport_scope}</code>
-        <span>Operation reference hash</span>
-        <code>{operation.operation_ref}</code>
-      </div>
-      <div className="cancellationMetrics">
-        <EvidenceMetric label="Revision" value={operation.revision} />
-        <EvidenceMetric
-          label="Reconciliation attempts"
-          value={operation.reconciliation_attempts}
-        />
-        <EvidenceMetric label="Cancel requests" value={operation.cancel_requests} />
-        <EvidenceMetric
-          label="Cancellation intent"
-          value={operation.cancellation_requested ? "recorded" : "not recorded"}
-        />
-      </div>
-      <div className="controlRow remoteOperationActions">
-        <button className="secondary" onClick={onObserve} disabled={!canReconcile}>
-          Observe remote operation
-        </button>
-        <button className="dangerGhost" onClick={onCancel} disabled={!canReconcile}>
-          Request remote cancellation
-        </button>
-      </div>
+      {operation && presentation && (
+        <>
+          <div className="cancellationEvidenceHeader">
+            <div>
+              <span className="kicker">Redacted remote-operation evidence</span>
+              <h3>{presentation.label}</h3>
+            </div>
+            <span className={`status ${presentation.tone}`}>{operation.state}</span>
+          </div>
+          <p className="cancellationSummary">{presentation.summary}</p>
+          <div className="remoteOperationMeta">
+            <span>Task: <code>{operation.task_id}</code></span>
+            <span>Transport: <code>{operation.transport}</code></span>
+            <span>Provider status: <code>{operation.last_status}</code></span>
+            <span>Last action: <code>{operation.last_action ?? "none"}</code></span>
+            <span>Updated: <code>{operation.updated_at}</code></span>
+            {operation.base_sha && <span>Immutable Base SHA: <code>{operation.base_sha}</code></span>}
+          </div>
+          <div className="remoteOperationRefs">
+            <span>Endpoint scope hash</span>
+            <code>{operation.transport_scope}</code>
+            <span>Operation reference hash</span>
+            <code>{operation.operation_ref}</code>
+          </div>
+          <div className="cancellationMetrics">
+            <EvidenceMetric label="Revision" value={operation.revision} />
+            <EvidenceMetric
+              label="Reconciliation attempts"
+              value={operation.reconciliation_attempts}
+            />
+            <EvidenceMetric label="Cancel requests" value={operation.cancel_requests} />
+            <EvidenceMetric
+              label="Cancellation intent"
+              value={operation.cancellation_requested ? "recorded" : "not recorded"}
+            />
+          </div>
+          <div className="controlRow remoteOperationActions">
+            <button className="secondary" onClick={onObserve} disabled={!canReconcile}>
+              Observe remote operation
+            </button>
+            <button className="dangerGhost" onClick={onCancel} disabled={!canReconcile}>
+              Request remote cancellation
+            </button>
+          </div>
+        </>
+      )}
       {dispositionEvidence && disposition && (
         <section className="remoteDispositionEvidence">
           <div className="cancellationEvidenceHeader">
@@ -1351,7 +1439,61 @@ function RemoteOperationPanel({
           </p>
         </section>
       )}
-      {!disposition && operation.state !== "active" && (
+      {retirementEvidence && retirement && (
+        <section className="remoteDispositionEvidence">
+          <div className="cancellationEvidenceHeader">
+            <div>
+              <span className="kicker">Durable private-lease retirement</span>
+              <h3>{retirementEvidence.label}</h3>
+            </div>
+            <span className={`status ${retirementEvidence.tone}`}>retired</span>
+          </div>
+          <p className="cancellationSummary">{retirementEvidence.summary}</p>
+          <div className="remoteOperationMeta">
+            <span>Retired: <code>{retirement.retired_at}</code></span>
+            <span>Private lease rows retired: <code>{retirement.private_lease_rows_retired}</code></span>
+            <span>Provider calls: <code>{retirement.provider_calls_made}</code></span>
+            <span>Task outcome changes made: <code>{retirement.task_outcome_changes_made}</code></span>
+            <span>Program outcome changes made: <code>{retirement.program_outcome_changes_made}</code></span>
+          </div>
+          <div className="remoteOperationRefs">
+            <span>Retirement reference</span>
+            <code>{retirement.retirement_ref}</code>
+            <span>Preserved disposition reference</span>
+            <code>{retirement.disposition_audit_ref}</code>
+          </div>
+          <p className="cancellationReason">
+            <strong>Retirement reason:</strong> {retirement.reason}
+          </p>
+        </section>
+      )}
+      {operation && disposition && !retirement && (
+        <section className="remoteDispositionControls">
+          <span className="kicker">Private lease retained by default</span>
+          <p className="cancellationSummary">
+            Retirement deletes the matching row from UCA's active private SQLite lease table. It
+            makes no provider request and makes zero Task or Program outcome changes. This is not
+            remote deletion or a forensic storage-erasure claim.
+          </p>
+          <Field
+            label="Retirement reason"
+            value={retirementReason}
+            onChange={setRetirementReason}
+          />
+          <div className="controlRow remoteOperationActions">
+            <button
+              className="dangerGhost"
+              onClick={() =>
+                onRetire(disposition.audit_ref, retirementReason.trim())
+              }
+              disabled={!canRetire || !retirementReason.trim()}
+            >
+              Retire private lease
+            </button>
+          </div>
+        </section>
+      )}
+      {!disposition && operation && operation.state !== "active" && (
         <section className="remoteDispositionControls">
           <span className="kicker">Explicit orphan disposition</span>
           <p className="cancellationSummary">
@@ -1387,7 +1529,7 @@ function RemoteOperationPanel({
           )}
         </section>
       )}
-      {operation.state === "active" && !operation.requires_explicit_action && (
+      {operation?.state === "active" && !operation.requires_explicit_action && (
         <p className="remoteOperationBlocked">
           Explicit reconciliation is unavailable while the local task worker is active.
         </p>
@@ -1395,9 +1537,10 @@ function RemoteOperationPanel({
       <p className="cancellationBoundaryNote">
         Loading, refresh, and polling are read-only. Observe makes one bounded provider status
         request. Cancel records durable intent before requesting remote cancellation. Neither
-        reconciliation nor disposition resumes the graph, consumes output, or advances a Program
-        phase. Disposition is available only after terminal or unavailable remote state and with no
-        active local worker.
+        reconciliation, disposition, nor private-lease retirement resumes the graph, consumes
+        output, or advances a Program phase. Retirement is explicit, retains redacted audit
+        evidence, makes no provider or provider-state-change request, and makes zero Task/Program
+        outcome changes.
       </p>
     </section>
   );
