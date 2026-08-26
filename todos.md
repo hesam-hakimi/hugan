@@ -1,512 +1,727 @@
-TASK: HF1_V2_REPAIR_12_GENUINELY_INDEPENDENT_REVIEW_SOURCE_ONLY_0_3_144
+TASK: BUILD_PORTABLE_ETL_AGENT_PROCESS_FRAMEWORK_FOR_LOCAL_AND_GITHUB_CLOUD_V1
 
-Perform a genuinely independent, read-only review of Repair 12 and its canonical
-test registration.
+Run this task in a NEW CHAT after the current Repair 12 independent review has
+finished.
 
-This is an ETL-extension task only.
+Execution environment:
 
-Do not inspect, run, reference, or modify:
+* VS Code desktop;
+* Local Agent mode;
+* Claude Opus 5;
+* Extra High reasoning;
+* Bypass Permissions may remain enabled;
+* do NOT select Cloud for this bootstrap task.
 
-* AskTD or KMAI repositories;
-* Phase 2E worktrees;
-* PR 15, PR 16, or PR 17;
-* governed-field-record tasks;
-* any unrelated repository or workspace.
+Repository:
 
-If the active task or prompt starts with PHASE_2E, ASKTD, KMAI, or refers
-to PR 15/16/17, stop immediately with:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_WRONG_PROMPT
+Expected identity:
 
-This review must be performed in a completely new Chat that did not implement
-Repair 12 and did not register its test suite.
+ORIGIN: https://github.com/TD-Universe/agentic_etl.git
+BRANCH: hotfix/hf1-oracle-fresh-consumer-v2
+HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
+SOURCE_VERSION: 0.3.144
 
-Do not rely on previous agent conclusions as machine authority. Re-derive every
-material conclusion from live source, diffs, tests, and independently created
-read-only probes.
+Purpose:
 
-Do not use web search.
-Do not download or install dependencies.
-Do not modify source, tests, fixtures, package.json, contracts, skills, prompts,
-workflow assets, baselines, or the QA workspace.
-Do not build or package a new VSIX.
-Do not modify the existing 0.3.144 VSIX.
-Do not bump the version.
-Do not install or uninstall any extension.
-Do not start Runtime QA.
-Do not request or create a Preview ID.
-Do not authorize or execute a filesystem write workflow.
-Do not commit, push, tag, stage, stash, reset, restore, clean, or delete files.
+Create and validate a portable, evidence-driven development process that works
+with:
 
-Temporary review scripts and outputs may be created only under:
+1. GitHub Copilot Agent in local VS Code;
+2. GitHub Copilot Coding Agent / Cloud;
+3. Claude models selected inside GitHub Copilot;
+4. future hotfix implementation, independent review, packaging, and Runtime-QA
+    sessions.
 
-%TEMP%\hf1v2-repair12-independent-review\
+The framework must reduce user handoffs, detect known failure classes before a
+hotfix is declared complete, and replace repeated giant prompts with portable
+Instructions, Skills, Custom Agents, validators, evidence packets, and
+machine-checkable gates.
+
+This is a process-governance task. It is not authorized to modify ETL behavior.
 
 ==================================================
 
-1. IDENTITY AND PROCESS-EXECUTION GATE
+1. NON-NEGOTIABLE CHANGE BOUNDARY
     ==================================================
 
-Required repository identity:
+Do not:
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+* change Repairs 5–12 production behavior;
+* change existing Repair 5–12 test meaning or expected results;
+* modify src/test/testPatterns.ts;
+* modify the QA STTM or Development Test Workspace;
+* modify or rebuild an existing VSIX;
+* change package version, dependencies, publisher, or Extension ID;
+* create package-lock.json;
+* install, uninstall, activate, or smoke-test an extension;
+* execute Runtime QA, Preview, approval, write, or Databricks operations;
+* access etl-framework-adb or real data;
+* install or download dependencies;
+* commit, push, merge, tag, stage, stash, reset, restore, clean, or delete files;
+* add an Anthropic GitHub Action, GitHub App, API key, OAuth token, or secret;
+* claim that uncommitted local customization files are visible to GitHub Cloud;
+* replace existing .github/** drafts wholesale merely to simplify editing.
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+The current working tree is expected to be dirty and may contain:
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+* Repairs 5–12;
+* modified .github/copilot-instructions.md;
+* untracked .github/instructions/**, agents, skills, prompts, templates, and
+    workflows.
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Preserve all existing work.
 
-SOURCE_VERSION:
-0.3.144
+For each existing process asset, record:
 
-Prove that real native processes work before beginning the review.
+* relative path;
+* tracked, modified, or untracked state;
+* size;
+* SHA-256;
+* purpose;
+* active surfaces;
+* canonical or advisory status.
 
-Run real commands that produce visible output and exit codes:
+Use surgical patches. Preserve every non-conflicting rule.
+
+If two existing rules conflict and repository evidence cannot resolve the
+conflict, do not choose silently. Record:
+
+OWNER_DECISION_REQUIRED
+
+Continue with unrelated safe work.
+
+==================================================
+2. EXECUTION AND IDENTITY PREFLIGHT
+
+Before editing, prove execution of real native processes:
 
 * cmd.exe /c echo PROCESS_EXECUTION_OK
 * git.exe –version
 * node.exe –version
-* npm.cmd –version
+* the existing npm executable version
 
-Then capture:
+Capture stdout, stderr, exit code, signal, and executable path.
+
+Do not classify the environment as blocked after one failed inline PowerShell
+capture.
+
+If inline capture returns empty output, retry using a task-owned helper under
+the operating system temporary directory and direct process spawning or
+Start-Process with separate stdout and stderr files.
+
+Do not modify repository files during recovery.
+
+If native execution still cannot be proven, stop with:
+
+PROCESS_HARDENING_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+
+Verify:
 
 * absolute repository root;
-* origin URL;
+* origin;
 * branch;
 * HEAD;
-* package.json version;
+* package version;
 * staged-file count;
 * stash count;
-* package-lock.json presence;
-* working-tree porcelain;
-* existing 0.3.144 VSIX path, size, mtime, and SHA-256.
+* package-lock absence.
+
+If identity differs, stop before editing:
+
+PROCESS_HARDENING_RESULT: BLOCKED_IDENTITY_MISMATCH
+
+If staged files exist, stop:
+
+PROCESS_HARDENING_RESULT: BLOCKED_STAGED_CHANGES
+
+Capture a NUL-safe baseline containing status, size, SHA-256, and mtime for:
+
+* every tracked-modified path;
+* every untracked path;
+* all .github/** files;
+* root CLAUDE.md and AGENTS.md files, if present;
+* package.json;
+* all Repair 12 implementation and test paths;
+* src/test/testPatterns.ts;
+* databricks-etl-copilot-0.3.144.vsix;
+* the authorized QA STTM.
+
+Run the current compile, lint, Repair 12 focused suite, and canonical full unit
+suite using existing dependencies.
+
+Record exact failure fingerprints rather than aggregate counts.
+
+The expected pre-process full-suite evidence is approximately:
+
+* 2243 passing;
+* 1 pending;
+* 5 failing.
+
+Do not rely on those counts alone. Capture the exact five failure identities.
+
+If compile, lint, or Repair 12 focused tests fail, stop before process edits:
+
+PROCESS_HARDENING_RESULT: BLOCKED_UNSTABLE_SOURCE_BASELINE
+
+==================================================
+3. AUDIT LOCAL AND CLOUD CUSTOMIZATION SURFACES
+
+Fully inventory and read:
+
+* .github/copilot-instructions.md;
+* .github/instructions/**/*.instructions.md;
+* .github/prompts/**/*.prompt.md;
+* .github/skills/**/SKILL.md;
+* .github/agents/**/*.agent.md;
+* .github/hooks/*.json;
+* .github/templates/**;
+* .github/workflows/**;
+* root and nested AGENTS.md;
+* root CLAUDE.md;
+* existing customization validators and package scripts.
+
+Do not assume that a file is active merely because it exists.
+
+Produce a compatibility matrix containing:
+
+* path;
+* asset type;
+* tracked state;
+* local VS Code Agent support;
+* GitHub Cloud support;
+* GitHub code-review support;
+* automatic or explicit loading;
+* canonical, advisory, or convenience classification;
+* validation status;
+* required migration.
+
+Use these platform constraints:
+
+* .github/copilot-instructions.md is supported locally and in GitHub Cloud;
+* .github/instructions/*.instructions.md is supported locally and in Cloud
+    when frontmatter and applyTo are valid;
+* .github/skills/<skill>/SKILL.md is supported locally and in Cloud;
+* .github/agents/*.agent.md is supported locally and in Cloud;
+* Custom Agent discovery and Cloud setup may require the asset to exist on the
+    default branch;
+* .github/prompts/*.prompt.md is a local VS Code convenience surface and must
+    not be the only authority for a Cloud workflow;
+* root CLAUDE.md may be used only as a thin compatibility bridge;
+* local modified or untracked files are invisible to Cloud;
+* GitHub Cloud cannot prove local VSIX installation, VS Code Extension Host
+    activation, or the local Development Test Workspace;
+* Cloud hooks execute in Linux and must not depend on PowerShell.
+
+List every safety-critical rule or workflow that currently exists only in:
+
+* a prompt file;
+* an uncommitted local file;
+* a screenshot or prior chat report.
+
+Screenshots and chat history are evidence for this audit, not permanent machine
+authority.
+
+==================================================
+4. DEFINE THE CANONICAL PROCESS
+
+Create or update one canonical process manifest. Reuse an existing convention
+if available; otherwise use:
+
+.github/agent-governance/process-manifest.json
+
+Do not embed:
+
+* current version;
+* current branch;
+* current HEAD;
+* absolute machine paths;
+* username;
+* machine name;
+* VSIX SHA;
+* current Preview ID.
+
+Declare this lifecycle:
+
+PREFLIGHT
+→ BASELINE
+→ REPRODUCE
+→ BOUNDED_IMPLEMENTATION
+→ SOURCE_VALIDATION
+→ FULL_PUBLIC_SEAM_VALIDATION
+→ INDEPENDENT_REVIEW
+→ VERSION_AND_PACKAGE
+→ EXACT_PACKAGE_VERIFICATION
+→ LOCAL_INSTALL_AND_ACTIVATION
+→ LIVE_RUNTIME_QA
+→ PREVIEW_ONLY
+→ EXPLICIT_APPROVAL
+→ WRITE
+
+Encode these distinctions:
+
+* internal model success is not public-tool success;
+* source success is not compiled success;
+* compiled success is not packaged success;
+* package verification is not installed-runtime activation;
+* installation listing is not active Extension Host identity;
+* activation is not Runtime QA;
+* Preview is not approval;
+* approval is not write;
+* Cloud cannot perform local activation or local Runtime QA;
+* an unavailable capability requires a typed handoff, not fabricated success;
+* a changed source or package identity invalidates downstream evidence only,
+    not already-grounded upstream evidence.
+
+==================================================
+5. CONSOLIDATE INSTRUCTIONS
+
+Keep .github/copilot-instructions.md concise.
+
+It may contain only:
+
+* repository-wide invariants;
+* lifecycle routing;
+* canonical-source precedence;
+* protected paths;
+* fail-closed rules;
+* capability boundaries;
+* evidence and checkpoint requirements.
+
+Do not copy full workflows into it.
+
+Audit every path-specific instruction:
+
+* validate YAML frontmatter;
+* validate .instructions.md naming;
+* validate applyTo patterns against actual repository paths;
+* narrow rules that currently use applyTo "**" but govern only one path type;
+* detect contradictory or duplicated rules;
+* keep runtime, test, packaging, business, workflow-asset, and recovery rules in
+    their proper scopes.
+
+At minimum preserve the intent of:
+
+* business-context instructions;
+* change-safety instructions;
+* ETL runtime safety;
+* ETL test safety;
+* ETL packaging safety;
+* execution recovery;
+* workflow asset boundaries;
+* workflow coherence.
+
+Create or update a short root CLAUDE.md compatibility bridge.
+
+CLAUDE.md must:
+
+* point to .github/copilot-instructions.md;
+* point to the canonical lifecycle Skill;
+* say that .github/prompts/** is not Cloud authority;
+* require native-process preflight and evidence checkpoints;
+* forbid claiming results beyond the current environment’s capabilities.
+
+Do not duplicate the complete instruction corpus in CLAUDE.md.
+
+==================================================
+6. MIGRATE PROMPT-ONLY WORKFLOWS TO SKILLS
+
+Audit every .github/prompts/*.prompt.md.
+
+For every material hotfix, review, package, installation, Runtime-QA, Preview,
+approval, or recovery workflow:
+
+* migrate the canonical workflow into a Skill;
+* retain the Prompt only as a thin local wrapper;
+* ensure no critical safety rule remains solely in a Prompt File;
+* place reusable checklists and examples under skill references;
+* keep deterministic logic in scripts rather than Markdown.
+
+Prefer a small coherent Skill set.
+
+Create or update:
+
+1. .github/skills/etl-hotfix-lifecycle/SKILL.md
+    * preflight;
+    * baseline;
+    * dynamic reproduction;
+    * bounded implementation;
+    * source validation;
+    * full public seam;
+    * checkpoint.
+2. .github/skills/etl-independent-review/SKILL.md
+    * new-session independence disclosure;
+    * read-only operation;
+    * exact change-boundary review;
+    * public seam and negative-path verification;
+    * finding fingerprints;
+    * no trust in the implementer’s conclusion.
+3. .github/skills/etl-package-delivery/SKILL.md
+    * version boundary;
+    * exactly one build;
+    * exact VSIX path;
+    * no newest-file, mtime, or glob selection;
+    * source/compiled/package parity;
+    * computed artifact manifest;
+    * local install handoff.
+4. .github/skills/etl-runtime-qa/SKILL.md
+    * local-only Extension Host identity;
+    * exactly one authorized Development Test Workspace root;
+    * actual public ETL tool invocation;
+    * STTM evidence;
+    * zero-write Preview;
+    * approval pending;
+    * no Cloud claim of local activation.
+5. .github/skills/etl-execution-recovery/SKILL.md
+    * distinguish missing executable from broken output capture;
+    * typed blocker classification;
+    * no blind retry;
+    * resumable checkpoint;
+    * exact next stage.
+
+Every Skill must define:
+
+* prerequisites;
+* required capabilities;
+* authorized mutations;
+* forbidden mutations;
+* protected paths;
+* input evidence;
+* success evidence;
+* blocker outputs;
+* checkpoint schema;
+* next role or Agent.
+
+==================================================
+7. CREATE NARROW CUSTOM AGENTS
+
+Validate the currently supported Custom Agent schema before editing.
+
+Do not invent unsupported frontmatter or tool names.
+
+Create or update only these Agents:
+
+1. .github/agents/etl-hotfix-implementer.agent.md
+    * may perform bounded source/test changes;
+    * must use the hotfix lifecycle Skill;
+    * cannot perform independent review, release, installation, or Runtime QA.
+2. .github/agents/etl-independent-reviewer.agent.md
+    * strictly read-only;
+    * must run in a new Chat/session;
+    * cannot modify tests or source;
+    * must inspect the full public seam and negative cases.
+3. .github/agents/etl-release-verifier.agent.md
+    * version, package, exact-package verification, and evidence handoff only;
+    * cannot change production behavior;
+    * cannot claim local Runtime QA from Cloud.
+
+Runtime QA remains a Skill usable in the authorized local QA window.
+
+If a Cloud execution requests live Runtime QA, the Agent must return:
+
+LOCAL_RUNTIME_REQUIRED
+
+Every Agent must emit a machine-readable checkpoint with:
+
+* completed stage;
+* evidence digest;
+* unresolved findings;
+* invalidated downstream stages;
+* exact next stage;
+* exact next Agent or local environment.
+
+Do not rely on UI-only handoff metadata unless verified as supported on both
+required surfaces.
+
+==================================================
+8. ADD DETERMINISTIC GOVERNANCE TOOLS
+
+Inspect existing scripts first. Reuse or extend them rather than creating
+parallel implementations.
+
+If no canonical implementation exists, create:
+
+scripts/agent-governance/
+
+Use Node built-ins only.
+
+Do not modify dependencies or package.json.
+
+Implement:
+
+* preflight.mjs
+* capture-baseline.mjs
+* validate-customizations.mjs
+* validate-test-registration.mjs
+* verify-change-boundary.mjs
+* validate-evidence-packet.mjs
+* emit-checkpoint.mjs
+
+Requirements:
+
+* Windows and Linux compatible;
+* direct child-process spawning;
+* no shell command concatenation;
+* capture stdout, stderr, exit code, signal, and executable;
+* use process.execPath when invoking Node;
+* platform-aware npm executable resolution;
+* no PowerShell-only implementation;
+* NUL-safe Git status parsing;
+* SHA-256 hashing;
+* exact failure fingerprints;
+* no embedded local paths or current artifact identifiers;
+* human-readable and JSON output;
+* default evidence output under the OS temporary directory;
+* never write into a consumer workspace;
+* never change Git state;
+* fail closed on missing or ambiguous evidence.
+
+The customization validator must detect:
+
+* invalid instruction frontmatter;
+* invalid applyTo patterns;
+* missing referenced Skills or Agents;
+* duplicate globally applicable instruction rules;
+* critical prompt-only workflows;
+* claims that Cloud can prove local installed-runtime state;
+* absolute machine paths in portable assets;
+* hardcoded current version, HEAD, SHA, Preview ID, or username;
+* invalid Custom Agent schema;
+* stale or broken documentation links;
+* setup or hooks that depend on unsupported Cloud execution.
+
+The test-registration validator must prove that every intended canonical test
+suite is discovered exactly once.
+
+Do not select tests or VSIX files by newest modification time.
+
+==================================================
+9. ADD MACHINE-READABLE EVIDENCE CONTRACTS
+
+Create:
+
+* an evidence-packet JSON schema;
+* a concise human-readable evidence template;
+* a checkpoint schema.
+
+Reuse existing template conventions if available.
+
+The evidence packet must contain:
+
+* task ID;
+* lifecycle stage;
+* environment and capability class;
+* repository identity;
+* baseline digest;
+* authorized and protected paths;
+* before/after hashes;
+* commands and exit codes;
+* failure fingerprints;
+* public-seam assertions;
+* source, compiled, package, installed, and runtime identities when applicable;
+* artifact path, size, and computed SHA when applicable;
+* Preview ID and frozen-manifest digest when applicable;
+* approval and write state;
+* blocker classification;
+* unresolved owner decisions;
+* exact next stage;
+* nondeterministic audit metadata clearly separated from deterministic evidence.
+
+Never compare audit timestamps as deterministic product evidence.
+
+==================================================
+10. PREVENT THE OBSERVED FAILURE CLASSES
+
+Create validator tests or explicit contract tests for these real incidents:
+
+A. Wrong workspace or multi-root execution:
+preflight rejects before interpretation or mutation.
+
+B. Installed version differs from active Extension Host version:
+installed listing is insufficient; local runtime evidence is mandatory.
+
+C. Native process output appears empty:
+recovery distinguishes output-capture failure from missing executable.
+
+D. Focused suite exists but canonical suite does not discover it:
+registration validator fails.
+
+E. Internal STTM model passes while public ETL output omits contract fields:
+lifecycle requires an actual public-tool/full-seam test.
+
+F. Single-file STTM accidentally enumerates siblings:
+workflow requires explicit file-versus-bundle semantics and an IO-spy test.
+
+G. Expected test literals differ from the authorized STTM:
+classify as STALE_TEST_SPEC; never edit the STTM or fabricate values.
+
+H. SHA or version is manually mistranscribed:
+accept only computed artifact-manifest values.
+
+I. Package verifier selects newest artifact:
+explicit artifact path is mandatory.
+
+J. Dirty overlay causes incorrect change ownership:
+baseline hashes plus authorized-path allowlist and post-change verification.
+
+K. Implementer reviews its own work:
+independent reviewer must disclose session identity and remain read-only.
+
+L. Critical safety logic exists only in local Prompt Files:
+customization validation fails.
+
+M. Internal-model Golden Path does not cross the public runtime seam:
+completion evidence is rejected.
+
+==================================================
+11. HOOKS AND CLOUD SETUP — CONDITIONAL
+
+Hooks must not be the only enforcement mechanism.
+
+Create or update a conservative .github/hooks/*.json guard only if the
+official schema and repository policy can be validated.
+
+A hook may block only clearly dangerous operations such as:
+
+* destructive Git reset or clean;
+* forced push;
+* broad recursive deletion;
+* mutation outside an authorized root;
+* mutation of protected consumer or release paths.
+
+Do not make the hook responsible for semantic correctness.
+
+Cloud-compatible hook commands must use Bash or a verified cross-platform
+command. Do not depend on PowerShell.
+
+Assess .github/workflows/copilot-setup-steps.yml.
+
+Create it only if the repository already has a deterministic and authorized
+bootstrap that:
+
+* does not create or modify a lockfile;
+* does not require a new secret;
+* follows existing action-pinning policy;
+* is Linux compatible;
+* does not invent a new dependency-installation strategy.
+
+Otherwise report:
+
+CLOUD_SETUP_WORKFLOW: NOT_CREATED
+CLOUD_SETUP_BLOCKER: 
+
+A setup workflow is not active for Cloud merely because it exists locally. It
+must later be committed and available on the required/default branch.
+
+Create a narrow governance CI workflow only if existing workflow policy and
+approved action references can be reused safely.
+
+It may run only dependency-free governance validation. It must not publish,
+install, release, or mutate consumer files.
+
+Do not add Anthropic Claude Code Actions or secrets.
+
+==================================================
+12. VALIDATION
+
+Add Node built-in tests under the governance script directory for:
+
+* successful process capture;
+* nonzero exit propagation;
+* missing executable;
+* stdout/stderr separation;
+* Windows paths;
+* NUL-safe Git status;
+* dirty baseline preservation;
+* frontmatter and applyTo validation;
+* critical prompt-only detection;
+* unsupported Cloud/local claims;
+* exact change-boundary detection;
+* evidence-packet validation;
+* test-registration uniqueness.
+
+Run:
+
+* governance Node tests;
+* customization validation;
+* test-registration validation;
+* compile;
+* lint;
+* Repair 12 focused suite;
+* canonical full unit suite;
+* any existing GitHub customization guard.
+
+For each command report:
+
+* exact command;
+* environment;
+* exit code;
+* passing, pending, and failing counts;
+* complete failure fingerprints.
+
+The three existing customization failures may disappear only if the new
+process assets directly and correctly resolve them.
+
+The two EvalGating failures may remain only if their exact identities match the
+pre-change baseline and no authorized process file caused them.
+
+Do not regenerate a baseline or weaken a test to obtain a pass.
 
 Required:
 
-PROCESS_EXECUTION_PREFLIGHT: PASS
-STAGED_FILES_AT_START: 0
-SOURCE_VERSION: 0.3.144
-PACKAGE_LOCK_PRESENT: NO
-
-If identity differs, stop with:
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-If native processes cannot execute, stop with:
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
-
-If staged files exist, stop with:
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_STAGED_CHANGES
+* compile passes;
+* lint passes;
+* Repair 12 focused suite passes;
+* all governance tests pass;
+* no new functional regression;
+* no new security regression;
+* no Repair 5–12 source or test byte changes;
+* no QA STTM byte changes;
+* no VSIX byte changes;
+* zero staged files.
 
 ==================================================
-2. PROTECTED ARTIFACTS AND QA INPUT
+13. POST-CHANGE BOUNDARY
 
-The existing VSIX:
+Authorized paths:
 
-databricks-etl-copilot-0.3.144.vsix
+* .github/copilot-instructions.md;
+* .github/instructions/**;
+* .github/prompts/** only as thin wrappers;
+* .github/skills/**;
+* .github/agents/**;
+* .github/hooks/** when Section 11 passes;
+* .github/templates/**;
+* .github/agent-governance/**;
+* .github/workflows/** only when Section 11 passes;
+* root CLAUDE.md;
+* scripts/agent-governance/**;
+* stable process documentation under docs.
 
-predates Repair 12 and is intentionally protected.
+No other task-attributable path may change.
 
-It does not contain the final Repair 12 source changes. Do not use the old VSIX
-to decide whether the repaired source behavior is correct, and do not flag the
-expected source/VSIX difference as artifact drift.
+Prove unchanged:
 
-Only verify that the existing 0.3.144 VSIX remains byte-identical and unmodified
-during this review.
+* all Repairs 5–12 production files;
+* all existing Repair 5–12 test files;
+* src/test/testPatterns.ts;
+* package.json;
+* package version;
+* dependencies;
+* package-lock absence;
+* existing 0.3.144 VSIX;
+* QA STTM and QA workspace;
+* branch and HEAD;
+* Git index and staged count.
 
-Authorized read-only QA input:
-
-C:\Users\tag5916\etl-qa\hf1v2\consumer-fresh\etl-acz9999-hf1v2-qa\sttm\qa_hf1v2_demo_sttm.md
-
-Expected:
-
-QA_STTM_SIZE_BYTES: 1437
-
-QA_STTM_SHA256:
-F172E5EBDDEFFFFBFD4C148E9A2F4FD279DBDA068728705CC5891C9AD3C56BAF
-
-Expected literal content includes:
-
-SOURCE_LITERAL:
-raw.qa_hf1v2_customer
-
-TARGET_LITERAL:
-curated.qa_hf1v2_customer
-
-FILTER_1:
-status_cd IS NOT NULL
-
-FILTER_2:
-updated_ts >= ${etl.effective.start.date}
-
-The source and target literals are authored logical dotted object references.
-They are not ABFSS paths and must not automatically become Unity Catalog,
-database, schema, or physical-path authority.
-
-The STTM must remain unchanged.
+Do not commit, push, or stage.
 
 ==================================================
-3. REPAIR 12 CHANGE BOUNDARY
-
-The complete expected Repair 12 boundary is exactly these seven paths:
-
-1. src/core/sttm/SttmResolvedEvidence.ts
-2. src/core/sttm/SttmUnderstandingReportRenderer.ts
-3. src/tools/EtlReadOnlyToolService.ts
-4. package.json
-5. src/test/suite/sttmRepair12.test.ts
-6. src/test/suite/EtlReadOnlyToolService.test.ts
-7. src/test/testPatterns.ts
-
-Verify independently:
-
-* no Repair 12 change exists outside these seven paths;
-* src/test/testPatterns.ts contains exactly one added registration:
-    **/sttmRepair12.test.js;
-* no existing test pattern was removed, broadened, reordered, or duplicated;
-* sttmRepair12.test.js is discovered exactly once by the canonical unit runner;
-* package.json remains version 0.3.144;
-* the Repair 12 package.json change is confined to the
-    etl_interpret_sttm public description/model contract;
-* no parser skill, packaged contract, .github/**, QA file, or workflow asset
-    was modified by Repair 12;
-* no test-only alternative implementation or copied production algorithm exists.
-
-A large pre-existing Repairs 5–11 working-tree overlay is expected. Preserve it.
-Do not classify pre-existing unrelated changes as Repair 12 changes. Use captured
-hashes, mtime evidence, source history, and focused diffs to isolate the Repair 12
-boundary.
-
-If concurrent mutation prevents deterministic isolation, stop with:
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_CONCURRENT_MUTATION
-
-If Repair 12 modified unauthorized paths, return:
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: FAIL_CHANGE_BOUNDARY
-
-==================================================
-4. ARCHITECTURE AND CONTRACT REVIEW
-
-Review the actual implementation, not only the tests.
-
-Verify that one canonical public projection path is shared by:
-
-* the structured etl_interpret_sttm data result;
-* the human-readable Markdown report.
-
-Verify all of the following:
-
-A. Notes
-
-* exactly two QA Notes are preserved;
-* Notes remain advisory and untrusted;
-* Notes cannot become configuration authority;
-* Notes cannot affect paths, module selection, write authorization, approval,
-    critical configuration, or Preview state;
-* Markdown characters and embedded content are escaped safely;
-* no raw-content or LLM fallback is introduced.
-
-B. Source and Target evidence
-
-* the exact authored literals are publicly exposed;
-* the structured and Markdown channels agree;
-* source and target are read from their recognized sections;
-* duplicate or conflicting evidence is handled deterministically and fail-closed;
-* no fallback uses mapping.targetEntity, table names, prose, filenames, or
-    workspace context;
-* no Unity Catalog, database, schema, table, ABFSS path, or physical destination
-    is fabricated.
-
-C. Mapping IDs
-
-* the existing six scoped Mapping IDs are reused unchanged;
-* IDs are treated as opaque identifiers;
-* mappings remain an ordered array;
-* no mapping is keyed by ID in a way that could overwrite duplicates;
-* no ID is regenerated, truncated, normalized, or inferred;
-* Markdown adds Mapping ID as the final mapping-table column;
-* Markdown order matches structured mapping order;
-* there is no public mappingIdsUnique Boolean unless it existed before Repair 12;
-* uniqueness is derivable from the six exposed IDs.
-
-D. Compatibility
-
-* changes are additive where possible;
-* existing public fields and meanings remain stable;
-* existing diagnostics and parser behavior remain intact;
-* Repairs 5–11 security and write-approval boundaries remain unchanged;
-* the public DTO and renderer cannot silently diverge.
-
-==================================================
-5. TEST-INTEGRITY REVIEW
-
-Inspect src/test/suite/sttmRepair12.test.ts and related tests.
-
-Prove that the Repair 12 test crosses the real public seam:
-
-exact single-file Markdown
-→ production filesystem reader
-→ production parser
-→ canonical document model
-→ evidence provider
-→ shared public projector
-→ actual EtlReadOnlyToolService
-→ structured result and Markdown result
-
-The test must not stop at the internal parser/model layer.
-
-The test must not:
-
-* use a copied fake serializer;
-* reproduce production logic inside the test;
-* weaken existing assertions;
-* normalize away material output;
-* edit the QA STTM;
-* enumerate sibling Markdown files for a single-file request;
-* infer values from raw Markdown after the production parser returns.
-
-Confirm coverage for:
-
-* two Notes in structured output;
-* two Notes in Markdown;
-* exact Source literal in both channels;
-* exact Target literal in both channels;
-* six Mapping IDs in both channels;
-* Mapping ID as the final Markdown column;
-* structured/Markdown ordering parity;
-* advisory/untrusted Notes;
-* missing Source/Target;
-* duplicate or conflicting Source/Target;
-* absent Notes;
-* Markdown-special-character escaping;
-* duplicate or missing mapping IDs without silent overwriting;
-* single-file isolation;
-* no raw fallback;
-* no physical-path or Unity Catalog inference.
-
-==================================================
-6. INDEPENDENT DYNAMIC PROBES
-
-Create a new task-owned probe under:
-
-%TEMP%\hf1v2-repair12-independent-review\
-
-Do not reuse the implementation agent’s probe.
-
-Invoke the real compiled production entry points against the exact unchanged QA
-STTM at least twice.
-
-Prove:
-
-STTM_FILES_PARSED: 1
-STTM_SIBLING_FILES_ENUMERATED: 0
-STTM_SECTIONS_TOTAL: 5
-STTM_SECTIONS_RECOGNIZED: 5
-STTM_STRUCTURED_MAPPING_COUNT: 6
-STTM_MAPPING_IDS_EXPOSED: 6
-STTM_MAPPING_IDS_UNIQUE: YES
-STTM_NOTES_COUNT: 2
-STTM_SOURCE_EVIDENCE_COUNT: 1
-STTM_TARGET_EVIDENCE_COUNT: 1
-STTM_FILTER_COUNT: 2
-
-The public structured result must expose:
-
-* both Notes;
-* raw.qa_hf1v2_customer;
-* curated.qa_hf1v2_customer;
-* all six Mapping IDs;
-* both exact filters.
-
-The public Markdown result must expose the same evidence and place Mapping ID in
-the final mapping-table column.
-
-Also prove:
-
-* no mappingIdsUnique field was added;
-* no raw-content fallback was used;
-* no LLM fallback was used;
-* no identifier was fabricated;
-* no Unity Catalog interpretation was introduced;
-* no physical path was fabricated;
-* no sibling file was opened or merged;
-* no workspace file was created, modified, or deleted.
-
-Run the public tool twice across a real wall-clock boundary.
-
-Do not hide or normalize differences. Report every differing field or line.
-
-Expected deterministic result:
-
-* structured semantic payloads are byte-equivalent;
-* Markdown semantic content is equivalent;
-* the only permitted difference is the existing audit wall-clock timestamp.
-
-If any additional value changes, report it as a finding.
-
-==================================================
-7. NEGATIVE AND SECURITY CONTROLS
-
-Using isolated temporary fixtures only, verify:
-
-* missing Source does not fabricate Source evidence;
-* missing Target does not fabricate Target evidence;
-* conflicting Source sections are rejected or surfaced explicitly;
-* conflicting Target sections are rejected or surfaced explicitly;
-* duplicate mapping IDs cannot overwrite mappings;
-* missing mapping IDs do not reorder mappings;
-* malicious Notes remain inert advisory text;
-* Notes cannot alter job config, paths, modules, Preview state, approval state,
-    write authorization, or critical configuration;
-* Markdown escaping prevents table/heading injection from changing structure;
-* traversal, sibling reads, UNC escape, different-drive escape, and symlink escape
-    remain rejected;
-* Excel STTM behavior remains unchanged;
-* canonical multi-file Markdown bundle behavior remains unchanged;
-* Repairs 9–11 single-file and classification behavior remains unchanged.
-
-==================================================
-8. VALIDATION GATES
-
-Use only existing local dependencies and canonical repository commands.
-
-Run and report exact commands, exit codes, passing, pending, and failing counts
-for:
-
-1. TypeScript compile;
-2. lint;
-3. Repair 12 focused suite;
-4. EtlReadOnlyToolService suite;
-5. Repair 11 focused suite;
-6. Repair 11 Golden Path suite;
-7. Repair 10 sectioned-Markdown suite;
-8. STTM parser/evidence/reference/auditor/pipeline suites;
-9. workspace classification and containment suites;
-10. physical-write containment suites;
-11. Repair 9 regression;
-12. Repair 8 regression;
-13. Repairs 5/6/7 regressions;
-14. trusted Job Config envelope suite;
-15. canonical full unit suite.
-
-Expected canonical full-unit result:
-
-FULL_UNIT_PASSING_COUNT: 2243
-FULL_UNIT_PENDING_COUNT: 1
-FULL_UNIT_FAILURE_COUNT: 5
-
-Expected unchanged failures:
-
-1. EvalGating — passes against the committed Phase H baseline report
-2. EvalGating — allows deterministic v3 baseline reports without prompt telemetry
-3. Copilot workflow customization — maintainer delivery prompt references real repo-local agents
-4. Copilot workflow customization — repo customization assets use valid frontmatter and agent file naming
-5. Copilot workflow customization — source tree uses standard AGENTS.md guidance instead of module AGENT.md files
-
-Confirm the five failure identities independently. Do not merely label them
-historical.
-
-npm run test:unit:guarded is expected to short-circuit before its GitHub guard
-because the canonical unit command exits 1 with the five accepted failures.
-
-Report that behavior honestly, then execute the existing GitHub guard separately
-and report its independent result.
-
-Required:
-
-COMPILE_PASS: YES
-LINT_PASS: YES
-REPAIR_12_FOCUSED_PASS: YES
-REPAIR_12_CANONICAL_EXECUTION_COUNT: 1
-FULL_UNIT_PASSING_COUNT: 2243
-FULL_UNIT_PENDING_COUNT: 1
-FULL_UNIT_FAILURE_COUNT: 5
-FULL_UNIT_FAILURE_IDENTITIES_UNCHANGED: YES
-GITHUB_GUARD_SEPARATE_PASS: YES
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-
-Do not change tests or baselines to obtain these results.
-
-==================================================
-9. FINDING CLASSIFICATION
-
-Report findings in severity order:
-
-* CRITICAL
-* HIGH
-* MEDIUM
-* LOW
-* INFORMATIONAL
-
-For every finding include:
-
-* exact file;
-* symbol or line area;
-* reproducible evidence;
-* affected contract;
-* whether it blocks packaging;
-* smallest safe remediation.
-
-Do not fix findings during this review.
-
-A correctness or security finding at CRITICAL, HIGH, or MEDIUM blocks acceptance.
-
-Do not count these expected facts as defects by themselves:
-
-* the protected 0.3.144 VSIX predates Repair 12;
-* the five known full-unit failures remain unchanged;
-* the audit timestamp is the sole demonstrated nondeterministic field;
-* the QA Source/Target values are logical dotted literals rather than physical
-    ADLS paths.
-
-==================================================
-10. FINAL NON-MUTATION CHECK
-
-Re-capture and compare:
-
-* HEAD;
-* branch;
-* staged files;
-* stash count;
-* working-tree hashes;
-* QA STTM size, hash, and mtime;
-* existing 0.3.144 VSIX size, hash, and mtime;
-* package.json version;
-* all seven Repair 12 paths.
-
-Required:
-
-REVIEW_SOURCE_FILES_MODIFIED: 0
-REVIEW_TEST_FILES_MODIFIED: 0
-PACKAGE_JSON_MODIFIED_BY_REVIEW: NO
-QA_STTM_MODIFIED: NO
-EXISTING_0_3_144_VSIX_MODIFIED: NO
-PACKAGE_LOCK_CREATED: NO
-VSIX_BUILT: NO
-EXTENSION_INSTALLED_OR_UNINSTALLED: NO
-RUNTIME_QA_STARTED: NO
-PREVIEW_CREATED: NO
-WRITE_EXECUTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-STAGED_FILES_AT_END: 0
-
-==================================================
-11. FINAL REPORT
+14. FINAL REPORT
 
 Return:
 
-INDEPENDENT_SESSION_CONFIRMED: YES/NO
 REPOSITORY_ROOT: 
 ORIGIN: 
 BRANCH: 
@@ -515,38 +730,37 @@ SOURCE_VERSION:
 PROCESS_EXECUTION_PREFLIGHT: PASS/FAIL
 STAGED_FILES_AT_START: 
 STAGED_FILES_AT_END: 
+BASELINE_PATH_COUNT: 
 
-REPAIR_12_CHANGED_PATH_COUNT: 
-REPAIR_12_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-REPAIR_12_PATTERN_REGISTERED: YES/NO
-REPAIR_12_PATTERN_MATCH_COUNT: 
-REPAIR_12_CANONICAL_EXECUTION_COUNT: 
-EXISTING_PATTERNS_REMOVED: 
-EXISTING_PATTERNS_BROADENED: 
+CUSTOMIZATION_COMPATIBILITY_MATRIX: 
+PREEXISTING_CUSTOMIZATION_PATHS: 
+PREEXISTING_CUSTOMIZATIONS_OVERWRITTEN: NO
+PROMPT_FILES_LOCAL_ONLY_COUNT: 
+CRITICAL_PROMPT_ONLY_FLOWS_BEFORE: 
+CRITICAL_PROMPT_ONLY_FLOWS_AFTER: <complete list; expected NONE>
 
-SHARED_PUBLIC_PROJECTOR_CONFIRMED: YES/NO
-STRUCTURED_MARKDOWN_PARITY: YES/NO
-NOTES_EXPOSED_STRUCTURED: YES/NO
-NOTES_EXPOSED_MARKDOWN: YES/NO
-NOTES_ADVISORY_UNTRUSTED: YES/NO
-SOURCE_LITERAL_EXPOSED_STRUCTURED: YES/NO
-SOURCE_LITERAL_EXPOSED_MARKDOWN: YES/NO
-TARGET_LITERAL_EXPOSED_STRUCTURED: YES/NO
-TARGET_LITERAL_EXPOSED_MARKDOWN: YES/NO
-MAPPING_ID_COUNT_STRUCTURED: 
-MAPPING_ID_COUNT_MARKDOWN: 
-MAPPING_IDS_UNIQUE_DERIVABLE: YES/NO
-MAPPING_IDS_UNIQUE_FIELD_ADDED: YES/NO
-MAPPING_ORDER_PRESERVED: YES/NO
-RAW_FALLBACK_USED: YES/NO
-LLM_FALLBACK_USED: YES/NO
-PHYSICAL_PATH_FABRICATED: YES/NO
-UNITY_CATALOG_INFERENCE_USED: YES/NO
-SIBLING_FILES_ENUMERATED: 
-PUBLIC_SEAM_TEST_CONFIRMED: YES/NO
-DETERMINISM_PASS: YES/NO
-DETERMINISM_DIFFERENCES: 
+GLOBAL_INSTRUCTIONS_VALID: YES/NO
+PATH_INSTRUCTIONS_VALID: YES/NO
+CLAUDE_MD_BRIDGE_VALID: YES/NO
+SKILLS_CREATED_OR_UPDATED: 
+CUSTOM_AGENTS_CREATED_OR_UPDATED: 
+PROMPT_WRAPPERS_RETAINED: 
+HOOK_STATUS: CREATED/UPDATED/NOT_CREATED
+PROCESS_MANIFEST_PATH: 
+EVIDENCE_PACKET_SCHEMA_PATH: 
+CHECKPOINT_SCHEMA_PATH: 
+GOVERNANCE_SCRIPT_PATHS: 
+GOVERNANCE_TEST_PATHS: 
+
+LOCAL_AGENT_SUPPORT: PASS/FAIL
+GITHUB_CLOUD_ASSET_SUPPORT: PASS/FAIL
+CLOUD_UNCOMMITTED_ASSETS_AVAILABLE: NO
+CLOUD_SETUP_WORKFLOW: CREATED/UPDATED/NOT_CREATED
+CLOUD_SETUP_BLOCKER: 
+GOVERNANCE_CI_WORKFLOW: CREATED/UPDATED/NOT_CREATED
+GOVERNANCE_CI_BLOCKER: 
+LOCAL_RUNTIME_QA_FROM_CLOUD_ALLOWED: NO
+ANTHROPIC_ACTION_OR_SECRET_ADDED: NO
 
 COMPILE_PASS: YES/NO
 LINT_PASS: YES/NO
@@ -554,58 +768,58 @@ REPAIR_12_FOCUSED_PASS: YES/NO
 FULL_UNIT_PASSING_COUNT: 
 FULL_UNIT_PENDING_COUNT: 
 FULL_UNIT_FAILURE_COUNT: 
-FULL_UNIT_FAILURES: 
-FULL_UNIT_FAILURE_IDENTITIES_UNCHANGED: YES/NO
-GITHUB_GUARD_SEPARATE_PASS: YES/NO
+FULL_UNIT_FAILURE_FINGERPRINTS: 
+FAILURES_RESOLVED_BY_AUTHORIZED_PROCESS_CHANGES: 
 NEW_FUNCTIONAL_REGRESSIONS: 
 NEW_SECURITY_REGRESSIONS: 
+GOVERNANCE_VALIDATOR_PASS: YES/NO
+GOVERNANCE_SCRIPT_TESTS_PASS: YES/NO
+TEST_REGISTRATION_VALIDATOR_PASS: YES/NO
 
-CRITICAL_FINDING_COUNT: 
-HIGH_FINDING_COUNT: 
-MEDIUM_FINDING_COUNT: 
-LOW_FINDING_COUNT: 
-INFORMATIONAL_FINDING_COUNT: 
-FINDINGS: 
+TASK_ATTRIBUTABLE_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+REPAIR_12_PATHS_PRESERVED: YES/NO
+QA_STTM_PRESERVED: YES/NO
+VSIX_0_3_144_PRESERVED: YES/NO
+PACKAGE_VERSION_CHANGED: NO
+DEPENDENCIES_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+VSIX_BUILT_OR_MODIFIED: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+PREVIEW_CREATED: NO
+WRITE_EXECUTED: NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
 
-EXISTING_0_3_144_VSIX_UNCHANGED: YES/NO
-QA_STTM_UNCHANGED: YES/NO
-REPOSITORY_STATE_PRESERVED: YES/NO
-READY_FOR_VERSION_BUMP_AND_PACKAGE: YES/NO
-READY_TO_INSTALL: NO
-READY_FOR_RUNTIME_QA: NO
+OWNER_DECISIONS_REQUIRED: 
+READY_FOR_GENUINELY_INDEPENDENT_PROCESS_REVIEW: YES/NO
+READY_TO_COMMIT_PROCESS_FRAMEWORK: NO
+READY_TO_PUSH_PROCESS_FRAMEWORK: NO
+CLOUD_AVAILABILITY_REQUIRES_COMMIT_PUSH_AND_DEFAULT_BRANCH_ROLLOUT: YES
 
 PASS requires:
 
-* genuinely independent session;
-* exact repository identity;
-* exact seven-path Repair 12 boundary;
-* canonical test registration exactly once;
-* real public structured and Markdown seams verified;
-* exact Notes, Source, Target, mappings, IDs, and filters exposed;
-* no fabricated or authority-escalating evidence;
-* no sibling enumeration;
-* deterministic behavior except the documented audit timestamp;
-* all required focused and regression gates pass;
-* canonical unit count is 2243/1/5 with identical five failures;
-* zero new functional regressions;
-* zero new security regressions;
-* no CRITICAL, HIGH, or MEDIUM correctness/security findings;
-* zero repository, QA, package, installation, Runtime QA, Preview, or write mutation.
+* native-process and repository preflight pass;
+* reusable workflows are canonical Skills;
+* no safety-critical workflow remains Prompt-only;
+* Instructions are concise and correctly scoped;
+* Custom Agents have explicit capability and mutation boundaries;
+* validators use real process evidence and exact fingerprints;
+* public-seam validation is mandatory in the lifecycle;
+* evidence and checkpoint schemas validate;
+* no new functional or security regression;
+* no production, Repair, QA, VSIX, package, dependency, or Git-state mutation;
+* all process changes remain unstaged for a separate independent review.
 
 End exactly with one:
 
-INDEPENDENT_REVIEW_0_3_144_RESULT: PASS_READY_FOR_VERSION_BUMP_AND_PACKAGE
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: FAIL_FINDINGS
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: FAIL_CHANGE_BOUNDARY
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_IDENTITY_MISMATCH
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_STAGED_CHANGES
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_CONCURRENT_MUTATION
-
-INDEPENDENT_REVIEW_0_3_144_RESULT: BLOCKED_WRONG_PROMPT
+PROCESS_HARDENING_RESULT: PASS_READY_FOR_INDEPENDENT_REVIEW
+PROCESS_HARDENING_RESULT: FAIL_UNAUTHORIZED_CHANGE
+PROCESS_HARDENING_RESULT: FAIL_VALIDATION
+PROCESS_HARDENING_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+PROCESS_HARDENING_RESULT: BLOCKED_IDENTITY_MISMATCH
+PROCESS_HARDENING_RESULT: BLOCKED_STAGED_CHANGES
+PROCESS_HARDENING_RESULT: BLOCKED_UNSTABLE_SOURCE_BASELINE
+PROCESS_HARDENING_RESULT: OWNER_DECISION_REQUIRED
