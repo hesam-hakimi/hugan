@@ -1,384 +1,670 @@
-TASK: HF1_V2_COMPLETE_NATIVE_CLAUDE_REFERENCE_MIGRATION
+TASK: PHASE_2F1_ADOPT_REPAIR_COMPLETE_AND_COMMIT
 
-Work only inside:
+Continue the separately authorized AskAlpha/KMAI Phase 2F.1 implementation by
+explicitly adopting the three pre-existing files as untrusted partial candidate
+content.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Do not delete, reset, restore, overwrite wholesale, stash, clean, rename, or
+discard the existing candidate work.
 
-Use the current folder in a generic Claude Agent session.
+Preserve it initially, independently correct every reviewed defect, complete
+only the authorized ten-file plan, run all required validation gates, and create
+exactly one local implementation commit only after every gate passes.
 
-This is a narrowly bounded follow-up to:
+This task authorizes safe edit/test/fix/rerun cycles within the exact Phase 2F.1
+scope.
 
-TASK: HF1_V2_MIGRATE_AGENT_GOVERNANCE_TO_NATIVE_CLAUDE_HARNESS
-
-The preceding migration correctly created and validated:
-
-* 3 native Agents under .claude/agents/**;
-* 5 native Skills under .claude/skills/**;
-* .claude/rules/agent-governance.md;
-* the CLAUDE.md import;
-* native manifest and governance-validator support.
-
-It stopped with:
-
-BLOCKED_NATIVE_FORMAT_OR_REFERENCE_MISMATCH
-
-The exact remaining defect is six dangling Skill references in five existing
-.github/prompts/*.prompt.md files after the active Skills were migrated from
-.github/skills/** to .claude/skills/**.
-
-This task is authorized to repair only those six references and to validate the
-completed migration.
-
-Do not perform Repair 13.
-Do not change product/runtime source.
-Do not change package.json or its version.
-Do not create package-lock.json.
-Do not build, replace, install, or uninstall a VSIX.
-Do not start Runtime QA.
-Do not access the QA workspace.
-Do not commit, push, merge, tag, stash, reset, clean, or restore.
-Do not create additional Agents, Skills, Prompts, or Rules.
-Do not reintroduce duplicate active authority under .github/agents/** or
-.github/skills/**.
+It does not authorize push, PR creation, merge, deployment, workflow execution,
+runtime flag enablement, or any deferred Phase 2F feature.
 
 ==================================================
+1. READ THE AUTHORITATIVE REPORTS
+==================================================
 
-1. IDENTITY AND CURRENT-STATE GATE
-    ==================================================
+Read these reports completely:
 
-Verify:
+1.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Required terminal token:
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+PHASE_2F1_DISCOVERY_COMPLETE
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+2.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Required terminal token:
 
-SOURCE_VERSION:
-0.3.144
+PHASE_2F1_IMPLEMENTATION_BLOCKED_TARGET_COLLISION
 
-Required:
+3.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_TARGET_COLLISION_REVIEW_2026-08-27.md
 
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json absent;
-* exactly one effective current-folder repository target;
-* the prior Claude-native migration content is still present;
-* no concurrent Agent is modifying the repository.
+Required terminal token:
 
-Confirm the presence of exactly these native Agents:
+PHASE_2F1_TARGET_COLLISION_REVIEW_SAFE_TO_ADOPT
 
-* .claude/agents/etl-hotfix-implementer.md
-* .claude/agents/etl-independent-reviewer.md
-* .claude/agents/etl-release-verifier.md
+The discovery report defines the required architecture and ten-file scope.
 
-Confirm the presence of exactly these active native Skills:
+The collision-review report defines:
 
-* .claude/skills/etl-hotfix-lifecycle/SKILL.md
-* .claude/skills/etl-independent-review/SKILL.md
-* .claude/skills/etl-package-delivery/SKILL.md
-* .claude/skills/etl-runtime-qa/SKILL.md
-* .claude/skills/etl-execution-recovery/SKILL.md
+- the exact adopted three-file candidate;
+- candidate hashes and provenance evidence;
+- verified five-value baseline;
+- every mandatory defect repair;
+- the seven untouched required files.
 
-Confirm:
-
-* .claude/rules/agent-governance.md exists;
-* CLAUDE.md imports that Rule;
-* the process manifest identifies the .claude/** assets as the active authority;
-* the old three active .github/agents/** sources and old five active
-    .github/skills/** sources are not simultaneously active.
-
-Stop without edits if identity differs or the native migration is incomplete.
+Do not modify any of these reports.
 
 ==================================================
-2. INDEPENDENT PRE-EDIT SNAPSHOT
+2. EXACT TARGET WORKTREE
+==================================================
 
-Before editing, record path, size, and SHA-256 for:
+Reuse only this existing target:
 
-* all .claude/** files;
-* all .github/prompts/*.prompt.md files;
-* .github/copilot-instructions.md;
-* .github/agent-governance/**;
-* scripts/agent-governance/**;
-* CLAUDE.md;
-* package.json;
-* src/test/testPatterns.ts;
-* tsconfig.json;
-* Repair 12 production and test paths;
-* all eleven src/**/AGENT.md files;
-* every existing VSIX.
+Git worktree root:
 
-Store temporary snapshots and logs outside the repository.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
 
-Do not use the repository’s own governance baseline as the sole authority.
+Application root:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+
+Branch:
+
+phase2/recipe-lifecycle-classification
+
+Required HEAD:
+
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+Required HEAD tree:
+
+6448dac5be9dee275598e054f505517a215b484b
+
+Do not create another branch or worktree.
+
+Do not use or modify:
+
+- the clean Phase 2E source worktree;
+- stale primary checkout;
+- `asktd_v2`;
+- sibling repositories;
+- ETL/UCA workspaces;
+- temporary worktrees.
 
 ==================================================
-3. EXACT AUTHORIZED EDITS
+3. PRE-MUTATION ADOPTION GATE
+==================================================
 
-Only these five files may be modified:
+Before editing, verify:
 
-1. .github/prompts/build.prompt.md
-2. .github/prompts/investigate.prompt.md
-3. .github/prompts/plan-change.prompt.md
-4. .github/prompts/verify-change.prompt.md
-5. .github/prompts/verify-live-flow.prompt.md
+- logical and physical target identity;
+- Git top-level and common directory;
+- origin;
+- exact branch;
+- exact HEAD and tree;
+- no upstream;
+- no staged changes;
+- no commit after the accepted base;
+- no remote branch or PR;
+- exact complete porcelain state.
 
-Make only these semantic reference replacements:
+The only dirty paths must be:
 
-File	Replace old active Skill reference with
-.github/prompts/build.prompt.md	.claude/skills/etl-hotfix-lifecycle/SKILL.md
-.github/prompts/investigate.prompt.md	.claude/skills/etl-execution-recovery/SKILL.md
-.github/prompts/plan-change.prompt.md	.claude/skills/etl-hotfix-lifecycle/SKILL.md
-.github/prompts/verify-change.prompt.md	.claude/skills/etl-independent-review/SKILL.md
-.github/prompts/verify-live-flow.prompt.md	.claude/skills/etl-runtime-qa/SKILL.md and .claude/skills/etl-package-delivery/SKILL.md
+ M kmai-td-genie/src/backend/app/recipes/approved_recipes.py
+?? kmai-td-genie/src/backend/app/recipes/approval_evidence.py
+?? kmai-td-genie/src/backend/app/recipes/lifecycle.py
 
-There must be exactly six repaired references across those five files.
+Recompute the SHA-256 of all three paths and compare them with the exact values
+recorded in the collision-review report.
 
-Preserve:
+If any path, state, size, hash, branch, HEAD, tree, remote ownership, or staging
+state differs, stop without mutation.
 
-* Prompt frontmatter;
-* Prompt names and descriptions;
-* all behavioral instructions;
-* workflow semantics;
-* review and approval boundaries;
-* no-self-certification rules;
-* packaging, installation, Runtime QA, Preview, and write gates;
-* all unrelated whitespace and content where practical.
+The existing ignored `__pycache__`/`.pyc` artifacts recorded by the review are
+not source changes. Do not delete or clean them.
 
-Do not make these Prompts a second policy authority. They remain convenience
-entry points referencing the canonical native Skills.
+Independently reverify through authenticated read-only GitHub requests that
+`main` remains:
 
-Do not add fallback references to the removed .github/skills/** sources.
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+If live `main` has drifted, stop without mutation.
 
 ==================================================
-4. REFERENCE-INTEGRITY VALIDATION
+4. ADOPTION RULE
+==================================================
 
-After editing, scan all repository governance and customization assets for
-references to the removed active sources.
+Explicitly adopt the three existing source paths as untrusted partial candidate
+content.
 
-At minimum inspect:
+Adoption means:
 
-* .github/**/*.md;
-* .github/**/*.json;
-* .github/**/*.yml;
-* .github/**/*.yaml;
-* .claude/**/*.md;
-* CLAUDE.md;
-* scripts/agent-governance/**.
+- retain the useful reviewed implementation;
+- treat no existing behavior as correct merely because it exists;
+- patch the files in place;
+- independently verify every contract;
+- correct all identified defects;
+- complete all missing work;
+- run the entire original validation matrix.
 
-Required:
+Do not delete and recreate these files merely to remove their provenance.
 
-* dangling references to removed active .github/skills/etl-*: 0;
-* dangling references to removed active .github/agents/etl-*: 0;
-* references to active native Agents resolve: 3/3;
-* references to active native Skills resolve: 5/5;
-* the six repaired Prompt references resolve: 6/6;
-* duplicate active authority: 0;
-* unclassified active assets: 0;
-* missing referenced files: 0.
+Do not create a preliminary/WIP commit.
 
-Historical prose that intentionally documents the prior location may remain only
-when explicitly marked as historical and when no loader or validator interprets
-it as an active reference.
-
-Do not suppress or weaken reference validation.
+Exactly one final local commit is authorized after all tests pass.
 
 ==================================================
-5. VALIDATION
+5. FIXED ARCHITECTURE
+==================================================
 
-Run all write-producing validation in a task-owned temporary mirror when
-necessary.
+Preserve Option A:
+
+- pure deterministic lifecycle evaluator;
+- `ApprovalEvidenceProvider` runtime-checkable Protocol;
+- current ApprovedRecipe metadata adapter;
+- orchestration-side approval and current-dependency evidence resolution;
+- immutable result;
+- default-OFF;
+- classification-only;
+- trace-only;
+- provider-neutral;
+- no persistence;
+- no runtime warning/blocking.
+
+Fixed state precedence:
+
+BROKEN
+NOT_APPROVED
+REVIEW_REQUIRED
+VALID
+
+Return every applicable reason even when a higher-precedence state wins.
+
+The evaluator must not access:
+
+- environment variables;
+- current time;
+- random values;
+- mutable globals;
+- provider or registry services;
+- SQL or databases;
+- Synapse or Databricks;
+- Data Lake;
+- network/HTTP/socket;
+- cache, queue or persistence;
+- logger or tracer;
+- business data.
+
+==================================================
+6. MANDATORY REPAIRS TO THE THREE ADOPTED FILES
+==================================================
+
+Correct every defect recorded in Collision Review Sections 8–11.
+
+A. `src/backend/app/recipes/lifecycle.py`
+
+1. Malformed auxiliary dependency-resolution fields must fail closed.
+
+The current normalization can silently drop malformed/non-iterable
+`missing_dependency_refs`, `conflicting_dependency_refs`, or
+`invalid_dependency_refs`.
+
+Replace this behavior with deterministic normalization that also records an
+invalid condition.
+
+Malformed auxiliary data must never be ignored in a way that permits `VALID`.
+
+2. Preserve every applicable reason.
+
+Do not use mutually exclusive branches that suppress:
+
+- `RECIPE_NOT_APPROVED` when another approval field is invalid;
+- `APPROVAL_EVIDENCE_INVALID` for individual malformed records;
+- dependency review reasons when a higher-precedence reason also exists.
+
+Final-state precedence selects the state; it must not remove reason codes.
+
+3. Conflicting approved fingerprint pairs must produce:
+
+APPROVAL_EVIDENCE_CONFLICTING
+
+A repeated identical `(ref, fingerprint)` pair may collapse.
+
+The same ref with different approved fingerprints must fail closed as a
+conflicting approval record.
+
+4. Whitespace-only recipe IDs or versions must be invalid.
+
+Strict non-empty validation must reject values such as:
+
+""
+" "
+"\t"
+"\n"
+
+5. Resolve the runtime `LifecycleStatus` type correctly.
+
+Do not leave the authoritative annotation available only under
+`TYPE_CHECKING`.
+
+Use the repository’s actual runtime-safe import/annotation convention and keep
+the exact authoritative contract.
+
+6. Maintain:
+
+- all four exact StrEnum states;
+- all twelve reason codes;
+- frozen dataclasses;
+- fixed precedence;
+- stable sorting/deduplication;
+- pure evaluator;
+- exact trace payload;
+- explicit owning-module `__all__`.
+
+B. `src/backend/app/recipes/approval_evidence.py`
+
+1. Make the accepted baseline container truly immutable.
+
+The current plain dictionary is mutable.
+
+Use an immutable representation consistent with the discovery contract, such
+as a private tuple of exact `(dependency_ref, fingerprint)` pairs.
+
+Do not add a database, file, environment lookup or runtime-generated baseline.
+
+2. Require exact baseline completeness.
+
+A usable baseline must match exactly the pilot recipe’s five declared unique
+dependency refs:
+
+- no missing ref;
+- no extra ref;
+- no duplicate ref;
+- no conflicting pair;
+- every fingerprint well formed.
+
+A non-empty subset is not usable.
+
+Incomplete or malformed baseline evidence must become invalid evidence and fail
+closed.
+
+3. Preserve the five exact fingerprint literals independently verified in the
+collision-review report.
+
+Do not alter, guess or runtime-recompute them.
+
+4. Preserve:
+
+- runtime-checkable `ApprovalEvidenceProvider`;
+- `ApprovedRecipeApprovalEvidenceProvider`;
+- normalized lookup behavior;
+- unknown recipe → zero evidence;
+- known pilot recipe → one evidence record;
+- cycle-safe imports;
+- no provider/data-source/network/database access;
+- explicit owning-module `__all__`.
+
+C. `src/backend/app/recipes/approved_recipes.py`
+
+1. Implement the missing `_current_dependency_evidence(...)` helper.
+
+The current call exists but the function does not, causing a flag-on
+`NameError`.
+
+Implement bounded current-dependency evidence resolution using only:
+
+- the existing MetadataRegistryService;
+- the already materialized governed RegistrySnapshot;
+- the recipe’s unique declared dataset and field refs;
+- existing dependency-record resolution;
+- existing `entity_ref()` and `entity_fingerprint()` semantics;
+- existing unknown/conflicting/invalid metadata errors.
+
+It must return immutable `DependencyEvidenceResolution`.
+
+It must never call a data source, SQL, Synapse, Databricks, Data Lake or
+business-data provider.
+
+2. Normalize all current-evidence failures deterministically into:
+
+- current fingerprints;
+- missing refs;
+- conflicting refs;
+- invalid refs.
+
+Metadata unavailable or malformed must fail closed for classification but must
+not deny runtime execution.
+
+3. Move provider construction inside the normalization boundary, or otherwise
+prove that both provider-construction and provider-method failures are converted
+to invalid approval evidence.
+
+No provider exception may change runtime execution.
+
+4. Preserve the first flag-disabled return before:
+
+- recipe lookup;
+- provider construction/call;
+- registry construction/call;
+- fingerprint work.
+
+5. Preserve:
+
+- exact flag name:
+  `RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED`;
+- strict default-OFF parser;
+- existing ApprovedRecipe fields;
+- existing Approved Recipe execution-gate behavior;
+- classification-only result;
+- exact three new public exports.
+
+==================================================
+7. COMPLETE THE REMAINING SEVEN FILES
+==================================================
+
+Complete exactly these seven untouched authorized paths:
+
+1. Add:
+   `test/test_recipe_lifecycle.py`
+
+2. Add:
+   `docs/adr/0006-phase2f1-recipe-lifecycle-classification.md`
+
+3. Modify:
+   `src/backend/app/orchestrator.py`
+
+4. Modify:
+   `test/test_approved_recipe_pilot.py`
+
+5. Modify:
+   `test/test_authz_no_access_guard.py`
+
+6. Modify:
+   `test/test_provider_abstraction_contracts.py`
+
+7. Modify:
+   `docs/adr/README.md`
+
+Together with the three adopted paths, the final change set must contain exactly
+10 repository files.
+
+Do not modify `src/backend/app/recipes/__init__.py`.
+
+No eleventh repository path is authorized.
+
+==================================================
+8. ORCHESTRATOR INTEGRATION
+==================================================
+
+Integrate lifecycle classification immediately before the existing Approved
+Recipe gate in the deterministic primary-source path.
+
+Required order:
+
+1. greeting handling;
+2. deny-all authorization short-circuit;
+3. semantic/source-plan selection;
+4. recipe-parameter construction;
+5. lifecycle classification helper;
+6. optional best-effort `recipe_lifecycle` trace;
+7. existing Approved Recipe gate;
+8. existing data-source and SQL path.
+
+When the lifecycle helper returns a result, emit only:
+
+self._trace("recipe_lifecycle", result.to_trace_payload())
+
+Ignore lifecycle state for control flow.
+
+`BROKEN`, `NOT_APPROVED`, and `REVIEW_REQUIRED` must not:
+
+- block;
+- warn;
+- change SQL;
+- change response status;
+- change routing;
+- replace authorization;
+- stop execution.
+
+The existing Approved Recipe and SQL-authorization gates remain authoritative.
+
+==================================================
+9. REQUIRED TEST COVERAGE
+==================================================
+
+Implement the full discovery test matrix, including:
+
+- all four lifecycle states;
+- all twelve reason codes;
+- fixed precedence;
+- all-reasons preservation;
+- deterministic permutations;
+- stable affected-ref ordering;
+- identical duplicate collapse;
+- conflicting duplicate failure;
+- malformed auxiliary resolution fields;
+- whitespace-only identifiers and versions;
+- missing, invalid, ambiguous and conflicting approval evidence;
+- incomplete baseline rejection;
+- exact five-value baseline pin;
+- missing/conflicting/invalid current dependencies;
+- provider-construction and provider-call failures;
+- exact trace serialization;
+- evaluator purity and repeated-input equality;
+- provider Protocol conformance;
+- no forbidden imports;
+- bounded fingerprint-call count;
+- default-OFF and explicit-false canonical compatibility;
+- invalid flag-token behavior;
+- deny-all ordering;
+- trace ordering;
+- all lifecycle states remaining trace-only;
+- existing Approved Recipe SQL/status/result unchanged;
+- governance-flag interaction;
+- no business-data or data-source calls.
+
+Keep the existing
+`test_flag_off_leaves_the_deterministic_lane_untouched()`
+test unchanged.
+
+The ADR must document:
+
+- Option A;
+- classification-only behavior;
+- state/reason mapping;
+- immutable accepted baseline;
+- fail-closed classification;
+- default-OFF rollout and rollback;
+- expected `BROKEN` trace when existing metadata flags remain disabled;
+- no runtime blocking;
+- no persistence;
+- no business-data scan;
+- Phase 3 and Phase 6 deferrals;
+- test and acceptance gates;
+- deliberate use of the repository’s first StrEnums.
+
+==================================================
+10. SCALE AND NO-SCAN BOUNDARY
+==================================================
+
+The approximately 5 TB data volume remains outside this classifier.
+
+Phase 2F.1 may inspect only bounded metadata and declared recipe dependencies.
+
+It must issue:
+
+- zero business-data queries;
+- zero SQL statements;
+- zero Synapse calls;
+- zero Databricks calls;
+- zero Data Lake calls.
+
+Provider query pushdown remains Phase 3.
+
+Benchmarks, concurrency, scan-cost controls and SLOs remain Phase 6.
+
+==================================================
+11. TEST AND FIX CYCLES
+==================================================
+
+Use the existing project environment.
+
+Use `python3`, not `python`.
+
+Do not install or upgrade packages.
+
+Run focused tests:
+
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py \
+  test/test_authz_no_access_guard.py \
+  test/test_provider_abstraction_contracts.py \
+  test/test_recipe_dependency_fingerprint.py \
+  test/test_governed_field_records.py \
+  test/test_semantic_plan_contract.py
+
+Run golden tests:
+
+python3 -m pytest --no-cov -q test/test_golden_baseline.py
+
+Run the full configured suite with coverage:
+
+python3 -m pytest
+
+Coverage must remain at or above 75%.
 
 Run:
 
-1. native Agent frontmatter validation;
-2. native Skill frontmatter validation;
-3. native Agent discovery tests;
-4. native Skill discovery tests;
-5. Agent-to-Skill resolution tests;
-6. manifest/schema validation;
-7. Agent/manifest authority parity validation;
-8. duplicate-authority validation;
-9. missing-Agent and missing-Skill fail-closed tests;
-10. self-certification negative tests;
-11. checkpoint-fidelity tests;
-12. baseline-contract tests;
-13. change-boundary adversarial tests;
-14. test-registration validation;
-15. workflow validation;
-16. complete governance test suite;
-17. customization validation;
-18. compile;
-19. compile:test;
-20. lint;
-21. Repair 12 canonical suite;
-22. canonical full unit suite.
+git diff --check
 
-Expected minimum results based on the preceding run:
+Safe edit/test/fix/rerun cycles are authorized until every required gate passes.
 
-* Governance tests: at least 224 passing, 0 failing;
-* customization blocker findings: 0;
-* customization major findings caused by dangling references: 0;
-* inactive informational asset records may remain: 8;
-* registration enforcement findings: 0;
-* Repair 12: 21/21 passing;
-* compile: exit 0;
-* compile:test: exit 0;
-* lint: exit 0;
-* no new functional regression;
-* no new security regression.
+Do not weaken, delete, skip or rewrite tests merely to obtain a pass.
 
-Reconcile full-suite failures by exact identity.
+Do not invent an unconfigured formatter, linter or type-check gate.
 
-The known deferred failures may remain only if unchanged:
-
-* F1: missing/stale maintainer-delivery Prompt contract;
-* F3: assertion concerning the eleven existing src/**/AGENT.md files.
-
-F2 must remain genuinely passing without weakening, skipping, or deleting its
-assertion.
-
-Do not create missing Agents or Prompts merely to make F1 pass.
-Do not change or delete the eleven legacy AGENT.md files to make F3 pass.
+If the environment lacks required dependencies, stop without installing them.
 
 ==================================================
-6. NON-MUTATION AND CHANGE-BOUNDARY PROOF
+12. FINAL ACCEPTANCE GATES
+==================================================
 
-Compare the final live repository with the independent pre-edit snapshot.
+Before committing, verify:
 
-Required task-attributable changes:
-
-* exactly five modified Prompt files;
-* exactly six reference replacements;
-* no other task-attributable change.
-
-Required:
-
-UNAUTHORIZED_CHANGED_PATHS: NONE
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-TEST_PATTERNS_CHANGED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-LEGACY_AGENT_MD_CHANGED: NO
-NATIVE_AGENT_CONTENT_CHANGED: NO
-NATIVE_SKILL_CONTENT_CHANGED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-REPAIR_13_STARTED: NO
-STAGED_FILES: 0
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-
-If another change is required, stop and report it. Do not broaden the boundary.
+- exactly 10 authorized repository paths changed;
+- all seven collision-review defects are corrected;
+- all five pinned fingerprints remain exact;
+- static baseline container is immutable;
+- exact baseline completeness is enforced;
+- `_current_dependency_evidence` exists and is bounded;
+- lifecycle module imports correctly at runtime;
+- all reasons are preserved;
+- malformed values fail closed;
+- flag absent/false performs no provider or registry work;
+- flag-OFF canonical Phase 2E behavior is unchanged;
+- lifecycle never controls execution;
+- deny-all still precedes lifecycle;
+- SQL authorization remains authoritative;
+- no provider/data-source/network/database imports exist in evaluator/adapter;
+- no API, persistence, queue, cache, UI or new backend exists;
+- focused tests pass;
+- golden tests pass;
+- full suite passes;
+- coverage is at least 75%;
+- `git diff --check` passes;
+- no optional cleanup or deferred work entered the diff.
 
 ==================================================
-7. FINAL REPORT
+13. EXACTLY ONE LOCAL COMMIT
+==================================================
 
-Return:
+Only after every gate passes:
 
-IDENTITY_GATE: PASS/FAIL
-NATIVE_MIGRATION_PRESENT: YES/NO
-INDEPENDENT_BASELINE_CAPTURED: YES/NO
+1. inspect the complete diff;
+2. verify the changed-file inventory is exactly the authorized ten files;
+3. verify no secret, generated output or unrelated change exists;
+4. stage only those ten files;
+5. verify the staged list;
+6. create exactly one local commit:
 
-AUTHORIZED_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-PROMPT_FILES_MODIFIED_COUNT: 
-SKILL_REFERENCES_REPAIRED_COUNT: 
+feat(recipes): add phase 2f.1 lifecycle classification
 
-BUILD_PROMPT_REFERENCE_VALID: YES/NO
-INVESTIGATE_PROMPT_REFERENCE_VALID: YES/NO
-PLAN_CHANGE_PROMPT_REFERENCE_VALID: YES/NO
-VERIFY_CHANGE_PROMPT_REFERENCE_VALID: YES/NO
-VERIFY_LIVE_FLOW_REFERENCES_VALID: YES/NO
+7. record commit SHA and tree SHA;
+8. verify the worktree has no staged, unstaged or untracked source changes.
 
-DANGLING_REMOVED_SKILL_REFERENCES: 
-DANGLING_REMOVED_AGENT_REFERENCES: 
-ACTIVE_NATIVE_AGENT_COUNT: 
-ACTIVE_NATIVE_SKILL_COUNT: 
-DUPLICATE_ACTIVE_AUTHORITY_COUNT: 
-UNCLASSIFIED_ACTIVE_ASSET_COUNT: 
-MISSING_REFERENCED_PATH_COUNT: 
+Do not delete the pre-existing ignored bytecode caches.
 
-NATIVE_AGENT_FRONTMATTER_VALID: YES/NO
-NATIVE_SKILL_FRONTMATTER_VALID: YES/NO
-CLAUDE_MD_IMPORT_VALID: YES/NO
-MANIFEST_SCHEMA_VALID: YES/NO
-AGENT_MANIFEST_AUTHORITY_PARITY: YES/NO
-SELF_CERTIFICATION_PROHIBITION_PRESERVED: YES/NO
+Do not amend, push, open a PR, merge, deploy, trigger a workflow or enable the
+runtime flag.
 
-GOVERNANCE_TESTS_PASSING: 
-GOVERNANCE_TESTS_FAILING: 
-CUSTOMIZATION_BLOCKERS: 
-CUSTOMIZATION_MAJOR_FINDINGS: 
-CUSTOMIZATION_MINOR_FINDINGS: 
-CUSTOMIZATION_INFORMATIONAL_FINDINGS: 
-REGISTRATION_ENFORCING_FINDINGS: 
+If any required gate fails, do not commit.
 
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_12_CANONICAL_PASS: YES/NO
+==================================================
+14. IMPLEMENTATION CONTINUATION REPORT
+==================================================
 
-FULL_UNIT_PASSING: 
-FULL_UNIT_PENDING: 
-FULL_UNIT_FAILING: 
-FULL_UNIT_FAILURES: 
-F1_FINGERPRINT_CHANGED: NO
-F2_GENUINELY_PASSING: YES/NO
-F3_FINGERPRINT_CHANGED: NO
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
+Do not overwrite the earlier blocked implementation report or collision-review
+report.
 
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-TEST_PATTERNS_CHANGED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-LEGACY_AGENT_MD_CHANGED: NO
-NATIVE_AGENT_CONTENT_CHANGED: NO
-NATIVE_SKILL_CONTENT_CHANGED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-REPAIR_13_STARTED: NO
-STAGED_FILES: 
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+Write exactly one new report:
 
-NATIVE_CLAUDE_STATIC_READINESS: YES/NO
-CLAUDE_RUNTIME_ACTIVATION_PROVEN: NO
-READY_FOR_CLAUDE_RELOAD_AND_ACTIVATION_CHECK: YES/NO
-READY_FOR_REPAIR_13: NO
-READY_TO_BUMP_VERSION: NO
-READY_TO_PACKAGE_OR_INSTALL: NO
-READY_FOR_RUNTIME_QA: NO
-READY_FOR_CLOUD_ROLLOUT: NO
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_CONTINUATION_2026-08-27.md
 
-This implementation session must not claim that runtime discovery has been
-proven. Runtime activation requires a VS Code reload followed by a fresh Claude
-session.
+Include:
 
-End exactly with one:
+1. final verdict;
+2. three-report token verification;
+3. target branch/worktree/HEAD/tree evidence;
+4. pre-adoption three-path state and hash match;
+5. explicit adoption statement;
+6. repair made for each collision-review defect;
+7. exact final ten-file inventory;
+8. five pinned dependency refs/fingerprints;
+9. contracts and public symbols;
+10. lifecycle/reason behavior;
+11. current-dependency resolver behavior;
+12. feature-flag and orchestration integration;
+13. flag-OFF compatibility evidence;
+14. classification-only/control-flow evidence;
+15. bounded-metadata/no-scan proof;
+16. focused-test command and exact result;
+17. golden-test command and exact result;
+18. full-suite result and coverage percentage;
+19. `git diff --check` result;
+20. commit SHA and tree SHA;
+21. final clean-status evidence;
+22. no push/PR/merge/deployment/workflow/flag-enablement attestation;
+23. exact next permitted action.
 
-CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
-PASS_READY_FOR_RELOAD_AND_FRESH_CLAUDE_ACTIVATION_CHECK
+The next permitted action must be an independent read-only review of the local
+implementation commit.
 
-CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
-FAIL_VALIDATION
+End with exactly one token:
 
-CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
-FAIL_UNAUTHORIZED_CHANGE
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_COMPLETE
 
-CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
-BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+or one applicable blocker:
 
-CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
-BLOCKED_ADDITIONAL_REFERENCE_SCOPE
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_CANDIDATE_DRIFT
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_BASE_DRIFT
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_GITHUB_ACCESS
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_SCOPE
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_ENVIRONMENT
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_TESTS
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_BLOCKED_COMMIT
+
+At completion, output:
+
+- final token;
+- branch;
+- commit SHA if created;
+- exact changed-file count;
+- focused-test result;
+- golden-test result;
+- full-suite result;
+- coverage percentage;
+- report path;
+- confirmation that nothing was pushed and no PR was created.
