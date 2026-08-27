@@ -1,248 +1,608 @@
-TASK: PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_DISPOSITION
+TASK: HF1_V2_REPAIR_13_OWNER_DISPOSITION_GOLDEN_REFRESH_AND_PURE_UNIT_REGISTRATION
 
-Perform one bounded owner-authorized investigation and, only when byte-exact
-recovery is independently proven, restore the two ignored artifacts changed
-during the Phase 2F.1 independent review.
+Perform the two exact repository-owner actions required after the successful
+independent review of Repair 13.
 
-Do not repair M1 or M2 in this task.
-Do not run tests.
-Do not modify any source file, commit, branch, index, remote, PR, or workflow.
+Work only inside:
 
-==================================================
-1. TARGET IDENTITY
-==================================================
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Repository:
-TD-Enterprise/kmai-td-genie
+Execution context:
 
-Logical worktree:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
+* VS Code option 4: Claude harness;
+* fresh Chat;
+* built-in generic claude Agent;
+* do not select etl-hotfix-implementer;
+* do not select etl-independent-reviewer;
+* Claude Opus 5 with Max reasoning;
+* Current Folder, not Worktree;
+* exactly one effective repository target;
+* Local execution only.
 
-Application root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+The independent review concluded:
 
-Required branch:
-phase2/recipe-lifecycle-classification
+REPAIR_13_INDEPENDENT_REVIEW_RESULT:
+PASS_WITH_REQUIRED_SEPARATE_OWNER_ACTIONS
 
-Required HEAD:
-c1639fc779aaed64e4be9fdd17381e0f293c7f9f
+Repair 13 itself is independently certified as correct, complete, minimal, and
+non-regressing.
 
-Required tree:
-a5bd9ed7f7959c02ccb6c00b574599fb32d4fa95
+This prompt records an explicit repository-owner decision authorizing exactly two
+mechanical follow-up actions:
 
-Required parent:
-f283f01b6d615f9fa00debcef959d9c5c86a3224
+OWNER_ACTION_1:
+Refresh the Phase H golden eval baseline for the two independently verified
+legitimate Repair 13 behavior-input changes.
 
-==================================================
-2. REQUIRED REPORTS
-==================================================
+OWNER_ACTION_2:
+Register the Repair 13 focused suite exactly once in the canonical Pure Unit test
+registry.
 
-Read completely:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_CONTINUATION_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_INDEPENDENT_REVIEW_2026-08-27.md
-
-Verify that the independent-review report ends with:
-
-PHASE_2F1_INDEPENDENT_REVIEW_BLOCKED_WORKSPACE
-
-Extract the authoritative pre-test and post-focused size and SHA-256 evidence
-for the two affected ignored paths directly from that report. Do not rely on
-screenshots or manually transcribed hashes.
+No other action is authorized.
 
 ==================================================
-3. PRE-MUTATION IDENTITY GATE
-==================================================
 
-Before inspecting recovery options, verify:
+1. VERIFIED REPAIR 13 STATE
+    ==================================================
 
-- pwd and pwd -P;
-- target realpath;
-- Git top-level and common directory;
-- origin identity;
-- branch, HEAD, tree, parent, and commit subject;
-- tracked and untracked porcelain;
-- staged state;
-- shared-worktree identity.
+The independently reviewed Repair 13 change set is:
 
-Required Git state:
+Modified:
 
-- exact expected identity;
-- tracked, untracked, and staged states empty;
-- no source change since the blocked review.
+1. src/core/sttm/SttmResolvedEvidence.ts
+2. src/core/sttm/SttmUnderstandingReportRenderer.ts
+3. src/tools/EtlReadOnlyToolService.ts
 
-Also record the current existence, type, mode, size, and SHA-256 of:
+Added:
 
-1. kmai-td-genie/.coverage
-2. kmai-td-genie/logs/app.log
+4. src/test/suite/sttmRepair13.test.ts
 
-Expected incident state from the review:
+The independent review proved:
 
-- .coverage was deleted;
-- logs/app.log remains present but changed.
+* one positive-grant authoritative selector;
+* no negative authority predicate;
+* compile-time exhaustive state coverage;
+* runtime fail-closed handling;
+* structured/Markdown parity in 19/19 scenarios;
+* Repair 13 focused suite: 23/23;
+* Repair 12: 21/21;
+* Repair 11: 22/22;
+* QA STTM unchanged;
+* no Repair 13 functional or security regression;
+* no unauthorized Repair 13 path;
+* unresolved schema references are display-only, read-only, and
+    non-authoritative;
+* no Preview, Write, approval, generation, packaging, installation, or Runtime QA
+    authority was introduced.
 
-If identity or incident state differs, stop without mutation.
+Do not reopen or redesign Repair 13.
 
-==================================================
-4. STRICT SCOPE
-==================================================
-
-The only paths that may potentially be restored are:
-
-- kmai-td-genie/.coverage
-- kmai-td-genie/logs/app.log
-
-Do not modify:
-
-- any tracked file;
-- any other ignored file;
-- any __pycache__ or .pyc file;
-- Git index, refs, configuration, branches, or worktrees;
-- source, tests, documentation, reports from earlier tasks;
-- remote GitHub state.
-
-Do not use:
-
-- git clean;
-- git reset;
-- git checkout;
-- git restore;
-- stash;
-- broad recursive deletion;
-- test execution;
-- coverage regeneration;
-- guessed or synthesized file content.
-
-Do not conceal the incident.
+Do not modify the four Repair 13 paths in this task.
 
 ==================================================
-5. BYTE-EXACT RECOVERY INVESTIGATION
-==================================================
+2. REQUIRED IDENTITY
 
-First operate read-only.
+Verify:
 
-For logs/app.log:
+REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-1. Obtain its exact pre-review byte length and SHA-256 from the independent
-   review report.
-2. Check whether the current file’s prefix of exactly that recorded byte length
-   has the recorded pre-review SHA-256.
-3. If and only if it matches exactly, the appended portion is independently
-   proven to be the review-generated mutation.
-4. Record the appended byte count and its SHA-256, but do not include raw log
-   content, credentials, tokens, business data, or exception payloads in the
-   report.
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-For .coverage:
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-1. Obtain the exact pre-review size and SHA-256 from the independent-review
-   report.
-2. Search read-only and only within permanent KMAI worktrees and task-owned
-   review locations for an already-existing regular file with:
-   - the exact recorded size;
-   - the exact recorded SHA-256;
-   - a valid coverage-data file identity.
-3. Do not accept a matching filename without matching bytes.
-4. Do not regenerate the file by running tests.
-5. Do not copy a different coverage database even if it appears semantically
-   equivalent.
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-Candidate search must not inspect unrelated repositories or user directories.
+SOURCE_VERSION:
+0.3.144
 
-==================================================
-6. RESTORATION AUTHORIZATION BOUNDARY
-==================================================
+Required:
 
-Restoration is authorized only if both artifacts are byte-exactly recoverable.
+* exactly one effective Current Folder repository target;
+* staged files: 0;
+* stash entries: 0;
+* package-lock.json absent;
+* no concurrently running Agent mutation;
+* Repair 13 four-path change set still present;
+* no version bump, package, install, Runtime QA, commit, or push;
+* protected VSIX files unchanged.
 
-Required conditions:
+Prove visible stdout, stderr, executable identity, and real exit codes for:
 
-- logs/app.log’s pre-review prefix matches the recorded pre-review hash;
-- an exact existing copy of .coverage matches the recorded pre-review size and
-  hash;
-- the target paths resolve inside the exact application root;
-- no other workspace drift exists.
+* cmd.exe;
+* git.exe;
+* node.exe;
+* npm.cmd or the exact underlying Node command.
 
-If all conditions pass:
+Use task-owned file-redirection helpers under the OS temporary directory when the
+known inline-capture/PATH defect occurs.
 
-1. Restore .coverage from the independently verified byte-identical source.
-2. Restore logs/app.log to its independently verified pre-review prefix.
-3. Do not change timestamps intentionally beyond unavoidable filesystem write
-   effects.
-4. Do not touch any other path.
+Do not modify the repository to recover process execution.
 
-If either artifact cannot be recovered byte-exactly:
-
-- do not restore either artifact;
-- do not truncate logs/app.log;
-- do not create .coverage;
-- do not invent a replacement;
-- stop and request explicit owner disposition of the current ignored state.
-
-This task must never produce a partially restored workspace.
+Stop without mutation on identity mismatch, staged files, concurrent mutation, or
+unproven execution.
 
 ==================================================
-7. POST-RESTORATION VERIFICATION
+3. INDEPENDENT PRE-ACTION SNAPSHOT
+
+Before any mutation, capture an independent Git plus OS-hash baseline containing:
+
+* all tracked modifications and deletions;
+* all non-ignored untracked files;
+* all Repair 13 paths;
+* all Phase H eval baseline paths;
+* src/test/testPatterns.ts;
+* package.json;
+* package-lock.json state;
+* tsconfig.json and tsconfig.test.json;
+* Repair 11 and Repair 12 paths;
+* canonical QA STTM;
+* .gitignore;
+* .claude/**;
+* CLAUDE.md;
+* governance manifest, scripts, tests, and workflow;
+* all eleven src/**/AGENT.md files;
+* all VSIX files.
+
+Store all logs, generated candidates, snapshots, and mirrors under a unique OS
+temporary directory.
+
+Do not use Git alone because the repository has a large untracked overlay.
+
 ==================================================
+4. EXACT AUTHORIZED CHANGE BOUNDARY
 
-If restoration occurred, independently prove:
+This task may change only:
 
-- .coverage exists with the exact pre-review type, mode, size, and SHA-256;
-- logs/app.log has the exact pre-review type, mode, size, and SHA-256;
-- tracked, untracked, and staged Git states remain empty;
-- branch, HEAD, tree, parent, and index remain unchanged;
-- no source, test, ADR, or configuration file changed;
-- exactly the two authorized ignored paths changed relative to task start;
-- the final worktree manifest matches the pre-review manifest evidence wherever
-  that evidence is available.
+A. the exact existing Phase H golden baseline file or files proven to be written
+by the repository’s canonical eval:golden command;
 
-Do not run Phase 2F.1 tests in this task.
+B. src/test/testPatterns.ts, with exactly one narrow additive Pure Unit pattern
+for the freshly compiled Repair 13 suite.
+
+Before editing, return:
+
+PROPOSED_GOLDEN_BASELINE_PATHS: 
+PROPOSED_TEST_REGISTRATION_PATH:
+src/test/testPatterns.ts
+
+PROPOSED_EXACT_REGISTRATION_LINE: 
+PROPOSED_PATTERN_MATCH_COUNT: 
+
+Do not edit until:
+
+* every proposed golden baseline path is proven to be canonical output of the
+    existing generator;
+* no unrelated file would be generated or modified;
+* the registration pattern matches exactly one compiled suite;
+* the registration pattern overlaps no existing Pure Unit pattern;
+* duplicate execution remains impossible.
+
+If the generator requires changes outside the exact baseline outputs, stop:
+
+OWNER_DISPOSITION_RESULT: BLOCKED_GOLDEN_OUTPUT_SCOPE
+
+If exact one-suite registration cannot be proven, stop:
+
+OWNER_DISPOSITION_RESULT: BLOCKED_REGISTRATION_SCOPE
+
+Everything else is protected.
 
 ==================================================
-8. REPORT
+5. OWNER ACTION 1 — CONTROLLED GOLDEN REFRESH
+
+Do not run the golden generator directly against the live repository first.
+
+Create a byte-faithful temporary mirror containing tracked and untracked working
+content.
+
+In the mirror:
+
+1. freshly compile required source;
+2. run the canonical Phase H eval validation before regeneration;
+3. record the two expected EvalGating failures;
+4. run the repository’s canonical golden-generation command;
+5. capture every generated path and exact diff;
+6. run the generator a second time from the same normalized inputs;
+7. identify deterministic fields and permitted timestamp/latency fields;
+8. validate the regenerated baseline;
+9. confirm all Phase H scenarios pass.
+
+Expected legitimate drift inputs:
+
+* src/core/sttm/SttmResolvedEvidence.ts;
+* src/core/sttm/SttmUnderstandingReportRenderer.ts.
+
+The independent review established that these are the only tracked Phase H input
+hashes expected to change.
+
+src/tools/EtlReadOnlyToolService.ts and
+src/test/suite/sttmRepair13.test.ts were not tracked Phase H baseline inputs.
+
+Required regenerated semantic results:
+
+* acceptanceRate: 1;
+* parityRate: 1;
+* validationSuccessRate: 1;
+* coverage complete;
+* required scenarios: 9/9 passing;
+* missing required scenarios: none;
+* no behavioral regression;
+* no containment regression;
+* no security regression.
+
+The diff may contain only:
+
+* the baseline digest derived from the legitimate inputs;
+* hashes for the two legitimate drifted inputs;
+* canonical generation timestamp fields;
+* expected latency measurement fields.
+
+It must not:
+
+* remove scenarios;
+* weaken thresholds;
+* reduce coverage;
+* change acceptance semantics;
+* hide failures;
+* exclude Repair 13 inputs improperly;
+* regenerate unrelated historical baselines.
+
+After the candidate passes, apply only the exact canonical baseline output files
+to the live repository.
+
+Do not copy any compiled out/**, logs, reports, caches, or temporary files.
+
+Required:
+
+GOLDEN_REFRESH_SEMANTIC_REGRESSION: NO
+GOLDEN_REFRESH_MISSING_SCENARIOS: NONE
+GOLDEN_REFRESH_UNRELATED_PATHS: NONE
+
 ==================================================
+6. OWNER ACTION 2 — PURE UNIT REGISTRATION
 
-Write exactly one report outside the repository:
+Inspect the live canonical test registry and compiled suite layout.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_DISPOSITION_2026-08-27.md
+The independent review established:
 
-Include:
+* source suite:
+    src/test/suite/sttmRepair13.test.ts;
+* compiled suite:
+    out/test/suite/sttmRepair13.test.js;
+* the suite currently runs through:
+    INTEGRATION_TEST_PATTERNS;
+* it is not executed by the headless canonical Pure Unit channel;
+* it compiles and is discovered exactly once in a fresh mirror;
+* TEST_REGISTRATION is owned by repository-owner;
+* the implementer correctly did not edit src/test/testPatterns.ts.
 
-1. final disposition;
-2. workspace and commit identity;
-3. incident evidence from the independent-review report;
-4. initial state of both affected paths;
-5. bounded recovery-source search;
-6. log-prefix verification;
-7. coverage-file recovery proof;
-8. whether restoration was permitted;
-9. exact actions performed;
-10. pre/post hashes and sizes;
-11. proof that no other path changed;
-12. clean Git-state attestation;
-13. incident-preservation attestation;
-14. exact next permitted action.
+Add exactly one narrow pattern to the existing Pure Unit registry.
 
-If both files were restored byte-exactly, the next permitted action is a
-separately authorized repair of M1 and M2.
+The independently proposed pattern was equivalent to an exact
+sttmRepair13.test.js match. Re-derive the precise syntax from the live registry
+instead of copying punctuation blindly.
 
-If exact restoration was impossible, the next permitted action is an explicit
-owner decision to accept the current ignored-artifact state as a new review
-baseline or provide an authoritative recovery source.
+The final pattern must:
 
-End with exactly one token:
+* match out/test/suite/sttmRepair13.test.js;
+* match exactly one compiled file;
+* execute the suite exactly once in the Pure Unit runner;
+* introduce 23 focused passing tests;
+* not match Repair 11 or Repair 12 suites;
+* not match sibling suites;
+* not overlap another Pure Unit pattern;
+* not broaden to suite/**;
+* not change Integration Test patterns;
+* not reorder or rewrite unrelated registry entries.
 
-PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_RESTORED
+Make no other change to src/test/testPatterns.ts.
 
-or:
+Required:
 
-PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_REQUIRES_OWNER_DISPOSITION
+PURE_UNIT_PATTERN_MATCH_COUNT: 1
+PURE_UNIT_DUPLICATE_EXECUTION: NO
+REPAIR_13_PURE_UNIT_EXECUTION_COUNT: 1
+REPAIR_13_PURE_UNIT_PASSING: 23
+REPAIR_13_PURE_UNIT_FAILING: 0
 
-or:
+==================================================
+7. STALE LIVE OUT POLICY
 
-PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_BLOCKED_IDENTITY
+The live out/** tree is a pre-Repair-13 stale build.
 
-or:
+Do not update live out/** in this task.
 
-PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_BLOCKED_UNEXPECTED_DRIFT
+Do not copy compiled output from the mirror to the live repository.
+
+All fresh compilation and test validation must occur in a temporary mirror.
+
+The prior COMPILED_SUITE_MISSING governance finding is expected against stale
+live out/** and must disappear in the freshly compiled mirror.
+
+Required:
+
+LIVE_OUT_MODIFIED: NO
+FRESH_MIRROR_COMPILED_SUITE_PRESENT: YES
+FRESH_MIRROR_COMPILED_SUITE_DISCOVERY_COUNT: 1
+FRESH_MIRROR_GOVERNANCE_TESTS_PASS: YES
+
+Fresh compiled output will be created later by the authorized VERSION_AND_PACKAGE
+lifecycle stage.
+
+==================================================
+8. VALIDATION
+
+After applying the two exact live changes, create a fresh byte-faithful mirror of
+the resulting working tree.
+
+Run:
+
+1. compile;
+2. compile:test;
+3. lint;
+4. Repair 13 focused suite;
+5. Repair 13 Pure Unit discovery and execution;
+6. Repair 12 canonical suite;
+7. Repair 11 focused suite;
+8. STTM regression suites;
+9. EtlReadOnlyToolService suites;
+10. public-seam parity scenarios;
+11. containment/security suites;
+12. trusted-envelope suites;
+13. Phase H EvalGating tests;
+14. Phase H golden validation without regeneration;
+15. customization validator;
+16. test-registration validator;
+17. governance tests;
+18. canonical full unit suite;
+19. independent snapshot → action → compare lifecycle.
+
+Required:
+
+COMPILE_PASS: YES
+COMPILE_TEST_PASS: YES
+LINT_PASS: YES
+REPAIR_13_FOCUSED_PASS: YES
+REPAIR_13_PURE_UNIT_PASS: YES
+REPAIR_12_CANONICAL_PASS: YES
+REPAIR_11_FOCUSED_PASS: YES
+STTM_REGRESSION_PASS: YES
+PUBLIC_TOOL_REGRESSION_PASS: YES
+CONTAINMENT_SECURITY_PASS: YES
+TRUSTED_ENVELOPE_PASS: YES
+EVAL_GATING_PASS: YES
+GOLDEN_VALIDATION_PASS: YES
+CUSTOMIZATION_BLOCKERS: 0
+CUSTOMIZATION_MAJOR_FINDINGS: 0
+CUSTOMIZATION_MINOR_FINDINGS: 0
+REGISTRATION_ENFORCING_FINDINGS: 0
+GOVERNANCE_TESTS_PASSING: 224
+GOVERNANCE_TESTS_FAILING: 0
+
+Previous canonical full unit state after Repair 13 but before owner actions:
+
+* 2244 passing;
+* 1 pending;
+* 4 failing.
+
+Expected changes:
+
+* the two legitimate EvalGating failures become passing;
+* the 23 Repair 13 tests become newly included in Pure Unit;
+* the two known pre-existing customization failures remain unchanged.
+
+Expected canonical full unit result, if all counts compose exactly:
+
+* 2269 passing;
+* 1 pending;
+* 2 failing.
+
+Do not force the numeric expectation. Derive the exact result and explain any
+difference by test identity.
+
+Known pre-existing failures:
+
+F1:
+
+* missing .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md.
+
+F3:
+
+* assertion concerning eleven existing src/**/AGENT.md files.
+
+The pending test remains:
+
+KnowledgeAdvisor Integration Tests
+
+Required:
+
+EVAL_GATING_FAILURES_REMAINING: 0
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+PRE_EXISTING_FAILURE_FINGERPRINTS_CHANGED: NO
+
+==================================================
+9. FINAL CHANGE-BOUNDARY PROOF
+
+Compare the final live repository with the independent pre-action snapshot.
+
+Expected task-attributable changes:
+
+* exact Phase H golden baseline output file or files;
+* one additive line in src/test/testPatterns.ts.
+
+Required:
+
+UNAUTHORIZED_CHANGED_PATHS: NONE
+REPAIR_13_SOURCE_CHANGED: NO
+REPAIR_13_FOCUSED_TEST_CHANGED: NO
+PACKAGE_JSON_CHANGED: NO
+PACKAGE_VERSION_CHANGED: NO
+DEPENDENCIES_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+TSCONFIG_CHANGED: NO
+REPAIR_11_CONTENT_CHANGED: NO
+REPAIR_12_CONTENT_CHANGED: NO
+QA_STTM_CHANGED: NO
+GOVERNANCE_FILES_CHANGED: NO
+CLAUDE_NATIVE_FILES_CHANGED: NO
+GITIGNORE_CHANGED: NO
+LEGACY_AGENT_FILES_CHANGED: NO
+LIVE_OUT_MODIFIED: NO
+VSIX_CHANGED: NO
+QA_WORKSPACE_TOUCHED: NO
+PREVIEW_CREATED: NO
+WRITE_EXECUTED: NO
+RUNTIME_QA_STARTED: NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+STAGED_FILES: 0
+STASH_ENTRIES: 0
+
+==================================================
+10. INDEPENDENCE AND NEXT STAGE
+
+This owner-action session may implement and validate only the two authorized
+owner actions.
+
+It may not independently review or certify them.
+
+After successful completion, a fresh etl-independent-reviewer session must
+review:
+
+* exact golden baseline diff;
+* exact Pure Unit registration line;
+* match and execution counts;
+* full validation results;
+* non-mutation boundary.
+
+Do not start VERSION_AND_PACKAGE in this session.
+
+Do not bump to 0.3.145.
+
+Do not build or install a VSIX.
+
+Do not start Runtime QA.
+
+==================================================
+11. FINAL REPORT
+
+Return:
+
+IDENTITY_GATE: PASS/FAIL
+PROCESS_EXECUTION_GATE: PASS/FAIL
+INDEPENDENT_BASELINE_CAPTURED: YES/NO
+
+GOLDEN_BASELINE_PATHS_CHANGED: 
+GOLDEN_BASELINE_DIFF: 
+GOLDEN_BASELINE_INPUTS_CHANGED: 
+GOLDEN_BASELINE_UNRELATED_INPUTS_CHANGED: 
+EVAL_ACCEPTANCE_RATE: 
+EVAL_PARITY_RATE: 
+EVAL_VALIDATION_SUCCESS_RATE: 
+EVAL_REQUIRED_SCENARIOS_PASSING: <number/number>
+EVAL_MISSING_REQUIRED_SCENARIOS: 
+GOLDEN_REFRESH_SEMANTIC_REGRESSION: YES/NO
+
+TEST_REGISTRATION_PATH_CHANGED: 
+PURE_UNIT_PATTERN_ADDED: 
+PURE_UNIT_PATTERN_MATCH_COUNT: 
+PURE_UNIT_DUPLICATE_EXECUTION: YES/NO
+REPAIR_13_PURE_UNIT_EXECUTION_COUNT: 
+REPAIR_13_PURE_UNIT_PASSING: 
+REPAIR_13_PURE_UNIT_FAILING: 
+
+LIVE_OUT_MODIFIED: YES/NO
+FRESH_MIRROR_COMPILED_SUITE_PRESENT: YES/NO
+FRESH_MIRROR_COMPILED_SUITE_DISCOVERY_COUNT: 
+
+COMPILE_PASS: YES/NO
+COMPILE_TEST_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_13_FOCUSED_PASS: YES/NO
+REPAIR_13_PURE_UNIT_PASS: YES/NO
+REPAIR_12_CANONICAL_PASS: YES/NO
+REPAIR_11_FOCUSED_PASS: YES/NO
+STTM_REGRESSION_PASS: YES/NO
+PUBLIC_TOOL_REGRESSION_PASS: YES/NO
+CONTAINMENT_SECURITY_PASS: YES/NO
+TRUSTED_ENVELOPE_PASS: YES/NO
+EVAL_GATING_PASS: YES/NO
+GOLDEN_VALIDATION_PASS: YES/NO
+
+GOVERNANCE_TESTS_PASSING: 
+GOVERNANCE_TESTS_FAILING: 
+CUSTOMIZATION_BLOCKERS: 
+CUSTOMIZATION_MAJOR_FINDINGS: 
+CUSTOMIZATION_MINOR_FINDINGS: 
+REGISTRATION_ENFORCING_FINDINGS: 
+
+FULL_UNIT_PASSING: 
+FULL_UNIT_PENDING: 
+FULL_UNIT_FAILING: 
+FULL_UNIT_FAILURES: 
+EVAL_GATING_FAILURES_REMAINING: 
+PRE_EXISTING_FAILURE_FINGERPRINTS_CHANGED: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
+
+AUTHORIZED_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+PACKAGE_JSON_CHANGED: NO
+PACKAGE_VERSION_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+REPAIR_13_SOURCE_CHANGED: NO
+REPAIR_13_FOCUSED_TEST_CHANGED: NO
+REPAIR_12_CONTENT_CHANGED: NO
+QA_STTM_CHANGED: NO
+GOVERNANCE_FILES_CHANGED: NO
+LIVE_OUT_MODIFIED: NO
+VSIX_CHANGED: NO
+QA_WORKSPACE_TOUCHED: NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+STAGED_FILES: 
+
+READY_FOR_INDEPENDENT_OWNER_ACTION_REVIEW: YES/NO
+READY_FOR_VERSION_AND_PACKAGE: NO
+READY_TO_BUMP_TO_0_3_145: NO
+READY_FOR_INSTALL_OR_RUNTIME_QA: NO
+READY_FOR_COMMIT_OR_PUSH: NO
+READY_FOR_CLOUD_ROLLOUT: NO
+
+End exactly with one:
+
+OWNER_DISPOSITION_RESULT:
+PASS_READY_FOR_INDEPENDENT_OWNER_ACTION_REVIEW
+
+OWNER_DISPOSITION_RESULT:
+FAIL_GOLDEN_BASELINE_VALIDATION
+
+OWNER_DISPOSITION_RESULT:
+FAIL_TEST_REGISTRATION_VALIDATION
+
+OWNER_DISPOSITION_RESULT:
+FAIL_FUNCTIONAL_OR_SECURITY_REGRESSION
+
+OWNER_DISPOSITION_RESULT:
+FAIL_UNAUTHORIZED_CHANGE
+
+OWNER_DISPOSITION_RESULT:
+BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+
+OWNER_DISPOSITION_RESULT:
+BLOCKED_EXECUTION_ENVIRONMENT
+
+OWNER_DISPOSITION_RESULT:
+BLOCKED_GOLDEN_OUTPUT_SCOPE
+
+OWNER_DISPOSITION_RESULT:
+BLOCKED_REGISTRATION_SCOPE
+
+OWNER_DISPOSITION_RESULT:
+BLOCKED_OWNER_DELEGATION
