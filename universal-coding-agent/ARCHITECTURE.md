@@ -392,6 +392,32 @@ changes. P1.2l changes no API schema, retirement authority, provider facade, inv
 automatic action, output recovery, resume/retry, Program advancement, transport, active pause,
 publication, or deletion/erasure claim.
 
+P1.2m replaces the lifecycle-action and Program-control serialization boundary with a durable,
+fail-closed SQLite reservation shared by Product runtimes that use the same workspace. A remote
+operation action reserves its Task identity and persisted Program identity when present. A Program
+approve, pause, resume, or cancel reserves the Program identity and checks every persisted binding
+Task. `BEGIN IMMEDIATE` makes those conflict checks and insertion one transaction, so two runtime
+processes cannot both win an overlapping Task/Program action. Release requires the exact internal
+owner token and deletes exactly one matching row; missing, conflicting, malformed, corrupt, or
+unavailable reservation state blocks the action.
+
+The reservation database contains only local Task/Program identity, an unexposed random owner
+token, action kind, and creation timestamp. It contains no provider identifier, operation hash,
+endpoint scope, output, reason, credential, or URL. A reservation left by an interrupted process
+survives restart and continues to block; P1.2m deliberately adds no TTL, startup cleanup, or
+automatic recovery that could silently discard an active safety boundary. Read-only retained-lease
+inventory includes durable reservations when computing its advisory lifecycle blocker. Existing
+same-runtime worker exclusion remains unchanged; cross-process worker ownership and explicit
+administrative recovery of an interrupted reservation belong to later production hardening.
+
+Deterministic and live coverage proves cross-runtime Task/Program mutual exclusion, one winner
+under concurrency, ownership-checked release, additive database creation, malformed-state
+fail-closed behavior, restart durability, zero provider calls, redaction, and source preservation.
+P1.2m changes no provider behavior, retirement authority, eligibility semantics, Task/Program
+outcome, output recovery, resume/retry, phase advancement, transport, active pause, publication,
+or deletion/erasure claim. This closes the bounded P1.2 sequence; any P2 production-hardening work
+requires separate authorization.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

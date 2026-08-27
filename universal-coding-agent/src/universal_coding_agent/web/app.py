@@ -207,6 +207,8 @@ class ProductWebRuntime:
     _program_execution_runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _remote_operation_actions: set[str] = field(default_factory=set)
     _program_control_actions: set[str] = field(default_factory=set)
+    _remote_operation_action_tokens: dict[str, str] = field(default_factory=dict)
+    _program_control_action_tokens: dict[str, str] = field(default_factory=dict)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
@@ -292,8 +294,13 @@ class ProductWebRuntime:
         next_after_task_id = page[-1].task_id if has_more and page else ""
 
         with self._lock:
-            active_actions = frozenset(self._remote_operation_actions)
-            active_program_controls = frozenset(self._program_control_actions)
+            durable_actions = self.workspace.lifecycle_reservations.snapshot()
+            active_actions = frozenset(self._remote_operation_actions).union(
+                durable_actions.remote_task_ids
+            )
+            active_program_controls = frozenset(
+                self._program_control_actions
+            ).union(durable_actions.program_ids)
             busy_standalone_tasks = frozenset(
                 task_id
                 for task_id, record in self._runs.items()
@@ -765,10 +772,23 @@ class ProductWebRuntime:
                         raise ValueError(
                             "remote-operation action requires no active Program worker"
                         )
+            owner_token = self.workspace.lifecycle_reservations.reserve_remote_operation(
+                task_id,
+                program_id=binding.program_id if binding is not None else "",
+            )
+            self._remote_operation_action_tokens[task_id] = owner_token
             self._remote_operation_actions.add(task_id)
 
     def _end_remote_operation_action(self, task_id: str) -> None:
         with self._lock:
+            owner_token = self._remote_operation_action_tokens.get(task_id)
+            if owner_token is None:
+                raise ValueError("durable remote-operation reservation is missing")
+            self.workspace.lifecycle_reservations.release_remote_operation(
+                task_id,
+                owner_token,
+            )
+            self._remote_operation_action_tokens.pop(task_id)
             self._remote_operation_actions.discard(task_id)
 
     def _begin_program_control_action(self, program_id: str) -> None:
@@ -781,10 +801,23 @@ class ProductWebRuntime:
                 for binding in bindings
             ):
                 raise ValueError("remote-operation lifecycle action is active")
+            owner_token = self.workspace.lifecycle_reservations.reserve_program_control(
+                program_id,
+                task_ids=tuple(binding.task_id for binding in bindings),
+            )
+            self._program_control_action_tokens[program_id] = owner_token
             self._program_control_actions.add(program_id)
 
     def _end_program_control_action(self, program_id: str) -> None:
         with self._lock:
+            owner_token = self._program_control_action_tokens.get(program_id)
+            if owner_token is None:
+                raise ValueError("durable Program control reservation is missing")
+            self.workspace.lifecycle_reservations.release_program_control(
+                program_id,
+                owner_token,
+            )
+            self._program_control_action_tokens.pop(program_id)
             self._program_control_actions.discard(program_id)
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:

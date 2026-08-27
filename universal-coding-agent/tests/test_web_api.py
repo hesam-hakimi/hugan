@@ -979,3 +979,46 @@ def test_ui_binding_is_loopback_by_default() -> None:
     assert is_loopback_host("localhost")
     assert not is_loopback_host("0.0.0.0")
     assert not is_loopback_host("192.168.1.25")
+
+
+def test_runtime_lifecycle_reservations_serialize_across_reopened_workspaces(
+    tmp_path: Path,
+) -> None:
+    product_root = tmp_path / "product"
+    first_workspace = ProductWorkspace.create(product_root, _provider())
+    program_id = "program-cross-runtime-reservation"
+    requirement_hash = _approved_program(first_workspace, program_id)
+    binding = first_workspace.programs.start_next_execution(
+        program_id=program_id,
+        current_requirement_hash=requirement_hash,
+        repository=RepositorySpec(
+            url="https://example.test/repository.git",
+            base_ref="main",
+        ),
+        policy=_policy(),
+        test_profiles=("trusted-contract",),
+        executor=RecordingProgramExecutor(),
+    )
+    first_runtime = ProductWebRuntime(
+        workspace=first_workspace,
+        state_root=tmp_path / "runtime-first",
+    )
+    second_workspace = ProductWorkspace.create(product_root, _provider())
+    second_runtime = ProductWebRuntime(
+        workspace=second_workspace,
+        state_root=tmp_path / "runtime-second",
+    )
+
+    try:
+        first_runtime._begin_remote_operation_action(binding.task_id)
+        with pytest.raises(ValueError, match="remote-operation lifecycle action"):
+            second_runtime._begin_program_control_action(program_id)
+        first_runtime._end_remote_operation_action(binding.task_id)
+
+        second_runtime._begin_program_control_action(program_id)
+        with pytest.raises(ValueError, match="Program control action"):
+            first_runtime._begin_remote_operation_action(binding.task_id)
+        second_runtime._end_program_control_action(program_id)
+    finally:
+        first_runtime.close()
+        second_runtime.close()

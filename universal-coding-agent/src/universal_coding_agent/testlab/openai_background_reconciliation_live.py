@@ -195,6 +195,7 @@ def run_openai_background_reconciliation_live(
     inventory_eligible = False
     inventory_private_fields_absent = False
     private_identifier = ""
+    lifecycle_reservation_owner = ""
     calls_before_inventory = len(request_events)
     inventory_workspace = ProductWorkspace.create(state_root, provider)
     inventory_runtime = ProductWebRuntime(
@@ -242,10 +243,44 @@ def run_openai_background_reconciliation_live(
             )
         )
         provider_calls_during_inventory = len(request_events) - calls_before_inventory
+        lifecycle_reservation_owner = (
+            inventory_runtime.workspace.lifecycle_reservations.reserve_remote_operation(
+                _TASK_ID
+            )
+        )
     except BaseException as exc:
         errors.append(exc)
     finally:
         inventory_runtime.close()
+
+    durable_lifecycle_reservation_reloaded = False
+    conflicting_lifecycle_action_blocked_after_restart = False
+    provider_calls_during_lifecycle_reservation_restart = -1
+    calls_before_lifecycle_reservation_restart = len(request_events)
+    reservation_recovery_workspace = ProductWorkspace.create(state_root, provider)
+    try:
+        durable_lifecycle_reservation_reloaded = bool(
+            _TASK_ID
+            in reservation_recovery_workspace.lifecycle_reservations.snapshot().remote_task_ids
+        )
+        try:
+            reservation_recovery_workspace.lifecycle_reservations.reserve_remote_operation(
+                _TASK_ID
+            )
+        except ValueError:
+            conflicting_lifecycle_action_blocked_after_restart = True
+        if lifecycle_reservation_owner:
+            reservation_recovery_workspace.lifecycle_reservations.release_remote_operation(
+                _TASK_ID,
+                lifecycle_reservation_owner,
+            )
+        provider_calls_during_lifecycle_reservation_restart = (
+            len(request_events) - calls_before_lifecycle_reservation_restart
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        reservation_recovery_workspace.close()
 
     retirement: RemoteOperationLeaseRetirement | None = None
     durable_retirement: RemoteOperationLeaseRetirement | None = None
@@ -455,6 +490,15 @@ def run_openai_background_reconciliation_live(
         "provider_calls_during_inventory": provider_calls_during_inventory,
         "inventory_eligible": inventory_eligible,
         "inventory_private_fields_absent": inventory_private_fields_absent,
+        "durable_lifecycle_reservation_reloaded": (
+            durable_lifecycle_reservation_reloaded
+        ),
+        "conflicting_lifecycle_action_blocked_after_restart": (
+            conflicting_lifecycle_action_blocked_after_restart
+        ),
+        "provider_calls_during_lifecycle_reservation_restart": (
+            provider_calls_during_lifecycle_reservation_restart
+        ),
         "explicit_private_lease_retirement": retirement_json,
         "durable_private_lease_retirement": durable_retirement_json,
         "provider_calls_during_retirement": provider_calls_during_retirement,
@@ -506,6 +550,9 @@ def run_openai_background_reconciliation_live(
         and provider_calls_during_inventory == 0
         and inventory_eligible
         and inventory_private_fields_absent
+        and durable_lifecycle_reservation_reloaded
+        and conflicting_lifecycle_action_blocked_after_restart
+        and provider_calls_during_lifecycle_reservation_restart == 0
         and provider_calls_during_retirement == 0
         and retirement_matches_disposition
         and private_lease_absent_after_retirement

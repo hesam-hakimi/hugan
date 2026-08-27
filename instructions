@@ -65,6 +65,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/__init__.py
 - universal-coding-agent/src/universal_coding_agent/product/models.py
 - universal-coding-agent/src/universal_coding_agent/product/context_documents.py
+- universal-coding-agent/src/universal_coding_agent/product/lifecycle_reservations.py
 - universal-coding-agent/src/universal_coding_agent/product/search_service.py
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
@@ -75,6 +76,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
+- universal-coding-agent/tests/test_lifecycle_reservations.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
 - universal-coding-agent/tests/test_strong_cancellation.py
@@ -160,6 +162,7 @@ for FILE in \
   src/universal_coding_agent/product/__init__.py \
   src/universal_coding_agent/product/models.py \
   src/universal_coding_agent/product/context_documents.py \
+  src/universal_coding_agent/product/lifecycle_reservations.py \
   src/universal_coding_agent/product/search_service.py \
   src/universal_coding_agent/product/requirement_alignment.py \
   src/universal_coding_agent/product/program_orchestrator.py \
@@ -170,6 +173,7 @@ for FILE in \
   src/universal_coding_agent/product/controlled_safe_graph.py \
   src/universal_coding_agent/product/workspace.py \
   tests/test_product_foundation.py \
+  tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
@@ -185,7 +189,7 @@ done
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
 from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
-from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
+from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
@@ -209,6 +213,7 @@ from universal_coding_agent.web.app import (
 )
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
+assert DurableLifecycleReservationStore
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert run_program_execution_live
 assert ProductWebRuntime and create_product_app
@@ -248,6 +253,7 @@ print("REMOTE_OPERATION_DISPOSITION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_IMPORT_PREFLIGHT_PASS")
 print("RETAINED_LEASE_INVENTORY_IMPORT_PREFLIGHT_PASS")
 print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_IMPORT_PREFLIGHT_PASS")
+print("DURABLE_LIFECYCLE_RESERVATION_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -259,6 +265,7 @@ Cmd 3
   tests/test_core.py \
   tests/test_web_api.py \
   tests/test_product_foundation.py \
+  tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
   tests/test_strong_cancellation.py \
@@ -293,6 +300,7 @@ echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_PREFLIGHT_PASS" && \
 echo "RETAINED_LEASE_INVENTORY_PREFLIGHT_PASS" && \
 echo "RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_PREFLIGHT_PASS"
+echo "DURABLE_LIFECYCLE_RESERVATION_PREFLIGHT_PASS"
 ```
 
 Cmd 4

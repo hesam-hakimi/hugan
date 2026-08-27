@@ -8,6 +8,10 @@ _EXPORTS = {
         "universal_coding_agent.product.context_documents",
         "ContextDocumentService",
     ),
+    "DurableLifecycleReservationStore": (
+        "universal_coding_agent.product.lifecycle_reservations",
+        "DurableLifecycleReservationStore",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",

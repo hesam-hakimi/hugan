@@ -7,6 +7,9 @@ from universal_coding_agent.core.models import ProjectManifest, RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.context_documents import ContextDocumentService
+from universal_coding_agent.product.lifecycle_reservations import (
+    DurableLifecycleReservationStore,
+)
 from universal_coding_agent.product.models import (
     ContextDocument,
     ContextScope,
@@ -38,6 +41,7 @@ class ProductWorkspace:
     programs: ProgramOrchestrator
     control: TaskControlService
     remote_operations: SqliteRemoteOperationLeaseStore
+    lifecycle_reservations: DurableLifecycleReservationStore
 
     @classmethod
     def create(cls, root: Path, provider: ModelProvider) -> ProductWorkspace:
@@ -48,6 +52,9 @@ class ProductWorkspace:
         control = TaskControlService(root / "control.sqlite")
         remote_operations = SqliteRemoteOperationLeaseStore(
             root / "private-remote-operations.sqlite"
+        )
+        lifecycle_reservations = DurableLifecycleReservationStore(
+            root / "lifecycle-reservations.sqlite"
         )
         if isinstance(provider, RemoteOperationLeaseAwareProvider):
             provider.bind_remote_operation_store(remote_operations.provider_store())
@@ -70,6 +77,7 @@ class ProductWorkspace:
             programs=programs,
             control=control,
             remote_operations=remote_operations,
+            lifecycle_reservations=lifecycle_reservations,
         )
 
     def close(self) -> None:
@@ -78,6 +86,7 @@ class ProductWorkspace:
         self.search.close()
         self.control.close()
         self.remote_operations.close()
+        self.lifecycle_reservations.close()
 
     def upload_document(
         self,
