@@ -1,608 +1,350 @@
-TASK: HF1_V2_GENERIC_INDEPENDENT_REREVIEW_AGENT_GOVERNANCE_FRAMEWORK_READ_ONLY
+TASK: PHASE_2F1_TARGET_COLLISION_READ_ONLY_REVIEW
 
-Perform a genuinely independent, read-only rereview of the stabilized
-Agent/Governance Process Framework.
+Perform one independent, strictly read-only owner review of the pre-existing
+Phase 2F.1 target branch, worktree, and its three uncommitted paths.
 
-Work only against:
+Do not implement, complete, repair, format, test, stage, commit, move, delete,
+reset, stash, clean, restore, rename, push, or open a PR.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
-
-Use:
-
-* a fresh generic Local Agent chat;
-* Claude Opus 5 with Max reasoning;
-* exactly one open workspace root, equal to the repository above;
-* no repository-defined Custom Agent, Skill, Prompt, checkpoint, report, manifest,
-    validator, or prior PASS statement as trusted authority;
-* no Cloud execution.
-
-The stabilization report ended with:
-
-PROCESS_FRAMEWORK_STABILIZATION_RESULT:
-PASS_READY_FOR_GENERIC_INDEPENDENT_REREVIEW
-
-Treat that result and all supporting claims as untrusted evidence to verify.
-
-This task may authorize only the start of local Repair 13 in a later fresh session.
-It may not authorize version bump, packaging, VSIX installation, Runtime QA,
-commit, push, or Cloud rollout.
+The purpose is to determine whether the three pre-existing changes are a safe,
+scope-aligned partial Phase 2F.1 implementation that can be explicitly adopted,
+or whether they are unrelated, ambiguous, or unsafe.
 
 ==================================================
+1. REQUIRED REPORTS
+==================================================
 
-1. IDENTITY, WORKSPACE, AND EXECUTION GATES
-    ==================================================
+Read these reports completely:
 
-Verify independently:
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+The discovery report must end with:
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+PHASE_2F1_DISCOVERY_COMPLETE
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+The blocked implementation report must end with:
 
-SOURCE_VERSION:
-0.3.144
+PHASE_2F1_IMPLEMENTATION_BLOCKED_TARGET_COLLISION
 
-Required:
+Use the discovery report as the authoritative Phase 2F.1 contract.
 
-* exactly one open workspace root;
-* that root is the exact repository above;
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json: absent;
-* no concurrently running Agent is modifying the repository;
-* Repair 13 has not started;
-* existing 0.3.144 VSIX:
-    * size: 1,257,786 bytes;
-    * SHA-256:
-        F53DAC4E1C0054FC561B75E89D01E32CDE5F26B6C440784297E542637A05B69A.
-
-The stabilization report showed workspace roots 2. Do not carry that state
-forward. If more than one workspace root is currently open, stop without changes.
-
-Prove visible stdout, stderr, real exit codes, and executable identity for:
-
-* cmd.exe;
-* git.exe;
-* node.exe;
-* npm.cmd or its exact underlying Node command.
-
-If inline process capture is defective, use a task-owned helper under the
-operating-system temporary directory. Do not modify the repository to repair
-execution.
-
-Use GIT_OPTIONAL_LOCKS=0 for live read-only Git inspection.
-
-Stop on identity mismatch, multiple roots, workspace ambiguity, concurrent
-mutation, or unproven native execution.
+Do not modify either report.
 
 ==================================================
-2. STRICT LIVE-REPOSITORY NON-MUTATION
+2. EXPECTED SOURCE AND TARGET IDENTITIES
+==================================================
 
-Make zero changes to the live repository.
+Clean Phase 2E source application root:
 
-Do not create, edit, delete, rename, restore, clean, stage, stash, regenerate,
-compile, or run write-producing validators in the live tree.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Do not run:
+Target worktree Git root:
 
-* install or dependency download;
-* npm version;
-* package or VSIX preparation;
-* eval/report generation;
-* Preview or Runtime QA;
-* commit, push, merge, tag, reset, clean, or restore;
-* Repair 13 implementation.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
 
-Before testing, capture an independent snapshot using OS hashing plus Git:
+Target application root:
 
-* git status --porcelain=v2 --untracked-files=all;
-* tracked modifications and deletions;
-* all non-ignored untracked paths and hashes;
-* staged and stash state;
-* all 22 Framework paths in Section 3;
-* package.json;
-* src/test/testPatterns.ts;
-* tsconfig.json;
-* all Repair 12 production/test paths;
-* all eleven src/**/AGENT.md files;
-* protected out/, dist/, and VSIX paths where applicable.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
 
-Run all compilation, dynamic tests, mutation tests, and generated-output commands
-only in a byte-faithful, task-owned temporary mirror outside the repository.
+Target branch:
 
-A Git clone is insufficient because the Framework overlay is reported as
-untracked. Copy the current tracked and untracked working content and verify
-source-to-mirror hashes before testing.
+phase2/recipe-lifecycle-classification
 
-Reuse existing dependencies read-only. Do not download anything.
+Expected target HEAD:
 
-Repeat the independent live snapshot afterward. Any live mutation is a failure,
-even if later restored.
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+Expected target tree:
+
+6448dac5be9dee275598e054f505517a215b484b
+
+Expected pre-existing porcelain paths:
+
+ M kmai-td-genie/src/backend/app/recipes/approved_recipes.py
+?? kmai-td-genie/src/backend/app/recipes/approval_evidence.py
+?? kmai-td-genie/src/backend/app/recipes/lifecycle.py
+
+The equivalent `/app1` paths are acceptable only when `realpath` proves
+identity.
 
 ==================================================
-3. VERIFY THE EXACT 22-PATH BOUNDARY
+3. IDENTITY AND STATE VERIFICATION
+==================================================
 
-Inspect these expected stabilization paths:
+Read-only verify:
 
-1. scripts/agent-governance/lib/report.mjs
-2. scripts/agent-governance/lib/fsutil.mjs
-3. scripts/agent-governance/lib/manifest.mjs
-4. scripts/agent-governance/lib/git.mjs
-5. scripts/agent-governance/capture-baseline.mjs
-6. scripts/agent-governance/verify-change-boundary.mjs
-7. scripts/agent-governance/emit-checkpoint.mjs
-8. scripts/agent-governance/validate-customizations.mjs
-9. scripts/agent-governance/validate-test-registration.mjs
-10. scripts/agent-governance/lib/baseline-contract.mjs
-11. scripts/agent-governance/tests/checkpoint-fidelity.test.mjs
-12. scripts/agent-governance/tests/baseline-contract.test.mjs
-13. scripts/agent-governance/tests/change-boundary-adversarial.test.mjs
-14. scripts/agent-governance/tests/manifest-registry.test.mjs
-15. scripts/agent-governance/tests/registration-scope.test.mjs
-16. .github/agent-governance/process-manifest.json
-17. .github/agent-governance/schemas/checkpoint.schema.json
-18. .github/workflows/validate-agent-governance.yml
-19. .github/agents/etl-hotfix-implementer.agent.md
-20. .github/agents/etl-independent-reviewer.agent.md
-21. .github/agents/etl-release-verifier.agent.md
-22. .github/agent-governance/schemas/process-manifest.schema.json
+- `pwd` and `pwd -P`;
+- logical and physical target paths;
+- Git top-level and common directory;
+- origin;
+- branch;
+- HEAD and tree;
+- upstream configuration, if any;
+- `git worktree list --porcelain`;
+- `git status --porcelain=v2 --untracked-files=all`;
+- unstaged changed paths;
+- staged changed paths;
+- untracked paths;
+- whether any additional ignored or unexpected implementation artifact exists.
 
-For every path report:
+Confirm independently that the permanent Phase 2E source remains completely
+clean and unchanged.
 
-* presence;
-* Git status;
-* byte size;
-* SHA-256;
-* role;
-* manifest owner;
-* validation result.
-
-Verify whether all 22 are currently untracked and whether zero tracked files in
-this set changed.
-
-The prior report classified:
-
-* 15 modified pre-existing untracked files;
-* 7 newly added untracked files.
-
-Prove that historical classification only if an independent pre-stabilization
-snapshot with hashes exists. Otherwise report:
-
-HISTORICAL_15_MODIFIED_7_ADDED_ATTRIBUTION_PROVEN: NO
-
-Do not fabricate historical evidence. Lack of historical attribution alone does
-not invalidate correct current behavior, but missing paths, unexpected paths,
-unauthorized product changes, or unresolved worktree drift block Repair 13.
-
-Confirm that stabilization did not change:
-
-* package.json or its version;
-* src/test/testPatterns.ts;
-* tsconfig.json;
-* Repair 12 content;
-* the eleven legacy AGENT.md files;
-* protected 0.3.144 VSIX;
-* product/runtime source;
-* QA workspace content.
-
-Statically inspect all executable governance paths for:
-
-* unsafe deletion or cleanup;
-* filesystem or symlink escape;
-* shell or argument injection;
-* unsafe absolute paths;
-* network or secret access;
-* commands that could mutate Git or files outside authorized task scope.
+Do not fetch, pull, switch branches, update refs, or modify Git configuration.
 
 ==================================================
-4. INDEPENDENT R-A THROUGH R-J VERIFICATION
+4. FREEZE READ-ONLY COLLISION EVIDENCE
+==================================================
 
-Do not accept aggregate PASS labels. Inspect implementation and dynamically test
-each item in the temporary mirror.
+For each of the three pre-existing paths, record without modification:
 
-R-A — Checkpoint fidelity
+- exact path;
+- tracked/untracked state;
+- file type;
+- size;
+- line count;
+- modification timestamp;
+- SHA-256;
+- whether it is a regular file or symlink;
+- staged versus unstaged state.
 
-Verify:
+Record the complete diff for `approved_recipes.py`.
 
-* stop code comes from packet.result.stopCode;
-* valid codes, including OWNER_DECISION_REQUIRED, are preserved;
-* missing, unknown, contradictory, or conflicting codes fail closed;
-* console, JSON, evidence packet, checkpoint, and exit code agree;
-* no silent FAIL_VALIDATION fallback exists.
+Read both untracked modules completely.
 
-R-B — Shared baseline contract
+Do not open, inspect, or read unrelated dirty content because none is expected.
 
-Verify capture and comparison use one versioned schema and canonical
-reader/writer.
-
-Exercise:
-
-* clean tree;
-* tracked dirty file;
-* untracked file;
-* tracked deletion;
-* staged file;
-* stash presence;
-* malformed or missing baseline;
-* unknown schema version;
-* Windows path normalization;
-* directory entry;
-* authorized and unauthorized change;
-* protected path already dirty at baseline.
-
-Malformed, missing, or unknown input must fail closed.
-
-R-C — Three-state model
-
-Verify exactly:
-
-* PASS / exit 0;
-* FINDINGS / exit 1;
-* BLOCKED / exit 2.
-
-All output channels must agree.
-
-R-D — Git attribution
-
-Distinguish:
-
-* tracked clean;
-* tracked modified;
-* tracked added;
-* tracked deleted;
-* untracked;
-* staged;
-* stashed;
-* restored or reverted after baseline.
-
-An existing tracked file must never be labeled ADDED_TO_WORKING_TREE.
-
-R-E — Protected-path completeness
-
-* independently calculate the protected pre-dirty count;
-* reconcile the reported count of 39;
-* prove exact digest carry-forward;
-* detect protected out/** or dist/** drift;
-* prove a further change to already-dirty package.json is detected;
-* ensure ordinary compile output is not falsely treated as a source edit.
-
-R-F — Test-registration accuracy
-
-Distinguish:
-
-* active compiled but unregistered suite;
-* excluded or quarantined suite;
-* missing production import;
-* computed pattern;
-* duplicate execution;
-* genuinely missing compiled output.
-
-Verify:
-
-* exactly eleven excluded orphan suites and their exact reasons;
-* FALSE_RECOMPILE_REMEDIATIONS: 0;
-* SourceValidationStateHandler.test.ts classification;
-* whether it is excluded by tsconfig;
-* whether its production imports are excluded;
-* whether it emits compiled output;
-* current pattern match and execution count;
-* src/test/testPatterns.ts remained unchanged.
-
-Do not register, unquarantine, rewrite, or delete anything.
-
-R-G — Stage-scoped protection
-
-Prove:
-
-* package.json may change only in separately authorized VERSION/PACKAGE work;
-* testPatterns.ts may change only through a proven exact TEST_REGISTRATION action;
-* no blanket exception exists;
-* no negative-state authority predicate exists;
-* pre-existing dirty state remains visible.
-
-R-H — Manifest and authority parity
-
-Verify:
-
-* manifest schema exists and validates;
-* active Agents: exactly 3;
-* active Skills: exactly 5;
-* unclassified assets: 0;
-* unowned machine stages: 0;
-* authority conflicts: 0;
-* Agent declarations do not exceed manifest authority;
-* human terminal stages are explicitly human-owned;
-* inactive assets and reasons are enumerated.
-
-R-I — Self-certification prohibition
-
-Using fixtures in the temporary mirror, attempt certification of the exact
-22-path Framework change as the repository-defined independent reviewer.
-
-Expected:
-
-* BLOCKED;
-* exit 2;
-* SELF_CERTIFICATION;
-* CERTIFIED_IN_IMPLEMENTATION_SESSION;
-* REVIEWER_CERTIFIES_OWN_AUTHORITY;
-* INDEPENDENCE_UNPROVEN_STOP_CODE;
-* final stop code OWNER_DECISION_REQUIRED.
-
-Prove this is machine-enforced across all 22 paths and is not only prose.
-
-R-J — Governance CI
-
-Verify:
-
-* no executable continue-on-error, || true, or unconditional success exit;
-* comments or documentation are not misclassified as executable weakening;
-* BLOCKED, blocker, major, schema, registry, ownership, checkpoint, and
-    unauthorized-change failures stop CI;
-* capture → action → compare lifecycle works;
-* unauthorized src/extension.ts mutation blocks;
-* protected pre-dirty package.json mutation blocks.
-
-All mutation exercises must occur only in the temporary mirror.
+Do not inspect shell history, credentials, unrelated user files, or unrelated
+VS Code state.
 
 ==================================================
-5. VALIDATION AND KNOWN-FAILURE RECONCILIATION
+5. BOUNDED PROVENANCE REVIEW
+==================================================
 
-Run through canonical repository execution routes:
+Use only scoped read-only evidence:
 
-* all governance tests;
-* customization validator;
-* registration validator;
-* evidence and checkpoint validation;
-* manifest/schema and authority validation;
-* governance workflow validation;
-* compile;
-* compile:test;
-* lint;
-* Repair 12 canonical suite;
-* canonical full unit suite with VS Code bootstrap;
-* positive and negative snapshot lifecycle tests.
+- branch reflog for `phase2/recipe-lifecycle-classification`;
+- worktree administrative identity;
+- HEAD reflog for the target worktree, if available;
+- branch creation/reflog timestamps;
+- file metadata timestamps;
+- local and authenticated read-only GitHub checks for whether this branch,
+  commit, PR, or remote ref already exists.
 
-Report exact commands, execution routes, exit codes, and failure fingerprints.
+Determine:
 
-Verify or disprove:
+1. When the local branch/worktree appears to have been created.
+2. Whether the target has ever moved away from the accepted base.
+3. Whether any implementation commit exists locally or remotely.
+4. Whether any PR exists for this branch.
+5. Whether evidence suggests an interrupted earlier Phase 2F.1 attempt.
+6. Whether another active or remote owner appears to control these changes.
 
-* governance tests: 207 passing, 0 failing;
-* customization: blocker 0, major 0, minor 0, informational 8;
-* all eight informational findings are ASSET_CLASSIFIED_INACTIVE;
-* registration: enforcing findings 0, informational records 12;
-* Repair 12: 21/21 passing;
-* compile, compile:test, and lint: exit 0;
-* full unit: 2242 passing, 5 pending, 2 failing;
-* new functional regressions: 0;
-* new security regressions: 0.
-
-Counts alone are insufficient.
-
-Reconcile these historical results:
-
-* 2245 passing / 1 pending / 3 failing;
-* 2246 passing / 1 pending / 2 failing;
-* 2242 passing / 5 pending / 2 failing.
-
-List all five current pending tests and explain why four moved from passing to
-pending. Determine whether the difference comes from discovery, exclusion,
-environment, bootstrap, stale compilation, or behavior change.
-
-Any unexplained count or pending-state difference blocks Repair 13.
-
-Known F1–F3:
-
-F1:
-
-* locate the exact test, failure name, path, assertion, and fingerprint;
-* verify whether it is the unchanged missing .github/prompts/*.prompt.md
-    contract;
-* do not create an Agent or Prompt;
-* do not weaken the test.
-
-F2:
-
-* prove it passes through valid instruction frontmatter;
-* prove its assertion was not weakened, skipped, or reclassified.
-
-F3:
-
-* locate the exact test and fingerprint;
-* enumerate the eleven tracked src/**/AGENT.md files;
-* verify their combined current byte count, reported as 73,909;
-* do not delete, migrate, or rewrite them.
-
-PASS is allowed only if:
-
-* F1 and F3 are the only full-suite failures;
-* they are exact unchanged deferred contract failures;
-* F2 genuinely passes;
-* the five pending tests are completely reconciled;
-* no new functional, security, High, or unreported governance defect exists.
+Do not claim provenance that cannot be proven. Clearly distinguish verified
+facts from inference.
 
 ==================================================
-6. FINAL LIVE NON-MUTATION PROOF
+6. CONTENT REVIEW AGAINST THE DISCOVERY CONTRACT
+==================================================
 
-Compare final live snapshot with the pre-review snapshot.
+Treat the three files as untrusted candidate content.
 
-Required:
+Review them completely against the authoritative discovery report.
 
-* repository content changed by review: 0 paths;
-* staged files: 0;
-* stash entries: 0;
-* package.json unchanged;
-* package version unchanged;
-* package-lock.json absent;
-* src/test/testPatterns.ts unchanged;
-* tsconfig.json unchanged;
-* Repair 12 paths unchanged;
-* all eleven AGENT.md files unchanged;
-* existing VSIX size and SHA-256 unchanged;
-* QA workspace not accessed or modified;
-* Repair 13 not started;
-* no commit, push, tag, package, install, Preview, or Runtime QA.
+For `lifecycle.py`, determine whether it correctly and exclusively implements:
 
-Do not claim non-mutation solely from Git because the Framework is untracked.
-Use independent OS hash comparison.
+- `LifecycleState`;
+- `LifecycleReasonCode`;
+- frozen evidence/resolution/result dataclasses;
+- fixed precedence;
+- all required reason codes;
+- pure `evaluate_recipe_lifecycle`;
+- deterministic sorting and deduplication;
+- all-reasons behavior;
+- fail-closed handling;
+- exact trace serialization;
+- no environment, time, random, I/O, provider, registry, database, network,
+  SQL, logger, tracer, cache, queue, or persistence dependency.
+
+For `approval_evidence.py`, determine whether it correctly and exclusively
+implements:
+
+- `ApprovalEvidenceProvider` as `@runtime_checkable Protocol`;
+- `ApprovedRecipeApprovalEvidenceProvider`;
+- current ApprovedRecipe lookup behavior;
+- immutable accepted per-reference fingerprints;
+- zero/one initial evidence behavior;
+- missing/invalid baseline behavior;
+- no runtime recomputation of the approved baseline;
+- no provider, database, network, SQL, Synapse, Databricks, Data Lake, proxy,
+  or data-source access.
+
+For the `approved_recipes.py` diff, determine whether it correctly and
+exclusively adds:
+
+- `RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED`;
+- strict default-OFF parsing;
+- `recipe_lifecycle_classification_enabled()`;
+- `evaluate_recipe_lifecycle_gate(...)`;
+- return-before-lookup behavior when disabled;
+- orchestration-side evidence resolution;
+- classification-only behavior;
+- no modification to existing `ApprovedRecipe` fields;
+- no change to the existing Approved Recipe execution gate.
+
+Check:
+
+- imports and module boundaries;
+- public `__all__` symbols;
+- fingerprint syntax and structural validity;
+- duplicate/conflict behavior;
+- missing or unfinished code;
+- TODOs, placeholders, stubs, ellipses, debug code, generated prose, secrets,
+  credentials, absolute paths, SQL, raw evidence, or suspicious content;
+- consistency among the three files;
+- compatibility with the existing Phase 2E APIs.
+
+Do not execute or import the candidate code.
 
 ==================================================
-7. DECISION RULE
+7. REQUIRED GAP ANALYSIS
+==================================================
 
-Repair 13 may start only if:
+Compare the existing three-path candidate with the exact ten-file authorized
+plan.
 
-* identity, execution, workspace, and independence gates pass;
-* exactly one workspace root is open;
-* live repository remains byte-for-byte unchanged;
-* all 22 expected paths are present, bounded, inspected, and validated;
-* no unauthorized or unexplained stabilization path exists;
-* R-A through R-J independently pass;
-* schema, registry, ownership, authority, self-review, and CI enforcement pass;
-* SourceValidationStateHandler and all eleven orphan suites are accurately
-    classified without mutation;
-* Repair 12 remains 21/21;
-* compile, compile:test, and lint pass;
-* all full-suite count differences are reconciled;
-* F1 and F3 alone remain exact known failures;
-* F2 passes;
-* zero new functional, security, High, or unreported governance regressions exist.
+Identify:
 
-A PASS authorizes only local Repair 13 in a later fresh Generic Agent session.
+- which required work is already present;
+- which parts are partially present;
+- which parts are incorrect;
+- which parts require repair;
+- which seven expected files remain untouched;
+- whether any existing candidate code exceeds Phase 2F.1 scope;
+- whether adopting it would be safer than discarding it;
+- whether every byte can be reviewed and corrected without trusting its
+  unknown provenance.
 
-It does not authorize:
-
-* version 0.3.145;
-* packaging;
-* VSIX build or installation;
-* Runtime QA;
-* commit or push;
-* Cloud rollout.
+Do not treat unknown authorship alone as unsafe if the content is fully
+inspectable, contains no secrets, is confined to Phase 2F.1, and can be treated
+as an untrusted candidate during the later implementation.
 
 ==================================================
-8. FINAL REPORT
+8. DISPOSITION RULES
+==================================================
 
-Return:
+Select exactly one verdict.
 
-IDENTITY_GATE: PASS/FAIL
-INDEPENDENCE_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-WORKSPACE_ROOT_COUNT: 
-WORKSPACE_ROOTS: 
-WORKSPACE_TARGET_UNAMBIGUOUS: YES/NO
-REPOSITORY_MUTATED_BY_REREVIEW: YES/NO
+A. SAFE_TO_ADOPT
 
-EXPECTED_22_PRESENT_COUNT: 
-EXPECTED_22_MISSING_PATHS: 
-EXPECTED_22_TRACKED_COUNT: 
-EXPECTED_22_UNTRACKED_COUNT: 
-EXPECTED_22_MANIFEST: <path, bytes, SHA-256, role, owner, result>
-UNEXPECTED_STABILIZATION_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-HISTORICAL_15_MODIFIED_7_ADDED_ATTRIBUTION_PROVEN: YES/NO
-HISTORICAL_ATTRIBUTION_EVIDENCE: 
+Use only if all are true:
 
-R_A_CHECKPOINT_FIDELITY: PASS/FAIL
-R_B_SHARED_BASELINE_CONTRACT: PASS/FAIL
-R_C_THREE_STATE_MODEL: PASS/FAIL
-R_D_GIT_ATTRIBUTION: PASS/FAIL
-R_E_PROTECTED_PATH_COMPLETENESS: PASS/FAIL
-R_F_REGISTRATION_ACCURACY: PASS/FAIL
-R_G_STAGE_SCOPED_PROTECTION: PASS/FAIL
-R_H_MANIFEST_AUTHORITY_PARITY: PASS/FAIL
-R_I_SELF_CERTIFICATION_PROHIBITION: PASS/FAIL
-R_J_GOVERNANCE_CI: PASS/FAIL
+- target branch/worktree identity is exact;
+- target HEAD never left the accepted base;
+- there are exactly the three expected dirty paths;
+- nothing is staged;
+- no remote commit or PR owns the changes;
+- all three files are exclusively Phase 2F.1-related;
+- no secret, destructive behavior, unrelated change, data access, persistence,
+  runtime enforcement, or scope expansion exists;
+- the content is sufficiently reviewable to preserve as an untrusted partial
+  candidate;
+- any defects can be corrected within the existing authorized ten-file scope.
 
-PROTECTED_PRE_DIRTY_COUNT: 
-PROTECTED_PRE_DIRTY_39_RECONCILED: YES/NO
-MANIFEST_SCHEMA_VALID: YES/NO
-ACTIVE_AGENT_COUNT: 
-ACTIVE_SKILL_COUNT: 
-UNCLASSIFIED_ASSET_COUNT: 
-UNOWNED_MACHINE_STAGE_COUNT: 
-AUTHORITY_CONFLICT_COUNT: 
-SELF_CERTIFICATION_NEGATIVE_TEST: 
-CI_EXECUTABLE_CONTINUE_ON_ERROR_PRESENT: YES/NO
+B. OWNER_DECISION_REQUIRED
 
-SOURCE_VALIDATION_REGISTRATION: 
-SOURCE_VALIDATION_PATTERN_MATCH_COUNT: 
-EXCLUDED_ORPHAN_SUITE_COUNT: 
-FALSE_RECOMPILE_REMEDIATIONS: 
+Use if the content appears Phase 2F.1-related but ownership, external activity,
+or safe disposition remains materially ambiguous.
 
-GOVERNANCE_TESTS: <pass/fail>
-CUSTOMIZATION_FINDINGS:
-<blocker/major/minor/informational plus complete list>
-REGISTRATION_FINDINGS:
-<enforcing/informational plus complete list>
+C. UNRELATED_OR_UNSAFE
 
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_12_CANONICAL_PASS: YES/NO
+Use if any change is unrelated, destructive, secret-bearing, outside scope,
+externally owned, or unsafe to adopt.
 
-FULL_UNIT_PASSING: 
-FULL_UNIT_PENDING: 
-FULL_UNIT_FAILING: 
-FULL_UNIT_PENDING_TESTS: 
-FULL_UNIT_FAILURES: 
-HISTORICAL_FULL_UNIT_COUNTS_RECONCILED: YES/NO
-HISTORICAL_COUNT_RECONCILIATION: 
-F1_UNCHANGED_KNOWN_FAILURE: YES/NO
-F2_GENUINELY_PASSING: YES/NO
-F3_UNCHANGED_KNOWN_FAILURE: YES/NO
-LEGACY_AGENT_MD_COUNT: 
-LEGACY_AGENT_MD_TOTAL_BYTES: 
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
-UNRESOLVED_HIGH_OR_SECURITY_FINDINGS: 
+D. BLOCKED
 
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_PRESENT: NO
-TEST_PATTERNS_CHANGED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-LEGACY_AGENT_FILES_CHANGED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-REPAIR_13_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+Use only if the required files or evidence cannot be read.
 
-REPAIR_13_MAY_START: YES/NO
-READY_TO_BUMP_TO_0_3_145: NO
-READY_TO_PACKAGE_OR_INSTALL: NO
-READY_FOR_RUNTIME_QA: NO
-READY_FOR_CLOUD_ROLLOUT: NO
+Do not mutate the target regardless of verdict.
 
-End exactly with one:
+==================================================
+9. NO MUTATION
+==================================================
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-PASS_REPAIR_13_MAY_START_IN_FRESH_LOCAL_SESSION
+Do not:
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-FAIL_FRAMEWORK_STABILIZATION
+- edit any repository file;
+- create, delete, move, copy, rename, restore, or overwrite a repository file;
+- stage, unstage, commit, amend, reset, stash, clean, checkout, switch, merge,
+  rebase, cherry-pick, or update a ref;
+- create/remove/move a branch or worktree;
+- run tests, coverage, application imports, formatter, linter or type checker;
+- install a package;
+- create a backup inside or outside the repository;
+- push or create/edit a PR, issue, comment, label, review, workflow or release;
+- enable a runtime flag;
+- query any business data.
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-FAIL_NEW_FUNCTIONAL_OR_SECURITY_REGRESSION
+The only authorized write is the single review report outside the repository.
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-FAIL_REREVIEW_MUTATED_LIVE_REPOSITORY
+==================================================
+10. REPORT
+==================================================
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+Write exactly one report:
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-BLOCKED_EXECUTION_ENVIRONMENT
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_TARGET_COLLISION_REVIEW_2026-08-27.md
 
-PROCESS_FRAMEWORK_INDEPENDENT_REREVIEW_RESULT:
-BLOCKED_INDEPENDENCE_OR_WORKSPACE_AMBIGUITY
+Include:
 
-Only the first terminal result permits Repair 13 to start. Every other result keeps
-Repair 13 on hold.
+1. final disposition;
+2. source and target identity;
+3. exact porcelain/staged/untracked evidence;
+4. branch/worktree/reflog provenance evidence;
+5. local and remote branch/commit/PR evidence;
+6. file metadata and SHA-256 table;
+7. complete findings for each of the three files;
+8. discovery-contract compliance matrix;
+9. security and no-scan assessment;
+10. detected defects, placeholders and gaps;
+11. exact comparison with the ten-file plan;
+12. verified facts versus provenance inferences;
+13. adoption safety analysis;
+14. whether the candidate may be preserved and corrected;
+15. exact next permitted action;
+16. repository/GitHub no-mutation attestation.
+
+If the verdict is SAFE_TO_ADOPT, the next action must be a separately
+authorized continuation that:
+
+- explicitly adopts the three files as untrusted partial candidate content;
+- preserves them initially;
+- independently reviews and corrects them;
+- completes only the remaining authorized ten-file plan;
+- runs all Phase 2F.1 validation gates;
+- creates one local commit only after all gates pass.
+
+End with exactly one token:
+
+PHASE_2F1_TARGET_COLLISION_REVIEW_SAFE_TO_ADOPT
+
+or:
+
+PHASE_2F1_TARGET_COLLISION_REVIEW_OWNER_DECISION_REQUIRED
+
+PHASE_2F1_TARGET_COLLISION_REVIEW_UNRELATED_OR_UNSAFE
+
+PHASE_2F1_TARGET_COLLISION_REVIEW_BLOCKED
+
+At completion, output:
+
+- final token;
+- exact three dirty paths;
+- whether anything is staged;
+- provenance conclusion;
+- content-scope conclusion;
+- recommended disposition;
+- report path;
+- confirmation that nothing was modified.
