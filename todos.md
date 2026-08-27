@@ -1,350 +1,384 @@
-TASK: PHASE_2F1_TARGET_COLLISION_READ_ONLY_REVIEW
+TASK: HF1_V2_COMPLETE_NATIVE_CLAUDE_REFERENCE_MIGRATION
 
-Perform one independent, strictly read-only owner review of the pre-existing
-Phase 2F.1 target branch, worktree, and its three uncommitted paths.
+Work only inside:
 
-Do not implement, complete, repair, format, test, stage, commit, move, delete,
-reset, stash, clean, restore, rename, push, or open a PR.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-The purpose is to determine whether the three pre-existing changes are a safe,
-scope-aligned partial Phase 2F.1 implementation that can be explicitly adopted,
-or whether they are unrelated, ambiguous, or unsafe.
+Use the current folder in a generic Claude Agent session.
 
-==================================================
-1. REQUIRED REPORTS
-==================================================
+This is a narrowly bounded follow-up to:
 
-Read these reports completely:
+TASK: HF1_V2_MIGRATE_AGENT_GOVERNANCE_TO_NATIVE_CLAUDE_HARNESS
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
+The preceding migration correctly created and validated:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
+* 3 native Agents under .claude/agents/**;
+* 5 native Skills under .claude/skills/**;
+* .claude/rules/agent-governance.md;
+* the CLAUDE.md import;
+* native manifest and governance-validator support.
 
-The discovery report must end with:
+It stopped with:
 
-PHASE_2F1_DISCOVERY_COMPLETE
+BLOCKED_NATIVE_FORMAT_OR_REFERENCE_MISMATCH
 
-The blocked implementation report must end with:
+The exact remaining defect is six dangling Skill references in five existing
+.github/prompts/*.prompt.md files after the active Skills were migrated from
+.github/skills/** to .claude/skills/**.
 
-PHASE_2F1_IMPLEMENTATION_BLOCKED_TARGET_COLLISION
+This task is authorized to repair only those six references and to validate the
+completed migration.
 
-Use the discovery report as the authoritative Phase 2F.1 contract.
-
-Do not modify either report.
-
-==================================================
-2. EXPECTED SOURCE AND TARGET IDENTITIES
-==================================================
-
-Clean Phase 2E source application root:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
-
-Target worktree Git root:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
-
-Target application root:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
-
-Target branch:
-
-phase2/recipe-lifecycle-classification
-
-Expected target HEAD:
-
-f283f01b6d615f9fa00debcef959d9c5c86a3224
-
-Expected target tree:
-
-6448dac5be9dee275598e054f505517a215b484b
-
-Expected pre-existing porcelain paths:
-
- M kmai-td-genie/src/backend/app/recipes/approved_recipes.py
-?? kmai-td-genie/src/backend/app/recipes/approval_evidence.py
-?? kmai-td-genie/src/backend/app/recipes/lifecycle.py
-
-The equivalent `/app1` paths are acceptable only when `realpath` proves
-identity.
+Do not perform Repair 13.
+Do not change product/runtime source.
+Do not change package.json or its version.
+Do not create package-lock.json.
+Do not build, replace, install, or uninstall a VSIX.
+Do not start Runtime QA.
+Do not access the QA workspace.
+Do not commit, push, merge, tag, stash, reset, clean, or restore.
+Do not create additional Agents, Skills, Prompts, or Rules.
+Do not reintroduce duplicate active authority under .github/agents/** or
+.github/skills/**.
 
 ==================================================
-3. IDENTITY AND STATE VERIFICATION
-==================================================
 
-Read-only verify:
+1. IDENTITY AND CURRENT-STATE GATE
+    ==================================================
 
-- `pwd` and `pwd -P`;
-- logical and physical target paths;
-- Git top-level and common directory;
-- origin;
-- branch;
-- HEAD and tree;
-- upstream configuration, if any;
-- `git worktree list --porcelain`;
-- `git status --porcelain=v2 --untracked-files=all`;
-- unstaged changed paths;
-- staged changed paths;
-- untracked paths;
-- whether any additional ignored or unexpected implementation artifact exists.
+Verify:
 
-Confirm independently that the permanent Phase 2E source remains completely
-clean and unchanged.
+REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Do not fetch, pull, switch branches, update refs, or modify Git configuration.
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-==================================================
-4. FREEZE READ-ONLY COLLISION EVIDENCE
-==================================================
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-For each of the three pre-existing paths, record without modification:
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-- exact path;
-- tracked/untracked state;
-- file type;
-- size;
-- line count;
-- modification timestamp;
-- SHA-256;
-- whether it is a regular file or symlink;
-- staged versus unstaged state.
+SOURCE_VERSION:
+0.3.144
 
-Record the complete diff for `approved_recipes.py`.
+Required:
 
-Read both untracked modules completely.
+* staged files: 0;
+* stash entries: 0;
+* package-lock.json absent;
+* exactly one effective current-folder repository target;
+* the prior Claude-native migration content is still present;
+* no concurrent Agent is modifying the repository.
 
-Do not open, inspect, or read unrelated dirty content because none is expected.
+Confirm the presence of exactly these native Agents:
 
-Do not inspect shell history, credentials, unrelated user files, or unrelated
-VS Code state.
+* .claude/agents/etl-hotfix-implementer.md
+* .claude/agents/etl-independent-reviewer.md
+* .claude/agents/etl-release-verifier.md
 
-==================================================
-5. BOUNDED PROVENANCE REVIEW
-==================================================
+Confirm the presence of exactly these active native Skills:
 
-Use only scoped read-only evidence:
+* .claude/skills/etl-hotfix-lifecycle/SKILL.md
+* .claude/skills/etl-independent-review/SKILL.md
+* .claude/skills/etl-package-delivery/SKILL.md
+* .claude/skills/etl-runtime-qa/SKILL.md
+* .claude/skills/etl-execution-recovery/SKILL.md
 
-- branch reflog for `phase2/recipe-lifecycle-classification`;
-- worktree administrative identity;
-- HEAD reflog for the target worktree, if available;
-- branch creation/reflog timestamps;
-- file metadata timestamps;
-- local and authenticated read-only GitHub checks for whether this branch,
-  commit, PR, or remote ref already exists.
+Confirm:
 
-Determine:
+* .claude/rules/agent-governance.md exists;
+* CLAUDE.md imports that Rule;
+* the process manifest identifies the .claude/** assets as the active authority;
+* the old three active .github/agents/** sources and old five active
+    .github/skills/** sources are not simultaneously active.
 
-1. When the local branch/worktree appears to have been created.
-2. Whether the target has ever moved away from the accepted base.
-3. Whether any implementation commit exists locally or remotely.
-4. Whether any PR exists for this branch.
-5. Whether evidence suggests an interrupted earlier Phase 2F.1 attempt.
-6. Whether another active or remote owner appears to control these changes.
-
-Do not claim provenance that cannot be proven. Clearly distinguish verified
-facts from inference.
+Stop without edits if identity differs or the native migration is incomplete.
 
 ==================================================
-6. CONTENT REVIEW AGAINST THE DISCOVERY CONTRACT
-==================================================
+2. INDEPENDENT PRE-EDIT SNAPSHOT
 
-Treat the three files as untrusted candidate content.
+Before editing, record path, size, and SHA-256 for:
 
-Review them completely against the authoritative discovery report.
+* all .claude/** files;
+* all .github/prompts/*.prompt.md files;
+* .github/copilot-instructions.md;
+* .github/agent-governance/**;
+* scripts/agent-governance/**;
+* CLAUDE.md;
+* package.json;
+* src/test/testPatterns.ts;
+* tsconfig.json;
+* Repair 12 production and test paths;
+* all eleven src/**/AGENT.md files;
+* every existing VSIX.
 
-For `lifecycle.py`, determine whether it correctly and exclusively implements:
+Store temporary snapshots and logs outside the repository.
 
-- `LifecycleState`;
-- `LifecycleReasonCode`;
-- frozen evidence/resolution/result dataclasses;
-- fixed precedence;
-- all required reason codes;
-- pure `evaluate_recipe_lifecycle`;
-- deterministic sorting and deduplication;
-- all-reasons behavior;
-- fail-closed handling;
-- exact trace serialization;
-- no environment, time, random, I/O, provider, registry, database, network,
-  SQL, logger, tracer, cache, queue, or persistence dependency.
-
-For `approval_evidence.py`, determine whether it correctly and exclusively
-implements:
-
-- `ApprovalEvidenceProvider` as `@runtime_checkable Protocol`;
-- `ApprovedRecipeApprovalEvidenceProvider`;
-- current ApprovedRecipe lookup behavior;
-- immutable accepted per-reference fingerprints;
-- zero/one initial evidence behavior;
-- missing/invalid baseline behavior;
-- no runtime recomputation of the approved baseline;
-- no provider, database, network, SQL, Synapse, Databricks, Data Lake, proxy,
-  or data-source access.
-
-For the `approved_recipes.py` diff, determine whether it correctly and
-exclusively adds:
-
-- `RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED`;
-- strict default-OFF parsing;
-- `recipe_lifecycle_classification_enabled()`;
-- `evaluate_recipe_lifecycle_gate(...)`;
-- return-before-lookup behavior when disabled;
-- orchestration-side evidence resolution;
-- classification-only behavior;
-- no modification to existing `ApprovedRecipe` fields;
-- no change to the existing Approved Recipe execution gate.
-
-Check:
-
-- imports and module boundaries;
-- public `__all__` symbols;
-- fingerprint syntax and structural validity;
-- duplicate/conflict behavior;
-- missing or unfinished code;
-- TODOs, placeholders, stubs, ellipses, debug code, generated prose, secrets,
-  credentials, absolute paths, SQL, raw evidence, or suspicious content;
-- consistency among the three files;
-- compatibility with the existing Phase 2E APIs.
-
-Do not execute or import the candidate code.
+Do not use the repository’s own governance baseline as the sole authority.
 
 ==================================================
-7. REQUIRED GAP ANALYSIS
-==================================================
+3. EXACT AUTHORIZED EDITS
 
-Compare the existing three-path candidate with the exact ten-file authorized
-plan.
+Only these five files may be modified:
 
-Identify:
+1. .github/prompts/build.prompt.md
+2. .github/prompts/investigate.prompt.md
+3. .github/prompts/plan-change.prompt.md
+4. .github/prompts/verify-change.prompt.md
+5. .github/prompts/verify-live-flow.prompt.md
 
-- which required work is already present;
-- which parts are partially present;
-- which parts are incorrect;
-- which parts require repair;
-- which seven expected files remain untouched;
-- whether any existing candidate code exceeds Phase 2F.1 scope;
-- whether adopting it would be safer than discarding it;
-- whether every byte can be reviewed and corrected without trusting its
-  unknown provenance.
+Make only these semantic reference replacements:
 
-Do not treat unknown authorship alone as unsafe if the content is fully
-inspectable, contains no secrets, is confined to Phase 2F.1, and can be treated
-as an untrusted candidate during the later implementation.
+File	Replace old active Skill reference with
+.github/prompts/build.prompt.md	.claude/skills/etl-hotfix-lifecycle/SKILL.md
+.github/prompts/investigate.prompt.md	.claude/skills/etl-execution-recovery/SKILL.md
+.github/prompts/plan-change.prompt.md	.claude/skills/etl-hotfix-lifecycle/SKILL.md
+.github/prompts/verify-change.prompt.md	.claude/skills/etl-independent-review/SKILL.md
+.github/prompts/verify-live-flow.prompt.md	.claude/skills/etl-runtime-qa/SKILL.md and .claude/skills/etl-package-delivery/SKILL.md
 
-==================================================
-8. DISPOSITION RULES
-==================================================
+There must be exactly six repaired references across those five files.
 
-Select exactly one verdict.
+Preserve:
 
-A. SAFE_TO_ADOPT
+* Prompt frontmatter;
+* Prompt names and descriptions;
+* all behavioral instructions;
+* workflow semantics;
+* review and approval boundaries;
+* no-self-certification rules;
+* packaging, installation, Runtime QA, Preview, and write gates;
+* all unrelated whitespace and content where practical.
 
-Use only if all are true:
+Do not make these Prompts a second policy authority. They remain convenience
+entry points referencing the canonical native Skills.
 
-- target branch/worktree identity is exact;
-- target HEAD never left the accepted base;
-- there are exactly the three expected dirty paths;
-- nothing is staged;
-- no remote commit or PR owns the changes;
-- all three files are exclusively Phase 2F.1-related;
-- no secret, destructive behavior, unrelated change, data access, persistence,
-  runtime enforcement, or scope expansion exists;
-- the content is sufficiently reviewable to preserve as an untrusted partial
-  candidate;
-- any defects can be corrected within the existing authorized ten-file scope.
-
-B. OWNER_DECISION_REQUIRED
-
-Use if the content appears Phase 2F.1-related but ownership, external activity,
-or safe disposition remains materially ambiguous.
-
-C. UNRELATED_OR_UNSAFE
-
-Use if any change is unrelated, destructive, secret-bearing, outside scope,
-externally owned, or unsafe to adopt.
-
-D. BLOCKED
-
-Use only if the required files or evidence cannot be read.
-
-Do not mutate the target regardless of verdict.
+Do not add fallback references to the removed .github/skills/** sources.
 
 ==================================================
-9. NO MUTATION
+4. REFERENCE-INTEGRITY VALIDATION
+
+After editing, scan all repository governance and customization assets for
+references to the removed active sources.
+
+At minimum inspect:
+
+* .github/**/*.md;
+* .github/**/*.json;
+* .github/**/*.yml;
+* .github/**/*.yaml;
+* .claude/**/*.md;
+* CLAUDE.md;
+* scripts/agent-governance/**.
+
+Required:
+
+* dangling references to removed active .github/skills/etl-*: 0;
+* dangling references to removed active .github/agents/etl-*: 0;
+* references to active native Agents resolve: 3/3;
+* references to active native Skills resolve: 5/5;
+* the six repaired Prompt references resolve: 6/6;
+* duplicate active authority: 0;
+* unclassified active assets: 0;
+* missing referenced files: 0.
+
+Historical prose that intentionally documents the prior location may remain only
+when explicitly marked as historical and when no loader or validator interprets
+it as an active reference.
+
+Do not suppress or weaken reference validation.
+
 ==================================================
+5. VALIDATION
 
-Do not:
+Run all write-producing validation in a task-owned temporary mirror when
+necessary.
 
-- edit any repository file;
-- create, delete, move, copy, rename, restore, or overwrite a repository file;
-- stage, unstage, commit, amend, reset, stash, clean, checkout, switch, merge,
-  rebase, cherry-pick, or update a ref;
-- create/remove/move a branch or worktree;
-- run tests, coverage, application imports, formatter, linter or type checker;
-- install a package;
-- create a backup inside or outside the repository;
-- push or create/edit a PR, issue, comment, label, review, workflow or release;
-- enable a runtime flag;
-- query any business data.
+Run:
 
-The only authorized write is the single review report outside the repository.
+1. native Agent frontmatter validation;
+2. native Skill frontmatter validation;
+3. native Agent discovery tests;
+4. native Skill discovery tests;
+5. Agent-to-Skill resolution tests;
+6. manifest/schema validation;
+7. Agent/manifest authority parity validation;
+8. duplicate-authority validation;
+9. missing-Agent and missing-Skill fail-closed tests;
+10. self-certification negative tests;
+11. checkpoint-fidelity tests;
+12. baseline-contract tests;
+13. change-boundary adversarial tests;
+14. test-registration validation;
+15. workflow validation;
+16. complete governance test suite;
+17. customization validation;
+18. compile;
+19. compile:test;
+20. lint;
+21. Repair 12 canonical suite;
+22. canonical full unit suite.
+
+Expected minimum results based on the preceding run:
+
+* Governance tests: at least 224 passing, 0 failing;
+* customization blocker findings: 0;
+* customization major findings caused by dangling references: 0;
+* inactive informational asset records may remain: 8;
+* registration enforcement findings: 0;
+* Repair 12: 21/21 passing;
+* compile: exit 0;
+* compile:test: exit 0;
+* lint: exit 0;
+* no new functional regression;
+* no new security regression.
+
+Reconcile full-suite failures by exact identity.
+
+The known deferred failures may remain only if unchanged:
+
+* F1: missing/stale maintainer-delivery Prompt contract;
+* F3: assertion concerning the eleven existing src/**/AGENT.md files.
+
+F2 must remain genuinely passing without weakening, skipping, or deleting its
+assertion.
+
+Do not create missing Agents or Prompts merely to make F1 pass.
+Do not change or delete the eleven legacy AGENT.md files to make F3 pass.
 
 ==================================================
-10. REPORT
+6. NON-MUTATION AND CHANGE-BOUNDARY PROOF
+
+Compare the final live repository with the independent pre-edit snapshot.
+
+Required task-attributable changes:
+
+* exactly five modified Prompt files;
+* exactly six reference replacements;
+* no other task-attributable change.
+
+Required:
+
+UNAUTHORIZED_CHANGED_PATHS: NONE
+PACKAGE_JSON_CHANGED: NO
+PACKAGE_VERSION_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+TEST_PATTERNS_CHANGED: NO
+TSCONFIG_CHANGED: NO
+REPAIR_12_CONTENT_CHANGED: NO
+LEGACY_AGENT_MD_CHANGED: NO
+NATIVE_AGENT_CONTENT_CHANGED: NO
+NATIVE_SKILL_CONTENT_CHANGED: NO
+VSIX_CHANGED: NO
+QA_WORKSPACE_TOUCHED: NO
+REPAIR_13_STARTED: NO
+STAGED_FILES: 0
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+
+If another change is required, stop and report it. Do not broaden the boundary.
+
 ==================================================
+7. FINAL REPORT
 
-Write exactly one report:
+Return:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_TARGET_COLLISION_REVIEW_2026-08-27.md
+IDENTITY_GATE: PASS/FAIL
+NATIVE_MIGRATION_PRESENT: YES/NO
+INDEPENDENT_BASELINE_CAPTURED: YES/NO
 
-Include:
+AUTHORIZED_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+PROMPT_FILES_MODIFIED_COUNT: 
+SKILL_REFERENCES_REPAIRED_COUNT: 
 
-1. final disposition;
-2. source and target identity;
-3. exact porcelain/staged/untracked evidence;
-4. branch/worktree/reflog provenance evidence;
-5. local and remote branch/commit/PR evidence;
-6. file metadata and SHA-256 table;
-7. complete findings for each of the three files;
-8. discovery-contract compliance matrix;
-9. security and no-scan assessment;
-10. detected defects, placeholders and gaps;
-11. exact comparison with the ten-file plan;
-12. verified facts versus provenance inferences;
-13. adoption safety analysis;
-14. whether the candidate may be preserved and corrected;
-15. exact next permitted action;
-16. repository/GitHub no-mutation attestation.
+BUILD_PROMPT_REFERENCE_VALID: YES/NO
+INVESTIGATE_PROMPT_REFERENCE_VALID: YES/NO
+PLAN_CHANGE_PROMPT_REFERENCE_VALID: YES/NO
+VERIFY_CHANGE_PROMPT_REFERENCE_VALID: YES/NO
+VERIFY_LIVE_FLOW_REFERENCES_VALID: YES/NO
 
-If the verdict is SAFE_TO_ADOPT, the next action must be a separately
-authorized continuation that:
+DANGLING_REMOVED_SKILL_REFERENCES: 
+DANGLING_REMOVED_AGENT_REFERENCES: 
+ACTIVE_NATIVE_AGENT_COUNT: 
+ACTIVE_NATIVE_SKILL_COUNT: 
+DUPLICATE_ACTIVE_AUTHORITY_COUNT: 
+UNCLASSIFIED_ACTIVE_ASSET_COUNT: 
+MISSING_REFERENCED_PATH_COUNT: 
 
-- explicitly adopts the three files as untrusted partial candidate content;
-- preserves them initially;
-- independently reviews and corrects them;
-- completes only the remaining authorized ten-file plan;
-- runs all Phase 2F.1 validation gates;
-- creates one local commit only after all gates pass.
+NATIVE_AGENT_FRONTMATTER_VALID: YES/NO
+NATIVE_SKILL_FRONTMATTER_VALID: YES/NO
+CLAUDE_MD_IMPORT_VALID: YES/NO
+MANIFEST_SCHEMA_VALID: YES/NO
+AGENT_MANIFEST_AUTHORITY_PARITY: YES/NO
+SELF_CERTIFICATION_PROHIBITION_PRESERVED: YES/NO
 
-End with exactly one token:
+GOVERNANCE_TESTS_PASSING: 
+GOVERNANCE_TESTS_FAILING: 
+CUSTOMIZATION_BLOCKERS: 
+CUSTOMIZATION_MAJOR_FINDINGS: 
+CUSTOMIZATION_MINOR_FINDINGS: 
+CUSTOMIZATION_INFORMATIONAL_FINDINGS: 
+REGISTRATION_ENFORCING_FINDINGS: 
 
-PHASE_2F1_TARGET_COLLISION_REVIEW_SAFE_TO_ADOPT
+COMPILE_PASS: YES/NO
+COMPILE_TEST_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_12_CANONICAL_PASS: YES/NO
 
-or:
+FULL_UNIT_PASSING: 
+FULL_UNIT_PENDING: 
+FULL_UNIT_FAILING: 
+FULL_UNIT_FAILURES: 
+F1_FINGERPRINT_CHANGED: NO
+F2_GENUINELY_PASSING: YES/NO
+F3_FINGERPRINT_CHANGED: NO
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
 
-PHASE_2F1_TARGET_COLLISION_REVIEW_OWNER_DECISION_REQUIRED
+PACKAGE_JSON_CHANGED: NO
+PACKAGE_VERSION_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+TEST_PATTERNS_CHANGED: NO
+TSCONFIG_CHANGED: NO
+REPAIR_12_CONTENT_CHANGED: NO
+LEGACY_AGENT_MD_CHANGED: NO
+NATIVE_AGENT_CONTENT_CHANGED: NO
+NATIVE_SKILL_CONTENT_CHANGED: NO
+VSIX_CHANGED: NO
+QA_WORKSPACE_TOUCHED: NO
+REPAIR_13_STARTED: NO
+STAGED_FILES: 
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
 
-PHASE_2F1_TARGET_COLLISION_REVIEW_UNRELATED_OR_UNSAFE
+NATIVE_CLAUDE_STATIC_READINESS: YES/NO
+CLAUDE_RUNTIME_ACTIVATION_PROVEN: NO
+READY_FOR_CLAUDE_RELOAD_AND_ACTIVATION_CHECK: YES/NO
+READY_FOR_REPAIR_13: NO
+READY_TO_BUMP_VERSION: NO
+READY_TO_PACKAGE_OR_INSTALL: NO
+READY_FOR_RUNTIME_QA: NO
+READY_FOR_CLOUD_ROLLOUT: NO
 
-PHASE_2F1_TARGET_COLLISION_REVIEW_BLOCKED
+This implementation session must not claim that runtime discovery has been
+proven. Runtime activation requires a VS Code reload followed by a fresh Claude
+session.
 
-At completion, output:
+End exactly with one:
 
-- final token;
-- exact three dirty paths;
-- whether anything is staged;
-- provenance conclusion;
-- content-scope conclusion;
-- recommended disposition;
-- report path;
-- confirmation that nothing was modified.
+CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
+PASS_READY_FOR_RELOAD_AND_FRESH_CLAUDE_ACTIVATION_CHECK
+
+CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
+FAIL_VALIDATION
+
+CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
+FAIL_UNAUTHORIZED_CHANGE
+
+CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
+BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+
+CLAUDE_NATIVE_REFERENCE_REPAIR_RESULT:
+BLOCKED_ADDITIONAL_REFERENCE_SCOPE
