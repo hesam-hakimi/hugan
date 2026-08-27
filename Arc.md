@@ -1,189 +1,452 @@
-TASK: HF1_V2_REPAIR_13_INDEPENDENT_OWNER_ACTION_REVIEW_READ_ONLY
+TASK: PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW
 
-Work only in:
+Perform one fresh, independent, strictly read-only review of the complete
+two-commit Phase 2F.1 branch after the M1/M2 repair.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Do not reuse conclusions from either implementation Agent.
+Do not edit, repair, amend, commit, push, or create a PR.
 
-Use the repository-defined etl-independent-reviewer in a fresh Claude session.
+==================================================
+1. EXPECTED IDENTITIES
+==================================================
 
-This is a strictly read-only independent review. Make zero changes to the live
-repository.
+Repository:
+TD-Enterprise/kmai-td-genie
 
-The repository owner accepts the following three concurrent changes as authorized
-Owner Actions pending independent verification:
+Logical worktree:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
 
-1. docs/eval/phase_h_latest_report.json
-2. docs/eval/phase_h_latest_report.md
-3. src/test/testPatterns.ts
+Application root:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
 
-Do not revert, regenerate, rewrite, normalize, or reapply them.
+Branch:
+phase2/recipe-lifecycle-classification
 
-First ensure:
+Current HEAD / repair commit:
+6e37281e61a782ffbe8c8675346144567406dabe
 
-- no other Agent or task is modifying the repository;
-- repository root, origin, branch, HEAD and version still match:
-  - origin: https://github.com/TD-Universe/agentic_etl.git
-  - branch: hotfix/hf1-oracle-fresh-consumer-v2
-  - HEAD: b2e44c3a1a051aa7fa6008831d225bc06d22e847
-  - version: 0.3.144
-- staged files: 0;
-- stash entries: 0;
-- package-lock.json absent.
+Current repair tree:
+6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
 
-Capture an OS-level pre-review snapshot. Run every compiling, generating, and
-dynamic validation operation only in a byte-faithful temporary mirror.
+Repair subject:
+fix(recipes): harden lifecycle classification
 
-Verify independently:
+Repair sole parent / implementation commit:
+c1639fc779aaed64e4be9fdd17381e0f293c7f9f
 
-A. Golden baseline refresh
+Implementation tree:
+a5bd9ed7f7959c02ccb6c00b574599fb32d4fa95
 
-- the only refreshed baseline files are:
-  - docs/eval/phase_h_latest_report.json
-  - docs/eval/phase_h_latest_report.md;
-- the generator uses the current Repair 13 implementation;
-- all 9 scenarios pass;
-- acceptanceRate, parityRate and validationSuccessRate are all 1;
-- no required scenario is missing;
-- tracked input digests correspond to the current authoritative inputs;
-- Markdown and JSON reports agree;
-- changes are legitimate consequences of Repair 13, apart from expected generated
-  timestamp, latency and digest fields;
-- regenerating twice in isolated mirrors produces semantically equivalent output.
+Implementation subject:
+feat(recipes): add phase 2f.1 lifecycle classification
 
-B. Pure Unit registration
+Implementation sole parent / main base:
+f283f01b6d615f9fa00debcef959d9c5c86a3224
 
-Inspect the exact additive change in:
+Accepted Phase 2E head:
+0430613e6a9f1680338d8fc099e7960e5d46cac2
 
-src/test/testPatterns.ts
+Accepted Phase 2E tree:
+6448dac5be9dee275598e054f505517a215b484b
+
+Accepted ignored baseline:
+
+- kmai-td-genie/.coverage is absent;
+- kmai-td-genie/logs/app.log:
+  - regular file;
+  - mode 0644;
+  - size 3,603 bytes;
+  - SHA-256:
+    58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
+- ignored-path count: 141.
+
+==================================================
+2. STRICT NO-MUTATION BOUNDARY
+==================================================
+
+Do not:
+
+- edit, create, delete, rename, format, or restore repository files;
+- modify ignored artifacts;
+- stage, unstage, commit, amend, reset, clean, stash, switch, merge, rebase,
+  cherry-pick, fetch, pull, or modify Git refs/configuration;
+- install or upgrade dependencies;
+- push or create/modify a PR, issue, comment, label, workflow, or release;
+- enable a persistent runtime flag;
+- implement any finding.
+
+The only durable write permitted is the review report outside the repository.
+
+All Python, pytest, coverage, and runtime execution must occur in a validated
+external byte-faithful mirror whose application-directory basename is exactly:
+
+kmai-td-genie
+
+Never run Python or tests inside the live worktree.
+
+==================================================
+3. REQUIRED REPORT CHAIN
+==================================================
+
+Read completely:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_TARGET_COLLISION_REVIEW_2026-08-27.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_CONTINUATION_2026-08-27.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_INDEPENDENT_REVIEW_2026-08-27.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_DISPOSITION_2026-08-27.md
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_M1_M2_REPAIR_2026-08-27.md
+
+Verify every terminal token, but treat all reports only as evidence indexes.
+Independently reproduce every approval-critical claim.
+
+==================================================
+4. LIVE WORKSPACE GATE
+==================================================
+
+Before code review or mirror creation, verify:
+
+- pwd and pwd -P;
+- worktree/application realpaths;
+- Git top-level and common directory;
+- origin;
+- branch;
+- HEAD and tree;
+- complete commit parent chain;
+- both commit subjects;
+- tracked/untracked porcelain;
+- staged name-status and raw state;
+- shared-worktree inventory;
+- ignored baseline;
+- complete live-worktree manifest.
+
+Required result:
+
+- exact expected identities;
+- exactly two Phase 2F.1 commits after the main base;
+- neither commit was amended, squashed, or replaced;
+- index, tracked, untracked, and staged states empty;
+- ignored baseline exact;
+- no unexpected workspace drift.
+
+If this gate fails, do not run tests.
+
+==================================================
+5. LIVE GITHUB GATE
+==================================================
+
+Using authenticated read-only GitHub GET requests only, verify:
+
+- main remains:
+  f283f01b6d615f9fa00debcef959d9c5c86a3224
+- PR #17 remains merged with the accepted Phase 2E identity;
+- no remote phase2/recipe-lifecycle-classification ref exists;
+- no PR exists for that head branch;
+- neither local Phase 2F.1 commit exists in the live repository;
+- no workflow exists for either local commit.
+
+Do not fetch or modify local refs.
+
+==================================================
+6. COMMIT AND FILE-SCOPE REVIEW
+==================================================
+
+Independently prove:
+
+Implementation commit:
+
+- exactly the authorized 10 Phase 2F.1 repository paths;
+- four additions and six modifications;
+- no eleventh repository path.
+
+Repair commit:
+
+- exactly these four modified paths:
+
+  1. kmai-td-genie/src/backend/app/orchestrator.py
+  2. kmai-td-genie/src/backend/app/recipes/lifecycle.py
+  3. kmai-td-genie/test/test_approved_recipe_pilot.py
+  4. kmai-td-genie/test/test_recipe_lifecycle.py
+
+- no fifth path;
+- no added, deleted, renamed, copied, binary, symlink, submodule, executable-mode,
+  dependency, configuration, migration, schema, or generated-artifact change.
+
+Cumulative base-to-HEAD diff must remain limited to the original 10-file
+Phase 2F.1 scope.
+
+Verify app/recipes/__init__.py remains unchanged.
+
+==================================================
+7. COMPLETE ARCHITECTURE REVIEW
+==================================================
+
+Independently review the complete cumulative implementation.
 
 Verify:
 
-- exactly one narrow Repair 13 pattern was added;
-- it matches only out/test/suite/sttmRepair13.test.js;
-- match count is exactly 1 after fresh compile:test;
-- overlap with all previous patterns is 0;
-- the suite executes exactly once;
-- all 23 Repair 13 tests execute and pass;
-- no existing suite becomes duplicated, excluded or newly included unintentionally.
+- pure, deterministic, provider-neutral evaluator;
+- already-resolved immutable evidence input;
+- immutable result and nested collections;
+- ApprovalEvidenceProvider Protocol boundary;
+- exact state precedence:
+  BROKEN > NOT_APPROVED > REVIEW_REQUIRED > VALID;
+- every simultaneously applicable reason survives precedence;
+- deterministic reason/ref ordering and deduplication;
+- malformed, missing, ambiguous, conflicting, invalid, or stale evidence
+  cannot become VALID;
+- identical duplicate records remain ambiguous;
+- every record is structurally and status validated;
+- exact immutable five-ref accepted baseline;
+- no invented expiry, owner, approver, override, or reapproval policy;
+- feature flag strictly defaults OFF;
+- flag-OFF returns before recipe lookup, provider call, registry access,
+  evaluator, and trace;
+- flag-OFF Phase 2E behavior and serialization remain unchanged;
+- deny-all authorization precedes lifecycle;
+- lifecycle state is never used for allow/deny, warning, SQL, routing, response
+  status, fallback, or authorization;
+- at most one successful best-effort trace;
+- trace contains no fingerprints, SQL, raw evidence, exception text, timestamp,
+  credential, or business data;
+- no persistence, API, schema, cache, queue, provider SDK, SQL/data-source
+  adapter, Synapse, Databricks, or Data Lake access;
+- work remains bounded by declared dependency count and loaded metadata.
 
-C. Repair preservation
+==================================================
+8. INDEPENDENT M1 REPAIR PROOF
+==================================================
 
-Verify that these Repair 13 implementation paths are unchanged by the Owner
-Actions:
+Do not trust the repair report or its tests alone.
 
-- src/core/sttm/SttmResolvedEvidence.ts
-- src/core/sttm/SttmUnderstandingReportRenderer.ts
-- src/tools/EtlReadOnlyToolService.ts
-- src/test/suite/sttmRepair13.test.ts
+Verify through source review and independent external-mirror probes:
 
-Also verify Repair 11, Repair 12, QA STTM, package.json, version, tsconfig,
-governance assets, Claude assets, VSIX files and legacy AGENT.md files are
-unchanged.
+- the lifecycle-only exception boundary covers:
+  - evaluate_recipe_lifecycle_gate();
+  - lifecycle-result handling;
+  - to_trace_payload();
+  - lifecycle trace attempt;
+- unexpected failures in each operation are discarded without propagation;
+- no failed lifecycle trace or exception text is emitted;
+- existing Approved Recipe execution continues byte/behavior-equivalently;
+- the existing Approved Recipe gate remains outside the exception boundary;
+- authorization, SQL, data-source, and unrelated failures are not swallowed;
+- successful lifecycle evaluation emits at most one trace;
+- flag-OFF and deny-all remain unchanged.
 
-D. Validation
+Any fail-open or runtime-changing lifecycle exception is approval-blocking.
 
-In the temporary mirror run:
+==================================================
+9. INDEPENDENT M2 REPAIR PROOF
+==================================================
 
-- compile;
-- compile:test;
-- lint;
-- Repair 11 focused suite;
-- Repair 12 focused suite;
-- Repair 13 focused suite;
-- Phase H EvalGating suite;
-- governance suite;
-- canonical full unit suite.
+Verify through source review and independent external-mirror probes:
 
-Expected Repair 13 focused result:
+- executable/non-executable status is evaluated for every approval record;
+- two identical draft records produce:
+  - BROKEN;
+  - APPROVAL_EVIDENCE_AMBIGUOUS;
+  - RECIPE_NOT_APPROVED;
+- mixed approved/non-approved records retain every applicable reason;
+- malformed/conflicting multi-record evidence preserves invalid, conflicting,
+  ambiguous, and non-approved reasons together when applicable;
+- all permutations produce identical ordered results;
+- existing single-record draft, validated, and retired behavior is unchanged;
+- final-state precedence remains unchanged.
 
-23 passing, 0 failing
+Any suppression of an applicable reason is approval-blocking.
 
-Expected Phase H result:
+==================================================
+10. INDEPENDENT ACCEPTED-BASELINE PROOF
+==================================================
 
-previous two stale-baseline failures resolved with no assertion weakening.
+Without trusting Phase 2F.1 constants or tests:
 
-Expected canonical full-unit result, if test composition is unchanged:
+- reconstruct the accepted five dependency refs/fingerprints from accepted
+  Phase 2E tree:
+  6448dac5be9dee275598e054f505517a215b484b
+- compare with the implementation baseline;
+- verify exact set/value equality;
+- verify no missing, extra, duplicate, malformed, or conflicting pair;
+- verify deep immutability;
+- verify the baseline-pin test does not derive expectations from the constant
+  under test.
 
-2269 passing, 1 pending, 2 failing
+==================================================
+11. EXTERNAL TEST MIRROR
+==================================================
 
-The only two failures allowed are the exact unchanged pre-existing F1 and F3
-Copilot customization failures:
+Create one validated temporary directory outside every Git repository.
 
-- missing deploy-v3-agent-tool-context-gap.prompt.md contract;
-- eleven preserved src/**/AGENT.md files.
+Inside it create the application mirror with basename exactly:
 
-Compare failures by exact identity and fingerprint. Any other failure or unexplained
-count blocks progression.
+kmai-td-genie
 
-E. Final non-mutation proof
+Requirements:
 
-Compare the live repository before and after review using OS hashes.
+- byte-faithful copy of the current committed application root;
+- no Git metadata;
+- candidate runtime/test file hashes equal live HEAD blobs;
+- PYTHONDONTWRITEBYTECODE=1;
+- PYTHONPYCACHEPREFIX inside the temporary root;
+- COVERAGE_FILE inside the temporary root;
+- TMPDIR inside the temporary root;
+- pytest cache and XML output inside the temporary root;
+- RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED absent from the process environment.
 
-Required:
+All test/runtime output must remain in the temporary root.
 
-- live repository changed by this review: 0 paths;
-- staged files: 0;
-- stash entries: 0;
-- package version remains 0.3.144;
-- no VSIX build or modification;
-- no install, Runtime QA, Preview, commit, push or tag;
-- Repair 13 source unchanged.
+==================================================
+12. TEST REVERIFICATION
+==================================================
 
-Return:
+Run only from the external mirror.
 
-IDENTITY_GATE: PASS/FAIL
-REPOSITORY_MUTATED_BY_REVIEW: YES/NO
-AUTHORIZED_OWNER_ACTION_PATHS: <complete list>
-UNAUTHORIZED_CHANGED_PATHS: <complete list or NONE>
+Affected:
 
-GOLDEN_JSON_MARKDOWN_AGREE: YES/NO
-GOLDEN_SCENARIOS_PASSING: <number>
-GOLDEN_RATES_ALL_ONE: YES/NO
-GOLDEN_REFRESH_LEGITIMATE: YES/NO
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py
 
-PURE_UNIT_PATTERN: <exact value>
-PURE_UNIT_PATTERN_MATCH_COUNT: <number>
-PURE_UNIT_PATTERN_OVERLAP_COUNT: <number>
-REPAIR_13_EXECUTION_COUNT: <number>
-REPAIR_13_TESTS: <pass/fail>
+Expected:
+149 passed
 
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_11_PASS: YES/NO
-REPAIR_12_PASS: YES/NO
-REPAIR_13_PASS: YES/NO
-PHASE_H_EVAL_PASS: YES/NO
-GOVERNANCE_PASS: YES/NO
+Focused:
 
-FULL_UNIT_PASSING: <number>
-FULL_UNIT_PENDING: <number>
-FULL_UNIT_FAILING: <number>
-FULL_UNIT_FAILURES: <exact identities>
-NEW_FUNCTIONAL_REGRESSIONS: <number>
-NEW_SECURITY_REGRESSIONS: <number>
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py \
+  test/test_authz_no_access_guard.py \
+  test/test_provider_abstraction_contracts.py \
+  test/test_recipe_dependency_fingerprint.py \
+  test/test_governed_field_records.py \
+  test/test_semantic_plan_contract.py
 
-PACKAGE_VERSION_CHANGED: NO
-VSIX_CHANGED: NO
-RUNTIME_QA_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+Expected:
+238 passed, 8 warnings
 
-READY_FOR_VERSION_AND_PACKAGE: YES/NO
+Golden:
 
-End exactly with one:
+python3 -m pytest --no-cov -q test/test_golden_baseline.py
 
-OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
-PASS_READY_FOR_VERSION_AND_PACKAGE
+Expected:
+10 passed
 
-OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
-FAIL_OWNER_ACTION_VALIDATION
+Full:
 
-OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
-FAIL_UNAUTHORIZED_CHANGE
+python3 -m pytest
 
-OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
-FAIL_REVIEW_MUTATED_REPOSITORY
+Expected:
 
-OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
-BLOCKED_IDENTITY_OR_CONCURRENT_MUTATION
+- 1076 passed;
+- 3 skipped;
+- 10 warnings;
+- total coverage 87.01%, reported as 87%;
+- lifecycle.py coverage 93%;
+- orchestrator.py coverage 71%.
+
+Verify:
+
+- all three skips are the same unrelated CLI integration skips;
+- no Phase 2F.1 test is skipped;
+- no test is weakened, deselected, xfailed, or conditionally bypassed;
+- M1 and M2 branches are exercised;
+- warnings are pre-existing or independently justified.
+
+Also run commit-scoped whitespace validation without modifying the live
+worktree.
+
+==================================================
+13. PRE/POST LIVE-WORKTREE PROOF
+==================================================
+
+After all mirror tests:
+
+- remove only the exact validated external temporary directory;
+- compare live pre/post manifests;
+- verify zero live-worktree path changed;
+- verify .coverage remains absent;
+- verify logs/app.log remains exactly 3,603 bytes with SHA-256:
+  58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
+- verify ignored-path count remains 141;
+- verify branch, HEAD, tree, index, tracked, untracked, and staged states remain
+  unchanged.
+
+If any live path changes, stop and disclose it. Do not repair it.
+
+==================================================
+14. VERDICT RULES
+==================================================
+
+Approval requires:
+
+- exact workspace, commit chain, trees, parents, and subjects;
+- exact cumulative and repair file scopes;
+- no unresolved collision-review defect;
+- independent M1 and M2 proof;
+- all architecture, compatibility, trace-only, fail-closed, and no-scan
+  invariants;
+- independently correct five-ref baseline;
+- all affected/focused/golden/full tests passing exactly;
+- accepted ignored baseline unchanged;
+- byte-identical live worktree before and after review;
+- no Push, PR, or workflow;
+- no Critical, High, or Medium finding.
+
+Do not implement fixes.
+
+For each finding provide severity, exact file/symbol, evidence, violated
+requirement, correction required, and whether it blocks approval.
+
+==================================================
+15. REPORT
+==================================================
+
+Write exactly one report:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_2026-08-27.md
+
+Include:
+
+1. final verdict;
+2. workspace and complete commit-chain proof;
+3. live-main and no-remote-state proof;
+4. implementation and repair scope inventories;
+5. cumulative architecture review;
+6. disposition of all original collision findings;
+7. independent M1 proof;
+8. independent M2 proof;
+9. independent accepted-baseline reconstruction;
+10. flag-OFF and deny-all compatibility;
+11. trace-only, security, and no-scan proof;
+12. external-mirror identity;
+13. affected/focused/golden/full test results;
+14. skip, warning, and coverage evidence;
+15. live pre/post manifest comparison;
+16. ignored-baseline proof;
+17. findings by severity;
+18. clean/no-mutation attestation;
+19. exact next permitted action.
+
+If approved, the next permitted action is only a separately authorized push and
+PR-creation task. Do not push, merge, or deploy.
+
+End with exactly one token:
+
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_APPROVED
+
+or:
+
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_WORKSPACE
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_IDENTITY
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_BASE_DRIFT
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_GITHUB_ACCESS
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_REMOTE_STATE
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_CHANGES_REQUIRED
