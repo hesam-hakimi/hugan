@@ -209,6 +209,8 @@ class ProductWebRuntime:
     _program_control_actions: set[str] = field(default_factory=set)
     _remote_operation_action_tokens: dict[str, str] = field(default_factory=dict)
     _program_control_action_tokens: dict[str, str] = field(default_factory=dict)
+    _standalone_worker_tokens: dict[str, str] = field(default_factory=dict)
+    _program_worker_tokens: dict[str, str] = field(default_factory=dict)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
@@ -230,15 +232,32 @@ class ProductWebRuntime:
                 raise ValueError("remote-operation task identity cannot be reused")
             if task_id in self._runs:
                 raise ValueError(f"task already exists: {task_id}")
-            self.workspace.control.ensure_task(task_id)
-            self._runs[task_id] = {
-                "task_id": task_id,
-                "thread_id": thread_id,
-                "title": request.title,
-                "status": "queued",
-                "busy": True,
-            }
-        self.executor.submit(self._start_safe_worker, task_id, thread_id, request)
+            owner_token = self.workspace.lifecycle_reservations.reserve_standalone_worker(
+                task_id
+            )
+            self._standalone_worker_tokens[task_id] = owner_token
+            try:
+                self.workspace.control.ensure_task(task_id)
+                self._runs[task_id] = {
+                    "task_id": task_id,
+                    "thread_id": thread_id,
+                    "title": request.title,
+                    "status": "queued",
+                    "busy": True,
+                }
+            except Exception:
+                self.workspace.lifecycle_reservations.release_standalone_worker(
+                    task_id,
+                    owner_token,
+                )
+                self._standalone_worker_tokens.pop(task_id, None)
+                raise
+        try:
+            self.executor.submit(self._start_safe_worker, task_id, thread_id, request)
+        except Exception:
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(task_id, status="failed", busy=False)
+            raise
         return self.task_status(task_id)
 
     def task_status(self, task_id: str) -> dict[str, Any]:
@@ -305,11 +324,16 @@ class ProductWebRuntime:
                 task_id
                 for task_id, record in self._runs.items()
                 if record.get("busy")
-            )
+            ).union(durable_actions.worker_task_ids)
             program_runs = {
                 program_id: dict(record)
                 for program_id, record in self._program_execution_runs.items()
             }
+            for program_id in durable_actions.worker_program_ids:
+                program_runs.setdefault(
+                    program_id,
+                    {"busy": True, "task_id": "", "status": "recovered_active"},
+                )
 
         items: list[RetainedRemoteOperationLeaseInventoryItem] = []
         for lease in page:
@@ -836,9 +860,18 @@ class ProductWebRuntime:
             if record.get("busy"):
                 raise ValueError("task is currently executing")
             thread_id = str(record["thread_id"])
+            owner_token = self.workspace.lifecycle_reservations.reserve_standalone_worker(
+                task_id
+            )
+            self._standalone_worker_tokens[task_id] = owner_token
             record["busy"] = True
             record["status"] = "scope_approved" if approved else "scope_rejected"
-        self.executor.submit(self._resume_safe_worker, task_id, thread_id, approved)
+        try:
+            self.executor.submit(self._resume_safe_worker, task_id, thread_id, approved)
+        except Exception:
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(task_id, status="failed", busy=False)
+            raise
         return self.task_status(task_id)
 
     def pause_task(self, task_id: str, reason: str = "") -> dict[str, Any]:
@@ -933,6 +966,10 @@ class ProductWebRuntime:
             current = self._program_execution_runs.get(program_id)
             if current is not None and current.get("busy"):
                 raise ValueError("program execution is currently busy")
+            owner_token = self.workspace.lifecycle_reservations.reserve_program_worker(
+                program_id
+            )
+            self._program_worker_tokens[program_id] = owner_token
             self._program_execution_runs[program_id] = {
                 "busy": True,
                 "action": "start_next",
@@ -946,11 +983,12 @@ class ProductWebRuntime:
                 request,
             )
         except Exception:
-            self._set_program_execution_run(
-                program_id,
-                busy=False,
-                status="failed",
-            )
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    status="failed",
+                )
             raise
         return self.program_execution_status(program_id)
 
@@ -981,6 +1019,10 @@ class ProductWebRuntime:
             current = self._program_execution_runs.get(program_id)
             if current is not None and current.get("busy"):
                 raise ValueError("program execution is currently busy")
+            owner_token = self.workspace.lifecycle_reservations.reserve_program_worker(
+                program_id
+            )
+            self._program_worker_tokens[program_id] = owner_token
             self._program_execution_runs[program_id] = {
                 "busy": True,
                 "action": "continue",
@@ -995,11 +1037,12 @@ class ProductWebRuntime:
                 request,
             )
         except Exception:
-            self._set_program_execution_run(
-                program_id,
-                busy=False,
-                status="failed",
-            )
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    status="failed",
+                )
             raise
         return self.program_execution_status(program_id)
 
@@ -1021,10 +1064,12 @@ class ProductWebRuntime:
         try:
             control = self.workspace.control.task_action(task_id)
             if control.value == "cancel":
-                self._set_run(task_id, status="cancelled", busy=False)
+                if self._release_standalone_worker_ownership(task_id):
+                    self._set_run(task_id, status="cancelled", busy=False)
                 return
             if control.value == "pause":
-                self._set_run(task_id, status="paused", busy=False)
+                if self._release_standalone_worker_ownership(task_id):
+                    self._set_run(task_id, status="paused", busy=False)
                 return
             service = self.workspace.discovered_safe(
                 state_root=self.state_root / "safe",
@@ -1044,20 +1089,22 @@ class ProductWebRuntime:
                 acceptance_criteria=request.acceptance_criteria,
             )
             state = result.get("state", {})
-            self._set_run(
-                task_id,
-                status=str(state.get("status", "awaiting_scope_approval")),
-                busy=False,
-                result=result,
-            )
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(
+                    task_id,
+                    status=str(state.get("status", "awaiting_scope_approval")),
+                    busy=False,
+                    result=result,
+                )
         except Exception as exc:  # execution errors become bounded task state
-            self._set_run(
-                task_id,
-                status="failed",
-                busy=False,
-                error_type=type(exc).__name__,
-                error=sanitize_text(str(exc))[:2000],
-            )
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(
+                    task_id,
+                    status="failed",
+                    busy=False,
+                    error_type=type(exc).__name__,
+                    error=sanitize_text(str(exc))[:2000],
+                )
 
     def _resume_safe_worker(self, task_id: str, thread_id: str, approved: bool) -> None:
         try:
@@ -1066,20 +1113,22 @@ class ProductWebRuntime:
                 allow_local_sources=self.allow_local_sources,
             )
             result = service.resume(thread_id, approved)
-            self._set_run(
-                task_id,
-                status=str(result.get("status", "completed")),
-                busy=False,
-                result=result,
-            )
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(
+                    task_id,
+                    status=str(result.get("status", "completed")),
+                    busy=False,
+                    result=result,
+                )
         except Exception as exc:
-            self._set_run(
-                task_id,
-                status="failed",
-                busy=False,
-                error_type=type(exc).__name__,
-                error=sanitize_text(str(exc))[:2000],
-            )
+            if self._release_standalone_worker_ownership(task_id):
+                self._set_run(
+                    task_id,
+                    status="failed",
+                    busy=False,
+                    error_type=type(exc).__name__,
+                    error=sanitize_text(str(exc))[:2000],
+                )
 
     def _start_program_execution_worker(
         self,
@@ -1099,22 +1148,24 @@ class ProductWebRuntime:
                 state_root=self.state_root / "safe",
                 allow_local_sources=self.allow_local_sources,
             )
-            self._set_program_execution_run(
-                program_id,
-                busy=False,
-                task_id=binding.task_id,
-                status=binding.status.value,
-                error_type="",
-                error="",
-            )
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    task_id=binding.task_id,
+                    status=binding.status.value,
+                    error_type="",
+                    error="",
+                )
         except Exception as exc:
-            self._set_program_execution_run(
-                program_id,
-                busy=False,
-                status="failed",
-                error_type=type(exc).__name__,
-                error=sanitize_text(str(exc))[:2000],
-            )
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    status="failed",
+                    error_type=type(exc).__name__,
+                    error=sanitize_text(str(exc))[:2000],
+                )
 
     def _continue_program_execution_worker(
         self,
@@ -1131,22 +1182,70 @@ class ProductWebRuntime:
                 state_root=self.state_root / "safe",
                 allow_local_sources=self.allow_local_sources,
             )
-            self._set_program_execution_run(
-                program_id,
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    task_id=binding.task_id,
+                    status=binding.status.value,
+                    error_type="",
+                    error="",
+                )
+        except Exception as exc:
+            if self._release_program_worker_ownership(program_id):
+                self._set_program_execution_run(
+                    program_id,
+                    busy=False,
+                    status="failed",
+                    error_type=type(exc).__name__,
+                    error=sanitize_text(str(exc))[:2000],
+                )
+
+    def _release_standalone_worker_ownership(self, task_id: str) -> bool:
+        with self._lock:
+            owner_token = self._standalone_worker_tokens.get(task_id)
+        if owner_token is None:
+            return False
+        try:
+            self.workspace.lifecycle_reservations.release_standalone_worker(
+                task_id,
+                owner_token,
+            )
+        except Exception as exc:
+            self._set_run(
+                task_id,
+                status="failed",
                 busy=False,
-                task_id=binding.task_id,
-                status=binding.status.value,
-                error_type="",
-                error="",
+                error_type=type(exc).__name__,
+                error=sanitize_text(str(exc))[:2000],
+            )
+            return False
+        with self._lock:
+            self._standalone_worker_tokens.pop(task_id, None)
+        return True
+
+    def _release_program_worker_ownership(self, program_id: str) -> bool:
+        with self._lock:
+            owner_token = self._program_worker_tokens.get(program_id)
+        if owner_token is None:
+            return False
+        try:
+            self.workspace.lifecycle_reservations.release_program_worker(
+                program_id,
+                owner_token,
             )
         except Exception as exc:
             self._set_program_execution_run(
                 program_id,
-                busy=False,
                 status="failed",
+                busy=False,
                 error_type=type(exc).__name__,
                 error=sanitize_text(str(exc))[:2000],
             )
+            return False
+        with self._lock:
+            self._program_worker_tokens.pop(program_id, None)
+        return True
 
     def _set_run(self, task_id: str, **changes: Any) -> None:
         with self._lock:

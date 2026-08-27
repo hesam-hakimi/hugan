@@ -592,6 +592,35 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert busy_retirement.status_code == 400
         runtime._runs[_TASK_ID]["busy"] = False
 
+        worker_owner = reopened.lifecycle_reservations.reserve_standalone_worker(
+            _TASK_ID
+        )
+        try:
+            recovered_worker_inventory = client.get(
+                "/api/remote-operations/retained-leases?limit=25"
+            )
+            assert recovered_worker_inventory.status_code == 200
+            assert {
+                reason["code"]
+                for reason in recovered_worker_inventory.json()["items"][0][
+                    "eligibility_reasons"
+                ]
+            } == {"local_worker_active"}
+            recovered_worker_retirement = client.post(
+                f"/api/tasks/{_TASK_ID}/remote-operation/retire",
+                json={
+                    "disposition_audit_ref": evidence["audit_ref"],
+                    "reason": "Recovered worker ownership must block retirement.",
+                    "confirmed": True,
+                },
+            )
+            assert recovered_worker_retirement.status_code == 400
+        finally:
+            reopened.lifecycle_reservations.release_standalone_worker(
+                _TASK_ID,
+                worker_owner,
+            )
+
         runtime._remote_operation_actions.add(_TASK_ID)
         action_inventory = client.get(
             "/api/remote-operations/retained-leases?limit=25"

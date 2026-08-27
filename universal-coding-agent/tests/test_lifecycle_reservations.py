@@ -51,6 +51,103 @@ def test_remote_and_program_reservations_are_shared_across_store_instances(
         second.close()
 
 
+def test_worker_ownership_is_shared_with_lifecycle_actions(tmp_path: Path) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    worker_store = DurableLifecycleReservationStore(database)
+    action_store = DurableLifecycleReservationStore(database)
+    try:
+        task_owner = worker_store.reserve_standalone_worker(_TASK_ID)
+        with pytest.raises(ValueError, match="local worker"):
+            action_store.reserve_remote_operation(_TASK_ID)
+        with pytest.raises(ValueError, match="ownership mismatch"):
+            action_store.release_standalone_worker(_TASK_ID, "0" * 32)
+        assert action_store.snapshot().worker_task_ids == {_TASK_ID}
+        action_store.release_standalone_worker(_TASK_ID, task_owner)
+
+        program_owner = action_store.reserve_program_worker(_PROGRAM_ID)
+        with pytest.raises(ValueError, match="local worker"):
+            worker_store.reserve_program_control(
+                _PROGRAM_ID,
+                task_ids=(_TASK_ID,),
+            )
+        with pytest.raises(ValueError, match="local worker"):
+            worker_store.reserve_remote_operation(
+                _TASK_ID,
+                program_id=_PROGRAM_ID,
+            )
+        assert worker_store.snapshot().worker_program_ids == {_PROGRAM_ID}
+        worker_store.release_program_worker(_PROGRAM_ID, program_owner)
+    finally:
+        worker_store.close()
+        action_store.close()
+
+
+def test_interrupted_worker_ownership_survives_restart_and_blocks(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    first = DurableLifecycleReservationStore(database)
+    owner = first.reserve_program_worker(_PROGRAM_ID)
+    first.close()
+
+    reopened = DurableLifecycleReservationStore(database)
+    try:
+        assert reopened.snapshot().worker_program_ids == {_PROGRAM_ID}
+        with pytest.raises(ValueError, match="local worker"):
+            reopened.reserve_program_control(_PROGRAM_ID, task_ids=(_TASK_ID,))
+        reopened.release_program_worker(_PROGRAM_ID, owner)
+    finally:
+        reopened.close()
+
+
+def test_competing_worker_and_lifecycle_action_have_one_winner(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    worker_store = DurableLifecycleReservationStore(database)
+    action_store = DurableLifecycleReservationStore(database)
+
+    def reserve_worker() -> tuple[str, str]:
+        try:
+            return "worker", worker_store.reserve_program_worker(_PROGRAM_ID)
+        except ValueError:
+            return "worker_rejected", ""
+
+    def reserve_action() -> tuple[str, str]:
+        try:
+            return (
+                "action",
+                action_store.reserve_program_control(
+                    _PROGRAM_ID,
+                    task_ids=(_TASK_ID,),
+                ),
+            )
+        except ValueError:
+            return "action_rejected", ""
+
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            worker_future = executor.submit(reserve_worker)
+            action_future = executor.submit(reserve_action)
+            outcomes = {
+                worker_future.result(),
+                action_future.result(),
+            }
+        labels = {label for label, _owner in outcomes}
+        assert labels in (
+            {"worker", "action_rejected"},
+            {"worker_rejected", "action"},
+        )
+        for label, owner in outcomes:
+            if label == "worker":
+                worker_store.release_program_worker(_PROGRAM_ID, owner)
+            elif label == "action":
+                action_store.release_program_control(_PROGRAM_ID, owner)
+    finally:
+        worker_store.close()
+        action_store.close()
+
+
 def test_interrupted_reservation_survives_restart_and_blocks(tmp_path: Path) -> None:
     database = tmp_path / "lifecycle.sqlite"
     first = DurableLifecycleReservationStore(database)
@@ -137,6 +234,24 @@ def test_invalid_persisted_reservation_fails_closed(tmp_path: Path) -> None:
                 _PROGRAM_ID,
                 task_ids=(_TASK_ID,),
             )
+    finally:
+        store.close()
+
+
+def test_invalid_persisted_worker_ownership_fails_closed(tmp_path: Path) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    store.reserve_standalone_worker(_TASK_ID)
+    store.connection.execute("PRAGMA ignore_check_constraints = ON")
+    store.connection.execute(
+        "UPDATE lifecycle_worker_ownership SET created_at = 'not-a-timestamp'"
+    )
+
+    try:
+        with pytest.raises(ValueError, match="reservation state is unavailable"):
+            store.snapshot()
+        with pytest.raises(ValueError, match="timestamp"):
+            store.reserve_remote_operation(_TASK_ID)
     finally:
         store.close()
 

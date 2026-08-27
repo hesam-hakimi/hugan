@@ -407,8 +407,8 @@ endpoint scope, output, reason, credential, or URL. A reservation left by an int
 survives restart and continues to block; P1.2m deliberately adds no TTL, startup cleanup, or
 automatic recovery that could silently discard an active safety boundary. Read-only retained-lease
 inventory includes durable reservations when computing its advisory lifecycle blocker. Existing
-same-runtime worker exclusion remains unchanged; cross-process worker ownership and explicit
-administrative recovery of an interrupted reservation belong to later production hardening.
+same-runtime worker exclusion remains unchanged. Explicit administrative recovery of an
+interrupted reservation or worker-ownership row belongs to later production hardening.
 
 Deterministic and live coverage proves cross-runtime Task/Program mutual exclusion, one winner
 under concurrency, ownership-checked release, additive database creation, malformed-state
@@ -417,6 +417,23 @@ P1.2m changes no provider behavior, retirement authority, eligibility semantics,
 outcome, output recovery, resume/retry, phase advancement, transport, active pause, publication,
 or deletion/erasure claim. This closes the bounded P1.2 sequence; any P2 production-hardening work
 requires separate authorization.
+
+P2.1a extends the same `0600` SQLite serialization boundary with durable ownership for standalone
+Safe workers and Program execution workers launched by the Product Control Center. Worker
+acquisition and lifecycle-action conflict checks share `BEGIN IMMEDIATE` transactions. A
+standalone worker conflicts on Task identity; a Program worker conflicts on Program identity, so
+remote-operation actions and Program approve/pause/resume/cancel controls cannot overlap across
+Product runtime processes. Completion releases exactly one row with the unexposed random owner
+token before the runtime publishes a non-busy, operator-actionable state.
+
+Worker ownership contains only local Task or Program identity, worker kind, creation timestamp,
+and owner token. It contains no provider identifier, operation hash, endpoint, output, credential,
+repository URL, or source content. A crash-left ownership row survives restart and blocks; P2.1a
+adds no TTL, heartbeat inference, startup cleanup, or administrative recovery. Retained-lease
+inventory treats recovered worker ownership as an advisory `local_worker_active` blocker. The
+slice makes zero provider calls and changes no provider behavior, API schema, React source,
+Task/Program outcome, recovery authority, retry/replan policy, autonomous execution, active pause,
+publication, safety threshold, or live aggregator.
 
 ## Context management
 

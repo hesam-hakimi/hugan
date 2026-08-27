@@ -12,20 +12,23 @@ from threading import RLock
 _IDENTITY = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
 _OWNER_TOKEN = re.compile(r"^[0-9a-f]{32}$")
 _KINDS = frozenset({"remote_operation", "program_control"})
+_WORKER_KINDS = frozenset({"standalone_task", "program_execution"})
 
 
 @dataclass(frozen=True)
 class LifecycleReservationSnapshot:
     remote_task_ids: frozenset[str]
     program_ids: frozenset[str]
+    worker_task_ids: frozenset[str]
+    worker_program_ids: frozenset[str]
 
 
 class DurableLifecycleReservationStore:
-    """Fail-closed cross-runtime serialization for local lifecycle actions.
+    """Fail-closed cross-runtime serialization for lifecycle actions and workers.
 
     Rows contain only local Task/Program identity and an unexposed random ownership
-    token. A row deliberately survives an interrupted process; P1.2m adds no TTL or
-    automatic recovery policy that could silently weaken the reservation.
+    token. Rows deliberately survive an interrupted process; no TTL or automatic
+    recovery policy may silently weaken the serialization boundary.
     """
 
     def __init__(self, database_path: Path) -> None:
@@ -78,6 +81,41 @@ class DurableLifecycleReservationStore:
             WHERE reservation_kind = 'program_control'
             """
         )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lifecycle_worker_ownership (
+                worker_kind TEXT NOT NULL,
+                scope_id TEXT NOT NULL,
+                task_id TEXT NOT NULL,
+                program_id TEXT NOT NULL,
+                owner_token TEXT NOT NULL UNIQUE,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (worker_kind, scope_id),
+                CHECK (worker_kind IN ('standalone_task', 'program_execution')),
+                CHECK (
+                    (worker_kind = 'standalone_task'
+                     AND task_id = scope_id AND program_id = '')
+                    OR
+                    (worker_kind = 'program_execution'
+                     AND program_id = scope_id AND task_id = '')
+                )
+            )
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS one_standalone_worker_per_task
+            ON lifecycle_worker_ownership(task_id)
+            WHERE worker_kind = 'standalone_task'
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS one_execution_worker_per_program
+            ON lifecycle_worker_ownership(program_id)
+            WHERE worker_kind = 'program_execution'
+            """
+        )
 
     def close(self) -> None:
         with self._lock:
@@ -105,6 +143,18 @@ class DurableLifecycleReservationStore:
                 raise ValueError("remote-operation lifecycle action is already active")
             if rows:
                 raise ValueError("Program control action is already active")
+            worker_rows = self.connection.execute(
+                """
+                SELECT worker_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_worker_ownership
+                WHERE task_id = ? OR (? != '' AND program_id = ?)
+                """,
+                (task_id, program_id, program_id),
+            ).fetchall()
+            self._validate_worker_rows(worker_rows)
+            if worker_rows:
+                raise ValueError("local worker is active")
             self.connection.execute(
                 """
                 INSERT INTO lifecycle_reservations(
@@ -154,6 +204,24 @@ class DurableLifecycleReservationStore:
                 raise ValueError("Program control action is already active")
             if rows:
                 raise ValueError("remote-operation lifecycle action is active")
+            worker_clauses = ["program_id = ?"]
+            worker_parameters: list[str] = [program_id]
+            if task_ids:
+                placeholders = ", ".join("?" for _ in task_ids)
+                worker_clauses.append(f"task_id IN ({placeholders})")
+                worker_parameters.extend(task_ids)
+            worker_rows = self.connection.execute(
+                """
+                SELECT worker_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_worker_ownership
+                WHERE """
+                + " OR ".join(worker_clauses),
+                tuple(worker_parameters),
+            ).fetchall()
+            self._validate_worker_rows(worker_rows)
+            if worker_rows:
+                raise ValueError("local worker is active")
             self.connection.execute(
                 """
                 INSERT INTO lifecycle_reservations(
@@ -165,11 +233,97 @@ class DurableLifecycleReservationStore:
             )
         return owner_token
 
+    def reserve_standalone_worker(self, task_id: str) -> str:
+        self._validate_identity(task_id, "task_id")
+        owner_token = uuid.uuid4().hex
+        with self._transaction():
+            reservation_rows = self.connection.execute(
+                """
+                SELECT reservation_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_reservations
+                WHERE reservation_kind = 'remote_operation' AND task_id = ?
+                """,
+                (task_id,),
+            ).fetchall()
+            self._validate_rows(reservation_rows)
+            if reservation_rows:
+                raise ValueError("remote-operation lifecycle action is active")
+            worker_rows = self.connection.execute(
+                """
+                SELECT worker_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_worker_ownership
+                WHERE task_id = ?
+                """,
+                (task_id,),
+            ).fetchall()
+            self._validate_worker_rows(worker_rows)
+            if worker_rows:
+                raise ValueError("local worker is already active")
+            self.connection.execute(
+                """
+                INSERT INTO lifecycle_worker_ownership(
+                    worker_kind, scope_id, task_id, program_id,
+                    owner_token, created_at
+                ) VALUES ('standalone_task', ?, ?, '', ?, ?)
+                """,
+                (task_id, task_id, owner_token, _utc_now()),
+            )
+        return owner_token
+
+    def reserve_program_worker(self, program_id: str) -> str:
+        self._validate_identity(program_id, "program_id")
+        owner_token = uuid.uuid4().hex
+        with self._transaction():
+            reservation_rows = self.connection.execute(
+                """
+                SELECT reservation_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_reservations
+                WHERE program_id = ?
+                """,
+                (program_id,),
+            ).fetchall()
+            self._validate_rows(reservation_rows)
+            if any(row[0] == "program_control" for row in reservation_rows):
+                raise ValueError("Program control action is active")
+            if reservation_rows:
+                raise ValueError("remote-operation lifecycle action is active")
+            worker_rows = self.connection.execute(
+                """
+                SELECT worker_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_worker_ownership
+                WHERE program_id = ?
+                """,
+                (program_id,),
+            ).fetchall()
+            self._validate_worker_rows(worker_rows)
+            if worker_rows:
+                raise ValueError("Program worker is already active")
+            self.connection.execute(
+                """
+                INSERT INTO lifecycle_worker_ownership(
+                    worker_kind, scope_id, task_id, program_id,
+                    owner_token, created_at
+                ) VALUES ('program_execution', ?, '', ?, ?, ?)
+                """,
+                (program_id, program_id, owner_token, _utc_now()),
+            )
+        return owner_token
+
     def release_remote_operation(self, task_id: str, owner_token: str) -> None:
         self._release("remote_operation", task_id, owner_token)
 
     def release_program_control(self, program_id: str, owner_token: str) -> None:
         self._release("program_control", program_id, owner_token)
+
+    def release_standalone_worker(self, task_id: str, owner_token: str) -> None:
+        self._release_worker("standalone_task", task_id, owner_token)
+
+    def release_program_worker(self, program_id: str, owner_token: str) -> None:
+        self._release_worker("program_execution", program_id, owner_token)
 
     def snapshot(self) -> LifecycleReservationSnapshot:
         with self._lock:
@@ -182,11 +336,25 @@ class DurableLifecycleReservationStore:
                     """
                 ).fetchall()
                 self._validate_rows(rows)
+                worker_rows = self.connection.execute(
+                    """
+                    SELECT worker_kind, scope_id, task_id, program_id,
+                           owner_token, created_at
+                    FROM lifecycle_worker_ownership
+                    """
+                ).fetchall()
+                self._validate_worker_rows(worker_rows)
             except (sqlite3.DatabaseError, ValueError) as exc:
                 raise ValueError("durable lifecycle reservation state is unavailable") from exc
         return LifecycleReservationSnapshot(
             remote_task_ids=frozenset(row[2] for row in rows if row[0] == "remote_operation"),
             program_ids=frozenset(row[3] for row in rows if row[0] == "program_control"),
+            worker_task_ids=frozenset(
+                row[2] for row in worker_rows if row[0] == "standalone_task"
+            ),
+            worker_program_ids=frozenset(
+                row[3] for row in worker_rows if row[0] == "program_execution"
+            ),
         )
 
     def _release(self, kind: str, scope_id: str, owner_token: str) -> None:
@@ -220,6 +388,37 @@ class DurableLifecycleReservationStore:
             if deleted != 1:
                 raise ValueError("durable lifecycle reservation release was ambiguous")
 
+    def _release_worker(self, kind: str, scope_id: str, owner_token: str) -> None:
+        if kind not in _WORKER_KINDS:
+            raise ValueError("invalid lifecycle worker kind")
+        self._validate_identity(scope_id, "scope_id")
+        if not _OWNER_TOKEN.fullmatch(owner_token):
+            raise ValueError("invalid lifecycle worker ownership token")
+        with self._transaction():
+            row = self.connection.execute(
+                """
+                SELECT worker_kind, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM lifecycle_worker_ownership
+                WHERE worker_kind = ? AND scope_id = ?
+                """,
+                (kind, scope_id),
+            ).fetchone()
+            if row is None:
+                raise ValueError("durable lifecycle worker ownership is missing")
+            self._validate_worker_rows([row])
+            if row[4] != owner_token:
+                raise ValueError("durable lifecycle worker ownership mismatch")
+            deleted = self.connection.execute(
+                """
+                DELETE FROM lifecycle_worker_ownership
+                WHERE worker_kind = ? AND scope_id = ? AND owner_token = ?
+                """,
+                (kind, scope_id, owner_token),
+            ).rowcount
+            if deleted != 1:
+                raise ValueError("durable lifecycle worker release was ambiguous")
+
     def _transaction(self):
         return _ImmediateTransaction(self)
 
@@ -251,6 +450,28 @@ class DurableLifecycleReservationStore:
                     cls._validate_identity(str(program_id), "program_id")
             elif task_id or program_id != scope_id:
                 raise ValueError("invalid Program lifecycle reservation")
+
+    @classmethod
+    def _validate_worker_rows(cls, rows: list[tuple[object, ...]]) -> None:
+        for row in rows:
+            if len(row) != 6:
+                raise ValueError("invalid durable lifecycle worker row")
+            kind, scope_id, task_id, program_id, owner_token, created_at = row
+            if kind not in _WORKER_KINDS or not isinstance(created_at, str):
+                raise ValueError("invalid durable lifecycle worker row")
+            cls._validate_identity(str(scope_id), "scope_id")
+            if not _OWNER_TOKEN.fullmatch(str(owner_token)):
+                raise ValueError("invalid durable lifecycle worker owner")
+            try:
+                datetime.fromisoformat(created_at)
+            except ValueError as exc:
+                raise ValueError("invalid durable lifecycle worker timestamp") from exc
+            if kind == "standalone_task":
+                cls._validate_identity(str(task_id), "task_id")
+                if task_id != scope_id or program_id:
+                    raise ValueError("invalid standalone lifecycle worker")
+            elif task_id or program_id != scope_id:
+                raise ValueError("invalid Program lifecycle worker")
 
 
 class _ImmediateTransaction:

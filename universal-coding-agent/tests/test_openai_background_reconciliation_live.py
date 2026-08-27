@@ -124,6 +124,12 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["durable_lifecycle_reservation_reloaded"] is True
     assert summary["conflicting_lifecycle_action_blocked_after_restart"] is True
     assert summary["provider_calls_during_lifecycle_reservation_restart"] == 0
+    assert summary["durable_worker_ownership_reloaded"] is True
+    assert (
+        summary["conflicting_lifecycle_action_blocked_by_recovered_worker"] is True
+    )
+    assert summary["worker_release_requires_exact_owner"] is True
+    assert summary["provider_calls_during_worker_ownership_restart"] == 0
     inventory = summary["retained_lease_inventory_before_retirement"]
     assert inventory["returned_count"] == 1
     assert inventory["items"][0]["task_id"] == _TASK_ID

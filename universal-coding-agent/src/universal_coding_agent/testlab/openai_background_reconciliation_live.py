@@ -31,6 +31,7 @@ from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvi
 from universal_coding_agent.web.app import ProductWebRuntime
 
 _TASK_ID = "pretransfer-openai-background-reconciliation-task"
+_WORKER_TASK_ID = "pretransfer-durable-worker-ownership-task"
 _THREAD_ID = "pretransfer-openai-background-reconciliation-thread"
 _SUMMARY_NAME = "background-reconciliation-live-summary.json"
 _PRIVATE_DATABASE_NAME = "private-remote-operations.sqlite"
@@ -282,6 +283,56 @@ def run_openai_background_reconciliation_live(
     finally:
         reservation_recovery_workspace.close()
 
+    durable_worker_owner = ""
+    worker_ownership_workspace = ProductWorkspace.create(state_root, provider)
+    try:
+        durable_worker_owner = (
+            worker_ownership_workspace.lifecycle_reservations.reserve_standalone_worker(
+                _WORKER_TASK_ID
+            )
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        worker_ownership_workspace.close()
+
+    durable_worker_ownership_reloaded = False
+    conflicting_lifecycle_action_blocked_by_recovered_worker = False
+    worker_release_requires_exact_owner = False
+    provider_calls_during_worker_ownership_restart = -1
+    calls_before_worker_ownership_restart = len(request_events)
+    worker_recovery_workspace = ProductWorkspace.create(state_root, provider)
+    try:
+        durable_worker_ownership_reloaded = bool(
+            _WORKER_TASK_ID
+            in worker_recovery_workspace.lifecycle_reservations.snapshot().worker_task_ids
+        )
+        try:
+            worker_recovery_workspace.lifecycle_reservations.reserve_remote_operation(
+                _WORKER_TASK_ID
+            )
+        except ValueError:
+            conflicting_lifecycle_action_blocked_by_recovered_worker = True
+        try:
+            worker_recovery_workspace.lifecycle_reservations.release_standalone_worker(
+                _WORKER_TASK_ID,
+                "0" * 32,
+            )
+        except ValueError:
+            worker_release_requires_exact_owner = True
+        if durable_worker_owner:
+            worker_recovery_workspace.lifecycle_reservations.release_standalone_worker(
+                _WORKER_TASK_ID,
+                durable_worker_owner,
+            )
+        provider_calls_during_worker_ownership_restart = (
+            len(request_events) - calls_before_worker_ownership_restart
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        worker_recovery_workspace.close()
+
     retirement: RemoteOperationLeaseRetirement | None = None
     durable_retirement: RemoteOperationLeaseRetirement | None = None
     disposition_after_retirement: RemoteOperationDisposition | None = None
@@ -499,6 +550,14 @@ def run_openai_background_reconciliation_live(
         "provider_calls_during_lifecycle_reservation_restart": (
             provider_calls_during_lifecycle_reservation_restart
         ),
+        "durable_worker_ownership_reloaded": durable_worker_ownership_reloaded,
+        "conflicting_lifecycle_action_blocked_by_recovered_worker": (
+            conflicting_lifecycle_action_blocked_by_recovered_worker
+        ),
+        "worker_release_requires_exact_owner": worker_release_requires_exact_owner,
+        "provider_calls_during_worker_ownership_restart": (
+            provider_calls_during_worker_ownership_restart
+        ),
         "explicit_private_lease_retirement": retirement_json,
         "durable_private_lease_retirement": durable_retirement_json,
         "provider_calls_during_retirement": provider_calls_during_retirement,
@@ -553,6 +612,10 @@ def run_openai_background_reconciliation_live(
         and durable_lifecycle_reservation_reloaded
         and conflicting_lifecycle_action_blocked_after_restart
         and provider_calls_during_lifecycle_reservation_restart == 0
+        and durable_worker_ownership_reloaded
+        and conflicting_lifecycle_action_blocked_by_recovered_worker
+        and worker_release_requires_exact_owner
+        and provider_calls_during_worker_ownership_restart == 0
         and provider_calls_during_retirement == 0
         and retirement_matches_disposition
         and private_lease_absent_after_retirement

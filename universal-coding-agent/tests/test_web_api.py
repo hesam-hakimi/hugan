@@ -27,6 +27,8 @@ from universal_coding_agent.providers.fake import FakeModelProvider
 from universal_coding_agent.web.app import (
     RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
     ProductWebRuntime,
+    ProgramExecutionStartRequest,
+    SafeTaskStartRequest,
     create_product_app,
     is_loopback_host,
 )
@@ -670,6 +672,24 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         } == {"local_worker_active"}
         runtime._program_execution_runs.pop(program_id)
 
+        worker_owner = workspace.lifecycle_reservations.reserve_program_worker(program_id)
+        try:
+            recovered_worker_inventory = client.get(
+                "/api/remote-operations/retained-leases"
+            )
+            assert recovered_worker_inventory.status_code == 200
+            assert {
+                reason["code"]
+                for reason in recovered_worker_inventory.json()["items"][0][
+                    "eligibility_reasons"
+                ]
+            } == {"local_worker_active"}
+        finally:
+            workspace.lifecycle_reservations.release_program_worker(
+                program_id,
+                worker_owner,
+            )
+
         runtime._begin_program_control_action(program_id)
         try:
             program_control_inventory = client.get(
@@ -1019,6 +1039,110 @@ def test_runtime_lifecycle_reservations_serialize_across_reopened_workspaces(
         with pytest.raises(ValueError, match="Program control action"):
             first_runtime._begin_remote_operation_action(binding.task_id)
         second_runtime._end_program_control_action(program_id)
+    finally:
+        first_runtime.close()
+        second_runtime.close()
+
+
+def test_runtime_worker_ownership_blocks_cross_runtime_lifecycle_action(
+    tmp_path: Path,
+) -> None:
+    class DeferredExecutor:
+        def submit(self, *_args, **_kwargs):
+            return None
+
+        def shutdown(self, **_kwargs) -> None:
+            return None
+
+    product_root = tmp_path / "product"
+    first_workspace = ProductWorkspace.create(product_root, _provider())
+    second_workspace = ProductWorkspace.create(product_root, _provider())
+    first_runtime = ProductWebRuntime(
+        workspace=first_workspace,
+        state_root=tmp_path / "runtime-first",
+        executor=DeferredExecutor(),
+    )
+    second_runtime = ProductWebRuntime(
+        workspace=second_workspace,
+        state_root=tmp_path / "runtime-second",
+        executor=DeferredExecutor(),
+    )
+    task_id = "task-cross-runtime-worker"
+
+    try:
+        first_runtime.start_safe_task(
+            SafeTaskStartRequest(
+                task_id=task_id,
+                thread_id="thread-cross-runtime-worker",
+                title="Cross-runtime worker",
+                objective="Prove durable worker ownership blocks lifecycle actions.",
+                repository="https://example.test/repository.git",
+                ref="main",
+                policy=_policy(),
+                test_profiles=("trusted-contract",),
+            )
+        )
+        assert first_workspace.lifecycle_reservations.snapshot().worker_task_ids == {
+            task_id
+        }
+        with pytest.raises(ValueError, match="local worker"):
+            second_runtime._begin_remote_operation_action(task_id)
+
+        first_runtime._release_standalone_worker_ownership(task_id)
+        second_runtime._begin_remote_operation_action(task_id)
+        with pytest.raises(ValueError, match="remote-operation lifecycle action"):
+            first_workspace.lifecycle_reservations.reserve_standalone_worker(task_id)
+        second_runtime._end_remote_operation_action(task_id)
+    finally:
+        first_runtime.close()
+        second_runtime.close()
+
+
+def test_runtime_program_worker_blocks_cross_runtime_program_control(
+    tmp_path: Path,
+) -> None:
+    class DeferredExecutor:
+        def submit(self, *_args, **_kwargs):
+            return None
+
+        def shutdown(self, **_kwargs) -> None:
+            return None
+
+    product_root = tmp_path / "product"
+    first_workspace = ProductWorkspace.create(product_root, _provider())
+    program_id = "program-cross-runtime-worker"
+    requirement_hash = _approved_program(first_workspace, program_id)
+    second_workspace = ProductWorkspace.create(product_root, _provider())
+    first_runtime = ProductWebRuntime(
+        workspace=first_workspace,
+        state_root=tmp_path / "runtime-first",
+        executor=DeferredExecutor(),
+    )
+    second_runtime = ProductWebRuntime(
+        workspace=second_workspace,
+        state_root=tmp_path / "runtime-second",
+        executor=DeferredExecutor(),
+    )
+
+    try:
+        first_runtime.start_next_program_execution(
+            program_id,
+            ProgramExecutionStartRequest(
+                current_requirement_hash=requirement_hash,
+                repository="https://example.test/repository.git",
+                ref="main",
+                policy=_policy(),
+                test_profiles=("trusted-contract",),
+            ),
+        )
+        assert first_workspace.lifecycle_reservations.snapshot().worker_program_ids == {
+            program_id
+        }
+        with pytest.raises(ValueError, match="local worker"):
+            second_runtime.control_program(program_id, "pause", reason="test")
+
+        first_runtime._release_program_worker_ownership(program_id)
+        second_runtime.control_program(program_id, "pause", reason="test")
     finally:
         first_runtime.close()
         second_runtime.close()
