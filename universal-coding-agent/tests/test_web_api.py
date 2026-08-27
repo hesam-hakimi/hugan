@@ -1232,3 +1232,83 @@ def test_admin_recovery_blocks_same_runtime_owner(tmp_path: Path) -> None:
         runtime._standalone_worker_tokens.clear()
         runtime._runs.clear()
         workspace.lifecycle_reservations.release_standalone_worker(task_id, owner)
+
+
+def test_admin_recovery_inventory_has_independent_bounded_keyset_pages(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    runtime = ProductWebRuntime(workspace=workspace, state_root=tmp_path / "runtime")
+    owners = [
+        workspace.lifecycle_reservations.reserve_standalone_worker(
+            f"task-recovery-page-{index:03d}"
+        )
+        for index in range(4)
+    ]
+    initial = workspace.lifecycle_reservations.recovery_page(
+        candidate_limit=4,
+        receipt_limit=0,
+    )
+    for candidate in initial.candidates[:2]:
+        workspace.lifecycle_reservations.recover(
+            target_type=candidate.target_type,
+            target_kind=candidate.target_kind,
+            scope_id=candidate.scope_id,
+            recovery_ref=candidate.recovery_ref,
+            reason=f"Verified stopped for {candidate.scope_id}.",
+            confirmed=True,
+        )
+
+    with TestClient(create_product_app(runtime)) as client:
+        first = client.get(
+            "/api/admin/lifecycle-recovery",
+            params={"candidate_limit": 1, "receipt_limit": 1},
+        )
+        assert first.status_code == 200
+        payload = first.json()
+        assert payload["bounded_read"] is True
+        assert payload["candidate_returned_count"] == 1
+        assert payload["receipt_returned_count"] == 1
+        assert payload["candidate_has_more"] is True
+        assert payload["receipt_has_more"] is True
+        assert payload["next_candidate_cursor"]
+        assert payload["next_receipt_cursor"]
+        assert payload["field_limits"]["candidate_limit_max"] == 100
+        assert not any(owner in first.text for owner in owners)
+
+        candidate_next = client.get(
+            "/api/admin/lifecycle-recovery",
+            params={
+                "candidate_after": payload["next_candidate_cursor"],
+                "candidate_limit": 1,
+                "receipt_limit": 0,
+            },
+        ).json()
+        receipt_next = client.get(
+            "/api/admin/lifecycle-recovery",
+            params={
+                "receipt_after": payload["next_receipt_cursor"],
+                "candidate_limit": 0,
+                "receipt_limit": 1,
+            },
+        ).json()
+        assert candidate_next["candidate_returned_count"] == 1
+        assert candidate_next["receipt_returned_count"] == 0
+        assert candidate_next["candidate_has_more"] is False
+        assert receipt_next["candidate_returned_count"] == 0
+        assert receipt_next["receipt_returned_count"] == 1
+        assert receipt_next["receipt_has_more"] is False
+
+        wrong_stream = client.get(
+            "/api/admin/lifecycle-recovery",
+            params={"receipt_after": payload["next_candidate_cursor"]},
+        )
+        assert wrong_stream.status_code == 400
+        assert client.get(
+            "/api/admin/lifecycle-recovery",
+            params={"candidate_after": "not-a-valid-cursor"},
+        ).status_code == 400
+        assert client.get(
+            "/api/admin/lifecycle-recovery",
+            params={"candidate_limit": 101},
+        ).status_code == 422

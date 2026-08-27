@@ -275,6 +275,20 @@ export type LifecycleRecoverySnapshot = {
   schema_version: "1";
   candidates: LifecycleRecoveryCandidate[];
   recoveries: LifecycleRecoveryReceipt[];
+  candidate_returned_count: number;
+  receipt_returned_count: number;
+  candidate_has_more: boolean;
+  receipt_has_more: boolean;
+  next_candidate_cursor: string;
+  next_receipt_cursor: string;
+  bounded_read: true;
+  field_limits: {
+    candidate_limit_max: 100;
+    receipt_limit_max: 100;
+    identity_max_length: 128;
+    reason_max_length: 2000;
+    cursor_max_length: 512;
+  };
   ttl_enabled: false;
   automatic_cleanup_enabled: false;
   provider_calls_made: 0;

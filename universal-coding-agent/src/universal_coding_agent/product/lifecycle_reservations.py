@@ -50,6 +50,16 @@ class LifecycleRecoveryReceipt:
     audit_ref: str
 
 
+@dataclass(frozen=True)
+class LifecycleRecoveryPage:
+    candidates: tuple[LifecycleRecoveryCandidate, ...]
+    receipts: tuple[LifecycleRecoveryReceipt, ...]
+    candidate_has_more: bool
+    receipt_has_more: bool
+    next_candidate_key: tuple[str, str, str] | None
+    next_receipt_key: tuple[str, str] | None
+
+
 class DurableLifecycleReservationStore:
     """Fail-closed cross-runtime serialization for lifecycle actions and workers.
 
@@ -408,43 +418,108 @@ class DurableLifecycleReservationStore:
     def recovery_snapshot(
         self,
     ) -> tuple[tuple[LifecycleRecoveryCandidate, ...], tuple[LifecycleRecoveryReceipt, ...]]:
+        page = self.recovery_page(candidate_limit=100, receipt_limit=100)
+        if page.candidate_has_more or page.receipt_has_more:
+            raise ValueError("durable lifecycle recovery snapshot exceeds bounded limit")
+        return page.candidates, page.receipts
+
+    def recovery_page(
+        self,
+        *,
+        candidate_after: tuple[str, str, str] | None = None,
+        receipt_after: tuple[str, str] | None = None,
+        candidate_limit: int = 25,
+        receipt_limit: int = 25,
+    ) -> LifecycleRecoveryPage:
+        if (
+            not isinstance(candidate_limit, int)
+            or isinstance(candidate_limit, bool)
+            or candidate_limit < 0
+            or candidate_limit > 100
+        ):
+            raise ValueError("lifecycle recovery candidate limit must be between 0 and 100")
+        if (
+            not isinstance(receipt_limit, int)
+            or isinstance(receipt_limit, bool)
+            or receipt_limit < 0
+            or receipt_limit > 100
+        ):
+            raise ValueError("lifecycle recovery receipt limit must be between 0 and 100")
+        candidate_key = self._validate_candidate_key(candidate_after)
+        receipt_key = self._validate_receipt_key(receipt_after)
         with self._lock:
             try:
-                reservation_rows = self.connection.execute(
-                    """
-                    SELECT reservation_kind, scope_id, task_id, program_id,
-                           owner_token, created_at
-                    FROM lifecycle_reservations
-                    ORDER BY created_at, reservation_kind, scope_id
-                    """
-                ).fetchall()
-                worker_rows = self.connection.execute(
-                    """
-                    SELECT worker_kind, scope_id, task_id, program_id,
-                           owner_token, created_at
-                    FROM lifecycle_worker_ownership
-                    ORDER BY created_at, worker_kind, scope_id
-                    """
-                ).fetchall()
-                receipt_rows = self.connection.execute(
-                    """
-                    SELECT target_type, target_kind, scope_id, task_id, program_id,
-                           created_at, recovery_ref, reason, recovered_at, audit_ref
-                    FROM lifecycle_recovery_receipts
-                    ORDER BY recovered_at, recovery_ref
-                    """
-                ).fetchall()
-                self._validate_rows(reservation_rows)
-                self._validate_worker_rows(worker_rows)
+                self._ensure_recovery_field_bounds()
+                candidate_rows = (
+                    self.connection.execute(
+                        """
+                        SELECT target_type, target_kind, scope_id, task_id,
+                               program_id, owner_token, created_at
+                        FROM (
+                            SELECT 'reservation' AS target_type,
+                                   reservation_kind AS target_kind,
+                                   scope_id, task_id, program_id, owner_token, created_at
+                            FROM lifecycle_reservations
+                            UNION ALL
+                            SELECT 'worker_ownership' AS target_type,
+                                   worker_kind AS target_kind,
+                                   scope_id, task_id, program_id, owner_token, created_at
+                            FROM lifecycle_worker_ownership
+                        )
+                        WHERE (target_type, target_kind, scope_id) > (?, ?, ?)
+                        ORDER BY target_type, target_kind, scope_id
+                        LIMIT ?
+                        """,
+                        (*candidate_key, candidate_limit + 1),
+                    ).fetchall()
+                    if candidate_limit
+                    else []
+                )
+                receipt_rows = (
+                    self.connection.execute(
+                        """
+                        SELECT target_type, target_kind, scope_id, task_id, program_id,
+                               created_at, recovery_ref, reason, recovered_at, audit_ref
+                        FROM lifecycle_recovery_receipts
+                        WHERE (recovered_at, recovery_ref) > (?, ?)
+                        ORDER BY recovered_at, recovery_ref
+                        LIMIT ?
+                        """,
+                        (*receipt_key, receipt_limit + 1),
+                    ).fetchall()
+                    if receipt_limit
+                    else []
+                )
+                candidate_has_more = len(candidate_rows) > candidate_limit
+                receipt_has_more = len(receipt_rows) > receipt_limit
+                candidate_rows = candidate_rows[:candidate_limit]
+                receipt_rows = receipt_rows[:receipt_limit]
+                candidates = tuple(
+                    self._candidate_from_typed_row(row) for row in candidate_rows
+                )
                 receipts = tuple(self._receipt_from_row(row) for row in receipt_rows)
             except (sqlite3.DatabaseError, ValueError) as exc:
                 raise ValueError("durable lifecycle recovery state is unavailable") from exc
-        candidates = tuple(
-            self._candidate_from_row("reservation", row) for row in reservation_rows
-        ) + tuple(
-            self._candidate_from_row("worker_ownership", row) for row in worker_rows
+        return LifecycleRecoveryPage(
+            candidates=candidates,
+            receipts=receipts,
+            candidate_has_more=candidate_has_more,
+            receipt_has_more=receipt_has_more,
+            next_candidate_key=(
+                (
+                    candidates[-1].target_type,
+                    candidates[-1].target_kind,
+                    candidates[-1].scope_id,
+                )
+                if candidate_has_more and candidates
+                else None
+            ),
+            next_receipt_key=(
+                (receipts[-1].recovered_at, receipts[-1].recovery_ref)
+                if receipt_has_more and receipts
+                else None
+            ),
         )
-        return candidates, receipts
 
     def recover(
         self,
@@ -471,6 +546,7 @@ class DurableLifecycleReservationStore:
             raise ValueError("lifecycle recovery reason must be between 1 and 2000 characters")
 
         with self._transaction():
+            self._ensure_recovery_field_bounds()
             existing = self.connection.execute(
                 """
                 SELECT target_type, target_kind, scope_id, task_id, program_id,
@@ -651,6 +727,120 @@ class DurableLifecycleReservationStore:
         return "lifecycle_worker_ownership", "worker_kind"
 
     @classmethod
+    def _candidate_from_typed_row(
+        cls,
+        row: tuple[object, ...],
+    ) -> LifecycleRecoveryCandidate:
+        if len(row) != 7 or not isinstance(row[0], str):
+            raise ValueError("invalid lifecycle recovery candidate row")
+        target_type = row[0]
+        candidate_row = row[1:]
+        if target_type == "reservation":
+            cls._validate_rows([candidate_row])
+        elif target_type == "worker_ownership":
+            cls._validate_worker_rows([candidate_row])
+        else:
+            raise ValueError("invalid lifecycle recovery candidate target")
+        return cls._candidate_from_row(target_type, candidate_row)
+
+    @classmethod
+    def _validate_candidate_key(
+        cls,
+        key: tuple[str, str, str] | None,
+    ) -> tuple[str, str, str]:
+        if key is None:
+            return "", "", ""
+        if (
+            not isinstance(key, tuple)
+            or len(key) != 3
+            or not all(isinstance(value, str) for value in key)
+        ):
+            raise ValueError("invalid lifecycle recovery candidate cursor")
+        target_type, target_kind, scope_id = key
+        allowed = _KINDS if target_type == "reservation" else _WORKER_KINDS
+        if target_type not in {"reservation", "worker_ownership"} or target_kind not in allowed:
+            raise ValueError("invalid lifecycle recovery candidate cursor")
+        cls._validate_identity(scope_id, "scope_id")
+        return key
+
+    @staticmethod
+    def _validate_receipt_key(
+        key: tuple[str, str] | None,
+    ) -> tuple[str, str]:
+        if key is None:
+            return "", ""
+        if (
+            not isinstance(key, tuple)
+            or len(key) != 2
+            or not all(isinstance(value, str) for value in key)
+        ):
+            raise ValueError("invalid lifecycle recovery receipt cursor")
+        recovered_at, recovery_ref = key
+        if len(recovered_at) > 64 or not re.fullmatch(
+            r"sha256:[0-9a-f]{64}", recovery_ref
+        ):
+            raise ValueError("invalid lifecycle recovery receipt cursor")
+        try:
+            datetime.fromisoformat(recovered_at)
+        except ValueError as exc:
+            raise ValueError("invalid lifecycle recovery receipt cursor") from exc
+        return key
+
+    def _ensure_recovery_field_bounds(self) -> None:
+        checks = (
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM lifecycle_reservations
+                WHERE typeof(reservation_kind) != 'text'
+                   OR length(reservation_kind) NOT BETWEEN 1 AND 32
+                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+                   OR typeof(task_id) != 'text' OR length(task_id) > 128
+                   OR typeof(program_id) != 'text' OR length(program_id) > 128
+                   OR typeof(owner_token) != 'text' OR length(owner_token) != 32
+                   OR typeof(created_at) != 'text'
+                   OR length(created_at) NOT BETWEEN 1 AND 64
+            )
+            """,
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM lifecycle_worker_ownership
+                WHERE typeof(worker_kind) != 'text'
+                   OR length(worker_kind) NOT BETWEEN 1 AND 32
+                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+                   OR typeof(task_id) != 'text' OR length(task_id) > 128
+                   OR typeof(program_id) != 'text' OR length(program_id) > 128
+                   OR typeof(owner_token) != 'text' OR length(owner_token) != 32
+                   OR typeof(created_at) != 'text'
+                   OR length(created_at) NOT BETWEEN 1 AND 64
+            )
+            """,
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM lifecycle_recovery_receipts
+                WHERE typeof(recovery_ref) != 'text' OR length(recovery_ref) != 71
+                   OR typeof(target_type) != 'text'
+                   OR length(target_type) NOT BETWEEN 1 AND 32
+                   OR typeof(target_kind) != 'text'
+                   OR length(target_kind) NOT BETWEEN 1 AND 32
+                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+                   OR typeof(task_id) != 'text' OR length(task_id) > 128
+                   OR typeof(program_id) != 'text' OR length(program_id) > 128
+                   OR typeof(created_at) != 'text'
+                   OR length(created_at) NOT BETWEEN 1 AND 64
+                   OR typeof(reason) != 'text' OR length(reason) NOT BETWEEN 1 AND 2000
+                   OR typeof(recovered_at) != 'text'
+                   OR length(recovered_at) NOT BETWEEN 1 AND 64
+                   OR typeof(audit_ref) != 'text' OR length(audit_ref) != 71
+                   OR typeof(confirmed_by_operator) != 'integer'
+                   OR confirmed_by_operator != 1
+                   OR typeof(rows_recovered) != 'integer' OR rows_recovered != 1
+            )
+            """,
+        )
+        if any(self.connection.execute(query).fetchone()[0] for query in checks):
+            raise ValueError("lifecycle recovery field exceeds configured bounds")
+
+    @classmethod
     def _candidate_from_row(
         cls,
         target_type: str,
@@ -679,9 +869,9 @@ class DurableLifecycleReservationStore:
 
     @classmethod
     def _receipt_from_row(cls, row: tuple[object, ...]) -> LifecycleRecoveryReceipt:
-        if len(row) != 10:
+        if len(row) != 10 or not all(isinstance(value, str) for value in row):
             raise ValueError("invalid lifecycle recovery receipt")
-        receipt = LifecycleRecoveryReceipt(*(str(value) for value in row))
+        receipt = LifecycleRecoveryReceipt(*row)
         if receipt.target_type not in {"reservation", "worker_ownership"}:
             raise ValueError("invalid lifecycle recovery receipt")
         allowed_kinds = _KINDS if receipt.target_type == "reservation" else _WORKER_KINDS
@@ -731,44 +921,44 @@ class DurableLifecycleReservationStore:
     @classmethod
     def _validate_rows(cls, rows: list[tuple[object, ...]]) -> None:
         for row in rows:
-            if len(row) != 6:
+            if len(row) != 6 or not all(isinstance(value, str) for value in row):
                 raise ValueError("invalid durable lifecycle reservation row")
             kind, scope_id, task_id, program_id, owner_token, created_at = row
-            if kind not in _KINDS or not isinstance(created_at, str):
+            if kind not in _KINDS:
                 raise ValueError("invalid durable lifecycle reservation row")
-            cls._validate_identity(str(scope_id), "scope_id")
-            if not _OWNER_TOKEN.fullmatch(str(owner_token)):
+            cls._validate_identity(scope_id, "scope_id")
+            if not _OWNER_TOKEN.fullmatch(owner_token):
                 raise ValueError("invalid durable lifecycle reservation owner")
             try:
                 datetime.fromisoformat(created_at)
             except ValueError as exc:
                 raise ValueError("invalid durable lifecycle reservation timestamp") from exc
             if kind == "remote_operation":
-                cls._validate_identity(str(task_id), "task_id")
+                cls._validate_identity(task_id, "task_id")
                 if task_id != scope_id:
                     raise ValueError("invalid remote-operation lifecycle reservation")
                 if program_id:
-                    cls._validate_identity(str(program_id), "program_id")
+                    cls._validate_identity(program_id, "program_id")
             elif task_id or program_id != scope_id:
                 raise ValueError("invalid Program lifecycle reservation")
 
     @classmethod
     def _validate_worker_rows(cls, rows: list[tuple[object, ...]]) -> None:
         for row in rows:
-            if len(row) != 6:
+            if len(row) != 6 or not all(isinstance(value, str) for value in row):
                 raise ValueError("invalid durable lifecycle worker row")
             kind, scope_id, task_id, program_id, owner_token, created_at = row
-            if kind not in _WORKER_KINDS or not isinstance(created_at, str):
+            if kind not in _WORKER_KINDS:
                 raise ValueError("invalid durable lifecycle worker row")
-            cls._validate_identity(str(scope_id), "scope_id")
-            if not _OWNER_TOKEN.fullmatch(str(owner_token)):
+            cls._validate_identity(scope_id, "scope_id")
+            if not _OWNER_TOKEN.fullmatch(owner_token):
                 raise ValueError("invalid durable lifecycle worker owner")
             try:
                 datetime.fromisoformat(created_at)
             except ValueError as exc:
                 raise ValueError("invalid durable lifecycle worker timestamp") from exc
             if kind == "standalone_task":
-                cls._validate_identity(str(task_id), "task_id")
+                cls._validate_identity(task_id, "task_id")
                 if task_id != scope_id or program_id:
                     raise ValueError("invalid standalone lifecycle worker")
             elif task_id or program_id != scope_id:

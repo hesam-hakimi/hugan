@@ -451,6 +451,23 @@ TTL, heartbeat inference, startup cleanup, batch cleanup, automatic recovery, re
 claim, output consumption, graph resume, retry/replan, Task/Program outcome change, phase
 advancement, transport, active pause, publication, threshold, or aggregator change.
 
+P2.1c bounds the read side of that administrative surface without expanding its write authority.
+Candidates use a stable `(target_type, target_kind, scope_id)` keyset; immutable receipts use an
+independent `(recovered_at, recovery_ref)` keyset. The loopback API exposes only opaque, stream-bound
+continuation cursors and accepts independent limits from zero through 100, allowing React to load
+one stream without rereading or widening the other. Each page materializes at most `limit + 1` rows and
+returns explicit count, `has_more`, and next-cursor metadata. GET remains cache-disabled and makes
+no provider call or persistent mutation.
+
+Before any page or explicit recovery, SQLite performs global type and length checks using bounded
+metadata predicates. Oversized identity, timestamp, reason, hash, kind, ownership-token, or audit
+flag state fails closed even when the bad row falls outside the requested page. Selected rows still
+receive the existing semantic, timestamp, ownership, and audit-hash validation. The compatibility
+snapshot is capped at 100 rows per stream and rejects larger state rather than restoring an
+unbounded read. P2.1c changes no recovery confirmation, exact-row transaction, same-runtime block,
+provider behavior, Task/Program outcome, TTL policy, automatic cleanup, retry/replan, phase
+advancement, transport, active pause, publication, threshold, or live aggregator.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

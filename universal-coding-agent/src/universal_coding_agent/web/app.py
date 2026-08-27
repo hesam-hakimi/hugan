@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import base64
 import ipaddress
+import json
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -52,6 +54,58 @@ from universal_coding_agent.safety.sanitizer import sanitize_text
 from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded
 
 RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES = 256 * 1024
+LIFECYCLE_RECOVERY_PAGE_LIMIT = 100
+LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH = 512
+
+
+def _encode_lifecycle_recovery_cursor(kind: str, key: tuple[str, ...] | None) -> str:
+    if key is None:
+        return ""
+    payload = json.dumps(
+        {"version": "1", "kind": kind, "key": list(key)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _decode_lifecycle_recovery_cursor(
+    cursor: str,
+    *,
+    kind: str,
+    arity: int,
+) -> tuple[str, ...] | None:
+    if not cursor:
+        return None
+    if len(cursor) > LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH:
+        raise ValueError("lifecycle recovery cursor exceeds configured bounds")
+    try:
+        padding = "=" * (-len(cursor) % 4)
+        decoded = base64.b64decode(
+            cursor + padding,
+            altchars=b"-_",
+            validate=True,
+        )
+        if len(decoded) > LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH:
+            raise ValueError("lifecycle recovery cursor exceeds configured bounds")
+        payload = json.loads(decoded)
+    except ValueError as exc:
+        raise ValueError("invalid lifecycle recovery cursor") from exc
+    if (
+        not isinstance(payload, dict)
+        or set(payload) != {"version", "kind", "key"}
+        or payload.get("version") != "1"
+        or payload.get("kind") != kind
+    ):
+        raise ValueError("invalid lifecycle recovery cursor")
+    key = payload.get("key")
+    if (
+        not isinstance(key, list)
+        or len(key) != arity
+        or not all(isinstance(value, str) for value in key)
+    ):
+        raise ValueError("invalid lifecycle recovery cursor")
+    return tuple(key)
 
 
 class SearchRequest(BaseModel):
@@ -377,11 +431,23 @@ class ProductWebRuntime:
         )
         return inventory
 
-    def lifecycle_recovery_snapshot(self) -> dict[str, Any]:
+    def lifecycle_recovery_snapshot(
+        self,
+        *,
+        candidate_after: tuple[str, str, str] | None = None,
+        receipt_after: tuple[str, str] | None = None,
+        candidate_limit: int = 25,
+        receipt_limit: int = 25,
+    ) -> dict[str, Any]:
         with self._lock:
-            candidates, receipts = self.workspace.lifecycle_reservations.recovery_snapshot()
+            page = self.workspace.lifecycle_reservations.recovery_page(
+                candidate_after=candidate_after,
+                receipt_after=receipt_after,
+                candidate_limit=candidate_limit,
+                receipt_limit=receipt_limit,
+            )
             rendered_candidates = []
-            for candidate in candidates:
+            for candidate in page.candidates:
                 same_runtime_active = self._same_runtime_recovery_target_active(
                     candidate.target_type,
                     candidate.target_kind,
@@ -400,7 +466,27 @@ class ProductWebRuntime:
         return {
             "schema_version": "1",
             "candidates": rendered_candidates,
-            "recoveries": [self._recovery_receipt_payload(receipt) for receipt in receipts],
+            "recoveries": [
+                self._recovery_receipt_payload(receipt) for receipt in page.receipts
+            ],
+            "candidate_returned_count": len(rendered_candidates),
+            "receipt_returned_count": len(page.receipts),
+            "candidate_has_more": page.candidate_has_more,
+            "receipt_has_more": page.receipt_has_more,
+            "next_candidate_cursor": _encode_lifecycle_recovery_cursor(
+                "candidate", page.next_candidate_key
+            ),
+            "next_receipt_cursor": _encode_lifecycle_recovery_cursor(
+                "receipt", page.next_receipt_key
+            ),
+            "bounded_read": True,
+            "field_limits": {
+                "candidate_limit_max": LIFECYCLE_RECOVERY_PAGE_LIMIT,
+                "receipt_limit_max": LIFECYCLE_RECOVERY_PAGE_LIMIT,
+                "identity_max_length": 128,
+                "reason_max_length": 2000,
+                "cursor_max_length": LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH,
+            },
             "ttl_enabled": False,
             "automatic_cleanup_enabled": False,
             "provider_calls_made": 0,
@@ -1510,9 +1596,46 @@ def create_product_app(
         )
 
     @app.get("/api/admin/lifecycle-recovery")
-    def lifecycle_recovery_snapshot(response: Response) -> dict[str, Any]:
+    def lifecycle_recovery_snapshot(
+        response: Response,
+        candidate_after: str = Query(
+            default="",
+            max_length=LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH,
+            pattern=r"^[A-Za-z0-9_-]*$",
+        ),
+        receipt_after: str = Query(
+            default="",
+            max_length=LIFECYCLE_RECOVERY_CURSOR_MAX_LENGTH,
+            pattern=r"^[A-Za-z0-9_-]*$",
+        ),
+        candidate_limit: int = Query(default=25, ge=0, le=100),
+        receipt_limit: int = Query(default=25, ge=0, le=100),
+    ) -> dict[str, Any]:
         response.headers["Cache-Control"] = "no-store"
-        return runtime.lifecycle_recovery_snapshot()
+        candidate_key = _decode_lifecycle_recovery_cursor(
+            candidate_after,
+            kind="candidate",
+            arity=3,
+        )
+        receipt_key = _decode_lifecycle_recovery_cursor(
+            receipt_after,
+            kind="receipt",
+            arity=2,
+        )
+        return runtime.lifecycle_recovery_snapshot(
+            candidate_after=(
+                (candidate_key[0], candidate_key[1], candidate_key[2])
+                if candidate_key is not None
+                else None
+            ),
+            receipt_after=(
+                (receipt_key[0], receipt_key[1])
+                if receipt_key is not None
+                else None
+            ),
+            candidate_limit=candidate_limit,
+            receipt_limit=receipt_limit,
+        )
 
     @app.post("/api/admin/lifecycle-recovery")
     def recover_lifecycle_target(request: LifecycleRecoveryRequest) -> dict[str, Any]:

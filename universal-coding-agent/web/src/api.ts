@@ -197,8 +197,28 @@ export const api = {
       }`,
     ),
 
-  lifecycleRecovery: () =>
-    request<LifecycleRecoverySnapshot>("/api/admin/lifecycle-recovery"),
+  lifecycleRecovery: (
+    options: {
+      candidateAfter?: string;
+      receiptAfter?: string;
+      candidateLimit?: number;
+      receiptLimit?: number;
+    } = {},
+  ) => {
+    const parameters = new URLSearchParams({
+      candidate_limit: String(options.candidateLimit ?? 25),
+      receipt_limit: String(options.receiptLimit ?? 25),
+    });
+    if (options.candidateAfter) {
+      parameters.set("candidate_after", options.candidateAfter);
+    }
+    if (options.receiptAfter) {
+      parameters.set("receipt_after", options.receiptAfter);
+    }
+    return request<LifecycleRecoverySnapshot>(
+      `/api/admin/lifecycle-recovery?${parameters.toString()}`,
+    );
+  },
 
   recoverLifecycleTarget: (candidate: LifecycleRecoveryCandidate, reason: string) =>
     request<LifecycleRecoveryReceipt>("/api/admin/lifecycle-recovery", {

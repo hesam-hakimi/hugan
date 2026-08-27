@@ -218,6 +218,7 @@ assert DurableLifecycleReservationStore
 assert hasattr(DurableLifecycleReservationStore, "reserve_standalone_worker")
 assert hasattr(DurableLifecycleReservationStore, "reserve_program_worker")
 assert hasattr(DurableLifecycleReservationStore, "recovery_snapshot")
+assert hasattr(DurableLifecycleReservationStore, "recovery_page")
 assert hasattr(DurableLifecycleReservationStore, "recover")
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert run_program_execution_live
@@ -262,6 +263,7 @@ print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_IMPORT_PREFLIGHT_PASS")
 print("DURABLE_LIFECYCLE_RESERVATION_IMPORT_PREFLIGHT_PASS")
 print("DURABLE_WORKER_OWNERSHIP_IMPORT_PREFLIGHT_PASS")
 print("EXPLICIT_LIFECYCLE_RECOVERY_IMPORT_PREFLIGHT_PASS")
+print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -311,6 +313,7 @@ echo "RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_PREFLIGHT_PASS"
 echo "DURABLE_LIFECYCLE_RESERVATION_PREFLIGHT_PASS"
 echo "DURABLE_WORKER_OWNERSHIP_PREFLIGHT_PASS"
 echo "EXPLICIT_LIFECYCLE_RECOVERY_PREFLIGHT_PASS"
+echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -337,6 +340,7 @@ echo "REMOTE_OPERATION_DISPOSITION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_UI_FRONTEND_PASS"
 echo "RETAINED_LEASE_INVENTORY_UI_FRONTEND_PASS"
 echo "EXPLICIT_LIFECYCLE_RECOVERY_UI_FRONTEND_PASS"
+echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -402,6 +406,8 @@ for marker in (
     "Lifecycle recovery",
     "Crash-left lifecycle ownership",
     "Recover selected lifecycle row",
+    "Load next candidate page",
+    "Load next receipt page",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -419,6 +425,8 @@ print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RETIREMENT_PROGRAM_ARTIFACT_LIMIT_HTTP_SMOKE_PASS")
 print("EXPLICIT_LIFECYCLE_RECOVERY_HTTP_SMOKE_PASS")
 print("EXPLICIT_LIFECYCLE_RECOVERY_UI_HTTP_SMOKE_PASS")
+print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_HTTP_SMOKE_PASS")
+print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

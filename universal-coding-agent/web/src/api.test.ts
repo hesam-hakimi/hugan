@@ -80,9 +80,40 @@ describe("Program execution API client", () => {
     await api.lifecycleRecovery();
 
     const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(request[0]).toBe("/api/admin/lifecycle-recovery");
+    expect(request[0]).toBe(
+      "/api/admin/lifecycle-recovery?candidate_limit=25&receipt_limit=25",
+    );
     expect(request[1].method).toBeUndefined();
     expect(request[1].body).toBeUndefined();
+  });
+
+  it("loads independent lifecycle recovery continuations without widening either page", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.lifecycleRecovery({
+      candidateAfter: "candidate_cursor",
+      candidateLimit: 25,
+      receiptLimit: 0,
+    });
+    await api.lifecycleRecovery({
+      receiptAfter: "receipt_cursor",
+      candidateLimit: 0,
+      receiptLimit: 25,
+    });
+
+    const candidateRequest = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const receiptRequest = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+    expect(candidateRequest[0]).toBe(
+      "/api/admin/lifecycle-recovery?candidate_limit=25&receipt_limit=0&candidate_after=candidate_cursor",
+    );
+    expect(receiptRequest[0]).toBe(
+      "/api/admin/lifecycle-recovery?candidate_limit=0&receipt_limit=25&receipt_after=receipt_cursor",
+    );
+    expect(candidateRequest[1].method).toBeUndefined();
+    expect(candidateRequest[1].body).toBeUndefined();
+    expect(receiptRequest[1].method).toBeUndefined();
+    expect(receiptRequest[1].body).toBeUndefined();
   });
 
   it("recovers exactly one lifecycle target only through a confirmed POST", async () => {

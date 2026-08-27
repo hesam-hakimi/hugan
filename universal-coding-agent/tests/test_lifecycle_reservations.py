@@ -421,3 +421,159 @@ def test_corrupt_recovery_receipt_fails_closed(tmp_path: Path) -> None:
             store.recovery_snapshot()
     finally:
         store.close()
+
+
+def test_recovery_pages_use_independent_stable_keysets(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    try:
+        for index in range(6):
+            store.reserve_standalone_worker(f"task-page-{index:03d}")
+
+        initial = store.recovery_page(candidate_limit=6, receipt_limit=0)
+        for candidate in initial.candidates[:4]:
+            store.recover(
+                target_type=candidate.target_type,
+                target_kind=candidate.target_kind,
+                scope_id=candidate.scope_id,
+                recovery_ref=candidate.recovery_ref,
+                reason=f"Verified stopped for {candidate.scope_id}.",
+                confirmed=True,
+            )
+
+        first = store.recovery_page(candidate_limit=1, receipt_limit=2)
+        assert len(first.candidates) == 1
+        assert len(first.receipts) == 2
+        assert first.candidate_has_more is True
+        assert first.receipt_has_more is True
+        assert first.next_candidate_key is not None
+        assert first.next_receipt_key is not None
+
+        second_candidates = store.recovery_page(
+            candidate_after=first.next_candidate_key,
+            candidate_limit=1,
+            receipt_limit=0,
+        )
+        second_receipts = store.recovery_page(
+            receipt_after=first.next_receipt_key,
+            candidate_limit=0,
+            receipt_limit=2,
+        )
+        candidate_refs = [
+            *(candidate.recovery_ref for candidate in first.candidates),
+            *(candidate.recovery_ref for candidate in second_candidates.candidates),
+        ]
+        receipt_refs = [
+            *(receipt.recovery_ref for receipt in first.receipts),
+            *(receipt.recovery_ref for receipt in second_receipts.receipts),
+        ]
+        assert len(candidate_refs) == len(set(candidate_refs)) == 2
+        assert len(receipt_refs) == len(set(receipt_refs)) == 4
+        assert second_candidates.candidate_has_more is False
+        assert second_candidates.receipts == ()
+        assert second_receipts.receipt_has_more is False
+        assert second_receipts.candidates == ()
+    finally:
+        store.close()
+
+
+@pytest.mark.parametrize(
+    ("arguments", "message"),
+    [
+        ({"candidate_limit": -1}, "candidate limit"),
+        ({"candidate_limit": 101}, "candidate limit"),
+        ({"candidate_limit": True}, "candidate limit"),
+        ({"receipt_limit": -1}, "receipt limit"),
+        ({"receipt_limit": 101}, "receipt limit"),
+        ({"receipt_limit": False}, "receipt limit"),
+        ({"candidate_after": ("reservation", "bad", "task-valid")}, "candidate cursor"),
+        (
+            {"candidate_after": ["reservation", "remote_operation", "task-valid"]},
+            "candidate cursor",
+        ),
+        ({"receipt_after": ("not-a-time", "sha256:" + "0" * 64)}, "receipt cursor"),
+        (
+            {
+                "receipt_after": [
+                    "2026-01-01T00:00:00+00:00",
+                    "sha256:" + "0" * 64,
+                ]
+            },
+            "receipt cursor",
+        ),
+    ],
+)
+def test_recovery_page_rejects_invalid_limits_and_keys(
+    tmp_path: Path,
+    arguments: dict[str, object],
+    message: str,
+) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    try:
+        with pytest.raises(ValueError, match=message):
+            store.recovery_page(**arguments)  # type: ignore[arg-type]
+    finally:
+        store.close()
+
+
+def test_compatibility_snapshot_fails_closed_above_hard_limit(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    try:
+        for index in range(101):
+            store.reserve_standalone_worker(f"task-snapshot-{index:03d}")
+        with pytest.raises(ValueError, match="exceeds bounded limit"):
+            store.recovery_snapshot()
+        page = store.recovery_page(candidate_limit=100, receipt_limit=0)
+        assert len(page.candidates) == 100
+        assert page.candidate_has_more is True
+        assert page.next_candidate_key is not None
+    finally:
+        store.close()
+
+
+def test_recovery_page_fails_closed_for_oversized_unreturned_row(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    try:
+        store.reserve_standalone_worker("task-bounded-001")
+        store.reserve_standalone_worker("task-bounded-002")
+        store.connection.execute(
+            "UPDATE lifecycle_worker_ownership SET created_at = ? WHERE scope_id = ?",
+            ("x" * 65, "task-bounded-002"),
+        )
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_page(candidate_limit=1, receipt_limit=0)
+    finally:
+        store.close()
+
+
+def test_recovery_and_paged_reads_fail_closed_for_oversized_receipt(
+    tmp_path: Path,
+) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    try:
+        store.reserve_standalone_worker(_TASK_ID)
+        candidate = store.recovery_page(candidate_limit=1, receipt_limit=0).candidates[0]
+        receipt = store.recover(
+            target_type=candidate.target_type,
+            target_kind=candidate.target_kind,
+            scope_id=candidate.scope_id,
+            recovery_ref=candidate.recovery_ref,
+            reason="Verified stopped.",
+            confirmed=True,
+        )
+        store.connection.execute(
+            "UPDATE lifecycle_recovery_receipts SET reason = ? WHERE recovery_ref = ?",
+            ("x" * 2001, receipt.recovery_ref),
+        )
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_page(candidate_limit=0, receipt_limit=1)
+        with pytest.raises(ValueError, match="field exceeds configured bounds"):
+            store.recover(
+                target_type=receipt.target_type,
+                target_kind=receipt.target_kind,
+                scope_id=receipt.scope_id,
+                recovery_ref=receipt.recovery_ref,
+                reason=receipt.reason,
+                confirmed=True,
+            )
+    finally:
+        store.close()

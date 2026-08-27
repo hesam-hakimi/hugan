@@ -42,6 +42,7 @@
 - [x] durable fail-closed lifecycle reservations shared across Product runtimes for remote-operation actions and Program controls, with restart persistence, ownership-checked release, and zero provider work;
 - [x] durable fail-closed ownership for Product Control Center standalone and Program execution workers, transactionally serialized with lifecycle actions across runtime processes;
 - [x] explicit audited administrative recovery for crash-left lifecycle reservations and worker ownership, with exact-row confirmation, immutable redacted receipts, and no TTL or automatic cleanup;
+- [x] independently bounded keyset pagination for lifecycle recovery candidates and receipts, with opaque cursors, fail-closed persisted-field limits, GET-only React continuation, and unchanged recovery authority;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

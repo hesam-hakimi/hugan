@@ -211,6 +211,44 @@ export default function App() {
     );
   }
 
+  function loadNextRecoveryCandidates() {
+    if (!lifecycleRecovery?.next_candidate_cursor) return;
+    void perform(
+      () => api.lifecycleRecovery({
+        candidateAfter: lifecycleRecovery.next_candidate_cursor,
+        candidateLimit: 25,
+        receiptLimit: 0,
+      }),
+      (page) => setLifecycleRecovery((current) => current ? {
+        ...current,
+        candidates: [...current.candidates, ...page.candidates],
+        candidate_returned_count: current.candidates.length + page.candidates.length,
+        candidate_has_more: page.candidate_has_more,
+        next_candidate_cursor: page.next_candidate_cursor,
+      } : page),
+      "The next bounded candidate page was loaded without provider work.",
+    );
+  }
+
+  function loadNextRecoveryReceipts() {
+    if (!lifecycleRecovery?.next_receipt_cursor) return;
+    void perform(
+      () => api.lifecycleRecovery({
+        receiptAfter: lifecycleRecovery.next_receipt_cursor,
+        candidateLimit: 0,
+        receiptLimit: 25,
+      }),
+      (page) => setLifecycleRecovery((current) => current ? {
+        ...current,
+        recoveries: [...current.recoveries, ...page.recoveries],
+        receipt_returned_count: current.recoveries.length + page.recoveries.length,
+        receipt_has_more: page.receipt_has_more,
+        next_receipt_cursor: page.next_receipt_cursor,
+      } : page),
+      "The next bounded receipt page was loaded without provider work.",
+    );
+  }
+
   function recoverLifecycleCandidate(candidate: LifecycleRecoveryCandidate) {
     const reason = recoveryReasons[candidate.recovery_ref]?.trim() ?? "";
     if (!reason || !candidate.eligible_for_recovery) return;
@@ -868,7 +906,8 @@ export default function App() {
                 </button>
               </div>
               <p>
-                Refresh is GET-only. A candidate is not proof that its owner crashed. Before any
+                Refresh and pagination are GET-only, independently bounded to 25 candidates and 25
+                receipts per request. A candidate is not proof that its owner crashed. Before any
                 recovery, verify outside UCA that the owning process is no longer running. There is
                 no TTL, heartbeat inference, startup cleanup, or automatic recovery.
               </p>
@@ -936,6 +975,16 @@ export default function App() {
               </article>
             ))}
 
+            {lifecycleRecovery?.candidate_has_more && (
+              <button
+                className="secondary"
+                onClick={loadNextRecoveryCandidates}
+                disabled={busy || !lifecycleRecovery.next_candidate_cursor}
+              >
+                Load next candidate page
+              </button>
+            )}
+
             {lifecycleRecovery && lifecycleRecovery.recoveries.length > 0 && (
               <article className="card executionPanel">
                 <div className="sectionHeading">
@@ -956,6 +1005,15 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+                {lifecycleRecovery.receipt_has_more && (
+                  <button
+                    className="secondary"
+                    onClick={loadNextRecoveryReceipts}
+                    disabled={busy || !lifecycleRecovery.next_receipt_cursor}
+                  >
+                    Load next receipt page
+                  </button>
+                )}
               </article>
             )}
 
