@@ -38,6 +38,7 @@
 - [x] explicit disposition-bound local retirement of one private opaque remote-operation lease, with an atomic redacted receipt, default retention, zero provider calls, and zero Task/Program outcome changes;
 - [x] bounded GET-only inventory and advisory eligibility preview for retained private leases already bound to durable dispositions, with redacted React review and no provider call or mutation;
 - [x] byte-bounded Program disposition and phase-report reads for retained-lease inventory eligibility, with a typed oversized-evidence blocker and unchanged retirement authority;
+- [x] byte-bounded Program disposition and phase-report revalidation for explicit private-lease retirement, failing closed before mutation with unchanged authority and outcomes;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

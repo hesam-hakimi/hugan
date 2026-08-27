@@ -378,11 +378,19 @@ typed `program_evidence_oversized` blocker and leaves the item ineligible; malfo
 bounded evidence continues to use `program_evidence_incomplete`.
 
 This limit does not apply to unrelated artifact consumers or alter the existing one-task
-retirement POST, which remains the authoritative revalidation and mutation path. An otherwise
-valid oversized Program report can therefore make the advisory preview ineligible while the
-explicit confirmed retirement action retains its prior behavior. P1.2k adds no provider call,
+retirement POST, which remains the authoritative revalidation and mutation path. P1.2k adds no provider call,
 mutation, lifecycle reservation, polling, automatic traversal, output recovery, resume/retry,
 Program advancement, new transport, active pause, publication, or deletion authority.
+
+P1.2l applies the same 256 KiB per-artifact bound to the Program disposition and phase-report
+reads performed by the explicit retirement POST under its existing lifecycle reservation. Either
+oversized artifact now fails closed before the private-store retirement transaction, so no lease
+row or receipt is changed. Standalone retirement performs no Program artifact read. With valid
+bounded Program evidence, confirmation, revalidation, receipt creation, and one-row retirement
+retain their prior behavior and still make zero provider calls and zero Task/Program outcome
+changes. P1.2l changes no API schema, retirement authority, provider facade, inventory semantics,
+automatic action, output recovery, resume/retry, Program advancement, transport, active pause,
+publication, or deletion/erasure claim.
 
 ## Context management
 

@@ -203,6 +203,7 @@ from universal_coding_agent.web import ProductWebRuntime, create_product_app
 from universal_coding_agent.web.app import (
     ProgramExecutionContinueRequest,
     ProgramExecutionStartRequest,
+    RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
     RemoteOperationDispositionRequest,
     RemoteOperationLeaseRetirementRequest,
 )
@@ -229,6 +230,7 @@ assert RemoteOperationLeaseRetirementEligibilityCode
 assert RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_OVERSIZED.value == "program_evidence_oversized"
 assert RetainedRemoteOperationLeaseInventory and RetainedRemoteOperationLeaseInventoryItem
 assert ArtifactSizeLimitExceeded and hasattr(ArtifactStore, "read_json_bounded")
+assert RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES == 256 * 1024
 assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 assert RemoteOperationDispositionRequest
@@ -391,6 +393,7 @@ print("REMOTE_OPERATION_LEASE_RETIREMENT_UI_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_INVENTORY_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_INVENTORY_UI_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_UI_HTTP_SMOKE_PASS")
+print("REMOTE_OPERATION_RETIREMENT_PROGRAM_ARTIFACT_LIMIT_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

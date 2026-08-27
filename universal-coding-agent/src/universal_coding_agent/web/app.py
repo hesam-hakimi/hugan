@@ -608,7 +608,10 @@ class ProductWebRuntime:
                 raise ValueError(
                     "task control state does not match the durable disposition"
                 )
-            self._validate_program_retirement_evidence(disposition)
+            self._validate_program_retirement_evidence(
+                disposition,
+                artifact_max_bytes=RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
+            )
             retirement = self.workspace.remote_operations.retire(
                 disposition,
                 reason=reason,

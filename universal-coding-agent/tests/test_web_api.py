@@ -746,6 +746,17 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
             ]
         } == {"program_evidence_oversized"}
         assert response_id not in oversized_disposition_inventory.text
+        oversized_disposition_retirement = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/retire",
+            json={
+                "disposition_audit_ref": disposition["audit_ref"],
+                "reason": "Oversized Program disposition evidence must fail closed.",
+                "confirmed": True,
+            },
+        )
+        assert oversized_disposition_retirement.status_code == 400
+        assert workspace.remote_operations.private_lease(binding.task_id) is not None
+        assert workspace.remote_operations.retirement(binding.task_id) is None
         workspace.artifacts.write_json(
             persisted.remote_disposition_ref.removeprefix("artifact://"),
             artifact,
@@ -770,8 +781,21 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
             ]
         } == {"program_evidence_oversized"}
         assert response_id not in oversized_report_inventory.text
-        # Keep the otherwise-valid oversized report in place. The existing
-        # retirement POST remains authoritative and intentionally unbounded.
+        oversized_report_retirement = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/retire",
+            json={
+                "disposition_audit_ref": disposition["audit_ref"],
+                "reason": "Oversized Program phase evidence must fail closed.",
+                "confirmed": True,
+            },
+        )
+        assert oversized_report_retirement.status_code == 400
+        assert workspace.remote_operations.private_lease(binding.task_id) is not None
+        assert workspace.remote_operations.retirement(binding.task_id) is None
+        workspace.artifacts.write_json(
+            persisted.phase_report_ref.removeprefix("artifact://"),
+            repaired_report,
+        )
 
         control_before_retirement = workspace.control.get_task(binding.task_id)
         binding_before_retirement = workspace.programs.execution_binding(binding.task_id)
@@ -783,7 +807,7 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         report_before_retirement = workspace.artifacts.read_json(
             binding_before_retirement.phase_report_ref
         )
-        assert report_before_retirement["oversized_padding"] == oversized_padding
+        assert report_before_retirement == repaired_report
         starts_before_retirement = tuple(executor.starts)
         resumes_before_retirement = tuple(executor.resumes)
         workspace.programs.connection.execute(
@@ -837,8 +861,16 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         release_retirement = Event()
         original_validate_retirement = runtime._validate_program_retirement_evidence
 
-        def hold_after_program_validation(disposition_model):
-            result = original_validate_retirement(disposition_model)
+        def hold_after_program_validation(
+            disposition_model,
+            *,
+            artifact_max_bytes=None,
+        ):
+            assert artifact_max_bytes == RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES
+            result = original_validate_retirement(
+                disposition_model,
+                artifact_max_bytes=artifact_max_bytes,
+            )
             validation_finished.set()
             if not release_retirement.wait(timeout=5):
                 raise AssertionError("retirement qualification barrier timed out")
