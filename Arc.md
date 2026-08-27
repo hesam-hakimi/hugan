@@ -1,667 +1,583 @@
-TASK: HF1_V2_MIGRATE_AGENT_GOVERNANCE_TO_NATIVE_CLAUDE_HARNESS
+TASK: PHASE_2F1_RECIPE_LIFECYCLE_CLASSIFICATION_IMPLEMENTATION
 
-Work only inside:
+Implement the separately authorized AskAlpha/KMAI Phase 2F.1 scope.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+This task authorizes:
 
-Execution context:
+* creation of one dedicated Phase 2F.1 branch and permanent worktree;
+* implementation of exactly the ten-file required plan;
+* repeated safe test/fix cycles until all required gates pass;
+* exactly one local implementation commit;
+* exactly one implementation report outside the repository.
 
-* local VS Code environment;
-* Session Target: Claude, the fourth harness option;
-* built-in claude agent;
-* Claude Opus 5 with Max reasoning;
-* current workspace Folder, not a new Git worktree;
-* exactly one open workspace root;
-* Bypass Permissions may be enabled, but it grants authority only within this
-    prompt.
-
-The Agent/Governance Framework was implemented primarily under .github/**.
-After VS Code reload, the Claude Agent picker still showed only:
-
-* claude;
-* claude-code-guide;
-* Explore;
-* Plan.
-
-It did not show:
-
-* etl-hotfix-implementer;
-* etl-independent-reviewer;
-* etl-release-verifier.
-
-Therefore actual Claude Harness activation has failed.
-
-The reported REGISTRY_ACTIVE_AGENT_COUNT: 3 proves only registration in the
-custom process manifest. It does not prove discovery by the Claude Agent SDK.
-
-This task must migrate the active Framework customizations to their native Claude
-locations, update every authoritative reference, and validate the migrated static
-state.
-
-Do not start Repair 13.
-
-Do not certify this migration as runtime-active from the implementation session.
-A VS Code reload and a fresh Claude activation check will be required afterward.
+This task does not authorize push, PR creation, merge, deployment, runtime flag enablement, workflow execution, or any deferred Phase 2F work.
 
 ==================================================
 
-1. EXPECTED IDENTITY
+1. AUTHORITATIVE DISCOVERY REPORT
     ==================================================
 
-Required:
+Before implementation, read this report completely:
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+It must:
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+* exist;
+* end with PHASE_2F1_DISCOVERY_COMPLETE;
+* recommend Option A;
+* state NO_ADDITIONAL_PRODUCT_DECISION_REQUIRED;
+* specify exactly 10 required files: 4 added and 6 modified.
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Treat its Sections 7–16 as the authoritative implementation contract.
 
-SOURCE_VERSION:
-0.3.144
+Also read completely:
 
-Also require:
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_MERGE_2026-08-26.md
 
-* exactly one workspace root;
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json absent;
-* existing 0.3.144 VSIX preserved;
-* no concurrent Agent mutation;
-* Repair 13 not started.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKTD_PHASE_2E_PR17_POSTMERGE_REVERIFICATION_2026-08-26.md
 
-Prove real execution for cmd.exe, git.exe, node.exe, and npm.cmd or its exact
-underlying command.
-
-If inline process capture is defective, use a task-owned helper under the
-operating-system temporary directory. Do not modify the repository to repair
-execution.
-
-Stop without changes on any mismatch:
-
-CLAUDE_NATIVE_MIGRATION_RESULT: BLOCKED_IDENTITY
-
-or:
-
-CLAUDE_NATIVE_MIGRATION_RESULT: BLOCKED_EXECUTION_ENVIRONMENT
+Do not modify any of these reports.
 
 ==================================================
-2. INDEPENDENT PRE-MIGRATION SNAPSHOT
+2. PRE-MUTATION WORKSPACE AND LIVE-BASE GATE
 
-The repository has a large pre-existing dirty and untracked overlay.
+Start from the permanent Phase 2E worktree:
 
-Before editing, capture an independent OS-level and Git snapshot of:
+Logical application root:
 
-* every tracked-modified path and hash;
-* every tracked-deleted path;
-* every non-ignored untracked path and hash;
-* staged and stash state;
-* .github/agents/**;
-* .github/skills/**;
-* .github/instructions/**;
-* .github/prompts/**;
-* .github/templates/**;
-* .github/agent-governance/**;
-* .github/workflows/validate-agent-governance.yml;
-* .claude/**, if currently present;
-* root CLAUDE.md;
-* root AGENTS.md, if present;
-* .github/copilot-instructions.md;
-* scripts/agent-governance/**;
-* package.json;
-* src/test/testPatterns.ts;
-* all Repair 12 production/test paths;
-* all eleven src/**/AGENT.md files;
-* protected 0.3.144 VSIX files.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2e-governed-field-records/kmai-td-genie
 
-Store all task helpers, snapshots, logs, and backups only in a unique operating-
-system temporary directory.
+The equivalent /app1 physical path is acceptable only when realpath proves identity.
 
-Because the source files may be untracked, preserve their complete pre-migration
-bytes in that temporary backup before moving or deleting them.
+Before any mutation, verify:
 
-Do not use the Governance Framework’s own baseline tool as the sole baseline
-authority.
+* pwd;
+* pwd -P;
+* logical-root realpath;
+* Git top-level;
+* Git common directory;
+* origin identity;
+* current branch;
+* local HEAD;
+* local tree;
+* complete porcelain status, including untracked files;
+* existing worktree inventory;
+* absence of target branch/path collisions.
 
-==================================================
-3. READ AND CLASSIFY BEFORE MOVING
+Required source identity:
 
-Read completely:
+* Repository: TD-Enterprise/kmai-td-genie
+* Phase 2E branch: phase2/governed-field-records
+* accepted Phase 2E head:
+    0430613e6a9f1680338d8fc099e7960e5d46cac2
+* accepted tree:
+    6448dac5be9dee275598e054f505517a215b484b
+* current accepted main:
+    f283f01b6d615f9fa00debcef959d9c5c86a3224
+* first merge parent:
+    409fed3fb98fc87547a7d05a68292fc28c3c1e7c
+* second merge parent:
+    0430613e6a9f1680338d8fc099e7960e5d46cac2
+* Phase 2E workflow run:
+    32974122120
+* workflow conclusion: success
 
-* root CLAUDE.md;
-* .github/copilot-instructions.md;
-* every .github/agents/*.agent.md;
-* every .github/skills/*/SKILL.md and all referenced resources;
-* every .github/instructions/**/*.instructions.md;
-* every relevant .github/prompts/*.prompt.md;
-* every relevant .github/templates/** file;
-* .github/agent-governance/process-manifest.json;
-* all schemas under .github/agent-governance/schemas/**;
-* Governance README and templates;
-* all scripts/agent-governance/** implementation and tests.
+The source Phase 2E worktree must be completely clean.
 
-Use the live process manifest to distinguish:
+Independently reverify through authenticated read-only GitHub requests:
 
-1. active Governance Agents;
-2. active Governance Skills;
-3. inactive or legacy assets;
-4. prompts and templates that are convenience inputs;
-5. machine-authoritative schemas, manifests, and scripts.
+* current main SHA;
+* PR #17 remains closed and merged;
+* accepted head and merge commit;
+* two-parent merge identity;
+* successful workflow conclusion;
+* merge tree remains identical to the accepted Phase 2E tree.
 
-Expected active Governance Agents:
+If live main differs from the required SHA, do not rebase or reinterpret the scope. Stop before mutation.
 
-* etl-hotfix-implementer;
-* etl-independent-reviewer;
-* etl-release-verifier.
+If authenticated GitHub access is unavailable, stop before mutation.
 
-Expected active Governance Skills:
+Do not inspect or use:
 
-* etl-hotfix-lifecycle;
-* etl-independent-review;
-* etl-package-delivery;
-* etl-runtime-qa;
-* etl-execution-recovery.
-
-If the live manifest does not identify exactly those three active Agents and five
-active Skills, stop without migration:
-
-CLAUDE_NATIVE_MIGRATION_RESULT: BLOCKED_ACTIVE_ASSET_AMBIGUITY
-
-Do not activate or migrate legacy Agents merely because they exist, including:
-
-* developer;
-* evidence-researcher;
-* orchestrator;
-* planner;
-* verifier;
-
-unless the live manifest independently identifies one as active. Preserve inactive
-assets unchanged and retain their explicit inactive classification.
-
-Do not broaden any Agent’s authority.
+* stale primary checkout;
+* asktd_v2;
+* sibling repositories;
+* ETL/UCA workspaces;
+* Windows/ETL Coding Agent sessions;
+* temporary or unrelated worktrees.
 
 ==================================================
-4. REQUIRED NATIVE CLAUDE STRUCTURE
+3. CREATE THE AUTHORIZED WORKTREE
 
-Create the native Claude project structure:
+Create exactly one dedicated permanent worktree and branch from the accepted main merge commit—not from an unmerged feature head.
 
-.claude/
-agents/
-etl-hotfix-implementer.md
-etl-independent-reviewer.md
-etl-release-verifier.md
-skills/
-etl-hotfix-lifecycle/
-SKILL.md
-…
-etl-independent-review/
-SKILL.md
-…
-etl-package-delivery/
-SKILL.md
-…
-etl-runtime-qa/
-SKILL.md
-…
-etl-execution-recovery/
-SKILL.md
-…
-rules/
-agent-governance.md
+Branch:
 
-Use native Claude conventions:
+phase2/recipe-lifecycle-classification
 
-* Agent files use plain .md, not .agent.md.
-* Agent files use Claude-compatible YAML frontmatter.
-* Skill directory name exactly matches its name.
-* Every SKILL.md has valid Claude-compatible frontmatter.
-* All relative references resolve from their new location.
-* No absolute developer-machine paths are embedded.
-* No source, test, package, QA, Preview, or VSIX authority is broadened.
-* No Agent may grant itself approval.
-* No Agent may certify work it implemented.
-* Independent review must require a separate session.
-* Human approval stages remain human-owned.
+Worktree Git root:
 
-Do not merely rename files. Translate tool names, frontmatter fields, hooks,
-permission modes, skill references, and relative paths into the native Claude
-format while preserving the exact intended responsibilities and restrictions.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
+
+Application root inside that worktree:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+
+Base commit:
+
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+If the base object is unavailable locally, one bounded non-destructive fetch of origin/main is authorized only after the live-base gate proves that main still equals the required SHA.
+
+After worktree creation, verify:
+
+* exact target branch;
+* HEAD equals the accepted main SHA;
+* HEAD tree equals the accepted Phase 2E tree;
+* correct origin;
+* correct Git common directory;
+* clean index/worktree with zero untracked files.
+
+If the target path or branch already exists, do not delete, reset, rename, overwrite, or silently reuse it. Inspect read-only and stop with the target-collision result.
+
+Do not modify the Phase 2E worktree.
 
 ==================================================
-5. MIGRATE THE THREE ACTIVE AGENTS
+4. FIXED PHASE 2F.1 ARCHITECTURE
 
-For each active Agent:
+Implement only Option A:
 
-1. Read the complete source .github/agents/*.agent.md.
-2. Create its Claude-native equivalent under .claude/agents/*.md.
-3. Preserve its:
-    * name;
-    * description;
-    * responsibilities;
-    * allowed and disallowed operations;
-    * owned lifecycle stages;
-    * stop conditions;
-    * approval boundaries;
-    * mayNotCertify restrictions;
-    * required Skills;
-    * evidence requirements.
-4. Convert VS Code/Copilot tool identifiers to supported Claude tool identifiers.
-5. Reject any unknown or silently ignored frontmatter field.
-6. Ensure the independent reviewer remains strictly read-only.
-7. Ensure the implementer cannot independently certify its own changes.
-8. Ensure the release verifier cannot authorize implementation or owner approval.
-9. Verify that the three Agents appear as distinct Native Claude definitions.
+Pure lifecycle evaluator
 
-Expected target paths:
+* ApprovalEvidenceProvider Protocol port
+* current ApprovedRecipe-metadata adapter
+* orchestration-side evidence resolution.
 
-* .claude/agents/etl-hotfix-implementer.md
-* .claude/agents/etl-independent-reviewer.md
-* .claude/agents/etl-release-verifier.md
+The evaluator must be:
 
-Only after semantic parity and target validation succeed may these exact active
-source files be removed:
+* pure;
+* deterministic;
+* immutable-input/immutable-output;
+* provider-neutral;
+* side-effect-free;
+* independent of environment variables;
+* independent of current time, timestamps, random values, global mutation and I/O;
+* total over malformed resolution values;
+* bounded by recipe dependency metadata, not business-data volume.
 
-* .github/agents/etl-hotfix-implementer.agent.md
-* .github/agents/etl-independent-reviewer.agent.md
-* .github/agents/etl-release-verifier.agent.md
+The evaluator must never call or import:
 
-Do not remove or modify any other .github/agents file.
+* an approval provider;
+* MetadataRegistryService;
+* DataSourceAdapter;
+* SQL or database tools;
+* Synapse;
+* Databricks;
+* Data Lake clients;
+* network/HTTP/socket libraries;
+* provider SDKs;
+* cache, queue or persistence APIs;
+* logger or tracer.
 
-If safe source removal cannot be proven, preserve the source and report a duplicate
-compatibility blocker. Do not silently maintain two active authorities.
+The orchestration helper must resolve immutable evidence before calling the evaluator.
 
 ==================================================
-6. MIGRATE THE FIVE ACTIVE SKILLS
+5. EXACT TEN-FILE PLAN
 
-For each active Governance Skill:
+Add exactly these four files:
 
-1. Copy the complete Skill directory, including scripts, examples, references,
-    templates, and assets, to .claude/skills/<skill-name>/.
-2. Validate the target SKILL.md against Claude Agent Skills requirements.
-3. Ensure the frontmatter name exactly matches the parent directory.
-4. Preserve descriptions and invocation semantics.
-5. Convert or remove only fields proven incompatible with Claude.
-6. Update every relative link and referenced path.
-7. Verify referenced files exist and remain inside the intended repository
-    boundary.
-8. Confirm the Skill does not silently grant broader tool permission.
-9. Confirm all five Skills have unique names and no command collision.
+1. src/backend/app/recipes/lifecycle.py
+2. src/backend/app/recipes/approval_evidence.py
+3. test/test_recipe_lifecycle.py
+4. docs/adr/0006-phase2f1-recipe-lifecycle-classification.md
 
-Only after full content, reference, and semantic parity succeeds may the exact
-active source Skill directories under .github/skills/ be removed.
+Modify exactly these six files:
 
-Do not move, delete, or activate unrelated inactive Skills.
+5. src/backend/app/recipes/approved_recipes.py
+6. src/backend/app/orchestrator.py
+7. test/test_approved_recipe_pilot.py
+8. test/test_authz_no_access_guard.py
+9. test/test_provider_abstraction_contracts.py
+10. docs/adr/README.md
 
-Do not maintain two independently editable active copies.
+No eleventh repository file is permitted.
 
-==================================================
-7. CLAUDE.MD AND NATIVE RULES
+Specifically:
 
-Preserve all valid unrelated content in root CLAUDE.md.
+* do not modify app/recipes/__init__.py;
+* do not change any existing ApprovedRecipe field;
+* do not modify configuration or dependency files;
+* do not create API, database, cache, queue, UI or seed schemas;
+* do not modify unrelated tests, documentation or product areas.
 
-Update it minimally so a fresh Claude Harness session receives the required
-project-wide Governance entry point.
-
-Use Claude-supported @relative/path imports where they prevent policy
-duplication.
-
-The root CLAUDE.md must make these facts explicit:
-
-* the process manifest remains the machine authority;
-* Native Claude Agents are under .claude/agents/;
-* Native Claude Skills are under .claude/skills/;
-* reusable Governance scripts remain under scripts/agent-governance/;
-* GitHub Actions workflows remain under .github/workflows/;
-* implementation, independent review, release verification, approval, packaging,
-    installation, and Runtime QA are separate stages;
-* self-certification is forbidden;
-* Bypass Permissions does not expand authorized scope;
-* all writes require a task-specific boundary and baseline;
-* Repair 13 is not authorized by this migration.
-
-Create one concise .claude/rules/agent-governance.md only if required to express
-Claude-native always-on rules.
-
-Do not duplicate the entire manifest or long procedures into CLAUDE.md or the rule.
-Reference canonical files instead.
-
-Do not move GitHub Actions workflows, schemas, machine manifests, test fixtures,
-or shared templates into .claude/. They already belong in their current
-functional locations.
+If implementation genuinely requires an eleventh file, stop for owner review instead of expanding scope.
 
 ==================================================
-8. MANIFEST, SCHEMA, AND VALIDATOR PARITY
+6. REQUIRED CONTRACTS
 
-Update the process manifest so active asset paths point to:
+Implement the repository-native contracts and signatures from the discovery report, including:
 
-* .claude/agents/**;
-* .claude/skills/**.
+* LifecycleState(StrEnum)
+* LifecycleReasonCode(StrEnum)
+* frozen ApprovalEvidence
+* frozen ApprovalEvidenceResolution
+* frozen DependencyEvidenceResolution
+* frozen LifecycleEvaluationResult
+* ApprovalEvidenceProvider as @runtime_checkable Protocol
+* ApprovedRecipeApprovalEvidenceProvider
+* pure evaluate_recipe_lifecycle(...)
+* RECIPE_LIFECYCLE_CLASSIFICATION_FLAG
+* recipe_lifecycle_classification_enabled()
+* evaluate_recipe_lifecycle_gate(...)
 
-Update its schema only where required to allow and validate the new canonical
-paths.
+The lifecycle states and precedence are fixed:
 
-Update Governance validators and tests so they:
+1. BROKEN
+2. NOT_APPROVED
+3. REVIEW_REQUIRED
+4. VALID
 
-* discover Native Claude Agents;
-* discover Native Claude Skills;
-* validate Claude frontmatter accurately;
-* identify unsupported or silently ignored fields;
-* reject duplicate active authority across .github/** and .claude/**;
-* keep inactive legacy assets visible with exact reasons;
-* verify all Agent-to-Skill references;
-* verify stage ownership;
-* verify mayNotCertify restrictions;
-* verify no Agent declaration exceeds manifest authority;
-* verify no Prompt is treated as machine authority;
-* verify missing Native Claude assets fail closed.
+Return all applicable reasons even when a higher-precedence final state is selected.
 
-Do not change the PASS/FINDINGS/BLOCKED model:
+Use exactly the reason codes defined in the discovery report:
 
-* PASS: exit 0;
-* FINDINGS: exit 1;
-* BLOCKED: exit 2.
+* APPROVAL_EVIDENCE_MISSING
+* APPROVAL_EVIDENCE_AMBIGUOUS
+* APPROVAL_EVIDENCE_CONFLICTING
+* APPROVAL_EVIDENCE_INVALID
+* RECIPE_NOT_APPROVED
+* DEPENDENCY_REFERENCE_MISSING
+* DEPENDENCY_EVIDENCE_CONFLICTING
+* DEPENDENCY_EVIDENCE_INVALID
+* DEPENDENCY_NOT_IN_APPROVAL
+* APPROVED_DEPENDENCY_NOT_DECLARED
+* DEPENDENCY_FINGERPRINT_CHANGED
+* APPROVAL_AND_DEPENDENCIES_VALID
 
-Do not weaken checkpoint, baseline, protected-path, registration, self-review, or
-CI enforcement implemented in R-A through R-J.
+Stable normalization rules:
 
-==================================================
-9. PROMPTS, TEMPLATES, AND GITHUB-SPECIFIC FILES
+* dependency refs use exact case-sensitive strings;
+* sort with normal Python lexicographic ordering;
+* normalize ref collections using tuple(sorted(set(refs)));
+* sort fingerprint pairs by dependency ref;
+* collapse only identical (ref, fingerprint) pairs;
+* the same ref with different fingerprints is conflicting;
+* never silently deduplicate multiple approval records;
+* multiple identical approval records are ambiguous and BROKEN;
+* differing approval records are ambiguous plus conflicting and BROKEN;
+* deduplicate and sort reason codes by reason.value.
 
-Do not blindly move all .github/** content.
+to_trace_payload() must serialize only:
 
-Correct placement is based on function:
+* recipe ID;
+* uppercase lifecycle-state string;
+* ordered uppercase reason-code strings;
+* ordered affected governed dependency refs.
 
-* .github/workflows/** stays under .github/workflows/**;
-* .github/agent-governance/** remains the machine Governance location;
-* .github/templates/** remains shared template content;
-* .github/prompts/** remains Copilot convenience content unless an exact active
-    workflow requires conversion;
-* .github/copilot-instructions.md remains the Copilot instruction surface;
-* inactive legacy .github/agents/** remain preserved and classified;
-* only the three active Governance Agents move to .claude/agents/**;
-* only the five active Governance Skills move to .claude/skills/**;
-* Claude-specific always-on rules belong in CLAUDE.md or .claude/rules/**.
-
-If a prompt contains unique active Governance rules not present in the manifest,
-Skill, CLAUDE.md, or native rule:
-
-* do not copy it blindly;
-* move the reusable procedure into the appropriate active Skill;
-* keep machine authority in the manifest;
-* record exact semantic migration evidence.
-
-No Cloud-critical or Claude-critical rule may remain only in a prompt.
-
-==================================================
-10. AUTHORIZED CHANGE BOUNDARY
-
-Authorized additions or modifications:
-
-* .claude/agents/**
-* .claude/skills/**
-* .claude/rules/**
-* root CLAUDE.md
-* .github/agent-governance/**
-* scripts/agent-governance/**
-* .github/workflows/validate-agent-governance.yml
-* .github/copilot-instructions.md only for minimal corrected references
-
-Conditionally authorized removals after proven target parity:
-
-* .github/agents/etl-hotfix-implementer.agent.md
-* .github/agents/etl-independent-reviewer.agent.md
-* .github/agents/etl-release-verifier.agent.md
-* only the five exact active Governance Skill directories under .github/skills/
-
-No other path is authorized.
-
-Explicitly prohibited:
-
-* product/runtime source changes;
-* Repair 12 content changes;
-* Repair 13 implementation;
-* src/test/testPatterns.ts changes;
-* tsconfig changes;
-* package.json or version changes;
-* dependency changes;
-* package-lock.json creation;
-* VSIX build, replacement, installation, or removal;
-* QA workspace access;
-* Preview or Write execution;
-* commit, push, merge, tag, stash, reset, restore, or clean;
-* deletion or migration of the eleven src/**/AGENT.md files;
-* activation of legacy Agents;
-* creation of additional roles beyond the three active Governance Agents.
-
-Any required change outside this boundary is a blocker.
+It must not expose fingerprints, SQL, raw evidence, exception text, timestamps, paths, provider names or internal objects.
 
 ==================================================
-11. VALIDATION
+7. ACCEPTED APPROVAL BASELINE
 
-Run generated-output validations only in a task-owned temporary mirror.
+The current code lacks historical approved per-entity fingerprints. Phase 2F.1 must add a private immutable baseline for exactly the five dependencies of the current pilot recipe:
 
-Required static and dynamic checks:
+* one governed dataset;
+* four governed fields.
 
-1. Native Claude Agent frontmatter validation.
-2. Native Claude Skill frontmatter validation.
-3. Native Agent discovery test.
-4. Native Skill discovery test.
-5. Manifest and schema validation.
-6. Agent/manifest authority parity.
-7. Agent-to-Skill reference resolution.
-8. Duplicate active-authority rejection.
-9. Missing Native Agent fail-closed test.
-10. Missing Native Skill fail-closed test.
-11. Self-certification negative tests.
-12. Checkpoint fidelity tests.
-13. Shared baseline contract tests.
-14. Three-state result tests.
-15. Protected-path and change-boundary tests.
-16. Test-registration validator.
-17. Governance workflow validation.
-18. All Governance unit tests.
-19. compile.
-20. compile:test.
-21. lint.
-22. Repair 12 canonical suite, expected 21/21.
-23. Canonical full unit suite through the VS Code bootstrap.
+Mechanically derive their exact ef-... values from the accepted Phase 2E tree:
 
-Inspect failure identities and fingerprints, not just aggregate counts.
+6448dac5be9dee275598e054f505517a215b484b
 
-Known F1 and F3 may remain only if their exact fingerprints are unchanged:
+Requirements:
 
-* F1: deferred missing Agent/Prompt contract;
-* F3: assertion concerning eleven legacy src/**/AGENT.md files.
+* derive the exact refs from the existing pilot ApprovedRecipe;
+* use the existing accepted RegistrySnapshot and entity_fingerprint() behavior;
+* do not guess or manually invent a fingerprint;
+* do not use an aggregate df-... value as the per-reference baseline;
+* record the five accepted values as immutable static adapter metadata;
+* never recompute the approved baseline at runtime;
+* add a test proving every static value matches the accepted Phase 2E snapshot;
+* malformed or incomplete static baseline must produce invalid evidence and fail closed;
+* current fingerprints must be resolved independently from the current bounded snapshot.
 
-F2 must continue to pass without weakening its assertion.
+If the exact accepted five-value baseline cannot be mechanically generated and independently verified, stop without committing.
 
-Required:
-
-* new functional regressions: 0;
-* new security regressions: 0;
-* unauthorized changed paths: none;
-* active Agents: exactly 3;
-* active Skills: exactly 5;
-* duplicate active authorities: 0;
-* unclassified active assets: 0;
-* unowned machine stages: 0;
-* manifest/Agent authority parity: yes;
-* Native Claude static readiness: yes.
+Do not implement approval expiry. Missing expiry metadata must never mean expired.
 
 ==================================================
-12. FINAL CHANGE AND NON-MUTATION PROOF
+8. FEATURE FLAG AND ORCHESTRATION
 
-Compare the final repository against the independent pre-task snapshot.
+Feature flag:
 
-Report:
+RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED
 
-* every task-attributable changed path;
-* every source-to-target migration;
-* every removed source path;
-* every preserved legacy asset;
-* every unauthorized changed path;
-* package.json hash before/after;
-* src/test/testPatterns.ts hash before/after;
-* tsconfig hash before/after;
-* Repair 12 hashes before/after;
-* eleven src/**/AGENT.md hashes before/after;
-* VSIX size and SHA-256 before/after;
-* staged and stash state;
-* QA workspace access/write count.
+Parse it with the repository’s existing strict boolean helper and default it to False.
 
-Required:
+When the flag is absent or false:
 
-UNAUTHORIZED_CHANGED_PATHS: NONE
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-TEST_PATTERNS_CHANGED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-LEGACY_AGENT_MD_CHANGED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-REPAIR_13_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+* return None before recipe lookup;
+* do not construct or call the approval provider;
+* do not construct or call the registry service;
+* do not evaluate lifecycle;
+* emit no lifecycle trace;
+* preserve exact Phase 2E response, trace, SQL and routing behavior.
 
-==================================================
-13. RUNTIME ACTIVATION LIMIT
+Preserve the current invalid-token RuntimeError behavior of the strict parser.
 
-This implementation session must not claim that the Claude dropdown has already
-reloaded the migrated files.
+Required execution ordering:
 
-The implementation session may prove only:
+1. greeting handling;
+2. deny_all authorization short-circuit;
+3. deterministic source-plan/query-kind selection;
+4. recipe-parameter construction;
+5. new lifecycle classification helper;
+6. optional recipe_lifecycle trace;
+7. existing Approved Recipe execution gate;
+8. existing data-source/SQL path.
 
-* correct Native Claude filesystem placement;
-* valid Native Claude formats;
-* correct manifest and reference parity;
-* passing static and isolated dynamic validation;
-* readiness for VS Code reload.
+The lifecycle call must occur immediately before the current Approved Recipe gate.
 
-Actual runtime activation requires:
+The resulting state must be ignored for runtime control flow.
 
-1. Developer: Reload Window;
-2. a fresh Claude Harness session;
-3. /agents;
-4. /skills;
-5. /memory;
-6. Agent Customizations diagnostics;
-7. a separate read-only activation check.
+BROKEN, NOT_APPROVED, and REVIEW_REQUIRED must not:
 
-Therefore success in this task means only:
+* warn or deny;
+* stop execution;
+* alter SQL;
+* alter status or response selection;
+* replace current authorization;
+* change the existing Approved Recipe gate.
 
-READY_FOR_CLAUDE_RELOAD_AND_ACTIVATION_CHECK: YES
-
-It does not mean:
-
-CLAUDE_RUNTIME_ACTIVATION_PROVEN: YES
+Observability is limited to the existing best-effort in-memory trace mechanism.
 
 ==================================================
-14. FINAL REPORT
+9. NO-SCAN AND SCALE BOUNDARY
 
-Return:
+Phase 2F.1 must inspect exactly zero business-data rows and issue exactly zero SQL statements.
 
-IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-INDEPENDENT_BASELINE_CAPTURED: YES/NO
+The anticipated scale context is:
 
-ACTIVE_AGENT_SOURCE_COUNT: 
-ACTIVE_SKILL_SOURCE_COUNT: 
-INACTIVE_LEGACY_ASSETS_PRESERVED: 
+* 5 TB or more;
+* Synapse data in Dedicated SQL Pools;
+* Databricks data in the Data Lake.
 
-NATIVE_CLAUDE_AGENT_COUNT: 
-NATIVE_CLAUDE_AGENT_PATHS: 
-NATIVE_CLAUDE_SKILL_COUNT: 
-NATIVE_CLAUDE_SKILL_PATHS: 
-NATIVE_CLAUDE_RULE_PATHS: 
+This phase operates only on bounded repository metadata, the already materialized RegistrySnapshot and recipe dependency refs.
 
-AGENT_SOURCE_TARGET_MAPPING: 
-SKILL_SOURCE_TARGET_MAPPING: 
-SOURCE_ACTIVE_AGENT_FILES_REMOVED: 
-SOURCE_ACTIVE_SKILL_DIRECTORIES_REMOVED: 
-SEMANTIC_PARITY_PROVEN: YES/NO
-RELATIVE_REFERENCES_VALID: YES/NO
-CLAUDE_FRONTMATTER_VALID: YES/NO
-CLAUDE_MD_IMPORTS_VALID: YES/NO
+Add structural and spy tests proving:
 
-MANIFEST_SCHEMA_VALID: YES/NO
-MANIFEST_USES_NATIVE_CLAUDE_PATHS: YES/NO
-ACTIVE_AGENT_COUNT: 
-ACTIVE_SKILL_COUNT: 
-DUPLICATE_ACTIVE_AUTHORITY_COUNT: 
-UNCLASSIFIED_ACTIVE_ASSET_COUNT: 
-UNOWNED_MACHINE_STAGE_COUNT: 
-AGENT_MANIFEST_AUTHORITY_PARITY: YES/NO
-SELF_CERTIFICATION_PROHIBITION_PRESERVED: YES/NO
+* no forbidden provider/data-access imports in either new module;
+* no data-source factory or adapter call for lifecycle classification;
+* provider call count is exactly one only when the flag is enabled and the route is in scope;
+* fingerprint work is bounded by unique dependency count;
+* input permutations and duplicates do not increase unique resolution work;
+* no evaluator input accepts table rows, SQL, query callables or a data-source adapter.
 
-GOVERNANCE_TESTS_PASSING: 
-GOVERNANCE_TESTS_FAILING: 
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_12_CANONICAL_PASS: YES/NO
+Provider query pushdown remains Phase 3. Performance benchmarks, concurrency, scan-cost controls and SLOs remain Phase 6.
 
-FULL_UNIT_PASSING: 
-FULL_UNIT_PENDING: 
-FULL_UNIT_FAILING: 
-FULL_UNIT_FAILURES: 
-F1_FINGERPRINT_CHANGED: NO
-F2_GENUINELY_PASSING: YES/NO
-F3_FINGERPRINT_CHANGED: NO
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
+==================================================
+10. REQUIRED TEST MATRIX
 
-AUTHORIZED_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-TEST_PATTERNS_CHANGED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-LEGACY_AGENT_MD_CHANGED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-REPAIR_13_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+Implement every test required in Discovery Section 14, including:
 
-NATIVE_CLAUDE_STATIC_READINESS: YES/NO
-CLAUDE_RUNTIME_ACTIVATION_PROVEN: NO
-READY_FOR_CLAUDE_RELOAD_AND_ACTIVATION_CHECK: YES/NO
-READY_FOR_REPAIR_13: NO
-READY_TO_BUMP_VERSION: NO
-READY_TO_PACKAGE_OR_INSTALL: NO
-READY_FOR_RUNTIME_QA: NO
-READY_FOR_CLOUD_ROLLOUT: NO
+* every lifecycle state;
+* all reason mappings;
+* every precedence pair and a combined multi-state case;
+* preservation of all reasons;
+* stable ordering across all relevant permutations;
+* duplicate normalization;
+* conflicting duplicate fingerprints;
+* missing approval evidence;
+* missing approved per-ref baseline;
+* missing current dependency;
+* identical and differing multiple approval records;
+* invalid recipe ID/version/status/fingerprint shape;
+* exact trace serialization;
+* purity and repeated-input equality;
+* provider exception normalization;
+* adapter Protocol conformance;
+* exact static baseline pin;
+* default-OFF and explicit-false compatibility;
+* no provider/registry call when disabled;
+* deny_all ordering;
+* SQL-authorization behavior;
+* trace position;
+* all four injected lifecycle states remaining trace-only;
+* governance-flag interaction;
+* provider-neutrality AST scan;
+* dependency-count/no-I/O proof.
 
-Do not perform the post-reload independent activation check in this session.
+Preserve the existing
+test_flag_off_leaves_the_deterministic_lane_untouched()
+test unchanged.
 
-End exactly with one:
+For flag-OFF compatibility, compare canonical response bytes between:
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-PASS_READY_FOR_RELOAD_AND_FRESH_CLAUDE_ACTIVATION_CHECK
+* new flag absent;
+* new flag explicitly false.
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-FAIL_VALIDATION
+Also prove equality of:
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-FAIL_UNAUTHORIZED_CHANGE
+* trace names and order;
+* SQL strings;
+* response status;
+* answer;
+* followups;
+* citations;
+* result;
+* chart;
+* report fields;
+* cards.
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-BLOCKED_IDENTITY
+==================================================
+11. TEST AND QUALITY GATES
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-BLOCKED_EXECUTION_ENVIRONMENT
+Use the existing project environment. Use python3, not python.
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-BLOCKED_ACTIVE_ASSET_AMBIGUITY
+Do not install or upgrade packages.
 
-CLAUDE_NATIVE_MIGRATION_RESULT:
-BLOCKED_NATIVE_FORMAT_OR_REFERENCE_MISMATCH
+First run the focused suite:
+
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py \
+  test/test_authz_no_access_guard.py \
+  test/test_provider_abstraction_contracts.py \
+  test/test_recipe_dependency_fingerprint.py \
+  test/test_governed_field_records.py \
+  test/test_semantic_plan_contract.py
+
+Then run the golden suite:
+
+python3 -m pytest --no-cov -q test/test_golden_baseline.py
+
+Then run the complete configured backend suite with coverage:
+
+python3 -m pytest
+
+Coverage must remain at or above 75%.
+
+Run:
+
+git diff --check
+
+Do not invent lint, formatting or type-check gates. The repository currently has no authoritative configured command for them.
+
+Safe test/fix/rerun cycles are authorized until all required gates pass. Do not weaken, delete or skip tests to obtain a pass.
+
+If the existing environment cannot resolve required dependencies, stop without installing packages.
+
+==================================================
+12. ACCEPTANCE GATES
+
+Implementation is acceptable only if:
+
+* exactly the authorized ten files changed;
+* new flag absent/false reproduces canonical Phase 2E behavior;
+* ApprovedRecipe.model_fields is unchanged;
+* current Approved Recipe execution gate remains authoritative and unchanged in business behavior;
+* lifecycle result never controls execution;
+* deny_all precedes classification;
+* SQL authorization remains independently authoritative;
+* provider-abstraction tests pass;
+* all focused, golden and full tests pass;
+* coverage is at least 75%;
+* no provider/network/database/data-source import enters the evaluator or adapter;
+* no persistence, API, UI, queue, cache or new backend is introduced;
+* no business-data scan is possible through these contracts;
+* git diff --check passes;
+* no optional cleanup or deferred work is included.
+
+Do not implement:
+
+* warning or runtime blocking;
+* approval persistence;
+* expiry or reapproval;
+* owner/approver/override policy;
+* additional recipe migration;
+* provider integrations;
+* Synapse or Databricks access;
+* UI/admin workflows;
+* benchmarks or SLO work;
+* Phase 2F.2 policy.
+
+==================================================
+13. LOCAL COMMIT
+
+After every gate passes:
+
+1. verify the changed-file list is exactly the authorized ten files;
+2. inspect the complete diff;
+3. verify no secret, credential, generated artifact or unrelated change exists;
+4. stage only the exact ten files;
+5. verify the staged file list again;
+6. create exactly one local commit with message:
+
+feat(recipes): add phase 2f.1 lifecycle classification
+
+7. verify the target worktree is completely clean after the commit;
+8. record the commit SHA and tree SHA.
+
+Do not amend, squash, push, open a PR or trigger a workflow.
+
+If any required gate fails, do not commit.
+
+==================================================
+14. IMPLEMENTATION REPORT
+
+Write exactly one report outside the repository:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
+
+Include:
+
+1. final verdict;
+2. source workspace and live-base evidence;
+3. target branch/worktree identity;
+4. accepted main/head/tree identity;
+5. exact ten-file changed inventory;
+6. exact five accepted dependency refs and their pinned ef-... values;
+7. contracts and public symbols implemented;
+8. lifecycle and reason mapping implemented;
+9. feature-flag and orchestration behavior;
+10. proof that flag-OFF matches Phase 2E;
+11. proof that classification never affects control flow;
+12. no-scan and bounded-metadata evidence;
+13. focused-test command and exact result;
+14. golden-test command and exact result;
+15. full-suite result and coverage percentage;
+16. git diff --check result;
+17. compatibility/regression gate results;
+18. risks encountered and resolutions;
+19. commit SHA and tree SHA;
+20. final clean-status evidence;
+21. no push/PR/merge/deployment/workflow/flag-enablement attestation;
+22. exact next permitted action.
+
+The exact next permitted action must be an independent read-only review of the local Phase 2F.1 implementation and commit.
+
+End the report with exactly one token:
+
+PHASE_2F1_IMPLEMENTATION_COMPLETE
+
+or one applicable blocker:
+
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_WORKSPACE
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_BASE_DRIFT
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_GITHUB_ACCESS
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_TARGET_COLLISION
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_BASELINE
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_ENVIRONMENT
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_SCOPE
+* PHASE_2F1_IMPLEMENTATION_BLOCKED_TESTS
+
+At task completion, output:
+
+* final token;
+* branch;
+* commit SHA if created;
+* changed-file count;
+* focused/golden/full test summaries;
+* coverage percentage;
+* report path;
+* confirmation that nothing was pushed and no PR was created.
