@@ -370,6 +370,20 @@ or batch retirement, TTL, automatic deletion, output recovery, resume/retry, Pro
 provider transport, active pause, publication, remote deletion, encrypted-erasure, backup-cleanup,
 or forensic-destruction claim.
 
+P1.2k bounds the two Program artifact reads used only by advisory retained-lease inventory
+eligibility. The disposition artifact and phase report each have an explicit 256 KiB limit. The
+artifact store reads at most one byte beyond that limit before UTF-8 decoding or JSON parsing, so
+an oversized file is never loaded in full by this GET path. Either oversized artifact produces the
+typed `program_evidence_oversized` blocker and leaves the item ineligible; malformed or missing
+bounded evidence continues to use `program_evidence_incomplete`.
+
+This limit does not apply to unrelated artifact consumers or alter the existing one-task
+retirement POST, which remains the authoritative revalidation and mutation path. An otherwise
+valid oversized Program report can therefore make the advisory preview ineligible while the
+explicit confirmed retirement action retains its prior behavior. P1.2k adds no provider call,
+mutation, lifecycle reservation, polling, automatic traversal, output recovery, resume/retry,
+Program advancement, new transport, active pause, publication, or deletion authority.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

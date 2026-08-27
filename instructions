@@ -193,6 +193,7 @@ from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FA
 from universal_coding_agent.providers.base import RemoteOperationLeaseAwareProvider, RestartReconciliationModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
+from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded, ArtifactStore
 from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
 from universal_coding_agent.testlab.openai_background_reconciliation_live import run_openai_background_reconciliation_live
 from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
@@ -225,7 +226,9 @@ assert not hasattr(RemoteOperationLeaseStore, "retained_lease_page")
 assert RemoteOperationDisposition and RemoteOperationDispositionOutcome
 assert RemoteOperationLeaseRetirement
 assert RemoteOperationLeaseRetirementEligibilityCode
+assert RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_OVERSIZED.value == "program_evidence_oversized"
 assert RetainedRemoteOperationLeaseInventory and RetainedRemoteOperationLeaseInventoryItem
+assert ArtifactSizeLimitExceeded and hasattr(ArtifactStore, "read_json_bounded")
 assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 assert RemoteOperationDispositionRequest
@@ -242,6 +245,7 @@ print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_DISPOSITION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_IMPORT_PREFLIGHT_PASS")
 print("RETAINED_LEASE_INVENTORY_IMPORT_PREFLIGHT_PASS")
+print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -250,6 +254,7 @@ Cmd 3
 ```bash
 .venv/bin/python -m compileall -q src tests && \
 .venv/bin/python -m pytest -q \
+  tests/test_core.py \
   tests/test_web_api.py \
   tests/test_product_foundation.py \
   tests/test_product_workspace_control.py \
@@ -284,7 +289,8 @@ echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_PREFLIGHT_PASS" && \
-echo "RETAINED_LEASE_INVENTORY_PREFLIGHT_PASS"
+echo "RETAINED_LEASE_INVENTORY_PREFLIGHT_PASS" && \
+echo "RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -370,6 +376,7 @@ for marker in (
     "Lease inventory",
     "Retained leases with UCA dispositions",
     "Review task controls",
+    "bounded inventory read limit",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -383,6 +390,7 @@ print("REMOTE_OPERATION_LEASE_RETIREMENT_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_UI_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_INVENTORY_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_INVENTORY_UI_HTTP_SMOKE_PASS")
+print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true

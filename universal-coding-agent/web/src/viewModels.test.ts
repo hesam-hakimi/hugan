@@ -581,6 +581,7 @@ describe("control-center view models", () => {
       "retirement_receipt_invalid",
       "program_binding_missing",
       "program_binding_mismatch",
+      "program_evidence_oversized",
       "program_evidence_incomplete",
     ];
 

@@ -13,6 +13,10 @@ from universal_coding_agent.core.models import ArtifactReference
 _SAFE_NAME = re.compile(r"^[a-zA-Z0-9._/-]+$")
 
 
+class ArtifactSizeLimitExceeded(ValueError):
+    """Raised before a caller can consume an oversized artifact payload."""
+
+
 class ArtifactStore:
     def __init__(self, root: Path):
         self.root = root.resolve()
@@ -31,6 +35,26 @@ class ArtifactStore:
         uri = reference.uri if isinstance(reference, ArtifactReference) else reference
         path = self._path_for(uri)
         return json.loads(path.read_text(encoding="utf-8"))
+
+    def read_json_bounded(
+        self,
+        reference: str | ArtifactReference,
+        *,
+        max_bytes: int,
+    ) -> Any:
+        """Read JSON while consuming at most one byte beyond the caller's limit."""
+
+        if max_bytes < 1:
+            raise ValueError("artifact read limit must be positive")
+        uri = reference.uri if isinstance(reference, ArtifactReference) else reference
+        path = self._path_for(uri)
+        with path.open("rb") as handle:
+            data = handle.read(max_bytes + 1)
+        if len(data) > max_bytes:
+            raise ArtifactSizeLimitExceeded(
+                "artifact exceeds the configured byte read limit"
+            )
+        return json.loads(data.decode("utf-8"))
 
     def read_text(self, reference: str | ArtifactReference) -> str:
         uri = reference.uri if isinstance(reference, ArtifactReference) else reference

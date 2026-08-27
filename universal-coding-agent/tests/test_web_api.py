@@ -25,6 +25,7 @@ from universal_coding_agent.product.models import (
 from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.fake import FakeModelProvider
 from universal_coding_agent.web.app import (
+    RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
     ProductWebRuntime,
     create_product_app,
     is_loopback_host,
@@ -725,6 +726,53 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
             repaired_report,
         )
 
+        oversized_padding = "x" * RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES
+        workspace.artifacts.write_json(
+            persisted.remote_disposition_ref.removeprefix("artifact://"),
+            {**artifact, "oversized_padding": oversized_padding},
+        )
+        oversized_disposition_inventory = client.get(
+            "/api/remote-operations/retained-leases"
+        )
+        assert oversized_disposition_inventory.status_code == 200
+        oversized_disposition_body = oversized_disposition_inventory.json()
+        assert oversized_disposition_body["provider_calls_made"] == 0
+        assert oversized_disposition_body["mutations_made"] is False
+        assert oversized_disposition_body["opaque_provider_identifiers_exposed"] is False
+        assert {
+            reason["code"]
+            for reason in oversized_disposition_body["items"][0][
+                "eligibility_reasons"
+            ]
+        } == {"program_evidence_oversized"}
+        assert response_id not in oversized_disposition_inventory.text
+        workspace.artifacts.write_json(
+            persisted.remote_disposition_ref.removeprefix("artifact://"),
+            artifact,
+        )
+
+        workspace.artifacts.write_json(
+            persisted.phase_report_ref.removeprefix("artifact://"),
+            {**repaired_report, "oversized_padding": oversized_padding},
+        )
+        oversized_report_inventory = client.get(
+            "/api/remote-operations/retained-leases"
+        )
+        assert oversized_report_inventory.status_code == 200
+        oversized_report_body = oversized_report_inventory.json()
+        assert oversized_report_body["provider_calls_made"] == 0
+        assert oversized_report_body["mutations_made"] is False
+        assert oversized_report_body["opaque_provider_identifiers_exposed"] is False
+        assert {
+            reason["code"]
+            for reason in oversized_report_body["items"][0][
+                "eligibility_reasons"
+            ]
+        } == {"program_evidence_oversized"}
+        assert response_id not in oversized_report_inventory.text
+        # Keep the otherwise-valid oversized report in place. The existing
+        # retirement POST remains authoritative and intentionally unbounded.
+
         control_before_retirement = workspace.control.get_task(binding.task_id)
         binding_before_retirement = workspace.programs.execution_binding(binding.task_id)
         phase_before_retirement = workspace.programs.phase_status(
@@ -735,6 +783,7 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         report_before_retirement = workspace.artifacts.read_json(
             binding_before_retirement.phase_report_ref
         )
+        assert report_before_retirement["oversized_padding"] == oversized_padding
         starts_before_retirement = tuple(executor.starts)
         resumes_before_retirement = tuple(executor.resumes)
         workspace.programs.connection.execute(

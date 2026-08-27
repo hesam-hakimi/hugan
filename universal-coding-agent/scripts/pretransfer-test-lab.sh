@@ -13,6 +13,7 @@ echo "STATE_ROOT=$STATE_ROOT"
 python -m compileall -q src tests
 ruff check .
 env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
+  tests/test_core.py \
   tests/test_model_line_addressing.py \
   tests/test_safe_models.py \
   tests/test_line_edit_protocol.py \

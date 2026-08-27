@@ -39,6 +39,7 @@ class RemoteOperationLeaseRetirementEligibilityCode(StrEnum):
     RETIREMENT_RECEIPT_INVALID = "retirement_receipt_invalid"
     PROGRAM_BINDING_MISSING = "program_binding_missing"
     PROGRAM_BINDING_MISMATCH = "program_binding_mismatch"
+    PROGRAM_EVIDENCE_OVERSIZED = "program_evidence_oversized"
     PROGRAM_EVIDENCE_INCOMPLETE = "program_evidence_incomplete"
 
 

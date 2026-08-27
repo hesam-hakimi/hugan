@@ -49,6 +49,9 @@ from universal_coding_agent.providers.base import (
     RestartReconciliationModelProvider,
 )
 from universal_coding_agent.safety.sanitizer import sanitize_text
+from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded
+
+RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES = 256 * 1024
 
 
 class SearchRequest(BaseModel):
@@ -169,6 +172,9 @@ _RETIREMENT_ELIGIBILITY_MESSAGES = {
     ),
     RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_BINDING_MISMATCH: (
         "Persisted standalone or Program identity does not match the durable disposition."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_OVERSIZED: (
+        "A Program disposition or phase-report artifact exceeds the bounded inventory read limit."
     ),
     RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_INCOMPLETE: (
         "The terminal Program binding, artifact, phase report, phase state, or "
@@ -416,7 +422,14 @@ class ProductWebRuntime:
                 block(RemoteOperationLeaseRetirementEligibilityCode.LOCAL_WORKER_ACTIVE)
 
         try:
-            self._validate_program_retirement_evidence(disposition)
+            self._validate_program_retirement_evidence(
+                disposition,
+                artifact_max_bytes=RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
+            )
+        except ArtifactSizeLimitExceeded:
+            block(
+                RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_OVERSIZED
+            )
         except (FileNotFoundError, KeyError, ValueError) as exc:
             message = str(exc)
             if message == "Program disposition has no persisted execution binding":
@@ -644,6 +657,8 @@ class ProductWebRuntime:
     def _validate_program_retirement_evidence(
         self,
         disposition: RemoteOperationDisposition,
+        *,
+        artifact_max_bytes: int | None = None,
     ) -> tuple[Any, ...] | None:
         try:
             binding = self.workspace.programs.execution_binding(disposition.task_id)
@@ -677,7 +692,10 @@ class ProductWebRuntime:
         )
         if binding.status is not expected_binding or not binding.remote_disposition_ref:
             raise ValueError("Program binding has no matching terminal disposition")
-        artifact = self.workspace.artifacts.read_json(binding.remote_disposition_ref)
+        artifact = self._read_program_evidence_artifact(
+            binding.remote_disposition_ref,
+            artifact_max_bytes=artifact_max_bytes,
+        )
         if artifact != disposition.model_dump(mode="json"):
             raise ValueError("Program disposition artifact does not match task control")
         phase_status = self.workspace.programs.phase_status(
@@ -689,7 +707,10 @@ class ProductWebRuntime:
             raise ValueError("Program terminal state does not match the disposition")
         if not binding.phase_report_ref:
             raise ValueError("Program disposition has no durable phase report")
-        phase_report = self.workspace.artifacts.read_json(binding.phase_report_ref)
+        phase_report = self._read_program_evidence_artifact(
+            binding.phase_report_ref,
+            artifact_max_bytes=artifact_max_bytes,
+        )
         if not isinstance(phase_report, dict):
             raise ValueError("Program phase report does not match the disposition")
         reported_bindings = phase_report.get("bindings")
@@ -704,6 +725,19 @@ class ProductWebRuntime:
         ):
             raise ValueError("Program phase report does not match the disposition")
         return binding, phase_status, program_status, phase_report
+
+    def _read_program_evidence_artifact(
+        self,
+        reference: str,
+        *,
+        artifact_max_bytes: int | None,
+    ) -> Any:
+        if artifact_max_bytes is None:
+            return self.workspace.artifacts.read_json(reference)
+        return self.workspace.artifacts.read_json_bounded(
+            reference,
+            max_bytes=artifact_max_bytes,
+        )
 
     def _begin_remote_operation_action(self, task_id: str) -> None:
         try:

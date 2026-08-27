@@ -68,6 +68,8 @@ const retainedLeaseReasonCopy: Record<
     "The disposition names a Program but no persisted execution binding exists.",
   program_binding_mismatch:
     "Persisted standalone or Program identity does not match the disposition.",
+  program_evidence_oversized:
+    "A Program disposition or phase-report artifact exceeds the bounded inventory read limit.",
   program_evidence_incomplete:
     "The terminal Program binding, artifact, phase report, phase state, or blocked Program state is incomplete or inconsistent.",
 };
