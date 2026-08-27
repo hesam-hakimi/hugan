@@ -1,418 +1,218 @@
-TASK: PHASE_2F1_PUSH_BRANCH_AND_CREATE_PR
+@etl /workflow
 
-Perform one bounded Phase 2F.1 branch push and Pull Request creation task.
+TASK: HF1_V2_RUNTIME_QA_REPAIR_13_PREVIEW_ONLY_VERSION_0_3_145
 
-This task is explicitly authorized to:
+This is a strictly bounded, preview-only Runtime QA of the installed ETL extension.
 
-1. push the exact accepted Phase 2F.1 branch and HEAD;
-2. create exactly one Pull Request targeting main;
-3. observe and report automatically triggered workflow/check status.
+Expected installed extension:
 
-This task is not authorized to merge the PR or modify implementation files.
+EXTENSION_ID: td-etl.databricks-etl-copilot
+VERSION: 0.3.145
 
-Repository:
-TD-Enterprise/kmai-td-genie
+Work only inside the currently open Development Test Workspace.
 
-Required logical worktree root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
+This workspace is a synthetic QA workspace. It is not the extension source
+repository, SIT, production, or a real consumer repository.
 
-Required application root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+Do not access:
 
-The equivalent physical /app1 paths are acceptable only if realpath proves identity with these permanent logical paths.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-==================================================
-
-1. FIXED ACCEPTED IDENTITIES
-    ==================================================
-
-Required origin:
-
-https://github.com/TD-Enterprise/kmai-td-genie.git
-
-Required branch:
-
-phase2/recipe-lifecycle-classification
-
-Required base branch:
-
-main
-
-Required accepted live main SHA:
-
-f283f01b6d615f9fa00debcef959d9c5c86a3224
-
-Required implementation commit:
-
-c1639fc779aaed64e4be9fdd17381e0f293c7f9f
-
-Required repair/final HEAD:
-
-6e37281e61a782ffbe8c8675346144567406dabe
-
-Required final tree:
-
-6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
-
-Required commit chain:
-
-f283f01b6d615f9fa00debcef959d9c5c86a3224
--> c1639fc779aaed64e4be9fdd17381e0f293c7f9f
--> 6e37281e61a782ffbe8c8675346144567406dabe
-
-Do not substitute a newer local commit, amend either accepted commit, or recreate the branch.
+Do not modify or repair the installed extension or its source.
 
 ==================================================
-2. REQUIRED EVIDENCE
+1. STRICT PREVIEW-ONLY BOUNDARY
+==================================================
 
-Read this report completely before any mutation:
+This task authorizes:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_2026-08-27.md
+- extension activation;
+- read-only workspace discovery;
+- reading the existing synthetic QA STTM;
+- STTM interpretation;
+- structured and Markdown result generation;
+- Preview generation in memory;
+- read-only diagnostics and reporting.
 
-Verify that it ends exactly with:
+This task does not authorize:
 
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_APPROVED
+- approving the Preview;
+- executing Write;
+- creating or modifying job, environment, SQL, configuration or source files;
+- creating consumer `.github/**` content;
+- creating a managed-asset record;
+- modifying the STTM;
+- installing or changing extensions;
+- accessing real data or external environments;
+- commit, push, stage, stash, reset, clean or restore.
 
-Use the report only as an evidence index. Independently verify all approval-critical Git and GitHub identities.
+Before activation, capture an independent workspace snapshot containing path,
+size and SHA-256 for every non-ignored workspace file.
 
-Do not modify any existing report.
+Repeat the snapshot after QA. Any workspace mutation is a failure.
 
 ==================================================
-3. PRE-PUSH WORKSPACE GATE
+2. INPUT SELECTION
+==================================================
 
-Before pushing, verify:
+Locate the existing synthetic QA STTM inside the Development Test Workspace.
 
-* pwd;
-* pwd -P;
-* logical and physical root identity;
-* Git top-level;
-* Git common directory;
-* worktree Git directory;
-* origin fetch/push identity;
-* current branch;
-* current HEAD;
-* current tree;
-* both parent relationships;
-* commit subjects;
-* complete tracked/untracked porcelain;
-* staged name-status and staged raw diff;
-* git diff --check;
-* ignored-artifact baseline.
+Prefer the existing QA file previously designated for Repair 11, Repair 12 and
+Repair 13 validation, including `synthetic_sectioned_sttm.md` if present.
 
-Required repository state:
+Do not create or edit an STTM.
 
-* branch is exactly phase2/recipe-lifecycle-classification;
-* HEAD is exactly 6e37281e61a782ffbe8c8675346144567406dabe;
-* tree is exactly 6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab;
-* HEAD parent is exactly c1639fc779aaed64e4be9fdd17381e0f293c7f9f;
-* implementation parent is exactly
-    f283f01b6d615f9fa00debcef959d9c5c86a3224;
-* tracked and untracked porcelain is empty;
-* staged state is empty;
-* git diff --check passes.
+If exactly one authoritative synthetic QA STTM cannot be determined, stop and
+list the candidates without selecting one arbitrarily.
 
-Required ignored baseline:
+Report the selected STTM’s:
 
-* kmai-td-genie/.coverage is absent;
-* kmai-td-genie/logs/app.log is a regular non-symlink file;
-* size is exactly 3,603 bytes;
-* SHA-256 is exactly:
-    58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
-* ignored-path count is exactly 141.
-
-Do not repair, regenerate, truncate, restore, delete, or modify ignored artifacts.
-
-If any workspace or ignored-baseline requirement fails, stop without mutation and end with:
-
-PHASE_2F1_PUSH_PR_BLOCKED_WORKSPACE
+- workspace-relative path;
+- byte size;
+- SHA-256;
+- source and target mapping count.
 
 ==================================================
-4. LIVE BASE AND GITHUB GATE
+3. ACTIVATION AND WORKSPACE CLASSIFICATION
+==================================================
 
-Using authenticated read-only GitHub requests, independently verify:
+Prove that the installed 0.3.145 extension activates in this reloaded Extension
+Host.
 
-* repository identity;
-* current live main SHA;
-* branch protection or available PR metadata needed for this task;
-* whether the target remote branch already exists;
-* whether any open, closed, or merged PR already uses this head branch.
+Report:
 
-The live main SHA must still be:
+- active extension ID;
+- active runtime version;
+- workspace root count;
+- selected workspace root;
+- workspace classification;
+- loaded @etl command/workflow;
+- activation or runtime errors.
 
-f283f01b6d615f9fa00debcef959d9c5c86a3224
-
-Do not rely only on a local main ref.
-
-Do not fetch, pull, rebase, merge, or update local refs to perform this check.
-
-If live main differs, stop without pushing and end with:
-
-PHASE_2F1_PUSH_PR_BLOCKED_BASE_DRIFT
-
-Never print, store, expose, or persist credentials or tokens.
+Fail if the runtime version is not exactly 0.3.145.
 
 ==================================================
-5. REMOTE-BRANCH COLLISION GATE
+4. REPAIR 13 LIVE RUNTIME VALIDATION
+==================================================
 
-Handle the remote target branch deterministically:
+Execute the public installed-extension workflow against the selected synthetic
+STTM through the real consumer-facing seam.
 
-A. If the remote branch does not exist:
+Do not validate only an internal model.
 
-* it may be created by pushing the exact accepted local HEAD.
+Verify:
 
-B. If the remote branch already points exactly to:
+1. Structured and Markdown Active Mappings contain exactly the same mapping IDs.
+2. Mapping IDs appear in exactly the same deterministic order.
+3. Both channels derive their selected mappings from one authoritative result.
+4. Only mappings with positive active authority are included.
+5. Conflicting mappings are excluded from active authority.
+6. Conflicting mappings are deterministically disclosed in both channels.
+7. Historical, inactive and unknown states do not gain active authority.
+8. An inactive mapping does not create a blocker merely because it is inactive.
+9. Undeclared state values fail closed.
+10. Unresolved references remain visibly disclosed and non-authoritative.
+11. No negative-state predicate grants authority.
+12. Active mapping count agrees across structured output, Markdown and Preview.
+13. Repair 12 STTM fields and mapping behavior remain unchanged.
+14. No public Write, approval, Preview-approval or machine-authority surface is
+    broadened.
 
-6e37281e61a782ffbe8c8675346144567406dabe
+Return the complete ordered Active Mapping ID list from both channels and their
+equality result.
 
-* treat the push as already satisfied;
-* do not force-push;
-* continue to the PR gate.
-
-C. If the remote branch exists at any other SHA:
-
-* do not push;
-* do not delete, rename, reset, overwrite, or force-update it;
-* stop and end with:
-
-PHASE_2F1_PUSH_PR_BLOCKED_REMOTE_COLLISION
-
-The only permitted Git mutation is an ordinary non-force push of the exact accepted branch:
-
-phase2/recipe-lifecycle-classification
-
-Use an explicit source and destination refspec.
-
-Never use:
-
-* --force;
-* --force-with-lease;
-* wildcard refspecs;
-* deletion refspecs;
-* tag pushes;
-* --mirror;
-* --all.
-
-After the push, independently verify through GitHub that the remote branch points exactly to the accepted HEAD and tree.
+Return the excluded mapping list with state, reason and diagnostic code.
 
 ==================================================
-6. EXISTING-PR IDEMPOTENCY GATE
+5. PREVIEW VALIDATION
+==================================================
 
-Before creating a PR, inspect all PRs associated with:
+Generate the normal Preview result in memory only.
 
-head:
-TD-Enterprise:phase2/recipe-lifecycle-classification
+Verify:
 
-base:
-main
+- Preview is produced successfully;
+- no approval is inferred;
+- no write is performed;
+- CREATE, MODIFY, UNCHANGED, CONFLICT and BLOCKED classifications remain
+  deterministic;
+- conflicting or unresolved mappings cannot authorize generated output;
+- no job or environment duplication is proposed;
+- existing environment reuse rules remain intact;
+- transformation inputs reference valid sourced aliases/views;
+- output strategy is based only on STTM and workspace evidence.
 
-If no PR exists, create one as specified below.
-
-If exactly one open PR already exists with the correct head, base and accepted HEAD:
-
-* do not create a duplicate;
-* verify its metadata;
-* reuse it as the task result.
-
-If a closed or merged PR, multiple PRs, an incorrect base, an unexpected head owner, or materially conflicting PR metadata exists:
-
-* do not reopen, edit, close, replace, or duplicate anything;
-* stop for owner review and end with:
-
-PHASE_2F1_PUSH_PR_BLOCKED_EXISTING_PR_CONFLICT
+Do not proceed beyond the Preview boundary.
 
 ==================================================
-7. CREATE THE PULL REQUEST
+6. FINAL NON-MUTATION PROOF
+==================================================
 
-Create one non-draft Pull Request.
+Compare the final workspace snapshot with the pre-QA snapshot.
 
-Title:
+Required:
 
-Phase 2F.1: recipe lifecycle classification
-
-Base:
-
-main
-
-Head:
-
-phase2/recipe-lifecycle-classification
-
-Use this PR body:
-
-Summary
-
-Implements Phase 2F.1 recipe lifecycle classification as a default-OFF, classification-only capability.
-
-* Adds a pure deterministic lifecycle evaluator.
-* Adds immutable lifecycle and approval-evidence contracts.
-* Adds an ApprovalEvidenceProvider port and current ApprovedRecipe metadata adapter.
-* Returns all applicable deterministic reason codes and affected dependency references.
-* Applies final-state precedence:
-    BROKEN > NOT_APPROVED > REVIEW_REQUIRED > VALID.
-* Resolves evidence before calling the pure evaluator.
-* Emits lifecycle results as best-effort trace evidence only.
-* Preserves existing Phase 2E execution and authorization behavior when the flag is OFF.
-* Adds no persistence, API, schema, cache, queue, provider query, or business-data scan.
-
-Repair verification
-
-The follow-up repair commit independently corrected:
-
-* M1: lifecycle evaluation and trace failures cannot propagate into or change runtime execution.
-* M2: non-executable approval status is evaluated for every approval record, including ambiguous and conflicting evidence.
-
-The post-repair independent review approved both corrections with no Critical, High, or Medium findings.
-
-Validation
-
-* Affected tests: 149 passed
-* Focused tests: 238 passed, 8 pre-existing/unrelated warnings
-* Golden tests: 10 passed
-* Full suite: 1076 passed, 3 skipped, 10 pre-existing/unrelated warnings
-* Total coverage: 87.01%
-* recipes/lifecycle.py: 93%
-* orchestrator.py: 71%
-* git diff --check: passed
-* Independent M1 and M2 probes: passed
-* Phase 2E accepted dependency baseline reconstruction: passed
-* Live worktree and accepted ignored-artifact baseline: unchanged
-
-Safety and scope
-
-* Feature flag: RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED
-* Default: OFF
-* No warn or block behavior
-* No lifecycle-result persistence
-* No Synapse, Databricks, Data Lake, SQL, network, or business-data access
-* Work is bounded by declared recipe dependencies and already-loaded governed metadata
-* Approximately 5 TB or greater provider-data scale remains outside Phase 2F.1
-* Provider query pushdown remains Phase 3
-* Benchmarking, concurrency, scan-cost controls, and SLO validation remain Phase 6
-
-Deferred informational observations
-
-The independent review recorded three non-blocking Low/Informational items:
-
-1. discarded lifecycle failures provide no dedicated observability signal;
-2. orchestrator-level invalid flag parsing is intentionally best-effort;
-3. per-reference resolution is currently O(D×M) and inherits snapshot-wide conflict semantics.
-
-These are not Phase 2F.1 approval blockers and are not changed in this PR.
-
-Commits
-
-* c1639fc779aaed64e4be9fdd17381e0f293c7f9f
-    — Phase 2F.1 implementation
-* 6e37281e61a782ffbe8c8675346144567406dabe
-    — lifecycle classification hardening repair
-
-Do not add labels, reviewers, assignees, milestone, comments, or approvals unless an existing repository automation does so automatically.
+WORKSPACE_CHANGED_PATHS: NONE
+STTM_CHANGED: NO
+JOB_FILES_CREATED_OR_CHANGED: NO
+ENV_FILES_CREATED_OR_CHANGED: NO
+SQL_FILES_CREATED_OR_CHANGED: NO
+GITHUB_FILES_CREATED_OR_CHANGED: NO
+MANAGED_ASSET_RECORD_CREATED: NO
+PREVIEW_APPROVED: NO
+WRITE_EXECUTED: NO
+GIT_STATE_CHANGED: NO
 
 ==================================================
-8. AUTOMATION BOUNDARY
-
-Automatic workflows triggered naturally by the branch push or PR creation are permitted.
-
-Do not manually:
-
-* dispatch a workflow;
-* rerun, cancel, approve, or edit a workflow;
-* change repository settings;
-* change branch protection;
-* create or update secrets;
-* bypass required checks.
-
-After PR creation, use authenticated read-only requests to record:
-
-* PR number and URL;
-* PR state and draft status;
-* base SHA;
-* head SHA;
-* mergeability state if available;
-* automatically triggered checks/workflows;
-* current status and conclusion of each check.
-
-Do not claim workflow success while a check is queued or in progress.
-
-Waiting indefinitely is not required. Record the observed status accurately for the next independent review.
-
+7. FINAL REPORT
 ==================================================
-9. STRICT NO-CODE-MUTATION BOUNDARY
 
-Do not:
+Return:
 
-* edit, create, delete, rename, format, or restore repository files;
-* change ignored artifacts;
-* amend or create commits;
-* stage or unstage files;
-* reset, clean, stash, switch, merge, rebase, or cherry-pick;
-* fetch or pull;
-* create another branch or worktree;
-* create tags or releases;
-* merge the PR;
-* enable a runtime flag;
-* deploy anything;
-* implement the three informational findings.
+EXTENSION_ID: <value>
+INSTALLED_RUNTIME_VERSION: <value>
+EXTENSION_ACTIVATED: YES/NO
+WORKSPACE_ROOT: <value>
+WORKSPACE_CLASSIFICATION: <value>
+SELECTED_STTM_PATH: <value>
+SELECTED_STTM_SHA256: <value>
 
-No implementation test rerun is required in this task because the accepted commit is immutable and independently reviewed.
+STRUCTURED_ACTIVE_MAPPING_IDS: <complete ordered list>
+MARKDOWN_ACTIVE_MAPPING_IDS: <complete ordered list>
+ACTIVE_MAPPING_IDS_EQUAL: YES/NO
+ACTIVE_MAPPING_ORDER_EQUAL: YES/NO
+ACTIVE_MAPPING_COUNT_EQUAL: YES/NO
 
-==================================================
-10. POST-ACTION VERIFICATION
+EXCLUDED_MAPPINGS: <complete list>
+CONFLICTING_MAPPINGS_EXCLUDED: YES/NO
+CONFLICT_DIAGNOSTICS_PRESENT_IN_BOTH_CHANNELS: YES/NO
+UNRESOLVED_MAPPINGS_NON_AUTHORITATIVE: YES/NO
+UNDECLARED_STATES_FAIL_CLOSED: YES/NO
+INACTIVE_MAPPING_CAUSES_BLOCKER: YES/NO
+PUBLIC_MACHINE_AUTHORITY_BROADENED: YES/NO
 
-After push and PR creation or idempotent reuse, verify:
+PREVIEW_CREATED_IN_MEMORY: YES/NO
+PREVIEW_APPROVED: NO
+WRITE_EXECUTED: NO
+WORKSPACE_CHANGED_PATHS: <complete list or NONE>
+NEW_RUNTIME_ERRORS: <complete list or NONE>
+NEW_SECURITY_FINDINGS: <complete list or NONE>
 
-* local branch remains unchanged;
-* local HEAD remains
-    6e37281e61a782ffbe8c8675346144567406dabe;
-* local tree remains
-    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab;
-* worktree and index remain clean;
-* ignored baseline remains exact;
-* remote branch points exactly to the accepted HEAD;
-* PR base is main;
-* PR head is phase2/recipe-lifecycle-classification;
-* PR head SHA is the accepted repair commit;
-* no merge occurred;
-* no manual workflow action occurred.
+READY_FOR_EXPLICIT_APPROVAL_AND_WRITE_QA: YES/NO
 
-==================================================
-11. REPORT
+End exactly with one:
 
-Write exactly one report outside the repository:
+RUNTIME_QA_RESULT:
+PASS_PREVIEW_ONLY_READY_FOR_EXPLICIT_WRITE_QA
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PUSH_AND_PR_2026-08-27.md
+RUNTIME_QA_RESULT:
+FAIL_EXTENSION_ACTIVATION
 
-Include:
+RUNTIME_QA_RESULT:
+FAIL_REPAIR_13_RUNTIME_BEHAVIOR
 
-1. final verdict;
-2. workspace and identity evidence;
-3. accepted commit chain and tree;
-4. live main verification;
-5. remote-branch pre-state;
-6. exact push command and result, with no credentials;
-7. remote-branch post-state;
-8. existing-PR collision check;
-9. PR number, URL, title, base, head and SHAs;
-10. PR body verification;
-11. automatic workflow/check status;
-12. final clean-state and ignored-baseline evidence;
-13. explicit confirmation that no code, commit, merge, deployment, runtime flag or manual workflow action occurred;
-14. exact next permitted action.
+RUNTIME_QA_RESULT:
+FAIL_WORKSPACE_MUTATION
 
-The exact next permitted action must be:
-
-A separate independent Pull Request and workflow review. Merge is not yet authorized.
-
-End the report and final response with exactly one token:
-
-PHASE_2F1_PUSH_AND_PR_COMPLETE
-
-or one applicable blocker:
-
-PHASE_2F1_PUSH_PR_BLOCKED_WORKSPACE
-PHASE_2F1_PUSH_PR_BLOCKED_BASE_DRIFT
-PHASE_2F1_PUSH_PR_BLOCKED_GITHUB_ACCESS
-PHASE_2F1_PUSH_PR_BLOCKED_REMOTE_COLLISION
-PHASE_2F1_PUSH_PR_BLOCKED_EXISTING_PR_CONFLICT
-PHASE_2F1_PUSH_PR_BLOCKED_PUSH
-PHASE_2F1_PUSH_PR_BLOCKED_PR_CREATION
+RUNTIME_QA_RESULT:
+BLOCKED_QA_INPUT_AMBIGUITY
