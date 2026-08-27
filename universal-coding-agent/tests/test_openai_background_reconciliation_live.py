@@ -15,6 +15,8 @@ from universal_coding_agent.testlab.openai_background_reconciliation_live import
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
 
 _TASK_ID = "pretransfer-openai-background-reconciliation-task"
+_UNDISPOSED_TASK_ID = "pretransfer-undisposed-background-task"
+_UNDISPOSED_RESPONSE_ID = "resp_private_undisposed"
 
 
 class FakeRestartWorker:
@@ -82,6 +84,19 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
                 status="queued",
                 state=RemoteOperationState.ACTIVE,
             )
+            store.register(
+                task_id=_UNDISPOSED_TASK_ID,
+                thread_id="pretransfer-undisposed-background-thread",
+                transport="openai_responses",
+                transport_scope=(
+                    "sha256:"
+                    + hashlib.sha256(endpoint.encode("utf-8")).hexdigest()
+                ),
+                operation_id=_UNDISPOSED_RESPONSE_ID,
+                base_sha=base_sha,
+                status="queued",
+                state=RemoteOperationState.ACTIVE,
+            )
         finally:
             store.close()
         return FakeRestartWorker()
@@ -120,7 +135,12 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["private_identifier_absent_from_active_database"] is True
     assert summary["provider_calls_during_post_retirement_inventory"] == 0
     assert summary["inventory_empty_after_retirement"] is True
-    assert summary["retained_lease_inventory_after_retirement"]["items"] == []
+    post_retirement_inventory = summary[
+        "retained_lease_inventory_after_retirement"
+    ]
+    assert post_retirement_inventory["items"] == []
+    assert post_retirement_inventory["returned_count"] == 0
+    assert post_retirement_inventory["scanned_count"] == 1
     disposition = summary["durable_terminal_disposition"]
     assert disposition["outcome"] == "cancelled"
     assert disposition["provider_confirmed_cancelled"] is True
@@ -140,6 +160,7 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert requests == ["GET", "POST"]
     serialized = json.dumps(summary, sort_keys=True)
     assert response_id not in serialized
+    assert _UNDISPOSED_RESPONSE_ID not in serialized
     assert "operation_id" not in serialized
     assert "response_id" not in serialized
 
@@ -149,6 +170,7 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
         assert private_store.private_lease(_TASK_ID) is None
         assert private_store.public_snapshot(_TASK_ID) is None
         assert private_store.retirement(_TASK_ID) is not None
+        assert private_store.private_lease(_UNDISPOSED_TASK_ID) is not None
     finally:
         private_store.close()
     assert response_id.encode("utf-8") not in private_database.read_bytes()

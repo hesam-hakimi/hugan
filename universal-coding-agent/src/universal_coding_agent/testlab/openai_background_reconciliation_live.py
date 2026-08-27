@@ -319,7 +319,6 @@ def run_openai_background_reconciliation_live(
         inventory_empty_after_retirement = bool(
             retained_inventory_after_retirement["items"] == []
             and retained_inventory_after_retirement["returned_count"] == 0
-            and retained_inventory_after_retirement["scanned_count"] == 0
         )
         provider_calls_during_post_retirement_inventory = (
             len(request_events) - calls_before_post_retirement_inventory
