@@ -1,608 +1,419 @@
-TASK: HF1_V2_REPAIR_13_OWNER_DISPOSITION_GOLDEN_REFRESH_AND_PURE_UNIT_REGISTRATION
+TASK: PHASE_2F1_REPAIR_M1_M2_TEST_AND_COMMIT
 
-Perform the two exact repository-owner actions required after the successful
-independent review of Repair 13.
+The owner has explicitly accepted the current ignored-artifact state as the new
+Phase 2F.1 review baseline:
 
-Work only inside:
+- kmai-td-genie/.coverage is absent;
+- kmai-td-genie/logs/app.log remains the current 3,603-byte file;
+- this acceptance does not erase or conceal the documented review incident.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Perform one bounded repair of only findings M1 and M2, independently test the
+repair outside the live worktree, and create exactly one new local repair
+commit.
 
-Execution context:
-
-* VS Code option 4: Claude harness;
-* fresh Chat;
-* built-in generic claude Agent;
-* do not select etl-hotfix-implementer;
-* do not select etl-independent-reviewer;
-* Claude Opus 5 with Max reasoning;
-* Current Folder, not Worktree;
-* exactly one effective repository target;
-* Local execution only.
-
-The independent review concluded:
-
-REPAIR_13_INDEPENDENT_REVIEW_RESULT:
-PASS_WITH_REQUIRED_SEPARATE_OWNER_ACTIONS
-
-Repair 13 itself is independently certified as correct, complete, minimal, and
-non-regressing.
-
-This prompt records an explicit repository-owner decision authorizing exactly two
-mechanical follow-up actions:
-
-OWNER_ACTION_1:
-Refresh the Phase H golden eval baseline for the two independently verified
-legitimate Repair 13 behavior-input changes.
-
-OWNER_ACTION_2:
-Register the Repair 13 focused suite exactly once in the canonical Pure Unit test
-registry.
-
-No other action is authorized.
+Do not amend the existing implementation commit.
+Do not push or create a PR.
 
 ==================================================
+1. TARGET IDENTITY
+==================================================
 
-1. VERIFIED REPAIR 13 STATE
-    ==================================================
+Repository:
+TD-Enterprise/kmai-td-genie
 
-The independently reviewed Repair 13 change set is:
+Logical worktree:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
 
-Modified:
+Application root:
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
 
-1. src/core/sttm/SttmResolvedEvidence.ts
-2. src/core/sttm/SttmUnderstandingReportRenderer.ts
-3. src/tools/EtlReadOnlyToolService.ts
+Required branch:
+phase2/recipe-lifecycle-classification
 
-Added:
+Required current HEAD:
+c1639fc779aaed64e4be9fdd17381e0f293c7f9f
 
-4. src/test/suite/sttmRepair13.test.ts
+Required current tree:
+a5bd9ed7f7959c02ccb6c00b574599fb32d4fa95
 
-The independent review proved:
+Required parent:
+f283f01b6d615f9fa00debcef959d9c5c86a3224
 
-* one positive-grant authoritative selector;
-* no negative authority predicate;
-* compile-time exhaustive state coverage;
-* runtime fail-closed handling;
-* structured/Markdown parity in 19/19 scenarios;
-* Repair 13 focused suite: 23/23;
-* Repair 12: 21/21;
-* Repair 11: 22/22;
-* QA STTM unchanged;
-* no Repair 13 functional or security regression;
-* no unauthorized Repair 13 path;
-* unresolved schema references are display-only, read-only, and
-    non-authoritative;
-* no Preview, Write, approval, generation, packaging, installation, or Runtime QA
-    authority was introduced.
+Required existing subject:
+feat(recipes): add phase 2f.1 lifecycle classification
 
-Do not reopen or redesign Repair 13.
+Accepted ignored baseline:
 
-Do not modify the four Repair 13 paths in this task.
+1. kmai-td-genie/.coverage
+   - absent
+
+2. kmai-td-genie/logs/app.log
+   - regular file
+   - mode: 0644
+   - size: 3,603 bytes
+   - SHA-256:
+     58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
+
+Accepted current manifest evidence:
+
+- 655 descendants below the worktree root;
+- 656 entries when the worktree root is included;
+- ignored-path count: 141;
+- task-local manifest SHA-256:
+  34f2415386e61f3a769e0483428fa8f47589d6f551be8936e5d5eb31425e50de
 
 ==================================================
-2. REQUIRED IDENTITY
+2. REQUIRED REPORTS
+==================================================
 
-Verify:
+Read completely:
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_CONTINUATION_2026-08-27.md
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_INDEPENDENT_REVIEW_2026-08-27.md
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_DISPOSITION_2026-08-27.md
 
-HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Verify the terminal tokens:
 
-SOURCE_VERSION:
-0.3.144
+PHASE_2F1_IMPLEMENTATION_CONTINUATION_COMPLETE
 
-Required:
+PHASE_2F1_INDEPENDENT_REVIEW_BLOCKED_WORKSPACE
 
-* exactly one effective Current Folder repository target;
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json absent;
-* no concurrently running Agent mutation;
-* Repair 13 four-path change set still present;
-* no version bump, package, install, Runtime QA, commit, or push;
-* protected VSIX files unchanged.
+PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_REQUIRES_OWNER_DISPOSITION
 
-Prove visible stdout, stderr, executable identity, and real exit codes for:
+Treat the owner decision in this prompt as the authorized disposition required
+by the last token.
 
-* cmd.exe;
-* git.exe;
-* node.exe;
-* npm.cmd or the exact underlying Node command.
-
-Use task-owned file-redirection helpers under the OS temporary directory when the
-known inline-capture/PATH defect occurs.
-
-Do not modify the repository to recover process execution.
-
-Stop without mutation on identity mismatch, staged files, concurrent mutation, or
-unproven execution.
+Do not reopen the ignored-artifact decision.
+Do not restore, regenerate, truncate, or modify either ignored artifact.
 
 ==================================================
-3. INDEPENDENT PRE-ACTION SNAPSHOT
+3. PRE-MUTATION GATE
+==================================================
 
-Before any mutation, capture an independent Git plus OS-hash baseline containing:
+Before editing, verify:
 
-* all tracked modifications and deletions;
-* all non-ignored untracked files;
-* all Repair 13 paths;
-* all Phase H eval baseline paths;
-* src/test/testPatterns.ts;
-* package.json;
-* package-lock.json state;
-* tsconfig.json and tsconfig.test.json;
-* Repair 11 and Repair 12 paths;
-* canonical QA STTM;
-* .gitignore;
-* .claude/**;
-* CLAUDE.md;
-* governance manifest, scripts, tests, and workflow;
-* all eleven src/**/AGENT.md files;
-* all VSIX files.
+- pwd and pwd -P;
+- target and application-root realpaths;
+- Git top-level and common directory;
+- origin;
+- branch;
+- HEAD, tree, parent, and subject;
+- tracked and untracked porcelain;
+- staged state;
+- shared-worktree inventory;
+- accepted ignored baseline and manifest evidence.
 
-Store all logs, generated candidates, snapshots, and mirrors under a unique OS
-temporary directory.
+Required state:
 
-Do not use Git alone because the repository has a large untracked overlay.
+- exact expected identity;
+- tracked, untracked, and staged states empty;
+- .coverage absent;
+- logs/app.log matches the accepted size and SHA-256;
+- no unexplained workspace drift.
+
+Using authenticated read-only GitHub GET requests, verify:
+
+- main remains:
+  f283f01b6d615f9fa00debcef959d9c5c86a3224
+- the Phase 2F.1 branch is still not remote;
+- no PR or workflow exists for the local Phase 2F.1 commit.
+
+Do not fetch or modify local refs.
+
+If any gate fails, stop without mutation.
 
 ==================================================
-4. EXACT AUTHORIZED CHANGE BOUNDARY
+4. EXACT REPAIR SCOPE
+==================================================
 
-This task may change only:
+Only these four repository paths are authorized to change:
 
-A. the exact existing Phase H golden baseline file or files proven to be written
-by the repository’s canonical eval:golden command;
+1. kmai-td-genie/src/backend/app/orchestrator.py
+2. kmai-td-genie/src/backend/app/recipes/lifecycle.py
+3. kmai-td-genie/test/test_approved_recipe_pilot.py
+4. kmai-td-genie/test/test_recipe_lifecycle.py
 
-B. src/test/testPatterns.ts, with exactly one narrow additive Pure Unit pattern
-for the freshly compiled Repair 13 suite.
+No fifth repository path is authorized.
 
-Before editing, return:
+Do not modify:
 
-PROPOSED_GOLDEN_BASELINE_PATHS: 
-PROPOSED_TEST_REGISTRATION_PATH:
-src/test/testPatterns.ts
+- approval_evidence.py;
+- approved_recipes.py;
+- authz tests;
+- provider-abstraction tests;
+- ADRs or README;
+- recipes/__init__.py;
+- configuration or dependencies;
+- ignored artifacts;
+- reports created by earlier tasks.
 
-PROPOSED_EXACT_REGISTRATION_LINE: 
-PROPOSED_PATTERN_MATCH_COUNT: 
-
-Do not edit until:
-
-* every proposed golden baseline path is proven to be canonical output of the
-    existing generator;
-* no unrelated file would be generated or modified;
-* the registration pattern matches exactly one compiled suite;
-* the registration pattern overlaps no existing Pure Unit pattern;
-* duplicate execution remains impossible.
-
-If the generator requires changes outside the exact baseline outputs, stop:
-
-OWNER_DISPOSITION_RESULT: BLOCKED_GOLDEN_OUTPUT_SCOPE
-
-If exact one-suite registration cannot be proven, stop:
-
-OWNER_DISPOSITION_RESULT: BLOCKED_REGISTRATION_SCOPE
-
-Everything else is protected.
+If repository evidence proves one of the four test files unnecessary, it may
+remain unchanged. Do not replace it with another path.
 
 ==================================================
-5. OWNER ACTION 1 — CONTROLLED GOLDEN REFRESH
+5. REPAIR M1
+==================================================
 
-Do not run the golden generator directly against the live repository first.
+Finding M1:
 
-Create a byte-faithful temporary mirror containing tracked and untracked working
-content.
+An unexpected lifecycle-classification or trace-payload exception can propagate
+from the orchestrator and alter existing runtime execution.
 
-In the mirror:
+Required behavior:
 
-1. freshly compile required source;
-2. run the canonical Phase H eval validation before regeneration;
-3. record the two expected EvalGating failures;
-4. run the repository’s canonical golden-generation command;
-5. capture every generated path and exact diff;
-6. run the generator a second time from the same normalized inputs;
-7. identify deterministic fields and permitted timestamp/latency fields;
-8. validate the regenerated baseline;
-9. confirm all Phase H scenarios pass.
+- Phase 2F.1 remains observational, classification-only, and best-effort.
+- An unexpected failure anywhere inside the lifecycle-only block must never
+  alter existing execution.
+- The lifecycle-only exception boundary must include:
+  - evaluate_recipe_lifecycle_gate(...);
+  - lifecycle-result handling;
+  - to_trace_payload();
+  - the lifecycle trace attempt.
+- On any lifecycle-only exception:
+  - emit no lifecycle trace for the failed classification;
+  - serialize no exception text;
+  - expose no fingerprint or raw evidence;
+  - continue immediately to the existing Approved Recipe gate and unchanged
+    runtime path.
+- Do not catch or suppress exceptions from:
+  - the existing Approved Recipe execution gate;
+  - authorization;
+  - SQL generation or validation;
+  - data-source execution;
+  - unrelated orchestration behavior.
+- The lifecycle result must never influence allow/deny, SQL, routing, response
+  status, warning, fallback, or authorization.
+- At most one successful lifecycle trace may be emitted.
 
-Expected legitimate drift inputs:
+Add focused integration regression tests proving at least:
 
-* src/core/sttm/SttmResolvedEvidence.ts;
-* src/core/sttm/SttmUnderstandingReportRenderer.ts.
-
-The independent review established that these are the only tracked Phase H input
-hashes expected to change.
-
-src/tools/EtlReadOnlyToolService.ts and
-src/test/suite/sttmRepair13.test.ts were not tracked Phase H baseline inputs.
-
-Required regenerated semantic results:
-
-* acceptanceRate: 1;
-* parityRate: 1;
-* validationSuccessRate: 1;
-* coverage complete;
-* required scenarios: 9/9 passing;
-* missing required scenarios: none;
-* no behavioral regression;
-* no containment regression;
-* no security regression.
-
-The diff may contain only:
-
-* the baseline digest derived from the legitimate inputs;
-* hashes for the two legitimate drifted inputs;
-* canonical generation timestamp fields;
-* expected latency measurement fields.
-
-It must not:
-
-* remove scenarios;
-* weaken thresholds;
-* reduce coverage;
-* change acceptance semantics;
-* hide failures;
-* exclude Repair 13 inputs improperly;
-* regenerate unrelated historical baselines.
-
-After the candidate passes, apply only the exact canonical baseline output files
-to the live repository.
-
-Do not copy any compiled out/**, logs, reports, caches, or temporary files.
-
-Required:
-
-GOLDEN_REFRESH_SEMANTIC_REGRESSION: NO
-GOLDEN_REFRESH_MISSING_SCENARIOS: NONE
-GOLDEN_REFRESH_UNRELATED_PATHS: NONE
+1. lifecycle-gate RuntimeError does not propagate and existing execution
+   continues unchanged;
+2. to_trace_payload RuntimeError does not propagate and existing execution
+   continues unchanged;
+3. no exception text or failed lifecycle trace is emitted;
+4. existing authoritative gate failures are not swallowed by the new boundary;
+5. flag-OFF and deny-all behavior remain unchanged.
 
 ==================================================
-6. OWNER ACTION 2 — PURE UNIT REGISTRATION
+6. REPAIR M2
+==================================================
 
-Inspect the live canonical test registry and compiled suite layout.
+Finding M2:
 
-The independent review established:
+Multi-record non-executable approval evidence suppresses the simultaneously
+applicable RECIPE_NOT_APPROVED reason.
 
-* source suite:
-    src/test/suite/sttmRepair13.test.ts;
-* compiled suite:
-    out/test/suite/sttmRepair13.test.js;
-* the suite currently runs through:
-    INTEGRATION_TEST_PATTERNS;
-* it is not executed by the headless canonical Pure Unit channel;
-* it compiles and is discovered exactly once in a fresh mirror;
-* TEST_REGISTRATION is owned by repository-owner;
-* the implementer correctly did not edit src/test/testPatterns.ts.
+Required behavior:
 
-Add exactly one narrow pattern to the existing Pure Unit registry.
+- Evaluate executable/non-executable lifecycle status for every approval record,
+  independently of record count, ambiguity, or conflict.
+- Multiple records remain ambiguous even when identical.
+- Structural validation still applies to every record.
+- Preserve every simultaneously applicable reason.
+- Higher-precedence BROKEN must not suppress lower-priority applicable reasons.
+- Final precedence remains exactly:
 
-The independently proposed pattern was equivalent to an exact
-sttmRepair13.test.js match. Re-derive the precise syntax from the live registry
-instead of copying punctuation blindly.
+  BROKEN
+  NOT_APPROVED
+  REVIEW_REQUIRED
+  VALID
 
-The final pattern must:
+- Reason ordering and deduplication remain deterministic.
+- Do not change approval product policy or invent new statuses.
+- Do not change fingerprints, baseline semantics, or persistence behavior.
 
-* match out/test/suite/sttmRepair13.test.js;
-* match exactly one compiled file;
-* execute the suite exactly once in the Pure Unit runner;
-* introduce 23 focused passing tests;
-* not match Repair 11 or Repair 12 suites;
-* not match sibling suites;
-* not overlap another Pure Unit pattern;
-* not broaden to suite/**;
-* not change Integration Test patterns;
-* not reorder or rewrite unrelated registry entries.
+Add focused regression tests proving at least:
 
-Make no other change to src/test/testPatterns.ts.
-
-Required:
-
-PURE_UNIT_PATTERN_MATCH_COUNT: 1
-PURE_UNIT_DUPLICATE_EXECUTION: NO
-REPAIR_13_PURE_UNIT_EXECUTION_COUNT: 1
-REPAIR_13_PURE_UNIT_PASSING: 23
-REPAIR_13_PURE_UNIT_FAILING: 0
+1. two identical draft records produce:
+   - final state BROKEN;
+   - APPROVAL_EVIDENCE_AMBIGUOUS;
+   - RECIPE_NOT_APPROVED;
+2. mixed approved/non-approved multi-record evidence preserves every applicable
+   reason;
+3. malformed or conflicting multi-record evidence preserves invalid/conflict,
+   ambiguity, and non-approved reasons together when applicable;
+4. input permutations produce identical ordered results;
+5. existing single-record behavior remains unchanged.
 
 ==================================================
-7. STALE LIVE OUT POLICY
+7. LIVE-WORKTREE PROTECTION DURING TESTS
+==================================================
 
-The live out/** tree is a pre-Repair-13 stale build.
+Do not execute Python, pytest, coverage, or runtime probes inside the live
+worktree after editing.
 
-Do not update live out/** in this task.
+This restriction prevents another ignored-artifact incident.
 
-Do not copy compiled output from the mirror to the live repository.
+After completing the candidate repair:
 
-All fresh compilation and test validation must occur in a temporary mirror.
+1. Create one validated temporary directory outside every Git repository.
+2. Create a byte-faithful test mirror of the application root inside it,
+   including the current uncommitted candidate source and tests.
+3. Do not include Git metadata.
+4. Verify the four authorized candidate files in the mirror have the same
+   SHA-256 as their live candidate versions.
+5. Run every test only from the temporary mirror.
+6. Set:
+   - PYTHONDONTWRITEBYTECODE=1;
+   - PYTHONPYCACHEPREFIX inside the temporary directory;
+   - COVERAGE_FILE inside the temporary directory;
+   - TMPDIR inside the temporary directory;
+   - pytest cache inside the temporary directory.
+7. Any log, coverage, cache, XML, bytecode, or runtime output must remain inside
+   that temporary directory.
+8. Remove only that exact validated temporary directory after recording results.
 
-The prior COMPILED_SUITE_MISSING governance finding is expected against stale
-live out/** and must disappear in the freshly compiled mirror.
-
-Required:
-
-LIVE_OUT_MODIFIED: NO
-FRESH_MIRROR_COMPILED_SUITE_PRESENT: YES
-FRESH_MIRROR_COMPILED_SUITE_DISCOVERY_COUNT: 1
-FRESH_MIRROR_GOVERNANCE_TESTS_PASS: YES
-
-Fresh compiled output will be created later by the authorized VERSION_AND_PACKAGE
-lifecycle stage.
+Do not delete or modify any pre-existing live ignored file.
 
 ==================================================
-8. VALIDATION
+8. TEST GATES
+==================================================
 
-After applying the two exact live changes, create a fresh byte-faithful mirror of
-the resulting working tree.
+Run from the external test mirror.
 
-Run:
+First run the directly affected tests:
 
-1. compile;
-2. compile:test;
-3. lint;
-4. Repair 13 focused suite;
-5. Repair 13 Pure Unit discovery and execution;
-6. Repair 12 canonical suite;
-7. Repair 11 focused suite;
-8. STTM regression suites;
-9. EtlReadOnlyToolService suites;
-10. public-seam parity scenarios;
-11. containment/security suites;
-12. trusted-envelope suites;
-13. Phase H EvalGating tests;
-14. Phase H golden validation without regeneration;
-15. customization validator;
-16. test-registration validator;
-17. governance tests;
-18. canonical full unit suite;
-19. independent snapshot → action → compare lifecycle.
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py
 
-Required:
+Then run the complete focused gate:
 
-COMPILE_PASS: YES
-COMPILE_TEST_PASS: YES
-LINT_PASS: YES
-REPAIR_13_FOCUSED_PASS: YES
-REPAIR_13_PURE_UNIT_PASS: YES
-REPAIR_12_CANONICAL_PASS: YES
-REPAIR_11_FOCUSED_PASS: YES
-STTM_REGRESSION_PASS: YES
-PUBLIC_TOOL_REGRESSION_PASS: YES
-CONTAINMENT_SECURITY_PASS: YES
-TRUSTED_ENVELOPE_PASS: YES
-EVAL_GATING_PASS: YES
-GOLDEN_VALIDATION_PASS: YES
-CUSTOMIZATION_BLOCKERS: 0
-CUSTOMIZATION_MAJOR_FINDINGS: 0
-CUSTOMIZATION_MINOR_FINDINGS: 0
-REGISTRATION_ENFORCING_FINDINGS: 0
-GOVERNANCE_TESTS_PASSING: 224
-GOVERNANCE_TESTS_FAILING: 0
+python3 -m pytest --no-cov -q \
+  test/test_recipe_lifecycle.py \
+  test/test_approved_recipe_pilot.py \
+  test/test_authz_no_access_guard.py \
+  test/test_provider_abstraction_contracts.py \
+  test/test_recipe_dependency_fingerprint.py \
+  test/test_governed_field_records.py \
+  test/test_semantic_plan_contract.py
 
-Previous canonical full unit state after Repair 13 but before owner actions:
+Previous baseline:
+229 passed
 
-* 2244 passing;
-* 1 pending;
-* 4 failing.
+Required result:
 
-Expected changes:
+- all previous tests pass;
+- all new M1/M2 tests are collected and pass;
+- focused pass count increases only by the newly added tests;
+- zero failure, error, xfail, or unexpected skip.
 
-* the two legitimate EvalGating failures become passing;
-* the 23 Repair 13 tests become newly included in Pure Unit;
-* the two known pre-existing customization failures remain unchanged.
+Golden gate:
 
-Expected canonical full unit result, if all counts compose exactly:
+python3 -m pytest --no-cov -q test/test_golden_baseline.py
 
-* 2269 passing;
-* 1 pending;
-* 2 failing.
+Required result:
+10 passed
 
-Do not force the numeric expectation. Derive the exact result and explain any
-difference by test identity.
+Full gate:
 
-Known pre-existing failures:
+python3 -m pytest
 
-F1:
+Previous baseline:
+1067 passed, 3 skipped, coverage 87%
 
-* missing .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md.
+Required result:
 
-F3:
+- all previous tests and all new tests pass;
+- exactly the same three justified unrelated skips unless independently
+  explained;
+- total coverage remains at least 87%;
+- new M1/M2 branches are covered;
+- no Phase 2F.1 test is skipped.
 
-* assertion concerning eleven existing src/**/AGENT.md files.
+Record exact commands, exit codes, counts, skips, warnings, total coverage, and
+coverage for lifecycle.py and orchestrator.py.
 
-The pending test remains:
+After mirror testing, run only non-executing Git checks in the live worktree:
 
-KnowledgeAdvisor Integration Tests
+git diff --check
 
-Required:
+Verify the live ignored baseline is unchanged:
 
-EVAL_GATING_FAILURES_REMAINING: 0
-NEW_FUNCTIONAL_REGRESSIONS: 0
-NEW_SECURITY_REGRESSIONS: 0
-PRE_EXISTING_FAILURE_FINGERPRINTS_CHANGED: NO
+- .coverage remains absent;
+- logs/app.log remains exactly 3,603 bytes with SHA-256:
+  58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
 
 ==================================================
-9. FINAL CHANGE-BOUNDARY PROOF
+9. COMMIT GATE
+==================================================
 
-Compare the final live repository with the independent pre-action snapshot.
+Commit only if:
 
-Expected task-attributable changes:
+- M1 and M2 are corrected;
+- every required test passes;
+- coverage requirement passes;
+- git diff --check passes;
+- only the authorized paths changed;
+- live ignored baseline is unchanged;
+- no Critical, High, or Medium finding remains.
 
-* exact Phase H golden baseline output file or files;
-* one additive line in src/test/testPatterns.ts.
+Create exactly one new local commit.
 
-Required:
+Do not amend or squash the original implementation commit.
 
-UNAUTHORIZED_CHANGED_PATHS: NONE
-REPAIR_13_SOURCE_CHANGED: NO
-REPAIR_13_FOCUSED_TEST_CHANGED: NO
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-DEPENDENCIES_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-TSCONFIG_CHANGED: NO
-REPAIR_11_CONTENT_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-QA_STTM_CHANGED: NO
-GOVERNANCE_FILES_CHANGED: NO
-CLAUDE_NATIVE_FILES_CHANGED: NO
-GITIGNORE_CHANGED: NO
-LEGACY_AGENT_FILES_CHANGED: NO
-LIVE_OUT_MODIFIED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-PREVIEW_CREATED: NO
-WRITE_EXECUTED: NO
-RUNTIME_QA_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-TAG_CREATED: NO
-STAGED_FILES: 0
-STASH_ENTRIES: 0
+Required subject:
+
+fix(recipes): harden lifecycle classification
+
+After committing, verify:
+
+- the new commit has exactly one parent:
+  c1639fc779aaed64e4be9fdd17381e0f293c7f9f
+- the repair commit contains only the authorized changed paths;
+- worktree/index/tracked/untracked states are clean;
+- accepted ignored baseline remains unchanged;
+- the original implementation commit remains in history.
+
+Do not push.
+Do not create a PR.
+Do not trigger a workflow.
+Do not merge or deploy.
 
 ==================================================
-10. INDEPENDENCE AND NEXT STAGE
-
-This owner-action session may implement and validate only the two authorized
-owner actions.
-
-It may not independently review or certify them.
-
-After successful completion, a fresh etl-independent-reviewer session must
-review:
-
-* exact golden baseline diff;
-* exact Pure Unit registration line;
-* match and execution counts;
-* full validation results;
-* non-mutation boundary.
-
-Do not start VERSION_AND_PACKAGE in this session.
-
-Do not bump to 0.3.145.
-
-Do not build or install a VSIX.
-
-Do not start Runtime QA.
-
+10. REPORT
 ==================================================
-11. FINAL REPORT
 
-Return:
+Write exactly one report outside the repository:
 
-IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-INDEPENDENT_BASELINE_CAPTURED: YES/NO
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_M1_M2_REPAIR_2026-08-27.md
 
-GOLDEN_BASELINE_PATHS_CHANGED: 
-GOLDEN_BASELINE_DIFF: 
-GOLDEN_BASELINE_INPUTS_CHANGED: 
-GOLDEN_BASELINE_UNRELATED_INPUTS_CHANGED: 
-EVAL_ACCEPTANCE_RATE: 
-EVAL_PARITY_RATE: 
-EVAL_VALIDATION_SUCCESS_RATE: 
-EVAL_REQUIRED_SCENARIOS_PASSING: <number/number>
-EVAL_MISSING_REQUIRED_SCENARIOS: 
-GOLDEN_REFRESH_SEMANTIC_REGRESSION: YES/NO
+Include:
 
-TEST_REGISTRATION_PATH_CHANGED: 
-PURE_UNIT_PATTERN_ADDED: 
-PURE_UNIT_PATTERN_MATCH_COUNT: 
-PURE_UNIT_DUPLICATE_EXECUTION: YES/NO
-REPAIR_13_PURE_UNIT_EXECUTION_COUNT: 
-REPAIR_13_PURE_UNIT_PASSING: 
-REPAIR_13_PURE_UNIT_FAILING: 
+1. final repair verdict;
+2. owner-accepted ignored-artifact disposition;
+3. workspace and initial commit identity;
+4. current-main and no-remote-state proof;
+5. exact changed-file inventory;
+6. M1 root cause and correction;
+7. M1 regression-test evidence;
+8. M2 root cause and correction;
+9. M2 regression-test evidence;
+10. external test-mirror construction and identity proof;
+11. affected/focused/golden/full test results;
+12. skips, warnings, and coverage;
+13. live-worktree pre/post manifest comparison;
+14. proof that ignored baseline remained unchanged;
+15. repair commit SHA, tree, parent, and subject;
+16. final clean status;
+17. no-push/no-PR/no-workflow attestation;
+18. exact next permitted action.
 
-LIVE_OUT_MODIFIED: YES/NO
-FRESH_MIRROR_COMPILED_SUITE_PRESENT: YES/NO
-FRESH_MIRROR_COMPILED_SUITE_DISCOVERY_COUNT: 
+If complete, the next permitted action is a fresh independent read-only review
+of the new two-commit Phase 2F.1 branch.
 
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_13_FOCUSED_PASS: YES/NO
-REPAIR_13_PURE_UNIT_PASS: YES/NO
-REPAIR_12_CANONICAL_PASS: YES/NO
-REPAIR_11_FOCUSED_PASS: YES/NO
-STTM_REGRESSION_PASS: YES/NO
-PUBLIC_TOOL_REGRESSION_PASS: YES/NO
-CONTAINMENT_SECURITY_PASS: YES/NO
-TRUSTED_ENVELOPE_PASS: YES/NO
-EVAL_GATING_PASS: YES/NO
-GOLDEN_VALIDATION_PASS: YES/NO
+End with exactly one token:
 
-GOVERNANCE_TESTS_PASSING: 
-GOVERNANCE_TESTS_FAILING: 
-CUSTOMIZATION_BLOCKERS: 
-CUSTOMIZATION_MAJOR_FINDINGS: 
-CUSTOMIZATION_MINOR_FINDINGS: 
-REGISTRATION_ENFORCING_FINDINGS: 
+PHASE_2F1_M1_M2_REPAIR_COMPLETE
 
-FULL_UNIT_PASSING: 
-FULL_UNIT_PENDING: 
-FULL_UNIT_FAILING: 
-FULL_UNIT_FAILURES: 
-EVAL_GATING_FAILURES_REMAINING: 
-PRE_EXISTING_FAILURE_FINGERPRINTS_CHANGED: YES/NO
-NEW_FUNCTIONAL_REGRESSIONS: 
-NEW_SECURITY_REGRESSIONS: 
+or:
 
-AUTHORIZED_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-PACKAGE_JSON_CHANGED: NO
-PACKAGE_VERSION_CHANGED: NO
-PACKAGE_LOCK_CREATED: NO
-REPAIR_13_SOURCE_CHANGED: NO
-REPAIR_13_FOCUSED_TEST_CHANGED: NO
-REPAIR_12_CONTENT_CHANGED: NO
-QA_STTM_CHANGED: NO
-GOVERNANCE_FILES_CHANGED: NO
-LIVE_OUT_MODIFIED: NO
-VSIX_CHANGED: NO
-QA_WORKSPACE_TOUCHED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-STAGED_FILES: 
-
-READY_FOR_INDEPENDENT_OWNER_ACTION_REVIEW: YES/NO
-READY_FOR_VERSION_AND_PACKAGE: NO
-READY_TO_BUMP_TO_0_3_145: NO
-READY_FOR_INSTALL_OR_RUNTIME_QA: NO
-READY_FOR_COMMIT_OR_PUSH: NO
-READY_FOR_CLOUD_ROLLOUT: NO
-
-End exactly with one:
-
-OWNER_DISPOSITION_RESULT:
-PASS_READY_FOR_INDEPENDENT_OWNER_ACTION_REVIEW
-
-OWNER_DISPOSITION_RESULT:
-FAIL_GOLDEN_BASELINE_VALIDATION
-
-OWNER_DISPOSITION_RESULT:
-FAIL_TEST_REGISTRATION_VALIDATION
-
-OWNER_DISPOSITION_RESULT:
-FAIL_FUNCTIONAL_OR_SECURITY_REGRESSION
-
-OWNER_DISPOSITION_RESULT:
-FAIL_UNAUTHORIZED_CHANGE
-
-OWNER_DISPOSITION_RESULT:
-BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
-
-OWNER_DISPOSITION_RESULT:
-BLOCKED_EXECUTION_ENVIRONMENT
-
-OWNER_DISPOSITION_RESULT:
-BLOCKED_GOLDEN_OUTPUT_SCOPE
-
-OWNER_DISPOSITION_RESULT:
-BLOCKED_REGISTRATION_SCOPE
-
-OWNER_DISPOSITION_RESULT:
-BLOCKED_OWNER_DELEGATION
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_IDENTITY
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_BASE_DRIFT
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_SCOPE
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_TESTS
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_COVERAGE
+PHASE_2F1_M1_M2_REPAIR_BLOCKED_WORKSPACE
