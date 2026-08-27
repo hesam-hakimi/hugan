@@ -1146,3 +1146,89 @@ def test_runtime_program_worker_blocks_cross_runtime_program_control(
     finally:
         first_runtime.close()
         second_runtime.close()
+
+
+def test_admin_lifecycle_recovery_is_explicit_redacted_and_audited(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    runtime = ProductWebRuntime(workspace=workspace, state_root=tmp_path / "runtime")
+    owner = workspace.lifecycle_reservations.reserve_remote_operation(
+        "task-crash-left-action",
+        program_id="program-crash-left-action",
+    )
+    with TestClient(create_product_app(runtime)) as client:
+        preview = client.get("/api/admin/lifecycle-recovery")
+        assert preview.status_code == 200
+        assert preview.headers["cache-control"] == "no-store"
+        candidate = preview.json()["candidates"][0]
+        assert candidate["same_runtime_active"] is False
+        assert candidate["eligible_for_recovery"] is True
+        assert candidate["requires_operator_process_verification"] is True
+        assert owner not in preview.text
+
+        unconfirmed = client.post(
+            "/api/admin/lifecycle-recovery",
+            json={
+                "target_type": candidate["target_type"],
+                "target_kind": candidate["target_kind"],
+                "scope_id": candidate["scope_id"],
+                "recovery_ref": candidate["recovery_ref"],
+                "reason": "The interrupted process was explicitly verified stopped.",
+                "confirmed": False,
+            },
+        )
+        assert unconfirmed.status_code == 422
+
+        payload = {
+            "target_type": candidate["target_type"],
+            "target_kind": candidate["target_kind"],
+            "scope_id": candidate["scope_id"],
+            "recovery_ref": candidate["recovery_ref"],
+            "reason": "The interrupted process was explicitly verified stopped.",
+            "confirmed": True,
+        }
+        recovered = client.post("/api/admin/lifecycle-recovery", json=payload)
+        assert recovered.status_code == 200
+        receipt = recovered.json()
+        assert receipt["rows_recovered"] == 1
+        assert receipt["provider_calls_made"] == 0
+        assert receipt["automatic_cleanup"] is False
+        assert owner not in recovered.text
+        assert client.post("/api/admin/lifecycle-recovery", json=payload).json() == receipt
+
+        reloaded = client.get("/api/admin/lifecycle-recovery").json()
+        assert reloaded["candidates"] == []
+        assert reloaded["recoveries"] == [receipt]
+        assert reloaded["ttl_enabled"] is False
+        assert reloaded["automatic_cleanup_enabled"] is False
+
+
+def test_admin_recovery_blocks_same_runtime_owner(tmp_path: Path) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    runtime = ProductWebRuntime(workspace=workspace, state_root=tmp_path / "runtime")
+    task_id = "task-live-local-worker"
+    owner = workspace.lifecycle_reservations.reserve_standalone_worker(task_id)
+    runtime._standalone_worker_tokens[task_id] = owner
+    runtime._runs[task_id] = {"busy": True}
+    with TestClient(create_product_app(runtime)) as client:
+        candidate = client.get("/api/admin/lifecycle-recovery").json()["candidates"][0]
+        assert candidate["same_runtime_active"] is True
+        assert candidate["eligible_for_recovery"] is False
+        blocked = client.post(
+            "/api/admin/lifecycle-recovery",
+            json={
+                "target_type": candidate["target_type"],
+                "target_kind": candidate["target_kind"],
+                "scope_id": candidate["scope_id"],
+                "recovery_ref": candidate["recovery_ref"],
+                "reason": "This must remain blocked while locally active.",
+                "confirmed": True,
+            },
+        )
+        assert blocked.status_code == 400
+        assert "same-runtime lifecycle owner is still active" in blocked.text
+        assert workspace.lifecycle_reservations.snapshot().worker_task_ids == {task_id}
+        runtime._standalone_worker_tokens.clear()
+        runtime._runs.clear()
+        workspace.lifecycle_reservations.release_standalone_worker(task_id, owner)

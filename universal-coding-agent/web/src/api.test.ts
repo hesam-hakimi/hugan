@@ -73,6 +73,51 @@ describe("Program execution API client", () => {
     expect(request[1].body).toBeUndefined();
   });
 
+  it("loads lifecycle recovery candidates with a read-only request", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.lifecycleRecovery();
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe("/api/admin/lifecycle-recovery");
+    expect(request[1].method).toBeUndefined();
+    expect(request[1].body).toBeUndefined();
+  });
+
+  it("recovers exactly one lifecycle target only through a confirmed POST", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+    const candidate = {
+      schema_version: "1" as const,
+      target_type: "worker_ownership" as const,
+      target_kind: "program_execution" as const,
+      scope_id: "program-1",
+      task_id: "",
+      program_id: "program-1",
+      created_at: "2026-08-27T00:00:00+00:00",
+      recovery_ref: `sha256:${"e".repeat(64)}`,
+      same_runtime_active: false,
+      eligible_for_recovery: true,
+      eligibility_is_advisory: true as const,
+      requires_operator_process_verification: true as const,
+    };
+
+    await api.recoverLifecycleTarget(candidate, "Verified stopped.");
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe("/api/admin/lifecycle-recovery");
+    expect(request[1].method).toBe("POST");
+    expect(JSON.parse(String(request[1].body))).toEqual({
+      target_type: "worker_ownership",
+      target_kind: "program_execution",
+      scope_id: "program-1",
+      recovery_ref: candidate.recovery_ref,
+      reason: "Verified stopped.",
+      confirmed: true,
+    });
+  });
+
   it("starts the next execution unit only through an explicit POST", async () => {
     const fetchMock = vi.fn(async () => successfulJson());
     vi.stubGlobal("fetch", fetchMock);

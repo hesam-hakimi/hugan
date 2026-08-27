@@ -4,6 +4,8 @@ import { api } from "./api";
 import type {
   CancellationReport,
   ContextDocument,
+  LifecycleRecoveryCandidate,
+  LifecycleRecoverySnapshot,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDisposition,
@@ -39,11 +41,12 @@ type ProgramState = {
   execution: ProgramExecutionSnapshot;
 };
 
-type View = "overview" | "leases" | "task" | "requirements" | "program" | "documents" | "search";
+type View = "overview" | "leases" | "recovery" | "task" | "requirements" | "program" | "documents" | "search";
 
 const navItems: Array<{ id: View; label: string; eyebrow: string }> = [
   { id: "overview", label: "Overview", eyebrow: "Control center" },
   { id: "leases", label: "Lease inventory", eyebrow: "Retention review" },
+  { id: "recovery", label: "Lifecycle recovery", eyebrow: "Admin action" },
   { id: "task", label: "New task", eyebrow: "Safe execution" },
   { id: "requirements", label: "Requirements", eyebrow: "Clarify & freeze" },
   { id: "program", label: "Program", eyebrow: "Phase delivery" },
@@ -106,6 +109,9 @@ export default function App() {
   const [taskLookupId, setTaskLookupId] = useState("");
   const [leaseInventory, setLeaseInventory] =
     useState<RetainedRemoteOperationLeaseInventory>();
+  const [lifecycleRecovery, setLifecycleRecovery] =
+    useState<LifecycleRecoverySnapshot>();
+  const [recoveryReasons, setRecoveryReasons] = useState<Record<string, string>>({});
 
   useEffect(() => {
     api.health()
@@ -194,6 +200,31 @@ export default function App() {
         setView("task");
       },
       "Task controls loaded with a read-only request.",
+    );
+  }
+
+  function refreshLifecycleRecovery() {
+    void perform(
+      () => api.lifecycleRecovery(),
+      setLifecycleRecovery,
+      "Lifecycle recovery candidates and receipts were refreshed without provider work.",
+    );
+  }
+
+  function recoverLifecycleCandidate(candidate: LifecycleRecoveryCandidate) {
+    const reason = recoveryReasons[candidate.recovery_ref]?.trim() ?? "";
+    if (!reason || !candidate.eligible_for_recovery) return;
+    const confirmed = window.confirm(
+      `Recover ${candidate.target_kind} ${candidate.scope_id}? Continue only after verifying that the owning process is no longer running. This removes exactly one local serialization row, records an immutable audit receipt, and makes no provider request.`,
+    );
+    if (!confirmed) return;
+    void perform(
+      () => api.recoverLifecycleTarget(candidate, reason),
+      () => {
+        setRecoveryReasons((current) => ({ ...current, [candidate.recovery_ref]: "" }));
+        api.lifecycleRecovery().then(setLifecycleRecovery).catch(() => undefined);
+      },
+      "One explicitly selected lifecycle row was recovered and audited.",
     );
   }
 
@@ -816,6 +847,122 @@ export default function App() {
               reconcile provider state, retire a lease, alter Task or Program outcomes, consume
               output, resume or retry work, or advance a Program phase. Eligibility is advisory
               and the existing one-task retirement action revalidates all evidence.
+            </p>
+          </section>
+        )}
+
+        {view === "recovery" && (
+          <section className="stack">
+            <article className="card executionPanel">
+              <div className="sectionHeading">
+                <div>
+                  <span className="kicker">Explicit administrative recovery</span>
+                  <h2>Crash-left lifecycle ownership</h2>
+                </div>
+                <button
+                  className="secondary"
+                  onClick={refreshLifecycleRecovery}
+                  disabled={busy}
+                >
+                  Refresh recovery state
+                </button>
+              </div>
+              <p>
+                Refresh is GET-only. A candidate is not proof that its owner crashed. Before any
+                recovery, verify outside UCA that the owning process is no longer running. There is
+                no TTL, heartbeat inference, startup cleanup, or automatic recovery.
+              </p>
+              {!lifecycleRecovery && (
+                <Empty text="Refresh to load redacted lifecycle candidates and durable receipts." />
+              )}
+              {lifecycleRecovery && (
+                <div className="executionFacts">
+                  <div><span>Candidates</span><strong>{lifecycleRecovery.candidates.length}</strong></div>
+                  <div><span>Receipts</span><strong>{lifecycleRecovery.recoveries.length}</strong></div>
+                  <div><span>Provider calls</span><strong>{lifecycleRecovery.provider_calls_made}</strong></div>
+                  <div><span>Automatic cleanup</span><strong>{String(lifecycleRecovery.automatic_cleanup_enabled)}</strong></div>
+                </div>
+              )}
+            </article>
+
+            {lifecycleRecovery?.candidates.length === 0 && (
+              <Empty text="No retained lifecycle reservation or worker-ownership rows require review." />
+            )}
+
+            {lifecycleRecovery?.candidates.map((candidate) => (
+              <article className="card executionPanel" key={candidate.recovery_ref}>
+                <div className="sectionHeading">
+                  <div>
+                    <span className="kicker">{candidate.target_type.replace("_", " ")}</span>
+                    <h3>{candidate.target_kind.replaceAll("_", " ")}</h3>
+                  </div>
+                  <span className={`status ${candidate.eligible_for_recovery ? "warn" : "bad"}`}>
+                    {candidate.same_runtime_active ? "active here" : "verification required"}
+                  </span>
+                </div>
+                <div className="executionFacts">
+                  <div><span>Scope</span><strong>{candidate.scope_id}</strong></div>
+                  <div><span>Created</span><strong>{candidate.created_at}</strong></div>
+                  <div><span>Task</span><strong>{candidate.task_id || "—"}</strong></div>
+                  <div><span>Program</span><strong>{candidate.program_id || "—"}</strong></div>
+                </div>
+                <div className="artifactRef">
+                  <span>Recovery reference</span>
+                  <code>{candidate.recovery_ref}</code>
+                </div>
+                <TextArea
+                  label="Administrative recovery reason"
+                  value={recoveryReasons[candidate.recovery_ref] ?? ""}
+                  onChange={(value) =>
+                    setRecoveryReasons((current) => ({
+                      ...current,
+                      [candidate.recovery_ref]: value,
+                    }))
+                  }
+                  rows={3}
+                  placeholder="Record how you verified that the owning process is no longer running."
+                />
+                <button
+                  className="dangerGhost"
+                  onClick={() => recoverLifecycleCandidate(candidate)}
+                  disabled={
+                    busy ||
+                    !candidate.eligible_for_recovery ||
+                    !(recoveryReasons[candidate.recovery_ref]?.trim())
+                  }
+                >
+                  Recover selected lifecycle row
+                </button>
+              </article>
+            ))}
+
+            {lifecycleRecovery && lifecycleRecovery.recoveries.length > 0 && (
+              <article className="card executionPanel">
+                <div className="sectionHeading">
+                  <div>
+                    <span className="kicker">Immutable local audit</span>
+                    <h3>Recovery receipts</h3>
+                  </div>
+                </div>
+                <div className="executionList">
+                  {lifecycleRecovery.recoveries.map((receipt) => (
+                    <div className="executionRow" key={receipt.audit_ref}>
+                      <div>
+                        <strong>{receipt.target_kind.replaceAll("_", " ")}</strong>
+                        <p>{receipt.scope_id} · {receipt.recovered_at}</p>
+                        <p>{receipt.reason}</p>
+                      </div>
+                      <code>{receipt.audit_ref}</code>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
+
+            <p className="cancellationBoundaryNote">
+              Recovery removes exactly one matching local serialization row after confirmation and
+              preserves a redacted audit receipt. It does not contact a provider, prove remote
+              termination, resume work, change Task or Program outcomes, or clean up any other row.
             </p>
           </section>
         )}

@@ -5,7 +5,7 @@ import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
@@ -123,6 +123,20 @@ class RemoteOperationDispositionRequest(BaseModel):
 
 class RemoteOperationLeaseRetirementRequest(BaseModel):
     disposition_audit_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    reason: str = Field(min_length=1, max_length=2000)
+    confirmed: Literal[True]
+
+
+class LifecycleRecoveryRequest(BaseModel):
+    target_type: Literal["reservation", "worker_ownership"]
+    target_kind: Literal[
+        "remote_operation",
+        "program_control",
+        "standalone_task",
+        "program_execution",
+    ]
+    scope_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    recovery_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
     reason: str = Field(min_length=1, max_length=2000)
     confirmed: Literal[True]
 
@@ -362,6 +376,110 @@ class ProductWebRuntime:
             next_after_task_id=next_after_task_id,
         )
         return inventory
+
+    def lifecycle_recovery_snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            candidates, receipts = self.workspace.lifecycle_reservations.recovery_snapshot()
+            rendered_candidates = []
+            for candidate in candidates:
+                same_runtime_active = self._same_runtime_recovery_target_active(
+                    candidate.target_type,
+                    candidate.target_kind,
+                    candidate.scope_id,
+                )
+                rendered_candidates.append(
+                    {
+                        "schema_version": "1",
+                        **asdict(candidate),
+                        "same_runtime_active": same_runtime_active,
+                        "eligible_for_recovery": not same_runtime_active,
+                        "eligibility_is_advisory": True,
+                        "requires_operator_process_verification": True,
+                    }
+                )
+        return {
+            "schema_version": "1",
+            "candidates": rendered_candidates,
+            "recoveries": [self._recovery_receipt_payload(receipt) for receipt in receipts],
+            "ttl_enabled": False,
+            "automatic_cleanup_enabled": False,
+            "provider_calls_made": 0,
+        }
+
+    def recover_lifecycle_target(
+        self,
+        *,
+        target_type: str,
+        target_kind: str,
+        scope_id: str,
+        recovery_ref: str,
+        reason: str,
+        confirmed: bool,
+    ) -> dict[str, Any]:
+        valid_pair = (
+            target_type == "reservation"
+            and target_kind in {"remote_operation", "program_control"}
+        ) or (
+            target_type == "worker_ownership"
+            and target_kind in {"standalone_task", "program_execution"}
+        )
+        if not valid_pair:
+            raise ValueError("lifecycle recovery target kind does not match target type")
+        with self._lock:
+            if self._same_runtime_recovery_target_active(
+                target_type,
+                target_kind,
+                scope_id,
+            ):
+                raise ValueError("same-runtime lifecycle owner is still active")
+            receipt = self.workspace.lifecycle_reservations.recover(
+                target_type=target_type,
+                target_kind=target_kind,
+                scope_id=scope_id,
+                recovery_ref=recovery_ref,
+                reason=reason,
+                confirmed=confirmed,
+            )
+        return self._recovery_receipt_payload(receipt)
+
+    def _same_runtime_recovery_target_active(
+        self,
+        target_type: str,
+        target_kind: str,
+        scope_id: str,
+    ) -> bool:
+        if target_type == "reservation" and target_kind == "remote_operation":
+            return (
+                scope_id in self._remote_operation_actions
+                or scope_id in self._remote_operation_action_tokens
+            )
+        if target_type == "reservation" and target_kind == "program_control":
+            return (
+                scope_id in self._program_control_actions
+                or scope_id in self._program_control_action_tokens
+            )
+        if target_type == "worker_ownership" and target_kind == "standalone_task":
+            record = self._runs.get(scope_id)
+            return scope_id in self._standalone_worker_tokens or bool(
+                record and record.get("busy")
+            )
+        if target_type == "worker_ownership" and target_kind == "program_execution":
+            record = self._program_execution_runs.get(scope_id)
+            return scope_id in self._program_worker_tokens or bool(
+                record and record.get("busy")
+            )
+        return True
+
+    @staticmethod
+    def _recovery_receipt_payload(receipt: Any) -> dict[str, Any]:
+        return {
+            "schema_version": "1",
+            **asdict(receipt),
+            "confirmed_by_operator": True,
+            "rows_recovered": 1,
+            "provider_calls_made": 0,
+            "automatic_cleanup": False,
+        }
 
     def _retained_remote_operation_lease_inventory_item(
         self,
@@ -1389,6 +1507,22 @@ def create_product_app(
         return runtime.retained_remote_operation_lease_inventory(
             after_task_id=after_task_id,
             limit=limit,
+        )
+
+    @app.get("/api/admin/lifecycle-recovery")
+    def lifecycle_recovery_snapshot(response: Response) -> dict[str, Any]:
+        response.headers["Cache-Control"] = "no-store"
+        return runtime.lifecycle_recovery_snapshot()
+
+    @app.post("/api/admin/lifecycle-recovery")
+    def recover_lifecycle_target(request: LifecycleRecoveryRequest) -> dict[str, Any]:
+        return runtime.recover_lifecycle_target(
+            target_type=request.target_type,
+            target_kind=request.target_kind,
+            scope_id=request.scope_id,
+            recovery_ref=request.recovery_ref,
+            reason=request.reason,
+            confirmed=request.confirmed,
         )
 
     @app.post("/api/search")

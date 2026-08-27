@@ -284,3 +284,140 @@ def test_store_adds_schema_to_existing_product_database_directory(
         assert stat.S_IMODE(database.stat().st_mode) == 0o600
     finally:
         store.close()
+
+
+def test_explicit_reservation_recovery_is_atomic_redacted_and_restart_safe(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    first = DurableLifecycleReservationStore(database)
+    owner = first.reserve_remote_operation(_TASK_ID, program_id=_PROGRAM_ID)
+    candidates, receipts = first.recovery_snapshot()
+    assert receipts == ()
+    candidate = candidates[0]
+    assert candidate.target_type == "reservation"
+    assert candidate.target_kind == "remote_operation"
+    assert owner not in repr(candidate)
+
+    receipt = first.recover(
+        target_type=candidate.target_type,
+        target_kind=candidate.target_kind,
+        scope_id=candidate.scope_id,
+        recovery_ref=candidate.recovery_ref,
+        reason="Operator verified the interrupted runtime is no longer running.",
+        confirmed=True,
+    )
+    assert receipt.audit_ref.startswith("sha256:")
+    assert owner not in repr(receipt)
+    assert first.snapshot().remote_task_ids == frozenset()
+    first.close()
+
+    reopened = DurableLifecycleReservationStore(database)
+    try:
+        candidates, receipts = reopened.recovery_snapshot()
+        assert candidates == ()
+        assert receipts == (receipt,)
+        assert owner not in repr(receipts)
+    finally:
+        reopened.close()
+
+
+def test_worker_recovery_exact_retry_is_idempotent_and_immutable(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    store.reserve_program_worker(_PROGRAM_ID)
+    candidate = store.recovery_snapshot()[0][0]
+    arguments = {
+        "target_type": candidate.target_type,
+        "target_kind": candidate.target_kind,
+        "scope_id": candidate.scope_id,
+        "recovery_ref": candidate.recovery_ref,
+        "reason": "The worker process was explicitly verified stopped.",
+        "confirmed": True,
+    }
+    try:
+        first = store.recover(**arguments)
+        assert store.recover(**arguments) == first
+        with pytest.raises(ValueError, match="immutable"):
+            store.recover(**{**arguments, "reason": "Different reason."})
+        assert store.snapshot().worker_program_ids == frozenset()
+        assert len(store.recovery_snapshot()[1]) == 1
+    finally:
+        store.close()
+
+
+def test_recovery_requires_confirmation_and_exact_current_target(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    store.reserve_standalone_worker(_TASK_ID)
+    candidate = store.recovery_snapshot()[0][0]
+    try:
+        with pytest.raises(ValueError, match="explicit confirmation"):
+            store.recover(
+                target_type=candidate.target_type,
+                target_kind=candidate.target_kind,
+                scope_id=candidate.scope_id,
+                recovery_ref=candidate.recovery_ref,
+                reason="Verified stopped.",
+                confirmed=False,
+            )
+        with pytest.raises(ValueError, match="target changed"):
+            store.recover(
+                target_type=candidate.target_type,
+                target_kind=candidate.target_kind,
+                scope_id=candidate.scope_id,
+                recovery_ref="sha256:" + "0" * 64,
+                reason="Verified stopped.",
+                confirmed=True,
+            )
+        assert store.snapshot().worker_task_ids == {_TASK_ID}
+        assert store.recovery_snapshot()[1] == ()
+    finally:
+        store.close()
+
+
+def test_recovery_receipt_insert_rolls_back_when_exact_delete_fails(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    store.reserve_program_control(_PROGRAM_ID, task_ids=())
+    candidate = store.recovery_snapshot()[0][0]
+    store.connection.execute(
+        """
+        CREATE TRIGGER block_recovery_delete
+        BEFORE DELETE ON lifecycle_reservations
+        BEGIN SELECT RAISE(ABORT, 'blocked'); END
+        """
+    )
+    try:
+        with pytest.raises(ValueError, match="state is unavailable"):
+            store.recover(
+                target_type=candidate.target_type,
+                target_kind=candidate.target_kind,
+                scope_id=candidate.scope_id,
+                recovery_ref=candidate.recovery_ref,
+                reason="Verified stopped.",
+                confirmed=True,
+            )
+        assert store.snapshot().program_ids == {_PROGRAM_ID}
+        assert store.recovery_snapshot()[1] == ()
+    finally:
+        store.close()
+
+
+def test_corrupt_recovery_receipt_fails_closed(tmp_path: Path) -> None:
+    store = DurableLifecycleReservationStore(tmp_path / "lifecycle.sqlite")
+    store.reserve_standalone_worker(_TASK_ID)
+    candidate = store.recovery_snapshot()[0][0]
+    store.recover(
+        target_type=candidate.target_type,
+        target_kind=candidate.target_kind,
+        scope_id=candidate.scope_id,
+        recovery_ref=candidate.recovery_ref,
+        reason="Verified stopped.",
+        confirmed=True,
+    )
+    store.connection.execute(
+        "UPDATE lifecycle_recovery_receipts SET reason = 'tampered'"
+    )
+    try:
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_snapshot()
+    finally:
+        store.close()

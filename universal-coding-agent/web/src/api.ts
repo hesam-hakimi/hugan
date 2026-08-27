@@ -1,5 +1,8 @@
 import type {
   ContextDocument,
+  LifecycleRecoveryCandidate,
+  LifecycleRecoveryReceipt,
+  LifecycleRecoverySnapshot,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
   RemoteOperationDispositionResult,
@@ -193,6 +196,22 @@ export const api = {
         afterTaskId ? `&after_task_id=${encodeURIComponent(afterTaskId)}` : ""
       }`,
     ),
+
+  lifecycleRecovery: () =>
+    request<LifecycleRecoverySnapshot>("/api/admin/lifecycle-recovery"),
+
+  recoverLifecycleTarget: (candidate: LifecycleRecoveryCandidate, reason: string) =>
+    request<LifecycleRecoveryReceipt>("/api/admin/lifecycle-recovery", {
+      method: "POST",
+      body: JSON.stringify({
+        target_type: candidate.target_type,
+        target_kind: candidate.target_kind,
+        scope_id: candidate.scope_id,
+        recovery_ref: candidate.recovery_ref,
+        reason,
+        confirmed: true,
+      }),
+    }),
 
   taskControl: (taskId: string, action: "pause" | "resume" | "cancel", reason = "") =>
     request<TaskSnapshot>(`/api/tasks/${encodeURIComponent(taskId)}/${action}`, {

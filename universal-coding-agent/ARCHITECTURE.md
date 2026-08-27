@@ -435,6 +435,22 @@ slice makes zero provider calls and changes no provider behavior, API schema, Re
 Task/Program outcome, recovery authority, retry/replan policy, autonomous execution, active pause,
 publication, safety threshold, or live aggregator.
 
+P2.1b adds an explicit loopback administrative recovery path for a lifecycle reservation or worker
+ownership row left behind after a process crash. A GET-only preview returns local Task/Program
+identity, kind, timestamp, and a redacted hash bound to the exact persisted row. It does not infer
+that the owner crashed: the operator must verify outside UCA that the process has stopped, supply a
+reason, confirm the destructive local action, and select exactly one current recovery reference.
+The current runtime rejects recovery when its own matching action or worker remains active.
+
+The confirmed POST revalidates the exact row under `BEGIN IMMEDIATE`, inserts an immutable redacted
+receipt, and deletes exactly one owner-token-matching serialization row in the same transaction.
+The internal owner token is never returned or retained in the receipt. Exact retries are
+idempotent; changed references, target mismatches, partial deletes, malformed state, corrupt audit
+evidence, and concurrent replacement fail closed. Recovery makes zero provider calls and adds no
+TTL, heartbeat inference, startup cleanup, batch cleanup, automatic recovery, remote-termination
+claim, output consumption, graph resume, retry/replan, Task/Program outcome change, phase
+advancement, transport, active pause, publication, threshold, or aggregator change.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

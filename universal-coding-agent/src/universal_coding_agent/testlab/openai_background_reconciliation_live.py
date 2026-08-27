@@ -256,6 +256,8 @@ def run_openai_background_reconciliation_live(
 
     durable_lifecycle_reservation_reloaded = False
     conflicting_lifecycle_action_blocked_after_restart = False
+    lifecycle_recovery_receipt_reloaded = False
+    lifecycle_recovery_private_owner_absent = False
     provider_calls_during_lifecycle_reservation_restart = -1
     calls_before_lifecycle_reservation_restart = len(request_events)
     reservation_recovery_workspace = ProductWorkspace.create(state_root, provider)
@@ -270,11 +272,38 @@ def run_openai_background_reconciliation_live(
             )
         except ValueError:
             conflicting_lifecycle_action_blocked_after_restart = True
-        if lifecycle_reservation_owner:
-            reservation_recovery_workspace.lifecycle_reservations.release_remote_operation(
-                _TASK_ID,
-                lifecycle_reservation_owner,
+        recovery_candidates, _ = (
+            reservation_recovery_workspace.lifecycle_reservations.recovery_snapshot()
+        )
+        lifecycle_candidate = next(
+            candidate
+            for candidate in recovery_candidates
+            if candidate.target_type == "reservation"
+            and candidate.target_kind == "remote_operation"
+            and candidate.scope_id == _TASK_ID
+        )
+        lifecycle_receipt = (
+            reservation_recovery_workspace.lifecycle_reservations.recover(
+                target_type=lifecycle_candidate.target_type,
+                target_kind=lifecycle_candidate.target_kind,
+                scope_id=lifecycle_candidate.scope_id,
+                recovery_ref=lifecycle_candidate.recovery_ref,
+                reason="Live qualification explicitly verified the interrupted action stopped.",
+                confirmed=True,
             )
+        )
+        _, reloaded_receipts = (
+            reservation_recovery_workspace.lifecycle_reservations.recovery_snapshot()
+        )
+        lifecycle_recovery_receipt_reloaded = lifecycle_receipt in reloaded_receipts
+        lifecycle_recovery_private_owner_absent = bool(
+            lifecycle_reservation_owner
+            and lifecycle_reservation_owner
+            not in json.dumps(
+                [receipt.__dict__ for receipt in reloaded_receipts],
+                sort_keys=True,
+            )
+        )
         provider_calls_during_lifecycle_reservation_restart = (
             len(request_events) - calls_before_lifecycle_reservation_restart
         )
@@ -299,6 +328,8 @@ def run_openai_background_reconciliation_live(
     durable_worker_ownership_reloaded = False
     conflicting_lifecycle_action_blocked_by_recovered_worker = False
     worker_release_requires_exact_owner = False
+    worker_recovery_receipt_reloaded = False
+    worker_recovery_private_owner_absent = False
     provider_calls_during_worker_ownership_restart = -1
     calls_before_worker_ownership_restart = len(request_events)
     worker_recovery_workspace = ProductWorkspace.create(state_root, provider)
@@ -320,11 +351,36 @@ def run_openai_background_reconciliation_live(
             )
         except ValueError:
             worker_release_requires_exact_owner = True
-        if durable_worker_owner:
-            worker_recovery_workspace.lifecycle_reservations.release_standalone_worker(
-                _WORKER_TASK_ID,
-                durable_worker_owner,
+        worker_candidates, _ = (
+            worker_recovery_workspace.lifecycle_reservations.recovery_snapshot()
+        )
+        worker_candidate = next(
+            candidate
+            for candidate in worker_candidates
+            if candidate.target_type == "worker_ownership"
+            and candidate.target_kind == "standalone_task"
+            and candidate.scope_id == _WORKER_TASK_ID
+        )
+        worker_receipt = worker_recovery_workspace.lifecycle_reservations.recover(
+            target_type=worker_candidate.target_type,
+            target_kind=worker_candidate.target_kind,
+            scope_id=worker_candidate.scope_id,
+            recovery_ref=worker_candidate.recovery_ref,
+            reason="Live qualification explicitly verified the interrupted worker stopped.",
+            confirmed=True,
+        )
+        _, reloaded_worker_receipts = (
+            worker_recovery_workspace.lifecycle_reservations.recovery_snapshot()
+        )
+        worker_recovery_receipt_reloaded = worker_receipt in reloaded_worker_receipts
+        worker_recovery_private_owner_absent = bool(
+            durable_worker_owner
+            and durable_worker_owner
+            not in json.dumps(
+                [receipt.__dict__ for receipt in reloaded_worker_receipts],
+                sort_keys=True,
             )
+        )
         provider_calls_during_worker_ownership_restart = (
             len(request_events) - calls_before_worker_ownership_restart
         )
@@ -547,6 +603,10 @@ def run_openai_background_reconciliation_live(
         "conflicting_lifecycle_action_blocked_after_restart": (
             conflicting_lifecycle_action_blocked_after_restart
         ),
+        "lifecycle_recovery_receipt_reloaded": lifecycle_recovery_receipt_reloaded,
+        "lifecycle_recovery_private_owner_absent": (
+            lifecycle_recovery_private_owner_absent
+        ),
         "provider_calls_during_lifecycle_reservation_restart": (
             provider_calls_during_lifecycle_reservation_restart
         ),
@@ -555,6 +615,8 @@ def run_openai_background_reconciliation_live(
             conflicting_lifecycle_action_blocked_by_recovered_worker
         ),
         "worker_release_requires_exact_owner": worker_release_requires_exact_owner,
+        "worker_recovery_receipt_reloaded": worker_recovery_receipt_reloaded,
+        "worker_recovery_private_owner_absent": worker_recovery_private_owner_absent,
         "provider_calls_during_worker_ownership_restart": (
             provider_calls_during_worker_ownership_restart
         ),
@@ -611,10 +673,14 @@ def run_openai_background_reconciliation_live(
         and inventory_private_fields_absent
         and durable_lifecycle_reservation_reloaded
         and conflicting_lifecycle_action_blocked_after_restart
+        and lifecycle_recovery_receipt_reloaded
+        and lifecycle_recovery_private_owner_absent
         and provider_calls_during_lifecycle_reservation_restart == 0
         and durable_worker_ownership_reloaded
         and conflicting_lifecycle_action_blocked_by_recovered_worker
         and worker_release_requires_exact_owner
+        and worker_recovery_receipt_reloaded
+        and worker_recovery_private_owner_absent
         and provider_calls_during_worker_ownership_restart == 0
         and provider_calls_during_retirement == 0
         and retirement_matches_disposition

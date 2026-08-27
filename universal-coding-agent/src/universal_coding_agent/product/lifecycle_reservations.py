@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import re
 import sqlite3
@@ -21,6 +23,31 @@ class LifecycleReservationSnapshot:
     program_ids: frozenset[str]
     worker_task_ids: frozenset[str]
     worker_program_ids: frozenset[str]
+
+
+@dataclass(frozen=True)
+class LifecycleRecoveryCandidate:
+    target_type: str
+    target_kind: str
+    scope_id: str
+    task_id: str
+    program_id: str
+    created_at: str
+    recovery_ref: str
+
+
+@dataclass(frozen=True)
+class LifecycleRecoveryReceipt:
+    target_type: str
+    target_kind: str
+    scope_id: str
+    task_id: str
+    program_id: str
+    created_at: str
+    recovery_ref: str
+    reason: str
+    recovered_at: str
+    audit_ref: str
 
 
 class DurableLifecycleReservationStore:
@@ -64,6 +91,27 @@ class DurableLifecycleReservationStore:
                     (reservation_kind = 'program_control'
                      AND program_id = scope_id AND task_id = '')
                 )
+            )
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS lifecycle_recovery_receipts (
+                recovery_ref TEXT PRIMARY KEY,
+                target_type TEXT NOT NULL,
+                target_kind TEXT NOT NULL,
+                scope_id TEXT NOT NULL,
+                task_id TEXT NOT NULL,
+                program_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                recovered_at TEXT NOT NULL,
+                audit_ref TEXT NOT NULL UNIQUE,
+                confirmed_by_operator INTEGER NOT NULL,
+                rows_recovered INTEGER NOT NULL,
+                CHECK (target_type IN ('reservation', 'worker_ownership')),
+                CHECK (confirmed_by_operator = 1),
+                CHECK (rows_recovered = 1)
             )
             """
         )
@@ -357,6 +405,180 @@ class DurableLifecycleReservationStore:
             ),
         )
 
+    def recovery_snapshot(
+        self,
+    ) -> tuple[tuple[LifecycleRecoveryCandidate, ...], tuple[LifecycleRecoveryReceipt, ...]]:
+        with self._lock:
+            try:
+                reservation_rows = self.connection.execute(
+                    """
+                    SELECT reservation_kind, scope_id, task_id, program_id,
+                           owner_token, created_at
+                    FROM lifecycle_reservations
+                    ORDER BY created_at, reservation_kind, scope_id
+                    """
+                ).fetchall()
+                worker_rows = self.connection.execute(
+                    """
+                    SELECT worker_kind, scope_id, task_id, program_id,
+                           owner_token, created_at
+                    FROM lifecycle_worker_ownership
+                    ORDER BY created_at, worker_kind, scope_id
+                    """
+                ).fetchall()
+                receipt_rows = self.connection.execute(
+                    """
+                    SELECT target_type, target_kind, scope_id, task_id, program_id,
+                           created_at, recovery_ref, reason, recovered_at, audit_ref
+                    FROM lifecycle_recovery_receipts
+                    ORDER BY recovered_at, recovery_ref
+                    """
+                ).fetchall()
+                self._validate_rows(reservation_rows)
+                self._validate_worker_rows(worker_rows)
+                receipts = tuple(self._receipt_from_row(row) for row in receipt_rows)
+            except (sqlite3.DatabaseError, ValueError) as exc:
+                raise ValueError("durable lifecycle recovery state is unavailable") from exc
+        candidates = tuple(
+            self._candidate_from_row("reservation", row) for row in reservation_rows
+        ) + tuple(
+            self._candidate_from_row("worker_ownership", row) for row in worker_rows
+        )
+        return candidates, receipts
+
+    def recover(
+        self,
+        *,
+        target_type: str,
+        target_kind: str,
+        scope_id: str,
+        recovery_ref: str,
+        reason: str,
+        confirmed: bool,
+    ) -> LifecycleRecoveryReceipt:
+        if not confirmed:
+            raise ValueError("lifecycle recovery requires explicit confirmation")
+        if target_type not in {"reservation", "worker_ownership"}:
+            raise ValueError("invalid lifecycle recovery target type")
+        allowed_kinds = _KINDS if target_type == "reservation" else _WORKER_KINDS
+        if target_kind not in allowed_kinds:
+            raise ValueError("invalid lifecycle recovery target kind")
+        self._validate_identity(scope_id, "scope_id")
+        if not re.fullmatch(r"sha256:[0-9a-f]{64}", recovery_ref):
+            raise ValueError("invalid lifecycle recovery reference")
+        reason = reason.strip()
+        if not reason or len(reason) > 2000:
+            raise ValueError("lifecycle recovery reason must be between 1 and 2000 characters")
+
+        with self._transaction():
+            existing = self.connection.execute(
+                """
+                SELECT target_type, target_kind, scope_id, task_id, program_id,
+                       created_at, recovery_ref, reason, recovered_at, audit_ref
+                FROM lifecycle_recovery_receipts
+                WHERE recovery_ref = ?
+                """,
+                (recovery_ref,),
+            ).fetchone()
+            if existing is not None:
+                receipt = self._receipt_from_row(existing)
+                if (
+                    receipt.target_type != target_type
+                    or receipt.target_kind != target_kind
+                    or receipt.scope_id != scope_id
+                    or receipt.reason != reason
+                ):
+                    raise ValueError("lifecycle recovery receipt is immutable")
+                return receipt
+
+            table, kind_column = self._recovery_target(target_type)
+            row = self.connection.execute(
+                f"""
+                SELECT {kind_column}, scope_id, task_id, program_id,
+                       owner_token, created_at
+                FROM {table}
+                WHERE {kind_column} = ? AND scope_id = ?
+                """,
+                (target_kind, scope_id),
+            ).fetchone()
+            if row is None:
+                raise ValueError("lifecycle recovery target is missing")
+            if target_type == "reservation":
+                self._validate_rows([row])
+            else:
+                self._validate_worker_rows([row])
+            candidate = self._candidate_from_row(target_type, row)
+            if candidate.recovery_ref != recovery_ref:
+                raise ValueError("lifecycle recovery target changed")
+
+            recovered_at = _utc_now()
+            receipt_payload = {
+                "schema_version": "1",
+                "target_type": candidate.target_type,
+                "target_kind": candidate.target_kind,
+                "scope_id": candidate.scope_id,
+                "task_id": candidate.task_id,
+                "program_id": candidate.program_id,
+                "created_at": candidate.created_at,
+                "recovery_ref": candidate.recovery_ref,
+                "reason": reason,
+                "recovered_at": recovered_at,
+                "confirmed_by_operator": True,
+                "rows_recovered": 1,
+                "provider_calls_made": 0,
+                "automatic_cleanup": False,
+            }
+            audit_ref = _hash_payload(receipt_payload)
+            self.connection.execute(
+                """
+                INSERT INTO lifecycle_recovery_receipts(
+                    recovery_ref, target_type, target_kind, scope_id, task_id,
+                    program_id, created_at, reason, recovered_at, audit_ref,
+                    confirmed_by_operator, rows_recovered
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1)
+                """,
+                (
+                    recovery_ref,
+                    target_type,
+                    target_kind,
+                    scope_id,
+                    candidate.task_id,
+                    candidate.program_id,
+                    candidate.created_at,
+                    reason,
+                    recovered_at,
+                    audit_ref,
+                ),
+            )
+            deleted = self.connection.execute(
+                f"""
+                DELETE FROM {table}
+                WHERE {kind_column} = ? AND scope_id = ? AND owner_token = ?
+                """,
+                (target_kind, scope_id, row[4]),
+            ).rowcount
+            if deleted != 1:
+                raise ValueError("lifecycle recovery target deletion was ambiguous")
+            return LifecycleRecoveryReceipt(
+                **{
+                    key: value
+                    for key, value in receipt_payload.items()
+                    if key
+                    in {
+                        "target_type",
+                        "target_kind",
+                        "scope_id",
+                        "task_id",
+                        "program_id",
+                        "created_at",
+                        "recovery_ref",
+                        "reason",
+                        "recovered_at",
+                    }
+                },
+                audit_ref=audit_ref,
+            )
+
     def _release(self, kind: str, scope_id: str, owner_token: str) -> None:
         if kind not in _KINDS:
             raise ValueError("invalid lifecycle reservation kind")
@@ -421,6 +643,85 @@ class DurableLifecycleReservationStore:
 
     def _transaction(self):
         return _ImmediateTransaction(self)
+
+    @staticmethod
+    def _recovery_target(target_type: str) -> tuple[str, str]:
+        if target_type == "reservation":
+            return "lifecycle_reservations", "reservation_kind"
+        return "lifecycle_worker_ownership", "worker_kind"
+
+    @classmethod
+    def _candidate_from_row(
+        cls,
+        target_type: str,
+        row: tuple[object, ...],
+    ) -> LifecycleRecoveryCandidate:
+        target_kind, scope_id, task_id, program_id, owner_token, created_at = row
+        payload = {
+            "schema_version": "1",
+            "target_type": target_type,
+            "target_kind": str(target_kind),
+            "scope_id": str(scope_id),
+            "task_id": str(task_id),
+            "program_id": str(program_id),
+            "created_at": str(created_at),
+            "owner_binding": str(owner_token),
+        }
+        return LifecycleRecoveryCandidate(
+            target_type=target_type,
+            target_kind=str(target_kind),
+            scope_id=str(scope_id),
+            task_id=str(task_id),
+            program_id=str(program_id),
+            created_at=str(created_at),
+            recovery_ref=_hash_payload(payload),
+        )
+
+    @classmethod
+    def _receipt_from_row(cls, row: tuple[object, ...]) -> LifecycleRecoveryReceipt:
+        if len(row) != 10:
+            raise ValueError("invalid lifecycle recovery receipt")
+        receipt = LifecycleRecoveryReceipt(*(str(value) for value in row))
+        if receipt.target_type not in {"reservation", "worker_ownership"}:
+            raise ValueError("invalid lifecycle recovery receipt")
+        allowed_kinds = _KINDS if receipt.target_type == "reservation" else _WORKER_KINDS
+        if receipt.target_kind not in allowed_kinds:
+            raise ValueError("invalid lifecycle recovery receipt")
+        cls._validate_identity(receipt.scope_id, "scope_id")
+        if receipt.task_id:
+            cls._validate_identity(receipt.task_id, "task_id")
+        if receipt.program_id:
+            cls._validate_identity(receipt.program_id, "program_id")
+        if not receipt.reason or len(receipt.reason) > 2000:
+            raise ValueError("invalid lifecycle recovery receipt")
+        if not re.fullmatch(r"sha256:[0-9a-f]{64}", receipt.recovery_ref):
+            raise ValueError("invalid lifecycle recovery receipt")
+        if not re.fullmatch(r"sha256:[0-9a-f]{64}", receipt.audit_ref):
+            raise ValueError("invalid lifecycle recovery receipt")
+        try:
+            datetime.fromisoformat(receipt.created_at)
+            datetime.fromisoformat(receipt.recovered_at)
+        except ValueError as exc:
+            raise ValueError("invalid lifecycle recovery receipt timestamp") from exc
+        payload = {
+            "schema_version": "1",
+            "target_type": receipt.target_type,
+            "target_kind": receipt.target_kind,
+            "scope_id": receipt.scope_id,
+            "task_id": receipt.task_id,
+            "program_id": receipt.program_id,
+            "created_at": receipt.created_at,
+            "recovery_ref": receipt.recovery_ref,
+            "reason": receipt.reason,
+            "recovered_at": receipt.recovered_at,
+            "confirmed_by_operator": True,
+            "rows_recovered": 1,
+            "provider_calls_made": 0,
+            "automatic_cleanup": False,
+        }
+        if _hash_payload(payload) != receipt.audit_ref:
+            raise ValueError("invalid lifecycle recovery audit reference")
+        return receipt
 
     @staticmethod
     def _validate_identity(value: str, name: str) -> None:
@@ -507,3 +808,8 @@ class _ImmediateTransaction:
 
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _hash_payload(payload: dict[str, object]) -> str:
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return f"sha256:{hashlib.sha256(canonical.encode('utf-8')).hexdigest()}"

@@ -234,6 +234,52 @@ export type RetainedRemoteOperationLeaseInventory = {
   opaque_provider_identifiers_exposed: false;
 };
 
+export type LifecycleRecoveryCandidate = {
+  schema_version: "1";
+  target_type: "reservation" | "worker_ownership";
+  target_kind:
+    | "remote_operation"
+    | "program_control"
+    | "standalone_task"
+    | "program_execution";
+  scope_id: string;
+  task_id: string;
+  program_id: string;
+  created_at: string;
+  recovery_ref: string;
+  same_runtime_active: boolean;
+  eligible_for_recovery: boolean;
+  eligibility_is_advisory: true;
+  requires_operator_process_verification: true;
+};
+
+export type LifecycleRecoveryReceipt = {
+  schema_version: "1";
+  target_type: LifecycleRecoveryCandidate["target_type"];
+  target_kind: LifecycleRecoveryCandidate["target_kind"];
+  scope_id: string;
+  task_id: string;
+  program_id: string;
+  created_at: string;
+  recovery_ref: string;
+  reason: string;
+  recovered_at: string;
+  audit_ref: string;
+  confirmed_by_operator: true;
+  rows_recovered: 1;
+  provider_calls_made: 0;
+  automatic_cleanup: false;
+};
+
+export type LifecycleRecoverySnapshot = {
+  schema_version: "1";
+  candidates: LifecycleRecoveryCandidate[];
+  recoveries: LifecycleRecoveryReceipt[];
+  ttl_enabled: false;
+  automatic_cleanup_enabled: false;
+  provider_calls_made: 0;
+};
+
 export type ProgramExecutionBinding = {
   program_id: string;
   phase_id: string;

@@ -205,6 +205,7 @@ from universal_coding_agent.testlab.product_foundation_live import run_product_f
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
 from universal_coding_agent.web.app import (
+    LifecycleRecoveryRequest,
     ProgramExecutionContinueRequest,
     ProgramExecutionStartRequest,
     RETAINED_LEASE_PROGRAM_ARTIFACT_MAX_BYTES,
@@ -216,6 +217,8 @@ assert SearchService and RequirementAlignmentService and ProgramOrchestrator and
 assert DurableLifecycleReservationStore
 assert hasattr(DurableLifecycleReservationStore, "reserve_standalone_worker")
 assert hasattr(DurableLifecycleReservationStore, "reserve_program_worker")
+assert hasattr(DurableLifecycleReservationStore, "recovery_snapshot")
+assert hasattr(DurableLifecycleReservationStore, "recover")
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert run_program_execution_live
 assert ProductWebRuntime and create_product_app
@@ -242,6 +245,7 @@ assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 assert RemoteOperationDispositionRequest
 assert RemoteOperationLeaseRetirementRequest
+assert LifecycleRecoveryRequest
 print("PRODUCT_CONTROL_CENTER_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
@@ -257,6 +261,7 @@ print("RETAINED_LEASE_INVENTORY_IMPORT_PREFLIGHT_PASS")
 print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_IMPORT_PREFLIGHT_PASS")
 print("DURABLE_LIFECYCLE_RESERVATION_IMPORT_PREFLIGHT_PASS")
 print("DURABLE_WORKER_OWNERSHIP_IMPORT_PREFLIGHT_PASS")
+print("EXPLICIT_LIFECYCLE_RECOVERY_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -305,6 +310,7 @@ echo "RETAINED_LEASE_INVENTORY_PREFLIGHT_PASS" && \
 echo "RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_PREFLIGHT_PASS"
 echo "DURABLE_LIFECYCLE_RESERVATION_PREFLIGHT_PASS"
 echo "DURABLE_WORKER_OWNERSHIP_PREFLIGHT_PASS"
+echo "EXPLICIT_LIFECYCLE_RECOVERY_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -330,6 +336,7 @@ echo "REMOTE_OPERATION_RECONCILIATION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_DISPOSITION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_UI_FRONTEND_PASS"
 echo "RETAINED_LEASE_INVENTORY_UI_FRONTEND_PASS"
+echo "EXPLICIT_LIFECYCLE_RECOVERY_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -363,6 +370,7 @@ for path in (
     "/api/tasks/{task_id}/remote-operation/dispose",
     "/api/tasks/{task_id}/remote-operation/retire",
     "/api/remote-operations/retained-leases",
+    "/api/admin/lifecycle-recovery",
 ):
     assert path in openapi["paths"]
 asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
@@ -391,6 +399,9 @@ for marker in (
     "Retained leases with UCA dispositions",
     "Review task controls",
     "bounded inventory read limit",
+    "Lifecycle recovery",
+    "Crash-left lifecycle ownership",
+    "Recover selected lifecycle row",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -406,6 +417,8 @@ print("RETAINED_LEASE_INVENTORY_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_INVENTORY_UI_HTTP_SMOKE_PASS")
 print("RETAINED_LEASE_PROGRAM_ARTIFACT_LIMIT_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_RETIREMENT_PROGRAM_ARTIFACT_LIMIT_HTTP_SMOKE_PASS")
+print("EXPLICIT_LIFECYCLE_RECOVERY_HTTP_SMOKE_PASS")
+print("EXPLICIT_LIFECYCLE_RECOVERY_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
