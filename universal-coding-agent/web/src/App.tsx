@@ -9,6 +9,8 @@ import type {
   RemoteOperationDisposition,
   RemoteOperationLeaseRetirement,
   RemoteOperationSnapshot,
+  RetainedRemoteOperationLeaseInventory,
+  RetainedRemoteOperationLeaseInventoryItem,
   RequirementResult,
   SearchHit,
   TaskSnapshot,
@@ -27,6 +29,7 @@ import {
   remoteOperationDispositionPresentation,
   remoteOperationLeaseRetirementPresentation,
   remoteOperationPresentation,
+  retainedRemoteOperationLeaseEligibilityPresentation,
   statusTone,
   unresolvedClarifications,
 } from "./viewModels";
@@ -36,10 +39,11 @@ type ProgramState = {
   execution: ProgramExecutionSnapshot;
 };
 
-type View = "overview" | "task" | "requirements" | "program" | "documents" | "search";
+type View = "overview" | "leases" | "task" | "requirements" | "program" | "documents" | "search";
 
 const navItems: Array<{ id: View; label: string; eyebrow: string }> = [
   { id: "overview", label: "Overview", eyebrow: "Control center" },
+  { id: "leases", label: "Lease inventory", eyebrow: "Retention review" },
   { id: "task", label: "New task", eyebrow: "Safe execution" },
   { id: "requirements", label: "Requirements", eyebrow: "Clarify & freeze" },
   { id: "program", label: "Program", eyebrow: "Phase delivery" },
@@ -100,6 +104,8 @@ export default function App() {
   const [policyText, setPolicyText] = useState(defaultPolicy);
   const [task, setTask] = useState<TaskSnapshot>();
   const [taskLookupId, setTaskLookupId] = useState("");
+  const [leaseInventory, setLeaseInventory] =
+    useState<RetainedRemoteOperationLeaseInventory>();
 
   useEffect(() => {
     api.health()
@@ -168,6 +174,27 @@ export default function App() {
     } catch {
       // Health state communicates API availability; document refresh is best effort.
     }
+  }
+
+  function loadRetainedLeaseInventory(afterTaskId = "") {
+    void perform(
+      () => api.retainedRemoteOperationLeases(afterTaskId),
+      setLeaseInventory,
+      afterTaskId
+        ? "The next bounded inventory page was loaded without provider work."
+        : "The retained-lease inventory was refreshed without provider work.",
+    );
+  }
+
+  function reviewRetainedLease(taskId: string) {
+    void perform(
+      () => api.task(taskId),
+      (snapshot) => {
+        applyTaskState(snapshot);
+        setView("task");
+      },
+      "Task controls loaded with a read-only request.",
+    );
   }
 
   function analyzeRequirement() {
@@ -289,7 +316,10 @@ export default function App() {
         await api.disposeRemoteOperation(taskId, outcome, reason);
         return readProgramState(program.program_id);
       },
-      applyProgramState,
+      (snapshot) => {
+        applyProgramState(snapshot);
+        setLeaseInventory(undefined);
+      },
       `Program binding closed as ${outcome} with durable operator evidence.`,
     );
   }
@@ -312,7 +342,10 @@ export default function App() {
         await api.retireRemoteOperationLease(taskId, dispositionAuditRef, reason);
         return readProgramState(program.program_id);
       },
-      applyProgramState,
+      (snapshot) => {
+        applyProgramState(snapshot);
+        setLeaseInventory(undefined);
+      },
       "Private lease retired; durable disposition and redacted retirement evidence remain.",
     );
   }
@@ -559,7 +592,10 @@ export default function App() {
         await api.disposeRemoteOperation(taskId, outcome, reason);
         return api.task(taskId);
       },
-      applyTaskState,
+      (snapshot) => {
+        applyTaskState(snapshot);
+        setLeaseInventory(undefined);
+      },
       `Task closed as ${outcome} with durable operator evidence.`,
     );
   }
@@ -582,7 +618,10 @@ export default function App() {
         await api.retireRemoteOperationLease(taskId, dispositionAuditRef, reason);
         return api.task(taskId);
       },
-      applyTaskState,
+      (snapshot) => {
+        applyTaskState(snapshot);
+        setLeaseInventory(undefined);
+      },
       "Private lease retired; durable disposition and redacted retirement evidence remain.",
     );
   }
@@ -639,7 +678,7 @@ export default function App() {
             <h1>{navItems.find((item) => item.id === view)?.label}</h1>
           </div>
           <div className="topActions">
-            {task && (
+            {task && view === "task" && !task.remote_operation_disposition && (
               <>
                 <StatusPill status={task.control?.state ?? task.status} />
                 <button className="secondary" onClick={() => controlTask("pause")} disabled={busy}>
@@ -700,6 +739,84 @@ export default function App() {
                 <button className="textButton" onClick={() => setView("search")}>Search evidence →</button>
               </article>
             </div>
+          </section>
+        )}
+
+        {view === "leases" && (
+          <section className="stack">
+            <article className="card executionPanel">
+              <div className="sectionHeading">
+                <div>
+                  <span className="kicker">Read-only retention review</span>
+                  <h2>Retained leases with UCA dispositions</h2>
+                </div>
+                <button
+                  className="secondary"
+                  onClick={() => loadRetainedLeaseInventory()}
+                  disabled={busy}
+                >
+                  Refresh inventory
+                </button>
+              </div>
+              <p>
+                This is a bounded, redacted snapshot of local private lease rows that already have
+                a durable operator disposition. Loading or refreshing it makes no provider request
+                and changes no Task or Program state.
+              </p>
+              {!leaseInventory && (
+                <Empty text="Refresh to load the first bounded inventory page." />
+              )}
+              {leaseInventory && (
+                <div className="executionFacts">
+                  <div><span>Generated</span><strong>{leaseInventory.generated_at}</strong></div>
+                  <div><span>Rows scanned</span><strong>{leaseInventory.scanned_count}</strong></div>
+                  <div><span>Retained leases returned</span><strong>{leaseInventory.returned_count}</strong></div>
+                  <div><span>Provider calls</span><strong>{leaseInventory.provider_calls_made}</strong></div>
+                </div>
+              )}
+            </article>
+
+            {leaseInventory && leaseInventory.items.length === 0 && (
+              <Empty
+                text={
+                  leaseInventory.has_more
+                    ? "This bounded page contained no retained leases with durable dispositions. Continue to the next page or refresh from the beginning."
+                    : "No retained private leases with durable dispositions were found."
+                }
+              />
+            )}
+
+            {leaseInventory && leaseInventory.items.length > 0 && (
+              <div className="executionList">
+                {leaseInventory.items.map((item) => (
+                  <RetainedLeaseInventoryRow
+                    key={item.task_id}
+                    item={item}
+                    disabled={busy}
+                    onReview={() => reviewRetainedLease(item.task_id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {leaseInventory?.has_more && (
+              <button
+                className="secondary"
+                onClick={() =>
+                  loadRetainedLeaseInventory(leaseInventory.next_after_task_id)
+                }
+                disabled={busy}
+              >
+                Load next bounded page
+              </button>
+            )}
+
+            <p className="cancellationBoundaryNote">
+              Inventory load, refresh, pagination, and task-detail load are GET-only. They do not
+              reconcile provider state, retire a lease, alter Task or Program outcomes, consume
+              output, resume or retry work, or advance a Program phase. Eligibility is advisory
+              and the existing one-task retirement action revalidates all evidence.
+            </p>
           </section>
         )}
 
@@ -1227,9 +1344,13 @@ export default function App() {
                   </div>
                   <div className="controlRow">
                     <button className="secondary" onClick={refreshTask} disabled={busy}>Refresh status</button>
-                    <button className="secondary" onClick={() => controlTask("pause")} disabled={busy}>Pause</button>
-                    <button className="secondary" onClick={() => controlTask("resume")} disabled={busy}>Resume</button>
-                    <button className="dangerGhost" onClick={() => controlTask("cancel")} disabled={busy}>Stop</button>
+                    {!task.remote_operation_disposition && (
+                      <>
+                        <button className="secondary" onClick={() => controlTask("pause")} disabled={busy}>Pause</button>
+                        <button className="secondary" onClick={() => controlTask("resume")} disabled={busy}>Resume</button>
+                        <button className="dangerGhost" onClick={() => controlTask("cancel")} disabled={busy}>Stop</button>
+                      </>
+                    )}
                   </div>
                   {task.cancellation_report && (
                     <CancellationReportPanel report={task.cancellation_report} />
@@ -1324,6 +1445,64 @@ function CancellationReportPanel({ report }: { report: CancellationReport }) {
         observed bounded outcome.
       </p>
     </section>
+  );
+}
+
+function RetainedLeaseInventoryRow({
+  item,
+  disabled,
+  onReview,
+}: {
+  item: RetainedRemoteOperationLeaseInventoryItem;
+  disabled: boolean;
+  onReview: () => void;
+}) {
+  const presentation = retainedRemoteOperationLeaseEligibilityPresentation(item);
+  return (
+    <article className="executionRow">
+      <div className="sectionHeading">
+        <div>
+          <span className="kicker">Retained local private lease</span>
+          <h3>{item.task_id}</h3>
+        </div>
+        <span className={`status ${presentation.tone}`}>{presentation.label}</span>
+      </div>
+      <p className="cancellationSummary">{presentation.summary}</p>
+      <div className="executionMeta">
+        <span>Transport: <code>{item.transport}</code></span>
+        <span>Last persisted remote state: <code>{item.remote_state}</code></span>
+        <span>Last persisted remote status: <code>{item.remote_status}</code></span>
+        <span>Revision: <code>{item.remote_revision}</code></span>
+        <span>Updated: <code>{item.remote_updated_at}</code></span>
+        <span>UCA task disposition: <code>{item.disposition_outcome}</code></span>
+      </div>
+      {(item.program_id || item.phase_id || item.slice_id) && (
+        <div className="executionMeta">
+          {item.program_id && <span>Program: <code>{item.program_id}</code></span>}
+          {item.phase_id && <span>Phase: <code>{item.phase_id}</code></span>}
+          {item.slice_id && <span>Slice: <code>{item.slice_id}</code></span>}
+        </div>
+      )}
+      <div className="remoteOperationRefs">
+        <span>Disposition audit reference</span>
+        <code>{item.disposition_audit_ref}</code>
+      </div>
+      {presentation.reasons.length > 0 && (
+        <ul className="checkList">
+          {presentation.reasons.map((reason) => <li key={reason}>{reason}</li>)}
+        </ul>
+      )}
+      {presentation.stateWarning && (
+        <p className="remoteOperationBlocked">
+          {presentation.stateWarning}
+        </p>
+      )}
+      <div className="controlRow">
+        <button className="secondary" onClick={onReview} disabled={disabled}>
+          Review task controls
+        </button>
+      </div>
+    </article>
   );
 }
 

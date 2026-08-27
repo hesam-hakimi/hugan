@@ -24,9 +24,11 @@ from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
 from universal_coding_agent.product.task_control import TaskControlService
+from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.base import ModelProviderError
 from universal_coding_agent.safety.sanitizer import sanitize_text
 from universal_coding_agent.testlab.openai_responses import OpenAIResponsesProvider
+from universal_coding_agent.web.app import ProductWebRuntime
 
 _TASK_ID = "pretransfer-openai-background-reconciliation-task"
 _THREAD_ID = "pretransfer-openai-background-reconciliation-thread"
@@ -163,7 +165,7 @@ def run_openai_background_reconciliation_live(
     durable_disposition: RemoteOperationDisposition | None = None
     provider_calls_during_disposition = -1
     calls_before_disposition = len(request_events)
-    task_control_path = state_root / "task-control.sqlite"
+    task_control_path = state_root / "control.sqlite"
     task_control = TaskControlService(task_control_path)
     try:
         task_control.ensure_task(_TASK_ID)
@@ -188,6 +190,63 @@ def run_openai_background_reconciliation_live(
     finally:
         reopened_control.close()
 
+    retained_inventory_before_retirement: dict[str, Any] | None = None
+    provider_calls_during_inventory = -1
+    inventory_eligible = False
+    inventory_private_fields_absent = False
+    private_identifier = ""
+    calls_before_inventory = len(request_events)
+    inventory_workspace = ProductWorkspace.create(state_root, provider)
+    inventory_runtime = ProductWebRuntime(
+        workspace=inventory_workspace,
+        state_root=state_root / "inventory-runtime",
+    )
+    try:
+        inventory_private_lease = inventory_workspace.remote_operations.private_lease(
+            _TASK_ID
+        )
+        if inventory_private_lease is not None:
+            private_identifier = inventory_private_lease.operation_id
+        retained_inventory_before_retirement = (
+            inventory_runtime.retained_remote_operation_lease_inventory(
+                limit=25,
+            ).model_dump(mode="json")
+        )
+        items = retained_inventory_before_retirement["items"]
+        inventory_eligible = bool(
+            len(items) == 1
+            and items[0]["task_id"] == _TASK_ID
+            and items[0]["eligible_for_retirement"]
+            and not items[0]["eligibility_reasons"]
+            and items[0]["preview_is_advisory"]
+            and items[0]["action_revalidation_required"]
+        )
+        inventory_private_fields_absent = bool(
+            not _contains_field(
+                retained_inventory_before_retirement,
+                {
+                    "operation_id",
+                    "response_id",
+                    "thread_id",
+                    "operation_ref",
+                    "transport_scope",
+                    "base_sha",
+                    "reason",
+                    "retirement_ref",
+                },
+            )
+            and (
+                not private_identifier
+                or private_identifier
+                not in json.dumps(retained_inventory_before_retirement, sort_keys=True)
+            )
+        )
+        provider_calls_during_inventory = len(request_events) - calls_before_inventory
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        inventory_runtime.close()
+
     retirement: RemoteOperationLeaseRetirement | None = None
     durable_retirement: RemoteOperationLeaseRetirement | None = None
     disposition_after_retirement: RemoteOperationDisposition | None = None
@@ -195,7 +254,6 @@ def run_openai_background_reconciliation_live(
     private_lease_absent_after_retirement = False
     durable_private_lease_absent = False
     private_identifier_absent_from_active_database = False
-    private_identifier = ""
     calls_before_retirement = len(request_events)
     retirement_store = SqliteRemoteOperationLeaseStore(private_database)
     try:
@@ -242,6 +300,34 @@ def run_openai_background_reconciliation_live(
         )
     finally:
         control_after_retirement.close()
+
+    retained_inventory_after_retirement: dict[str, Any] | None = None
+    provider_calls_during_post_retirement_inventory = -1
+    inventory_empty_after_retirement = False
+    calls_before_post_retirement_inventory = len(request_events)
+    post_retirement_workspace = ProductWorkspace.create(state_root, provider)
+    post_retirement_runtime = ProductWebRuntime(
+        workspace=post_retirement_workspace,
+        state_root=state_root / "post-retirement-inventory-runtime",
+    )
+    try:
+        retained_inventory_after_retirement = (
+            post_retirement_runtime.retained_remote_operation_lease_inventory(
+                limit=25,
+            ).model_dump(mode="json")
+        )
+        inventory_empty_after_retirement = bool(
+            retained_inventory_after_retirement["items"] == []
+            and retained_inventory_after_retirement["returned_count"] == 0
+            and retained_inventory_after_retirement["scanned_count"] == 0
+        )
+        provider_calls_during_post_retirement_inventory = (
+            len(request_events) - calls_before_post_retirement_inventory
+        )
+    except BaseException as exc:
+        errors.append(exc)
+    finally:
+        post_retirement_runtime.close()
 
     source_after = _source_snapshot(source_root)
     source_preserved = source_before == source_after and not source_before["status"]
@@ -364,6 +450,12 @@ def run_openai_background_reconciliation_live(
         "provider_calls_during_disposition": provider_calls_during_disposition,
         "disposition_matches_remote": disposition_matches_remote,
         "durable_disposition_reloaded": durable_disposition_reloaded,
+        "retained_lease_inventory_before_retirement": (
+            retained_inventory_before_retirement
+        ),
+        "provider_calls_during_inventory": provider_calls_during_inventory,
+        "inventory_eligible": inventory_eligible,
+        "inventory_private_fields_absent": inventory_private_fields_absent,
         "explicit_private_lease_retirement": retirement_json,
         "durable_private_lease_retirement": durable_retirement_json,
         "provider_calls_during_retirement": provider_calls_during_retirement,
@@ -379,6 +471,13 @@ def run_openai_background_reconciliation_live(
         "private_identifier_absent_from_active_database": (
             private_identifier_absent_from_active_database
         ),
+        "retained_lease_inventory_after_retirement": (
+            retained_inventory_after_retirement
+        ),
+        "provider_calls_during_post_retirement_inventory": (
+            provider_calls_during_post_retirement_inventory
+        ),
+        "inventory_empty_after_retirement": inventory_empty_after_retirement,
         "errors": [_safe_error(error) for error in errors],
         "source": {
             "head_sha": source_after["head_sha"],
@@ -405,6 +504,9 @@ def run_openai_background_reconciliation_live(
         and provider_calls_during_disposition == 0
         and disposition_matches_remote
         and durable_disposition_reloaded
+        and provider_calls_during_inventory == 0
+        and inventory_eligible
+        and inventory_private_fields_absent
         and provider_calls_during_retirement == 0
         and retirement_matches_disposition
         and private_lease_absent_after_retirement
@@ -412,6 +514,8 @@ def run_openai_background_reconciliation_live(
         and durable_retirement_reloaded
         and disposition_preserved_after_retirement
         and private_identifier_absent_from_active_database
+        and provider_calls_during_post_retirement_inventory == 0
+        and inventory_empty_after_retirement
         and not errors
         and identifier_fields_absent
         and source_preserved
@@ -546,6 +650,17 @@ def _contains_private_identifier_field(value: Any) -> bool:
     return False
 
 
+def _contains_field(value: Any, names: set[str]) -> bool:
+    if isinstance(value, dict):
+        return any(
+            key in names or _contains_field(item, names)
+            for key, item in value.items()
+        )
+    if isinstance(value, list):
+        return any(_contains_field(item, names) for item in value)
+    return False
+
+
 def _safe_error(error: BaseException) -> dict[str, str]:
     result = {
         "type": type(error).__name__,
@@ -622,6 +737,7 @@ def main() -> int:
         return 2
     print("OPENAI_BACKGROUND_RECONCILIATION_LIVE_QUALIFICATION_PASS")
     print("REMOTE_OPERATION_LEASE_RETIREMENT_LIVE_QUALIFICATION_PASS")
+    print("RETAINED_LEASE_INVENTORY_LIVE_QUALIFICATION_PASS")
     return 0
 
 

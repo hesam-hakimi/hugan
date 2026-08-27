@@ -87,6 +87,62 @@ def test_private_remote_operation_store_reopens_with_redacted_public_state(
         reopened.close()
 
 
+def test_retained_lease_page_is_bounded_redacted_and_not_provider_authority(
+    tmp_path: Path,
+) -> None:
+    store = SqliteRemoteOperationLeaseStore(
+        tmp_path / "private-remote-operations.sqlite"
+    )
+    private_identifiers: list[str] = []
+    for task_id in ("task-retained-c", "task-retained-a", "task-retained-b"):
+        operation_id = f"resp_private_{task_id}"
+        private_identifiers.append(operation_id)
+        store.register(
+            task_id=task_id,
+            thread_id=f"thread-{task_id}",
+            transport="openai_responses",
+            transport_scope=_digest(_ENDPOINT),
+            operation_id=operation_id,
+            base_sha="a" * 40,
+            status="cancelled",
+            state=RemoteOperationState.TERMINAL,
+        )
+
+    first = store.retained_lease_page(limit=2)
+    assert tuple(item.task_id for item in first) == (
+        "task-retained-a",
+        "task-retained-b",
+    )
+    assert set(first[0].__dict__) == {
+        "task_id",
+        "transport",
+        "transport_scope",
+        "operation_ref",
+        "base_sha",
+        "updated_at",
+        "last_status",
+        "state",
+        "revision",
+        "retirement_present",
+    }
+    serialized = json.dumps([item.__dict__ for item in first], default=str)
+    assert "operation_id" not in serialized
+    assert "thread_id" not in serialized
+    assert all(identifier not in serialized for identifier in private_identifiers)
+
+    second = store.retained_lease_page(
+        after_task_id=first[-1].task_id,
+        limit=2,
+    )
+    assert tuple(item.task_id for item in second) == ("task-retained-c",)
+    assert not hasattr(store.provider_store(), "retained_lease_page")
+    with pytest.raises(ValueError, match="cursor is invalid"):
+        store.retained_lease_page(after_task_id="invalid cursor")
+    with pytest.raises(ValueError, match="between 1 and 101"):
+        store.retained_lease_page(limit=102)
+    store.close()
+
+
 def test_restart_read_is_offline_and_explicit_observe_cancel_is_bounded(
     tmp_path: Path,
     monkeypatch,
@@ -276,6 +332,25 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert calls == []
         assert _RESPONSE_ID not in status.text
 
+        undisposed_inventory = client.get(
+            "/api/remote-operations/retained-leases"
+        )
+        assert undisposed_inventory.status_code == 200
+        assert undisposed_inventory.headers["cache-control"] == "no-store"
+        assert undisposed_inventory.json()["items"] == []
+        assert undisposed_inventory.json()["scanned_count"] == 1
+        assert undisposed_inventory.json()["returned_count"] == 0
+        assert calls == []
+        assert client.get(
+            "/api/remote-operations/retained-leases?limit=0"
+        ).status_code == 422
+        assert client.get(
+            "/api/remote-operations/retained-leases?limit=101"
+        ).status_code == 422
+        assert client.get(
+            "/api/remote-operations/retained-leases?after_task_id=invalid%20cursor"
+        ).status_code == 422
+
         with pytest.raises(ValueError, match="remote-operation task identity"):
             runtime.start_safe_task(
                 SafeTaskStartRequest(
@@ -410,6 +485,71 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert "remote_operation_lease_retirement" not in final_status.json()
         control_before_retirement = reopened.control.get_task(_TASK_ID)
 
+        lease_before_inventory = reopened.remote_operations.private_lease(_TASK_ID)
+        eligible_inventory = client.get(
+            "/api/remote-operations/retained-leases?limit=25"
+        )
+        assert eligible_inventory.status_code == 200
+        assert eligible_inventory.headers["cache-control"] == "no-store"
+        inventory_body = eligible_inventory.json()
+        assert inventory_body["read_only"] is True
+        assert inventory_body["provider_calls_made"] == 0
+        assert inventory_body["mutations_made"] is False
+        assert inventory_body["opaque_provider_identifiers_exposed"] is False
+        assert inventory_body["returned_count"] == 1
+        assert inventory_body["scanned_count"] == 1
+        assert inventory_body["has_more"] is False
+        assert inventory_body["next_after_task_id"] == ""
+        item = inventory_body["items"][0]
+        assert item == {
+            "schema_version": "1",
+            "task_id": _TASK_ID,
+            "program_id": "",
+            "phase_id": "",
+            "slice_id": "",
+            "transport": "openai_responses",
+            "remote_state": "terminal",
+            "remote_status": "cancelled",
+            "remote_revision": evidence["remote_revision"],
+            "remote_updated_at": evidence["remote_updated_at"],
+            "disposition_audit_ref": evidence["audit_ref"],
+            "disposition_outcome": "cancelled",
+            "disposition_recorded_at": evidence["recorded_at"],
+            "retained_private_lease": True,
+            "eligible_for_retirement": True,
+            "eligibility_reasons": [],
+            "preview_is_advisory": True,
+            "action_revalidation_required": True,
+        }
+        assert set(item).isdisjoint(
+            {
+                "operation_id",
+                "thread_id",
+                "operation_ref",
+                "transport_scope",
+                "base_sha",
+                "reason",
+                "retirement_ref",
+            }
+        )
+        assert _RESPONSE_ID not in eligible_inventory.text
+        assert "Provider reported terminal cancellation." not in eligible_inventory.text
+        assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
+        assert reopened.remote_operations.private_lease(_TASK_ID) == lease_before_inventory
+        assert reopened.control.get_task(_TASK_ID) == control_before_retirement
+
+        repeated_inventory = client.get(
+            "/api/remote-operations/retained-leases?limit=25"
+        )
+        assert repeated_inventory.json()["items"] == inventory_body["items"]
+        assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
+
+        schemas = client.get("/openapi.json").json()["components"]["schemas"]
+        inventory_item_properties = set(
+            schemas["RetainedRemoteOperationLeaseInventoryItem"]["properties"]
+        )
+        assert inventory_item_properties == set(item)
+
         missing_retirement_confirmation = client.post(
             f"/api/tasks/{_TASK_ID}/remote-operation/retire",
             json={
@@ -432,6 +572,15 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert reopened.remote_operations.private_lease(_TASK_ID) is not None
 
         runtime._runs[_TASK_ID] = {"task_id": _TASK_ID, "busy": True}
+        busy_inventory = client.get(
+            "/api/remote-operations/retained-leases?limit=25"
+        )
+        assert busy_inventory.status_code == 200
+        assert busy_inventory.json()["items"][0]["eligible_for_retirement"] is False
+        assert {
+            reason["code"]
+            for reason in busy_inventory.json()["items"][0]["eligibility_reasons"]
+        } == {"local_worker_active"}
         busy_retirement = client.post(
             f"/api/tasks/{_TASK_ID}/remote-operation/retire",
             json={
@@ -444,6 +593,14 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         runtime._runs[_TASK_ID]["busy"] = False
 
         runtime._remote_operation_actions.add(_TASK_ID)
+        action_inventory = client.get(
+            "/api/remote-operations/retained-leases?limit=25"
+        )
+        assert action_inventory.status_code == 200
+        assert {
+            reason["code"]
+            for reason in action_inventory.json()["items"][0]["eligibility_reasons"]
+        } == {"lifecycle_action_active"}
         lifecycle_action_retirement = client.post(
             f"/api/tasks/{_TASK_ID}/remote-operation/retire",
             json={
@@ -475,6 +632,15 @@ def test_product_api_recovers_without_network_and_requires_explicit_action(
         assert retirement["program_outcome_changes_made"] == 0
         assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
         assert reopened.control.get_task(_TASK_ID) == control_before_retirement
+
+        empty_after_retirement = client.get(
+            "/api/remote-operations/retained-leases?limit=25"
+        )
+        assert empty_after_retirement.status_code == 200
+        assert empty_after_retirement.json()["items"] == []
+        assert empty_after_retirement.json()["scanned_count"] == 0
+        assert empty_after_retirement.json()["returned_count"] == 0
+        assert calls == [("POST", f"{_ENDPOINT}/{_RESPONSE_ID}/cancel")]
 
         repeated_retirement = client.post(
             f"/api/tasks/{_TASK_ID}/remote-operation/retire",
@@ -569,6 +735,313 @@ def test_unavailable_remote_operation_can_close_failed_without_termination_claim
     assert disposition.provider_calls_made == 0
     assert workspace.control.get_task(_TASK_ID).state is ControlState.FAILED
     workspace.close()
+
+
+def test_retained_lease_inventory_reports_integrity_and_control_blockers(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(
+        tmp_path / "product",
+        OpenAIResponsesProvider(
+            api_key="test-key",
+            model="test-model",
+            endpoint=_ENDPOINT,
+            background_cancellation=True,
+        ),
+    )
+    workspace.control.ensure_task(_TASK_ID)
+    _register(workspace.remote_operations)
+    workspace.remote_operations.record_status(
+        _TASK_ID,
+        status="cancelled",
+        state=RemoteOperationState.TERMINAL,
+    )
+    snapshot = workspace.remote_operations.public_snapshot(_TASK_ID)
+    assert snapshot is not None
+    disposition = workspace.control.record_remote_operation_disposition(
+        snapshot,
+        RemoteOperationDispositionOutcome.CANCELLED,
+        reason="Provider reported terminal cancellation.",
+        confirmed=True,
+    )
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        valid = client.get("/api/remote-operations/retained-leases")
+        assert valid.status_code == 200
+        assert valid.json()["items"][0]["eligible_for_retirement"] is True
+
+        workspace.control.connection.execute(
+            "UPDATE remote_operation_dispositions SET audit_ref = ? WHERE task_id = ?",
+            (f"sha256:{'f' * 64}", _TASK_ID),
+        )
+        workspace.control.connection.commit()
+        invalid_audit = client.get("/api/remote-operations/retained-leases")
+        assert invalid_audit.status_code == 200
+        assert {
+            reason["code"]
+            for reason in invalid_audit.json()["items"][0]["eligibility_reasons"]
+        } == {"disposition_audit_invalid"}
+
+        workspace.control.connection.execute(
+            "UPDATE remote_operation_dispositions SET audit_ref = ? WHERE task_id = ?",
+            (disposition.audit_ref, _TASK_ID),
+        )
+        workspace.control.connection.commit()
+        workspace.remote_operations.connection.execute(
+            "UPDATE remote_operation_leases SET revision = revision + 1 WHERE task_id = ?",
+            (_TASK_ID,),
+        )
+        workspace.remote_operations.connection.commit()
+        lease_mismatch = client.get("/api/remote-operations/retained-leases")
+        assert lease_mismatch.status_code == 200
+        assert {
+            reason["code"]
+            for reason in lease_mismatch.json()["items"][0]["eligibility_reasons"]
+        } == {"lease_disposition_mismatch"}
+
+        workspace.remote_operations.connection.execute(
+            "UPDATE remote_operation_leases SET revision = ? WHERE task_id = ?",
+            (disposition.remote_revision, _TASK_ID),
+        )
+        workspace.remote_operations.connection.commit()
+        workspace.control.connection.execute(
+            """
+            UPDATE control_state SET state = 'running'
+            WHERE entity_type = 'task' AND entity_id = ?
+            """,
+            (_TASK_ID,),
+        )
+        workspace.control.connection.commit()
+        control_mismatch = client.get("/api/remote-operations/retained-leases")
+        assert control_mismatch.status_code == 200
+        assert {
+            reason["code"]
+            for reason in control_mismatch.json()["items"][0]["eligibility_reasons"]
+        } == {"task_control_state_mismatch"}
+
+
+def test_retained_lease_inventory_fails_closed_on_receipt_conflict_or_tamper(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(
+        tmp_path / "product",
+        OpenAIResponsesProvider(
+            api_key="test-key",
+            model="test-model",
+            endpoint=_ENDPOINT,
+            background_cancellation=True,
+        ),
+    )
+    workspace.control.ensure_task(_TASK_ID)
+    _register(workspace.remote_operations)
+    workspace.remote_operations.record_status(
+        _TASK_ID,
+        status="cancelled",
+        state=RemoteOperationState.TERMINAL,
+    )
+    snapshot = workspace.remote_operations.public_snapshot(_TASK_ID)
+    assert snapshot is not None
+    disposition = workspace.control.record_remote_operation_disposition(
+        snapshot,
+        RemoteOperationDispositionOutcome.CANCELLED,
+        reason="Provider reported terminal cancellation.",
+        confirmed=True,
+    )
+    lease_row = workspace.remote_operations.connection.execute(
+        "SELECT * FROM remote_operation_leases WHERE task_id = ?",
+        (_TASK_ID,),
+    ).fetchone()
+    assert lease_row is not None
+    workspace.remote_operations.retire(
+        disposition,
+        reason="Create a valid receipt for corruption recovery coverage.",
+        confirmed=True,
+    )
+    workspace.remote_operations.connection.execute(
+        "DROP TRIGGER reject_retired_remote_operation_lease"
+    )
+    workspace.remote_operations.connection.execute(
+        """
+        INSERT INTO remote_operation_leases
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        lease_row,
+    )
+    workspace.remote_operations.connection.commit()
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        conflict = client.get("/api/remote-operations/retained-leases")
+        assert conflict.status_code == 200
+        assert {
+            reason["code"]
+            for reason in conflict.json()["items"][0]["eligibility_reasons"]
+        } == {"retirement_receipt_conflict"}
+        assert _RESPONSE_ID not in conflict.text
+
+        workspace.remote_operations.connection.execute(
+            "UPDATE remote_operation_lease_retirements SET reason = ? WHERE task_id = ?",
+            ("Tampered retirement evidence.", _TASK_ID),
+        )
+        workspace.remote_operations.connection.commit()
+        invalid = client.get("/api/remote-operations/retained-leases")
+        assert invalid.status_code == 200
+        assert {
+            reason["code"]
+            for reason in invalid.json()["items"][0]["eligibility_reasons"]
+        } == {"retirement_receipt_invalid"}
+        assert _RESPONSE_ID not in invalid.text
+
+
+@pytest.mark.parametrize(
+    ("case", "expected_code"),
+    (
+        ("active", "active_private_lease"),
+        ("missing_control", "task_control_missing"),
+        ("missing_program_binding", "program_binding_missing"),
+        ("mismatched_program_identity", "program_binding_mismatch"),
+    ),
+)
+def test_retained_lease_inventory_exposes_each_identity_blocker(
+    tmp_path: Path,
+    case: str,
+    expected_code: str,
+) -> None:
+    workspace = ProductWorkspace.create(
+        tmp_path / "product",
+        OpenAIResponsesProvider(
+            api_key="test-key",
+            model="test-model",
+            endpoint=_ENDPOINT,
+            background_cancellation=True,
+        ),
+    )
+    workspace.control.ensure_task(_TASK_ID)
+    _register(workspace.remote_operations)
+    workspace.remote_operations.record_status(
+        _TASK_ID,
+        status="cancelled",
+        state=RemoteOperationState.TERMINAL,
+    )
+    snapshot = workspace.remote_operations.public_snapshot(_TASK_ID)
+    assert snapshot is not None
+    identity = {}
+    if case == "missing_program_binding":
+        identity = {"program_id": "program-missing", "phase_id": "phase-missing"}
+    elif case == "mismatched_program_identity":
+        identity = {"phase_id": "phase-without-program"}
+    workspace.control.record_remote_operation_disposition(
+        snapshot,
+        RemoteOperationDispositionOutcome.CANCELLED,
+        reason="Provider reported terminal cancellation.",
+        confirmed=True,
+        **identity,
+    )
+    if case == "active":
+        workspace.remote_operations.connection.execute(
+            "UPDATE remote_operation_leases SET state = 'active' WHERE task_id = ?",
+            (_TASK_ID,),
+        )
+        workspace.remote_operations.connection.commit()
+    elif case == "missing_control":
+        workspace.control.connection.execute(
+            "DELETE FROM control_state WHERE entity_type = 'task' AND entity_id = ?",
+            (_TASK_ID,),
+        )
+        workspace.control.connection.commit()
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        response = client.get("/api/remote-operations/retained-leases")
+        assert response.status_code == 200
+        item = response.json()["items"][0]
+        assert item["eligible_for_retirement"] is False
+        codes = {reason["code"] for reason in item["eligibility_reasons"]}
+        assert expected_code in codes
+        assert _RESPONSE_ID not in response.text
+
+
+def test_retained_lease_inventory_keyset_advances_across_empty_filtered_pages(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(
+        tmp_path / "product",
+        OpenAIResponsesProvider(
+            api_key="test-key",
+            model="test-model",
+            endpoint=_ENDPOINT,
+            background_cancellation=True,
+        ),
+    )
+    private_identifiers: list[str] = []
+    for task_id in ("task-page-a", "task-page-b", "task-page-c"):
+        operation_id = f"resp_private_{task_id}"
+        private_identifiers.append(operation_id)
+        workspace.remote_operations.register(
+            task_id=task_id,
+            thread_id=f"thread-{task_id}",
+            transport="openai_responses",
+            transport_scope=_digest(_ENDPOINT),
+            operation_id=operation_id,
+            base_sha="a" * 40,
+            status="cancelled",
+            state=RemoteOperationState.TERMINAL,
+        )
+    workspace.control.ensure_task("task-page-c")
+    disposed_snapshot = workspace.remote_operations.public_snapshot("task-page-c")
+    assert disposed_snapshot is not None
+    workspace.control.record_remote_operation_disposition(
+        disposed_snapshot,
+        RemoteOperationDispositionOutcome.CANCELLED,
+        reason="Only the final page has a durable disposition.",
+        confirmed=True,
+    )
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+
+    with TestClient(create_product_app(runtime)) as client:
+        first = client.get("/api/remote-operations/retained-leases?limit=1")
+        assert first.status_code == 200
+        assert first.json()["items"] == []
+        assert first.json()["scanned_count"] == 1
+        assert first.json()["has_more"] is True
+        assert first.json()["next_after_task_id"] == "task-page-a"
+
+        second = client.get(
+            "/api/remote-operations/retained-leases"
+            "?limit=1&after_task_id=task-page-a"
+        )
+        assert second.status_code == 200
+        assert second.json()["items"] == []
+        assert second.json()["scanned_count"] == 1
+        assert second.json()["has_more"] is True
+        assert second.json()["next_after_task_id"] == "task-page-b"
+
+        third = client.get(
+            "/api/remote-operations/retained-leases"
+            "?limit=1&after_task_id=task-page-b"
+        )
+        assert third.status_code == 200
+        assert third.json()["returned_count"] == 1
+        assert third.json()["scanned_count"] == 1
+        assert third.json()["has_more"] is False
+        assert third.json()["next_after_task_id"] == ""
+        assert third.json()["items"][0]["task_id"] == "task-page-c"
+        assert third.json()["items"][0]["eligible_for_retirement"] is True
+        combined = first.text + second.text + third.text
+        assert all(identifier not in combined for identifier in private_identifiers)
 
 
 def test_private_lease_retirement_is_explicit_atomic_redacted_and_idempotent(

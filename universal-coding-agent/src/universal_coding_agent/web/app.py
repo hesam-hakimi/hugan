@@ -6,10 +6,11 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -19,7 +20,11 @@ from universal_coding_agent.core.remote_operations import (
     RemoteOperationAction,
     RemoteOperationDisposition,
     RemoteOperationDispositionOutcome,
+    RemoteOperationLeaseRetirementEligibilityCode,
+    RemoteOperationLeaseRetirementEligibilityReason,
     RemoteOperationState,
+    RetainedRemoteOperationLeaseInventory,
+    RetainedRemoteOperationLeaseInventoryItem,
 )
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.product.context_documents import DocumentValidationError
@@ -32,6 +37,11 @@ from universal_coding_agent.product.models import (
     ProgramExecutionStatus,
     ProgramStatus,
     RequirementContract,
+)
+from universal_coding_agent.product.remote_operations import (
+    RetainedRemoteOperationLeaseEvidence,
+    retained_lease_matches_disposition,
+    validate_remote_operation_disposition,
 )
 from universal_coding_agent.product.workspace import ProductWorkspace
 from universal_coding_agent.providers.base import (
@@ -126,6 +136,56 @@ class SafeTaskStartRequest(BaseModel):
     acceptance_criteria: tuple[str, ...] = ()
 
 
+_RETIREMENT_ELIGIBILITY_MESSAGES = {
+    RemoteOperationLeaseRetirementEligibilityCode.LIFECYCLE_ACTION_ACTIVE: (
+        "Another local lifecycle action is active for this task."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.LOCAL_WORKER_ACTIVE: (
+        "A local standalone or Program worker is active for this task."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.ACTIVE_PRIVATE_LEASE: (
+        "The retained private lease still reports active remote state."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.DISPOSITION_AUDIT_INVALID: (
+        "The durable disposition audit reference does not match its canonical redacted evidence."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.LEASE_DISPOSITION_MISMATCH: (
+        "The retained lease no longer exactly matches the durable disposition evidence."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.TASK_CONTROL_MISSING: (
+        "The task has no durable task-control record."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.TASK_CONTROL_STATE_MISMATCH: (
+        "The terminal task-control state does not match the durable disposition outcome."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.RETIREMENT_RECEIPT_CONFLICT: (
+        "A retirement receipt already exists while the private lease row remains retained."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.RETIREMENT_RECEIPT_INVALID: (
+        "Existing retirement evidence failed its canonical redacted reference check."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_BINDING_MISSING: (
+        "The disposition names a Program but no persisted execution binding exists."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_BINDING_MISMATCH: (
+        "Persisted standalone or Program identity does not match the durable disposition."
+    ),
+    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_INCOMPLETE: (
+        "The terminal Program binding, artifact, phase report, phase state, or "
+        "blocked Program state is incomplete or inconsistent."
+    ),
+}
+
+
+def _retirement_eligibility_reason(
+    code: RemoteOperationLeaseRetirementEligibilityCode,
+) -> RemoteOperationLeaseRetirementEligibilityReason:
+    return RemoteOperationLeaseRetirementEligibilityReason(
+        code=code,
+        message=_RETIREMENT_ELIGIBILITY_MESSAGES[code],
+    )
+
+
 @dataclass
 class ProductWebRuntime:
     workspace: ProductWorkspace
@@ -140,6 +200,7 @@ class ProductWebRuntime:
     _runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _program_execution_runs: dict[str, dict[str, Any]] = field(default_factory=dict)
     _remote_operation_actions: set[str] = field(default_factory=set)
+    _program_control_actions: set[str] = field(default_factory=set)
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
@@ -205,6 +266,193 @@ class ProductWebRuntime:
                 mode="json"
             )
         return record
+
+    def retained_remote_operation_lease_inventory(
+        self,
+        *,
+        after_task_id: str = "",
+        limit: int = 25,
+    ) -> RetainedRemoteOperationLeaseInventory:
+        """Return one bounded advisory page without provider work or state mutation."""
+
+        if limit < 1 or limit > 100:
+            raise ValueError("retained lease inventory limit must be between 1 and 100")
+        page_with_sentinel = self.workspace.remote_operations.retained_lease_page(
+            after_task_id=after_task_id,
+            limit=limit + 1,
+        )
+        has_more = len(page_with_sentinel) > limit
+        page = page_with_sentinel[:limit]
+        next_after_task_id = page[-1].task_id if has_more and page else ""
+
+        with self._lock:
+            active_actions = frozenset(self._remote_operation_actions)
+            active_program_controls = frozenset(self._program_control_actions)
+            busy_standalone_tasks = frozenset(
+                task_id
+                for task_id, record in self._runs.items()
+                if record.get("busy")
+            )
+            program_runs = {
+                program_id: dict(record)
+                for program_id, record in self._program_execution_runs.items()
+            }
+
+        items: list[RetainedRemoteOperationLeaseInventoryItem] = []
+        for lease in page:
+            disposition = self.workspace.control.remote_operation_disposition(
+                lease.task_id
+            )
+            if disposition is None:
+                continue
+            items.append(
+                self._retained_remote_operation_lease_inventory_item(
+                    lease,
+                    disposition,
+                    active_actions=active_actions,
+                    active_program_controls=active_program_controls,
+                    busy_standalone_tasks=busy_standalone_tasks,
+                    program_runs=program_runs,
+                )
+            )
+
+        inventory = RetainedRemoteOperationLeaseInventory(
+            generated_at=datetime.now(UTC).isoformat(),
+            items=tuple(items),
+            returned_count=len(items),
+            scanned_count=len(page),
+            has_more=has_more,
+            next_after_task_id=next_after_task_id,
+        )
+        return inventory
+
+    def _retained_remote_operation_lease_inventory_item(
+        self,
+        lease: RetainedRemoteOperationLeaseEvidence,
+        disposition: RemoteOperationDisposition,
+        *,
+        active_actions: frozenset[str],
+        active_program_controls: frozenset[str],
+        busy_standalone_tasks: frozenset[str],
+        program_runs: dict[str, dict[str, Any]],
+    ) -> RetainedRemoteOperationLeaseInventoryItem:
+        reason_codes: list[RemoteOperationLeaseRetirementEligibilityCode] = []
+
+        def block(code: RemoteOperationLeaseRetirementEligibilityCode) -> None:
+            if code not in reason_codes:
+                reason_codes.append(code)
+
+        if lease.task_id in active_actions:
+            block(
+                RemoteOperationLeaseRetirementEligibilityCode.LIFECYCLE_ACTION_ACTIVE
+            )
+        if lease.task_id in busy_standalone_tasks:
+            block(RemoteOperationLeaseRetirementEligibilityCode.LOCAL_WORKER_ACTIVE)
+        if lease.state is RemoteOperationState.ACTIVE:
+            block(RemoteOperationLeaseRetirementEligibilityCode.ACTIVE_PRIVATE_LEASE)
+        try:
+            validate_remote_operation_disposition(disposition)
+        except ValueError:
+            block(
+                RemoteOperationLeaseRetirementEligibilityCode.DISPOSITION_AUDIT_INVALID
+            )
+        if not retained_lease_matches_disposition(lease, disposition):
+            block(
+                RemoteOperationLeaseRetirementEligibilityCode.LEASE_DISPOSITION_MISMATCH
+            )
+
+        control = self.workspace.control.get_task(lease.task_id)
+        if control is None:
+            block(RemoteOperationLeaseRetirementEligibilityCode.TASK_CONTROL_MISSING)
+        else:
+            expected_control = (
+                ControlState.CANCELLED
+                if disposition.outcome
+                is RemoteOperationDispositionOutcome.CANCELLED
+                else ControlState.FAILED
+            )
+            if control.state is not expected_control:
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.TASK_CONTROL_STATE_MISMATCH
+                )
+
+        if lease.retirement_present:
+            try:
+                retirement = self.workspace.remote_operations.retirement(lease.task_id)
+            except ValueError:
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.RETIREMENT_RECEIPT_INVALID
+                )
+            else:
+                if retirement is None:
+                    raise ValueError(
+                        "retained lease page and retirement evidence are inconsistent"
+                    )
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.RETIREMENT_RECEIPT_CONFLICT
+                )
+
+        try:
+            binding = self.workspace.programs.execution_binding(lease.task_id)
+        except KeyError:
+            binding = None
+        if binding is not None:
+            program_id = binding.program_id
+            phase_id = binding.phase_id
+            slice_id = binding.slice_id or ""
+        else:
+            program_id = ""
+            phase_id = ""
+            slice_id = ""
+
+        program_run = program_runs.get(program_id, {}) if program_id else {}
+        if program_id in active_program_controls:
+            block(
+                RemoteOperationLeaseRetirementEligibilityCode.LIFECYCLE_ACTION_ACTIVE
+            )
+        if program_run.get("busy"):
+            runtime_task_id = str(program_run.get("task_id", ""))
+            if not runtime_task_id or runtime_task_id == lease.task_id:
+                block(RemoteOperationLeaseRetirementEligibilityCode.LOCAL_WORKER_ACTIVE)
+
+        try:
+            self._validate_program_retirement_evidence(disposition)
+        except (FileNotFoundError, KeyError, ValueError) as exc:
+            message = str(exc)
+            if message == "Program disposition has no persisted execution binding":
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_BINDING_MISSING
+                )
+            elif message in {
+                "standalone disposition conflicts with a Program binding",
+                "standalone disposition has Program phase or slice identity",
+                "Program binding does not match the durable disposition",
+            }:
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_BINDING_MISMATCH
+                )
+            else:
+                block(
+                    RemoteOperationLeaseRetirementEligibilityCode.PROGRAM_EVIDENCE_INCOMPLETE
+                )
+
+        reasons = tuple(_retirement_eligibility_reason(code) for code in reason_codes)
+        return RetainedRemoteOperationLeaseInventoryItem(
+            task_id=lease.task_id,
+            program_id=program_id,
+            phase_id=phase_id,
+            slice_id=slice_id,
+            transport=lease.transport,
+            remote_state=lease.state,
+            remote_status=lease.last_status,
+            remote_revision=lease.revision,
+            remote_updated_at=lease.updated_at,
+            disposition_audit_ref=disposition.audit_ref,
+            disposition_outcome=disposition.outcome,
+            disposition_recorded_at=disposition.recorded_at,
+            eligible_for_retirement=not reasons,
+            eligibility_reasons=reasons,
+        )
 
     def reconcile_remote_operation(
         self,
@@ -404,6 +652,10 @@ class ProductWebRuntime:
                 raise ValueError(
                     "Program disposition has no persisted execution binding"
                 ) from None
+            if disposition.phase_id or disposition.slice_id:
+                raise ValueError(
+                    "standalone disposition has Program phase or slice identity"
+                ) from None
             return None
         if not disposition.program_id:
             raise ValueError("standalone disposition conflicts with a Program binding")
@@ -438,6 +690,8 @@ class ProductWebRuntime:
         if not binding.phase_report_ref:
             raise ValueError("Program disposition has no durable phase report")
         phase_report = self.workspace.artifacts.read_json(binding.phase_report_ref)
+        if not isinstance(phase_report, dict):
+            raise ValueError("Program phase report does not match the disposition")
         reported_bindings = phase_report.get("bindings")
         if (
             phase_report.get("program_id") != binding.program_id
@@ -459,6 +713,8 @@ class ProductWebRuntime:
         with self._lock:
             if task_id in self._remote_operation_actions:
                 raise ValueError("remote-operation lifecycle action is already active")
+            if binding is not None and binding.program_id in self._program_control_actions:
+                raise ValueError("Program control action is already active")
             standalone = self._runs.get(task_id)
             if standalone is not None and standalone.get("busy"):
                 raise ValueError(
@@ -477,6 +733,22 @@ class ProductWebRuntime:
     def _end_remote_operation_action(self, task_id: str) -> None:
         with self._lock:
             self._remote_operation_actions.discard(task_id)
+
+    def _begin_program_control_action(self, program_id: str) -> None:
+        bindings = self.workspace.programs.execution_bindings(program_id)
+        with self._lock:
+            if program_id in self._program_control_actions:
+                raise ValueError("Program control action is already active")
+            if any(
+                binding.task_id in self._remote_operation_actions
+                for binding in bindings
+            ):
+                raise ValueError("remote-operation lifecycle action is active")
+            self._program_control_actions.add(program_id)
+
+    def _end_program_control_action(self, program_id: str) -> None:
+        with self._lock:
+            self._program_control_actions.discard(program_id)
 
     def scope_decision(self, task_id: str, approved: bool) -> dict[str, Any]:
         with self._lock:
@@ -513,6 +785,30 @@ class ProductWebRuntime:
         self._require_run(task_id)
         self.workspace.control.cancel_task(task_id, reason=reason)
         return self.task_status(task_id)
+
+    def control_program(
+        self,
+        program_id: str,
+        action: Literal["approve", "pause", "resume", "cancel"],
+        *,
+        reason: str = "",
+        plan_hash: str = "",
+    ) -> None:
+        """Serialize Program controls with disposition-bound lease retirement."""
+
+        self._begin_program_control_action(program_id)
+        try:
+            if action == "approve":
+                self.workspace.programs.approve_program(program_id, plan_hash)
+            elif action == "pause":
+                self.workspace.programs.pause(program_id, reason=reason)
+                self.workspace.programs.ready_phases(program_id)
+            elif action == "resume":
+                self.workspace.programs.resume(program_id)
+            else:
+                self.workspace.programs.cancel(program_id, reason=reason)
+        finally:
+            self._end_program_control_action(program_id)
 
     def program_execution_status(self, program_id: str) -> dict[str, Any]:
         program_status = self.workspace.programs.status(program_id)
@@ -907,6 +1203,25 @@ def create_product_app(
             "allow_local_sources": runtime.allow_local_sources,
         }
 
+    @app.get(
+        "/api/remote-operations/retained-leases",
+        response_model=RetainedRemoteOperationLeaseInventory,
+    )
+    def retained_remote_operation_leases(
+        response: Response,
+        after_task_id: str = Query(
+            default="",
+            max_length=128,
+            pattern=r"^$|^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$",
+        ),
+        limit: int = Query(default=25, ge=1, le=100),
+    ) -> RetainedRemoteOperationLeaseInventory:
+        response.headers["Cache-Control"] = "no-store"
+        return runtime.retained_remote_operation_lease_inventory(
+            after_task_id=after_task_id,
+            limit=limit,
+        )
+
     @app.post("/api/search")
     def search(request: SearchRequest) -> dict[str, Any]:
         hits = runtime.workspace.search.search(request.query, top_k=request.top_k)
@@ -968,7 +1283,11 @@ def create_product_app(
         program_id: str,
         request: ProgramApproveRequest,
     ) -> dict[str, Any]:
-        runtime.workspace.programs.approve_program(program_id, request.plan_hash)
+        runtime.control_program(
+            program_id,
+            "approve",
+            plan_hash=request.plan_hash,
+        )
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/pause")
@@ -976,13 +1295,12 @@ def create_product_app(
         program_id: str,
         request: ControlRequest,
     ) -> dict[str, Any]:
-        runtime.workspace.programs.pause(program_id, reason=request.reason)
-        runtime.workspace.programs.ready_phases(program_id)
+        runtime.control_program(program_id, "pause", reason=request.reason)
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/resume")
     def resume_program(program_id: str) -> dict[str, Any]:
-        runtime.workspace.programs.resume(program_id)
+        runtime.control_program(program_id, "resume")
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.post("/api/programs/{program_id}/cancel")
@@ -990,7 +1308,7 @@ def create_product_app(
         program_id: str,
         request: ControlRequest,
     ) -> dict[str, Any]:
-        runtime.workspace.programs.cancel(program_id, reason=request.reason)
+        runtime.control_program(program_id, "cancel", reason=request.reason)
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.get("/api/programs/{program_id}/executions")

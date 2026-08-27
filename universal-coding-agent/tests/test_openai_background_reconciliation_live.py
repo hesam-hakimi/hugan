@@ -103,6 +103,14 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["provider_calls_during_disposition"] == 0
     assert summary["disposition_matches_remote"] is True
     assert summary["durable_disposition_reloaded"] is True
+    assert summary["provider_calls_during_inventory"] == 0
+    assert summary["inventory_eligible"] is True
+    assert summary["inventory_private_fields_absent"] is True
+    inventory = summary["retained_lease_inventory_before_retirement"]
+    assert inventory["returned_count"] == 1
+    assert inventory["items"][0]["task_id"] == _TASK_ID
+    assert inventory["items"][0]["eligible_for_retirement"] is True
+    assert inventory["items"][0]["eligibility_reasons"] == []
     assert summary["provider_calls_during_retirement"] == 0
     assert summary["retirement_matches_disposition"] is True
     assert summary["private_lease_absent_after_retirement"] is True
@@ -110,6 +118,9 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["durable_retirement_reloaded"] is True
     assert summary["disposition_preserved_after_retirement"] is True
     assert summary["private_identifier_absent_from_active_database"] is True
+    assert summary["provider_calls_during_post_retirement_inventory"] == 0
+    assert summary["inventory_empty_after_retirement"] is True
+    assert summary["retained_lease_inventory_after_retirement"]["items"] == []
     disposition = summary["durable_terminal_disposition"]
     assert disposition["outcome"] == "cancelled"
     assert disposition["provider_confirmed_cancelled"] is True

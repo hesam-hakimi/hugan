@@ -47,6 +47,32 @@ describe("Program execution API client", () => {
     expect(request[1].body).toBeUndefined();
   });
 
+  it("loads the first bounded retained-lease page with a read-only request", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.retainedRemoteOperationLeases();
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe("/api/remote-operations/retained-leases?limit=25");
+    expect(request[1].method).toBeUndefined();
+    expect(request[1].body).toBeUndefined();
+  });
+
+  it("loads one keyset continuation without widening the bounded page", async () => {
+    const fetchMock = vi.fn(async () => successfulJson());
+    vi.stubGlobal("fetch", fetchMock);
+
+    await api.retainedRemoteOperationLeases("task.page-25");
+
+    const request = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(request[0]).toBe(
+      "/api/remote-operations/retained-leases?limit=25&after_task_id=task.page-25",
+    );
+    expect(request[1].method).toBeUndefined();
+    expect(request[1].body).toBeUndefined();
+  });
+
   it("starts the next execution unit only through an explicit POST", async () => {
     const fetchMock = vi.fn(async () => successfulJson());
     vi.stubGlobal("fetch", fetchMock);

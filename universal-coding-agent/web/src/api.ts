@@ -5,6 +5,7 @@ import type {
   RemoteOperationDispositionResult,
   RemoteOperationLeaseRetirementResult,
   RemoteOperationReconciliationResult,
+  RetainedRemoteOperationLeaseInventory,
   RequirementContract,
   RequirementResult,
   SearchHit,
@@ -26,6 +27,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return body as T;
 }
+
+const retainedLeasePageSize = 25;
 
 export const api = {
   health: () => request<{ status: string; api: string; browser_credentials: boolean }>("/api/health"),
@@ -182,6 +185,13 @@ export const api = {
           confirmed: true,
         }),
       },
+    ),
+
+  retainedRemoteOperationLeases: (afterTaskId = "") =>
+    request<RetainedRemoteOperationLeaseInventory>(
+      `/api/remote-operations/retained-leases?limit=${retainedLeasePageSize}${
+        afterTaskId ? `&after_task_id=${encodeURIComponent(afterTaskId)}` : ""
+      }`,
     ),
 
   taskControl: (taskId: string, action: "pause" | "resume" | "cancel", reason = "") =>

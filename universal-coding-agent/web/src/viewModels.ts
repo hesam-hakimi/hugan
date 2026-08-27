@@ -5,7 +5,9 @@ import type {
   ProgramSnapshot,
   RemoteOperationDisposition,
   RemoteOperationLeaseRetirement,
+  RemoteOperationLeaseRetirementEligibilityCode,
   RemoteOperationSnapshot,
+  RetainedRemoteOperationLeaseInventoryItem,
   RequirementContract,
   TaskSnapshot,
 } from "./types";
@@ -35,6 +37,76 @@ export type RemoteOperationLeaseRetirementPresentation = {
   summary: string;
   tone: "good" | "warn" | "bad" | "neutral";
 };
+
+export type RetainedRemoteOperationLeaseEligibilityPresentation = {
+  label: string;
+  summary: string;
+  reasons: string[];
+  stateWarning: string;
+  tone: "good" | "warn" | "bad" | "neutral";
+};
+
+const retainedLeaseReasonCopy: Record<
+  RemoteOperationLeaseRetirementEligibilityCode,
+  string
+> = {
+  lifecycle_action_active: "Another local lifecycle action is active for this task.",
+  local_worker_active: "A local standalone or Program worker is active for this task.",
+  active_private_lease: "The retained local lease’s last persisted state is active.",
+  disposition_audit_invalid:
+    "The durable disposition failed its canonical redacted audit check.",
+  lease_disposition_mismatch:
+    "The retained lease no longer exactly matches its durable disposition.",
+  task_control_missing: "The task has no durable task-control record.",
+  task_control_state_mismatch:
+    "The terminal task-control state does not match the disposition outcome.",
+  retirement_receipt_conflict:
+    "A retirement receipt exists while the private lease row remains retained.",
+  retirement_receipt_invalid:
+    "Existing retirement evidence failed its canonical redacted reference check.",
+  program_binding_missing:
+    "The disposition names a Program but no persisted execution binding exists.",
+  program_binding_mismatch:
+    "Persisted standalone or Program identity does not match the disposition.",
+  program_evidence_incomplete:
+    "The terminal Program binding, artifact, phase report, phase state, or blocked Program state is incomplete or inconsistent.",
+};
+
+export function retainedRemoteOperationLeaseEligibilityPresentation(
+  item: RetainedRemoteOperationLeaseInventoryItem,
+): RetainedRemoteOperationLeaseEligibilityPresentation {
+  const stateWarning =
+    item.remote_state === "unavailable"
+      ? "Remote lifecycle state is unavailable. This does not confirm provider completion, termination, or remote deletion."
+      : "";
+  const knownReasons = item.eligibility_reasons.map(
+    (reason) => retainedLeaseReasonCopy[reason.code] ?? "Unknown eligibility evidence was returned.",
+  );
+  const contradictory =
+    (item.eligible_for_retirement && knownReasons.length > 0) ||
+    (!item.eligible_for_retirement && knownReasons.length === 0);
+  if (item.eligible_for_retirement && !contradictory) {
+    return {
+      label: "Eligible at this snapshot",
+      summary:
+        "The server found the retained local lease eligible during this read-only preview. Nothing was retired; the separate one-task action must revalidate all evidence and still requires a reason and confirmation.",
+      reasons: [],
+      stateWarning,
+      tone: "good",
+    };
+  }
+  return {
+    label: "Not eligible at this snapshot",
+    summary: contradictory
+      ? "The eligibility payload was inconsistent, so the preview fails closed. No retirement was attempted."
+      : "The server would block retirement at this snapshot. No retirement was attempted.",
+    reasons: contradictory
+      ? ["Eligibility evidence was inconsistent; refresh or review the task details."]
+      : knownReasons,
+    stateWarning,
+    tone: "warn",
+  };
+}
 
 export function remoteOperationPresentation(
   operation: RemoteOperationSnapshot,

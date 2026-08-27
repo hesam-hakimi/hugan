@@ -6,7 +6,9 @@ import type {
   ProgramSnapshot,
   RemoteOperationDisposition,
   RemoteOperationLeaseRetirement,
+  RemoteOperationLeaseRetirementEligibilityCode,
   RemoteOperationSnapshot,
+  RetainedRemoteOperationLeaseInventoryItem,
   RequirementContract,
   TaskSnapshot,
 } from "./types";
@@ -24,6 +26,7 @@ import {
   remoteOperationDispositionPresentation,
   remoteOperationLeaseRetirementPresentation,
   remoteOperationPresentation,
+  retainedRemoteOperationLeaseEligibilityPresentation,
   statusTone,
   unresolvedClarifications,
 } from "./viewModels";
@@ -161,6 +164,32 @@ function remoteLeaseRetirement(
     task_outcome_changes_made: 0,
     program_outcome_changes_made: 0,
     program_phase_advanced: false,
+    ...overrides,
+  };
+}
+
+function retainedLeaseInventoryItem(
+  overrides: Partial<RetainedRemoteOperationLeaseInventoryItem> = {},
+): RetainedRemoteOperationLeaseInventoryItem {
+  return {
+    schema_version: "1",
+    task_id: "task-1",
+    program_id: "",
+    phase_id: "",
+    slice_id: "",
+    transport: "openai_responses",
+    remote_state: "terminal",
+    remote_status: "cancelled",
+    remote_revision: 2,
+    remote_updated_at: "2026-08-26T12:01:00Z",
+    disposition_audit_ref: `sha256:${"d".repeat(64)}`,
+    disposition_outcome: "cancelled",
+    disposition_recorded_at: "2026-08-26T12:02:00Z",
+    retained_private_lease: true,
+    eligible_for_retirement: true,
+    eligibility_reasons: [],
+    preview_is_advisory: true,
+    action_revalidation_required: true,
     ...overrides,
   };
 }
@@ -525,5 +554,98 @@ describe("control-center view models", () => {
       ),
     ).toBe(true);
     expect(hasRemoteOperationEvidence()).toBe(false);
+  });
+
+  it("presents eligible inventory evidence as advisory without claiming retirement", () => {
+    const presentation = retainedRemoteOperationLeaseEligibilityPresentation(
+      retainedLeaseInventoryItem(),
+    );
+
+    expect(presentation.label).toBe("Eligible at this snapshot");
+    expect(presentation.tone).toBe("good");
+    expect(presentation.summary).toContain("Nothing was retired");
+    expect(presentation.summary).toContain("revalidate all evidence");
+    expect(presentation.reasons).toEqual([]);
+  });
+
+  it("maps every inventory blocker to fixed operator-safe copy", () => {
+    const codes: RemoteOperationLeaseRetirementEligibilityCode[] = [
+      "lifecycle_action_active",
+      "local_worker_active",
+      "active_private_lease",
+      "disposition_audit_invalid",
+      "lease_disposition_mismatch",
+      "task_control_missing",
+      "task_control_state_mismatch",
+      "retirement_receipt_conflict",
+      "retirement_receipt_invalid",
+      "program_binding_missing",
+      "program_binding_mismatch",
+      "program_evidence_incomplete",
+    ];
+
+    for (const code of codes) {
+      const presentation = retainedRemoteOperationLeaseEligibilityPresentation(
+        retainedLeaseInventoryItem({
+          eligible_for_retirement: false,
+          eligibility_reasons: [{ code, message: "untrusted server copy" }],
+        }),
+      );
+      expect(presentation.label).toBe("Not eligible at this snapshot");
+      expect(presentation.summary).toContain("No retirement was attempted");
+      expect(presentation.reasons).toHaveLength(1);
+      expect(presentation.reasons[0]).not.toBe("untrusted server copy");
+    }
+  });
+
+  it("fails closed when inventory eligibility fields contradict each other", () => {
+    const eligibleWithBlocker = retainedRemoteOperationLeaseEligibilityPresentation(
+      retainedLeaseInventoryItem({
+        eligibility_reasons: [
+          { code: "local_worker_active", message: "A worker is active." },
+        ],
+      }),
+    );
+    const ineligibleWithoutBlocker = retainedRemoteOperationLeaseEligibilityPresentation(
+      retainedLeaseInventoryItem({ eligible_for_retirement: false }),
+    );
+
+    expect(eligibleWithBlocker.label).toBe("Not eligible at this snapshot");
+    expect(eligibleWithBlocker.summary).toContain("fails closed");
+    expect(ineligibleWithoutBlocker.label).toBe("Not eligible at this snapshot");
+    expect(ineligibleWithoutBlocker.reasons[0]).toContain("inconsistent");
+  });
+
+  it("fails closed on an unknown future inventory blocker", () => {
+    const presentation = retainedRemoteOperationLeaseEligibilityPresentation(
+      retainedLeaseInventoryItem({
+        eligible_for_retirement: false,
+        eligibility_reasons: [
+          {
+            code: "future_fail_closed_blocker" as RemoteOperationLeaseRetirementEligibilityCode,
+            message: "untrusted future server copy",
+          },
+        ],
+      }),
+    );
+
+    expect(presentation.label).toBe("Not eligible at this snapshot");
+    expect(presentation.reasons).toEqual([
+      "Unknown eligibility evidence was returned.",
+    ]);
+    expect(presentation.reasons).not.toContain("untrusted future server copy");
+  });
+
+  it("keeps unavailable inventory state free of termination or deletion claims", () => {
+    const presentation = retainedRemoteOperationLeaseEligibilityPresentation(
+      retainedLeaseInventoryItem({
+        remote_state: "unavailable",
+        remote_status: "remote_state_unavailable",
+      }),
+    );
+
+    expect(presentation.stateWarning).toContain("does not confirm provider completion");
+    expect(presentation.stateWarning).toContain("termination");
+    expect(presentation.stateWarning).toContain("remote deletion");
   });
 });

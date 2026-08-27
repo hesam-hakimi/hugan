@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Literal, Protocol
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from universal_coding_agent.core.models import FrozenModel
 
@@ -23,6 +23,23 @@ class RemoteOperationAction(StrEnum):
 class RemoteOperationDispositionOutcome(StrEnum):
     CANCELLED = "cancelled"
     FAILED = "failed"
+
+
+class RemoteOperationLeaseRetirementEligibilityCode(StrEnum):
+    """Stable fail-closed reasons returned by the read-only retention inventory."""
+
+    LIFECYCLE_ACTION_ACTIVE = "lifecycle_action_active"
+    LOCAL_WORKER_ACTIVE = "local_worker_active"
+    ACTIVE_PRIVATE_LEASE = "active_private_lease"
+    DISPOSITION_AUDIT_INVALID = "disposition_audit_invalid"
+    LEASE_DISPOSITION_MISMATCH = "lease_disposition_mismatch"
+    TASK_CONTROL_MISSING = "task_control_missing"
+    TASK_CONTROL_STATE_MISMATCH = "task_control_state_mismatch"
+    RETIREMENT_RECEIPT_CONFLICT = "retirement_receipt_conflict"
+    RETIREMENT_RECEIPT_INVALID = "retirement_receipt_invalid"
+    PROGRAM_BINDING_MISSING = "program_binding_missing"
+    PROGRAM_BINDING_MISMATCH = "program_binding_mismatch"
+    PROGRAM_EVIDENCE_INCOMPLETE = "program_evidence_incomplete"
 
 
 @dataclass(frozen=True)
@@ -131,6 +148,74 @@ class RemoteOperationLeaseRetirement(FrozenModel):
     task_outcome_changes_made: int = Field(default=0, ge=0, le=0)
     program_outcome_changes_made: int = Field(default=0, ge=0, le=0)
     program_phase_advanced: Literal[False] = False
+
+
+class RemoteOperationLeaseRetirementEligibilityReason(FrozenModel):
+    """One operator-safe reason why the existing retirement action would be blocked."""
+
+    code: RemoteOperationLeaseRetirementEligibilityCode
+    message: str = Field(min_length=1, max_length=500)
+
+
+class RetainedRemoteOperationLeaseInventoryItem(FrozenModel):
+    """Allow-listed summary for one retained private lease with disposition evidence."""
+
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    program_id: str = Field(default="", max_length=128)
+    phase_id: str = Field(default="", max_length=64)
+    slice_id: str = Field(default="", max_length=64)
+    transport: str = Field(pattern=r"^[a-z][a-z0-9._-]{2,63}$")
+    remote_state: RemoteOperationState
+    remote_status: str = Field(min_length=1, max_length=64)
+    remote_revision: int = Field(ge=0)
+    remote_updated_at: str
+    disposition_audit_ref: str = Field(pattern=r"^sha256:[0-9a-f]{64}$")
+    disposition_outcome: RemoteOperationDispositionOutcome
+    disposition_recorded_at: str
+    retained_private_lease: Literal[True] = True
+    eligible_for_retirement: bool
+    eligibility_reasons: tuple[RemoteOperationLeaseRetirementEligibilityReason, ...] = ()
+    preview_is_advisory: Literal[True] = True
+    action_revalidation_required: Literal[True] = True
+
+    @model_validator(mode="after")
+    def validate_eligibility(self) -> RetainedRemoteOperationLeaseInventoryItem:
+        if self.eligible_for_retirement and self.eligibility_reasons:
+            raise ValueError("eligible inventory item cannot contain blocking reasons")
+        if not self.eligible_for_retirement and not self.eligibility_reasons:
+            raise ValueError("ineligible inventory item requires at least one reason")
+        return self
+
+
+class RetainedRemoteOperationLeaseInventory(FrozenModel):
+    """Bounded GET-only inventory page; it never reserves or changes lifecycle state."""
+
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    generated_at: str
+    items: tuple[RetainedRemoteOperationLeaseInventoryItem, ...] = ()
+    returned_count: int = Field(ge=0, le=100)
+    scanned_count: int = Field(ge=0, le=100)
+    has_more: bool
+    next_after_task_id: str = Field(
+        default="",
+        max_length=128,
+        pattern=r"^$|^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$",
+    )
+    read_only: Literal[True] = True
+    provider_calls_made: int = Field(default=0, ge=0, le=0)
+    mutations_made: Literal[False] = False
+    opaque_provider_identifiers_exposed: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_page(self) -> RetainedRemoteOperationLeaseInventory:
+        if self.returned_count != len(self.items):
+            raise ValueError("inventory returned count does not match items")
+        if self.returned_count > self.scanned_count:
+            raise ValueError("inventory cannot return more rows than it scanned")
+        if self.has_more != bool(self.next_after_task_id):
+            raise ValueError("inventory continuation state is inconsistent")
+        return self
 
 
 class RemoteOperationLeaseStore(Protocol):

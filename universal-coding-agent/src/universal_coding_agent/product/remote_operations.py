@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sqlite3
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
@@ -22,6 +23,22 @@ from universal_coding_agent.core.remote_operations import (
 
 _TASK_ID = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
 _TRANSPORT = re.compile(r"^[a-z][a-z0-9._-]{2,63}$")
+
+
+@dataclass(frozen=True)
+class RetainedRemoteOperationLeaseEvidence:
+    """Identifier-free fields needed to preview one existing retirement action."""
+
+    task_id: str
+    transport: str
+    transport_scope: str
+    operation_ref: str
+    base_sha: str
+    updated_at: str
+    last_status: str
+    state: RemoteOperationState
+    revision: int
+    retirement_present: bool
 
 
 class SqliteRemoteOperationLeaseStore:
@@ -248,6 +265,50 @@ class SqliteRemoteOperationLeaseStore:
             last_action=lease.last_action,
         )
 
+    def retained_lease_page(
+        self,
+        *,
+        after_task_id: str = "",
+        limit: int = 26,
+    ) -> tuple[RetainedRemoteOperationLeaseEvidence, ...]:
+        """Read one bounded keyset page without selecting the opaque identifier."""
+
+        if after_task_id and _TASK_ID.fullmatch(after_task_id) is None:
+            raise ValueError("retained lease inventory cursor is invalid")
+        if limit < 1 or limit > 101:
+            raise ValueError("retained lease inventory limit must be between 1 and 101")
+        with self._lock:
+            rows = self.connection.execute(
+                """
+                SELECT leases.task_id, leases.transport, leases.transport_scope,
+                       leases.operation_ref, leases.base_sha, leases.updated_at,
+                       leases.last_status, leases.state, leases.revision,
+                       CASE WHEN retirements.task_id IS NULL THEN 0 ELSE 1 END
+                FROM remote_operation_leases AS leases
+                LEFT JOIN remote_operation_lease_retirements AS retirements
+                  ON retirements.task_id = leases.task_id
+                WHERE leases.task_id COLLATE BINARY > ?
+                ORDER BY leases.task_id COLLATE BINARY
+                LIMIT ?
+                """,
+                (after_task_id, limit),
+            ).fetchall()
+        return tuple(
+            RetainedRemoteOperationLeaseEvidence(
+                task_id=row[0],
+                transport=row[1],
+                transport_scope=row[2],
+                operation_ref=row[3],
+                base_sha=row[4],
+                updated_at=row[5],
+                last_status=row[6],
+                state=RemoteOperationState(row[7]),
+                revision=row[8],
+                retirement_present=bool(row[9]),
+            )
+            for row in rows
+        )
+
     def retirement(
         self,
         task_id: str,
@@ -317,7 +378,7 @@ class SqliteRemoteOperationLeaseStore:
             raise ValueError("private lease retirement requires a reason")
         if len(normalized_reason) > 2000:
             raise ValueError("private lease retirement reason is too long")
-        _validate_disposition_audit(disposition)
+        validate_remote_operation_disposition(disposition)
 
         with self._lock:
             self.connection.execute("BEGIN IMMEDIATE")
@@ -636,17 +697,7 @@ def _validate_retirement_binding(
 ) -> None:
     if lease.state is RemoteOperationState.ACTIVE:
         raise ValueError("an active private remote-operation lease cannot be retired")
-    if (
-        lease.task_id != disposition.task_id
-        or lease.transport != disposition.transport
-        or lease.transport_scope != disposition.transport_scope
-        or lease.operation_ref != disposition.operation_ref
-        or lease.base_sha != disposition.base_sha
-        or lease.state is not disposition.remote_state
-        or lease.last_status != disposition.remote_status
-        or lease.revision != disposition.remote_revision
-        or lease.updated_at != disposition.remote_updated_at
-    ):
+    if not retained_lease_matches_disposition(lease, disposition):
         raise ValueError("private lease does not match the durable disposition")
 
 
@@ -675,7 +726,28 @@ def _same_retirement_request(
     )
 
 
-def _validate_disposition_audit(disposition: RemoteOperationDisposition) -> None:
+def retained_lease_matches_disposition(
+    lease: PrivateRemoteOperationLease | RetainedRemoteOperationLeaseEvidence,
+    disposition: RemoteOperationDisposition,
+) -> bool:
+    return bool(
+        lease.task_id == disposition.task_id
+        and lease.transport == disposition.transport
+        and lease.transport_scope == disposition.transport_scope
+        and lease.operation_ref == disposition.operation_ref
+        and lease.base_sha == disposition.base_sha
+        and lease.state is disposition.remote_state
+        and lease.last_status == disposition.remote_status
+        and lease.revision == disposition.remote_revision
+        and lease.updated_at == disposition.remote_updated_at
+    )
+
+
+def validate_remote_operation_disposition(
+    disposition: RemoteOperationDisposition,
+) -> None:
+    """Recompute the canonical redacted audit reference before trusting a reload."""
+
     payload = disposition.model_dump(mode="json", exclude={"audit_ref"})
     if _retirement_ref(payload) != disposition.audit_ref:
         raise ValueError("durable remote disposition audit reference is invalid")

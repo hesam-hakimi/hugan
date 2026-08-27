@@ -179,6 +179,60 @@ export type RemoteOperationLeaseRetirementResult = {
   remote_operation_lease_retirement: RemoteOperationLeaseRetirement;
 };
 
+export type RemoteOperationLeaseRetirementEligibilityCode =
+  | "lifecycle_action_active"
+  | "local_worker_active"
+  | "active_private_lease"
+  | "disposition_audit_invalid"
+  | "lease_disposition_mismatch"
+  | "task_control_missing"
+  | "task_control_state_mismatch"
+  | "retirement_receipt_conflict"
+  | "retirement_receipt_invalid"
+  | "program_binding_missing"
+  | "program_binding_mismatch"
+  | "program_evidence_incomplete";
+
+export type RemoteOperationLeaseRetirementEligibilityReason = {
+  code: RemoteOperationLeaseRetirementEligibilityCode;
+  message: string;
+};
+
+export type RetainedRemoteOperationLeaseInventoryItem = {
+  schema_version: "1";
+  task_id: string;
+  program_id: string;
+  phase_id: string;
+  slice_id: string;
+  transport: string;
+  remote_state: "active" | "terminal" | "unavailable";
+  remote_status: string;
+  remote_revision: number;
+  remote_updated_at: string;
+  disposition_audit_ref: string;
+  disposition_outcome: "cancelled" | "failed";
+  disposition_recorded_at: string;
+  retained_private_lease: true;
+  eligible_for_retirement: boolean;
+  eligibility_reasons: RemoteOperationLeaseRetirementEligibilityReason[];
+  preview_is_advisory: true;
+  action_revalidation_required: true;
+};
+
+export type RetainedRemoteOperationLeaseInventory = {
+  schema_version: "1";
+  generated_at: string;
+  items: RetainedRemoteOperationLeaseInventoryItem[];
+  returned_count: number;
+  scanned_count: number;
+  has_more: boolean;
+  next_after_task_id: string;
+  read_only: true;
+  provider_calls_made: 0;
+  mutations_made: false;
+  opaque_provider_identifiers_exposed: false;
+};
+
 export type ProgramExecutionBinding = {
   program_id: string;
   phase_id: string;

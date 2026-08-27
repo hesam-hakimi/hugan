@@ -332,6 +332,44 @@ are unchanged. P1.2i adds no output recovery, graph resume, retry/replan, automa
 policy, another provider transport, active pause, publication, remote deletion, or broader
 cancellation claim.
 
+P1.2j adds one read-only operator inventory for the private leases that remain after a durable
+P1.2h disposition. `GET /api/remote-operations/retained-leases` returns an allow-listed,
+identifier-free projection with task and persisted Program binding identity, last persisted remote
+state/status/revision/timestamp, disposition audit identity and outcome, and a typed advisory
+retirement-eligibility result. It never returns the opaque provider identifier, thread ID,
+operation or endpoint-scope hashes, Base SHA, operator reasons, output, credentials, URLs, or a
+retirement receipt. The strict response model also records that the page is read-only, made zero
+provider calls, made no mutation, and exposed no opaque provider identifier.
+
+The concrete private store performs an explicit-column, binary task-ID keyset read without
+selecting `operation_id` or `thread_id`. Public requests default to 25 rows and reject limits above
+100; the store reads one sentinel row to determine continuation. Rows without a durable disposition
+are not returned, so a bounded page may underfill or be empty while a continuation remains. The
+cursor advances over the scanned local task-ID keyspace, not provider identity. Refresh starts from
+the beginning; the UI never polls or automatically traverses pages. The paging method remains
+absent from the provider-facing `RemoteOperationLeaseStore` protocol.
+
+Eligibility recomputes the canonical disposition hash, verifies the exact lease/disposition
+binding and terminal task-control outcome, detects an active lease, local worker or lifecycle
+action, and fails closed on conflicting or invalid retirement evidence. Program candidates also
+require the persisted binding identity, terminal binding and phase, exact disposition artifact,
+matching phase report, and blocked Program. Program identity is derived from the persisted binding,
+not from untrusted disposition fields. Private-store locks are released before task-control,
+runtime, Program, or artifact reads, and receipt presence is captured in the same private-store
+query as the lease so an ordinary concurrent retirement is not mislabeled as corruption.
+
+The inventory is an advisory, non-atomic view across separate SQLite stores, artifacts, and
+in-memory worker state. The existing one-task retirement POST still requires a reason and browser
+confirmation and revalidates under its lifecycle reservation; an eligible preview never claims
+that retirement occurred. The same in-process reservation now excludes overlapping Program
+approve/pause/resume/cancel controls in both directions, closing the Program-control race between
+evidence validation and the private-store transaction. This remains a loopback, single-process reservation,
+not a distributed or multi-process transaction. The React view offers only explicit Refresh,
+bounded next-page navigation, and a GET-only jump to the existing task controls. It adds no direct
+or batch retirement, TTL, automatic deletion, output recovery, resume/retry, Program advancement,
+provider transport, active pause, publication, remote deletion, encrypted-erasure, backup-cleanup,
+or forensic-destruction claim.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

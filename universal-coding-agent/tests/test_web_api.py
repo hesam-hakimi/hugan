@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 from universal_coding_agent.core.models import RepositorySpec
@@ -636,6 +639,92 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
             for item in repaired_report["bindings"]
         )
 
+        inventory = client.get("/api/remote-operations/retained-leases?limit=25")
+        assert inventory.status_code == 200
+        assert inventory.headers["cache-control"] == "no-store"
+        inventory_body = inventory.json()
+        assert inventory_body["provider_calls_made"] == 0
+        assert inventory_body["mutations_made"] is False
+        assert inventory_body["opaque_provider_identifiers_exposed"] is False
+        assert inventory_body["returned_count"] == 1
+        inventory_item = inventory_body["items"][0]
+        assert inventory_item["task_id"] == binding.task_id
+        assert inventory_item["program_id"] == program_id
+        assert inventory_item["phase_id"] == binding.phase_id
+        assert inventory_item["slice_id"] == (binding.slice_id or "")
+        assert inventory_item["eligible_for_retirement"] is True
+        assert inventory_item["eligibility_reasons"] == []
+        assert response_id not in inventory.text
+        assert binding.thread_id not in inventory.text
+
+        runtime._program_execution_runs[program_id] = {
+            "busy": True,
+            "task_id": binding.task_id,
+        }
+        busy_inventory = client.get("/api/remote-operations/retained-leases")
+        assert busy_inventory.status_code == 200
+        assert {
+            reason["code"]
+            for reason in busy_inventory.json()["items"][0]["eligibility_reasons"]
+        } == {"local_worker_active"}
+        runtime._program_execution_runs.pop(program_id)
+
+        runtime._begin_program_control_action(program_id)
+        try:
+            program_control_inventory = client.get(
+                "/api/remote-operations/retained-leases"
+            )
+            assert program_control_inventory.status_code == 200
+            assert {
+                reason["code"]
+                for reason in program_control_inventory.json()["items"][0][
+                    "eligibility_reasons"
+                ]
+            } == {"lifecycle_action_active"}
+            with pytest.raises(ValueError, match="Program control action"):
+                runtime._begin_remote_operation_action(binding.task_id)
+            retirement_blocked_by_program_control = client.post(
+                f"/api/tasks/{binding.task_id}/remote-operation/retire",
+                json={
+                    "disposition_audit_ref": disposition["audit_ref"],
+                    "reason": "Program control reservation must win this race.",
+                    "confirmed": True,
+                },
+            )
+            assert retirement_blocked_by_program_control.status_code == 400
+            assert workspace.remote_operations.private_lease(binding.task_id) is not None
+        finally:
+            runtime._end_program_control_action(program_id)
+
+        workspace.artifacts.write_json(
+            persisted.phase_report_ref.removeprefix("artifact://"),
+            [],
+        )
+        malformed_report_inventory = client.get(
+            "/api/remote-operations/retained-leases"
+        )
+        assert malformed_report_inventory.status_code == 200
+        assert {
+            reason["code"]
+            for reason in malformed_report_inventory.json()["items"][0][
+                "eligibility_reasons"
+            ]
+        } == {"program_evidence_incomplete"}
+        malformed_report_retirement = client.post(
+            f"/api/tasks/{binding.task_id}/remote-operation/retire",
+            json={
+                "disposition_audit_ref": disposition["audit_ref"],
+                "reason": "Malformed Program evidence must fail closed.",
+                "confirmed": True,
+            },
+        )
+        assert malformed_report_retirement.status_code == 400
+        assert workspace.remote_operations.private_lease(binding.task_id) is not None
+        workspace.artifacts.write_json(
+            persisted.phase_report_ref.removeprefix("artifact://"),
+            repaired_report,
+        )
+
         control_before_retirement = workspace.control.get_task(binding.task_id)
         binding_before_retirement = workspace.programs.execution_binding(binding.task_id)
         phase_before_retirement = workspace.programs.phase_status(
@@ -669,13 +758,73 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         )
         workspace.programs.connection.commit()
 
-        retired = client.post(
-            f"/api/tasks/{binding.task_id}/remote-operation/retire",
-            json={
-                "disposition_audit_ref": disposition["audit_ref"],
-                "reason": "The closed Program task no longer needs its private lease.",
-                "confirmed": True,
-            },
+        runtime._begin_remote_operation_action(binding.task_id)
+        try:
+            program_controls = (
+                    (
+                        "approve",
+                        {
+                            "plan_hash": workspace.programs.plan(
+                                program_id
+                            ).canonical_hash()
+                        },
+                ),
+                ("pause", {"reason": "Overlapping pause must be rejected."}),
+                ("resume", None),
+                ("cancel", {"reason": "Overlapping cancel must be rejected."}),
+            )
+            for action, payload in program_controls:
+                url = f"/api/programs/{program_id}/{action}"
+                response = (
+                    client.post(url, json=payload)
+                    if payload is not None
+                    else client.post(url)
+                )
+                assert response.status_code == 400
+        finally:
+            runtime._end_remote_operation_action(binding.task_id)
+
+        validation_finished = Event()
+        release_retirement = Event()
+        original_validate_retirement = runtime._validate_program_retirement_evidence
+
+        def hold_after_program_validation(disposition_model):
+            result = original_validate_retirement(disposition_model)
+            validation_finished.set()
+            if not release_retirement.wait(timeout=5):
+                raise AssertionError("retirement qualification barrier timed out")
+            return result
+
+        monkeypatch.setattr(
+            runtime,
+            "_validate_program_retirement_evidence",
+            hold_after_program_validation,
+        )
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            retirement_future = pool.submit(
+                client.post,
+                f"/api/tasks/{binding.task_id}/remote-operation/retire",
+                json={
+                    "disposition_audit_ref": disposition["audit_ref"],
+                    "reason": "The closed Program task no longer needs its private lease.",
+                    "confirmed": True,
+                },
+            )
+            assert validation_finished.wait(timeout=5)
+            concurrent_program_control = client.post(
+                f"/api/programs/{program_id}/cancel",
+                json={
+                    "reason": "Program control must not cross lease retirement."
+                },
+            )
+            assert concurrent_program_control.status_code == 400
+            assert workspace.programs.status(program_id) is ProgramStatus.BLOCKED
+            release_retirement.set()
+            retired = retirement_future.result(timeout=5)
+        monkeypatch.setattr(
+            runtime,
+            "_validate_program_retirement_evidence",
+            original_validate_retirement,
         )
         assert retired.status_code == 200
         retirement = retired.json()["remote_operation_lease_retirement"]
@@ -709,6 +858,11 @@ def test_program_execution_binding_exposes_only_redacted_remote_operation(
         assert response_id not in after_retirement.text
         assert tuple(executor.starts) == starts_before_retirement
         assert tuple(executor.resumes) == resumes_before_retirement
+
+        empty_inventory = client.get("/api/remote-operations/retained-leases")
+        assert empty_inventory.status_code == 200
+        assert empty_inventory.json()["items"] == []
+        assert empty_inventory.json()["returned_count"] == 0
 
         repeated_disposition = client.post(
             f"/api/tasks/{binding.task_id}/remote-operation/dispose",

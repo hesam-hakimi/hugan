@@ -36,6 +36,7 @@
 - [x] typed redacted remote-operation evidence plus explicit observe and confirmed-cancel controls in the local Product Control Center;
 - [x] explicit durable orphan disposition after terminal/unavailable remote state, with audited standalone and Program closure and no provider call;
 - [x] explicit disposition-bound local retirement of one private opaque remote-operation lease, with an atomic redacted receipt, default retention, zero provider calls, and zero Task/Program outcome changes;
+- [x] bounded GET-only inventory and advisory eligibility preview for retained private leases already bound to durable dispositions, with redacted React review and no provider call or mutation;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

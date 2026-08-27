@@ -184,7 +184,7 @@ done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
-from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState
+from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
 from universal_coding_agent.product import ContextDocumentService, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
@@ -221,8 +221,11 @@ assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
 assert not hasattr(RemoteOperationLeaseStore, "retire")
+assert not hasattr(RemoteOperationLeaseStore, "retained_lease_page")
 assert RemoteOperationDisposition and RemoteOperationDispositionOutcome
 assert RemoteOperationLeaseRetirement
+assert RemoteOperationLeaseRetirementEligibilityCode
+assert RetainedRemoteOperationLeaseInventory and RetainedRemoteOperationLeaseInventoryItem
 assert SqliteRemoteOperationLeaseStore and RemoteOperationLeaseAwareProvider
 assert RestartReconciliationModelProvider and run_openai_background_reconciliation_live
 assert RemoteOperationDispositionRequest
@@ -238,6 +241,7 @@ print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_DISPOSITION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_IMPORT_PREFLIGHT_PASS")
+print("RETAINED_LEASE_INVENTORY_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -279,7 +283,8 @@ echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_DISPOSITION_PREFLIGHT_PASS" && \
-echo "REMOTE_OPERATION_LEASE_RETIREMENT_PREFLIGHT_PASS"
+echo "REMOTE_OPERATION_LEASE_RETIREMENT_PREFLIGHT_PASS" && \
+echo "RETAINED_LEASE_INVENTORY_PREFLIGHT_PASS"
 ```
 
 Cmd 4
@@ -304,6 +309,7 @@ echo "CANCELLATION_EVIDENCE_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_RECONCILIATION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_DISPOSITION_UI_FRONTEND_PASS"
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_UI_FRONTEND_PASS"
+echo "RETAINED_LEASE_INVENTORY_UI_FRONTEND_PASS"
 ```
 
 Cmd 6
@@ -336,6 +342,7 @@ for path in (
     "/api/tasks/{task_id}/remote-operation/reconcile",
     "/api/tasks/{task_id}/remote-operation/dispose",
     "/api/tasks/{task_id}/remote-operation/retire",
+    "/api/remote-operations/retained-leases",
 ):
     assert path in openapi["paths"]
 asset = re.search(r'<script[^>]+src="([^"]+\.js)"', html)
@@ -360,6 +367,9 @@ for marker in (
     "Retire private lease",
     "Durable private-lease retirement",
     "Local private lease retired",
+    "Lease inventory",
+    "Retained leases with UCA dispositions",
+    "Review task controls",
 ):
     assert marker in bundle
 print("PRODUCT_CONTROL_CENTER_HTTP_SMOKE_PASS")
@@ -371,6 +381,8 @@ print("REMOTE_OPERATION_DISPOSITION_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_DISPOSITION_UI_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_HTTP_SMOKE_PASS")
 print("REMOTE_OPERATION_LEASE_RETIREMENT_UI_HTTP_SMOKE_PASS")
+print("RETAINED_LEASE_INVENTORY_HTTP_SMOKE_PASS")
+print("RETAINED_LEASE_INVENTORY_UI_HTTP_SMOKE_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
@@ -429,6 +441,7 @@ echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PASS"
 echo "OPENAI_BACKGROUND_RESTART_RECONCILIATION_LIVE_QUALIFICATION_PASS"
 echo "REMOTE_OPERATION_DISPOSITION_LIVE_QUALIFICATION_PASS"
 echo "REMOTE_OPERATION_LEASE_RETIREMENT_LIVE_QUALIFICATION_PASS"
+echo "RETAINED_LEASE_INVENTORY_LIVE_QUALIFICATION_PASS"
 ```
 
 Cmd 11
