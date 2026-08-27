@@ -1,452 +1,366 @@
-TASK: PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW
+TASK: HF1_V2_VERSION_AND_PACKAGE_0_3_145_EXACT_VERIFICATION
 
-Perform one fresh, independent, strictly read-only review of the complete
-two-commit Phase 2F.1 branch after the M1/M2 repair.
+Work only in:
 
-Do not reuse conclusions from either implementation Agent.
-Do not edit, repair, amend, commit, push, or create a PR.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-==================================================
-1. EXPECTED IDENTITIES
-==================================================
+Use the repository-defined etl-release-verifier Agent.
 
-Repository:
-TD-Enterprise/kmai-td-genie
+The independent Owner Action review completed with:
 
-Logical worktree:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
+OWNER_ACTION_INDEPENDENT_REVIEW_RESULT:
+PASS_READY_FOR_VERSION_AND_PACKAGE
 
-Application root:
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+This task is authorized to:
 
-Branch:
-phase2/recipe-lifecycle-classification
+1. change the extension version from 0.3.144 to 0.3.145;
+2. build exactly one new 0.3.145 VSIX;
+3. perform exact static package verification.
 
-Current HEAD / repair commit:
-6e37281e61a782ffbe8c8675346144567406dabe
+This task is NOT authorized to:
 
-Current repair tree:
-6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
-
-Repair subject:
-fix(recipes): harden lifecycle classification
-
-Repair sole parent / implementation commit:
-c1639fc779aaed64e4be9fdd17381e0f293c7f9f
-
-Implementation tree:
-a5bd9ed7f7959c02ccb6c00b574599fb32d4fa95
-
-Implementation subject:
-feat(recipes): add phase 2f.1 lifecycle classification
-
-Implementation sole parent / main base:
-f283f01b6d615f9fa00debcef959d9c5c86a3224
-
-Accepted Phase 2E head:
-0430613e6a9f1680338d8fc099e7960e5d46cac2
-
-Accepted Phase 2E tree:
-6448dac5be9dee275598e054f505517a215b484b
-
-Accepted ignored baseline:
-
-- kmai-td-genie/.coverage is absent;
-- kmai-td-genie/logs/app.log:
-  - regular file;
-  - mode 0644;
-  - size 3,603 bytes;
-  - SHA-256:
-    58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
-- ignored-path count: 141.
+- install or uninstall the extension;
+- start VS Code Extension Host or Runtime QA;
+- access or modify the Development Test Workspace;
+- execute Preview, approval, or Write;
+- commit, push, merge, tag, stage, stash, reset, restore, or clean;
+- download or install dependencies;
+- run npm install, npm ci, or any command that creates package-lock.json;
+- modify Repair 13, Repair 12, QA STTM, test registration, golden baselines,
+  governance assets, Claude Agents or Skills;
+- overwrite, rename, or delete any existing VSIX.
 
 ==================================================
-2. STRICT NO-MUTATION BOUNDARY
+1. IDENTITY AND EXECUTION PREFLIGHT
 ==================================================
-
-Do not:
-
-- edit, create, delete, rename, format, or restore repository files;
-- modify ignored artifacts;
-- stage, unstage, commit, amend, reset, clean, stash, switch, merge, rebase,
-  cherry-pick, fetch, pull, or modify Git refs/configuration;
-- install or upgrade dependencies;
-- push or create/modify a PR, issue, comment, label, workflow, or release;
-- enable a persistent runtime flag;
-- implement any finding.
-
-The only durable write permitted is the review report outside the repository.
-
-All Python, pytest, coverage, and runtime execution must occur in a validated
-external byte-faithful mirror whose application-directory basename is exactly:
-
-kmai-td-genie
-
-Never run Python or tests inside the live worktree.
-
-==================================================
-3. REQUIRED REPORT CHAIN
-==================================================
-
-Read completely:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_DISCOVERY_2026-08-26.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_TARGET_COLLISION_REVIEW_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_IMPLEMENTATION_CONTINUATION_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_INDEPENDENT_REVIEW_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_REVIEW_WORKSPACE_INCIDENT_DISPOSITION_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_M1_M2_REPAIR_2026-08-27.md
-
-Verify every terminal token, but treat all reports only as evidence indexes.
-Independently reproduce every approval-critical claim.
-
-==================================================
-4. LIVE WORKSPACE GATE
-==================================================
-
-Before code review or mirror creation, verify:
-
-- pwd and pwd -P;
-- worktree/application realpaths;
-- Git top-level and common directory;
-- origin;
-- branch;
-- HEAD and tree;
-- complete commit parent chain;
-- both commit subjects;
-- tracked/untracked porcelain;
-- staged name-status and raw state;
-- shared-worktree inventory;
-- ignored baseline;
-- complete live-worktree manifest.
-
-Required result:
-
-- exact expected identities;
-- exactly two Phase 2F.1 commits after the main base;
-- neither commit was amended, squashed, or replaced;
-- index, tracked, untracked, and staged states empty;
-- ignored baseline exact;
-- no unexpected workspace drift.
-
-If this gate fails, do not run tests.
-
-==================================================
-5. LIVE GITHUB GATE
-==================================================
-
-Using authenticated read-only GitHub GET requests only, verify:
-
-- main remains:
-  f283f01b6d615f9fa00debcef959d9c5c86a3224
-- PR #17 remains merged with the accepted Phase 2E identity;
-- no remote phase2/recipe-lifecycle-classification ref exists;
-- no PR exists for that head branch;
-- neither local Phase 2F.1 commit exists in the live repository;
-- no workflow exists for either local commit.
-
-Do not fetch or modify local refs.
-
-==================================================
-6. COMMIT AND FILE-SCOPE REVIEW
-==================================================
-
-Independently prove:
-
-Implementation commit:
-
-- exactly the authorized 10 Phase 2F.1 repository paths;
-- four additions and six modifications;
-- no eleventh repository path.
-
-Repair commit:
-
-- exactly these four modified paths:
-
-  1. kmai-td-genie/src/backend/app/orchestrator.py
-  2. kmai-td-genie/src/backend/app/recipes/lifecycle.py
-  3. kmai-td-genie/test/test_approved_recipe_pilot.py
-  4. kmai-td-genie/test/test_recipe_lifecycle.py
-
-- no fifth path;
-- no added, deleted, renamed, copied, binary, symlink, submodule, executable-mode,
-  dependency, configuration, migration, schema, or generated-artifact change.
-
-Cumulative base-to-HEAD diff must remain limited to the original 10-file
-Phase 2F.1 scope.
-
-Verify app/recipes/__init__.py remains unchanged.
-
-==================================================
-7. COMPLETE ARCHITECTURE REVIEW
-==================================================
-
-Independently review the complete cumulative implementation.
 
 Verify:
 
-- pure, deterministic, provider-neutral evaluator;
-- already-resolved immutable evidence input;
-- immutable result and nested collections;
-- ApprovalEvidenceProvider Protocol boundary;
-- exact state precedence:
-  BROKEN > NOT_APPROVED > REVIEW_REQUIRED > VALID;
-- every simultaneously applicable reason survives precedence;
-- deterministic reason/ref ordering and deduplication;
-- malformed, missing, ambiguous, conflicting, invalid, or stale evidence
-  cannot become VALID;
-- identical duplicate records remain ambiguous;
-- every record is structurally and status validated;
-- exact immutable five-ref accepted baseline;
-- no invented expiry, owner, approver, override, or reapproval policy;
-- feature flag strictly defaults OFF;
-- flag-OFF returns before recipe lookup, provider call, registry access,
-  evaluator, and trace;
-- flag-OFF Phase 2E behavior and serialization remain unchanged;
-- deny-all authorization precedes lifecycle;
-- lifecycle state is never used for allow/deny, warning, SQL, routing, response
-  status, fallback, or authorization;
-- at most one successful best-effort trace;
-- trace contains no fingerprints, SQL, raw evidence, exception text, timestamp,
-  credential, or business data;
-- no persistence, API, schema, cache, queue, provider SDK, SQL/data-source
-  adapter, Synapse, Databricks, or Data Lake access;
-- work remains bounded by declared dependency count and loaded metadata.
+REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
+
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
+
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
+
+SOURCE_VERSION_AT_ENTRY:
+0.3.144
+
+Required:
+
+- exactly one effective repository target;
+- staged files: 0;
+- stash entries: 0;
+- package-lock.json absent;
+- no concurrent Agent mutation;
+- all existing VSIX files captured by path, size and SHA-256.
+
+Prove real stdout, stderr and exit codes for Git, Node, npm and packaging tools.
+If inline capture is defective, use file-redirection through a task-owned helper
+under the OS temporary directory.
+
+Do not modify the repository to repair process execution.
+
+Stop without changes on identity mismatch, concurrent mutation, staged content or
+unproven execution.
 
 ==================================================
-8. INDEPENDENT M1 REPAIR PROOF
+2. PRE-PACKAGE BASELINE
 ==================================================
 
-Do not trust the repair report or its tests alone.
+Before editing, capture an independent OS-hash snapshot of the live repository.
 
-Verify through source review and independent external-mirror probes:
+Explicitly fingerprint:
 
-- the lifecycle-only exception boundary covers:
-  - evaluate_recipe_lifecycle_gate();
-  - lifecycle-result handling;
-  - to_trace_payload();
-  - lifecycle trace attempt;
-- unexpected failures in each operation are discarded without propagation;
-- no failed lifecycle trace or exception text is emitted;
-- existing Approved Recipe execution continues byte/behavior-equivalently;
-- the existing Approved Recipe gate remains outside the exception boundary;
-- authorization, SQL, data-source, and unrelated failures are not swallowed;
-- successful lifecycle evaluation emits at most one trace;
-- flag-OFF and deny-all remain unchanged.
+- package.json;
+- package-lock.json presence;
+- all four Repair 13 implementation paths;
+- the three reviewed Owner Action paths;
+- Repair 11 and Repair 12 paths;
+- QA STTM fixture;
+- src/test/testPatterns.ts;
+- tsconfig files;
+- .claude/**;
+- governance assets;
+- all existing VSIX artifacts.
 
-Any fail-open or runtime-changing lifecycle exception is approval-blocking.
+The reviewed Repair 13 paths are:
 
-==================================================
-9. INDEPENDENT M2 REPAIR PROOF
-==================================================
+- src/core/sttm/SttmResolvedEvidence.ts
+- src/core/sttm/SttmUnderstandingReportRenderer.ts
+- src/tools/EtlReadOnlyToolService.ts
+- src/test/suite/sttmRepair13.test.ts
 
-Verify through source review and independent external-mirror probes:
+The reviewed Owner Action paths are:
 
-- executable/non-executable status is evaluated for every approval record;
-- two identical draft records produce:
-  - BROKEN;
-  - APPROVAL_EVIDENCE_AMBIGUOUS;
-  - RECIPE_NOT_APPROVED;
-- mixed approved/non-approved records retain every applicable reason;
-- malformed/conflicting multi-record evidence preserves invalid, conflicting,
-  ambiguous, and non-approved reasons together when applicable;
-- all permutations produce identical ordered results;
-- existing single-record draft, validated, and retired behavior is unchanged;
-- final-state precedence remains unchanged.
+- docs/eval/phase_h_latest_report.json
+- docs/eval/phase_h_latest_report.md
+- src/test/testPatterns.ts
 
-Any suppression of an applicable reason is approval-blocking.
+These seven paths must remain byte-identical throughout this task.
 
 ==================================================
-10. INDEPENDENT ACCEPTED-BASELINE PROOF
+3. EXACT VERSION CHANGE
 ==================================================
 
-Without trusting Phase 2F.1 constants or tests:
+Inspect the repository’s canonical version source and packaging procedure.
 
-- reconstruct the accepted five dependency refs/fingerprints from accepted
-  Phase 2E tree:
-  6448dac5be9dee275598e054f505517a215b484b
-- compare with the implementation baseline;
-- verify exact set/value equality;
-- verify no missing, extra, duplicate, malformed, or conflicting pair;
-- verify deep immutability;
-- verify the baseline-pin test does not derive expectations from the constant
-  under test.
+Required intended change:
+
+package.json:
+version: 0.3.144 -> 0.3.145
+
+Permit only the exact JSON version field required by the canonical extension
+manifest.
+
+Do not change:
+
+- extension ID;
+- publisher;
+- display name;
+- engines;
+- activation events;
+- commands;
+- dependencies;
+- devDependencies;
+- scripts;
+- package inclusion/exclusion rules;
+- any unrelated package.json field.
+
+Do not use npm version if it creates a lockfile, Git commit, or tag.
+
+After editing, prove:
+
+PACKAGE_JSON_CHANGED_FIELDS:
+["version"]
+
+PACKAGE_VERSION:
+0.3.145
+
+DEPENDENCIES_CHANGED:
+NO
+
+PACKAGE_LOCK_CREATED:
+NO
+
+If another source-controlled version declaration must change for package
+correctness, stop and report BLOCKED_VERSION_CONTRACT rather than silently
+expanding the boundary.
 
 ==================================================
-11. EXTERNAL TEST MIRROR
+4. BUILD IN AN ISOLATED MIRROR
 ==================================================
 
-Create one validated temporary directory outside every Git repository.
+Create a byte-faithful task-owned temporary mirror outside the repository after
+the exact version change.
 
-Inside it create the application mirror with basename exactly:
+Reuse existing dependencies read-only. Do not download anything.
 
-kmai-td-genie
+Perform compilation and packaging in the temporary mirror so live out/** and
+other generated directories are not modified.
 
-Requirements:
+Before packaging, run:
 
-- byte-faithful copy of the current committed application root;
-- no Git metadata;
-- candidate runtime/test file hashes equal live HEAD blobs;
-- PYTHONDONTWRITEBYTECODE=1;
-- PYTHONPYCACHEPREFIX inside the temporary root;
-- COVERAGE_FILE inside the temporary root;
-- TMPDIR inside the temporary root;
-- pytest cache and XML output inside the temporary root;
-- RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED absent from the process environment.
-
-All test/runtime output must remain in the temporary root.
-
-==================================================
-12. TEST REVERIFICATION
-==================================================
-
-Run only from the external mirror.
-
-Affected:
-
-python3 -m pytest --no-cov -q \
-  test/test_recipe_lifecycle.py \
-  test/test_approved_recipe_pilot.py
-
-Expected:
-149 passed
-
-Focused:
-
-python3 -m pytest --no-cov -q \
-  test/test_recipe_lifecycle.py \
-  test/test_approved_recipe_pilot.py \
-  test/test_authz_no_access_guard.py \
-  test/test_provider_abstraction_contracts.py \
-  test/test_recipe_dependency_fingerprint.py \
-  test/test_governed_field_records.py \
-  test/test_semantic_plan_contract.py
-
-Expected:
-238 passed, 8 warnings
-
-Golden:
-
-python3 -m pytest --no-cov -q test/test_golden_baseline.py
-
-Expected:
-10 passed
-
-Full:
-
-python3 -m pytest
+- compile;
+- compile:test;
+- lint;
+- Repair 11 focused suite;
+- Repair 12 focused suite;
+- Repair 13 focused suite;
+- Phase H EvalGating suite;
+- governance validators;
+- canonical full unit suite.
 
 Expected:
 
-- 1076 passed;
-- 3 skipped;
-- 10 warnings;
-- total coverage 87.01%, reported as 87%;
-- lifecycle.py coverage 93%;
-- orchestrator.py coverage 71%.
+- compile: exit 0;
+- compile:test: exit 0;
+- lint: exit 0;
+- Repair 13: 23 passing, 0 failing;
+- Phase H: passing;
+- full unit:
+  2269 passing, 1 pending, 2 failing.
+
+The two failures must be the exact unchanged F1 and F3 fingerprints:
+
+1. missing deploy-v3-agent-tool-context-gap.prompt.md contract;
+2. eleven preserved src/**/AGENT.md files.
+
+Any additional failure, changed failure identity, or new functional/security
+regression blocks packaging.
+
+==================================================
+5. BUILD EXACTLY ONE 0.3.145 VSIX
+==================================================
+
+Use the repository’s canonical offline packaging command.
+
+Build exactly one new VSIX for version 0.3.145.
+
+Do not overwrite or delete any existing VSIX.
+
+Copy only the final verified 0.3.145 VSIX from the temporary mirror to the
+canonical live repository artifact location.
+
+Do not copy mirror out/**, reports, logs, caches, temporary helpers or other
+generated files into the repository.
+
+==================================================
+6. EXACT PACKAGE VERIFICATION
+==================================================
+
+Inspect the new VSIX as an archive without installing it.
 
 Verify:
 
-- all three skips are the same unrelated CLI integration skips;
-- no Phase 2F.1 test is skipped;
-- no test is weakened, deselected, xfailed, or conditionally bypassed;
-- M1 and M2 branches are exercised;
-- warnings are pre-existing or independently justified.
+- archive integrity;
+- canonical extension ID;
+- publisher;
+- version exactly 0.3.145;
+- expected extension entry point exists;
+- compiled Repair 13 product changes are present;
+- stale 0.3.144 compiled product code is not substituted;
+- test suites and test-only output are not packaged;
+- package-lock.json is absent;
+- no secrets, credentials, temporary files, snapshots or machine-specific paths;
+- no Development Test Workspace content;
+- no unintended .git content;
+- no duplicate VSIX nested inside the package;
+- no unexpected `.claude/**` or governance-development assets are introduced into
+  the product package;
+- package file list is consistent with the previous 0.3.144 VSIX except for
+  expected version metadata and compiled hotfix deltas.
 
-Also run commit-scoped whitespace validation without modifying the live
-worktree.
+Report:
 
-==================================================
-13. PRE/POST LIVE-WORKTREE PROOF
-==================================================
+- exact VSIX path;
+- filename;
+- byte size;
+- SHA-256;
+- archive file count;
+- manifest extension ID;
+- manifest version;
+- expected differences from 0.3.144;
+- unexpected differences, if any.
 
-After all mirror tests:
-
-- remove only the exact validated external temporary directory;
-- compare live pre/post manifests;
-- verify zero live-worktree path changed;
-- verify .coverage remains absent;
-- verify logs/app.log remains exactly 3,603 bytes with SHA-256:
-  58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
-- verify ignored-path count remains 141;
-- verify branch, HEAD, tree, index, tracked, untracked, and staged states remain
-  unchanged.
-
-If any live path changes, stop and disclose it. Do not repair it.
-
-==================================================
-14. VERDICT RULES
-==================================================
-
-Approval requires:
-
-- exact workspace, commit chain, trees, parents, and subjects;
-- exact cumulative and repair file scopes;
-- no unresolved collision-review defect;
-- independent M1 and M2 proof;
-- all architecture, compatibility, trace-only, fail-closed, and no-scan
-  invariants;
-- independently correct five-ref baseline;
-- all affected/focused/golden/full tests passing exactly;
-- accepted ignored baseline unchanged;
-- byte-identical live worktree before and after review;
-- no Push, PR, or workflow;
-- no Critical, High, or Medium finding.
-
-Do not implement fixes.
-
-For each finding provide severity, exact file/symbol, evidence, violated
-requirement, correction required, and whether it blocks approval.
+Any unexpected content difference blocks progression.
 
 ==================================================
-15. REPORT
+7. FINAL CHANGE-BOUNDARY PROOF
 ==================================================
 
-Write exactly one report:
+Compare the final live repository with the pre-task OS snapshot.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_2026-08-27.md
+The only authorized live changes are:
 
-Include:
+1. package.json — version field only;
+2. one newly created 0.3.145 VSIX artifact.
 
-1. final verdict;
-2. workspace and complete commit-chain proof;
-3. live-main and no-remote-state proof;
-4. implementation and repair scope inventories;
-5. cumulative architecture review;
-6. disposition of all original collision findings;
-7. independent M1 proof;
-8. independent M2 proof;
-9. independent accepted-baseline reconstruction;
-10. flag-OFF and deny-all compatibility;
-11. trace-only, security, and no-scan proof;
-12. external-mirror identity;
-13. affected/focused/golden/full test results;
-14. skip, warning, and coverage evidence;
-15. live pre/post manifest comparison;
-16. ignored-baseline proof;
-17. findings by severity;
-18. clean/no-mutation attestation;
-19. exact next permitted action.
+Required:
 
-If approved, the next permitted action is only a separately authorized push and
-PR-creation task. Do not push, merge, or deploy.
+- Repair 13 paths unchanged;
+- Owner Action paths unchanged;
+- Repair 11 and Repair 12 unchanged;
+- QA STTM unchanged;
+- src/test/testPatterns.ts unchanged;
+- governance assets unchanged;
+- `.claude/**` unchanged;
+- all pre-existing VSIX files unchanged;
+- package-lock.json absent;
+- staged files: 0;
+- stash entries: 0;
+- no install;
+- no Runtime QA;
+- no Preview or Write;
+- no commit, push or tag.
 
-End with exactly one token:
+==================================================
+8. FINAL REPORT
+==================================================
 
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_APPROVED
+Return:
 
-or:
+IDENTITY_GATE: PASS/FAIL
+PROCESS_EXECUTION_GATE: PASS/FAIL
+CONCURRENT_AGENT_MUTATION: YES/NO
 
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_WORKSPACE
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_IDENTITY
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_BASE_DRIFT
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_GITHUB_ACCESS
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_BLOCKED_REMOTE_STATE
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_CHANGES_REQUIRED
+SOURCE_VERSION_BEFORE: 0.3.144
+SOURCE_VERSION_AFTER: <value>
+PACKAGE_JSON_CHANGED_FIELDS: <complete list>
+DEPENDENCIES_CHANGED: YES/NO
+PACKAGE_LOCK_CREATED: YES/NO
+
+COMPILE_PASS: YES/NO
+COMPILE_TEST_PASS: YES/NO
+LINT_PASS: YES/NO
+REPAIR_11_PASS: YES/NO
+REPAIR_12_PASS: YES/NO
+REPAIR_13_PASS: YES/NO
+PHASE_H_EVAL_PASS: YES/NO
+GOVERNANCE_PASS: YES/NO
+
+FULL_UNIT_PASSING: <number>
+FULL_UNIT_PENDING: <number>
+FULL_UNIT_FAILING: <number>
+FULL_UNIT_FAILURES: <exact identities>
+NEW_FUNCTIONAL_REGRESSIONS: <number>
+NEW_SECURITY_REGRESSIONS: <number>
+
+VSIX_BUILT: YES/NO
+VSIX_PATH: <absolute path>
+VSIX_FILENAME: <value>
+VSIX_SIZE_BYTES: <number>
+VSIX_SHA256: <value>
+VSIX_ARCHIVE_FILE_COUNT: <number>
+VSIX_EXTENSION_ID: <value>
+VSIX_VERSION: <value>
+VSIX_ARCHIVE_INTEGRITY: PASS/FAIL
+VSIX_UNEXPECTED_CONTENT_DIFFERENCES: <complete list or NONE>
+
+AUTHORIZED_CHANGED_PATHS: <complete list>
+UNAUTHORIZED_CHANGED_PATHS: <complete list or NONE>
+PREEXISTING_VSIX_FILES_CHANGED: YES/NO
+REPAIR_13_CONTENT_CHANGED: YES/NO
+OWNER_ACTION_CONTENT_CHANGED: YES/NO
+QA_WORKSPACE_TOUCHED: YES/NO
+
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+PREVIEW_CREATED: NO
+WRITE_EXECUTED: NO
+STAGED_FILES: <number>
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+TAG_CREATED: NO
+
+READY_FOR_LOCAL_INSTALL_AND_RUNTIME_QA: YES/NO
+READY_FOR_COMMIT_OR_PUSH: NO
+READY_FOR_CLOUD_ROLLOUT: NO
+
+End exactly with one:
+
+VERSION_AND_PACKAGE_RESULT:
+PASS_READY_FOR_LOCAL_INSTALL_AND_RUNTIME_QA
+
+VERSION_AND_PACKAGE_RESULT:
+FAIL_VALIDATION
+
+VERSION_AND_PACKAGE_RESULT:
+FAIL_PACKAGE_VERIFICATION
+
+VERSION_AND_PACKAGE_RESULT:
+FAIL_UNAUTHORIZED_CHANGE
+
+VERSION_AND_PACKAGE_RESULT:
+BLOCKED_IDENTITY_OR_CONCURRENT_MUTATION
+
+VERSION_AND_PACKAGE_RESULT:
+BLOCKED_EXECUTION_ENVIRONMENT
+
+VERSION_AND_PACKAGE_RESULT:
+BLOCKED_VERSION_CONTRACT
