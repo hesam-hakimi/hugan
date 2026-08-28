@@ -1,352 +1,382 @@
-TASK: HF1_V2_DIAGNOSE_REPAIR_13_PUBLIC_RESULT_AND_QA_FIXTURE_READ_ONLY
+TASK: PHASE_2F1_PR18_AUTHORIZED_MERGE
 
-Perform a strictly read-only diagnosis of the remaining Repair 13 Runtime QA
-blockers.
+Perform one strictly bounded and explicitly authorized merge of Phase 2F.1 Pull Request #18.
 
-Work only inside:
+The only authorized repository mutation is merging PR #18 into main using a genuine merge commit.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Do not use squash merge or rebase merge.
 
-Execution context:
+Do not delete the source branch.
 
-* fresh Claude harness session;
-* built-in generic claude Agent;
-* Claude Opus 5 with Max reasoning;
-* exactly one open workspace root;
-* do not invoke repository Custom Agents;
-* do not invoke ETL Orchestrator or any consumer Agent;
-* do not run @etl /workflow.
+Repository:
 
-The preceding consumer Runtime QA established:
+TD-Enterprise/kmai-td-genie
 
-* installed extension ID: td-etl.databricks-etl-copilot;
-* installed and activated version: 0.3.145;
-* 16/16 ETL tools available;
-* user-facing Agent: ETL Orchestrator;
-* delegation to ETL Verifier succeeded;
-* etl_interpret_sttm returned six deterministic Mapping IDs in rendered
-    Markdown;
-* a separate structured payload was not exposed through the public consumer
-    result;
-* qa_hf1v2_demo_sttm.md did not contain the state-bearing negative scenarios
-    required to exercise Repair 13;
-* no Preview, approval, write, provisioning, or runtime side effect occurred;
-* terminal result: BLOCKED_QA_INPUT_COVERAGE.
+Pull Request:
 
-Treat these claims as evidence to verify against the current source.
+https://github.com/TD-Enterprise/kmai-td-genie/pull/18
 
-This task is diagnosis and repair design only.
+Required logical worktree root:
 
-Make zero repository changes.
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
 
-Do not compile, build, package, install, activate, run Runtime QA, create or edit
-fixtures, regenerate baselines, modify test registration, change package.json,
-change the version, create a VSIX, stage, stash, commit, push, reset, restore,
-clean, or run @etl /workflow.
+Required application root:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+
+Equivalent physical /app1 paths are acceptable only if realpath proves identity.
 
 ==================================================
 
-1. IDENTITY AND EXECUTION GATES
+1. FIXED ACCEPTED IDENTITIES
     ==================================================
 
-Verify:
+Required origin:
 
-REPOSITORY_ROOT:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+https://github.com/TD-Enterprise/kmai-td-genie.git
 
-ORIGIN:
-https://github.com/TD-Universe/agentic_etl.git
+Required base branch:
 
-BRANCH:
-hotfix/hf1-oracle-fresh-consumer-v2
+main
 
-EXPECTED_HEAD:
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+Required pre-merge main SHA:
 
-EXPECTED_SOURCE_VERSION:
-0.3.145
+f283f01b6d615f9fa00debcef959d9c5c86a3224
 
-Required:
+Required PR head branch:
 
-* exactly one workspace root;
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json absent;
-* existing 0.3.145 VSIX protected;
-* no concurrently mutating Agent.
+phase2/recipe-lifecycle-classification
 
-Capture Git status and an OS-level hash inventory of all source, test, fixture,
-governance, package, and VSIX paths relevant to this diagnosis.
+Required implementation commit:
 
-Repeat the inventory at the end and require zero changes.
+c1639fc779aaed64e4be9fdd17381e0f293c7f9f
 
-If inline command capture is unreliable, use task-owned helpers and redirected
-output under the operating-system temporary directory. Do not modify the
-repository to recover command execution.
+Required repair and accepted PR head:
 
-Stop on identity mismatch, multiple workspace roots, staged files, concurrent
-mutation, or unproven native command execution.
+6e37281e61a782ffbe8c8675346144567406dabe
+
+Required accepted PR-head tree:
+
+6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
+
+Required commit chain:
+
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+-> c1639fc779aaed64e4be9fdd17381e0f293c7f9f
+-> 6e37281e61a782ffbe8c8675346144567406dabe
 
 ==================================================
-2. TRACE THE COMPLETE etl_interpret_sttm RESULT PATH
+2. REQUIRED PRIOR EVIDENCE
 
-Locate and inspect every stage involved in etl_interpret_sttm, including:
+Read these reports completely:
 
-1. Tool declaration and input/output schema;
-2. Tool registration;
-3. public Tool invocation handler;
-4. STTM parser;
-5. EtlReadOnlyToolService.interpretSttm;
-6. Repair 13 authoritative selector;
-7. structured-result construction;
-8. Markdown renderer;
-9. conversion to the VS Code Language Model Tool result;
-10. content-part serialization or response adapters;
-11. consumer Agent instructions interpreting the Tool result;
-12. Repair 13 source and public-seam tests;
-13. applicable local VS Code API type declarations.
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_2026-08-27.md
 
-Determine whether the internal service returns an object equivalent to:
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PUSH_AND_PR_2026-08-27.md
 
-{
-data: ,
-markdown: 
-}
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PR18_AND_WORKFLOW_INDEPENDENT_REVIEW_2026-08-27.md
 
-For every boundary report:
+Verify that their required terminal tokens are respectively:
 
-* exact file;
-* function or class;
-* input type;
-* output type;
-* whether structured data exists;
-* whether markdown exists;
-* whether each value is retained, transformed, serialized, hidden, or dropped.
+PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_APPROVED
 
-Identify the first exact boundary where structured data becomes unavailable to
-the consumer Agent.
+PHASE_2F1_PUSH_AND_PR_COMPLETE
 
-Distinguish among:
+PHASE_2F1_PR18_INDEPENDENT_REVIEW_APPROVED
 
-A. the service never creates structured data;
-B. the service creates it but the Tool handler discards it;
-C. the handler serializes only Markdown into a text content part;
-D. VS Code’s public Tool API does not support a separate structured channel;
-E. structured data is present but consumer Agent instructions fail to expose it;
-F. the QA fixture lacks the state fields required to populate the evidence;
-G. a combination of these causes.
+Use the reports only as evidence indexes. Independently verify every merge-critical condition immediately before merging.
 
-Do not infer an API limitation from screenshots. Verify it against the installed
-TypeScript declarations and current implementation.
-
-Existing compiled out/** may be inspected as secondary evidence, but do not
-regenerate it. Report any source/compiled parity uncertainty.
+Do not modify any prior report.
 
 ==================================================
-3. VERIFY THE REPAIR 13 PUBLIC CONTRACT
+3. LOCAL PRE-MERGE PRESERVATION GATE
 
-Determine the intended consumer-visible contract for:
+Before any GitHub mutation, verify:
 
-* structured Active Mapping IDs;
-* Markdown Active Mapping IDs;
-* deterministic ordering;
-* active mapping count;
-* excluded mappings;
-* activeState;
-* activeAuthority;
-* conflict diagnostics;
-* unresolved-reference diagnostics;
-* undeclared-state fail-closed behavior.
+* pwd;
+* pwd -P;
+* logical and physical path identity;
+* Git top-level and common directory;
+* origin fetch and push identity;
+* current branch;
+* local HEAD;
+* local tree;
+* HEAD parent;
+* complete tracked/untracked porcelain;
+* staged name-status and staged raw diff;
+* git diff --check;
+* ignored-artifact baseline.
 
-Answer explicitly:
+Required local state:
 
-* Does the real public contract require a separate structured output channel?
-* Could one Tool result envelope safely contain both structured JSON and Markdown?
-* Does the current VS Code Tool API support that envelope?
-* Should the consumer Agent compare two fields returned by one invocation?
-* Is Runtime QA asking for a channel the public API cannot expose?
-* Is the defect in the product service, Tool adapter, Agent instructions,
-    Runtime QA contract, fixture coverage, or multiple layers?
+* branch:
+    phase2/recipe-lifecycle-classification
+* HEAD:
+    6e37281e61a782ffbe8c8675346144567406dabe
+* tree:
+    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
+* HEAD parent:
+    c1639fc779aaed64e4be9fdd17381e0f293c7f9f
+* tracked/untracked porcelain: empty
+* staged state: empty
+* git diff --check: exit 0
 
-Do not propose any write-capable or machine-authority expansion.
+Required ignored baseline:
 
-==================================================
-4. DESIGN THE STATE-BEARING QA FIXTURE
+* kmai-td-genie/.coverage is absent;
+* kmai-td-genie/logs/app.log is a regular non-symlink file;
+* size is exactly 3,603 bytes;
+* SHA-256 is exactly:
+    58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
+* ignored-path count is exactly 141.
 
-Inspect:
+Do not modify, restore, regenerate, truncate or delete ignored artifacts.
 
-* qa_hf1v2_demo_sttm.md;
-* the STTM parser contract;
-* Repair 11, Repair 12, and Repair 13 tests;
-* all declared SttmActiveState values;
-* conflict detection;
-* BR/TR/JC/ER/FT reference parsing and resolution.
+If this gate fails, stop without merging and end with:
 
-Design—but do not create—one deterministic synthetic QA fixture covering:
-
-1. valid explicitly active mapping;
-2. valid explicitly inactive mapping;
-3. historical mapping;
-4. two mappings forming one deterministic conflict;
-5. unknown or unsupported state literal;
-6. blank or undeclared value in a recognized state column;
-7. unresolved authority-critical BR reference;
-8. unresolved authority-critical TR reference;
-9. unresolved authority-critical JC reference;
-10. unresolved authority-critical ER reference;
-11. unresolved authority-critical FT reference;
-12. ordinary state-less mapping, if supported, to distinguish legacy state-less
-    semantics from a blank recognized state value.
-
-Derive every column, literal, reference pattern, and identifier from the current
-parser. Do not invent an STTM format.
-
-For every scenario return:
-
-* scenario ID;
-* proposed Mapping ID;
-* exact relevant STTM fields and values;
-* parser-recognized state;
-* expected structured Active Mapping inclusion;
-* expected Markdown Active Mapping inclusion;
-* expected excluded-mapping record;
-* expected diagnostic code;
-* blocker or non-blocker behavior;
-* expected activeAuthority;
-* expected fail-closed behavior.
-
-The proposed fixture must:
-
-* contain only synthetic data;
-* avoid real jobs, credentials, systems, and data;
-* be safe for the Development Test Workspace;
-* use the read-only etl_interpret_sttm public surface;
-* require no Preview or write;
-* preserve Repair 12 behavior;
-* enable exact structured/Markdown ID, count, and order comparison;
-* avoid duplicate Mapping IDs and accidental scenario overlap.
-
-Recommend its exact future consumer-workspace path, but do not create it.
+PHASE_2F1_PR18_MERGE_BLOCKED_WORKSPACE
 
 ==================================================
-5. MINIMAL FUTURE REPAIR DESIGN
+4. FINAL LIVE GITHUB GATE
 
-If a source change is required, return the smallest bounded repair design.
+Using authenticated read-only GitHub requests, immediately verify:
 
-Separate findings into:
+* repository identity;
+* live main SHA;
+* PR #18 is open and non-draft;
+* PR base is main;
+* PR head branch is
+    phase2/recipe-lifecycle-classification;
+* PR head SHA is
+    6e37281e61a782ffbe8c8675346144567406dabe;
+* remote source branch points to the same SHA;
+* PR contains exactly two commits;
+* PR contains exactly ten changed files;
+* PR is mergeable with no conflicts;
+* no requested-changes review exists;
+* at least one currently valid approving review from a reviewer with write access exists;
+* all applicable required checks are terminal and successful;
+* the two skipped checks are still proven non-applicable by the empty Terraform matrix;
+* SonarQube reports success;
+* the observed new-code coverage is 91%, satisfying the 80% threshold;
+* branch protection is satisfied without bypass.
 
-A. public-result adapter repair;
-B. consumer Agent instruction repair;
-C. QA fixture addition;
-D. Runtime QA prompt correction;
-E. findings requiring no code change.
+The accepted approval currently shown is from:
 
-For each proposed changed path provide:
+Vuggina, Sravya
+GitHub identity: tar2859_tdbank
 
-* exact repository-relative path;
-* exact defect;
-* intended change;
-* required tests;
-* protected invariants;
-* whether a future version 0.3.146 would be required;
-* stop conditions.
+Do not rely only on screenshots or prior reports. Verify the current live review state.
 
-Do not implement anything in this session.
+The live main SHA must still be:
 
-Do not authorize version bump, packaging, installation, or Runtime QA.
+f283f01b6d615f9fa00debcef959d9c5c86a3224
+
+If main has advanced, stop without merging. Do not fetch, rebase, merge locally or update the PR branch. End with:
+
+PHASE_2F1_PR18_MERGE_BLOCKED_BASE_DRIFT
+
+If the PR head, commit count, file count, approval, checks or mergeability differs, stop without mutation and use the applicable blocker:
+
+PHASE_2F1_PR18_MERGE_BLOCKED_HEAD_DRIFT
+PHASE_2F1_PR18_MERGE_BLOCKED_SCOPE_DRIFT
+PHASE_2F1_PR18_MERGE_BLOCKED_APPROVAL
+PHASE_2F1_PR18_MERGE_BLOCKED_CHECKS
+PHASE_2F1_PR18_MERGE_BLOCKED_CONFLICT
+
+Never print or persist credentials or tokens.
 
 ==================================================
-6. FINAL NON-MUTATION PROOF
+5. AUTHORIZED MERGE METHOD
 
-Compare the final repository inventory with the initial inventory.
+Merge PR #18 through the authenticated GitHub API using:
 
-Required:
+* expected head SHA:
+    6e37281e61a782ffbe8c8675346144567406dabe
+* merge method:
+    merge
 
-REPOSITORY_PATHS_CHANGED_BY_DIAGNOSIS: 0
-STAGED_FILES: 0
-STASH_ENTRIES: 0
-PACKAGE_JSON_CHANGED: NO
-SOURCE_VERSION_CHANGED: NO
-REPAIR_13_CONTENT_CHANGED: NO
-CONSUMER_TEMPLATES_CHANGED: NO
-GOVERNANCE_ASSETS_CHANGED: NO
-VSIX_CHANGED: NO
-CONSUMER_WORKSPACE_TOUCHED: NO
-RUNTIME_QA_STARTED: NO
-WORKFLOW_PROVISIONED: NO
-PREVIEW_CREATED: NO
-WRITE_EXECUTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
+Use an expected-head guard so the merge fails if the PR head changes between the final gate and merge request.
+
+Expected merge commit title:
+
+Merge pull request #18 from TD-Enterprise/phase2/recipe-lifecycle-classification
+
+Expected merge commit message:
+
+Phase 2F.1: recipe lifecycle classification
+
+Do not use:
+
+* squash merge;
+* rebase merge;
+* admin bypass;
+* branch-protection bypass;
+* local merge;
+* force push;
+* direct push to main.
+
+Submit exactly one merge request.
+
+If GitHub returns an ambiguous response, do not submit a second merge request until read-only requests establish whether the first request succeeded.
 
 ==================================================
-7. FINAL REPORT
+6. IMMEDIATE POST-MERGE VERIFICATION
 
-Return:
+After the merge request, independently verify:
 
-IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-WORKSPACE_ROOT_COUNT: 
-REPOSITORY_MUTATED_BY_DIAGNOSIS: YES/NO
+* PR #18 is closed and merged=true;
+* GitHub reports the exact merge commit SHA;
+* live main points exactly to that merge commit;
+* the merge commit has exactly two parents;
+* first parent is exactly:
+    f283f01b6d615f9fa00debcef959d9c5c86a3224
+* second parent is exactly:
+    6e37281e61a782ffbe8c8675346144567406dabe
+* the merge commit tree is exactly:
+    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
+* the merge-commit tree is byte-identical to the accepted PR-head tree;
+* no unexpected additional commit exists between the accepted base and merge commit;
+* the source branch still exists and still points to the accepted head;
+* no tag or release was created;
+* no deployment or runtime flag was enabled.
 
-INTERNAL_SERVICE_RETURNS_DATA: YES/NO
-INTERNAL_SERVICE_RETURNS_MARKDOWN: YES/NO
-TOOL_HANDLER_RECEIVES_BOTH: YES/NO
-PUBLIC_TOOL_EXPOSES_STRUCTURED_DATA: YES/NO
-PUBLIC_TOOL_EXPOSES_MARKDOWN: YES/NO
+If the merge response reports failure and GitHub confirms the PR remains open, end with:
 
-STRUCTURED_PAYLOAD_FIRST_LOSS_BOUNDARY:
-<exact path, function, conversion, and evidence>
+PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB
 
-VS_CODE_API_SUPPORTS_SEPARATE_STRUCTURED_CHANNEL: YES/NO
-SERIALIZED_DUAL_CHANNEL_ENVELOPE_SUPPORTED: YES/NO
-CURRENT_PUBLIC_CONTRACT_REQUIRES_SEPARATE_STRUCTURED_CHANNEL: YES/NO
+If GitHub confirms the merge occurred but any post-merge identity is unexpected, do not attempt repair or another merge. End with:
 
-ROOT_CAUSE_CLASSIFICATION:
-<INTERNAL_SERVICE_DEFECT /
-TOOL_ADAPTER_DEFECT /
-PLATFORM_API_LIMITATION /
-AGENT_INSTRUCTION_DEFECT /
-QA_CONTRACT_DEFECT /
-FIXTURE_COVERAGE_DEFECT /
-COMBINATION>
+PHASE_2F1_PR18_MERGE_COMPLETED_IDENTITY_MISMATCH
 
-CURRENT_RUNTIME_QA_RESULT_IS_PRODUCT_BEHAVIOR_FAILURE: YES/NO
-CURRENT_RUNTIME_QA_RESULT_IS_EVIDENCE_COVERAGE_FAILURE: YES/NO
+==================================================
+7. POST-MERGE WORKFLOW OBSERVATION
 
-DECLARED_STATE_VALUES: 
-PROPOSED_QA_FIXTURE_PATH: 
-PROPOSED_QA_SCENARIO_COUNT: 
-PROPOSED_QA_SCENARIO_MATRIX: 
-ALL_REQUIRED_NEGATIVE_STATES_COVERED: YES/NO
-ALL_AUTHORITY_CRITICAL_REFERENCE_TYPES_COVERED: YES/NO
+Discover all workflows and check runs automatically triggered by the merge commit or updated main.
 
-SOURCE_REPAIR_REQUIRED: YES/NO
-CONSUMER_AGENT_INSTRUCTION_REPAIR_REQUIRED: YES/NO
-QA_FIXTURE_REQUIRED: YES/NO
-RUNTIME_QA_PROMPT_CORRECTION_REQUIRED: YES/NO
-MINIMAL_FUTURE_AUTHORIZED_PATHS: 
-NEXT_VERSION_IF_SOURCE_REPAIR_IS_APPROVED: <0.3.146 or N/A>
+Do not manually trigger, rerun, cancel or approve any workflow.
 
-End exactly with one:
+For each run, record:
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-READY_FOR_BOUNDED_PUBLIC_SEAM_AND_FIXTURE_REPAIR
+* workflow name;
+* run ID and URL;
+* event;
+* attempt;
+* head branch;
+* head SHA;
+* status;
+* conclusion;
+* every job/check name and conclusion.
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-READY_FOR_QA_FIXTURE_ONLY
+If workflows remain queued or in progress:
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-READY_FOR_RUNTIME_QA_CONTRACT_CORRECTION_ONLY
+* poll with authenticated read-only requests;
+* use intervals no longer than 60 seconds;
+* wait for a maximum of 30 minutes.
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-NO_DEFECT_FOUND_CURRENT_CONTRACT_ALREADY_TESTABLE
+Do not treat a skipped job as successful without verifying its job condition and non-applicability.
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+If every applicable post-merge workflow completes successfully, record that result.
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-BLOCKED_EXECUTION_ENVIRONMENT
+If workflows remain pending after the bounded wait, the merge itself remains valid. End with:
 
-RUNTIME_QA_DIAGNOSTIC_RESULT:
-FAIL_SOURCE_TRACE_INCONCLUSIVE
+PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_PENDING
+
+If a post-merge workflow fails, is cancelled, times out or requires action, do not rerun it. End with:
+
+PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_FAILED
+
+==================================================
+8. STRICT MUTATION BOUNDARY
+
+The only authorized mutation is the single GitHub merge operation for PR #18.
+
+Do not:
+
+* edit repository files;
+* modify ignored artifacts;
+* stage, unstage, commit or amend;
+* reset, clean, stash, switch, merge locally, rebase or cherry-pick;
+* fetch or pull;
+* update local refs;
+* push any ref;
+* delete the local or remote phase branch;
+* create a branch, worktree or tag;
+* create a release;
+* edit the PR;
+* add comments, labels, reviewers, assignees or milestones;
+* dismiss or submit reviews;
+* trigger or rerun workflows;
+* modify branch protection;
+* deploy;
+* enable RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED;
+* implement any Low or Informational finding.
+
+Preserve the completed Phase 2F.1 branch for audit and later verification.
+
+==================================================
+9. FINAL LOCAL PRESERVATION GATE
+
+After all GitHub operations, reverify:
+
+* local branch remains
+    phase2/recipe-lifecycle-classification;
+* local HEAD remains
+    6e37281e61a782ffbe8c8675346144567406dabe;
+* local tree remains
+    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab;
+* tracked/untracked porcelain remains empty;
+* staged state remains empty;
+* ignored baseline remains exact;
+* no local refs, index, configuration or repository files changed.
+
+==================================================
+10. REPORT
+
+Write exactly one report outside the repository:
+
+/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PR18_MERGE_2026-08-28.md
+
+Include:
+
+1. final merge verdict;
+2. local pre-merge identity and clean-state evidence;
+3. ignored-baseline evidence;
+4. live pre-merge main, PR base and PR head identities;
+5. final approval and review evidence;
+6. required-check and SonarQube evidence;
+7. exact merge request method and expected-head guard;
+8. GitHub merge response;
+9. merge commit SHA;
+10. exact two-parent verification;
+11. merge tree and PR-head tree equality;
+12. final live main identity;
+13. PR closed/merged state;
+14. preserved source-branch identity;
+15. post-merge workflow/check inventory;
+16. final local preservation evidence;
+17. no deployment/runtime/configuration mutation attestation;
+18. exact next permitted action.
+
+The exact next permitted action must be:
+
+A separate independent Phase 2F.1 post-merge reverification. Phase 2F.2 implementation is not yet authorized.
+
+If the merge and applicable post-merge workflows complete successfully, end the report and final response with exactly:
+
+PHASE_2F1_PR18_MERGE_COMPLETE
+
+Otherwise end with exactly one applicable token:
+
+PHASE_2F1_PR18_MERGE_BLOCKED_WORKSPACE
+PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB_ACCESS
+PHASE_2F1_PR18_MERGE_BLOCKED_BASE_DRIFT
+PHASE_2F1_PR18_MERGE_BLOCKED_HEAD_DRIFT
+PHASE_2F1_PR18_MERGE_BLOCKED_SCOPE_DRIFT
+PHASE_2F1_PR18_MERGE_BLOCKED_APPROVAL
+PHASE_2F1_PR18_MERGE_BLOCKED_CHECKS
+PHASE_2F1_PR18_MERGE_BLOCKED_CONFLICT
+PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB
+PHASE_2F1_PR18_MERGE_COMPLETED_IDENTITY_MISMATCH
+PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_PENDING
+PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_FAILED
