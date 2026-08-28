@@ -468,6 +468,17 @@ unbounded read. P2.1c changes no recovery confirmation, exact-row transaction, s
 provider behavior, Task/Program outcome, TTL policy, automatic cleanup, retry/replan, phase
 advancement, transport, active pause, publication, threshold, or live aggregator.
 
+P2.1d makes immutable-receipt keyset selection index-backed through a named additive SQLite index
+on `(recovered_at, recovery_ref)`. Store initialization creates that index for existing compatible
+databases, attests its exact non-unique, non-partial two-column shape, and fails closed when a
+same-named incompatible index or an unavailable schema prevents the invariant. Receipt pages use
+the attested index explicitly, avoiding the previous full receipt-table scan and temporary sort in
+the receipt-selection query while preserving the P2.1c cursor, limit, response, redaction, and
+validation contracts. This slice does not claim to optimize the independent candidate UNION or
+global validation predicates. It changes no recovery authority, provider call, Task/Program
+outcome, automatic cleanup, TTL,
+retry/replan, active pause, publication, threshold, or live model-dependent behavior.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

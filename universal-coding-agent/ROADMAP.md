@@ -43,6 +43,7 @@
 - [x] durable fail-closed ownership for Product Control Center standalone and Program execution workers, transactionally serialized with lifecycle actions across runtime processes;
 - [x] explicit audited administrative recovery for crash-left lifecycle reservations and worker ownership, with exact-row confirmation, immutable redacted receipts, and no TTL or automatic cleanup;
 - [x] independently bounded keyset pagination for lifecycle recovery candidates and receipts, with opaque cursors, fail-closed persisted-field limits, GET-only React continuation, and unchanged recovery authority;
+- [x] index-backed immutable-receipt keyset pagination with additive legacy-database initialization, exact fail-closed index attestation, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

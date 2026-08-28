@@ -8,6 +8,8 @@ from pathlib import Path
 import pytest
 
 from universal_coding_agent.product.lifecycle_reservations import (
+    _RECEIPT_PAGE_QUERY,
+    LIFECYCLE_RECOVERY_RECEIPT_INDEX,
     DurableLifecycleReservationStore,
 )
 
@@ -286,6 +288,50 @@ def test_store_adds_schema_to_existing_product_database_directory(
         store.close()
 
 
+def test_concurrent_store_open_attests_receipt_pagination_index(tmp_path: Path) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+
+    def open_store() -> tuple[str, ...]:
+        store = DurableLifecycleReservationStore(database)
+        try:
+            return tuple(
+                row[0]
+                for row in store.connection.execute(
+                    "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+                    (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+                ).fetchall()
+            )
+        finally:
+            store.close()
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(open_store) for _ in range(2)]
+        results = [future.result() for future in futures]
+
+    assert results == [
+        ("recovered_at", "recovery_ref"),
+        ("recovered_at", "recovery_ref"),
+    ]
+
+
+def test_store_fails_closed_for_wrong_receipt_pagination_index(tmp_path: Path) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    store.close()
+    connection = sqlite3.connect(database)
+    connection.execute(f"DROP INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}")
+    connection.execute(
+        f"""
+        CREATE INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}
+        ON lifecycle_recovery_receipts(audit_ref)
+        """
+    )
+    connection.close()
+
+    with pytest.raises(ValueError, match="pagination index is unavailable"):
+        DurableLifecycleReservationStore(database)
+
+
 def test_explicit_reservation_recovery_is_atomic_redacted_and_restart_safe(
     tmp_path: Path,
 ) -> None:
@@ -474,6 +520,73 @@ def test_recovery_pages_use_independent_stable_keysets(tmp_path: Path) -> None:
         assert second_receipts.candidates == ()
     finally:
         store.close()
+
+
+def test_receipt_page_query_uses_composite_index_without_temporary_sort(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    try:
+        for index in range(8):
+            store.reserve_standalone_worker(f"task-indexed-receipt-{index:03d}")
+            candidate = store.recovery_page(
+                candidate_limit=1,
+                receipt_limit=0,
+            ).candidates[0]
+            store.recover(
+                target_type=candidate.target_type,
+                target_kind=candidate.target_kind,
+                scope_id=candidate.scope_id,
+                recovery_ref=candidate.recovery_ref,
+                reason=f"Verified stopped for {candidate.scope_id}.",
+                confirmed=True,
+            )
+
+        metadata = store.connection.execute(
+            """
+            SELECT name, "unique", partial
+            FROM pragma_index_list(?)
+            WHERE name = ?
+            """,
+            (
+                "lifecycle_recovery_receipts",
+                LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+            ),
+        ).fetchall()
+        columns = store.connection.execute(
+            "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+            (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+        ).fetchall()
+        plan = store.connection.execute(
+            f"EXPLAIN QUERY PLAN {_RECEIPT_PAGE_QUERY}",
+            ("", "", 3),
+        ).fetchall()
+        details = [row[3] for row in plan]
+
+        assert metadata == [(LIFECYCLE_RECOVERY_RECEIPT_INDEX, 0, 0)]
+        assert columns == [("recovered_at",), ("recovery_ref",)]
+        assert any(
+            f"USING INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}" in detail
+            for detail in details
+        )
+        assert not any("SCAN lifecycle_recovery_receipts" in detail for detail in details)
+        assert not any("USE TEMP B-TREE" in detail for detail in details)
+        assert len(store.recovery_page(candidate_limit=0, receipt_limit=2).receipts) == 2
+    finally:
+        store.close()
+
+    legacy_connection = sqlite3.connect(database)
+    legacy_connection.execute(f"DROP INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}")
+    legacy_connection.close()
+    reopened = DurableLifecycleReservationStore(database)
+    try:
+        page = reopened.recovery_page(candidate_limit=0, receipt_limit=2)
+        assert len(page.receipts) == 2
+        assert page.receipt_has_more is True
+        assert page.next_receipt_key is not None
+    finally:
+        reopened.close()
 
 
 @pytest.mark.parametrize(

@@ -20,6 +20,11 @@ from universal_coding_agent.core.remote_operations import (
     RemoteOperationSnapshot,
     RemoteOperationState,
 )
+from universal_coding_agent.product.lifecycle_reservations import (
+    _RECEIPT_PAGE_QUERY,
+    LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+    DurableLifecycleReservationStore,
+)
 from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
@@ -347,6 +352,7 @@ def run_openai_background_reconciliation_live(
     worker_recovery_receipt_reloaded = False
     worker_recovery_private_owner_absent = False
     lifecycle_recovery_receipt_keyset_advanced = False
+    lifecycle_recovery_receipt_index_backed = False
     provider_calls_during_worker_ownership_restart = -1
     calls_before_worker_ownership_restart = len(request_events)
     worker_recovery_workspace = ProductWorkspace.create(state_root, provider)
@@ -415,6 +421,9 @@ def run_openai_background_reconciliation_live(
             and second_worker_receipt_page.receipts == (worker_receipt,)
             and second_worker_receipt_page.receipt_has_more is False
             and second_worker_receipt_page.candidates == ()
+        )
+        lifecycle_recovery_receipt_index_backed = _receipt_pagination_index_backed(
+            worker_recovery_workspace.lifecycle_reservations
         )
         worker_recovery_private_owner_absent = bool(
             durable_worker_owner
@@ -664,6 +673,9 @@ def run_openai_background_reconciliation_live(
         "lifecycle_recovery_receipt_keyset_advanced": (
             lifecycle_recovery_receipt_keyset_advanced
         ),
+        "lifecycle_recovery_receipt_index_backed": (
+            lifecycle_recovery_receipt_index_backed
+        ),
         "provider_calls_during_worker_ownership_restart": (
             provider_calls_during_worker_ownership_restart
         ),
@@ -730,6 +742,7 @@ def run_openai_background_reconciliation_live(
         and worker_recovery_receipt_reloaded
         and worker_recovery_private_owner_absent
         and lifecycle_recovery_receipt_keyset_advanced
+        and lifecycle_recovery_receipt_index_backed
         and provider_calls_during_worker_ownership_restart == 0
         and provider_calls_during_retirement == 0
         and retirement_matches_disposition
@@ -893,6 +906,41 @@ def _safe_error(error: BaseException) -> dict[str, str]:
     if isinstance(error, ModelProviderError):
         result["code"] = error.code
     return result
+
+
+def _receipt_pagination_index_backed(
+    store: DurableLifecycleReservationStore,
+) -> bool:
+    metadata = store.connection.execute(
+        """
+        SELECT name, "unique", partial
+        FROM pragma_index_list(?)
+        WHERE name = ?
+        """,
+        (
+            "lifecycle_recovery_receipts",
+            LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+        ),
+    ).fetchall()
+    columns = store.connection.execute(
+        "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+        (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+    ).fetchall()
+    plan = store.connection.execute(
+        f"EXPLAIN QUERY PLAN {_RECEIPT_PAGE_QUERY}",
+        ("", "", 2),
+    ).fetchall()
+    details = [row[3] for row in plan]
+    return bool(
+        metadata == [(LIFECYCLE_RECOVERY_RECEIPT_INDEX, 0, 0)]
+        and columns == [("recovered_at",), ("recovery_ref",)]
+        and any(
+            f"USING INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}" in detail
+            for detail in details
+        )
+        and not any("SCAN lifecycle_recovery_receipts" in detail for detail in details)
+        and not any("USE TEMP B-TREE" in detail for detail in details)
+    )
 
 
 def _source_snapshot(source_root: Path) -> dict[str, str]:

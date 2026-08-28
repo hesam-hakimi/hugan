@@ -15,6 +15,19 @@ _IDENTITY = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
 _OWNER_TOKEN = re.compile(r"^[0-9a-f]{32}$")
 _KINDS = frozenset({"remote_operation", "program_control"})
 _WORKER_KINDS = frozenset({"standalone_task", "program_execution"})
+LIFECYCLE_RECOVERY_RECEIPT_INDEX = (
+    "lifecycle_recovery_receipts_by_recovered_at_recovery_ref"
+)
+
+_RECEIPT_PAGE_QUERY = f"""
+    SELECT target_type, target_kind, scope_id, task_id, program_id,
+           created_at, recovery_ref, reason, recovered_at, audit_ref
+    FROM lifecycle_recovery_receipts
+         INDEXED BY {LIFECYCLE_RECOVERY_RECEIPT_INDEX}
+    WHERE (recovered_at, recovery_ref) > (?, ?)
+    ORDER BY recovered_at, recovery_ref
+    LIMIT ?
+"""
 
 
 @dataclass(frozen=True)
@@ -125,6 +138,19 @@ class DurableLifecycleReservationStore:
             )
             """
         )
+        try:
+            self.connection.execute(
+                f"""
+                CREATE INDEX IF NOT EXISTS {LIFECYCLE_RECOVERY_RECEIPT_INDEX}
+                ON lifecycle_recovery_receipts(recovered_at, recovery_ref)
+                """
+            )
+            self._assert_receipt_pagination_index()
+        except (sqlite3.DatabaseError, ValueError) as exc:
+            self.connection.close()
+            raise ValueError(
+                "durable lifecycle recovery receipt pagination index is unavailable"
+            ) from exc
         self.connection.execute(
             """
             CREATE UNIQUE INDEX IF NOT EXISTS one_remote_reservation_per_task
@@ -477,14 +503,7 @@ class DurableLifecycleReservationStore:
                 )
                 receipt_rows = (
                     self.connection.execute(
-                        """
-                        SELECT target_type, target_kind, scope_id, task_id, program_id,
-                               created_at, recovery_ref, reason, recovered_at, audit_ref
-                        FROM lifecycle_recovery_receipts
-                        WHERE (recovered_at, recovery_ref) > (?, ?)
-                        ORDER BY recovered_at, recovery_ref
-                        LIMIT ?
-                        """,
+                        _RECEIPT_PAGE_QUERY,
                         (*receipt_key, receipt_limit + 1),
                     ).fetchall()
                     if receipt_limit
@@ -785,6 +804,32 @@ class DurableLifecycleReservationStore:
         except ValueError as exc:
             raise ValueError("invalid lifecycle recovery receipt cursor") from exc
         return key
+
+    def _assert_receipt_pagination_index(self) -> None:
+        metadata = self.connection.execute(
+            """
+            SELECT name, "unique", partial
+            FROM pragma_index_list(?)
+            WHERE name = ?
+            """,
+            (
+                "lifecycle_recovery_receipts",
+                LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+            ),
+        ).fetchall()
+        columns = self.connection.execute(
+            """
+            SELECT name
+            FROM pragma_index_info(?)
+            ORDER BY seqno
+            """,
+            (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+        ).fetchall()
+        if metadata != [(LIFECYCLE_RECOVERY_RECEIPT_INDEX, 0, 0)] or columns != [
+            ("recovered_at",),
+            ("recovery_ref",),
+        ]:
+            raise ValueError("invalid lifecycle recovery receipt pagination index")
 
     def _ensure_recovery_field_bounds(self) -> None:
         checks = (
