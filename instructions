@@ -44,6 +44,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_responses.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_cancellation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_reconciliation_live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/host_chat_pause_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
@@ -54,6 +55,7 @@
 - universal-coding-agent/tests/test_openai_testlab_provider.py
 - universal-coding-agent/tests/test_openai_background_cancellation_live.py
 - universal-coding-agent/tests/test_openai_background_reconciliation_live.py
+- universal-coding-agent/tests/test_host_chat_pause_live.py
 - universal-coding-agent/tests/test_remote_operation_reconciliation.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
@@ -62,6 +64,7 @@
 - universal-coding-agent/tests/test_discovered_safe_service.py
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
+- universal-coding-agent/scripts/pretransfer-live-host-chat-pause.sh
 - universal-coding-agent/src/universal_coding_agent/product/__init__.py
 - universal-coding-agent/src/universal_coding_agent/product/models.py
 - universal-coding-agent/src/universal_coding_agent/product/context_documents.py
@@ -107,6 +110,7 @@ for FILE in \
   src/universal_coding_agent/core/remote_operations.py \
   src/universal_coding_agent/providers/base.py \
   src/universal_coding_agent/providers/host_chat.py \
+  src/universal_coding_agent/testlab/host_chat_pause_live.py \
   src/universal_coding_agent/providers/host_subprocess.py \
   src/universal_coding_agent/orchestration/structured_output.py \
   src/universal_coding_agent/orchestration/safe_graph.py \
@@ -121,6 +125,7 @@ for FILE in \
   src/universal_coding_agent/web/__init__.py \
   src/universal_coding_agent/web/app.py \
   ../.github/workflows/pretransfer-live-openai.yml \
+  scripts/pretransfer-live-host-chat-pause.sh \
   tests/test_web_api.py \
   web/package.json \
   web/tsconfig.json \
@@ -151,6 +156,7 @@ for FILE in \
   tests/test_pretransfer_lab.py \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
+  tests/test_host_chat_pause_live.py \
   tests/test_openai_background_reconciliation_live.py \
   tests/test_remote_operation_reconciliation.py \
   tests/test_hard_reasoning_lab.py \
@@ -203,13 +209,14 @@ from universal_coding_agent.product.lifecycle_reservations import (
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
-from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
+from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, PAUSABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
 from universal_coding_agent.providers.base import RemoteOperationLeaseAwareProvider, RestartReconciliationModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
 from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded, ArtifactStore
 from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
 from universal_coding_agent.testlab.openai_background_reconciliation_live import run_openai_background_reconciliation_live
+from universal_coding_agent.testlab.host_chat_pause_live import run_host_chat_pause_live
 from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live

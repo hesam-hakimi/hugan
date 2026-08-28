@@ -47,7 +47,7 @@
 - [x] index-backed lifecycle-recovery candidate pagination with additive reservation and worker indexes, exact fail-closed index attestation, shared bounded reads, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
 - [x] index-backed global lifecycle-recovery field validation with additive partial violation indexes, exact fail-closed definition and query-plan attestation, preserved whole-table corruption detection, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
 - [x] P2.2a provider-neutral fail-closed pausable-operation contract foundation with exact owned-handle registration, bounded pause/resume acknowledgement, durable redacted evidence, safe-boundary fallback, cancellation precedence, and no production transport claim;
-- [ ] P2.2b opt-in Host Chat pausable-handle adapter, pending a trusted non-blocking `pause`/`resume`/`paused` primitive and dedicated live host qualification;
+- [ ] P2.2b opt-in Host Chat pausable-handle adapter implemented with deterministic and HTTP coverage; pending dedicated adapter-level live host qualification;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

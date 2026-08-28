@@ -24,6 +24,7 @@ DEPLOYMENT_ATTRIBUTE_ENV = "UCA_HOST_DEPLOYMENT_ATTRIBUTE"
 PROBE_TOKENS_ENV = "UCA_HOST_PROBE_TOKENS"
 JSON_MODE_ENV = "UCA_HOST_JSON_MODE"
 CANCELLABLE_COMPLETION_FACTORY_ENV = "UCA_HOST_CANCELLABLE_COMPLETION_FACTORY"
+PAUSABLE_COMPLETION_FACTORY_ENV = "UCA_HOST_PAUSABLE_COMPLETION_FACTORY"
 
 
 class _HostCompletionHandle(Protocol):
@@ -37,6 +38,17 @@ class _HostCompletionHandle(Protocol):
         """Return without blocking whether the host operation has terminated."""
 
 
+class _HostPausableCompletionHandle(_HostCompletionHandle, Protocol):
+    def pause(self) -> None:
+        """Request a cooperative pause without blocking."""
+
+    def resume(self) -> None:
+        """Request continuation without blocking."""
+
+    def paused(self) -> bool:
+        """Return without blocking whether the operation acknowledged its pause."""
+
+
 @dataclass
 class HostChatCompletionsProvider:
     """Adapt a site-owned client with optional explicit completion-handle ownership."""
@@ -47,11 +59,20 @@ class HostChatCompletionsProvider:
     deployment_attribute: str = "deployment"
     json_mode: bool = True
     cancellable_completion_factory_name: str | None = None
+    pausable_completion_factory_name: str | None = None
 
     def __post_init__(self) -> None:
         self.host_module_path = self.host_module_path.expanduser().resolve()
         if not self.host_module_path.is_file():
             raise ModelProviderError("host_client_not_found", "host client module was not found")
+        if (
+            self.cancellable_completion_factory_name
+            and self.pausable_completion_factory_name
+        ):
+            raise ModelProviderError(
+                "host_control_factory_conflict",
+                "configure exactly one host completion control factory",
+            )
         self._module: ModuleType | None = None
 
     def capabilities(self) -> ModelCapabilities:
@@ -286,6 +307,27 @@ class HostChatCompletionsProvider:
             return client.chat.completions.create(**kwargs), "not_requested"
 
         cancellation.raise_if_cancelled()
+        pausable_factory_name = self.pausable_completion_factory_name
+        if pausable_factory_name:
+            factory = getattr(module, pausable_factory_name, None)
+            if not callable(factory):
+                raise ModelProviderError(
+                    "host_pausable_factory_missing",
+                    "configured host pausable completion factory is unavailable",
+                )
+
+            def start_pausable_operation() -> _HostPausableCompletionHandle:
+                value = factory(client=client, **kwargs)
+                return _require_pausable_completion_handle(value)
+
+            with cancellation.owned_pausable_operation(
+                OwnedOperationKind.PROVIDER,
+                start_pausable_operation,
+            ) as operation:
+                handle = cast(_HostPausableCompletionHandle, operation)
+                response = _await_completion_handle(handle)
+                return response, "owned_pausable_handle"
+
         factory_name = self.cancellable_completion_factory_name
         if not factory_name:
             response = client.chat.completions.create(**kwargs)
@@ -308,18 +350,7 @@ class HostChatCompletionsProvider:
             start_operation,
         ) as operation:
             handle = cast(_HostCompletionHandle, operation)
-            completed = False
-            try:
-                response = handle.result()
-                completed = _handle_done(handle)
-            finally:
-                if not _handle_done(handle):
-                    _cancel_handle(handle)
-            if not completed:
-                raise ModelProviderError(
-                    "host_cancellable_handle_incomplete",
-                    "host completion handle returned before termination",
-                )
+            response = _await_completion_handle(handle)
             return response, "owned_handle"
 
 
@@ -341,6 +372,9 @@ def create_provider() -> HostChatCompletionsProvider:
     cancellable_factory = (
         os.getenv(CANCELLABLE_COMPLETION_FACTORY_ENV, "").strip() or None
     )
+    pausable_factory = (
+        os.getenv(PAUSABLE_COMPLETION_FACTORY_ENV, "").strip() or None
+    )
     return HostChatCompletionsProvider(
         host_module_path=Path(path_value),
         client_factory_name=client_factory,
@@ -348,6 +382,7 @@ def create_provider() -> HostChatCompletionsProvider:
         deployment_attribute=deployment_attribute,
         json_mode=_truthy(os.getenv(JSON_MODE_ENV, "1")),
         cancellable_completion_factory_name=cancellable_factory,
+        pausable_completion_factory_name=pausable_factory,
     )
 
 
@@ -408,6 +443,33 @@ def _require_completion_handle(value: Any) -> _HostCompletionHandle:
             "host cancellable completion factory returned an invalid handle",
         )
     return cast(_HostCompletionHandle, value)
+
+
+def _require_pausable_completion_handle(value: Any) -> _HostPausableCompletionHandle:
+    required = ("result", "cancel", "done", "pause", "resume", "paused")
+    if not all(callable(getattr(value, name, None)) for name in required):
+        _cancel_handle(cast(_HostCompletionHandle, value))
+        raise ModelProviderError(
+            "host_pausable_handle_invalid",
+            "host pausable completion factory returned an invalid handle",
+        )
+    return cast(_HostPausableCompletionHandle, value)
+
+
+def _await_completion_handle(handle: _HostCompletionHandle) -> Any:
+    completed = False
+    try:
+        response = handle.result()
+        completed = _handle_done(handle)
+    finally:
+        if not _handle_done(handle):
+            _cancel_handle(handle)
+    if not completed:
+        raise ModelProviderError(
+            "host_cancellable_handle_incomplete",
+            "host completion handle returned before termination",
+        )
+    return response
 
 
 def _handle_done(handle: _HostCompletionHandle) -> bool:

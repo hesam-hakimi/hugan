@@ -281,6 +281,122 @@ def create_cancellable_completion(**kwargs):
     reopened.close()
 
 
+def test_cancel_terminates_owned_host_chat_handle_after_active_pause(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    marker = tmp_path / "pausable-host-chat-started"
+    module = tmp_path / "pausable_host_chat_client.py"
+    module.write_text(
+        """
+import os
+import threading
+from pathlib import Path
+from types import SimpleNamespace
+
+class _Completions:
+    def create(self, **kwargs):
+        raise AssertionError("direct completion path must not be used")
+
+class _Client:
+    def __init__(self):
+        self.chat = SimpleNamespace(completions=_Completions())
+
+class _Handle:
+    def __init__(self):
+        self._cancelled = False
+        self._done = threading.Event()
+        self._paused = threading.Event()
+        Path(os.environ["UCA_CANCEL_MARKER"]).write_text("started")
+
+    def result(self):
+        self._done.wait(timeout=30)
+        if self._cancelled:
+            raise RuntimeError("cancelled")
+        raise AssertionError("test handle must be cancelled")
+
+    def pause(self):
+        self._paused.set()
+
+    def resume(self):
+        self._paused.clear()
+
+    def paused(self):
+        return self._paused.is_set()
+
+    def cancel(self):
+        self._cancelled = True
+        self._paused.clear()
+        self._done.set()
+
+    def done(self):
+        return self._done.is_set()
+
+def create_client():
+    return _Client()
+
+def get_configured_model_or_deployment():
+    return SimpleNamespace(deployment="fixture")
+
+def create_pausable_completion(**kwargs):
+    return _Handle()
+""",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("UCA_CANCEL_MARKER", str(marker))
+    provider = HostChatCompletionsProvider(
+        module,
+        pausable_completion_factory_name="create_pausable_completion",
+    )
+    control = TaskControlService(tmp_path / "pausable-host-cancel.sqlite")
+    task_id = "cancel-paused-host-chat-task"
+    control.ensure_task(task_id)
+    signal = control.cancellation.signal(task_id)
+    errors: list[BaseException] = []
+
+    class Payload(BaseModel):
+        status: str
+
+    def invoke() -> None:
+        try:
+            invoke_structured(
+                provider,
+                ModelRequest(
+                    role="implementer",
+                    system_prompt="Return JSON.",
+                    user_prompt="Return status.",
+                ),
+                Payload,
+                cancellation=signal,
+            )
+        except BaseException as exc:  # captured for assertion in the parent thread
+            errors.append(exc)
+
+    worker = threading.Thread(target=invoke)
+    worker.start()
+    _wait_for(marker)
+    paused = control.pause_task(task_id, reason="pause before cancellation")
+    pause_report = control.pause_report(task_id)
+    control.cancel_task(task_id, reason="cancel supersedes active pause")
+    worker.join(timeout=5)
+    report = control.cancellation_report(task_id)
+
+    assert paused.state.value == "paused"
+    assert pause_report is not None
+    assert pause_report.active_pause_acknowledged is True
+    assert worker.is_alive() is False
+    assert len(errors) == 1
+    assert isinstance(errors[0], StructuredOutputError)
+    assert errors[0].code == "control_cancelled"  # type: ignore[union-attr]
+    assert report is not None
+    assert report.active_operation_kinds == ("provider",)
+    assert report.owned_cancellable_operations_observed == 1
+    assert report.cancellable_operation_cancel_requests == 1
+    assert report.cancellable_operations_still_active == 0
+    assert report.cooperative_fallback is False
+    control.close()
+
+
 def test_cancel_requests_owned_openai_background_response_and_persists_report(
     tmp_path: Path,
     monkeypatch,

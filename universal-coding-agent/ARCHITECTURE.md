@@ -533,6 +533,24 @@ non-blocking, accurately acknowledged pause primitive and passes dedicated live 
 qualification. No OS process suspension, provider output consumption, retry/resume automation,
 Task or Program outcome change, publication, or broader hard-control claim is introduced.
 
+P2.2b adds an opt-in Host Chat adapter for that exact contract. A site enables it only by naming
+`UCA_HOST_PAUSABLE_COMPLETION_FACTORY`; the factory must return one handle implementing the
+existing result/cancel/done lifecycle plus non-blocking pause/resume/paused hooks. Configuration
+of both the older cancellable factory and the pausable factory is rejected, and missing or
+incomplete pausable contracts fail closed. The provider registers the handle only inside its
+matching task-scoped provider operation, so HTTP pause/resume controls can report active
+acknowledgement without widening ownership or transport authority. Unconfigured Host Chat calls
+retain their previous synchronous or cooperative behavior, and the cancellable-only adapter
+retains its previous behavior.
+
+Dedicated live qualification is intentionally separate from deterministic tests. It observes the
+site-owned handle without exposing model text, requires a stable acknowledged pause window,
+requires acknowledged resume and completed inference, reloads the durable redacted pause report,
+and verifies that the exact Git HEAD, tree, and clean status were preserved. The tracked runner is
+manual and provider-local; it opens no application port and grants no workflow or remote execution
+authority. P2.2b remains open until this adapter-level qualification passes on the trusted host
+checkout.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

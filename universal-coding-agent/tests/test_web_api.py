@@ -4,12 +4,13 @@ import hashlib
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from threading import Event
+from threading import Event, Thread
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
+from universal_coding_agent.core.cancellation import OwnedOperationKind
 from universal_coding_agent.core.models import RepositorySpec
 from universal_coding_agent.core.remote_operations import RemoteOperationState
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
@@ -1030,6 +1031,90 @@ def test_task_pause_http_does_not_claim_active_pause_without_owned_handle(
             assert report.safe_boundary_reached is False
     finally:
         runtime.close()
+
+
+def test_task_pause_and_resume_http_report_owned_pausable_provider(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+    task_id = "task-http-owned-pausable-provider"
+    workspace.control.ensure_task(task_id)
+    runtime._runs[task_id] = {
+        "task_id": task_id,
+        "status": "running",
+        "busy": True,
+    }
+    started = Event()
+    released = Event()
+    paused = Event()
+    done = Event()
+    signal = workspace.control.cancellation.signal(task_id)
+
+    class Operation:
+        def pause(self) -> None:
+            paused.set()
+
+        def resume(self) -> None:
+            paused.clear()
+
+        def paused(self) -> bool:
+            return paused.is_set()
+
+        def cancel(self) -> None:
+            released.set()
+            done.set()
+
+        def done(self) -> bool:
+            return done.is_set()
+
+    operation = Operation()
+
+    def run_provider() -> None:
+        with signal.operation(OwnedOperationKind.PROVIDER):
+            with signal.owned_pausable_operation(
+                OwnedOperationKind.PROVIDER,
+                lambda: operation,
+            ):
+                started.set()
+                released.wait(timeout=5)
+                done.set()
+
+    worker = Thread(target=run_provider)
+    worker.start()
+    assert started.wait(timeout=5)
+    try:
+        with TestClient(create_product_app(runtime)) as client:
+            pause_response = client.post(
+                f"/api/tasks/{task_id}/pause",
+                json={"reason": "operator active checkpoint"},
+            )
+            assert pause_response.status_code == 200
+            pause_payload = pause_response.json()
+            assert pause_payload["control"]["state"] == "paused"
+            assert "pause_report" not in pause_payload
+            pause_report = workspace.control.pause_report(task_id)
+            assert pause_report is not None
+            assert pause_report.active_pause_acknowledged is True
+            assert pause_report.active_operation_kinds == ("provider",)
+            assert pause_report.owned_pausable_operations_observed == 1
+
+            resume_response = client.post(f"/api/tasks/{task_id}/resume")
+            assert resume_response.status_code == 200
+            resume_payload = resume_response.json()
+            assert resume_payload["control"]["state"] == "running"
+            resume_report = workspace.control.pause_report(task_id)
+            assert resume_report is not None
+            assert resume_report.active_resume_acknowledged is True
+            assert paused.is_set() is False
+    finally:
+        released.set()
+        worker.join(timeout=5)
+        runtime.close()
+    assert worker.is_alive() is False
 
 
 def test_ui_binding_is_loopback_by_default() -> None:
