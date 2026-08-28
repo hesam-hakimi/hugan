@@ -491,6 +491,19 @@ predicates and changes no UI behavior, recovery authority, provider call, Task/P
 automatic cleanup, TTL, retry/replan, active pause, publication, threshold, or live
 model-dependent behavior.
 
+P2.1f makes the remaining global lifecycle-recovery field-bound checks index-backed through three
+named additive partial SQLite indexes. Each index contains only reservation, worker-ownership, or
+receipt rows that violate the exact existing type and length predicate for that table. Compatible
+legacy databases pay one index-construction scan when first opened; subsequent recovery reads and
+explicit recoveries force the corresponding violation index and retain detection of malformed
+state anywhere in the table, including rows outside the requested page. Initialization attests
+each exact non-unique partial shape, normalized SQL definition, and production query plan, and
+fails closed when an index cannot be created or a same-named incompatible index is present. This
+preserves all P2.1c global and selected-row validation semantics while removing valid-row table
+scans from the steady-state field-bound checks. It changes no cursor, limit, API, UI, recovery
+authority, provider call, Task/Program outcome, automatic cleanup, TTL, retry/replan, active pause,
+publication, threshold, or live model-dependent behavior.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

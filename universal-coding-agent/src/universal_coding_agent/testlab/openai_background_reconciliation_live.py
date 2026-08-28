@@ -21,12 +21,18 @@ from universal_coding_agent.core.remote_operations import (
     RemoteOperationState,
 )
 from universal_coding_agent.product.lifecycle_reservations import (
+    _RECEIPT_FIELD_BOUNDS_QUERY,
     _RECEIPT_PAGE_QUERY,
     _RESERVATION_CANDIDATE_PAGE_QUERY,
+    _RESERVATION_FIELD_BOUNDS_QUERY,
     _WORKER_CANDIDATE_PAGE_QUERY,
+    _WORKER_FIELD_BOUNDS_QUERY,
+    LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
     LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
     DurableLifecycleReservationStore,
 )
 from universal_coding_agent.product.remote_operations import (
@@ -357,6 +363,7 @@ def run_openai_background_reconciliation_live(
     worker_recovery_private_owner_absent = False
     lifecycle_recovery_receipt_keyset_advanced = False
     lifecycle_recovery_candidate_indexes_backed = False
+    lifecycle_recovery_field_validation_indexes_backed = False
     lifecycle_recovery_receipt_index_backed = False
     provider_calls_during_worker_ownership_restart = -1
     calls_before_worker_ownership_restart = len(request_events)
@@ -432,6 +439,11 @@ def run_openai_background_reconciliation_live(
         )
         lifecycle_recovery_candidate_indexes_backed = (
             _candidate_pagination_indexes_backed(
+                worker_recovery_workspace.lifecycle_reservations
+            )
+        )
+        lifecycle_recovery_field_validation_indexes_backed = (
+            _field_validation_indexes_backed(
                 worker_recovery_workspace.lifecycle_reservations
             )
         )
@@ -686,6 +698,9 @@ def run_openai_background_reconciliation_live(
         "lifecycle_recovery_candidate_indexes_backed": (
             lifecycle_recovery_candidate_indexes_backed
         ),
+        "lifecycle_recovery_field_validation_indexes_backed": (
+            lifecycle_recovery_field_validation_indexes_backed
+        ),
         "lifecycle_recovery_receipt_index_backed": (
             lifecycle_recovery_receipt_index_backed
         ),
@@ -756,6 +771,7 @@ def run_openai_background_reconciliation_live(
         and worker_recovery_private_owner_absent
         and lifecycle_recovery_receipt_keyset_advanced
         and lifecycle_recovery_candidate_indexes_backed
+        and lifecycle_recovery_field_validation_indexes_backed
         and lifecycle_recovery_receipt_index_backed
         and provider_calls_during_worker_ownership_restart == 0
         and provider_calls_during_retirement == 0
@@ -949,6 +965,63 @@ def _candidate_pagination_indexes_backed(
         index=LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
         columns=("worker_kind", "scope_id"),
         query=_WORKER_CANDIDATE_PAGE_QUERY,
+    )
+
+
+def _field_validation_indexes_backed(
+    store: DurableLifecycleReservationStore,
+) -> bool:
+    return _field_validation_index_backed(
+        store,
+        table="lifecycle_reservations",
+        index=LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+        columns=("reservation_kind", "scope_id"),
+        query=_RESERVATION_FIELD_BOUNDS_QUERY,
+    ) and _field_validation_index_backed(
+        store,
+        table="lifecycle_worker_ownership",
+        index=LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+        columns=("worker_kind", "scope_id"),
+        query=_WORKER_FIELD_BOUNDS_QUERY,
+    ) and _field_validation_index_backed(
+        store,
+        table="lifecycle_recovery_receipts",
+        index=LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
+        columns=("recovery_ref",),
+        query=_RECEIPT_FIELD_BOUNDS_QUERY,
+    )
+
+
+def _field_validation_index_backed(
+    store: DurableLifecycleReservationStore,
+    *,
+    table: str,
+    index: str,
+    columns: tuple[str, ...],
+    query: str,
+) -> bool:
+    metadata = store.connection.execute(
+        """
+        SELECT name, "unique", partial
+        FROM pragma_index_list(?)
+        WHERE name = ?
+        """,
+        (table, index),
+    ).fetchall()
+    indexed_columns = store.connection.execute(
+        "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+        (index,),
+    ).fetchall()
+    plan = store.connection.execute(f"EXPLAIN QUERY PLAN {query}").fetchall()
+    details = [row[3] for row in plan]
+    table_details = [detail for detail in details if table in detail]
+    return bool(
+        metadata == [(index, 0, 1)]
+        and indexed_columns == [(column,) for column in columns]
+        and table_details
+        and all(f"USING INDEX {index}" in detail for detail in table_details)
+        and not any("USE TEMP B-TREE" in detail for detail in details)
+        and store.connection.execute(query).fetchone() == (0,)
     )
 
 

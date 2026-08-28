@@ -8,12 +8,18 @@ from pathlib import Path
 import pytest
 
 from universal_coding_agent.product.lifecycle_reservations import (
+    _RECEIPT_FIELD_BOUNDS_QUERY,
     _RECEIPT_PAGE_QUERY,
     _RESERVATION_CANDIDATE_PAGE_QUERY,
+    _RESERVATION_FIELD_BOUNDS_QUERY,
     _WORKER_CANDIDATE_PAGE_QUERY,
+    _WORKER_FIELD_BOUNDS_QUERY,
+    LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
     LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
     DurableLifecycleReservationStore,
 )
 
@@ -292,7 +298,7 @@ def test_store_adds_schema_to_existing_product_database_directory(
         store.close()
 
 
-def test_concurrent_store_open_attests_all_recovery_pagination_indexes(
+def test_concurrent_store_open_attests_all_recovery_indexes(
     tmp_path: Path,
 ) -> None:
     database = tmp_path / "lifecycle.sqlite"
@@ -312,6 +318,9 @@ def test_concurrent_store_open_attests_all_recovery_pagination_indexes(
                     LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
                     LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
                     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+                    LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+                    LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+                    LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
                 )
             )
         finally:
@@ -326,11 +335,17 @@ def test_concurrent_store_open_attests_all_recovery_pagination_indexes(
             ("reservation_kind", "scope_id"),
             ("worker_kind", "scope_id"),
             ("recovered_at", "recovery_ref"),
+            ("reservation_kind", "scope_id"),
+            ("worker_kind", "scope_id"),
+            ("recovery_ref",),
         ),
         (
             ("reservation_kind", "scope_id"),
             ("worker_kind", "scope_id"),
             ("recovered_at", "recovery_ref"),
+            ("reservation_kind", "scope_id"),
+            ("worker_kind", "scope_id"),
+            ("recovery_ref",),
         ),
     ]
 
@@ -380,6 +395,46 @@ def test_store_fails_closed_for_wrong_candidate_pagination_index(
     connection.close()
 
     with pytest.raises(ValueError, match="candidate pagination indexes are unavailable"):
+        DurableLifecycleReservationStore(database)
+
+
+@pytest.mark.parametrize(
+    ("index", "table", "columns"),
+    [
+        (
+            LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+            "lifecycle_reservations",
+            "reservation_kind, scope_id",
+        ),
+        (
+            LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+            "lifecycle_worker_ownership",
+            "worker_kind, scope_id",
+        ),
+        (
+            LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
+            "lifecycle_recovery_receipts",
+            "recovery_ref",
+        ),
+    ],
+)
+def test_store_fails_closed_for_wrong_field_validation_index(
+    tmp_path: Path,
+    index: str,
+    table: str,
+    columns: str,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    store.close()
+    connection = sqlite3.connect(database)
+    connection.execute(f"DROP INDEX {index}")
+    connection.execute(
+        f"CREATE INDEX {index} ON {table}({columns}) WHERE length(scope_id) >= 0"
+    )
+    connection.close()
+
+    with pytest.raises(ValueError, match="field validation indexes are unavailable"):
         DurableLifecycleReservationStore(database)
 
 
@@ -667,6 +722,142 @@ def test_candidate_page_queries_use_indexes_and_preserve_cross_stream_order(
         ] == expected_keys[:3]
         assert page.candidate_has_more is True
         assert page.next_candidate_key == expected_keys[2]
+    finally:
+        reopened.close()
+
+
+def test_global_field_bound_queries_use_partial_indexes_and_detect_corruption(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    try:
+        store.reserve_remote_operation("task-indexed-validation-reservation")
+        store.reserve_standalone_worker("task-indexed-validation-recovered")
+        recovered = store.recovery_page(
+            candidate_limit=2,
+            receipt_limit=0,
+        ).candidates[1]
+        store.recover(
+            target_type=recovered.target_type,
+            target_kind=recovered.target_kind,
+            scope_id=recovered.scope_id,
+            recovery_ref=recovered.recovery_ref,
+            reason="Verified stopped before indexed validation qualification.",
+            confirmed=True,
+        )
+        store.reserve_standalone_worker("task-indexed-validation-worker")
+
+        specs = (
+            (
+                "lifecycle_reservations",
+                LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+                _RESERVATION_FIELD_BOUNDS_QUERY,
+            ),
+            (
+                "lifecycle_worker_ownership",
+                LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+                _WORKER_FIELD_BOUNDS_QUERY,
+            ),
+            (
+                "lifecycle_recovery_receipts",
+                LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
+                _RECEIPT_FIELD_BOUNDS_QUERY,
+            ),
+        )
+        for table, index, query in specs:
+            metadata = store.connection.execute(
+                """
+                SELECT name, "unique", partial
+                FROM pragma_index_list(?)
+                WHERE name = ?
+                """,
+                (table, index),
+            ).fetchall()
+            details = [
+                row[3]
+                for row in store.connection.execute(
+                    f"EXPLAIN QUERY PLAN {query}"
+                ).fetchall()
+            ]
+            table_details = [detail for detail in details if table in detail]
+            assert metadata == [(index, 0, 1)]
+            assert table_details
+            assert all(f"USING INDEX {index}" in detail for detail in table_details)
+            assert not any("USE TEMP B-TREE" in detail for detail in details)
+            assert store.connection.execute(query).fetchone() == (0,)
+
+        reservation_created_at = store.connection.execute(
+            "SELECT created_at FROM lifecycle_reservations"
+        ).fetchone()[0]
+        store.connection.execute(
+            "UPDATE lifecycle_reservations SET created_at = ?",
+            ("x" * 65,),
+        )
+        assert store.connection.execute(_RESERVATION_FIELD_BOUNDS_QUERY).fetchone() == (
+            1,
+        )
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_page(candidate_limit=1, receipt_limit=0)
+        store.connection.execute(
+            "UPDATE lifecycle_reservations SET created_at = ?",
+            (reservation_created_at,),
+        )
+
+        worker_created_at = store.connection.execute(
+            "SELECT created_at FROM lifecycle_worker_ownership"
+        ).fetchone()[0]
+        store.connection.execute(
+            "UPDATE lifecycle_worker_ownership SET created_at = ?",
+            ("x" * 65,),
+        )
+        assert store.connection.execute(_WORKER_FIELD_BOUNDS_QUERY).fetchone() == (1,)
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_page(candidate_limit=1, receipt_limit=0)
+        store.connection.execute(
+            "UPDATE lifecycle_worker_ownership SET created_at = ?",
+            (worker_created_at,),
+        )
+
+        receipt_reason = store.connection.execute(
+            "SELECT reason FROM lifecycle_recovery_receipts"
+        ).fetchone()[0]
+        store.connection.execute(
+            "UPDATE lifecycle_recovery_receipts SET reason = ?",
+            ("x" * 2001,),
+        )
+        assert store.connection.execute(_RECEIPT_FIELD_BOUNDS_QUERY).fetchone() == (1,)
+        with pytest.raises(ValueError, match="recovery state is unavailable"):
+            store.recovery_page(candidate_limit=0, receipt_limit=1)
+        store.connection.execute(
+            "UPDATE lifecycle_recovery_receipts SET reason = ?",
+            (receipt_reason,),
+        )
+    finally:
+        store.close()
+
+    legacy_connection = sqlite3.connect(database)
+    for index in (
+        LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+        LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+        LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
+    ):
+        legacy_connection.execute(f"DROP INDEX {index}")
+    legacy_connection.close()
+    reopened = DurableLifecycleReservationStore(database)
+    try:
+        page = reopened.recovery_page(candidate_limit=2, receipt_limit=1)
+        assert len(page.candidates) == 2
+        assert len(page.receipts) == 1
+        assert reopened.connection.execute(
+            _RESERVATION_FIELD_BOUNDS_QUERY
+        ).fetchone() == (0,)
+        assert reopened.connection.execute(_WORKER_FIELD_BOUNDS_QUERY).fetchone() == (
+            0,
+        )
+        assert reopened.connection.execute(_RECEIPT_FIELD_BOUNDS_QUERY).fetchone() == (
+            0,
+        )
     finally:
         reopened.close()
 

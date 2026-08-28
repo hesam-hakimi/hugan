@@ -45,6 +45,7 @@
 - [x] independently bounded keyset pagination for lifecycle recovery candidates and receipts, with opaque cursors, fail-closed persisted-field limits, GET-only React continuation, and unchanged recovery authority;
 - [x] index-backed immutable-receipt keyset pagination with additive legacy-database initialization, exact fail-closed index attestation, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
 - [x] index-backed lifecycle-recovery candidate pagination with additive reservation and worker indexes, exact fail-closed index attestation, shared bounded reads, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
+- [x] index-backed global lifecycle-recovery field validation with additive partial violation indexes, exact fail-closed definition and query-plan attestation, preserved whole-table corruption detection, and unchanged API, UI, recovery authority, provider behavior, and outcomes;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of an already-running provider/test operation;
 - publish approval;

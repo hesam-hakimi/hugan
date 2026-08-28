@@ -1320,3 +1320,17 @@ def test_admin_recovery_inventory_has_independent_bounded_keyset_pages(
             "/api/admin/lifecycle-recovery",
             params={"candidate_limit": 101},
         ).status_code == 422
+        workspace.lifecycle_reservations.connection.execute(
+            """
+            UPDATE lifecycle_worker_ownership
+            SET created_at = ?
+            WHERE scope_id = ?
+            """,
+            ("x" * 65, "task-recovery-page-003"),
+        )
+        corrupt_unreturned = client.get(
+            "/api/admin/lifecycle-recovery",
+            params={"candidate_limit": 1, "receipt_limit": 0},
+        )
+        assert corrupt_unreturned.status_code == 400
+        assert "durable lifecycle recovery state is unavailable" in corrupt_unreturned.text

@@ -24,6 +24,15 @@ LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX = (
 LIFECYCLE_RECOVERY_RECEIPT_INDEX = (
     "lifecycle_recovery_receipts_by_recovered_at_recovery_ref"
 )
+LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX = (
+    "lifecycle_reservations_invalid_recovery_fields"
+)
+LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX = (
+    "lifecycle_worker_ownership_invalid_recovery_fields"
+)
+LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX = (
+    "lifecycle_recovery_receipts_invalid_recovery_fields"
+)
 
 _RESERVATION_CANDIDATE_PAGE_QUERY = f"""
     SELECT 'reservation' AS target_type,
@@ -56,6 +65,117 @@ _RECEIPT_PAGE_QUERY = f"""
     ORDER BY recovered_at, recovery_ref
     LIMIT ?
 """
+
+_RESERVATION_INVALID_RECOVERY_FIELD_PREDICATE = """
+    typeof(reservation_kind) != 'text'
+    OR length(reservation_kind) NOT BETWEEN 1 AND 32
+    OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+    OR typeof(task_id) != 'text' OR length(task_id) > 128
+    OR typeof(program_id) != 'text' OR length(program_id) > 128
+    OR typeof(owner_token) != 'text' OR length(owner_token) != 32
+    OR typeof(created_at) != 'text'
+    OR length(created_at) NOT BETWEEN 1 AND 64
+"""
+
+_WORKER_INVALID_RECOVERY_FIELD_PREDICATE = """
+    typeof(worker_kind) != 'text'
+    OR length(worker_kind) NOT BETWEEN 1 AND 32
+    OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+    OR typeof(task_id) != 'text' OR length(task_id) > 128
+    OR typeof(program_id) != 'text' OR length(program_id) > 128
+    OR typeof(owner_token) != 'text' OR length(owner_token) != 32
+    OR typeof(created_at) != 'text'
+    OR length(created_at) NOT BETWEEN 1 AND 64
+"""
+
+_RECEIPT_INVALID_RECOVERY_FIELD_PREDICATE = """
+    typeof(recovery_ref) != 'text' OR length(recovery_ref) != 71
+    OR typeof(target_type) != 'text'
+    OR length(target_type) NOT BETWEEN 1 AND 32
+    OR typeof(target_kind) != 'text'
+    OR length(target_kind) NOT BETWEEN 1 AND 32
+    OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
+    OR typeof(task_id) != 'text' OR length(task_id) > 128
+    OR typeof(program_id) != 'text' OR length(program_id) > 128
+    OR typeof(created_at) != 'text'
+    OR length(created_at) NOT BETWEEN 1 AND 64
+    OR typeof(reason) != 'text' OR length(reason) NOT BETWEEN 1 AND 2000
+    OR typeof(recovered_at) != 'text'
+    OR length(recovered_at) NOT BETWEEN 1 AND 64
+    OR typeof(audit_ref) != 'text' OR length(audit_ref) != 71
+    OR typeof(confirmed_by_operator) != 'integer'
+    OR confirmed_by_operator != 1
+    OR typeof(rows_recovered) != 'integer' OR rows_recovered != 1
+"""
+
+_RESERVATION_FIELD_VALIDATION_INDEX_DDL = f"""
+    CREATE INDEX {LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX}
+    ON lifecycle_reservations(reservation_kind, scope_id)
+    WHERE {_RESERVATION_INVALID_RECOVERY_FIELD_PREDICATE}
+"""
+
+_WORKER_FIELD_VALIDATION_INDEX_DDL = f"""
+    CREATE INDEX {LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX}
+    ON lifecycle_worker_ownership(worker_kind, scope_id)
+    WHERE {_WORKER_INVALID_RECOVERY_FIELD_PREDICATE}
+"""
+
+_RECEIPT_FIELD_VALIDATION_INDEX_DDL = f"""
+    CREATE INDEX {LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX}
+    ON lifecycle_recovery_receipts(recovery_ref)
+    WHERE {_RECEIPT_INVALID_RECOVERY_FIELD_PREDICATE}
+"""
+
+_RESERVATION_FIELD_BOUNDS_QUERY = f"""
+    SELECT EXISTS(
+        SELECT 1
+        FROM lifecycle_reservations
+             INDEXED BY {LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX}
+        WHERE {_RESERVATION_INVALID_RECOVERY_FIELD_PREDICATE}
+    )
+"""
+
+_WORKER_FIELD_BOUNDS_QUERY = f"""
+    SELECT EXISTS(
+        SELECT 1
+        FROM lifecycle_worker_ownership
+             INDEXED BY {LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX}
+        WHERE {_WORKER_INVALID_RECOVERY_FIELD_PREDICATE}
+    )
+"""
+
+_RECEIPT_FIELD_BOUNDS_QUERY = f"""
+    SELECT EXISTS(
+        SELECT 1
+        FROM lifecycle_recovery_receipts
+             INDEXED BY {LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX}
+        WHERE {_RECEIPT_INVALID_RECOVERY_FIELD_PREDICATE}
+    )
+"""
+
+_RECOVERY_FIELD_VALIDATION_INDEX_SPECS = (
+    (
+        "lifecycle_reservations",
+        LIFECYCLE_RECOVERY_RESERVATION_FIELD_VALIDATION_INDEX,
+        ("reservation_kind", "scope_id"),
+        _RESERVATION_FIELD_VALIDATION_INDEX_DDL,
+        _RESERVATION_FIELD_BOUNDS_QUERY,
+    ),
+    (
+        "lifecycle_worker_ownership",
+        LIFECYCLE_RECOVERY_WORKER_FIELD_VALIDATION_INDEX,
+        ("worker_kind", "scope_id"),
+        _WORKER_FIELD_VALIDATION_INDEX_DDL,
+        _WORKER_FIELD_BOUNDS_QUERY,
+    ),
+    (
+        "lifecycle_recovery_receipts",
+        LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
+        ("recovery_ref",),
+        _RECEIPT_FIELD_VALIDATION_INDEX_DDL,
+        _RECEIPT_FIELD_BOUNDS_QUERY,
+    ),
+)
 
 
 @dataclass(frozen=True)
@@ -248,6 +368,19 @@ class DurableLifecycleReservationStore:
             self.connection.close()
             raise ValueError(
                 "durable lifecycle recovery candidate pagination indexes are unavailable"
+            ) from exc
+        try:
+            for _table, _index, _columns, ddl, _query in (
+                _RECOVERY_FIELD_VALIDATION_INDEX_SPECS
+            ):
+                self.connection.execute(
+                    ddl.replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS ", 1)
+                )
+            self._assert_recovery_field_validation_indexes()
+        except (sqlite3.DatabaseError, ValueError) as exc:
+            self.connection.close()
+            raise ValueError(
+                "durable lifecycle recovery field validation indexes are unavailable"
             ) from exc
 
     def close(self) -> None:
@@ -913,56 +1046,66 @@ class DurableLifecycleReservationStore:
         ]:
             raise ValueError("invalid lifecycle recovery pagination index")
 
+    def _assert_recovery_field_validation_indexes(self) -> None:
+        for table, index, columns, ddl, query in (
+            _RECOVERY_FIELD_VALIDATION_INDEX_SPECS
+        ):
+            self._assert_recovery_field_validation_index(
+                table=table,
+                index=index,
+                columns=columns,
+                ddl=ddl,
+                query=query,
+            )
+
+    def _assert_recovery_field_validation_index(
+        self,
+        *,
+        table: str,
+        index: str,
+        columns: tuple[str, ...],
+        ddl: str,
+        query: str,
+    ) -> None:
+        metadata = self.connection.execute(
+            """
+            SELECT name, "unique", partial
+            FROM pragma_index_list(?)
+            WHERE name = ?
+            """,
+            (table, index),
+        ).fetchall()
+        actual_columns = self.connection.execute(
+            "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+            (index,),
+        ).fetchall()
+        definition = self.connection.execute(
+            "SELECT sql FROM sqlite_schema WHERE type = 'index' AND name = ?",
+            (index,),
+        ).fetchone()
+        plan = self.connection.execute(f"EXPLAIN QUERY PLAN {query}").fetchall()
+        details = [row[3] for row in plan]
+        table_details = [detail for detail in details if table in detail]
+        if (
+            metadata != [(index, 0, 1)]
+            or actual_columns != [(column,) for column in columns]
+            or definition is None
+            or self._normalized_sql(definition[0]) != self._normalized_sql(ddl)
+            or not table_details
+            or any(f"USING INDEX {index}" not in detail for detail in table_details)
+            or any("USE TEMP B-TREE" in detail for detail in details)
+        ):
+            raise ValueError("invalid lifecycle recovery field validation index")
+
+    @staticmethod
+    def _normalized_sql(value: object) -> str:
+        return " ".join(value.split()) if isinstance(value, str) else ""
+
     def _ensure_recovery_field_bounds(self) -> None:
         checks = (
-            """
-            SELECT EXISTS(
-                SELECT 1 FROM lifecycle_reservations
-                WHERE typeof(reservation_kind) != 'text'
-                   OR length(reservation_kind) NOT BETWEEN 1 AND 32
-                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
-                   OR typeof(task_id) != 'text' OR length(task_id) > 128
-                   OR typeof(program_id) != 'text' OR length(program_id) > 128
-                   OR typeof(owner_token) != 'text' OR length(owner_token) != 32
-                   OR typeof(created_at) != 'text'
-                   OR length(created_at) NOT BETWEEN 1 AND 64
-            )
-            """,
-            """
-            SELECT EXISTS(
-                SELECT 1 FROM lifecycle_worker_ownership
-                WHERE typeof(worker_kind) != 'text'
-                   OR length(worker_kind) NOT BETWEEN 1 AND 32
-                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
-                   OR typeof(task_id) != 'text' OR length(task_id) > 128
-                   OR typeof(program_id) != 'text' OR length(program_id) > 128
-                   OR typeof(owner_token) != 'text' OR length(owner_token) != 32
-                   OR typeof(created_at) != 'text'
-                   OR length(created_at) NOT BETWEEN 1 AND 64
-            )
-            """,
-            """
-            SELECT EXISTS(
-                SELECT 1 FROM lifecycle_recovery_receipts
-                WHERE typeof(recovery_ref) != 'text' OR length(recovery_ref) != 71
-                   OR typeof(target_type) != 'text'
-                   OR length(target_type) NOT BETWEEN 1 AND 32
-                   OR typeof(target_kind) != 'text'
-                   OR length(target_kind) NOT BETWEEN 1 AND 32
-                   OR typeof(scope_id) != 'text' OR length(scope_id) NOT BETWEEN 3 AND 128
-                   OR typeof(task_id) != 'text' OR length(task_id) > 128
-                   OR typeof(program_id) != 'text' OR length(program_id) > 128
-                   OR typeof(created_at) != 'text'
-                   OR length(created_at) NOT BETWEEN 1 AND 64
-                   OR typeof(reason) != 'text' OR length(reason) NOT BETWEEN 1 AND 2000
-                   OR typeof(recovered_at) != 'text'
-                   OR length(recovered_at) NOT BETWEEN 1 AND 64
-                   OR typeof(audit_ref) != 'text' OR length(audit_ref) != 71
-                   OR typeof(confirmed_by_operator) != 'integer'
-                   OR confirmed_by_operator != 1
-                   OR typeof(rows_recovered) != 'integer' OR rows_recovered != 1
-            )
-            """,
+            _RESERVATION_FIELD_BOUNDS_QUERY,
+            _WORKER_FIELD_BOUNDS_QUERY,
+            _RECEIPT_FIELD_BOUNDS_QUERY,
         )
         if any(self.connection.execute(query).fetchone()[0] for query in checks):
             raise ValueError("lifecycle recovery field exceeds configured bounds")
