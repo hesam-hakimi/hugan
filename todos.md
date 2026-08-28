@@ -1,55 +1,38 @@
-TASK: HF1_V2_REPAIR_RUNTIME_QA_DATA_PART_AND_FIXTURE_COVERAGE
+TASK: HF1_V2_RESOLVE_RUNTIME_QA_SUPPORT_OWNER_DECISIONS
 
-Implement the bounded support repair required to complete Repair 13 consumer
-Runtime QA.
-
-Work only inside:
+Continue the current task from the current worktree:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Execution context:
+The previous terminal result was:
 
-* fresh Claude harness session;
-* source-governance Agent: etl-hotfix-implementer;
-* Claude Opus 5 with Max reasoning;
-* exactly one open workspace root;
-* do not invoke consumer ETL Orchestrator or consumer ETL Implementer;
-* do not access the Development Test Workspace;
-* do not run @etl /workflow.
+RUNTIME_QA_SUPPORT_REPAIR_RESULT:
+BLOCKED_CHANGE_BOUNDARY_EXPANSION
 
-The preceding read-only diagnosis ended with:
+This prompt supplies the required owner decisions and narrowly expands the
+authorized boundary.
 
-RUNTIME_QA_DIAGNOSTIC_RESULT: BLOCKED_QA_INPUT_COVERAGE
+Do not restart the implementation.
+Do not revert or discard the valid existing Runtime QA support changes.
+Re-verify the current worktree and continue from it.
 
-It independently established:
+Use the source-governance role:
 
-* Repair 13 itself is not defective;
-* EtlReadOnlyToolService.interpretSttm returns both structured data and
-    rendered markdown;
-* the public Tool handler receives both;
-* createToolResult attaches a text part and a
-    vscode.LanguageModelDataPart.json(...) structured part;
-* VS Code supports the mixed dual-channel envelope;
-* both channels use the same authoritative selectActiveMappings() result;
-* no structured payload is lost inside the service or Tool adapter;
-* consumer Agents are not instructed to inspect the structured Data Part;
-* createToolResult has no direct unit coverage;
-* LanguageModelDataPart access is not safely guarded when the class is absent;
-* the existing consumer QA fixture cannot exercise the reachable negative
-    Repair 13 surfaces;
-* Parser-producible states are active, inactive, and conflicting;
-* historical and unknown are union members but have no parser producer.
+etl-hotfix-implementer
 
-This task must repair only those supporting gaps.
+Do not use any consumer-workspace Agent such as ETL Orchestrator, ETL
+Implementer, or ETL Verifier as authority for modifying the extension source.
 
-Do not redesign Repair 13.
+Do not run @etl /workflow.
+Do not access or modify the Development Test Workspace.
+Do not start Runtime QA in this task.
 
 ==================================================
 
-1. IDENTITY AND EXECUTION GATES
+1. IDENTITY AND CONCURRENCY GATE
     ==================================================
 
-Verify:
+Required:
 
 REPOSITORY_ROOT:
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
@@ -60,320 +43,273 @@ https://github.com/TD-Universe/agentic_etl.git
 BRANCH:
 hotfix/hf1-oracle-fresh-consumer-v2
 
-EXPECTED_HEAD:
+HEAD:
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-EXPECTED_SOURCE_VERSION:
+SOURCE_VERSION:
 0.3.145
 
-Required:
+Verify:
 
-* exactly one effective repository root;
+* exactly one effective repository target;
 * staged files: 0;
 * stash entries: 0;
 * package-lock.json absent;
-* existing 0.3.145 VSIX files protected;
-* no concurrently mutating Agent.
+* no concurrent Agent is modifying the repository;
+* the existing Runtime QA support edits are present;
+* package.json and version remain unchanged;
+* existing VSIX files remain unchanged.
 
-The repository contains a substantial pre-existing dirty overlay.
-
-Before editing, create an independent OS-level content snapshot containing:
-
-* all tracked modifications and deletions;
-* all non-ignored untracked files;
-* byte length and SHA-256 of every repository file;
-* staged and stash state;
-* package.json;
-* Repair 11, Repair 12, and Repair 13 paths;
-* governance assets;
-* .claude/**;
-* existing VSIX files.
-
-Store snapshots and logs only under a task-owned operating-system temporary
-directory.
-
-If inline process capture is unreliable, use file-redirection and task-owned
-temporary helpers. Do not modify the repository to repair process execution.
-
-Stop before editing on identity mismatch, staged files, concurrent mutation,
-multiple effective roots, or unproven command execution.
+Stop without edits on identity mismatch or concurrent mutation.
 
 ==================================================
-2. AUTHORIZED CHANGE BOUNDARY
+2. NEW BASELINE REQUIREMENT
 
-Authorized existing paths:
-
-* src/tools/index.ts
-* src/test/helpers/registerVscodeStub.ts
-* src/test/suite/EtlReadOnlyTools.test.ts
-* src/test/suite/sttmRepair13.test.ts
-* src/test/suite/copilotWorkflowCustomization.test.ts
-* resources/copilot/agents/etl-orchestrator.agent.md
-* resources/copilot/agents/etl-verifier.agent.md
-
-One new synthetic fixture directory is authorized only beneath the repository’s
-existing canonical STTM test-fixture root.
-
-Use the exact existing fixture naming and directory conventions discovered from
-the live repository.
-
-No other path is authorized.
-
-Do not modify:
-
-* Repair 13 production selector or renderer;
-* SttmActiveState;
-* package.json;
-* package version;
-* package-lock.json;
-* testPatterns.ts;
-* tsconfig files;
-* Repair 11 or Repair 12 behavior;
-* .claude/**;
-* .github/** governance assets;
-* consumer workspace files;
-* existing VSIX files.
-
-If a correct implementation requires another path, stop and report
-BLOCKED_CHANGE_BOUNDARY_EXPANSION.
-
-==================================================
-3. OWNER DECISION — HISTORICAL AND UNKNOWN
-
-Apply this decision:
-
-* Do not add parser behavior for historical or unknown in this hotfix.
-* Do not remove those union members in this hotfix.
-* Do not create a fake STTM state column or synthetic parser-only format.
-* Preserve the existing fail-closed type-level tests for these values.
-* Classify them as parser-unreachable contract members requiring a separate
-    post-hotfix architecture decision.
-
-Runtime fixture coverage is required only for states and diagnostics producible
-through the real public parser.
-
-==================================================
-4. ADAPTER HARDENING
-
-Repair createToolResult in src/tools/index.ts.
-
-Required behavior:
-
-1. When vscode.LanguageModelDataPart exists and exposes a callable json
-    factory:
-    * return the Markdown text part;
-    * attach the structured JSON Data Part;
-    * preserve the complete response data;
-    * preserve the result title;
-    * preserve Active Mapping ID order;
-    * preserve excluded mappings and diagnostics.
-2. When LanguageModelDataPart or its json factory is unavailable:
-    * do not throw;
-    * return a valid text-only Tool result;
-    * preserve the full Markdown;
-    * do not report total Tool failure;
-    * do not fabricate structured-channel availability.
-3. Do not change Tool permissions, schemas, names, registration, invocation
-    authority, or write capability.
-4. Do not modify Repair 13 mapping-selection behavior.
-
-==================================================
-5. DIRECT DUAL-CHANNEL TESTS
-
-Add direct tests for createToolResult.
-
-At minimum test:
-
-A. Data Part class and JSON factory available:
-
-* result contains exactly the expected text and structured parts;
-* structured data round-trips without mutation;
-* title is preserved;
-* activeMappings IDs and order are preserved;
-* activeMappingCount agrees;
-* excludedMappings and diagnostics are preserved;
-* Markdown and structured IDs originate from the same response.
-
-B. LanguageModelDataPart absent:
-
-* no exception;
-* valid text-only result;
-* complete Markdown retained.
-
-C. class present but json factory absent or non-callable:
-
-* no exception;
-* valid text-only result.
-
-D. structured result containing no excluded mappings:
-
-* valid empty structured collection;
-* no fabricated diagnostic.
-
-Update the VS Code stub only as narrowly as necessary.
-
-Do not weaken existing assertions.
-
-==================================================
-6. CONSUMER AGENT GUIDANCE
-
-Update only the packaged consumer Agent sources:
-
-* ETL Orchestrator;
-* ETL Verifier.
-
-Add concise guidance stating:
-
-* etl_interpret_sttm may return both a Markdown text part and a structured JSON
-    Data Part;
-* when both exist, inspect both;
-* compare Active Mapping IDs, order, and count;
-* inspect excluded mappings, active state, active authority, conflict diagnostics,
-    and unresolved-reference diagnostics from structured data;
-* compare those fields with the rendered Markdown;
-* do not report the structured channel as absent without inspecting Tool result
-    content parts;
-* if the runtime genuinely supplies text only, report
-    STRUCTURED_CHANNEL_UNAVAILABLE without fabricating parity;
-* Tool possession does not grant write, Preview, approval, or runtime authority.
-
-Do not:
-
-* change user-invocable;
-* add tools;
-* remove tools;
-* broaden delegation;
-* grant write or runtime authority;
-* make ETL Verifier mutating;
-* expose internal specialists directly to the user.
-
-Add or update customization tests proving these instructions exist without
-changing the Agent topology.
-
-==================================================
-7. REACHABLE REPAIR 13 QA FIXTURE
-
-Create one canonical synthetic Markdown-bundle fixture under the existing STTM
-test-fixture root.
+Capture a fresh task baseline before editing.
 
 Use:
 
-* the real canonical 26-column Field Mapping header;
-* existing parser-supported sheets and filenames;
-* real parser-supported BR/TR/JC/ER/FT identifier patterns;
-* synthetic values only.
+scripts/agent-governance/capture-baseline.mjs
 
-Cover every parser-reachable surface established by the diagnosis, including:
+plus an independent OS-level path, size, and SHA-256 snapshot.
 
-1. active mapping with all references resolved;
-2. a second distinct active mapping;
-3. full-strikethrough row or important cell producing inactive;
-4. partial strikethrough remaining active;
-5. deterministic conflict using distinct sources;
-6. deterministic conflict using distinct transformation-rule IDs;
-7. unresolved BR reference;
-8. unresolved TR reference when supported by the real resolver path;
-9. unresolved JC reference;
-10. unresolved ER reference;
-11. unresolved FT reference when supported by the real resolver path;
-12. reference from an active mapping to an inactive referenced rule;
-13. malformed row with a cell-count mismatch;
-14. oversized referenced-rule text and its public-summary behavior.
+Do not use git ls-files as the sole baseline authority.
 
-Use fewer rows only if multiple expectations can be proven without ambiguity.
+The baseline must include protected and ignored assets when relevant, including:
 
-Do not add fake historical, unknown, or state-literal rows.
+* .claude/**;
+* .github/** governance paths;
+* scripts/agent-governance/**;
+* root *.vsix files;
+* package.json;
+* src/test/testPatterns.ts;
+* all current Runtime QA support changes.
 
-For every scenario assert through the full public interpretSttm seam:
+Treat all valid changes present before this task as pre-existing baseline content.
 
-* structured Active Mapping IDs;
-* Markdown Active Mapping IDs;
-* exact deterministic order;
-* exact count;
-* excluded mappings;
-* activeState;
-* activeAuthority;
-* conflict diagnostics;
-* unresolved-reference diagnostics;
-* blocker or non-blocker result;
-* fail-closed behavior;
-* no authority broadening.
+Do not misclassify paths omitted by git ls-files as task changes.
+
+==================================================
+3. OWNER DECISION A — CONSUMER AGENT SOURCE
+
+The canonical source for packaged consumer Agent definitions is:
+
+src/customization/CopilotAssetCatalog.ts
+
+The generated or synchronized consumer Agent resources are:
+
+resources/copilot/agents/etl-orchestrator.agent.md
+resources/copilot/agents/etl-verifier.agent.md
+
+The existing byte-lock between the catalog and packaged resources is intentional
+and must be preserved.
+
+Authorize narrowly modifying, if required:
+
+* src/customization/CopilotAssetCatalog.ts;
+* resources/copilot/agents/etl-orchestrator.agent.md;
+* resources/copilot/agents/etl-verifier.agent.md;
+* the exact related asset synchronization tests only when necessary.
+
+Do not relax, skip, delete, or weaken the byte-lock test.
+
+Update the canonical catalog first and synchronize the two packaged resources
+through the repository’s canonical generation or synchronization mechanism.
+
+Add structured-result guidance so that:
+
+ETL Orchestrator:
+
+* preserves both the structured data part and rendered Markdown returned by
+    public ETL read-only tools;
+* does not discard the structured channel;
+* passes both channels to delegated verification when Repair 13 parity or
+    authority behavior is being assessed;
+* distinguishes absent structured data from an empty valid structured result;
+* reports missing channel coverage instead of fabricating parity.
+
+ETL Verifier:
+
+* independently compares structured and Markdown active-mapping IDs, order, and
+    counts;
+* validates excluded mappings and deterministic diagnostics in both channels;
+* treats missing structured output as uncovered evidence, not PASS;
+* reports declared-state or unresolved-reference coverage gaps explicitly.
+
+These are guidance changes only.
+
+Do not:
+
+* add tools;
+* remove tools;
+* broaden tool access;
+* change user-invocable;
+* grant write, Preview, approval, installation, execution, or deployment
+    authority;
+* expose internal worker Agents to the consumer;
+* change the rule that the user interacts only with ETL Orchestrator while
+    internal Agents work through it.
 
 Required:
 
-* structured and Markdown Active Mapping IDs are exactly equal;
-* their order is exactly equal;
-* conflicting mappings are excluded from both;
-* inactive mappings are excluded without becoming blockers merely because they
-    are inactive;
-* unresolved authority-critical references are disclosed and non-authoritative;
-* malformed content is diagnosed rather than silently discarded;
-* Repair 12 behavior remains unchanged.
+ORCHESTRATOR_STRUCTURED_GUIDANCE_PRESENT: YES
+VERIFIER_STRUCTURED_GUIDANCE_PRESENT: YES
+AGENT_TOOL_SETS_CHANGED: NO
+AGENT_AUTHORITY_BROADENED: NO
+BYTE_LOCK_PRESERVED: YES
 
 ==================================================
-8. VALIDATION
+4. OWNER DECISION B — MALFORMED/RAGGED ROWS
 
-Run generated-output validations only in a task-owned temporary mirror so the
-live repository’s out/**, reports, baselines, and VSIX files are not changed.
+Malformed Field Mapping rows must fail closed before Runtime QA.
 
-Reuse existing dependencies read-only.
+Inspect and identify the exact canonical bundle-parser path. Authorize modifying
+only that parser and its directly relevant tests/fixtures.
 
-Do not install or download anything.
+When a recognized Field Mapping table row has a cell count inconsistent with its
+header:
+
+* emit the existing deterministic diagnostic:
+    STTM_TABLE_MALFORMED;
+* identify the affected row deterministically;
+* do not admit that row into active mapping authority;
+* do not silently truncate, pad, reinterpret, or accept it;
+* preserve the structured diagnostic through the public data part;
+* preserve an equivalent deterministic disclosure in Markdown;
+* keep all valid neighboring rows unchanged.
+
+Do not create a second malformed-table diagnostic when the existing
+STTM_TABLE_MALFORMED contract applies.
+
+Add focused tests proving:
+
+* short row fails closed;
+* oversized row fails closed;
+* malformed row does not receive active authority;
+* valid surrounding rows remain unchanged;
+* structured and Markdown diagnostics agree;
+* the full public EtlReadOnlyToolService.interpretSttm(...) seam is exercised.
+
+Do not change Repair 11, Repair 12, or valid Repair 13 mapping-selection behavior.
+
+==================================================
+5. OWNER DECISION C — FT AND DECLARED STATES
+
+FT-reference parsing is deferred to a separate post-hotfix parser capability.
+
+Do not add:
+
+* a new filters parser branch;
+* a new canonical header;
+* synthetic FT authority;
+* a fabricated FT test path that the current public parser cannot reach.
+
+For this Runtime QA cycle, classify FT as:
+
+DEFERRED_PARSER_UNREACHABLE_NOT_REQUIRED_FOR_REPAIR_13_RUNTIME_QA
+
+Likewise, do not broaden this task merely to introduce historical or unknown
+input syntax when the current supported bundle format cannot express them.
+
+The required Runtime QA fixture coverage for this hotfix is:
+
+* active;
+* inactive;
+* conflicting;
+* unresolved BR;
+* unresolved TR;
+* unresolved JC;
+* unresolved ER;
+* malformed short row;
+* malformed oversized row;
+* valid structured/Markdown dual-channel parity.
+
+The following remain explicitly deferred and must be reported, not fabricated:
+
+* FT parser support;
+* historical input-state syntax;
+* unknown input-state syntax.
+
+==================================================
+6. AUTHORIZED BOUNDARY
+
+In addition to the already-present Runtime QA support paths, authorize only the
+minimum necessary changes under:
+
+* src/customization/CopilotAssetCatalog.ts;
+* resources/copilot/agents/etl-orchestrator.agent.md;
+* resources/copilot/agents/etl-verifier.agent.md;
+* the exact canonical STTM Markdown bundle parser;
+* directly related tests under src/test/**;
+* existing synthetic Repair 13 QA fixture paths.
+
+Do not modify:
+
+* package.json;
+* package version;
+* package-lock.json;
+* src/test/testPatterns.ts;
+* tsconfig files;
+* Repair 11 or Repair 12 behavior;
+* Repair 13’s authoritative selector or correct renderer behavior;
+* .claude/**;
+* governance Agent definitions;
+* existing VSIX files;
+* QA workspace content.
+
+Do not commit, push, tag, package, install, activate, Preview, approve, or write.
+
+==================================================
+7. VALIDATION
+
+Run in a task-owned mirror whenever compilation or generated output could mutate
+ignored live paths.
 
 Run:
 
-1. focused createToolResult tests;
-2. EtlReadOnlyTools suite;
-3. Repair 13 focused suite;
-4. consumer Agent/customization tests;
-5. Repair 11 focused suite;
-6. Repair 12 focused suite;
-7. STTM parser and reference-resolution suites;
-8. governance tests;
-9. customization validator;
-10. test-registration validator;
-11. compile;
-12. compile:test;
-13. lint;
-14. canonical full unit suite.
+1. canonical catalog-to-resource byte-lock tests;
+2. consumer Agent asset/frontmatter validation;
+3. focused ETL Orchestrator guidance tests;
+4. focused ETL Verifier guidance tests;
+5. malformed short-row test;
+6. malformed oversized-row test;
+7. structured/Markdown diagnostic-parity tests;
+8. public interpretSttm seam tests;
+9. Repair 11 focused suite;
+10. Repair 12 canonical suite;
+11. Repair 13 focused suite;
+12. Runtime QA synthetic-fixture suite;
+13. governance tests;
+14. customization validation;
+15. test-registration validation;
+16. compile;
+17. compile:test;
+18. lint;
+19. canonical full unit suite.
 
-Require:
+Required:
 
-* all new tests pass;
-* Repair 13 remains at least 23/23 passing before counting new tests;
-* Repair 12 remains 21/21;
-* Repair 11 remains unchanged and passing;
-* governance enforcement remains passing;
-* customization blockers, majors, and minors remain zero;
-* test-registration enforcing findings remain zero;
-* the only full-suite failures remain the exact pre-existing F1 and F3
-    fingerprints;
+* compile, compile:test, and lint: exit 0;
+* Repair 11: pass;
+* Repair 12: 21/21 pass;
+* Repair 13: all tests pass;
+* governance: all tests pass;
+* package asset byte-lock: pass;
+* F1 and F3: exact unchanged known failures only;
 * new functional regressions: 0;
 * new security regressions: 0.
 
-Compare failures by exact identity and fingerprint, not aggregate count.
-
-Do not regenerate the Phase H golden baseline.
-
-Do not make F1 or F3 pass by creating unrelated Agents, Prompts, or deleting
-legacy AGENT.md files.
+Compare failures by exact identity, not aggregate counts.
 
 ==================================================
-9. FINAL CHANGE-BOUNDARY PROOF
+8. FINAL CHANGE-BOUNDARY PROOF
 
-Compare the final repository against the independent pre-task snapshot.
+Compare final state with the new pre-edit baseline using both:
 
-Report:
+* repaired governance baseline/change-boundary tools;
+* independent OS-level content hashing.
 
-* every task-attributable changed path;
-* every preserved pre-existing path;
-* every unauthorized changed path;
-* staged and stash state;
-* package.json hash before and after;
-* source version before and after;
-* Repair 11/12/13 core hashes before and after;
-* .claude/** hashes before and after;
-* existing VSIX hashes before and after.
+Report every task-attributable path.
 
 Required:
 
@@ -382,55 +318,56 @@ PACKAGE_JSON_CHANGED: NO
 PACKAGE_VERSION_CHANGED: NO
 PACKAGE_LOCK_CREATED: NO
 TEST_PATTERNS_CHANGED: NO
-REPAIR_13_CORE_BEHAVIOR_CHANGED: NO
+REPAIR_11_BEHAVIOR_CHANGED: NO
 REPAIR_12_BEHAVIOR_CHANGED: NO
-SOURCE_GOVERNANCE_AGENTS_CHANGED: NO
+REPAIR_13_CORE_BEHAVIOR_CHANGED: NO
+AGENT_TOOL_SETS_CHANGED: NO
+AGENT_AUTHORITY_BROADENED: NO
 EXISTING_VSIX_CHANGED: NO
 QA_WORKSPACE_TOUCHED: NO
-WORKFLOW_PROVISIONED: NO
 RUNTIME_QA_STARTED: NO
 PREVIEW_CREATED: NO
 WRITE_EXECUTED: NO
-STAGED_FILES: 0
-STASH_ENTRIES: 0
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
 
 ==================================================
-10. FINAL REPORT
+9. FINAL REPORT
 
 Return:
 
 IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-INDEPENDENT_BASELINE_CAPTURED: YES/NO
-
+CONCURRENT_AGENT_MUTATION: YES/NO
+CANONICAL_BASELINE_CAPTURED: YES/NO
 AUTHORIZED_CHANGED_PATHS: 
 UNAUTHORIZED_CHANGED_PATHS: 
 
-ADAPTER_CLASS_ABSENCE_FAILS_GRACEFULLY: YES/NO
-ADAPTER_JSON_FACTORY_ABSENCE_FAILS_GRACEFULLY: YES/NO
-DUAL_CHANNEL_RESULT_TESTED: YES/NO
-STRUCTURED_DATA_ROUNDTRIP_PASS: YES/NO
-MARKDOWN_STRUCTURED_IDS_EQUAL: YES/NO
-MARKDOWN_STRUCTURED_ORDER_EQUAL: YES/NO
-MARKDOWN_STRUCTURED_COUNTS_EQUAL: YES/NO
-
+COPILOT_ASSET_CATALOG_UPDATED: YES/NO
+ORCHESTRATOR_RESOURCE_SYNCHRONIZED: YES/NO
+VERIFIER_RESOURCE_SYNCHRONIZED: YES/NO
+BYTE_LOCK_PRESERVED: YES/NO
 ORCHESTRATOR_STRUCTURED_GUIDANCE_PRESENT: YES/NO
 VERIFIER_STRUCTURED_GUIDANCE_PRESENT: YES/NO
 AGENT_TOOL_SETS_CHANGED: YES/NO
 AGENT_AUTHORITY_BROADENED: YES/NO
 
-QA_FIXTURE_CREATED: YES/NO
-QA_FIXTURE_PATH: 
-QA_REACHABLE_SCENARIO_COUNT: 
-ACTIVE_STATE_COVERED: YES/NO
-INACTIVE_STATE_COVERED: YES/NO
-CONFLICTING_STATE_COVERED: YES/NO
-UNRESOLVED_REFERENCE_TYPES_COVERED: 
-MALFORMED_ROW_COVERED: YES/NO
-OVERSIZED_RULE_COVERED: YES/NO
-HISTORICAL_OR_UNKNOWN_PARSER_BEHAVIOR_ADDED: NO
+MALFORMED_SHORT_ROW_FAILS_CLOSED: YES/NO
+MALFORMED_OVERSIZED_ROW_FAILS_CLOSED: YES/NO
+MALFORMED_ROW_ACTIVE_AUTHORITY: YES/NO
+MALFORMED_DIAGNOSTIC_CODE: 
+MALFORMED_DIAGNOSTIC_IN_BOTH_CHANNELS: YES/NO
+
+FT_REFERENCE_STATUS:
+DEFERRED_PARSER_UNREACHABLE_NOT_REQUIRED_FOR_REPAIR_13_RUNTIME_QA
+
+HISTORICAL_STATE_STATUS: DEFERRED_UNSUPPORTED_INPUT_SYNTAX
+UNKNOWN_STATE_STATUS: DEFERRED_UNSUPPORTED_INPUT_SYNTAX
+
+REQUIRED_QA_SCENARIOS_PASSING: /
+STRUCTURED_DATA_ROUNDTRIP_PASS: YES/NO
+MARKDOWN_STRUCTURED_IDS_EQUAL: YES/NO
+MARKDOWN_STRUCTURED_ORDER_EQUAL: YES/NO
+MARKDOWN_STRUCTURED_COUNTS_EQUAL: YES/NO
 
 COMPILE_PASS: YES/NO
 COMPILE_TEST_PASS: YES/NO
@@ -439,9 +376,6 @@ REPAIR_11_PASS: YES/NO
 REPAIR_12_PASS: YES/NO
 REPAIR_13_PASS: YES/NO
 GOVERNANCE_PASS: YES/NO
-CUSTOMIZATION_VALIDATION_PASS: YES/NO
-TEST_REGISTRATION_PASS: YES/NO
-
 FULL_UNIT_PASSING: 
 FULL_UNIT_PENDING: 
 FULL_UNIT_FAILING: 
@@ -451,7 +385,6 @@ F3_UNCHANGED: YES/NO
 NEW_FUNCTIONAL_REGRESSIONS: 
 NEW_SECURITY_REGRESSIONS: 
 
-PACKAGE_JSON_CHANGED: NO
 PACKAGE_VERSION_CHANGED: NO
 VSIX_CHANGED: NO
 QA_WORKSPACE_TOUCHED: NO
@@ -465,24 +398,21 @@ READY_TO_PACKAGE: NO
 READY_TO_INSTALL: NO
 READY_FOR_RUNTIME_QA: NO
 
-Do not perform the independent review in this session.
+Do not perform the independent review in this chat.
 
 End exactly with one:
 
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
+RUNTIME_QA_SUPPORT_OWNER_DISPOSITION_RESULT:
 PASS_READY_FOR_GENUINELY_INDEPENDENT_REVIEW
 
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
+RUNTIME_QA_SUPPORT_OWNER_DISPOSITION_RESULT:
 FAIL_VALIDATION
 
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
+RUNTIME_QA_SUPPORT_OWNER_DISPOSITION_RESULT:
 FAIL_UNAUTHORIZED_CHANGE
 
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
-BLOCKED_IDENTITY_OR_WORKTREE_DRIFT
+RUNTIME_QA_SUPPORT_OWNER_DISPOSITION_RESULT:
+BLOCKED_IDENTITY_OR_CONCURRENT_MUTATION
 
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
-BLOCKED_EXECUTION_ENVIRONMENT
-
-RUNTIME_QA_SUPPORT_REPAIR_RESULT:
-BLOCKED_CHANGE_BOUNDARY_EXPANSION
+RUNTIME_QA_SUPPORT_OWNER_DISPOSITION_RESULT:
+BLOCKED_ADDITIONAL_OWNER_DECISION
