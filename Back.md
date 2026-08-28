@@ -15,6 +15,6 @@ User signs in
 → The source validates the AskTD MSI
 
 
+If the user is authorized in AskTD but the MSI cannot access the source, the application should fail closed and return a safe service-access message with a correlation ID. That would be treated as a platform or configuration issue, not a user-permission issue.
 
-
-
+A continuous synchronization or reconciliation process between AskTD permissions and every provider’s ACLs would introduce significant complexity and maintenance overhead. I would not add that unless we later decide to pass the actual end-user identity to the data platform and use provider-native user-level authorization
