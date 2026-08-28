@@ -9,7 +9,11 @@ import pytest
 
 from universal_coding_agent.product.lifecycle_reservations import (
     _RECEIPT_PAGE_QUERY,
+    _RESERVATION_CANDIDATE_PAGE_QUERY,
+    _WORKER_CANDIDATE_PAGE_QUERY,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+    LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
     DurableLifecycleReservationStore,
 )
 
@@ -288,18 +292,27 @@ def test_store_adds_schema_to_existing_product_database_directory(
         store.close()
 
 
-def test_concurrent_store_open_attests_receipt_pagination_index(tmp_path: Path) -> None:
+def test_concurrent_store_open_attests_all_recovery_pagination_indexes(
+    tmp_path: Path,
+) -> None:
     database = tmp_path / "lifecycle.sqlite"
 
-    def open_store() -> tuple[str, ...]:
+    def open_store() -> tuple[tuple[str, ...], ...]:
         store = DurableLifecycleReservationStore(database)
         try:
             return tuple(
-                row[0]
-                for row in store.connection.execute(
-                    "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
-                    (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
-                ).fetchall()
+                tuple(
+                    row[0]
+                    for row in store.connection.execute(
+                        "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
+                        (index,),
+                    ).fetchall()
+                )
+                for index in (
+                    LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+                    LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+                    LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+                )
             )
         finally:
             store.close()
@@ -309,8 +322,16 @@ def test_concurrent_store_open_attests_receipt_pagination_index(tmp_path: Path) 
         results = [future.result() for future in futures]
 
     assert results == [
-        ("recovered_at", "recovery_ref"),
-        ("recovered_at", "recovery_ref"),
+        (
+            ("reservation_kind", "scope_id"),
+            ("worker_kind", "scope_id"),
+            ("recovered_at", "recovery_ref"),
+        ),
+        (
+            ("reservation_kind", "scope_id"),
+            ("worker_kind", "scope_id"),
+            ("recovered_at", "recovery_ref"),
+        ),
     ]
 
 
@@ -329,6 +350,36 @@ def test_store_fails_closed_for_wrong_receipt_pagination_index(tmp_path: Path) -
     connection.close()
 
     with pytest.raises(ValueError, match="pagination index is unavailable"):
+        DurableLifecycleReservationStore(database)
+
+
+@pytest.mark.parametrize(
+    ("index", "table"),
+    [
+        (
+            LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+            "lifecycle_reservations",
+        ),
+        (
+            LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+            "lifecycle_worker_ownership",
+        ),
+    ],
+)
+def test_store_fails_closed_for_wrong_candidate_pagination_index(
+    tmp_path: Path,
+    index: str,
+    table: str,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    store.close()
+    connection = sqlite3.connect(database)
+    connection.execute(f"DROP INDEX {index}")
+    connection.execute(f"CREATE INDEX {index} ON {table}(task_id)")
+    connection.close()
+
+    with pytest.raises(ValueError, match="candidate pagination indexes are unavailable"):
         DurableLifecycleReservationStore(database)
 
 
@@ -520,6 +571,104 @@ def test_recovery_pages_use_independent_stable_keysets(tmp_path: Path) -> None:
         assert second_receipts.candidates == ()
     finally:
         store.close()
+
+
+def test_candidate_page_queries_use_indexes_and_preserve_cross_stream_order(
+    tmp_path: Path,
+) -> None:
+    database = tmp_path / "lifecycle.sqlite"
+    store = DurableLifecycleReservationStore(database)
+    try:
+        for index in range(2):
+            store.reserve_program_control(
+                f"program-indexed-reservation-{index:03d}",
+                task_ids=(),
+            )
+            store.reserve_remote_operation(f"task-indexed-reservation-{index:03d}")
+            store.reserve_program_worker(f"program-indexed-worker-{index:03d}")
+            store.reserve_standalone_worker(f"task-indexed-worker-{index:03d}")
+
+        expected_keys = [
+            ("reservation", "program_control", "program-indexed-reservation-000"),
+            ("reservation", "program_control", "program-indexed-reservation-001"),
+            ("reservation", "remote_operation", "task-indexed-reservation-000"),
+            ("reservation", "remote_operation", "task-indexed-reservation-001"),
+            ("worker_ownership", "program_execution", "program-indexed-worker-000"),
+            ("worker_ownership", "program_execution", "program-indexed-worker-001"),
+            ("worker_ownership", "standalone_task", "task-indexed-worker-000"),
+            ("worker_ownership", "standalone_task", "task-indexed-worker-001"),
+        ]
+        collected_keys: list[tuple[str, str, str]] = []
+        page_sizes: list[int] = []
+        candidate_after = None
+        while True:
+            page = store.recovery_page(
+                candidate_after=candidate_after,
+                candidate_limit=3,
+                receipt_limit=0,
+            )
+            collected_keys.extend(
+                (candidate.target_type, candidate.target_kind, candidate.scope_id)
+                for candidate in page.candidates
+            )
+            page_sizes.append(len(page.candidates))
+            if not page.candidate_has_more:
+                assert page.next_candidate_key is None
+                break
+            assert page.next_candidate_key is not None
+            candidate_after = page.next_candidate_key
+
+        reservation_plan = store.connection.execute(
+            f"EXPLAIN QUERY PLAN {_RESERVATION_CANDIDATE_PAGE_QUERY}",
+            ("", "", 4),
+        ).fetchall()
+        worker_plan = store.connection.execute(
+            f"EXPLAIN QUERY PLAN {_WORKER_CANDIDATE_PAGE_QUERY}",
+            ("", "", 4),
+        ).fetchall()
+        reservation_details = [row[3] for row in reservation_plan]
+        worker_details = [row[3] for row in worker_plan]
+
+        assert collected_keys == expected_keys
+        assert page_sizes == [3, 3, 2]
+        assert len(collected_keys) == len(set(collected_keys))
+        assert any(
+            f"USING INDEX {LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX}"
+            in detail
+            for detail in reservation_details
+        )
+        assert any(
+            f"USING INDEX {LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX}" in detail
+            for detail in worker_details
+        )
+        assert not any("SCAN lifecycle_reservations" in detail for detail in reservation_details)
+        assert not any(
+            "SCAN lifecycle_worker_ownership" in detail for detail in worker_details
+        )
+        assert not any("USE TEMP B-TREE" in detail for detail in reservation_details)
+        assert not any("USE TEMP B-TREE" in detail for detail in worker_details)
+    finally:
+        store.close()
+
+    legacy_connection = sqlite3.connect(database)
+    legacy_connection.execute(
+        f"DROP INDEX {LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX}"
+    )
+    legacy_connection.execute(
+        f"DROP INDEX {LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX}"
+    )
+    legacy_connection.close()
+    reopened = DurableLifecycleReservationStore(database)
+    try:
+        page = reopened.recovery_page(candidate_limit=3, receipt_limit=0)
+        assert [
+            (candidate.target_type, candidate.target_kind, candidate.scope_id)
+            for candidate in page.candidates
+        ] == expected_keys[:3]
+        assert page.candidate_has_more is True
+        assert page.next_candidate_key == expected_keys[2]
+    finally:
+        reopened.close()
 
 
 def test_receipt_page_query_uses_composite_index_without_temporary_sort(

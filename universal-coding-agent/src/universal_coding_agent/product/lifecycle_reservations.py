@@ -15,9 +15,37 @@ _IDENTITY = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
 _OWNER_TOKEN = re.compile(r"^[0-9a-f]{32}$")
 _KINDS = frozenset({"remote_operation", "program_control"})
 _WORKER_KINDS = frozenset({"standalone_task", "program_execution"})
+LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX = (
+    "lifecycle_reservations_by_reservation_kind_scope_id"
+)
+LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX = (
+    "lifecycle_worker_ownership_by_worker_kind_scope_id"
+)
 LIFECYCLE_RECOVERY_RECEIPT_INDEX = (
     "lifecycle_recovery_receipts_by_recovered_at_recovery_ref"
 )
+
+_RESERVATION_CANDIDATE_PAGE_QUERY = f"""
+    SELECT 'reservation' AS target_type,
+           reservation_kind AS target_kind,
+           scope_id, task_id, program_id, owner_token, created_at
+    FROM lifecycle_reservations
+         INDEXED BY {LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX}
+    WHERE (reservation_kind, scope_id) > (?, ?)
+    ORDER BY reservation_kind, scope_id
+    LIMIT ?
+"""
+
+_WORKER_CANDIDATE_PAGE_QUERY = f"""
+    SELECT 'worker_ownership' AS target_type,
+           worker_kind AS target_kind,
+           scope_id, task_id, program_id, owner_token, created_at
+    FROM lifecycle_worker_ownership
+         INDEXED BY {LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX}
+    WHERE (worker_kind, scope_id) > (?, ?)
+    ORDER BY worker_kind, scope_id
+    LIMIT ?
+"""
 
 _RECEIPT_PAGE_QUERY = f"""
     SELECT target_type, target_kind, scope_id, task_id, program_id,
@@ -200,6 +228,27 @@ class DurableLifecycleReservationStore:
             WHERE worker_kind = 'program_execution'
             """
         )
+        try:
+            self.connection.execute(
+                f"""
+                CREATE INDEX IF NOT EXISTS
+                    {LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX}
+                ON lifecycle_reservations(reservation_kind, scope_id)
+                """
+            )
+            self.connection.execute(
+                f"""
+                CREATE INDEX IF NOT EXISTS
+                    {LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX}
+                ON lifecycle_worker_ownership(worker_kind, scope_id)
+                """
+            )
+            self._assert_candidate_pagination_indexes()
+        except (sqlite3.DatabaseError, ValueError) as exc:
+            self.connection.close()
+            raise ValueError(
+                "durable lifecycle recovery candidate pagination indexes are unavailable"
+            ) from exc
 
     def close(self) -> None:
         with self._lock:
@@ -477,27 +526,7 @@ class DurableLifecycleReservationStore:
             try:
                 self._ensure_recovery_field_bounds()
                 candidate_rows = (
-                    self.connection.execute(
-                        """
-                        SELECT target_type, target_kind, scope_id, task_id,
-                               program_id, owner_token, created_at
-                        FROM (
-                            SELECT 'reservation' AS target_type,
-                                   reservation_kind AS target_kind,
-                                   scope_id, task_id, program_id, owner_token, created_at
-                            FROM lifecycle_reservations
-                            UNION ALL
-                            SELECT 'worker_ownership' AS target_type,
-                                   worker_kind AS target_kind,
-                                   scope_id, task_id, program_id, owner_token, created_at
-                            FROM lifecycle_worker_ownership
-                        )
-                        WHERE (target_type, target_kind, scope_id) > (?, ?, ?)
-                        ORDER BY target_type, target_kind, scope_id
-                        LIMIT ?
-                        """,
-                        (*candidate_key, candidate_limit + 1),
-                    ).fetchall()
+                    self._candidate_page_rows(candidate_key, candidate_limit + 1)
                     if candidate_limit
                     else []
                 )
@@ -805,31 +834,84 @@ class DurableLifecycleReservationStore:
             raise ValueError("invalid lifecycle recovery receipt cursor") from exc
         return key
 
+    def _candidate_page_rows(
+        self,
+        candidate_key: tuple[str, str, str],
+        row_limit: int,
+    ) -> list[tuple[object, ...]]:
+        target_type, target_kind, scope_id = candidate_key
+        rows: list[tuple[object, ...]] = []
+        remaining = row_limit
+        if target_type in {"", "reservation"}:
+            reservation_key = (
+                (target_kind, scope_id) if target_type == "reservation" else ("", "")
+            )
+            reservation_rows = self.connection.execute(
+                _RESERVATION_CANDIDATE_PAGE_QUERY,
+                (*reservation_key, remaining),
+            ).fetchall()
+            rows.extend(reservation_rows)
+            remaining -= len(reservation_rows)
+        if remaining:
+            worker_key = (
+                (target_kind, scope_id)
+                if target_type == "worker_ownership"
+                else ("", "")
+            )
+            rows.extend(
+                self.connection.execute(
+                    _WORKER_CANDIDATE_PAGE_QUERY,
+                    (*worker_key, remaining),
+                ).fetchall()
+            )
+        return rows
+
+    def _assert_candidate_pagination_indexes(self) -> None:
+        self._assert_pagination_index(
+            table="lifecycle_reservations",
+            index=LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+            columns=("reservation_kind", "scope_id"),
+        )
+        self._assert_pagination_index(
+            table="lifecycle_worker_ownership",
+            index=LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+            columns=("worker_kind", "scope_id"),
+        )
+
     def _assert_receipt_pagination_index(self) -> None:
+        self._assert_pagination_index(
+            table="lifecycle_recovery_receipts",
+            index=LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+            columns=("recovered_at", "recovery_ref"),
+        )
+
+    def _assert_pagination_index(
+        self,
+        *,
+        table: str,
+        index: str,
+        columns: tuple[str, str],
+    ) -> None:
         metadata = self.connection.execute(
             """
             SELECT name, "unique", partial
             FROM pragma_index_list(?)
             WHERE name = ?
             """,
-            (
-                "lifecycle_recovery_receipts",
-                LIFECYCLE_RECOVERY_RECEIPT_INDEX,
-            ),
+            (table, index),
         ).fetchall()
-        columns = self.connection.execute(
+        actual_columns = self.connection.execute(
             """
             SELECT name
             FROM pragma_index_info(?)
             ORDER BY seqno
             """,
-            (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+            (index,),
         ).fetchall()
-        if metadata != [(LIFECYCLE_RECOVERY_RECEIPT_INDEX, 0, 0)] or columns != [
-            ("recovered_at",),
-            ("recovery_ref",),
+        if metadata != [(index, 0, 0)] or actual_columns != [
+            (column,) for column in columns
         ]:
-            raise ValueError("invalid lifecycle recovery receipt pagination index")
+            raise ValueError("invalid lifecycle recovery pagination index")
 
     def _ensure_recovery_field_bounds(self) -> None:
         checks = (

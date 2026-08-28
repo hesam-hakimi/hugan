@@ -135,6 +135,7 @@ def test_restart_reconciliation_live_scenario_is_explicit_and_redacted(
     assert summary["worker_recovery_receipt_reloaded"] is True
     assert summary["worker_recovery_private_owner_absent"] is True
     assert summary["lifecycle_recovery_receipt_keyset_advanced"] is True
+    assert summary["lifecycle_recovery_candidate_indexes_backed"] is True
     assert summary["lifecycle_recovery_receipt_index_backed"] is True
     assert summary["provider_calls_during_worker_ownership_restart"] == 0
     inventory = summary["retained_lease_inventory_before_retirement"]

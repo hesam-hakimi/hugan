@@ -22,7 +22,11 @@ from universal_coding_agent.core.remote_operations import (
 )
 from universal_coding_agent.product.lifecycle_reservations import (
     _RECEIPT_PAGE_QUERY,
+    _RESERVATION_CANDIDATE_PAGE_QUERY,
+    _WORKER_CANDIDATE_PAGE_QUERY,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+    LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+    LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
     DurableLifecycleReservationStore,
 )
 from universal_coding_agent.product.remote_operations import (
@@ -352,6 +356,7 @@ def run_openai_background_reconciliation_live(
     worker_recovery_receipt_reloaded = False
     worker_recovery_private_owner_absent = False
     lifecycle_recovery_receipt_keyset_advanced = False
+    lifecycle_recovery_candidate_indexes_backed = False
     lifecycle_recovery_receipt_index_backed = False
     provider_calls_during_worker_ownership_restart = -1
     calls_before_worker_ownership_restart = len(request_events)
@@ -424,6 +429,11 @@ def run_openai_background_reconciliation_live(
         )
         lifecycle_recovery_receipt_index_backed = _receipt_pagination_index_backed(
             worker_recovery_workspace.lifecycle_reservations
+        )
+        lifecycle_recovery_candidate_indexes_backed = (
+            _candidate_pagination_indexes_backed(
+                worker_recovery_workspace.lifecycle_reservations
+            )
         )
         worker_recovery_private_owner_absent = bool(
             durable_worker_owner
@@ -673,6 +683,9 @@ def run_openai_background_reconciliation_live(
         "lifecycle_recovery_receipt_keyset_advanced": (
             lifecycle_recovery_receipt_keyset_advanced
         ),
+        "lifecycle_recovery_candidate_indexes_backed": (
+            lifecycle_recovery_candidate_indexes_backed
+        ),
         "lifecycle_recovery_receipt_index_backed": (
             lifecycle_recovery_receipt_index_backed
         ),
@@ -742,6 +755,7 @@ def run_openai_background_reconciliation_live(
         and worker_recovery_receipt_reloaded
         and worker_recovery_private_owner_absent
         and lifecycle_recovery_receipt_keyset_advanced
+        and lifecycle_recovery_candidate_indexes_backed
         and lifecycle_recovery_receipt_index_backed
         and provider_calls_during_worker_ownership_restart == 0
         and provider_calls_during_retirement == 0
@@ -911,34 +925,63 @@ def _safe_error(error: BaseException) -> dict[str, str]:
 def _receipt_pagination_index_backed(
     store: DurableLifecycleReservationStore,
 ) -> bool:
+    return _pagination_query_index_backed(
+        store,
+        table="lifecycle_recovery_receipts",
+        index=LIFECYCLE_RECOVERY_RECEIPT_INDEX,
+        columns=("recovered_at", "recovery_ref"),
+        query=_RECEIPT_PAGE_QUERY,
+    )
+
+
+def _candidate_pagination_indexes_backed(
+    store: DurableLifecycleReservationStore,
+) -> bool:
+    return _pagination_query_index_backed(
+        store,
+        table="lifecycle_reservations",
+        index=LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX,
+        columns=("reservation_kind", "scope_id"),
+        query=_RESERVATION_CANDIDATE_PAGE_QUERY,
+    ) and _pagination_query_index_backed(
+        store,
+        table="lifecycle_worker_ownership",
+        index=LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX,
+        columns=("worker_kind", "scope_id"),
+        query=_WORKER_CANDIDATE_PAGE_QUERY,
+    )
+
+
+def _pagination_query_index_backed(
+    store: DurableLifecycleReservationStore,
+    *,
+    table: str,
+    index: str,
+    columns: tuple[str, ...],
+    query: str,
+) -> bool:
     metadata = store.connection.execute(
         """
         SELECT name, "unique", partial
         FROM pragma_index_list(?)
         WHERE name = ?
         """,
-        (
-            "lifecycle_recovery_receipts",
-            LIFECYCLE_RECOVERY_RECEIPT_INDEX,
-        ),
+        (table, index),
     ).fetchall()
-    columns = store.connection.execute(
+    indexed_columns = store.connection.execute(
         "SELECT name FROM pragma_index_info(?) ORDER BY seqno",
-        (LIFECYCLE_RECOVERY_RECEIPT_INDEX,),
+        (index,),
     ).fetchall()
     plan = store.connection.execute(
-        f"EXPLAIN QUERY PLAN {_RECEIPT_PAGE_QUERY}",
+        f"EXPLAIN QUERY PLAN {query}",
         ("", "", 2),
     ).fetchall()
     details = [row[3] for row in plan]
     return bool(
-        metadata == [(LIFECYCLE_RECOVERY_RECEIPT_INDEX, 0, 0)]
-        and columns == [("recovered_at",), ("recovery_ref",)]
-        and any(
-            f"USING INDEX {LIFECYCLE_RECOVERY_RECEIPT_INDEX}" in detail
-            for detail in details
-        )
-        and not any("SCAN lifecycle_recovery_receipts" in detail for detail in details)
+        metadata == [(index, 0, 0)]
+        and indexed_columns == [(column,) for column in columns]
+        and any(f"USING INDEX {index}" in detail for detail in details)
+        and not any(f"SCAN {table}" in detail for detail in details)
         and not any("USE TEMP B-TREE" in detail for detail in details)
     )
 

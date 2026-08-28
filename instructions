@@ -190,7 +190,7 @@ from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentSe
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
 from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
 from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
-from universal_coding_agent.product.lifecycle_reservations import LIFECYCLE_RECOVERY_RECEIPT_INDEX
+from universal_coding_agent.product.lifecycle_reservations import LIFECYCLE_RECOVERY_RECEIPT_INDEX, LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX, LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX
 from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
@@ -221,6 +221,8 @@ assert hasattr(DurableLifecycleReservationStore, "reserve_program_worker")
 assert hasattr(DurableLifecycleReservationStore, "recovery_snapshot")
 assert hasattr(DurableLifecycleReservationStore, "recovery_page")
 assert hasattr(DurableLifecycleReservationStore, "recover")
+assert LIFECYCLE_RECOVERY_RESERVATION_CANDIDATE_INDEX == "lifecycle_reservations_by_reservation_kind_scope_id"
+assert LIFECYCLE_RECOVERY_WORKER_CANDIDATE_INDEX == "lifecycle_worker_ownership_by_worker_kind_scope_id"
 assert LIFECYCLE_RECOVERY_RECEIPT_INDEX == "lifecycle_recovery_receipts_by_recovered_at_recovery_ref"
 assert SafeAgentService and SolutionDiscoveryService and run_product_foundation_live
 assert run_program_execution_live
@@ -266,6 +268,7 @@ print("DURABLE_LIFECYCLE_RESERVATION_IMPORT_PREFLIGHT_PASS")
 print("DURABLE_WORKER_OWNERSHIP_IMPORT_PREFLIGHT_PASS")
 print("EXPLICIT_LIFECYCLE_RECOVERY_IMPORT_PREFLIGHT_PASS")
 print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_IMPORT_PREFLIGHT_PASS")
+print("INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_IMPORT_PREFLIGHT_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_IMPORT_PREFLIGHT_PASS")
 PY
 ```
@@ -317,6 +320,7 @@ echo "DURABLE_LIFECYCLE_RESERVATION_PREFLIGHT_PASS"
 echo "DURABLE_WORKER_OWNERSHIP_PREFLIGHT_PASS"
 echo "EXPLICIT_LIFECYCLE_RECOVERY_PREFLIGHT_PASS"
 echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_PREFLIGHT_PASS"
+echo "INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_PREFLIGHT_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_PREFLIGHT_PASS"
 ```
 
@@ -345,6 +349,7 @@ echo "REMOTE_OPERATION_LEASE_RETIREMENT_UI_FRONTEND_PASS"
 echo "RETAINED_LEASE_INVENTORY_UI_FRONTEND_PASS"
 echo "EXPLICIT_LIFECYCLE_RECOVERY_UI_FRONTEND_PASS"
 echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_FRONTEND_PASS"
+echo "INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_FRONTEND_REGRESSION_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_FRONTEND_REGRESSION_PASS"
 ```
 
@@ -432,6 +437,7 @@ print("EXPLICIT_LIFECYCLE_RECOVERY_HTTP_SMOKE_PASS")
 print("EXPLICIT_LIFECYCLE_RECOVERY_UI_HTTP_SMOKE_PASS")
 print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_HTTP_SMOKE_PASS")
 print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_HTTP_SMOKE_PASS")
+print("INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_HTTP_REGRESSION_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_HTTP_REGRESSION_PASS")
 PY
 kill "$UI_PID"

@@ -1240,16 +1240,22 @@ def test_admin_recovery_inventory_has_independent_bounded_keyset_pages(
     workspace = ProductWorkspace.create(tmp_path / "product", _provider())
     runtime = ProductWebRuntime(workspace=workspace, state_root=tmp_path / "runtime")
     owners = [
-        workspace.lifecycle_reservations.reserve_standalone_worker(
-            f"task-recovery-page-{index:03d}"
-        )
-        for index in range(4)
+        workspace.lifecycle_reservations.reserve_program_control(
+            "program-recovery-page-000",
+            task_ids=(),
+        ),
+        *[
+            workspace.lifecycle_reservations.reserve_standalone_worker(
+                f"task-recovery-page-{index:03d}"
+            )
+            for index in range(4)
+        ],
     ]
     initial = workspace.lifecycle_reservations.recovery_page(
-        candidate_limit=4,
+        candidate_limit=5,
         receipt_limit=0,
     )
-    for candidate in initial.candidates[:2]:
+    for candidate in initial.candidates[1:3]:
         workspace.lifecycle_reservations.recover(
             target_type=candidate.target_type,
             target_kind=candidate.target_kind,
@@ -1274,6 +1280,7 @@ def test_admin_recovery_inventory_has_independent_bounded_keyset_pages(
         assert payload["next_candidate_cursor"]
         assert payload["next_receipt_cursor"]
         assert payload["field_limits"]["candidate_limit_max"] == 100
+        assert payload["candidates"][0]["target_type"] == "reservation"
         assert not any(owner in first.text for owner in owners)
 
         candidate_next = client.get(
@@ -1294,7 +1301,8 @@ def test_admin_recovery_inventory_has_independent_bounded_keyset_pages(
         ).json()
         assert candidate_next["candidate_returned_count"] == 1
         assert candidate_next["receipt_returned_count"] == 0
-        assert candidate_next["candidate_has_more"] is False
+        assert candidate_next["candidate_has_more"] is True
+        assert candidate_next["candidates"][0]["target_type"] == "worker_ownership"
         assert receipt_next["candidate_returned_count"] == 0
         assert receipt_next["receipt_returned_count"] == 1
         assert receipt_next["receipt_has_more"] is False

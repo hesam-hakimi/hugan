@@ -476,8 +476,20 @@ the attested index explicitly, avoiding the previous full receipt-table scan and
 the receipt-selection query while preserving the P2.1c cursor, limit, response, redaction, and
 validation contracts. This slice does not claim to optimize the independent candidate UNION or
 global validation predicates. It changes no recovery authority, provider call, Task/Program
-outcome, automatic cleanup, TTL,
-retry/replan, active pause, publication, threshold, or live model-dependent behavior.
+outcome, automatic cleanup, TTL, retry/replan, active pause, publication, threshold, or live
+model-dependent behavior.
+
+P2.1e makes lifecycle recovery candidate selection index-backed through two named additive SQLite
+indexes on `(reservation_kind, scope_id)` and `(worker_kind, scope_id)`. Store initialization
+creates both indexes for existing compatible databases, attests each exact non-unique, non-partial
+two-column shape, and fails closed when either invariant is unavailable. Candidate pages replace
+the previous scan-and-sort UNION with two explicit keyset scans that share one remaining
+`limit + 1` row budget. Reading the reservation stream before the worker-ownership stream preserves
+the existing `(target_type, target_kind, scope_id)` ordering, cursor, limit, API, redaction, and
+selected-row validation contracts. This slice does not optimize the independent global validation
+predicates and changes no UI behavior, recovery authority, provider call, Task/Program outcome,
+automatic cleanup, TTL, retry/replan, active pause, publication, threshold, or live
+model-dependent behavior.
 
 ## Context management
 
