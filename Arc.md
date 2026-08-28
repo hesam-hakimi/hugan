@@ -1,382 +1,412 @@
-TASK: PHASE_2F1_PR18_AUTHORIZED_MERGE
+TASK: HF1_V2_REPAIR_PACKAGE_LIFECYCLE_GOVERNANCE_OWNER_DECISIONS
 
-Perform one strictly bounded and explicitly authorized merge of Phase 2F.1 Pull Request #18.
+Perform a narrowly bounded owner-authorized repair of the package lifecycle
+governance framework.
 
-The only authorized repository mutation is merging PR #18 into main using a genuine merge commit.
+Work only inside:
 
-Do not use squash merge or rebase merge.
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Do not delete the source branch.
+Use:
 
-Repository:
+* a fresh generic Local Agent session;
+* Claude Opus 5 with Max reasoning;
+* no repository-defined Custom Agent as authority;
+* no consumer Agent such as ETL Orchestrator or ETL Verifier;
+* no Cloud execution.
 
-TD-Enterprise/kmai-td-genie
+This task implements two explicit repository-owner decisions arising from the
+separate exact verification of version 0.3.146.
 
-Pull Request:
+The exact package verification ended with:
 
-https://github.com/TD-Enterprise/kmai-td-genie/pull/18
+EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
+PASS_ARTIFACT_VALID_BLOCKED_GOVERNANCE_EXCEPTION
 
-Required logical worktree root:
+Verified package facts:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification
+* artifact:
+    databricks-etl-copilot-0.3.146.vsix
+* artifact integrity: PASS;
+* declared identity: correct;
+* expected entries: 66/66;
+* duplicate/traversal/unreadable entries: 0;
+* consumer Agent resources: 6/6 correct;
+* source-to-package provenance: 66/66;
+* unexpected entries/differences: 0/0;
+* repository and artifact remained unchanged;
+* the artifact itself is sound.
 
-Required application root:
+The two confirmed governance findings are:
 
-/home/tag5916/projects/kmai-td-genie-worktrees/phase2f1-recipe-lifecycle-classification/kmai-td-genie
+1. VSIX_PROTECTED_PATH_NO_EXCEPTION
+    **/*.vsix is protected by neverModifiedByProcessWork, but
+    VERSION_AND_PACKAGE has no narrowly scoped protected-path exception permitting
+    creation of its required new version-distinguishable VSIX.
+2. CERTIFYING_ROLE_AMBIGUITY
+    etl-release-verifier currently owns or performs both VERSION_AND_PACKAGE and
+    EXACT_PACKAGE_VERIFICATION. When the same actor produced and certified the
+    artifact, implementedBy == emittedBy and machine independence checks correctly
+    report SELF_CERTIFICATION.
 
-Equivalent physical /app1 paths are acceptable only if realpath proves identity.
+This task repairs only those two governance defects.
+
+Do not install or uninstall the extension.
+Do not rebuild, replace, rename, or modify any VSIX.
+Do not change package.json or version 0.3.146.
+Do not access the Development Test Workspace.
+Do not start Runtime QA.
+Do not run Preview or Write.
+Do not commit, push, stage, stash, tag, reset, restore, or clean.
+Do not create package-lock.json.
+Do not download or install dependencies.
+Do not modify product/runtime source.
+Do not modify consumer Agent resources.
+Do not implement unrelated governance improvements.
+Do not certify this governance repair in this session.
 
 ==================================================
 
-1. FIXED ACCEPTED IDENTITIES
+1. IDENTITY AND EXECUTION GATES
     ==================================================
 
-Required origin:
+Verify:
 
-https://github.com/TD-Enterprise/kmai-td-genie.git
+REPOSITORY_ROOT:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Required base branch:
+ORIGIN:
+https://github.com/TD-Universe/agentic_etl.git
 
-main
+BRANCH:
+hotfix/hf1-oracle-fresh-consumer-v2
 
-Required pre-merge main SHA:
+HEAD:
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-f283f01b6d615f9fa00debcef959d9c5c86a3224
+SOURCE_VERSION:
+0.3.146
 
-Required PR head branch:
+Required:
 
-phase2/recipe-lifecycle-classification
+* exactly one effective repository target;
+* staged files: 0;
+* stash entries: 0;
+* package-lock.json absent;
+* no concurrent Agent mutation;
+* target 0.3.146 VSIX present;
+* all eleven current VSIX artifacts unchanged at entry.
 
-Required implementation commit:
+If inline process capture returns empty output, use file-redirected execution
+through a task-owned helper under the OS temporary directory.
 
-c1639fc779aaed64e4be9fdd17381e0f293c7f9f
+Require real executable identity, stdout, stderr, and exit codes.
 
-Required repair and accepted PR head:
+Do not modify the repository to recover process execution.
 
-6e37281e61a782ffbe8c8675346144567406dabe
-
-Required accepted PR-head tree:
-
-6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
-
-Required commit chain:
-
-f283f01b6d615f9fa00debcef959d9c5c86a3224
--> c1639fc779aaed64e4be9fdd17381e0f293c7f9f
--> 6e37281e61a782ffbe8c8675346144567406dabe
-
-==================================================
-2. REQUIRED PRIOR EVIDENCE
-
-Read these reports completely:
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PUSH_AND_PR_2026-08-27.md
-
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PR18_AND_WORKFLOW_INDEPENDENT_REVIEW_2026-08-27.md
-
-Verify that their required terminal tokens are respectively:
-
-PHASE_2F1_POST_REPAIR_INDEPENDENT_REVIEW_APPROVED
-
-PHASE_2F1_PUSH_AND_PR_COMPLETE
-
-PHASE_2F1_PR18_INDEPENDENT_REVIEW_APPROVED
-
-Use the reports only as evidence indexes. Independently verify every merge-critical condition immediately before merging.
-
-Do not modify any prior report.
+Stop without edits on identity mismatch, concurrent mutation, staged content,
+workspace ambiguity, or unproven command execution.
 
 ==================================================
-3. LOCAL PRE-MERGE PRESERVATION GATE
+2. INDEPENDENT PRE-EDIT BASELINE
 
-Before any GitHub mutation, verify:
+Before editing, capture:
 
-* pwd;
-* pwd -P;
-* logical and physical path identity;
-* Git top-level and common directory;
-* origin fetch and push identity;
-* current branch;
-* local HEAD;
-* local tree;
-* HEAD parent;
-* complete tracked/untracked porcelain;
-* staged name-status and staged raw diff;
-* git diff --check;
-* ignored-artifact baseline.
+* complete working-tree path inventory;
+* tracked and non-ignored untracked content;
+* protected and ignored governance/VSIX paths;
+* per-file size and SHA-256;
+* staged and stash state;
+* package.json hash;
+* all VSIX paths, sizes, and SHA-256 values;
+* all governance manifest/schema/validator/test hashes;
+* all product/runtime and consumer-Agent resource hashes.
 
-Required local state:
+Use both:
 
-* branch:
-    phase2/recipe-lifecycle-classification
-* HEAD:
-    6e37281e61a782ffbe8c8675346144567406dabe
-* tree:
-    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
-* HEAD parent:
-    c1639fc779aaed64e4be9fdd17381e0f293c7f9f
-* tracked/untracked porcelain: empty
-* staged state: empty
-* git diff --check: exit 0
+1. the repository governance baseline mechanism; and
+2. an independent OS-level filesystem hash snapshot.
 
-Required ignored baseline:
-
-* kmai-td-genie/.coverage is absent;
-* kmai-td-genie/logs/app.log is a regular non-symlink file;
-* size is exactly 3,603 bytes;
-* SHA-256 is exactly:
-    58fe010df71e59c08ab00d9ac5a96ab87991d64f52dd869bab0b2a09694d6128
-* ignored-path count is exactly 141.
-
-Do not modify, restore, regenerate, truncate or delete ignored artifacts.
-
-If this gate fails, stop without merging and end with:
-
-PHASE_2F1_PR18_MERGE_BLOCKED_WORKSPACE
+Store temporary scripts, reports, snapshots, and outputs only under a unique OS
+temporary directory.
 
 ==================================================
-4. FINAL LIVE GITHUB GATE
+3. AUTHORIZED CHANGE BOUNDARY
 
-Using authenticated read-only GitHub requests, immediately verify:
+Only these paths are authorized for modification:
 
-* repository identity;
-* live main SHA;
-* PR #18 is open and non-draft;
-* PR base is main;
-* PR head branch is
-    phase2/recipe-lifecycle-classification;
-* PR head SHA is
-    6e37281e61a782ffbe8c8675346144567406dabe;
-* remote source branch points to the same SHA;
-* PR contains exactly two commits;
-* PR contains exactly ten changed files;
-* PR is mergeable with no conflicts;
-* no requested-changes review exists;
-* at least one currently valid approving review from a reviewer with write access exists;
-* all applicable required checks are terminal and successful;
-* the two skipped checks are still proven non-applicable by the empty Terraform matrix;
-* SonarQube reports success;
-* the observed new-code coverage is 91%, satisfying the 80% threshold;
-* branch protection is satisfied without bypass.
+1. .github/agent-governance/process-manifest.json
+2. scripts/agent-governance/tests/change-boundary-adversarial.test.mjs
+3. scripts/agent-governance/tests/manifest-registry.test.mjs
 
-The accepted approval currently shown is from:
+No other path is authorized.
 
-Vuggina, Sravya
-GitHub identity: tar2859_tdbank
+Before editing, confirm that the existing manifest schema already supports the
+required rules.
 
-Do not rely only on screenshots or prior reports. Verify the current live review state.
+Do not modify the schema merely for convenience.
 
-The live main SHA must still be:
+If the two repairs cannot be implemented correctly within these three paths,
+stop without expanding the boundary and return:
 
-f283f01b6d615f9fa00debcef959d9c5c86a3224
-
-If main has advanced, stop without merging. Do not fetch, rebase, merge locally or update the PR branch. End with:
-
-PHASE_2F1_PR18_MERGE_BLOCKED_BASE_DRIFT
-
-If the PR head, commit count, file count, approval, checks or mergeability differs, stop without mutation and use the applicable blocker:
-
-PHASE_2F1_PR18_MERGE_BLOCKED_HEAD_DRIFT
-PHASE_2F1_PR18_MERGE_BLOCKED_SCOPE_DRIFT
-PHASE_2F1_PR18_MERGE_BLOCKED_APPROVAL
-PHASE_2F1_PR18_MERGE_BLOCKED_CHECKS
-PHASE_2F1_PR18_MERGE_BLOCKED_CONFLICT
-
-Never print or persist credentials or tokens.
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_REQUIRED_CHANGE_OUTSIDE_BOUNDARY
 
 ==================================================
-5. AUTHORIZED MERGE METHOD
+4. OWNER DECISION A — NARROW VSIX CREATION EXCEPTION
 
-Merge PR #18 through the authenticated GitHub API using:
+Modify the process manifest so VERSION_AND_PACKAGE can create exactly one new,
+version-distinguishable VSIX required by that stage.
 
-* expected head SHA:
-    6e37281e61a782ffbe8c8675346144567406dabe
-* merge method:
-    merge
+The rule must:
 
-Use an expected-head guard so the merge fails if the PR head changes between the final gate and merge request.
+* apply only during VERSION_AND_PACKAGE;
+* require a separately authorized version bump;
+* derive the permitted filename from the current package identity and exact
+    package version;
+* permit only the CREATED state;
+* permit exactly one new artifact;
+* require the expected filename shape:
+    databricks-etl-copilot-.vsix;
+* require the artifact version to equal package.json version;
+* keep all pre-existing VSIX files protected by their baseline digests;
+* reject modification of a pre-existing VSIX;
+* reject replacement of a pre-existing VSIX;
+* reject deletion or renaming of any VSIX;
+* reject creation of additional VSIX files;
+* reject an unversioned, incorrectly versioned, or ambiguous artifact;
+* remain forbidden during all other stages.
 
-Expected merge commit title:
+Do not introduce a blanket writable **/*.vsix exception.
 
-Merge pull request #18 from TD-Enterprise/phase2/recipe-lifecycle-classification
+If the existing exception format cannot express every semantic restriction
+directly, use the narrowest existing manifest rule and ensure the validator tests
+prove all remaining constraints fail closed.
 
-Expected merge commit message:
+Add adversarial tests for:
 
-Phase 2F.1: recipe lifecycle classification
-
-Do not use:
-
-* squash merge;
-* rebase merge;
-* admin bypass;
-* branch-protection bypass;
-* local merge;
-* force push;
-* direct push to main.
-
-Submit exactly one merge request.
-
-If GitHub returns an ambiguous response, do not submit a second merge request until read-only requests establish whether the first request succeeded.
-
-==================================================
-6. IMMEDIATE POST-MERGE VERIFICATION
-
-After the merge request, independently verify:
-
-* PR #18 is closed and merged=true;
-* GitHub reports the exact merge commit SHA;
-* live main points exactly to that merge commit;
-* the merge commit has exactly two parents;
-* first parent is exactly:
-    f283f01b6d615f9fa00debcef959d9c5c86a3224
-* second parent is exactly:
-    6e37281e61a782ffbe8c8675346144567406dabe
-* the merge commit tree is exactly:
-    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab
-* the merge-commit tree is byte-identical to the accepted PR-head tree;
-* no unexpected additional commit exists between the accepted base and merge commit;
-* the source branch still exists and still points to the accepted head;
-* no tag or release was created;
-* no deployment or runtime flag was enabled.
-
-If the merge response reports failure and GitHub confirms the PR remains open, end with:
-
-PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB
-
-If GitHub confirms the merge occurred but any post-merge identity is unexpected, do not attempt repair or another merge. End with:
-
-PHASE_2F1_PR18_MERGE_COMPLETED_IDENTITY_MISMATCH
+* one exact new VSIX during VERSION_AND_PACKAGE: allowed;
+* same action without an authorized version bump: blocked;
+* wrong version in filename: blocked;
+* two new VSIX artifacts: blocked;
+* modification of a pre-existing VSIX: blocked;
+* replacement of a pre-existing VSIX: blocked;
+* deletion of a pre-existing VSIX: blocked;
+* VSIX creation in another stage: blocked;
+* broad **/*.vsix authorization: rejected.
 
 ==================================================
-7. POST-MERGE WORKFLOW OBSERVATION
+5. OWNER DECISION B — PRODUCER/CERTIFIER SEPARATION
 
-Discover all workflows and check runs automatically triggered by the merge commit or updated main.
+Mechanically enforce separation between:
 
-Do not manually trigger, rerun, cancel or approve any workflow.
+* VERSION_AND_PACKAGE; and
+* EXACT_PACKAGE_VERIFICATION.
 
-For each run, record:
+Required policy:
 
-* workflow name;
-* run ID and URL;
-* event;
-* attempt;
-* head branch;
-* head SHA;
-* status;
-* conclusion;
-* every job/check name and conclusion.
+* an artifact producer may not certify the same artifact;
+* implementedBy == emittedBy must fail closed;
+* different session IDs alone are not sufficient when the certifying actor is the
+    same producing identity;
+* EXACT_PACKAGE_VERIFICATION must use an actor independent of the producer;
+* a fresh generic review session or separately pinned external reviewer may
+    perform exact verification when independence is proven;
+* no Agent gains broader write, package, install, approval, Preview, or Runtime QA
+    authority;
+* do not create a new Agent;
+* do not weaken the existing self-certification guard;
+* do not accept prose-only separation;
+* independence must be machine-enforced through the manifest and its validator
+    tests.
 
-If workflows remain queued or in progress:
+Preserve the existing three source-governance Agents and five Skills.
 
-* poll with authenticated read-only requests;
-* use intervals no longer than 60 seconds;
-* wait for a maximum of 30 minutes.
+A role may participate in either production or verification according to the
+manifest, but the same actor must never perform both for the same artifact.
 
-Do not treat a skipped job as successful without verifying its job condition and non-applicability.
+Add positive and negative tests covering:
 
-If every applicable post-merge workflow completes successfully, record that result.
+* same actor and same session: blocked;
+* same actor and different session: blocked;
+* different actor but unproven provenance: blocked;
+* producer plus fresh generic independent verifier with complete provenance:
+    allowed;
+* producer plus pinned external independent verifier with complete provenance:
+    allowed;
+* reviewer attempting to certify changes to its own authority: blocked;
+* missing implementation session identity: blocked;
+* missing review session identity: blocked;
+* mismatched artifact digest: blocked;
+* exact artifact digest and proven independent actor: allowed.
 
-If workflows remain pending after the bounded wait, the merge itself remains valid. End with:
-
-PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_PENDING
-
-If a post-merge workflow fails, is cancelled, times out or requires action, do not rerun it. End with:
-
-PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_FAILED
-
-==================================================
-8. STRICT MUTATION BOUNDARY
-
-The only authorized mutation is the single GitHub merge operation for PR #18.
-
-Do not:
-
-* edit repository files;
-* modify ignored artifacts;
-* stage, unstage, commit or amend;
-* reset, clean, stash, switch, merge locally, rebase or cherry-pick;
-* fetch or pull;
-* update local refs;
-* push any ref;
-* delete the local or remote phase branch;
-* create a branch, worktree or tag;
-* create a release;
-* edit the PR;
-* add comments, labels, reviewers, assignees or milestones;
-* dismiss or submit reviews;
-* trigger or rerun workflows;
-* modify branch protection;
-* deploy;
-* enable RECIPE_LIFECYCLE_CLASSIFICATION_ENABLED;
-* implement any Low or Informational finding.
-
-Preserve the completed Phase 2F.1 branch for audit and later verification.
+Do not retroactively certify the current 0.3.146 artifact in this implementation
+session.
 
 ==================================================
-9. FINAL LOCAL PRESERVATION GATE
+6. VALIDATION
 
-After all GitHub operations, reverify:
+Run all write-producing validation only in a task-owned temporary mirror.
 
-* local branch remains
-    phase2/recipe-lifecycle-classification;
-* local HEAD remains
-    6e37281e61a782ffbe8c8675346144567406dabe;
-* local tree remains
-    6112ddcc08fcb005d6e50daa51d8d5d1cce3e4ab;
-* tracked/untracked porcelain remains empty;
-* staged state remains empty;
-* ignored baseline remains exact;
-* no local refs, index, configuration or repository files changed.
+Run:
+
+* governance unit tests;
+* change-boundary adversarial tests;
+* manifest registry and ownership tests;
+* manifest schema validation;
+* self-certification negative tests;
+* checkpoint fidelity tests;
+* baseline contract tests;
+* workflow validation;
+* customization validation;
+* test-registration validation;
+* compile;
+* compile:test;
+* lint.
+
+Also run fixture-based lifecycle tests for:
+
+1. authorized version bump plus exact new VSIX creation;
+2. exact package verification by the producer — must block;
+3. exact package verification by the same role in a new session — must block;
+4. exact package verification by a proven fresh generic reviewer — must pass;
+5. modification of any pre-existing VSIX — must block;
+6. creation of a second VSIX — must block;
+7. artifact digest mismatch — must block.
+
+Do not run installation or Runtime QA.
+
+Required:
+
+* all governance tests pass;
+* schema valid;
+* unowned machine stages: 0;
+* authority conflicts: 0;
+* duplicate active authority: 0;
+* VSIX creation exception is stage-scoped and create-only;
+* producer/certifier separation is machine-enforced;
+* no new blocker, major, functional, or security regression.
 
 ==================================================
-10. REPORT
+7. FINAL CHANGE-BOUNDARY PROOF
 
-Write exactly one report outside the repository:
+Compare the final live repository with the independent pre-edit snapshot.
 
-/home/tag5916/projects/kmai-td-genie-worktrees/reports/ASKALPHA_PHASE_2F1_PR18_MERGE_2026-08-28.md
+Required:
 
-Include:
+* only the three authorized governance paths changed;
+* package.json unchanged;
+* version remains 0.3.146;
+* target 0.3.146 VSIX byte-identical;
+* all pre-existing VSIX files byte-identical;
+* product/runtime source unchanged;
+* consumer Agent resources unchanged;
+* QA workspace untouched;
+* staged files: 0;
+* stash entries: 0;
+* no install/uninstall;
+* no Runtime QA;
+* no commit/push/tag;
+* no package-lock.json.
 
-1. final merge verdict;
-2. local pre-merge identity and clean-state evidence;
-3. ignored-baseline evidence;
-4. live pre-merge main, PR base and PR head identities;
-5. final approval and review evidence;
-6. required-check and SonarQube evidence;
-7. exact merge request method and expected-head guard;
-8. GitHub merge response;
-9. merge commit SHA;
-10. exact two-parent verification;
-11. merge tree and PR-head tree equality;
-12. final live main identity;
-13. PR closed/merged state;
-14. preserved source-branch identity;
-15. post-merge workflow/check inventory;
-16. final local preservation evidence;
-17. no deployment/runtime/configuration mutation attestation;
-18. exact next permitted action.
+The implementation session must not certify its own governance changes.
 
-The exact next permitted action must be:
+Success authorizes only a fresh independent read-only review combining:
 
-A separate independent Phase 2F.1 post-merge reverification. Phase 2F.2 implementation is not yet authorized.
+* verification of this governance repair; and
+* exact re-verification of the already-built 0.3.146 VSIX.
 
-If the merge and applicable post-merge workflows complete successfully, end the report and final response with exactly:
+It does not authorize installation or Runtime QA.
 
-PHASE_2F1_PR18_MERGE_COMPLETE
+==================================================
+8. FINAL REPORT
 
-Otherwise end with exactly one applicable token:
+Return:
 
-PHASE_2F1_PR18_MERGE_BLOCKED_WORKSPACE
-PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB_ACCESS
-PHASE_2F1_PR18_MERGE_BLOCKED_BASE_DRIFT
-PHASE_2F1_PR18_MERGE_BLOCKED_HEAD_DRIFT
-PHASE_2F1_PR18_MERGE_BLOCKED_SCOPE_DRIFT
-PHASE_2F1_PR18_MERGE_BLOCKED_APPROVAL
-PHASE_2F1_PR18_MERGE_BLOCKED_CHECKS
-PHASE_2F1_PR18_MERGE_BLOCKED_CONFLICT
-PHASE_2F1_PR18_MERGE_BLOCKED_GITHUB
-PHASE_2F1_PR18_MERGE_COMPLETED_IDENTITY_MISMATCH
-PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_PENDING
-PHASE_2F1_PR18_MERGE_COMPLETE_WORKFLOW_FAILED
+IDENTITY_GATE: PASS/FAIL
+PROCESS_EXECUTION_GATE: PASS/FAIL
+INDEPENDENT_BASELINE_CAPTURED: YES/NO
+
+AUTHORIZED_CHANGED_PATHS:
+UNAUTHORIZED_CHANGED_PATHS:
+
+VSIX_CREATE_EXCEPTION_PRESENT: YES/NO
+VSIX_EXCEPTION_STAGE:
+VSIX_EXCEPTION_ALLOWED_STATE:
+VSIX_EXCEPTION_EXACT_VERSION_REQUIRED: YES/NO
+VSIX_EXCEPTION_EXACTLY_ONE_REQUIRED: YES/NO
+PREEXISTING_VSIX_MODIFICATION_BLOCKED: YES/NO
+PREEXISTING_VSIX_DELETION_BLOCKED: YES/NO
+SECOND_NEW_VSIX_BLOCKED: YES/NO
+OTHER_STAGE_VSIX_CREATION_BLOCKED: YES/NO
+BLANKET_VSIX_WRITE_EXCEPTION_PRESENT: YES/NO
+
+PRODUCER_CERTIFIER_SEPARATION_ENFORCED: YES/NO
+SAME_ACTOR_SAME_SESSION_BLOCKED: YES/NO
+SAME_ACTOR_DIFFERENT_SESSION_BLOCKED: YES/NO
+UNPROVEN_PROVENANCE_BLOCKED: YES/NO
+FRESH_GENERIC_VERIFIER_ALLOWED_WHEN_PROVEN: YES/NO
+PINNED_EXTERNAL_VERIFIER_ALLOWED_WHEN_PROVEN: YES/NO
+OWN_AUTHORITY_CERTIFICATION_BLOCKED: YES/NO
+ARTIFACT_DIGEST_MISMATCH_BLOCKED: YES/NO
+
+MANIFEST_SCHEMA_VALID: YES/NO
+ACTIVE_AGENT_COUNT:
+ACTIVE_SKILL_COUNT:
+UNOWNED_MACHINE_STAGE_COUNT:
+AUTHORITY_CONFLICT_COUNT:
+DUPLICATE_ACTIVE_AUTHORITY_COUNT:
+
+GOVERNANCE_TESTS_PASSING:
+GOVERNANCE_TESTS_FAILING:
+CHANGE_BOUNDARY_TESTS: PASS/FAIL
+MANIFEST_REGISTRY_TESTS: PASS/FAIL
+SELF_CERTIFICATION_TESTS: PASS/FAIL
+CHECKPOINT_TESTS: PASS/FAIL
+BASELINE_CONTRACT_TESTS: PASS/FAIL
+WORKFLOW_VALIDATION: PASS/FAIL
+CUSTOMIZATION_VALIDATION: PASS/FAIL
+TEST_REGISTRATION_VALIDATION: PASS/FAIL
+COMPILE_PASS: YES/NO
+COMPILE_TEST_PASS: YES/NO
+LINT_PASS: YES/NO
+NEW_FUNCTIONAL_REGRESSIONS:
+NEW_SECURITY_REGRESSIONS:
+
+PACKAGE_VERSION_AFTER: 0.3.146
+PACKAGE_JSON_CHANGED: NO
+TARGET_0_3_146_VSIX_CHANGED: NO
+PREEXISTING_VSIX_CHANGED_COUNT:
+PRODUCT_SOURCE_CHANGED: NO
+CONSUMER_AGENT_RESOURCES_CHANGED: NO
+QA_WORKSPACE_TOUCHED: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+STAGED_FILES:
+STASH_ENTRIES:
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
+
+SELF_CERTIFICATION_PERFORMED: NO
+READY_FOR_FRESH_GENERIC_COMBINED_INDEPENDENT_REVIEW: YES/NO
+READY_FOR_LOCAL_INSTALL_AND_ACTIVATION: NO
+READY_FOR_RUNTIME_QA: NO
+
+End exactly with one:
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+PASS_READY_FOR_FRESH_GENERIC_COMBINED_INDEPENDENT_REVIEW
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+FAIL_VALIDATION
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+FAIL_UNAUTHORIZED_CHANGE
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_REQUIRED_CHANGE_OUTSIDE_BOUNDARY
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_IDENTITY_OR_EXECUTION
+
+Do not perform the independent review in this session.
