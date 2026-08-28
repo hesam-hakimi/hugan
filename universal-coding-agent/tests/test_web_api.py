@@ -15,6 +15,7 @@ from universal_coding_agent.core.remote_operations import RemoteOperationState
 from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
 from universal_coding_agent.product.models import (
     AcceptanceCriterion,
+    ControlState,
     PhaseStatus,
     ProgramExecutionStatus,
     ProgramStatus,
@@ -991,6 +992,44 @@ def test_unknown_task_control_is_not_silently_created(tmp_path) -> None:
             json={"reason": "test"},
         )
         assert response.status_code == 404
+
+
+def test_task_pause_http_does_not_claim_active_pause_without_owned_handle(
+    tmp_path: Path,
+) -> None:
+    workspace = ProductWorkspace.create(tmp_path / "product", _provider())
+    runtime = ProductWebRuntime(
+        workspace=workspace,
+        state_root=tmp_path / "runtime",
+    )
+    task_id = "task-http-safe-boundary-pause"
+    workspace.control.ensure_task(task_id)
+    runtime._runs[task_id] = {
+        "task_id": task_id,
+        "status": "running",
+        "busy": True,
+    }
+    try:
+        with TestClient(create_product_app(runtime)) as client:
+            response = client.post(
+                f"/api/tasks/{task_id}/pause",
+                json={"reason": "operator checkpoint"},
+            )
+
+            assert response.status_code == 200
+            assert response.json()["control"]["state"] == "pause_requested"
+            assert "pause_report" not in response.json()
+            control = workspace.control.get_task(task_id)
+            assert control is not None
+            assert control.state is ControlState.PAUSE_REQUESTED
+            report = workspace.control.pause_report(task_id)
+            assert report is not None
+            assert report.active_operation_kinds == ()
+            assert report.owned_pausable_operations_observed == 0
+            assert report.active_pause_acknowledged is False
+            assert report.safe_boundary_reached is False
+    finally:
+        runtime.close()
 
 
 def test_ui_binding_is_loopback_by_default() -> None:

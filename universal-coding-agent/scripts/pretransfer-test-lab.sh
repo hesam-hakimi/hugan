@@ -32,6 +32,7 @@ env -u UCA_SAFE_EDIT_PROTOCOL python -m pytest -q \
   tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
+  tests/test_active_pause.py \
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
   tests/test_program_execution_qualification.py \
@@ -46,4 +47,5 @@ echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_PREFLIGHT_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_PREFLIGHT_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_FIELD_VALIDATION_PREFLIGHT_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_PREFLIGHT_PASS"
+echo "FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_PREFLIGHT_PASS"
 echo "JUNIT=$STATE_ROOT/pretransfer-junit.xml"

@@ -504,6 +504,35 @@ scans from the steady-state field-bound checks. It changes no cursor, limit, API
 authority, provider call, Task/Program outcome, automatic cleanup, TTL, retry/replan, active pause,
 publication, threshold, or live model-dependent behavior.
 
+P2.2a adds the provider-neutral contract required before UCA may claim that an already-running
+operation was actively paused. A trusted UCA-owned handle must expose non-blocking `pause()`,
+`resume()`, `paused()`, `cancel()`, and `done()` hooks. The task-scoped coordinator latches pause
+before any later pausable handle may be created. Registration requires the same signal's matching
+active-operation scope, so an unbound or kind-mismatched handle is rejected before its factory can
+run. The coordinator snapshots only registered owned work, invokes pause hooks outside its lock,
+and accepts active pause only after every exact operation registration is still present, owned by
+at least one observed pausable handle, and acknowledged within a bounded window with no unsupported
+active work. Once acknowledged, later owned-operation starts fail closed until resume or cancel.
+Otherwise the existing durable `pause_requested` state remains in force until the next Safe graph
+boundary.
+
+Each attempt stores a redacted SQLite report with operation kinds, observed handle counts,
+unsupported-work counts, pause/resume requests and acknowledgements, safe-boundary fallback, and
+missing-handle evidence. Active resume targets only the exact handles that acknowledged pause in
+the same runtime. A restart has no such live ownership and therefore fails closed rather than
+claiming that remote or in-process work resumed. In-runtime pause and resume transitions are
+serialized per task; a concurrent duplicate control attempt fails closed while cancellation
+remains available. Cancellation remains terminal and clears the in-runtime pause latch before
+invoking the existing bounded cancellation path.
+
+This foundation registers no production provider or test transport and changes no HTTP or React
+surface. Host Chat, OpenAI Responses, host subprocesses, and trusted test commands therefore retain
+their existing cancellation and safe-boundary pause behavior. The active-pause roadmap item stays
+open. P2.2b is explicitly backlogged until the Host Chat integration exposes a trusted,
+non-blocking, accurately acknowledged pause primitive and passes dedicated live host
+qualification. No OS process suspension, provider output consumption, retry/resume automation,
+Task or Program outcome change, publication, or broader hard-control claim is introduced.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

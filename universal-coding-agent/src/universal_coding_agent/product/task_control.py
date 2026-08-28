@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
@@ -10,6 +11,7 @@ from threading import RLock
 from universal_coding_agent.core.cancellation import (
     CancellationCoordinator,
     CancellationReport,
+    PauseReport,
 )
 from universal_coding_agent.core.remote_operations import (
     RemoteOperationDisposition,
@@ -29,9 +31,10 @@ from universal_coding_agent.product.models import (
 class TaskControlService:
     """Persistent control state with cooperative boundaries and owned-work cancellation.
 
-    Callers check at safe boundaries. Pause stops new work at the next boundary; cancel is
-    terminal once observed. The lock makes the same service safe to use from an execution
-    worker and a concurrent UI/API control request.
+    Callers check at safe boundaries. Pause remains boundary-only unless every active operation
+    has an exact owned pausable handle and bounded acknowledgement; cancel is terminal once
+    observed. The lock makes the same service safe to use from an execution worker and a
+    concurrent UI/API control request.
     """
 
     def __init__(
@@ -43,6 +46,7 @@ class TaskControlService:
         self.database_path = database_path.resolve()
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = RLock()
+        self._pause_transitions: set[str] = set()
         self.cancellation = cancellation or CancellationCoordinator()
         self.connection = sqlite3.connect(self.database_path, check_same_thread=False)
         self.connection.execute(
@@ -71,6 +75,28 @@ class TaskControlService:
                 processes_still_active INTEGER NOT NULL,
                 cancellable_operations_still_active INTEGER NOT NULL DEFAULT 0,
                 cooperative_fallback INTEGER NOT NULL
+            )
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS pause_reports (
+                task_id TEXT PRIMARY KEY,
+                reason TEXT NOT NULL,
+                active_operation_kinds TEXT NOT NULL,
+                owned_pausable_operations_observed INTEGER NOT NULL,
+                unsupported_active_operations_observed INTEGER NOT NULL,
+                pause_requests INTEGER NOT NULL,
+                pause_acknowledgements INTEGER NOT NULL,
+                pausable_operations_still_unpaused INTEGER NOT NULL,
+                cooperative_fallback INTEGER NOT NULL,
+                active_pause_acknowledged INTEGER NOT NULL,
+                safe_boundary_reached INTEGER NOT NULL,
+                resume_requests INTEGER NOT NULL,
+                resume_acknowledgements INTEGER NOT NULL,
+                pausable_operations_still_paused INTEGER NOT NULL,
+                pausable_operations_missing_on_resume INTEGER NOT NULL,
+                active_resume_acknowledged INTEGER NOT NULL
             )
             """
         )
@@ -179,18 +205,119 @@ class TaskControlService:
                 raise ValueError("terminal work cannot be paused")
             if record.state is ControlState.CANCEL_REQUESTED:
                 return record
-            return self._set(entity_type, entity_id, ControlState.PAUSE_REQUESTED, reason)
+            if record.state in {ControlState.PAUSE_REQUESTED, ControlState.PAUSED}:
+                return record
+            if (
+                entity_type is ControlEntityType.TASK
+                and entity_id in self._pause_transitions
+            ):
+                raise ValueError("task pause transition is already in progress")
+            record = self._set(
+                entity_type,
+                entity_id,
+                ControlState.PAUSE_REQUESTED,
+                reason,
+            )
+            if entity_type is ControlEntityType.TASK:
+                self._pause_transitions.add(entity_id)
+
+        if entity_type is not ControlEntityType.TASK:
+            return record
+
+        try:
+            report = self.cancellation.pause_task(entity_id, reason=reason)
+            with self._lock:
+                current = self.get_required(entity_type, entity_id)
+                if current.state is ControlState.PAUSED:
+                    report = replace(report, safe_boundary_reached=True)
+                self._store_pause_report(report)
+                if (
+                    report.active_pause_acknowledged
+                    and current.state is ControlState.PAUSE_REQUESTED
+                ):
+                    return self._set(
+                        entity_type,
+                        entity_id,
+                        ControlState.PAUSED,
+                        current.reason,
+                    )
+                return current
+        finally:
+            with self._lock:
+                self._pause_transitions.discard(entity_id)
 
     def resume(
         self,
         entity_type: ControlEntityType,
         entity_id: str,
     ) -> ControlRecord:
+        task_transition_started = False
         with self._lock:
             record = self.ensure(entity_type, entity_id)
             if record.state not in {ControlState.PAUSED, ControlState.PAUSE_REQUESTED}:
                 raise ValueError("only paused work can be resumed")
-            return self._set(entity_type, entity_id, ControlState.RUNNING, "")
+            if (
+                entity_type is ControlEntityType.TASK
+                and entity_id in self._pause_transitions
+            ):
+                raise ValueError("task pause transition is already in progress")
+            pause_report = (
+                self.pause_report(entity_id)
+                if entity_type is ControlEntityType.TASK
+                else None
+            )
+            if entity_type is ControlEntityType.TASK:
+                self._pause_transitions.add(entity_id)
+                task_transition_started = True
+
+        try:
+            if entity_type is ControlEntityType.TASK:
+                if (
+                    pause_report is not None
+                    and pause_report.active_pause_acknowledged
+                    and not pause_report.safe_boundary_reached
+                ):
+                    resume_result = self.cancellation.resume_task(entity_id)
+                    missing_on_resume = max(
+                        resume_result.pausable_operations_missing_on_resume,
+                        pause_report.owned_pausable_operations_observed
+                        - resume_result.owned_pausable_operations_observed,
+                    )
+                    pause_report = replace(
+                        pause_report,
+                        resume_requests=resume_result.resume_requests,
+                        resume_acknowledgements=(
+                            resume_result.resume_acknowledgements
+                        ),
+                        pausable_operations_still_paused=(
+                            resume_result.pausable_operations_still_paused
+                        ),
+                        pausable_operations_missing_on_resume=missing_on_resume,
+                        active_resume_acknowledged=(
+                            resume_result.active_resume_acknowledged
+                        ),
+                    )
+                    self._store_pause_report(pause_report)
+                    if not resume_result.active_resume_acknowledged:
+                        raise ValueError(
+                            "active pause resume was not acknowledged by its "
+                            "owned runtime handle"
+                        )
+                else:
+                    self.cancellation.clear_pause(entity_id)
+
+            with self._lock:
+                current = self.get_required(entity_type, entity_id)
+                if current.state not in {
+                    ControlState.PAUSED,
+                    ControlState.PAUSE_REQUESTED,
+                }:
+                    raise ValueError("only paused work can be resumed")
+                return self._set(entity_type, entity_id, ControlState.RUNNING, "")
+        finally:
+            if task_transition_started:
+                with self._lock:
+                    self._pause_transitions.discard(entity_id)
 
     def request_cancel(
         self,
@@ -248,8 +375,12 @@ class TaskControlService:
                     ControlState.PAUSED,
                     record.reason,
                 )
+                if entity_type is ControlEntityType.TASK:
+                    self._mark_pause_safe_boundary(entity_id)
                 return ControlDecision(action=ControlAction.PAUSE, record=record)
             if record.state is ControlState.PAUSED:
+                if safe_boundary and entity_type is ControlEntityType.TASK:
+                    self._mark_pause_safe_boundary(entity_id)
                 return ControlDecision(action=ControlAction.PAUSE, record=record)
             return ControlDecision(action=ControlAction.CONTINUE, record=record)
 
@@ -299,6 +430,48 @@ class TaskControlService:
                 processes_still_active=row[7],
                 cancellable_operations_still_active=row[8],
                 cooperative_fallback=bool(row[9]),
+            )
+
+    def pause_report(self, task_id: str) -> PauseReport | None:
+        with self._lock:
+            row = self.connection.execute(
+                """
+                SELECT reason, active_operation_kinds,
+                       owned_pausable_operations_observed,
+                       unsupported_active_operations_observed,
+                       pause_requests, pause_acknowledgements,
+                       pausable_operations_still_unpaused,
+                       cooperative_fallback, active_pause_acknowledged,
+                       safe_boundary_reached, resume_requests,
+                       resume_acknowledgements,
+                       pausable_operations_still_paused,
+                       pausable_operations_missing_on_resume,
+                       active_resume_acknowledged
+                FROM pause_reports WHERE task_id = ?
+                """,
+                (task_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            return PauseReport(
+                task_id=task_id,
+                reason=row[0],
+                active_operation_kinds=tuple(
+                    item for item in row[1].split(",") if item
+                ),
+                owned_pausable_operations_observed=row[2],
+                unsupported_active_operations_observed=row[3],
+                pause_requests=row[4],
+                pause_acknowledgements=row[5],
+                pausable_operations_still_unpaused=row[6],
+                cooperative_fallback=bool(row[7]),
+                active_pause_acknowledged=bool(row[8]),
+                safe_boundary_reached=bool(row[9]),
+                resume_requests=row[10],
+                resume_acknowledgements=row[11],
+                pausable_operations_still_paused=row[12],
+                pausable_operations_missing_on_resume=row[13],
+                active_resume_acknowledged=bool(row[14]),
             )
 
     def remote_operation_disposition(
@@ -550,6 +723,51 @@ class TaskControlService:
                 ),
             )
             self.connection.commit()
+
+    def _store_pause_report(self, report: PauseReport) -> None:
+        with self._lock:
+            self.connection.execute(
+                """
+                INSERT OR REPLACE INTO pause_reports(
+                    task_id, reason, active_operation_kinds,
+                    owned_pausable_operations_observed,
+                    unsupported_active_operations_observed,
+                    pause_requests, pause_acknowledgements,
+                    pausable_operations_still_unpaused,
+                    cooperative_fallback, active_pause_acknowledged,
+                    safe_boundary_reached, resume_requests,
+                    resume_acknowledgements,
+                    pausable_operations_still_paused,
+                    pausable_operations_missing_on_resume,
+                    active_resume_acknowledged
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    report.task_id,
+                    report.reason,
+                    ",".join(report.active_operation_kinds),
+                    report.owned_pausable_operations_observed,
+                    report.unsupported_active_operations_observed,
+                    report.pause_requests,
+                    report.pause_acknowledgements,
+                    report.pausable_operations_still_unpaused,
+                    int(report.cooperative_fallback),
+                    int(report.active_pause_acknowledged),
+                    int(report.safe_boundary_reached),
+                    report.resume_requests,
+                    report.resume_acknowledgements,
+                    report.pausable_operations_still_paused,
+                    report.pausable_operations_missing_on_resume,
+                    int(report.active_resume_acknowledged),
+                ),
+            )
+            self.connection.commit()
+
+    def _mark_pause_safe_boundary(self, task_id: str) -> None:
+        report = self.pause_report(task_id)
+        if report is None or report.safe_boundary_reached:
+            return
+        self._store_pause_report(replace(report, safe_boundary_reached=True))
 
     def _ensure_cancellation_report_columns(self) -> None:
         existing = {

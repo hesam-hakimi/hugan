@@ -79,6 +79,7 @@
 - universal-coding-agent/tests/test_lifecycle_reservations.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
+- universal-coding-agent/tests/test_active_pause.py
 - universal-coding-agent/tests/test_strong_cancellation.py
 - universal-coding-agent/tests/test_host_chat_provider.py
 - universal-coding-agent/tests/test_host_subprocess_provider.py
@@ -176,6 +177,7 @@ for FILE in \
   tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
+  tests/test_active_pause.py \
   tests/test_strong_cancellation.py \
   tests/test_host_chat_provider.py \
   tests/test_host_subprocess_provider.py \
@@ -187,7 +189,7 @@ do
 done
 .venv/bin/python - <<'PY'
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
-from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation
+from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation, OwnedPausableOperation, PauseReport, PauseRequested, PauseResumeResult
 from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
 from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.product.lifecycle_reservations import (
@@ -243,6 +245,7 @@ assert DiscoveredSafeExecutionPort and ProgramExecutionError
 assert ProgramExecutionStartRequest and ProgramExecutionContinueRequest
 assert CancellationCoordinator and CancellationReport and CancellationSignal
 assert OwnedCancellableOperation and HostChatCompletionsProvider
+assert OwnedPausableOperation and PauseReport and PauseRequested and PauseResumeResult
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
@@ -266,6 +269,7 @@ print("PROGRAM_EXECUTION_BINDING_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_EXECUTION_API_IMPORT_PREFLIGHT_PASS")
 print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
+print("FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
@@ -295,6 +299,7 @@ Cmd 3
   tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
+  tests/test_active_pause.py \
   tests/test_strong_cancellation.py \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
@@ -319,6 +324,7 @@ echo "PROGRAM_EXECUTION_API_BACKEND_PREFLIGHT_PASS" && \
 echo "PROGRAM_EXECUTION_MULTIPHASE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
 echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
+echo "FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_PREFLIGHT_PASS" && \
 echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
@@ -364,6 +370,7 @@ echo "BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_FRONTEND_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_FRONTEND_REGRESSION_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_FIELD_VALIDATION_FRONTEND_REGRESSION_PASS"
 echo "INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_FRONTEND_REGRESSION_PASS"
+echo "FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_FRONTEND_REGRESSION_PASS"
 ```
 
 Cmd 6
@@ -453,6 +460,7 @@ print("BOUNDED_LIFECYCLE_RECOVERY_INVENTORY_UI_HTTP_SMOKE_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_HTTP_REGRESSION_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_FIELD_VALIDATION_HTTP_REGRESSION_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_HTTP_REGRESSION_PASS")
+print("FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_HTTP_REGRESSION_PASS")
 PY
 kill "$UI_PID"
 wait "$UI_PID" || true
