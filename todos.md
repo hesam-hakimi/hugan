@@ -1,37 +1,34 @@
-TASK: HF1_V2_GENUINELY_INDEPENDENT_REVIEW_RUNTIME_QA_SUPPORT_AND_STRUCTURED_DIAGNOSTICS
+TASK: HF1_V2_VERSION_AND_PACKAGE_0_3_146
 
-Perform a genuinely independent, read-only review of the complete accumulated
-Runtime QA support and Repair 13 structured-diagnostics change set.
+Perform only the VERSION_AND_PACKAGE stage for ETL Extension version 0.3.146.
 
-Work against:
+Work in:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
 Use:
 
 * a fresh Claude harness Chat;
-* source-governance Agent etl-independent-reviewer;
-* Claude Opus 5 with Max reasoning;
-* exactly one effective repository target.
+* Agent etl-release-verifier;
+* Claude Opus 5 with Max reasoning.
 
-Do not use consumer Agents such as ETL Orchestrator, ETL Implementer, or ETL
-Verifier as review authority.
+The independent review ended with:
 
-The implementation checkpoint ended with:
+RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
+PASS_READY_FOR_VERSION_0_3_146_AND_PACKAGE
 
-RUNTIME_QA_STRUCTURED_DIAGNOSTICS_RESULT:
-PASS_READY_FOR_GENUINELY_INDEPENDENT_REVIEW
+This authorizes version bump and package creation only.
 
-Treat that statement and every prior report as untrusted evidence to verify.
-
-This task is strictly read-only.
+Do not perform independent package certification in this same session.
+Do not install or activate the extension.
+Do not start Runtime QA.
 
 ==================================================
 
-1. IDENTITY AND NON-MUTATION
+1. IDENTITY GATE
     ==================================================
 
-Required identity:
+Required:
 
 ORIGIN:
 https://github.com/TD-Universe/agentic_etl.git
@@ -42,233 +39,194 @@ hotfix/hf1-oracle-fresh-consumer-v2
 HEAD:
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-SOURCE_VERSION:
+SOURCE_VERSION_BEFORE:
 0.3.145
 
-Required:
+Verify:
 
+* one effective repository target;
 * staged files: 0;
 * stash entries: 0;
 * package-lock.json absent;
-* no concurrent Agent mutation.
+* no concurrent Agent mutation;
+* current independent-reviewed source changes are present;
+* existing VSIX files are captured by path, size, and SHA-256.
 
-Before reviewing, capture an independent filesystem snapshot containing path,
-size, SHA-256, Git status, and mtime.
-
-Do not use git ls-files as the sole authority because protected and untracked
-content must also be covered.
-
-Run all compilation and dynamic tests only in a byte-faithful task-owned mirror.
-
-Make zero changes to the live repository.
-
-Do not regenerate the golden baseline in the live tree.
+Stop on identity mismatch or concurrent mutation.
 
 ==================================================
-2. REVIEW THE COMPLETE ACCUMULATED CHANGE SET
+2. BASELINE
 
-Independently enumerate every Runtime QA support change currently present,
-including relevant changes under:
+Before editing, capture:
 
-* src/core/sttm/**;
-* src/tools/**;
-* src/customization/CopilotAssetCatalog.ts;
-* src/test/fixtures/sttm/synthetic_repair13_qa_bundle/**;
-* src/test/helpers/registerVscodeStub.ts;
-* src/test/suite/EtlReadOnlyTools.test.ts;
-* src/test/suite/sttmRepair13.test.ts;
-* resources/copilot/agents/etl-orchestrator.agent.md;
-* resources/copilot/agents/etl-verifier.agent.md;
-* docs/eval/phase_h_latest_report.json;
-* docs/eval/phase_h_latest_report.md.
+* complete filesystem path/size/SHA-256 snapshot;
+* Git status;
+* package.json hash and exact current fields;
+* every existing root VSIX hash;
+* current source and packaged consumer Agent hashes.
 
-Do not restrict the review to the final six changed paths. Review the complete
-accumulated Runtime QA support implementation.
+Use both governance baseline tooling and independent OS hashing.
 
-Identify:
-
-* modified paths;
-* added paths;
-* deleted paths;
-* unauthorized or unexplained paths;
-* pre-existing dirty paths;
-* task-attributable paths.
-
-Confirm specifically that package.json and src/test/testPatterns.ts were already
-dirty before the reviewed implementation and were not modified by these tasks.
+Do not rely solely on git ls-files.
 
 ==================================================
-3. STRUCTURED DIAGNOSTIC CONTRACT
+3. AUTHORIZED CHANGES
 
-Verify independently through the full public seam:
+Authorize exactly:
 
-EtlReadOnlyToolService.interpretSttm(…) -> { markdown, data }
+1. Change only:
 
-Prove:
+package.json -> version
 
-* a dedicated public structured parser-diagnostic channel exists;
-* STTM_TABLE_MALFORMED is reused rather than duplicated;
-* malformed short rows fail closed;
-* malformed oversized rows fail closed;
-* malformed rows receive no active authority;
-* deterministic row identity is exposed;
-* Markdown and structured diagnostic codes agree;
-* Markdown and structured affected-row identities agree;
-* valid mapping IDs and order remain unchanged;
-* a valid document reports its real informational diagnostics rather than
-    fabricating an empty list;
-* absence of diagnostics is represented honestly;
-* no source-attribute value or secret leaks through diagnostic messages;
-* no write or machine authority is introduced.
+from:
 
-Use negative controls proving the tests fail if:
+0.3.145
 
-* the structured diagnostic channel is removed;
-* malformed rows regain active authority;
-* parser relatedIds are removed;
-* Markdown and structured diagnostics diverge.
+to:
 
-==================================================
-4. REPAIR 13 AND QA FIXTURE COVERAGE
+0.3.146
 
-Verify the synthetic Runtime QA fixture covers the currently supported contract:
+2. Create exactly one new artifact:
 
-* active;
-* inactive;
-* conflicting;
-* unresolved BR;
-* unresolved TR;
-* unresolved JC;
-* unresolved ER;
-* malformed short row;
-* malformed oversized row;
-* structured/Markdown dual-channel parity.
+databricks-etl-copilot-0.3.146.vsix
 
-Confirm the following are deliberately deferred, not silently claimed as tested:
+Use the repository’s canonical package filename if it deterministically differs;
+report the exact filename.
 
-FT:
-DEFERRED_PARSER_UNREACHABLE_NOT_REQUIRED_FOR_REPAIR_13_RUNTIME_QA
-
-Historical state:
-DEFERRED_UNSUPPORTED_INPUT_SYNTAX
-
-Unknown state:
-DEFERRED_UNSUPPORTED_INPUT_SYNTAX
-
-Confirm the deferrals do not weaken current supported-input behavior.
-
-==================================================
-5. CONSUMER AGENT ASSET REVIEW
-
-Verify:
-
-* src/customization/CopilotAssetCatalog.ts is the canonical source;
-* the Orchestrator and Verifier packaged resources match it;
-* package asset byte-lock passes;
-* ETL Orchestrator preserves structured and Markdown channels;
-* ETL Verifier independently compares both channels;
-* tools are byte-identical to their pre-change definitions;
-* delegation lists are unchanged;
-* user visibility is unchanged;
-* internal worker Agents remain non-user-facing;
-* no Agent receives new write, execution, approval, installation, Preview, or
-    deployment authority.
-
-Reconcile the two carried-forward CONTROL_PLANE_PATH_CHANGED findings.
-
-Determine whether they are:
-
-* expected generated-product-source changes with proven catalog provenance; or
-* a real governance-boundary defect.
-
-Do not modify the manifest or validators.
-
-==================================================
-6. PHASE H GOLDEN BASELINE REVIEW
-
-Independently run the canonical Phase H generator in two separate mirrors.
-
-Verify:
-
-* tracked-input drift was caused only by authorized source changes;
-* both generated reports are semantically equal;
-* tracked-input digest agrees;
-* scenario set and outcomes agree;
-* acceptance, parity, validation, correction, and coverage results agree;
-* only documented timestamp and measured-latency fields may vary;
-* committed JSON and Markdown reports agree semantically;
-* no scenario, threshold, assertion, or tracked-input pattern was weakened;
-* the negative stale-baseline test still detects deliberate drift;
-* both formerly failing EvalGating tests now pass.
-
-Fail review if the baseline refresh merely hides behavioral regression.
-
-==================================================
-7. VALIDATION
-
-Run in the mirror:
-
-1. compile;
-2. compile:test;
-3. lint;
-4. Repair 11 focused suite;
-5. Repair 12 canonical suite;
-6. Repair 13 focused suite;
-7. Runtime QA support fixture suite;
-8. public structured-diagnostic seam tests;
-9. package asset byte-lock;
-10. Phase H evaluation gate;
-11. governance tests;
-12. customization validation;
-13. test-registration validation;
-14. canonical full unit suite.
-
-Expected implementation report:
-
-* compile: pass;
-* compile:test: pass;
-* lint: pass;
-* Repair 11: pass;
-* Repair 12: 21/21;
-* Repair 13: pass;
-* Runtime QA support fixture: pass;
-* governance: pass;
-* full unit: 2298 passing, 1 pending, 2 failing;
-* new functional regressions: 0;
-* new security regressions: 0.
-
-Do not accept counts alone.
-
-Reconcile every count difference by exact test identity.
-
-The only allowed full-suite failures are exact unchanged fingerprints for:
-
-F1:
-missing .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
-
-F3:
-the eleven existing src/**/AGENT.md files.
-
-Any other failure blocks approval.
-
-==================================================
-8. FINAL LIVE NON-MUTATION PROOF
-
-Repeat the independent live filesystem snapshot.
+Do not change any other package.json field.
 
 Required:
 
-* live paths changed by review: 0;
-* staged files: 0;
-* stash entries: 0;
-* package.json unchanged;
-* package version remains 0.3.145;
-* src/test/testPatterns.ts unchanged;
-* existing VSIX files unchanged;
-* QA workspace untouched;
-* Runtime QA not started;
-* no Preview or Write;
-* no commit, push, or tag.
+DEPENDENCIES_CHANGED: NO
+DEVDEPENDENCIES_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
+
+Do not modify or replace any existing VSIX.
+
+==================================================
+4. PACKAGING TOOL
+
+Use the exact pinned packaging tool declared by the repository.
+
+Prefer an existing local or cached installation.
+
+If unavailable, a one-time acquisition of the exact pinned
+@vscode/vsce version is authorized only inside a task-owned OS temporary
+directory.
+
+Do not:
+
+* install it into live repository node_modules;
+* modify package.json to acquire it;
+* create package-lock.json;
+* use an unpinned version;
+* persist downloaded tooling in the repository.
+
+Record the exact tool version and execution path.
+
+==================================================
+5. PRE-PACKAGE VALIDATION
+
+Run in a task-owned mirror where generated output could affect the live baseline:
+
+* compile;
+* compile:test;
+* lint;
+* Repair 11;
+* Repair 12;
+* Repair 13;
+* Runtime QA support fixture suite;
+* Phase H eval gate;
+* governance tests;
+* customization validation;
+* test-registration validation;
+* package asset byte-lock;
+* canonical full unit suite.
+
+Expected full-unit state:
+
+* passing: 2298;
+* pending: 1;
+* failing: 2;
+* failures: exact unchanged F1 and F3 only;
+* new functional regressions: 0;
+* new security regressions: 0.
+
+If identities differ, do not package.
+
+==================================================
+6. BUILD THE VSIX
+
+Build exactly one 0.3.146 VSIX from the independently reviewed current working
+content.
+
+Verify mechanically:
+
+* extension ID;
+* archive manifest version: 0.3.146;
+* package.json version inside archive: 0.3.146;
+* archive opens successfully;
+* every archive entry is readable;
+* no absolute machine path;
+* no temporary files;
+* no secrets or credentials;
+* no source-governance .claude/** content unless explicitly required by the
+    established package contract;
+* packaged consumer Agent resources match the canonical catalog;
+* structured diagnostic implementation and required Runtime QA fixture/support
+    assets are included according to the existing packaging contract.
+
+Compare the new VSIX with version 0.3.145 and enumerate every content difference.
+
+Every difference must be attributable to:
+
+* version metadata;
+* independently reviewed Repair 13 changes;
+* Runtime QA support changes;
+* structured diagnostic changes;
+* synchronized consumer Agent guidance;
+* canonical Phase H/report content only if those files are part of the established
+    package contract.
+
+Unexpected archive differences are a failure.
+
+==================================================
+7. PROHIBITIONS
+
+Do not:
+
+* install or uninstall any extension;
+* reload VS Code for activation;
+* access the Development Test Workspace;
+* run @etl /workflow;
+* start Runtime QA;
+* create Preview;
+* approve or execute Write;
+* commit, push, tag, stage, stash, reset, restore, or clean;
+* modify governance files;
+* perform independent certification of the package in this session.
+
+==================================================
+8. FINAL BOUNDARY PROOF
+
+Required task-attributable changes:
+
+* package.json version only;
+* one new 0.3.146 VSIX only.
+
+Required:
+
+UNAUTHORIZED_CHANGED_PATHS: NONE
+PACKAGE_VERSION_AFTER: 0.3.146
+PACKAGE_LOCK_CREATED: NO
+DEPENDENCIES_CHANGED: NO
+EXISTING_VSIX_CHANGED: NO
+REPAIR_SOURCE_CHANGED_DURING_PACKAGE_STAGE: NO
+QA_WORKSPACE_TOUCHED: NO
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
+RUNTIME_QA_STARTED: NO
+COMMIT_CREATED: NO
+PUSH_EXECUTED: NO
 
 ==================================================
 9. FINAL REPORT
@@ -276,81 +234,70 @@ Required:
 Return:
 
 IDENTITY_GATE: PASS/FAIL
-INDEPENDENCE_GATE: PASS/FAIL
-REPOSITORY_MUTATED_BY_REVIEW: YES/NO
+PROCESS_EXECUTION_GATE: PASS/FAIL
+CONCURRENT_AGENT_MUTATION: YES/NO
 
-COMPLETE_CHANGE_SET_REVIEWED: YES/NO
-AUTHORIZED_CHANGED_PATHS: 
-UNAUTHORIZED_CHANGED_PATHS: 
-PRE_EXISTING_DIRTY_PATHS_RECONCILED: YES/NO
+SOURCE_VERSION_BEFORE: 0.3.145
+SOURCE_VERSION_AFTER: 
+PACKAGE_JSON_CHANGED_FIELDS: 
+DEPENDENCIES_CHANGED: YES/NO
+DEVDEPENDENCIES_CHANGED: YES/NO
+PACKAGE_LOCK_CREATED: YES/NO
 
-PUBLIC_STRUCTURED_DIAGNOSTIC_CHANNEL: PASS/FAIL
-MALFORMED_ROWS_FAIL_CLOSED: YES/NO
-MALFORMED_ROWS_ACTIVE_AUTHORITY: YES/NO
-MARKDOWN_STRUCTURED_DIAGNOSTIC_PARITY: YES/NO
-VALID_MAPPING_IDS_AND_ORDER_PRESERVED: YES/NO
-PUBLIC_SEAM_TESTED: YES/NO
-
-QA_SUPPORTED_SCENARIOS_PASS: YES/NO
-FT_STATUS: 
-HISTORICAL_STATUS: 
-UNKNOWN_STATUS: 
-
-AGENT_CATALOG_RESOURCE_PARITY: YES/NO
-PACKAGE_ASSET_BYTE_LOCK_PASS: YES/NO
-AGENT_TOOL_SETS_CHANGED: YES/NO
-AGENT_AUTHORITY_BROADENED: YES/NO
-CONTROL_PLANE_FINDINGS_DISPOSITION: 
-
-PHASE_H_REFRESH_LEGITIMATE: YES/NO
-GOLDEN_GENERATIONS_SEMANTICALLY_EQUAL: YES/NO
-GOLDEN_ASSERTIONS_WEAKENED: YES/NO
-NEGATIVE_DRIFT_TEST_PASS: YES/NO
-
-COMPILE_PASS: YES/NO
-COMPILE_TEST_PASS: YES/NO
-LINT_PASS: YES/NO
-REPAIR_11_PASS: YES/NO
-REPAIR_12_PASS: YES/NO
-REPAIR_13_PASS: YES/NO
-RUNTIME_QA_SUPPORT_FIXTURE_PASS: YES/NO
-GOVERNANCE_PASS: YES/NO
-
+PRE_PACKAGE_VALIDATION_PASS: YES/NO
 FULL_UNIT_PASSING: 
 FULL_UNIT_PENDING: 
 FULL_UNIT_FAILING: 
 FULL_UNIT_FAILURES: 
-FULL_UNIT_COUNTS_RECONCILED: YES/NO
 F1_UNCHANGED: YES/NO
 F3_UNCHANGED: YES/NO
 NEW_FUNCTIONAL_REGRESSIONS: 
 NEW_SECURITY_REGRESSIONS: 
-UNRESOLVED_HIGH_OR_SECURITY_FINDINGS: 
 
-PACKAGE_VERSION_CHANGED: NO
-VSIX_CHANGED: NO
+VSIX_BUILT: YES/NO
+VSIX_PATH: 
+VSIX_FILENAME: 
+VSIX_SIZE_BYTES: 
+VSIX_SHA256: 
+VSIX_FILE_COUNT: 
+VSIX_EXTENSION_ID: 
+VSIX_VERSION: 
+VSIX_ARCHIVE_INTEGRITY: PASS/FAIL
+VSIX_UNEXPECTED_CONTENT_DIFFERENCES: 
+
+AUTHORIZED_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: 
+EXISTING_VSIX_CHANGED: YES/NO
+REPAIR_SOURCE_CHANGED_DURING_PACKAGE_STAGE: YES/NO
+
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO
 QA_WORKSPACE_TOUCHED: NO
 RUNTIME_QA_STARTED: NO
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
 
-READY_FOR_VERSION_0_3_146_AND_PACKAGE: YES/NO
+READY_FOR_SEPARATE_EXACT_PACKAGE_VERIFICATION: YES/NO
 READY_TO_INSTALL: NO
 READY_FOR_RUNTIME_QA: NO
 
+Do not independently certify the package in this session.
+
 End exactly with one:
 
-RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
-PASS_READY_FOR_VERSION_0_3_146_AND_PACKAGE
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+PASS_READY_FOR_SEPARATE_EXACT_PACKAGE_VERIFICATION
 
-RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
-FAIL_IMPLEMENTATION_OR_VALIDATION
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+FAIL_VALIDATION
 
-RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
-FAIL_NEW_FUNCTIONAL_OR_SECURITY_REGRESSION
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+FAIL_PACKAGE_INTEGRITY
 
-RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
-FAIL_REVIEW_MUTATED_REPOSITORY
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+FAIL_UNAUTHORIZED_CHANGE
 
-RUNTIME_QA_SUPPORT_INDEPENDENT_REVIEW_RESULT:
-BLOCKED_IDENTITY_OR_INDEPENDENCE
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+BLOCKED_IDENTITY_OR_CONCURRENT_MUTATION
+
+VERSION_AND_PACKAGE_0_3_146_RESULT:
+BLOCKED_EXECUTION_ENVIRONMENT
