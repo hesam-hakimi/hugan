@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import re
@@ -11,10 +12,15 @@ from typing import Any
 from universal_coding_agent.core.models import ArtifactReference
 
 _SAFE_NAME = re.compile(r"^[a-zA-Z0-9._/-]+$")
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 
 class ArtifactSizeLimitExceeded(ValueError):
     """Raised before a caller can consume an oversized artifact payload."""
+
+
+class ArtifactIntegrityError(ValueError):
+    """Raised before decoding when artifact bytes do not match trusted evidence."""
 
 
 class ArtifactStore:
@@ -44,6 +50,73 @@ class ArtifactStore:
     ) -> Any:
         """Read JSON while consuming at most one byte beyond the caller's limit."""
 
+        data = self._read_bytes_bounded(reference, max_bytes=max_bytes)
+        return json.loads(data.decode("utf-8"))
+
+    def read_bytes_bounded_verified(
+        self,
+        reference: str | ArtifactReference,
+        *,
+        expected_sha256: str,
+        max_bytes: int,
+    ) -> bytes:
+        """Read bounded bytes only when they match the caller's trusted SHA-256."""
+
+        if not isinstance(expected_sha256, str) or not _SHA256.fullmatch(
+            expected_sha256
+        ):
+            raise ArtifactIntegrityError(
+                "expected artifact SHA-256 must be 64 lowercase hexadecimal characters"
+            )
+        data = self._read_bytes_bounded(reference, max_bytes=max_bytes)
+        actual_sha256 = hashlib.sha256(data).hexdigest()
+        if not hmac.compare_digest(actual_sha256, expected_sha256):
+            raise ArtifactIntegrityError("artifact SHA-256 does not match trusted evidence")
+        return data
+
+    def read_text_bounded_verified(
+        self,
+        reference: str | ArtifactReference,
+        *,
+        expected_sha256: str,
+        max_bytes: int,
+    ) -> str:
+        """Verify bounded artifact bytes before decoding UTF-8 text."""
+
+        data = self.read_bytes_bounded_verified(
+            reference,
+            expected_sha256=expected_sha256,
+            max_bytes=max_bytes,
+        )
+        return data.decode("utf-8")
+
+    def read_json_bounded_verified(
+        self,
+        reference: str | ArtifactReference,
+        *,
+        expected_sha256: str,
+        max_bytes: int,
+    ) -> Any:
+        """Verify bounded artifact bytes before decoding UTF-8 JSON."""
+
+        data = self.read_bytes_bounded_verified(
+            reference,
+            expected_sha256=expected_sha256,
+            max_bytes=max_bytes,
+        )
+        return json.loads(data.decode("utf-8"))
+
+    def read_text(self, reference: str | ArtifactReference) -> str:
+        uri = reference.uri if isinstance(reference, ArtifactReference) else reference
+        path = self._path_for(uri)
+        return path.read_text(encoding="utf-8")
+
+    def _read_bytes_bounded(
+        self,
+        reference: str | ArtifactReference,
+        *,
+        max_bytes: int,
+    ) -> bytes:
         if max_bytes < 1:
             raise ValueError("artifact read limit must be positive")
         uri = reference.uri if isinstance(reference, ArtifactReference) else reference
@@ -54,12 +127,7 @@ class ArtifactStore:
             raise ArtifactSizeLimitExceeded(
                 "artifact exceeds the configured byte read limit"
             )
-        return json.loads(data.decode("utf-8"))
-
-    def read_text(self, reference: str | ArtifactReference) -> str:
-        uri = reference.uri if isinstance(reference, ArtifactReference) else reference
-        path = self._path_for(uri)
-        return path.read_text(encoding="utf-8")
+        return data
 
     def _write(self, name: str, data: bytes, media_type: str) -> ArtifactReference:
         relative = self._validate_name(name)

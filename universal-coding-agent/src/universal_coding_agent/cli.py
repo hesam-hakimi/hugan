@@ -16,12 +16,19 @@ from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentSe
 from universal_coding_agent.providers.external import load_provider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.service import AgentService
+from universal_coding_agent.source_control import (
+    ExactPatchPublicationError,
+    ExactPatchPublicationService,
+    PublicationAction,
+    load_source_control_adapter,
+)
 
 
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="uca", description="Universal Coding Agent")
     root.add_argument("--state-root", type=Path, default=Path(".uca-state"))
     root.add_argument("--provider-factory")
+    root.add_argument("--source-control-factory")
     root.add_argument(
         "--allow-local-sources",
         action="store_true",
@@ -94,6 +101,17 @@ def parser() -> argparse.ArgumentParser:
     safe_status = sub.add_parser("safe-status")
     safe_status.add_argument("--thread-id", required=True)
 
+    safe_source_publish = sub.add_parser("safe-source-publish")
+    safe_source_publish.add_argument("--task-id", required=True)
+    safe_source_publish.add_argument("--approval-sha256", required=True)
+    safe_source_publish.add_argument("--patch-sha256", required=True)
+    safe_source_publish.add_argument(
+        "--action",
+        choices=tuple(action.value for action in PublicationAction),
+        required=True,
+    )
+    safe_source_publish.add_argument("--head-branch", required=True)
+
     serve = sub.add_parser("serve", help="run the local UCA Product Control API and UI")
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8765)
@@ -108,6 +126,8 @@ def parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
+    if arguments.command == "safe-source-publish":
+        return _run_source_control_publish(arguments)
     provider = load_provider(arguments.provider_factory)
     if arguments.command == "probe":
         if not provider.probe():
@@ -127,6 +147,57 @@ def main(argv: list[str] | None = None) -> int:
     }:
         return _run_safe(arguments, provider)
     return _run_observe(arguments, provider)
+
+
+def _run_source_control_publish(arguments: argparse.Namespace) -> int:
+    try:
+        adapter = load_source_control_adapter(arguments.source_control_factory)
+        service = ExactPatchPublicationService(arguments.state_root, adapter)
+    except Exception as exc:
+        _print_source_control_block(
+            "source_control_adapter_unavailable",
+            cause_type=type(exc).__name__,
+        )
+        return 1
+    try:
+        try:
+            result = service.publish_exact(
+                arguments.task_id,
+                approval_sha256=arguments.approval_sha256,
+                patch_sha256=arguments.patch_sha256,
+                action=arguments.action,
+                head_branch=arguments.head_branch,
+            )
+        except ExactPatchPublicationError as exc:
+            _print_source_control_block(exc.code)
+            return 1
+        except Exception as exc:
+            _print_source_control_block(
+                "source_control_publication_unavailable",
+                cause_type=type(exc).__name__,
+            )
+            return 1
+        print(json.dumps(result, indent=2, default=str))
+        return 0 if result.get("status") == "completed" else 1
+    finally:
+        service.close()
+
+
+def _print_source_control_block(code: str, *, cause_type: str = "") -> None:
+    error = {"code": code}
+    if cause_type:
+        error["cause_type"] = cause_type[:128]
+    print(
+        json.dumps(
+            {
+                "status": "blocked",
+                "qualified": False,
+                "error": error,
+            },
+            indent=2,
+        ),
+        file=sys.stderr,
+    )
 
 
 def _run_observe(arguments: argparse.Namespace, provider) -> int:

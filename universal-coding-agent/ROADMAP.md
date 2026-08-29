@@ -52,7 +52,8 @@
 - [x] P2.2d opt-in HostSubprocess cooperative pausable-handle adapter with a strict bounded child-control bridge, underlying-handle acknowledgements, cancellation precedence, redacted evidence, unchanged legacy behavior, and dedicated Azure live qualification;
 - [x] P2.2 current-transport inventory closure: every currently eligible provider/test transport has an opt-in pausable adapter; OpenAI Responses has no remote pause primitive and no additional production transport is presently eligible;
 - [x] P2.3a opt-in exact-patch publish approval with post-test/review interrupt, Base/plan/scope/patch binding, restart durability, explicit rejection, fail-closed mismatch rollback, and zero source-control side effects;
-- [ ] commit, push, and optional Draft PR through a source-control adapter that consumes and revalidates the exact publish approval.
+- [x] P2.3b explicit post-approval source-control transaction with integrity-verified approval, patch, test, and review evidence; stable adapter/Draft-PR identity binding; immutable completed replay; retryable exact reconciliation with per-attempt evidence; temporary-index crash safety; isolated Git history/config verification; exact local commit; lease-guarded feature-ref creation/exact replay; an optional trusted Draft-PR creator contract; and deterministic local bare-remote qualification;
+- [ ] trusted hosted source-control and Draft-PR adapter integration plus dedicated live qualification before any hosted publication claim.
 
 ## Milestone 3 — Project memory and large-program execution
 

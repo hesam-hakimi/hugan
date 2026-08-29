@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import sys
 from pathlib import Path
@@ -177,12 +178,26 @@ def test_safe_graph_binds_publish_approval_to_exact_retained_patch(tmp_path: Pat
         assert report["publish_approval_required"] is True
         assert report["publish_approved"] is True
         assert report["publish_patch_sha256"] == patch_sha256
+        assert report["publish_approval_sha256"]
         assert approval["approved"] is True
         assert approval["binding_valid"] is True
+        assert approval["schema_version"] == "2"
+        assert approval["task_id"] == task.task_id
+        assert approval["thread_id"] == task.thread_id
+        assert approval["decision_received"] is True
+        assert approval["repository"] == task.repository.model_dump(mode="json")
         assert approval["base_sha"] == base_sha
         assert approval["patch_sha256"] == patch_sha256
         assert approval["confirmed_patch_sha256"] == patch_sha256
         assert approval["source_control_side_effects"] is False
+        approval_path = (
+            state_root
+            / "artifacts"
+            / report["publish_approval_ref"].removeprefix("artifact://")
+        )
+        assert hashlib.sha256(approval_path.read_bytes()).hexdigest() == report[
+            "publish_approval_sha256"
+        ]
         assert report["stage_commit_push_pr_merge_deploy"] is False
         assert _git(source, "status", "--porcelain") == ""
     finally:

@@ -779,3 +779,65 @@ uca --state-root "$STATE_ROOT" safe-publish-resume \
 
 Use `--decision reject` to durably deny publication of the same exact patch. This command records
 approval evidence only; it does not stage, commit, push, create a pull request, merge, or deploy.
+
+Cmd 25 — exact-approved source-control publication
+
+```bash
+python -m pytest -q \
+  tests/test_artifact_integrity.py \
+  tests/test_source_control_adapter.py \
+  tests/test_exact_patch_publication.py \
+  tests/test_safe_graph.py \
+  tests/test_cli_publish_approval.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "SAFE_EXACT_SOURCE_CONTROL_PUBLICATION_PASS"
+```
+
+The deterministic adapter qualification creates a temporary local bare Git remote. It explicitly
+enables local-repository publication only inside the fixture and verifies the exact single-parent
+commit, temporary-index crash safety, idempotent local-ref reuse, lease-guarded feature-branch
+creation, divergent-ref rejection, symbolic/ref-history override and metadata-path escape rejection,
+isolated Git configuration, worktree/index drift rejection, exact retry
+reconciliation, completed receipt replay after sandbox cleanup, stable adapter/Draft-PR identity
+binding, optional Draft-PR binding, and the default-disabled adapter loader. It does not use hosted
+credentials, contact a hosted source-control provider, or modify the checked-out source repository.
+
+Publication is a separate action after `safe-publish-resume`; approval never triggers it
+automatically. Read `publish_approval_sha256` and `publish_patch_sha256` from the completed task's
+`safe-final-report.json`, then explicitly configure a trusted adapter factory and select exactly one
+action:
+
+```bash
+export UCA_SOURCE_CONTROL_ADAPTER_FACTORY="site_source_control:create_adapter"
+
+uca --state-root "$STATE_ROOT" \
+  --source-control-factory "$UCA_SOURCE_CONTROL_ADAPTER_FACTORY" \
+  safe-source-publish \
+  --task-id "$TASK_ID" \
+  --approval-sha256 "$APPROVAL_SHA256" \
+  --patch-sha256 "$PATCH_SHA256" \
+  --action commit \
+  --head-branch "uca/$TASK_ID"
+```
+
+Use `--action commit` to create only the verified local feature ref, `--action push` to also perform
+the lease-guarded feature-branch publication, or `--action draft_pr` when the trusted adapter exposes
+a Draft-PR creator. The feature branch must differ from the base branch. A push names only that
+feature ref and either creates it from an absent state under an exact zero-object lease or recognizes
+the exact approved commit as an idempotent replay. An exact completed replay returns the immutable
+receipt even after sandbox cleanup;
+changing the branch or action for the same approval is an intent conflict. An incomplete retry also
+requires the same adapter identity and, for Draft PRs, the same provider/account identity before it
+can reach publication. A reported failure retains its bounded
+partial-effect receipt. On the next exact retry, a crash-left planned attempt first gains a durable
+interrupted receipt with unknown effect attribution, then the same request may reconcile its fixed
+local ref, remote ref, or idempotent Draft PR without broadening authority.
+
+The factory is disabled by default and is trusted code with the ambient credential boundary. It
+must not expose credentials to model requests or artifacts. The contract permits no arbitrary
+shell, non-fast-forward history rewrite, ref deletion, tag, merge, deployment, or base-branch
+update. The deterministic
+qualification above is not authorization to publish to a hosted repository; configure and qualify
+a hosted adapter separately before using `push` or `draft_pr` against one.

@@ -4,6 +4,7 @@ import hashlib
 import operator
 import subprocess
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any, TypedDict
 
@@ -61,11 +62,14 @@ class SafeGraphState(TypedDict, total=False):
     patch_applied: bool
     rollback_checkpoint_ref: str
     tests_ref: str
+    tests_sha256: str
     reviewer_context_ref: str
     reviewer_validation_ref: str
     review_ref: str
+    review_sha256: str
     reviewer_verdict: str
     publish_approval_ref: str
+    publish_approval_sha256: str
     publish_approved: bool | None
     publish_patch_sha256: str
     rollback_ref: str
@@ -602,6 +606,7 @@ class SafeModeGraph:
         response: dict[str, Any] = {
             "status": TaskStatus.CHECKING.value,
             "tests_ref": reference.uri,
+            "tests_sha256": reference.sha256,
             "events": [self._event("tests", f"ran {len(results)} fixed profiles")],
         }
         if errors:
@@ -678,6 +683,7 @@ class SafeModeGraph:
             "reviewer_context_ref": context_ref.uri,
             "reviewer_validation_ref": validation_ref.uri,
             "review_ref": review_ref.uri,
+            "review_sha256": review_ref.sha256,
             "reviewer_verdict": review_result.verdict.value,
             "events": [
                 self._event("reviewer", f"verdict {review_result.verdict.value}")
@@ -726,18 +732,29 @@ class SafeModeGraph:
             approval_ref = self.services.artifacts.write_json(
                 f"tasks/{task.task_id}/publish-approval.json",
                 {
+                    "schema_version": "2",
+                    "task_id": task.task_id,
+                    "thread_id": task.thread_id,
                     "approved": False,
                     "binding_valid": False,
                     "decision_received": False,
+                    "decided_at": datetime.now(UTC).isoformat(),
+                    "repository": task.repository.model_dump(mode="json"),
+                    "sandbox_id": state.get("sandbox_id"),
                     "base_sha": task.manifest.base_sha,
                     "plan_hash": task.manifest.plan_hash,
                     "scope_hash": state["scope_hash"],
+                    "scope_ref": state.get("scope_ref"),
+                    "edit_proposal_ref": state.get("edit_proposal_ref"),
+                    "patch_proposal_ref": state.get("patch_proposal_ref"),
                     "patch_ref": state["patch_ref"],
                     "patch_sha256": patch_sha256,
                     "confirmed_patch_sha256": "",
                     "changed_paths": changed_paths,
                     "tests_ref": state.get("tests_ref"),
+                    "tests_sha256": state.get("tests_sha256"),
                     "review_ref": state.get("review_ref"),
+                    "review_sha256": state.get("review_sha256"),
                     "reviewer_verdict": state.get("reviewer_verdict"),
                     "source_control_side_effects": False,
                 },
@@ -745,6 +762,7 @@ class SafeModeGraph:
             return {
                 "status": TaskStatus.BLOCKED.value,
                 "publish_approval_ref": approval_ref.uri,
+                "publish_approval_sha256": approval_ref.sha256,
                 "publish_approved": False,
                 "publish_patch_sha256": patch_sha256,
                 "safe_errors": ["publish_approval:materialized_patch_drift"],
@@ -758,14 +776,21 @@ class SafeModeGraph:
                 "type": "safe_publish_approval",
                 "task_id": task.task_id,
                 "thread_id": task.thread_id,
+                "repository": task.repository.model_dump(mode="json"),
+                "sandbox_id": state.get("sandbox_id"),
                 "base_sha": task.manifest.base_sha,
                 "plan_hash": task.manifest.plan_hash,
                 "scope_hash": state["scope_hash"],
+                "scope_ref": state.get("scope_ref"),
+                "edit_proposal_ref": state.get("edit_proposal_ref"),
+                "patch_proposal_ref": state.get("patch_proposal_ref"),
                 "patch_ref": state["patch_ref"],
                 "patch_sha256": patch_sha256,
                 "changed_paths": changed_paths,
                 "tests_ref": state.get("tests_ref"),
+                "tests_sha256": state.get("tests_sha256"),
                 "review_ref": state.get("review_ref"),
+                "review_sha256": state.get("review_sha256"),
                 "reviewer_verdict": state.get("reviewer_verdict"),
                 "action_required": "approve_or_reject_exact_patch",
             }
@@ -780,23 +805,36 @@ class SafeModeGraph:
         approval_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/publish-approval.json",
             {
+                "schema_version": "2",
+                "task_id": task.task_id,
+                "thread_id": task.thread_id,
                 "approved": approved and binding_valid,
                 "binding_valid": binding_valid,
+                "decision_received": True,
+                "decided_at": datetime.now(UTC).isoformat(),
+                "repository": task.repository.model_dump(mode="json"),
+                "sandbox_id": state.get("sandbox_id"),
                 "base_sha": task.manifest.base_sha,
                 "plan_hash": task.manifest.plan_hash,
                 "scope_hash": state["scope_hash"],
+                "scope_ref": state.get("scope_ref"),
+                "edit_proposal_ref": state.get("edit_proposal_ref"),
+                "patch_proposal_ref": state.get("patch_proposal_ref"),
                 "patch_ref": state["patch_ref"],
                 "patch_sha256": patch_sha256,
                 "confirmed_patch_sha256": confirmed_patch_sha256,
                 "changed_paths": changed_paths,
                 "tests_ref": state.get("tests_ref"),
+                "tests_sha256": state.get("tests_sha256"),
                 "review_ref": state.get("review_ref"),
+                "review_sha256": state.get("review_sha256"),
                 "reviewer_verdict": state.get("reviewer_verdict"),
                 "source_control_side_effects": False,
             },
         )
         response: dict[str, Any] = {
             "publish_approval_ref": approval_ref.uri,
+            "publish_approval_sha256": approval_ref.sha256,
             "publish_approved": approved and binding_valid,
             "publish_patch_sha256": patch_sha256,
             "events": [
@@ -894,12 +932,15 @@ class SafeModeGraph:
             "patch_repair_used": False,
             "rollback_checkpoint_ref": state.get("rollback_checkpoint_ref"),
             "tests_ref": state.get("tests_ref"),
+            "tests_sha256": state.get("tests_sha256"),
             "reviewer_context_ref": state.get("reviewer_context_ref"),
             "reviewer_validation_ref": state.get("reviewer_validation_ref"),
             "review_ref": state.get("review_ref"),
+            "review_sha256": state.get("review_sha256"),
             "reviewer_verdict": state.get("reviewer_verdict"),
             "publish_approval_required": task.require_publish_approval,
             "publish_approval_ref": state.get("publish_approval_ref"),
+            "publish_approval_sha256": state.get("publish_approval_sha256"),
             "publish_approved": state.get("publish_approved"),
             "publish_patch_sha256": state.get("publish_patch_sha256"),
             "safe_errors": safe_errors,

@@ -100,6 +100,7 @@ class _ControlledSafeMixin:
                 **result,
                 "status": TaskStatus.BLOCKED.value,
                 "publish_approval_ref": approval_ref.uri,
+                "publish_approval_sha256": approval_ref.sha256,
                 "publish_approved": False,
                 "safe_errors": [
                     *result.get("safe_errors", []),

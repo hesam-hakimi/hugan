@@ -655,8 +655,69 @@ The approval and rejection records are durable artifacts and survive service res
 an otherwise valid patch records that publication was not authorized while retaining the reviewed
 sandbox patch for inspection. Approval authorizes only that exact patch; it still performs no Git
 stage, commit, push, pull-request creation, merge, deployment, credential access, or source-repository
-mutation. The next source-control-adapter slice must consume and revalidate this exact approval
-binding before it may perform any approved publication side effect.
+mutation. P2.3b's source-control-adapter transaction must consume and revalidate this exact
+approval binding before it may perform any approved publication side effect.
+
+P2.3b adds source-control publication as an explicit transaction after, and separate from, the
+P2.3a approval resume. Recording approval never publishes automatically. The operator invokes
+`safe-source-publish` with the task ID, the exact approval-artifact SHA-256, the exact patch
+SHA-256, one bounded action (`commit`, `push`, or `draft_pr`), and a validated feature branch that
+must differ from the base branch. This command dispatches without loading a model provider. Before
+the adapter is called, the publication service performs bounded integrity-verified reads of the
+approval and patch artifacts, revalidates the approval schema and task/thread identity, Base SHA,
+plan hash, scope hash, ordered changed paths, successful tests and PASS review, completed Safe
+task/control state, retained materialized worktree patch, and clean Git index. Test and review
+artifacts are bounded and independently verified against the SHA-256 values sealed into the
+approval. Missing, oversized, tampered, stale, rejected, cancelled, mismatched, or already-consumed
+evidence fails closed before an adapter side effect.
+
+The complete immutable intent binds the approval and patch hashes to the repository URL, base ref
+and Base SHA, changed paths, feature branch, selected action, fixed commit/Draft-PR metadata, stable
+adapter identity, and—for Draft PRs—the provider/account-scoped creator identity. Its canonical
+SHA-256 and the approval SHA-256 derive a publication ID. A separate SQLite store and per-task file
+lock reserve one intent per task and approval before adapter work. Conflicting reuse is rejected. A
+completed transaction replays its immutable receipt without another adapter call, even if the
+mutable sandbox or approval file has subsequently been cleaned up. A failed or crash-left `planned`
+transaction may re-enter only the same exact adapter request so the adapter can reconcile its fixed
+local and remote targets. Reported failures preserve bounded attempted-versus-verified local-ref,
+push, and Draft-PR effect evidence. On the next exact retry, a crash-left attempt with no result
+first receives a synthesized interrupted
+receipt that explicitly marks effect attribution unknown. Only a completed receipt becomes
+terminal.
+
+The built-in Git adapter stages the canonical patch in an isolated temporary Git index with fixed
+Git arguments and isolated global/system configuration, leaving the sandbox index untouched even if
+the process is interrupted. It rejects unsafe repository configuration, symbolic publication refs,
+replacement refs, grafts, shallow history metadata, and symlinked object/ref/reflog storage. It
+disables replacement-object lookup and runs each local Git operation through a private Git-directory
+proxy whose fixed common directory is the validated sandbox Git directory, making a sandbox
+`commondir` override inert. It verifies the staged bytes and SHA-256, constructs a single-parent
+commit whose parent is the exact Base SHA, and then
+reads the raw commit-object headers to verify its parent, tree, paths, patch, and fixed message before
+creating the explicit local feature ref. The publication service independently performs the same
+raw-object and local-ref checks. Remote reads and pushes run from a fresh neutral Git client that
+does not load mutable sandbox-local configuration; the service likewise verifies the exact remote
+feature ref from a neutral directory before it records success. `push` uses
+an explicit feature-only refspec with an exact zero-object lease: it either creates an absent remote
+feature ref or recognizes the exact commit as an idempotent no-op. A pre-existing, divergent,
+symbolic, or racing remote ref is never overwritten, and the base ref is never a push destination.
+`draft_pr` additionally requires a
+trusted Draft-PR creator and accepts only a result that remains Draft and binds the approved base,
+feature branch, and exact commit. Deterministic qualification uses a temporary local bare remote and
+explicitly authorizes local repositories only for that test; it covers exact commit and replay,
+temporary-index interruption, lease-guarded creation, divergence, drift, retry reconciliation, capability,
+and Draft-PR boundaries without hosted credentials.
+
+Source-control loading is disabled by default and requires an explicit trusted `module:function`
+factory. That adapter and its optional Draft-PR creator are the credential boundary: ambient Git or
+provider credentials remain host-owned and are not sent to a model or stored in approval and
+publication evidence. Repository and receipt URLs may not embed credentials; relative local paths
+and local repositories are denied by default. Git prompts are disabled, commands use fixed argument
+vectors with `shell=False`, and hooks, signing, unsafe config, external diff helpers, and replacement
+objects are disabled. The public contract grants no arbitrary shell, non-fast-forward history rewrite, ref
+deletion, tag, merge, deployment, or base-branch update authority. P2.3b therefore qualifies the
+provider-neutral transaction and deterministic Git path; it does not claim a live hosted-provider
+or hosted Draft-PR qualification.
 
 ## Context management
 
