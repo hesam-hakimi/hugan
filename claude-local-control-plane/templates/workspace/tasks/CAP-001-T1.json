@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.0",
+  "taskId": "CAP-001-T1",
+  "milestoneId": "M1",
+  "capabilityId": "CAP-001",
+  "objective": "REPLACE_WITH_BOUNDED_IMPLEMENTATION_OBJECTIVE",
+  "acceptanceCriteria": [
+    "REPLACE_WITH_MEASURABLE_ACCEPTANCE_CRITERION"
+  ],
+  "expectedBaseSha": "0000000000000000000000000000000000000000",
+  "roadmapRefs": ["M1", "CAP-001"],
+  "architectureRefs": ["ARCH-001", "ARCH-002"],
+  "authorizedPaths": ["src/example/**", "test/example/**", "docs/example.md"],
+  "prohibitedPaths": [".git/**", ".github/workflows/**", "**/*.vsix"],
+  "requiredChecks": ["compile", "lint", "unit"],
+  "requiresDocumentation": true,
+  "documentationPaths": ["docs/example.md"],
+  "approvalClass": "milestone-preapproved"
+}

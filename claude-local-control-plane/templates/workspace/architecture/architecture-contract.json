@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "principles": [
+    {
+      "id": "ARCH-001",
+      "rule": "Use one authoritative manifest from preview through validation and write.",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "ARCH-002",
+      "rule": "Producer and certifier identities must be distinct.",
+      "enforcement": "deterministic"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "BOUNDARY-001",
+      "owner": "maintainer-control-plane",
+      "paths": [".github/**", "scripts/governance/**"]
+    }
+  ]
+}

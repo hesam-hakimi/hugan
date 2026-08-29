@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["role", "status", "taskId", "baseSha", "summary", "planSteps", "predictedPaths", "checkIds", "roadmapAlignment", "architectureAlignment", "assumptions", "blockers"],
+  "properties": {
+    "role": {"const": "planner"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "taskId": {"type": "string"},
+    "baseSha": {"type": "string"},
+    "summary": {"type": "string"},
+    "planSteps": {"type": "array", "items": {"type": "string"}},
+    "predictedPaths": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "checkIds": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "roadmapAlignment": {"enum": ["PASS", "BLOCKED"]},
+    "architectureAlignment": {"enum": ["PASS", "BLOCKED"]},
+    "assumptions": {"type": "array", "items": {"type": "string"}},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  }
+}

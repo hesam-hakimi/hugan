@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "milestoneId": "M1",
+  "objective": "REPLACE_WITH_APPROVED_MILESTONE_OBJECTIVE",
+  "approvedBy": "REPLACE_WITH_OWNER_IDENTITY",
+  "approvedAt": "2026-01-01T00:00:00.000Z",
+  "approvedCapabilities": ["CAP-001"],
+  "authorizedPathEnvelope": ["src/**", "test/**", "docs/**"],
+  "prohibitedPaths": [".git/**", ".github/workflows/**", "**/*.vsix"],
+  "allowedChecks": ["compile", "lint", "unit"],
+  "roadmapRefs": ["M1", "CAP-001"],
+  "architectureRefs": ["ARCH-001", "ARCH-002"]
+}

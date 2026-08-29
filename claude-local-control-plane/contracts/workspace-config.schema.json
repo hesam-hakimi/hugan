@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/lcac/workspace-config.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runner", "productSources", "checks"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "prefixArgs", "model", "maxTurns", "maxBudgetUsd"],
+      "properties": {
+        "command": {"type": "string", "minLength": 1},
+        "prefixArgs": {"type": "array", "items": {"type": "string"}},
+        "model": {"type": "string", "minLength": 1},
+        "maxTurns": {"type": "integer", "minimum": 1, "maximum": 100},
+        "maxBudgetUsd": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "productSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["roadmap", "architecture"],
+      "properties": {
+        "roadmap": {"type": "string", "minLength": 1},
+        "architecture": {"type": "string", "minLength": 1}
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["argv", "cwd", "timeoutMs"],
+        "properties": {
+          "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "cwd": {"type": "string"},
+          "timeoutMs": {"type": "integer", "minimum": 1000, "maximum": 3600000}
+        }
+      }
+    },
+    "promptLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxSourceBytes": {"type": "integer", "minimum": 1024},
+        "maxDiffBytes": {"type": "integer", "minimum": 1024}
+      }
+    }
+  }
+}

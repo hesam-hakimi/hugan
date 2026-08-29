@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0",
+  "runner": {
+    "command": "claude",
+    "prefixArgs": [],
+    "model": "opus",
+    "maxTurns": 35,
+    "maxBudgetUsd": 12
+  },
+  "productSources": {
+    "roadmap": "product/roadmap.json",
+    "architecture": "architecture/architecture-contract.json"
+  },
+  "checks": {
+    "compile": {
+      "argv": ["npm", "run", "compile"],
+      "cwd": ".",
+      "timeoutMs": 600000
+    },
+    "lint": {
+      "argv": ["npm", "run", "lint"],
+      "cwd": ".",
+      "timeoutMs": 600000
+    },
+    "unit": {
+      "argv": ["npm", "test"],
+      "cwd": ".",
+      "timeoutMs": 1200000
+    }
+  },
+  "promptLimits": {
+    "maxSourceBytes": 200000,
+    "maxDiffBytes": 300000
+  }
+}

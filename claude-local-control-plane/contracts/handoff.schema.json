@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "taskId", "fromRole", "toRole", "fromSessionId", "toSessionId", "baseSha", "taskDigest", "artifactDigests", "issuedAt", "nonce", "signature"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "runId": {"type": "string"},
+    "taskId": {"type": "string"},
+    "fromRole": {"enum": ["orchestrator", "planner", "implementer", "verifier"]},
+    "toRole": {"enum": ["planner", "implementer", "verifier", "orchestrator"]},
+    "fromSessionId": {"type": ["string", "null"]},
+    "toSessionId": {"type": ["string", "null"]},
+    "baseSha": {"type": "string"},
+    "taskDigest": {"type": "string"},
+    "artifactDigests": {"type": "object", "additionalProperties": {"type": "string"}},
+    "issuedAt": {"type": "string", "format": "date-time"},
+    "nonce": {"type": "string"},
+    "signature": {"type": "string"}
+  }
+}

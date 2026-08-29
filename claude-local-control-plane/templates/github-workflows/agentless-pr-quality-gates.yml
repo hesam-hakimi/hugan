@@ -1,0 +1,27 @@
+name: Agentless PR quality gates
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-control-plane:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate control-plane assets
+        run: node claude-local-control-plane/scripts/validate-control-plane.mjs
+      - name: Run control-plane tests
+        run: npm test --prefix claude-local-control-plane
+
+  # Add the target repository's deterministic compile, lint, unit, security,
+  # architecture, boundary, and documentation checks as separate jobs.
+  # Do not invoke Claude or expose deployment secrets in pull_request jobs.

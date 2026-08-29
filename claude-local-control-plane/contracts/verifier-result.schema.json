@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["role", "verdict", "taskId", "baseSha", "reviewedDiffSha256", "requirements", "qualityFindings", "securityFindings", "remainingRisks", "documentationStatus", "independent"],
+  "properties": {
+    "role": {"const": "verifier"},
+    "verdict": {"enum": ["PASS", "BLOCKED"]},
+    "taskId": {"type": "string"},
+    "baseSha": {"type": "string"},
+    "reviewedDiffSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "status", "evidence"],
+        "properties": {
+          "criterion": {"type": "string"},
+          "status": {"enum": ["PASS", "BLOCKED"]},
+          "evidence": {"type": "string"}
+        }
+      }
+    },
+    "qualityFindings": {"type": "array", "items": {"type": "string"}},
+    "securityFindings": {"type": "array", "items": {"type": "string"}},
+    "remainingRisks": {"type": "array", "items": {"type": "string"}},
+    "documentationStatus": {"enum": ["PASS", "BLOCKED", "NOT_REQUIRED"]},
+    "independent": {"const": true}
+  }
+}

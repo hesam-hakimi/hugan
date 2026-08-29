@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/lcac/task-contract.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "taskId",
+    "milestoneId",
+    "capabilityId",
+    "objective",
+    "acceptanceCriteria",
+    "expectedBaseSha",
+    "roadmapRefs",
+    "architectureRefs",
+    "authorizedPaths",
+    "prohibitedPaths",
+    "requiredChecks",
+    "requiresDocumentation",
+    "documentationPaths",
+    "approvalClass"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "taskId": {"type": "string", "minLength": 1},
+    "milestoneId": {"type": "string", "minLength": 1},
+    "capabilityId": {"type": "string", "minLength": 1},
+    "objective": {"type": "string", "minLength": 1},
+    "acceptanceCriteria": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "expectedBaseSha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "roadmapRefs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "architectureRefs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "authorizedPaths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "prohibitedPaths": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "requiredChecks": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "requiresDocumentation": {"type": "boolean"},
+    "documentationPaths": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "approvalClass": {"enum": ["milestone-preapproved", "task-specific"]}
+  }
+}

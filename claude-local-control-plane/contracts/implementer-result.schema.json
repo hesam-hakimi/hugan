@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["role", "status", "taskId", "baseSha", "summary", "declaredChangedPaths", "requestedCheckIds", "blockers"],
+  "properties": {
+    "role": {"const": "implementer"},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "taskId": {"type": "string"},
+    "baseSha": {"type": "string"},
+    "summary": {"type": "string"},
+    "declaredChangedPaths": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "requestedCheckIds": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  }
+}

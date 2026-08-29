@@ -1,0 +1,17 @@
+{
+  "name": "local-agent-control-plane",
+  "description": "Governed local Claude Code planning, bounded implementation, independent verification, and milestone evidence.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Hesam Hakimi"
+  },
+  "repository": "https://github.com/hesam-hakimi/hugan",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "local-agents",
+    "governance",
+    "orchestration",
+    "ci"
+  ]
+}

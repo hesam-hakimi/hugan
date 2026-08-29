@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1.0",
+  "processId": "local-claude-agent-control-plane",
+  "initialState": "INTAKE",
+  "terminalStates": [
+    "DONE",
+    "BLOCKED",
+    "ABORTED"
+  ],
+  "transitions": {
+    "INTAKE": ["BASELINE_CAPTURED", "BLOCKED", "ABORTED"],
+    "BASELINE_CAPTURED": ["PLANNING", "BLOCKED", "ABORTED"],
+    "PLANNING": ["PLAN_READY", "BLOCKED", "ABORTED"],
+    "PLAN_READY": ["IMPLEMENTING", "BLOCKED", "ABORTED"],
+    "IMPLEMENTING": ["BOUNDARY_VERIFIED", "BLOCKED", "ABORTED"],
+    "BOUNDARY_VERIFIED": ["CHECKING", "BLOCKED", "ABORTED"],
+    "CHECKING": ["IMPLEMENTED", "BLOCKED", "ABORTED"],
+    "IMPLEMENTED": ["VERIFYING", "BLOCKED", "ABORTED"],
+    "VERIFYING": ["VERIFIED", "BLOCKED", "ABORTED"],
+    "VERIFIED": ["DOCUMENTATION_CHECKED", "BLOCKED", "ABORTED"],
+    "DOCUMENTATION_CHECKED": ["DONE", "BLOCKED", "ABORTED"],
+    "BLOCKED": ["PLANNING", "ABORTED"],
+    "DONE": [],
+    "ABORTED": []
+  },
+  "roles": {
+    "planner": {
+      "mayWriteSource": false,
+      "mayRunCommands": false,
+      "mayCertify": false
+    },
+    "implementer": {
+      "mayWriteSource": true,
+      "mayRunCommands": false,
+      "mayCertify": false
+    },
+    "verifier": {
+      "mayWriteSource": false,
+      "mayRunCommands": false,
+      "mayCertify": true
+    }
+  },
+  "independence": {
+    "freshProcessPerRole": true,
+    "distinctSessionIds": true,
+    "implementerCannotCertify": true,
+    "verifierCannotModify": true
+  },
+  "automaticHandoff": {
+    "enabledWithinApprovedTask": true,
+    "requiresSignedHandoff": true,
+    "stopsOnScopeExpansion": true,
+    "stopsOnFirstFailedCheck": false,
+    "autoRepairLoops": 0
+  }
+}
