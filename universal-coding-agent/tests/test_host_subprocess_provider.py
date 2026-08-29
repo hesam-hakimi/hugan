@@ -689,8 +689,69 @@ def test_create_provider_uses_explicit_subprocess_pausable_factory(
     provider = create_provider()
 
     assert provider.host_module_path == path.resolve()
-    assert provider.host_python == Path(sys.executable).resolve()
+    assert provider.host_python == Path(sys.executable).absolute()
     assert provider.pausable_completion_factory_name == "create_pausable_completion"
+
+
+def test_provider_preserves_virtual_environment_interpreter_symlink(
+    tmp_path: Path,
+) -> None:
+    if os.name == "nt":
+        pytest.skip("virtual-environment interpreter symlink regression is POSIX-specific")
+
+    environment = tmp_path / "host-environment"
+    interpreter = environment / "bin" / "python"
+    interpreter.parent.mkdir(parents=True)
+    interpreter.symlink_to(Path(sys.executable))
+    (environment / "pyvenv.cfg").write_text(
+        "\n".join(
+            (
+                f"home = {Path(sys.executable).resolve().parent}",
+                "include-system-site-packages = true",
+                f"version = {sys.version.split()[0]}",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    site_packages = (
+        environment
+        / "lib"
+        / f"python{sys.version_info.major}.{sys.version_info.minor}"
+        / "site-packages"
+    )
+    site_packages.mkdir(parents=True)
+    (site_packages / "uca_host_environment_only.py").write_text(
+        'PROBE_TEXT = "UCA_HOST_PROVIDER_OK"\n',
+        encoding="utf-8",
+    )
+    host_module = tmp_path / "venv_host_client.py"
+    host_module.write_text(
+        "\n".join(
+            (
+                "from uca_host_environment_only import PROBE_TEXT",
+                "",
+                "def invoke_text(prompt, max_output_tokens=8):",
+                "    return PROBE_TEXT",
+                "",
+                "def create_client():",
+                "    raise AssertionError('probe must use invoke_text')",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+
+    provider = HostSubprocessProvider(
+        host_module_path=host_module,
+        host_python=interpreter,
+    )
+
+    assert provider.host_python == interpreter.absolute()
+    assert provider.host_python != interpreter.resolve()
+    details = provider.probe_details()
+    assert details["ok"] is True
+    assert details["content"] == "UCA_HOST_PROVIDER_OK"
 
 
 def test_create_provider_maps_blank_subprocess_pausable_factory_to_none(

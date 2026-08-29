@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -14,9 +15,41 @@ def test_host_subprocess_pause_live_qualifies_real_bridge_lifecycle(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
+    host_python = Path(sys.executable)
+    dependency_import = ""
+    if os.name != "nt":
+        environment = tmp_path / "live-host-environment"
+        host_python = environment / "bin" / "python"
+        host_python.parent.mkdir(parents=True)
+        host_python.symlink_to(Path(sys.executable))
+        (environment / "pyvenv.cfg").write_text(
+            "\n".join(
+                (
+                    f"home = {Path(sys.executable).resolve().parent}",
+                    "include-system-site-packages = true",
+                    f"version = {sys.version.split()[0]}",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        site_packages = (
+            environment
+            / "lib"
+            / f"python{sys.version_info.major}.{sys.version_info.minor}"
+            / "site-packages"
+        )
+        site_packages.mkdir(parents=True)
+        (site_packages / "uca_live_host_environment_only.py").write_text(
+            "AVAILABLE = True\n",
+            encoding="utf-8",
+        )
+        dependency_import = "from uca_live_host_environment_only import AVAILABLE"
+
     module = tmp_path / "live_host_subprocess_client.py"
     module.write_text(
-        """
+        f"""
+{dependency_import}
 import threading
 import time
 from types import SimpleNamespace
@@ -73,6 +106,7 @@ def get_configured_model_or_deployment():
     return SimpleNamespace(deployment="fixture")
 
 def create_pausable_completion(**kwargs):
+    assert {"AVAILABLE" if dependency_import else "True"}
     return _Handle()
 """,
         encoding="utf-8",
@@ -88,7 +122,7 @@ def create_pausable_completion(**kwargs):
     )
     provider = HostSubprocessProvider(
         module,
-        sys.executable,
+        host_python,
         pausable_completion_factory_name="create_pausable_completion",
     )
 

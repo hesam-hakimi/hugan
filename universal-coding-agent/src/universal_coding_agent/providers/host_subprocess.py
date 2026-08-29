@@ -51,7 +51,11 @@ class HostSubprocessProvider:
 
     def __post_init__(self) -> None:
         self.host_module_path = Path(self.host_module_path).expanduser().resolve()
-        self.host_python = Path(self.host_python).expanduser().resolve()
+        # Keep the interpreter's final symlink intact.  Virtual environments use
+        # that executable path to discover their adjacent ``pyvenv.cfg``; resolving
+        # it to the base interpreter silently drops the site's installed packages.
+        host_python = Path(self.host_python).expanduser()
+        self.host_python = host_python.parent.resolve() / host_python.name
         if not self.host_module_path.is_file():
             raise ModelProviderError("host_client_not_found", "host client module was not found")
         if not self.host_python.is_file():

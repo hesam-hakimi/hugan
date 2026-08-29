@@ -598,7 +598,9 @@ safe-boundary-only pause behavior remain unchanged. The configured factory runs 
 host Python process and must return the same site-owned result/cancel/done/pause/resume/paused
 handle contract already required by P2.2b. UCA does not infer pause from process state or from a
 quiet output stream, and it never uses `SIGSTOP`/`SIGCONT` or another OS process-suspension
-mechanism.
+mechanism. The configured host-interpreter path is made absolute without dereferencing its final
+symlink, because Python virtual environments rely on that invoked path to discover their adjacent
+`pyvenv.cfg` and site-owned packages.
 
 The opt-in path uses the dedicated `host_subprocess_pause_bridge.py` child-control bridge rather
 than changing the legacy one-shot bridge protocol. UCA launches the child through fixed argv with
