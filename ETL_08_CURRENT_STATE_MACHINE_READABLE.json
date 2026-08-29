@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0",
+  "snapshotDate": "2026-08-29",
+  "project": {
+    "name": "Databricks ETL Copilot Extension",
+    "framework": "Consumer ETL Framework",
+    "extensionId": "td-etl.databricks-etl-copilot",
+    "repositoryRootReported": "C:\\repos\\etl-extension\\etl_fw2\\etl_framework_extension_hf1_v2",
+    "originReported": "https://github.com/TD-Universe/agentic_etl.git",
+    "branchReported": "hotfix/hf1-oracle-fresh-consumer-v2",
+    "headReported": "b2e44c3a1a051aa7fa6008831d225bc06d22e847",
+    "sourceVersionReported": "0.3.146",
+    "artifactReported": "databricks-etl-copilot-0.3.146.vsix"
+  },
+  "status": {
+    "repair13StructuredDiagnostics": "PASS_REPORTED",
+    "phaseHCanonicalRefresh": "PASS_REPORTED",
+    "freshIndependentImplementationReview": "PASS_REPORTED",
+    "artifactBuild": "PASS_REPORTED",
+    "exactArtifactVerification": "PASS_ARTIFACT_VALID_BLOCKED_GOVERNANCE_EXCEPTION",
+    "packageLifecycleGovernance": "BLOCKED",
+    "certificationProvenance": "BLOCKED",
+    "localInstallReady": false,
+    "runtimeQaReady": false,
+    "commitPushSitReleaseAuthorized": false
+  },
+  "latestFullUnitReported": {
+    "passing": 2298,
+    "pending": 1,
+    "failing": 2,
+    "newFunctionalRegressions": 0,
+    "newSecurityRegressions": 0,
+    "knownFailureIds": ["F1", "F3"]
+  },
+  "currentBlockers": [
+    {
+      "id": "VSIX_CREATE_ONLY_EXCEPTION",
+      "summary": "The governance model cannot safely authorize exactly one newly created versioned VSIX while keeping existing VSIX artifacts immutable."
+    },
+    {
+      "id": "CERTIFICATION_PRODUCER_REVIEWER_INDEPENDENCE",
+      "summary": "Missing or ambiguous producer provenance and display-name aliases can make self-certification fail open."
+    }
+  ],
+  "nextTask": {
+    "name": "HF1_V2_REPAIR_PACKAGE_LIFECYCLE_GOVERNANCE_OWNER_DECISIONS_V3",
+    "mode": "fresh_generic_maintainer_implementation_session",
+    "authorizedPaths": [
+      ".github/agent-governance/process-manifest.json",
+      ".github/agent-governance/schemas/process-manifest.schema.json",
+      "scripts/agent-governance/verify-change-boundary.mjs",
+      "scripts/agent-governance/tests/change-boundary-adversarial.test.mjs",
+      "scripts/agent-governance/tests/manifest-registry.test.mjs",
+      "scripts/agent-governance/emit-checkpoint.mjs",
+      "scripts/agent-governance/tests/checkpoint-fidelity.test.mjs",
+      "scripts/agent-governance/validate-customizations.mjs"
+    ],
+    "successMarker": "PASS_READY_FOR_FRESH_INDEPENDENT_GOVERNANCE_REVIEW",
+    "mustNot": [
+      "modify package.json or any VSIX",
+      "modify src/** or resources/copilot/**",
+      "install or activate the Extension",
+      "start Runtime QA",
+      "commit, push, tag, stash, merge, or release",
+      "weaken generic **/*.vsix protection",
+      "use display names as sole trust identity",
+      "self-review the implementation"
+    ]
+  },
+  "evidenceRule": "Re-verify all reported identity, version, artifact, test, and status values from live executable evidence before mutation."
+}
