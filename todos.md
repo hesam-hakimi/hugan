@@ -1,180 +1,171 @@
-TASK: HF1_V2_FRESH_INDEPENDENT_GOVERNANCE_REVIEW
+TASK: HF1_V2_REPAIR_INDEPENDENT_GOVERNANCE_REVIEW_DEFECTS
 
 ROLE
-Act as a genuinely independent repository-governance reviewer.
+Act as the bounded governance-framework implementer.
 
-This is a fresh review session. Do not rely on conclusions, summaries, PASS labels,
-or self-certification produced by the implementation agent. Re-derive every material
-claim directly from repository state, source files, tests, manifests, schemas, and
-current Git state.
+This is a continuation after a genuinely independent review returned:
 
-PRIMARY OBJECTIVE
-Independently review the recently implemented package-lifecycle governance repair.
+OWNER_DECISION_REQUIRED
 
-The implementation claims to have resolved:
+The independent reviewer identified five findings:
 
-1. Create-only VSIX authorization for VERSION_AND_PACKAGE.
-2. Enforcement of the PACKAGE_ARTIFACT_AUTHORIZED token.
-3. Exact artifact identity/version derivation from package.json.
-4. Preservation of generic protection for existing VSIX artifacts.
-5. Separation of producer and certifier stage ownership.
-6. Canonical agent identity resolution.
-7. Fail-closed handling of missing or malformed producer identity.
-8. Static detection of producer-certifies-own-output topology.
-9. Checkpoint and evidence fidelity.
+D1 BLOCKER — GOVERNANCE_GATE_KEYED_TO_SELF_DECLARED_FIELD
+D2 BLOCKER — GOVERNANCE_FRAMEWORK_NOT_VERSION_CONTROLLED
+D3 MAJOR — TASK_ATTRIBUTION_IMPOSSIBLE
+D4 MAJOR — PACKAGE_LIFECYCLE_BLOCKED_AT_CURRENT_VERSION
+D5 MINOR — BOUNDARY_TOOL_DOES_NOT_INHERIT_PROTECT_SET
 
-IMPORTANT
-This is review only.
+OWNER DECISION
 
-Do not:
-- edit repository files;
-- update tests or snapshots;
-- weaken an assertion;
-- regenerate evidence to manufacture a pass;
-- modify governance manifests or schemas;
-- build or install a VSIX;
-- run Runtime QA;
-- commit, stage, stash, reset, push, tag, merge, or create a release;
-- accept the implementation agent’s PASS result without independent proof.
+I authorize a narrowly bounded implementation to repair D1 and D5, and to prepare
+an exact version-control inclusion plan for D2.
 
-REQUIRED REVIEW PROCEDURE
+D3 must be resolved procedurally by capturing a fresh authoritative baseline before
+the first edit.
 
-1. Identity gate
-   Independently record and verify:
-   - repository root;
-   - origin;
-   - branch;
-   - HEAD;
-   - package version;
-   - staged files;
-   - stash entries;
-   - package-lock presence;
-   - concurrent mutation status.
+D4 is deferred to a later VERSION_AND_PACKAGE task. Do not change package.json,
+do not create version 0.3.147, and do not build or modify any VSIX in this task.
 
-2. Baseline and attribution
-   Capture a fresh full-filesystem snapshot, including ignored and protected paths.
-   Derive the actual changed-path set independently.
-   Do not use the implementation report as the attribution authority.
+Do not package, install, activate, run Runtime QA, commit, push, merge, tag, release,
+reset, stash, or modify unrelated files.
 
-3. Review the exact implementation
-   Inspect at minimum:
-   - .github/agent-governance/process-manifest.json
-   - .github/agent-governance/schemas/process-manifest.schema.json
-   - scripts/agent-governance/verify-change-boundary.mjs
-   - scripts/agent-governance/emit-checkpoint.mjs
-   - scripts/agent-governance/validate-customizations.mjs
-   - scripts/agent-governance/tests/change-boundary-adversarial.test.mjs
-   - scripts/agent-governance/tests/manifest-registry.test.mjs
-   - scripts/agent-governance/tests/checkpoint-fidelity.test.mjs
-   - .claude/agents/etl-release-verifier.md
+PHASE 1 — IDENTITY AND BASELINE
 
-4. Independently prove create-only VSIX semantics
-   Verify all of the following:
-   - exactly one newly created VSIX may be authorized;
-   - authorization is restricted to VERSION_AND_PACKAGE;
-   - PACKAGE_ARTIFACT_AUTHORIZED is required;
-   - artifact filename, extension id, and version are derived from package.json;
-   - wrong version fails closed;
-   - wrong filename fails closed;
-   - creation in another stage fails closed;
-   - two created VSIX files fail closed;
-   - modification of an existing VSIX remains blocked;
-   - replacement or deletion of an existing VSIX remains blocked;
-   - the generic VSIX protection rule remains effective.
+Before the first edit:
 
-5. Independently prove producer/certifier separation
-   Verify:
-   - VERSION_AND_PACKAGE has a producer owner appropriate for local artifact creation;
-   - EXACT_PACKAGE_VERIFICATION has a distinct certifier owner;
-   - aliases and display names cannot bypass identity comparison;
-   - missing or malformed producer identity fails closed;
-   - a stage owner cannot certify its own produced artifact;
-   - the static topology validator detects producer-certifies-own-output configurations;
-   - no agent gained write, install, execution, approval, preview, deployment, or release authority.
+1. Record repository root, origin, branch, HEAD, package version, staged files,
+   stash entries, tracked/untracked/ignored state, and VSIX inventory.
+2. Capture a full filesystem baseline using both:
+   - the canonical governance baseline mechanism;
+   - an independent OS-level path/size/SHA-256 snapshot.
+3. Explicitly enumerate the pre-existing 86 modified entries.
+4. Establish the exact authorized path set before editing.
+5. If attribution cannot be made reliable, stop with
+   BLOCKED_BASELINE_OR_ATTRIBUTION_FAILURE.
 
-6. Run canonical validations
-   Run the repository-defined canonical commands for:
-   - manifest schema validation;
-   - manifest registry tests;
-   - boundary adversarial tests;
-   - checkpoint fidelity tests;
-   - customization validation;
-   - governance unit tests;
-   - agent invariant/authority checks;
-   - package asset byte-lock tests;
-   - compile;
-   - compile:test;
-   - lint;
-   - Repair 11, 12, and 13 suites;
-   - Runtime QA support fixture suite;
-   - canonical full unit suite.
+PHASE 2 — REPAIR D1
 
-Do not substitute approximate commands. If a command is unavailable or ambiguous,
-report it as unverified.
+Repair the self-certification control so it is derived from objective repository
+facts and not from reviewer-provided provenance.certifiedPaths.
 
-7. Reconcile known failures
-   Determine by exact test identity whether F1 and F3:
-   - pre-existed this task;
-   - are unchanged;
-   - are unrelated to the governance repair.
+Requirements:
 
-Do not classify them only by aggregate test counts.
+- Determine governance-authority paths from the actual changed-path set,
+  stage ownership and manifest authority definitions.
+- A reviewer must not bypass the gate by:
+  - omitting certifiedPaths;
+  - supplying [];
+  - supplying unrelated paths;
+  - supplying incomplete paths;
+  - changing display name or alias.
+- The gate must detect when a reviewer is certifying changes within its own
+  governance authority.
+- Missing, malformed, inconsistent or incomplete provenance must fail closed.
+- Do not broaden any reviewer or agent authority.
+- Preserve legitimate fresh-generic-session and external-pinned-reviewer behavior.
 
-8. Adversarial review
-   Attempt to falsify the repair using negative controls, including:
-   - remove the required token;
-   - change the artifact version;
-   - create a second VSIX;
-   - use an existing VSIX path;
-   - assign producer and certifier to the same canonical identity;
-   - use an alias/display-name collision;
-   - omit producer identity;
-   - provide malformed producer identity.
+Add focused positive and adversarial tests proving all of the above.
 
-Use an isolated temporary mirror for destructive negative controls.
-Restore and hash-verify the mirror after every control.
-Do not perform these mutations in the live repository.
+PHASE 3 — REPAIR D5
 
-9. Final boundary proof
-   Recompute:
-   - authorized changed paths;
-   - unauthorized changed paths;
-   - protected paths;
-   - package.json status;
-   - package-lock status;
-   - VSIX inventory and hashes;
-   - staged/stash state;
-   - source version;
-   - commit/push/tag/install/runtime-QA status.
+Repair verify-change-boundary.mjs so the protected-path set is derived correctly
+when --protect is omitted.
 
-FINAL REPORT
+Requirements:
 
-Report explicit values for:
+- Use the canonical manifest/schema protection definitions.
+- Explicit --protect input must remain supported.
+- Omission must not classify generated out/** files as control-plane changes.
+- Malformed or unavailable protection configuration must fail closed.
+- Add regression tests for:
+  - omitted --protect;
+  - explicit --protect;
+  - malformed protected-path configuration;
+  - ignored/generated output;
+  - actual protected-path changes.
+
+PHASE 4 — D2 VERSION-CONTROL PLAN
+
+Do not blindly stage or commit the current dirty working tree.
+
+Produce an exact inclusion inventory for:
+
+- .github/agent-governance/**
+- scripts/agent-governance/**
+- the enforcing workflow(s);
+- required agent definitions;
+- required .gitignore changes, if any.
+
+For every candidate file report:
+
+- tracked/untracked/ignored status;
+- whether it is required at runtime;
+- whether it is required for validation;
+- whether it existed before this task;
+- whether its content changed during this task;
+- recommended inclusion or exclusion;
+- reason.
+
+Prove that unrelated source files, VSIX files, build outputs, temporary evidence,
+and the 86 pre-existing changes are excluded.
+
+Do not create the commit. Produce a proposed commit manifest for owner approval.
+
+PHASE 5 — VALIDATION
+
+Run all canonical applicable validations, including:
+
+- manifest schema validation;
+- manifest registry tests;
+- change-boundary adversarial tests;
+- checkpoint fidelity tests;
+- customization validation;
+- governance unit tests;
+- agent invariant/authority checks;
+- package asset byte-lock tests;
+- compile;
+- compile:test;
+- lint;
+- Repair 11, 12 and 13 suites;
+- Runtime QA support fixture suite;
+- canonical full unit suite.
+
+Reconcile F1 and F3 by exact identity and prove they remain unchanged.
+
+Use isolated temporary mirrors for destructive negative controls.
+Do not mutate the live repository for a negative test.
+
+PHASE 6 — FINAL BOUNDARY PROOF
+
+Compare the post-task tree against both pre-task baselines.
+
+Report:
 
 IDENTITY_GATE
-INDEPENDENCE_GATE
-REPOSITORY_MUTATED_BY_REVIEW
+INDEPENDENT_BASELINE_CAPTURED
 AUTHORIZED_CHANGED_PATHS
 UNAUTHORIZED_CHANGED_PATHS
-CREATE_ONLY_VSIX_EXCEPTION_VALID
-CREATE_ONLY_VSIX_NEGATIVE_CONTROLS_PASS
-EXISTING_VSIX_PROTECTION_INTACT
-PACKAGE_ARTIFACT_TOKEN_ENFORCED
-ARTIFACT_IDENTITY_DERIVED_CANONICALLY
-PRODUCER_CERTIFIER_DISTINCT
-CANONICAL_IDENTITY_RESOLUTION_ENFORCED
-MISSING_PRODUCER_FAILS_CLOSED
-SELF_CERTIFICATION_BLOCKED
-STATIC_TOPOLOGY_VALIDATION_PASS
+D1_OBJECTIVE_CHANGE_DERIVATION_IMPLEMENTED
+D1_OMISSION_BYPASS_BLOCKED
+D1_EMPTY_LIST_BYPASS_BLOCKED
+D1_INCOMPLETE_LIST_BYPASS_BLOCKED
+D1_ALIAS_BYPASS_BLOCKED
+D1_FAIL_CLOSED
+D5_CANONICAL_PROTECT_SET_INHERITED
+D5_EXPLICIT_PROTECT_SUPPORTED
+D5_GENERATED_OUTPUT_FALSE_POSITIVES
+D2_PROPOSED_COMMIT_MANIFEST
+D2_UNRELATED_CHANGES_EXCLUDED
 AGENT_AUTHORITY_BROADENED
-GOVERNANCE_TESTS_PASS
+PACKAGE_JSON_CHANGED
+VSIX_CHANGED_OR_CREATED
 COMPILE_PASS
 COMPILE_TEST_PASS
 LINT_PASS
+GOVERNANCE_TESTS_PASS
 REPAIR_11_PASS
 REPAIR_12_PASS
 REPAIR_13_PASS
-RUNTIME_QA_SUPPORT_FIXTURE_PASS
 FULL_UNIT_PASSING
 FULL_UNIT_PENDING
 FULL_UNIT_FAILING
@@ -182,24 +173,12 @@ F1_UNCHANGED
 F3_UNCHANGED
 NEW_FUNCTIONAL_REGRESSIONS
 NEW_SECURITY_REGRESSIONS
-READY_FOR_VERSION_AND_PACKAGE
-READY_FOR_EXACT_PACKAGE_VERIFICATION
-READY_FOR_INSTALL
-READY_FOR_RUNTIME_QA
-
-VERDICT RULES
-
-Return PASS only if every required governance and regression claim is independently
-proven and the live repository remains unchanged by the review.
+READY_FOR_OWNER_APPROVAL_OF_GOVERNANCE_COMMIT
 
 Allowed terminal verdicts:
 
-- PASS_READY_TO_RESUME_PACKAGE_LIFECYCLE
+- PASS_READY_FOR_OWNER_APPROVAL_OF_GOVERNANCE_COMMIT
+- BLOCKED_BASELINE_OR_ATTRIBUTION_FAILURE
 - BLOCKED_IMPLEMENTATION_DEFECT
-- BLOCKED_GOVERNANCE_DEFECT
-- BLOCKED_UNPROVEN_INDEPENDENCE
-- BLOCKED_ENVIRONMENT_OR_CAPTURE_FAILURE
+- BLOCKED_UNAUTHORIZED_CHANGE
 - OWNER_DECISION_REQUIRED
-
-Do not repair any issue discovered. Report exact evidence and the minimum recommended
-follow-up boundary.
