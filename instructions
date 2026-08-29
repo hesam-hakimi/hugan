@@ -747,3 +747,8 @@ test "$(git rev-parse 'HEAD^{tree}')" = "$HOST_SUBPROCESS_PAUSE_TREE_BEFORE"
 test -z "$(git status --porcelain)"
 echo "HOST_SUBPROCESS_ACTIVE_PAUSE_LIVE_PASS"
 ```
+
+Qualified Azure evidence: HEAD `5c8cd4f5e93a534c0fca19610991cc45b87c3b75`, tree
+`9b9e9bbe594b0f606984319f8e43a9c9cfd2697c`, pause control call `638.766 ms`, resume control call
+`39.336 ms`, stable paused-and-unfinished window `1500 ms`, durable report reload, successful
+completion after resume, zero invocation errors, and preserved clean source.

@@ -621,9 +621,19 @@ background handle exposes observation and cancellation but no provider pause pri
 local response polling would not pause remote inference and therefore cannot produce an active
 pause acknowledgement. Deterministic coverage exercises the opt-in bridge contract, exact owned
 provider registration, acknowledgement state, cancellation precedence, and the unchanged legacy
-path. P2.2d remains pending until its dedicated trusted Azure live qualification demonstrates a
-stable unfinished pause window, resumed progress, durable redacted evidence, and exact source
-preservation. No completion metrics or source identity are claimed before that qualification.
+path.
+
+P2.2d completed its dedicated adapter-level qualification on the trusted Azure host against HEAD
+`5c8cd4f5e93a534c0fca19610991cc45b87c3b75` with tree
+`9b9e9bbe594b0f606984319f8e43a9c9cfd2697c`. The site-owned HostSubprocess handle acknowledged
+pause within the bounded control call (`638.766 ms`), remained paused and unfinished for the full
+`1500 ms` stability window, acknowledged resume (`39.336 ms` control call), and resumed to
+successful completion with no invocation errors. The exact durable redacted report reloaded after
+reopening the control store, with one owned pausable `provider` operation, zero unsupported active
+operations, no cooperative fallback, and preserved clean source HEAD and tree. This completes
+P2.2d for the explicitly configured HostSubprocess adapter only; unconfigured HostSubprocess
+providers retain the legacy one-shot bridge, owned-process cancellation, and safe-boundary-only
+pause semantics.
 
 ## Context management
 

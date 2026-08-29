@@ -49,7 +49,7 @@
 - [x] P2.2a provider-neutral fail-closed pausable-operation contract foundation with exact owned-handle registration, bounded pause/resume acknowledgement, durable redacted evidence, safe-boundary fallback, cancellation precedence, and no production transport claim;
 - [x] P2.2b opt-in Host Chat pausable-handle adapter with fail-closed configuration, deterministic and HTTP coverage, cancellation precedence, durable redacted evidence, source preservation, and dedicated `llama-cpp-python` live host qualification;
 - [x] P2.2c opt-in trusted-test cooperative pausable-handle adapter with fail-closed configuration, deterministic, Safe graph, HTTP, cancellation, durable-evidence, and source-preservation coverage, plus dedicated adapter-level live host qualification;
-- [ ] P2.2d opt-in HostSubprocess cooperative pausable-handle adapter with a strict bounded child-control bridge, underlying-handle acknowledgements, cancellation precedence, redacted evidence, unchanged legacy behavior, and dedicated Azure live qualification;
+- [x] P2.2d opt-in HostSubprocess cooperative pausable-handle adapter with a strict bounded child-control bridge, underlying-handle acknowledgements, cancellation precedence, redacted evidence, unchanged legacy behavior, and dedicated Azure live qualification;
 - [ ] cancellable adapters for any further supported in-process/remote provider transport;
 - [ ] active pause of any further already-running provider or trusted-test transport;
 - publish approval;
