@@ -1,348 +1,484 @@
-TASK: HF1_V2_SEPARATE_EXACT_PACKAGE_VERIFICATION_0_3_146_READ_ONLY
+TASK: HF1_V2_REPAIR_PACKAGE_LIFECYCLE_GOVERNANCE_OWNER_DECISIONS_V4
 
-Perform a separate, exact, read-only verification of the newly built version
-0.3.146 VSIX.
+ROLE
 
-Use a fresh Claude harness chat in the source repository and select the
-repository lifecycle Agent:
+Act as a fresh maintainer-side implementation Agent.
 
-etl-release-verifier
+You are not:
 
-Do not use the consumer-workspace Agent named “ETL Verifier”.
+* a consumer ETL Agent;
+* ETL Orchestrator;
+* the later independent reviewer;
+* authorized to install, activate, run, commit, push, or release the Extension.
 
-Work only against:
+Use Claude Opus 5 Max in the local VS Code Agent environment.
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Bypass Permissions may be used only to avoid repetitive confirmations for repository-local reads, the nine authorized edits, temporary evidence files, and approved validation commands. It does not broaden the authorized path set or permit Git, installation, packaging, Runtime QA, or external side effects.
 
-Treat the previous packaging report, its checkpoint, stated hashes, counts, and
-PASS result as untrusted claims to re-derive independently.
+Communicate progress and conclusions to the owner in Persian. Keep repository files, code, tests, identifiers, and final technical reports in English.
 
-This task is exact package verification only.
-
-Do not edit any repository file.
-Do not rebuild or replace the VSIX.
-Do not change the version.
-Do not install or uninstall the extension.
-Do not reload VS Code for activation.
-Do not access the Development Test Workspace.
-Do not start Runtime QA.
-Do not run Preview or Write.
-Do not commit, push, tag, stage, stash, reset, restore, or clean.
-Do not create package-lock.json.
-Do not download or install dependencies.
-Do not repair the governance manifest in this session.
+This is a continuation of the previous V3 investigation. Do not restart broad architecture discovery.
 
 ==================================================
 
-1. IDENTITY AND NON-MUTATION GATE
+1. EXPECTED REPOSITORY IDENTITY
     ==================================================
 
-Verify independently:
+Verify before any edit. Do not assume these values are still current.
 
-REPOSITORY_ROOT:
+Repository root:
+
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-ORIGIN:
+Origin:
+
 https://github.com/TD-Universe/agentic_etl.git
 
-BRANCH:
+Branch:
+
 hotfix/hf1-oracle-fresh-consumer-v2
 
-HEAD:
+Last reported HEAD:
+
 b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-SOURCE_VERSION:
+Expected package/source version:
+
 0.3.146
 
-Required:
+Existing target artifact:
 
-* exactly one effective repository target;
-* staged files: 0;
-* stash entries: 0;
-* package-lock.json absent;
-* no concurrent Agent mutation;
-* exactly one newly attributable 0.3.146 VSIX;
-* all earlier VSIX artifacts present and unchanged.
+databricks-etl-copilot-0.3.146.vsix
 
-Target artifact:
+Extension ID:
 
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2\databricks-etl-copilot-0.3.146.vsix
+td-etl.databricks-etl-copilot
 
-Capture a complete OS-level hash snapshot before inspection, including ignored
-and untracked protected files. Repeat it afterward.
+Required identity checks:
 
-If inline command capture is empty, use file-redirected process execution under
-the OS temporary directory. Require real stdout, stderr, executable identity, and
-exit codes. Do not modify the repository to repair execution.
+* repository root;
+* origin;
+* branch;
+* HEAD;
+* source version;
+* package-lock state;
+* staged-file count;
+* stash count;
+* concurrent Agent mutation;
+* existing VSIX inventory.
 
-==================================================
-2. EXACT ARTIFACT IDENTITY
-
-Derive directly from the VSIX bytes:
-
-* absolute path;
-* filename;
-* byte size;
-* SHA-256;
-* ZIP entry count;
-* duplicate ZIP entry count;
-* extension ID;
-* publisher;
-* extension name;
-* archive manifest version;
-* embedded package.json version.
-
-Expected identity:
-
-* filename: databricks-etl-copilot-0.3.146.vsix
-* extension ID: td-etl.databricks-etl-copilot
-* version: 0.3.146
-* reported packaging size to verify independently: 1,262,112 bytes
-* reported entry count to verify independently: 66
-
-Do not copy the previously reported SHA-256. Compute it independently twice from
-the artifact bytes and require equality.
-
-Reject:
-
-* malformed ZIP structure;
-* unreadable entries;
-* duplicate or traversal entries;
-* absolute archive paths;
-* paths escaping the extension root;
-* inconsistent versions;
-* incorrect extension identity;
-* secrets, credentials, temporary logs, machine-specific paths, or unexpected
-    repository files.
+Stop before editing if identity differs materially or another Agent is modifying the repository.
 
 ==================================================
-3. SOURCE-TO-PACKAGE PROVENANCE
+2. ACCEPTED V3 INVESTIGATION RESULT
 
-Independently compare every packaged non-build entry with its intended live source.
+The previous V3 session correctly stopped before editing.
+
+Its reported outcome was:
+
+IDENTITY_GATE: PASS
+PROCESS_EXECUTION_GATE: PASS
+CONCURRENT_AGENT_MUTATION: NO
+INDEPENDENT_BASELINE_CAPTURED: YES
+AUTHORIZED_CHANGED_PATHS: NONE
+UNAUTHORIZED_CHANGED_PATHS: NONE
+CREATE_ONLY_VSIX_GLOBAL_PROTECTION_INTACT: YES
+AGENT_AUTHORITY_BROADENED: NO
+PACKAGE_JSON_UNCHANGED: YES
+VERSION_REMAINS_0_3_146: YES
+PACKAGE_LOCK_ABSENT: YES
+ALL_VSIX_ARTIFACTS_IDENTICAL: YES
+NEW_FUNCTIONAL_REGRESSIONS: 0
+NEW_SECURITY_REGRESSIONS: 0
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_ADDITIONAL_PATH_REQUIRED
+
+The exact additional path identified was:
+
+.claude/agents/etl-release-verifier.md
+
+The investigation found:
+
+1. verify-change-boundary.mjs calculates the change kind but the protected-path exception does not enforce it.
+2. The current exception model cannot safely express “exactly one newly CREATED VSIX.”
+3. emit-checkpoint.mjs still relies on an incomplete/display-name-based producer-versus-certifier comparison.
+4. etl-release-verifier currently owns both VERSION_AND_PACKAGE and EXACT_PACKAGE_VERIFICATION.
+5. That co-ownership creates one production/certification authority conflict.
+6. Correcting the manifest without updating the Agent declaration would leave inconsistent ownership metadata.
+7. No V3 edit or test execution occurred.
+
+Treat these as investigation evidence to re-confirm, not as automatic permission to skip the identity and baseline gates.
+
+==================================================
+3. AUTHORIZED CHANGE BOUNDARY — EXACTLY NINE PATHS
+
+Only these nine repository paths may be modified:
+
+1. .github/agent-governance/process-manifest.json
+2. .github/agent-governance/schemas/process-manifest.schema.json
+3. scripts/agent-governance/verify-change-boundary.mjs
+4. scripts/agent-governance/tests/change-boundary-adversarial.test.mjs
+5. scripts/agent-governance/tests/manifest-registry.test.mjs
+6. scripts/agent-governance/emit-checkpoint.mjs
+7. scripts/agent-governance/tests/checkpoint-fidelity.test.mjs
+8. scripts/agent-governance/validate-customizations.mjs
+9. .claude/agents/etl-release-verifier.md
+
+No other repository path is authorized.
+
+Specifically prohibited:
+
+* package.json;
+* package-lock.json;
+* any existing or new VSIX;
+* src/**;
+* resources/copilot/**;
+* consumer Agent resources;
+* test-pattern registration files;
+* prompts or instructions outside the exact list;
+* consumer workspaces;
+* QA workspaces;
+* installed Extension state;
+* Git commit, push, tag, stash, reset, or branch changes.
+
+If a correct implementation still requires a tenth path, stop before the first edit or roll back only this task’s uncommitted changes safely, then report the exact additional path and why it is unavoidable.
+
+Do not land a partial Decision A or Decision B.
+
+==================================================
+4. PRE-EDIT BASELINE
+
+Before changing any file:
+
+1. Read all applicable repository instructions and governance contracts.
+2. Capture the canonical governance baseline.
+3. Capture an independent OS-level full-tree snapshot.
+4. Include ignored and protected files.
+5. Do not rely only on git ls-files.
+6. Record every existing VSIX by exact path, size, and SHA-256.
+7. Record package.json and package-lock state.
+8. Record all nine authorized files by path and SHA-256.
+9. Record protected paths outside the boundary.
+10. Verify that the V3 investigation introduced no repository mutation.
+
+Baseline evidence must distinguish:
+
+* pre-existing working-tree content;
+* current task changes;
+* ignored artifacts;
+* protected paths;
+* temporary evidence stored outside the repository.
+
+==================================================
+5. DECISION A — SAFE CREATE-ONLY VSIX EXCEPTION
+
+Implement a narrow machine-enforced exception for VERSION_AND_PACKAGE.
+
+The exception must authorize only the lifecycle that the stage legitimately requires:
+
+* exactly one new VSIX;
+* change kind exactly CREATED;
+* exact expected artifact identity;
+* exact current version;
+* no existing VSIX mutation;
+* no global weakening of **/*.vsix protection.
+
+Required manifest/schema semantics must include the minimum machine-enforceable equivalent of:
+
+* allowedChangeKinds: [“CREATED”];
+* maximum or exact new-artifact count: 1;
+* exact artifact identity derivation;
+* required separate authorization token;
+* stage-specific applicability;
+* schema validation with additionalProperties remaining false.
+
+Do not add fields that the verifier ignores.
+
+The verifier must enforce:
+
+1. The protected-path exception exists for the exact stage.
+2. The supplied authorization token is correct.
+3. The observed change kind is allowed.
+4. Exactly one new VSIX is present.
+5. The artifact filename is derived from package name/version.
+6. The packaged Extension ID matches the expected identity.
+7. The packaged version matches package.json.
+8. No pre-existing VSIX was content-changed.
+9. No pre-existing VSIX was replaced.
+10. No pre-existing VSIX was renamed.
+11. No pre-existing VSIX was removed.
+12. No second VSIX was created.
+13. The exception applies only to VERSION_AND_PACKAGE.
+14. Generic **/*.vsix protection remains intact for every other stage and change kind.
+
+Do not use newest-mtime selection, an unconstrained glob, or a handwritten filename constant as the sole identity proof.
+
+==================================================
+6. DECISION A — REQUIRED ADVERSARIAL MATRIX
+
+Exercise the real compareSnapshots / protected-path verifier route.
+
+Required cases:
+
+* correct single new versioned VSIX + exact token → pass;
+* exception absent → block;
+* wrong stage → block;
+* missing token → block;
+* wrong token → block;
+* CONTENT_CHANGED existing VSIX → block;
+* DELETED existing VSIX → block;
+* renamed/replaced existing VSIX → block;
+* two newly created VSIX files → block;
+* wrong package name → block;
+* wrong version in filename → block;
+* wrong internal package version → block;
+* wrong Extension ID → block;
+* artifact outside allowed identity → block;
+* non-VSIX protected-path control → remain blocked;
+* unrelated stage attempting VSIX creation → block.
+
+Include at least one mutation control proving the test fails if change-kind enforcement is removed.
+
+==================================================
+7. DECISION B — DISTINCT PRODUCER AND CERTIFIER
+
+Repair the existing checkpoint/governance system. Do not create a parallel policy engine.
+
+Required outcomes:
+
+* VERSION_AND_PACKAGE production authority and EXACT_PACKAGE_VERIFICATION certification authority are distinct;
+* etl-release-verifier must not own both stages;
+* .claude/agents/etl-release-verifier.md must agree with the canonical process manifest;
+* missing producer identity fails closed;
+* malformed or wrong-typed provenance fails closed;
+* ambiguous producer identity fails closed;
+* producer and certifier identities are resolved canonically;
+* aliases or different display names cannot conceal the same actor;
+* producer and certifier must be different when independent certification is required;
+* required implementation/review session IDs must be distinct;
+* the producer cannot certify the artifact it produced;
+* static manifest/customization validation detects impossible independence topology;
+* no new Agent is created;
+* no Agent gains new write, approval, installation, Preview, deployment, or runtime authority.
+
+Do not determine trust solely from a user-facing Agent name.
+
+Do not merely remove a stage name from one file. Keep the process manifest, schema, Agent declaration, checkpoint emitter, and validators mutually consistent.
+
+Derive the correct owner/actor arrangement from the repository’s existing governance model. Do not invent an unregistered reviewer or a new Agent.
+
+==================================================
+8. DECISION B — REQUIRED NEGATIVE MATRIX
+
+At minimum, prove:
+
+* missing implementedBy/producer identity → block;
+* null producer → block;
+* empty producer → block;
+* malformed provenance object → block;
+* wrong-typed producer → block;
+* producer equals certifier → block;
+* producer alias equals certifier canonical identity → block;
+* same display name but different unproven identity → block or remain untrusted;
+* distinct valid producer/certifier identities → pass;
+* same session ID where separation is required → block;
+* distinct valid session IDs → pass;
+* etl-release-verifier production/certification co-ownership → static validation failure;
+* corrected ownership topology → static validation pass;
+* consumer ETL Agent cannot become a source-governance certifier;
+* unknown reviewer remains fail closed;
+* no SELF_CERTIFICATION or CERTIFIED_OWN_IMPLEMENTATION bypass remains.
+
+Include mutation controls for:
+
+* removal of missing-producer fail-closed logic;
+* replacement of canonical identity comparison with display-name-only comparison;
+* restoration of dual stage ownership.
+
+==================================================
+9. REQUIRED VALIDATION
+
+Use repository-canonical commands. Record every invoked command/tool and its real exit code.
+
+Run, at minimum:
+
+1. Process-manifest schema validation.
+2. Manifest registry tests.
+3. Change-boundary adversarial tests.
+4. Checkpoint-fidelity tests.
+5. Customization validation.
+6. Governance unit tests.
+7. Agent invariant and authority checks.
+8. Package asset byte-lock tests.
+9. Compile.
+10. Compile-test.
+11. Lint.
+12. Repair 11 focused suites.
+13. Repair 12 focused suites.
+14. Repair 13 focused suites.
+15. Runtime QA support fixture suite.
+16. Canonical full unit suite.
+17. Independent post-edit boundary comparison.
+
+Do not run tests against stale compiled output. Perform the repository’s canonical clean compile before the final full-suite run when required.
+
+The previously reported full-unit state was:
+
+2298 passing
+1 pending
+2 failing
+
+The two known failures were:
+
+F1:
+missing .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
+
+F3:
+existing src/**/AGENT.md files versus expected AGENTS.md guidance
+
+Re-derive the live results by exact test identity.
+
+Do not modify F1/F3 paths, remove tests, weaken expectations, or regenerate unrelated baselines in this task.
+
+==================================================
+10. POST-EDIT BOUNDARY PROOF
+
+At close, independently compare the full tree against the pre-edit baseline.
+
+Required proof:
+
+* authorized changed paths are a subset of the nine declared paths;
+* unauthorized changed paths: none;
+* package.json unchanged;
+* package-lock state unchanged;
+* package version remains 0.3.146;
+* all existing VSIX artifacts byte-identical;
+* no new VSIX created;
+* Repair 13 source unchanged;
+* consumer Agent assets unchanged;
+* QA workspace untouched;
+* Extension not installed or uninstalled;
+* Runtime QA not started;
+* no commit, push, tag, stash, or branch mutation;
+* temporary evidence exists only outside the repository.
+
+==================================================
+11. REQUIRED FINAL REPORT
 
 Report:
 
-* exact matching source entries;
-* generated build entries;
-* synchronized consumer-Agent resource entries;
-* version-only metadata entries;
-* missing expected entries;
-* unexpected entries;
-* byte mismatches;
-* entries with no provenance.
+1. Identity gate.
+2. Process-execution gate.
+3. Concurrent-Agent state.
+4. Baseline methods and coverage.
+5. Exact authorized changed paths.
+6. Exact unauthorized changed paths.
+7. Decision A implementation mapping:
+    requirement → source change → test.
+8. Decision A complete adversarial matrix.
+9. Decision B ownership model before and after.
+10. Decision B canonical identity/provenance enforcement.
+11. Decision B complete negative matrix.
+12. Mutation-control evidence.
+13. All test commands and exit codes.
+14. Full-suite count and exact failure reconciliation.
+15. Final boundary and VSIX byte-identity proof.
+16. Remaining findings.
+17. Honest readiness state.
 
-Verify specifically that the packaged consumer-facing Agent assets are generated
-from the canonical catalog and remain semantically and byte consistent where the
-contract requires it.
+Required terminal fields:
 
-Verify presence and correctness of:
+IDENTITY_GATE: PASS|BLOCKED
+PROCESS_EXECUTION_GATE: PASS|BLOCKED
+CONCURRENT_AGENT_MUTATION: NO|YES
+INDEPENDENT_BASELINE_CAPTURED: YES|NO
 
-* ETL Orchestrator;
-* ETL Implementer;
-* ETL Verifier;
-* ETL Runtime Troubleshooter;
-* ETL Evidence Researcher;
-* ETL Operator;
-* their instructions, skills, prompts, and required context resources;
-* the Runtime QA support fixture and structured-diagnostic support introduced
-    before packaging.
+AUTHORIZED_CHANGED_PATHS: 
+UNAUTHORIZED_CHANGED_PATHS: NONE|
 
-Confirm that user-facing behavior remains:
+CREATE_ONLY_VSIX_EXCEPTION_ADDED: YES|NO
+CREATE_ONLY_VSIX_CHANGE_KIND_ENFORCED: YES|NO
+CREATE_ONLY_VSIX_EXACT_COUNT_ENFORCED: YES|NO
+CREATE_ONLY_VSIX_EXACT_IDENTITY_ENFORCED: YES|NO
+CREATE_ONLY_VSIX_NEGATIVE_MATRIX_PASS: YES|NO
+CREATE_ONLY_VSIX_GLOBAL_PROTECTION_INTACT: YES|NO
 
-* only ETL Orchestrator is user-facing;
-* the other consumer Agents are internal delegates;
-* internal delegates did not become user-invocable;
-* tool sets and delegated authority were not broadened.
+PRODUCER_IDENTITY_RESOLUTION_ADDED: YES|NO
+CERTIFIER_IDENTITY_RESOLUTION_ADDED: YES|NO
+PRODUCER_CERTIFIER_INDEPENDENCE_ENFORCED: YES|NO
+MISSING_PRODUCER_FAILS_CLOSED: YES|NO
+CANONICAL_ALIAS_SELF_CERTIFICATION_BLOCKED: YES|NO
+PRODUCER_CERTIFIER_STAGE_OWNERSHIP_DISTINCT: YES|NO
+STATIC_CERTIFICATION_TOPOLOGY_VALIDATED: YES|NO
+SELF_CERTIFICATION_BYPASSES: 0|
 
-==================================================
-4. DIFFERENTIAL VERIFICATION
+AGENT_AUTHORITY_BROADENED: NO|YES
+NEW_AGENT_CREATED: NO|YES
 
-Compare 0.3.146 with the immediately preceding 0.3.145 VSIX.
+GOVERNANCE_UNIT_TESTS: PASS|FAIL
+CHECKPOINT_FIDELITY_TESTS: PASS|FAIL
+CHANGE_BOUNDARY_ADVERSARIAL_TESTS: PASS|FAIL
+MANIFEST_REGISTRY_TESTS: PASS|FAIL
+CUSTOMIZATION_VALIDATION: PASS|FAIL
+COMPILE_PASS: YES|NO
+COMPILE_TEST_PASS: YES|NO
+LINT_PASS: YES|NO
+REPAIR_11_PASS: YES|NO
+REPAIR_12_PASS: YES|NO
+REPAIR_13_PASS: YES|NO
+RUNTIME_QA_SUPPORT_FIXTURE_PASS: YES|NO
+PACKAGE_ASSET_BYTE_LOCK_PASS: YES|NO
 
-Enumerate every archive difference by exact path and classify it as:
+FULL_UNIT_PASSING: 
+FULL_UNIT_PENDING: 
+FULL_UNIT_FAILING: 
+F1_UNCHANGED: YES|NO
+F3_UNCHANGED: YES|NO
+NEW_FUNCTIONAL_REGRESSIONS: 
+NEW_SECURITY_REGRESSIONS: 
 
-* authorized version metadata;
-* deterministic rebuilt bundle;
-* synchronized consumer-Agent resource;
-* Runtime QA/structured-diagnostic implementation;
-* unexpected.
+PACKAGE_JSON_UNCHANGED: YES|NO
+VERSION_REMAINS_0_3_146: YES|NO
+PACKAGE_LOCK_STATE_UNCHANGED: YES|NO
+EXISTING_VSIX_BYTE_IDENTICAL: YES|NO
+NEW_VSIX_CREATED: NO|YES
+REPAIR_13_SOURCE_UNCHANGED: YES|NO
+CONSUMER_AGENT_ASSETS_UNCHANGED: YES|NO
+QA_WORKSPACE_TOUCHED: NO|YES
+EXTENSION_INSTALLED_OR_UNINSTALLED: NO|YES
+RUNTIME_QA_STARTED: NO|YES
+COMMIT_CREATED: NO|YES
+PUSH_EXECUTED: NO|YES
 
-The packaging report claimed:
+READY_FOR_FRESH_GENERIC_GOVERNANCE_REVIEW: YES|NO
+READY_FOR_PACKAGE_LIFECYCLE_REVERIFICATION: NO
+READY_FOR_LOCAL_INSTALL: NO
+READY_FOR_RUNTIME_QA: NO
 
-* six changed archive entries;
-* zero unexpected archive differences;
-* two version metadata entries;
-* two rebuilt bundles;
-* two synchronized consumer-Agent resource entries.
+Success terminal result:
 
-Re-derive these counts. Do not accept them from the report.
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+PASS_READY_FOR_FRESH_GENERIC_GOVERNANCE_REVIEW
 
-Confirm that no previously existing VSIX was modified.
+Blocked terminal result:
 
-==================================================
-5. PACKAGE VALIDATION
-
-==================================================
-
-Run only read-only validations that do not rewrite the package or repository:
-
-* archive integrity;
-* extension manifest validation;
-* package identity validation;
-* explicit-path VSIX content verification;
-* source-to-package byte comparison;
-* consumer-Agent catalog/resource byte-lock verification;
-* detection of secrets and machine-local paths;
-* forbidden-file and unexpected-entry checks.
-
-Do not run a verifier using mtime or a multi-match glob to select the artifact.
-Use the exact absolute 0.3.146 VSIX path.
-
-If any validation utility would mutate the repository or package, reproduce its
-read-only checks using a task-owned temporary extraction directory.
-
-==================================================
-6. GOVERNANCE-GAP ASSESSMENT
-
-Read, but do not modify:
-
-.github/agent-governance/process-manifest.json
-
-and the relevant schema and boundary validator.
-
-Independently determine whether the following reported gap is real:
-
-* VERSION_AND_PACKAGE authorizes the package.json version change;
-* the stage is expected to create a new version-distinguishable VSIX;
-* **/*.vsix is protected;
-* no protectedPathExceptions entry currently permits creation of a new VSIX
-    during VERSION_AND_PACKAGE;
-* therefore verify-change-boundary blocks the newly created artifact even though
-    no pre-existing VSIX was modified.
-
-Distinguish clearly between:
-
-1. artifact integrity;
-2. task authorization from the owner prompt;
-3. machine-enforced manifest authorization.
-
-If the gap is confirmed, provide the exact minimal proposed manifest change and
-exact required governance tests, but do not apply it.
-
-The proposed rule must permit only creation of the exact new, version-distinguishable
-VSIX during VERSION_AND_PACKAGE. It must not permit replacement, deletion, or
-modification of any pre-existing VSIX and must not create a blanket **/*.vsix
-write exception across other stages.
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_<EXACT_REASON>
 
 ==================================================
-7. FINAL NON-MUTATION PROOF
+12. STOP RULES
 
-Compare the final OS-level snapshot with the initial snapshot.
+* Stop before editing if identity or authority is wrong.
+* Stop before partial edits if a tenth path is required.
+* Do not weaken generic VSIX protection.
+* Do not accept display-name-only independence.
+* Do not manufacture missing producer provenance.
+* Do not create a new Agent to escape the ownership conflict.
+* Do not change package version or create/rebuild a VSIX.
+* Do not install or activate the Extension.
+* Do not start consumer Runtime QA.
+* Do not commit or push.
+* Do not self-review.
 
-Required:
-
-* repository paths changed by this review: 0;
-* target VSIX changed: NO;
-* package.json changed: NO;
-* package version changed: NO;
-* governance files changed: NO;
-* package-lock.json created: NO;
-* staged files: 0;
-* stash entries: 0;
-* extension installed or uninstalled: NO;
-* Runtime QA started: NO;
-* QA workspace touched: NO;
-* Preview created: NO;
-* Write executed: NO;
-* commit/push/tag: NO.
-
-==================================================
-8. FINAL REPORT
-
-Return:
-
-IDENTITY_GATE: PASS/FAIL
-PROCESS_EXECUTION_GATE: PASS/FAIL
-REPOSITORY_MUTATED_BY_VERIFICATION: YES/NO
-
-VSIX_PATH:
-VSIX_FILENAME:
-VSIX_SIZE:
-VSIX_SHA256_FIRST:
-VSIX_SHA256_SECOND:
-VSIX_HASHES_EQUAL: YES/NO
-VSIX_ENTRY_COUNT:
-VSIX_DUPLICATE_ENTRY_COUNT:
-VSIX_ARCHIVE_INTEGRITY: PASS/FAIL
-EXTENSION_ID:
-ARCHIVE_MANIFEST_VERSION:
-EMBEDDED_PACKAGE_VERSION:
-VERSION_IDENTITIES_EQUAL: YES/NO
-
-EXPECTED_ENTRIES_PRESENT: YES/NO
-SOURCE_TO_PACKAGE_MISMATCH_COUNT:
-UNEXPECTED_ARCHIVE_ENTRY_COUNT:
-SECRET_OR_MACHINE_PATH_FINDINGS:
-CONSUMER_AGENT_COUNT:
-USER_FACING_CONSUMER_AGENTS:
-INTERNAL_DELEGATE_AGENTS:
-INTERNAL_AGENTS_USER_INVOKABLE: YES/NO
-CONSUMER_AGENT_TOOL_SETS_CHANGED_BY_PACKAGING: YES/NO
-CONSUMER_AGENT_AUTHORITY_BROADENED: YES/NO
-
-DIFF_VS_0_3_145_COUNT:
-VERSION_METADATA_DIFF_COUNT:
-REBUILT_BUNDLE_DIFF_COUNT:
-SYNCHRONIZED_AGENT_RESOURCE_DIFF_COUNT:
-RUNTIME_QA_SUPPORT_DIFF_COUNT:
-UNEXPECTED_DIFF_COUNT:
-PREEXISTING_VSIX_MODIFIED_COUNT:
-
-GOVERNANCE_VSIX_EXCEPTION_GAP_CONFIRMED: YES/NO
-ARTIFACT_INTEGRITY_VALID_DESPITE_GAP: YES/NO
-MINIMAL_MANIFEST_REPAIR_PATHS:
-MINIMAL_MANIFEST_REPAIR_DESIGN:
-REQUIRED_GOVERNANCE_TESTS:
-
-PACKAGE_JSON_CHANGED_BY_REVIEW: NO
-PACKAGE_VERSION_CHANGED_BY_REVIEW: NO
-VSIX_CHANGED_BY_REVIEW: NO
-GOVERNANCE_CHANGED_BY_REVIEW: NO
-PACKAGE_LOCK_CREATED: NO
-QA_WORKSPACE_TOUCHED: NO
-EXTENSION_INSTALLED_OR_UNINSTALLED: NO
-RUNTIME_QA_STARTED: NO
-COMMIT_CREATED: NO
-PUSH_EXECUTED: NO
-
-READY_FOR_LOCAL_INSTALL_AND_ACTIVATION: YES/NO
-REQUIRES_GOVERNANCE_OWNER_ACTION_BEFORE_INSTALL: YES/NO
-
-Only return READY_FOR_LOCAL_INSTALL_AND_ACTIVATION: YES when:
-
-* artifact identity and integrity pass;
-* all expected entries and consumer Agent resources are correct;
-* zero unexpected entries or content differences exist;
-* source-to-package provenance is complete;
-* the repository and artifact remain unchanged;
-* no unresolved enforcing governance blocker remains.
-
-End exactly with one:
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-PASS_READY_FOR_LOCAL_INSTALL_AND_ACTIVATION
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-PASS_ARTIFACT_VALID_BLOCKED_GOVERNANCE_EXCEPTION
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-FAIL_PACKAGE_INTEGRITY
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-FAIL_UNAUTHORIZED_OR_UNEXPECTED_CONTENT
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-FAIL_VERIFICATION_MUTATED_REPOSITORY
-
-EXACT_PACKAGE_VERIFICATION_0_3_146_RESULT:
-BLOCKED_IDENTITY_OR_EXECUTION
+If implementation passes, the next task must run in a genuinely fresh generic review session and independently re-derive all evidence.
