@@ -591,6 +591,38 @@ fallback, no test errors, and preserved clean source HEAD and tree. This complet
 explicitly configured trusted-test adapter only; unconfigured trusted tests retain the existing
 shell-disabled subprocess behavior and safe-boundary-only pause semantics.
 
+P2.2d introduces an opt-in cooperative pause contract for the HostSubprocess provider. A site
+enables this path only by naming `UCA_HOST_SUBPROCESS_PAUSABLE_COMPLETION_FACTORY`; when the
+variable is absent, the existing one-shot HostSubprocess bridge, owned-process cancellation, and
+safe-boundary-only pause behavior remain unchanged. The configured factory runs in the trusted
+host Python process and must return the same site-owned result/cancel/done/pause/resume/paused
+handle contract already required by P2.2b. UCA does not infer pause from process state or from a
+quiet output stream, and it never uses `SIGSTOP`/`SIGCONT` or another OS process-suspension
+mechanism.
+
+The opt-in path uses the dedicated `host_subprocess_pause_bridge.py` child-control bridge rather
+than changing the legacy one-shot bridge protocol. UCA launches the child through fixed argv with
+the shell disabled, then parent and child exchange bounded, versioned, strictly validated frames
+over a dedicated inherited duplex control channel that isolates control traffic from site stdout.
+Pause and resume count as acknowledged only after a child-originated acknowledgement reports the
+underlying site handle's corresponding live state; merely delivering a control frame is
+insufficient. Cancellation takes precedence over a pending or acknowledged pause, clears the
+local pause latch, and retains the existing bounded termination fallback for cancellation only.
+Protocol errors, missing hooks, unexpected EOF, oversized or out-of-sequence frames, and
+acknowledgement timeouts fail closed. Durable pause reports and control-protocol failure
+diagnostics retain only bounded control metadata and never model prompts, output, credentials, or
+site configuration; the existing safe response diagnostics may still identify the requested
+deployment.
+
+OpenAI Responses is not eligible for P2.2d active-pause registration because its supported
+background handle exposes observation and cancellation but no provider pause primitive. Stopping
+local response polling would not pause remote inference and therefore cannot produce an active
+pause acknowledgement. Deterministic coverage exercises the opt-in bridge contract, exact owned
+provider registration, acknowledgement state, cancellation precedence, and the unchanged legacy
+path. P2.2d remains pending until its dedicated trusted Azure live qualification demonstrates a
+stable unfinished pause window, resumed progress, durable redacted evidence, and exact source
+preservation. No completion metrics or source identity are claimed before that qualification.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

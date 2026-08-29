@@ -10,6 +10,7 @@
 - universal-coding-agent/src/universal_coding_agent/providers/base.py
 - universal-coding-agent/src/universal_coding_agent/providers/host_chat.py
 - universal-coding-agent/src/universal_coding_agent/providers/host_subprocess.py
+- universal-coding-agent/src/universal_coding_agent/providers/host_subprocess_pause_bridge.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/structured_output.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/orchestration/safe_graph_v2.py
@@ -45,6 +46,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_cancellation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_reconciliation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/host_chat_pause_live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/host_subprocess_pause_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/trusted_test_pause_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
@@ -57,6 +59,7 @@
 - universal-coding-agent/tests/test_openai_background_cancellation_live.py
 - universal-coding-agent/tests/test_openai_background_reconciliation_live.py
 - universal-coding-agent/tests/test_host_chat_pause_live.py
+- universal-coding-agent/tests/test_host_subprocess_pause_live.py
 - universal-coding-agent/tests/test_trusted_test_pause.py
 - universal-coding-agent/tests/test_trusted_test_pause_live.py
 - universal-coding-agent/tests/test_trusted_test_pause_service.py
@@ -69,6 +72,7 @@
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
 - universal-coding-agent/scripts/pretransfer-live-host-chat-pause.sh
+- universal-coding-agent/scripts/pretransfer-live-host-subprocess-pause.sh
 - universal-coding-agent/scripts/pretransfer-live-trusted-test-pause.sh
 - universal-coding-agent/src/universal_coding_agent/product/__init__.py
 - universal-coding-agent/src/universal_coding_agent/product/models.py
@@ -116,8 +120,10 @@ for FILE in \
   src/universal_coding_agent/providers/base.py \
   src/universal_coding_agent/providers/host_chat.py \
   src/universal_coding_agent/testlab/host_chat_pause_live.py \
+  src/universal_coding_agent/testlab/host_subprocess_pause_live.py \
   src/universal_coding_agent/testlab/trusted_test_pause_live.py \
   src/universal_coding_agent/providers/host_subprocess.py \
+  src/universal_coding_agent/providers/host_subprocess_pause_bridge.py \
   src/universal_coding_agent/orchestration/structured_output.py \
   src/universal_coding_agent/orchestration/safe_graph.py \
   src/universal_coding_agent/orchestration/safe_graph_v2.py \
@@ -132,6 +138,7 @@ for FILE in \
   src/universal_coding_agent/web/app.py \
   ../.github/workflows/pretransfer-live-openai.yml \
   scripts/pretransfer-live-host-chat-pause.sh \
+  scripts/pretransfer-live-host-subprocess-pause.sh \
   scripts/pretransfer-live-trusted-test-pause.sh \
   tests/test_web_api.py \
   web/package.json \
@@ -164,6 +171,7 @@ for FILE in \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
   tests/test_host_chat_pause_live.py \
+  tests/test_host_subprocess_pause_live.py \
   tests/test_trusted_test_pause.py \
   tests/test_trusted_test_pause_live.py \
   tests/test_trusted_test_pause_service.py \
@@ -220,6 +228,7 @@ from universal_coding_agent.core.safe_models import SafeContextEvidence
 from universal_coding_agent.product.models import AcceptedPhaseEvidenceBundle, ProgramExecutionBinding, ProgramExecutionStatus
 from universal_coding_agent.product.program_orchestrator import DiscoveredSafeExecutionPort, ProgramExecutionError
 from universal_coding_agent.providers.host_chat import CANCELLABLE_COMPLETION_FACTORY_ENV, PAUSABLE_COMPLETION_FACTORY_ENV, HostChatCompletionsProvider
+from universal_coding_agent.providers import host_subprocess
 from universal_coding_agent.providers.base import RemoteOperationLeaseAwareProvider, RestartReconciliationModelProvider
 from universal_coding_agent.safe_service import SafeAgentService
 from universal_coding_agent.solution_discovery import SolutionDiscoveryService
@@ -227,6 +236,7 @@ from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded, 
 from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
 from universal_coding_agent.testlab.openai_background_reconciliation_live import run_openai_background_reconciliation_live
 from universal_coding_agent.testlab.host_chat_pause_live import run_host_chat_pause_live
+from universal_coding_agent.testlab.host_subprocess_pause_live import run_host_subprocess_pause_live
 from universal_coding_agent.testlab.trusted_test_pause_live import run_trusted_test_pause_live
 from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
 from universal_coding_agent.safe.testing import TRUSTED_TEST_ADAPTER_PATH_ENV, TRUSTED_TEST_PAUSABLE_FACTORY_ENV, SafeTestRunner
@@ -266,8 +276,10 @@ assert CancellationCoordinator and CancellationReport and CancellationSignal
 assert OwnedCancellableOperation and HostChatCompletionsProvider
 assert OwnedPausableOperation and PauseReport and PauseRequested and PauseResumeResult
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
+assert host_subprocess.HostSubprocessProvider
+assert host_subprocess.PAUSABLE_COMPLETION_FACTORY_ENV == "UCA_HOST_SUBPROCESS_PAUSABLE_COMPLETION_FACTORY"
 assert SafeTestRunner and TRUSTED_TEST_ADAPTER_PATH_ENV and TRUSTED_TEST_PAUSABLE_FACTORY_ENV
-assert run_host_chat_pause_live and run_trusted_test_pause_live
+assert run_host_chat_pause_live and run_host_subprocess_pause_live and run_trusted_test_pause_live
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
@@ -292,6 +304,7 @@ print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
 print("FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
+print("HOST_SUBPROCESS_PAUSABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("TRUSTED_TEST_PAUSABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
@@ -327,6 +340,7 @@ Cmd 3
   tests/test_openai_background_cancellation_live.py \
   tests/test_host_chat_provider.py \
   tests/test_host_chat_pause_live.py \
+  tests/test_host_subprocess_pause_live.py \
   tests/test_trusted_test_pause.py \
   tests/test_trusted_test_pause_live.py \
   tests/test_trusted_test_pause_service.py \
@@ -710,4 +724,26 @@ test "$(git rev-parse HEAD)" = "$TRUSTED_TEST_PAUSE_HEAD_BEFORE"
 test "$(git rev-parse 'HEAD^{tree}')" = "$TRUSTED_TEST_PAUSE_TREE_BEFORE"
 test -z "$(git status --porcelain)"
 echo "TRUSTED_TEST_ACTIVE_PAUSE_LIVE_PASS"
+```
+
+Cmd 23 — trusted HostSubprocess active-pause qualification only
+
+```bash
+export PATH="$HOME/uca-host-lab/.venv/bin:$PATH"
+export UCA_HOST_CLIENT_PATH="$HOME/uca-host-lab/src/host_chat_pause_client.py"
+export UCA_HOST_PYTHON="$HOME/uca-host-lab/.venv/bin/python"
+export UCA_HOST_SUBPROCESS_PAUSABLE_COMPLETION_FACTORY="create_pausable_completion"
+HOST_SUBPROCESS_PAUSE_HEAD_BEFORE="$(git rev-parse HEAD)"
+HOST_SUBPROCESS_PAUSE_TREE_BEFORE="$(git rev-parse 'HEAD^{tree}')"
+test -z "$(git status --porcelain)"
+HOST_SUBPROCESS_PAUSE_STATE_ROOT="$HOME/uca-host-lab/logs/host-subprocess-pause-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$HOST_SUBPROCESS_PAUSE_STATE_ROOT"
+bash scripts/pretransfer-live-host-subprocess-pause.sh "$HOST_SUBPROCESS_PAUSE_STATE_ROOT" \
+  | tee "$HOST_SUBPROCESS_PAUSE_STATE_ROOT/console.log"
+python -m json.tool \
+  "$HOST_SUBPROCESS_PAUSE_STATE_ROOT/host-subprocess-active-pause-live-summary.json"
+test "$(git rev-parse HEAD)" = "$HOST_SUBPROCESS_PAUSE_HEAD_BEFORE"
+test "$(git rev-parse 'HEAD^{tree}')" = "$HOST_SUBPROCESS_PAUSE_TREE_BEFORE"
+test -z "$(git status --porcelain)"
+echo "HOST_SUBPROCESS_ACTIVE_PAUSE_LIVE_PASS"
 ```
