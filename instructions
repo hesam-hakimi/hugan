@@ -752,3 +752,30 @@ Qualified Azure evidence: HEAD `5c8cd4f5e93a534c0fca19610991cc45b87c3b75`, tree
 `9b9e9bbe594b0f606984319f8e43a9c9cfd2697c`, pause control call `638.766 ms`, resume control call
 `39.336 ms`, stable paused-and-unfinished window `1500 ms`, durable report reload, successful
 completion after resume, zero invocation errors, and preserved clean source.
+
+Cmd 24 — exact-patch publish-approval foundation
+
+```bash
+python -m pytest -q \
+  tests/test_safe_graph.py \
+  tests/test_cli_publish_approval.py \
+  tests/test_discovered_safe_service.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "SAFE_PUBLISH_APPROVAL_FOUNDATION_PASS"
+```
+
+The opt-in CLI path starts Safe Mode with `--require-publish-approval`. After scope approval,
+successful fixed tests, and independent review, inspect `safe-status` and copy the exact
+`patch_sha256` from the `safe_publish_approval` interrupt. Record the exact decision with:
+
+```bash
+uca --state-root "$STATE_ROOT" safe-publish-resume \
+  --thread-id "$THREAD_ID" \
+  --decision approve \
+  --patch-sha256 "$PATCH_SHA256"
+```
+
+Use `--decision reject` to durably deny publication of the same exact patch. This command records
+approval evidence only; it does not stage, commit, push, create a pull request, merge, or deploy.

@@ -635,6 +635,29 @@ P2.2d for the explicitly configured HostSubprocess adapter only; unconfigured Ho
 providers retain the legacy one-shot bridge, owned-process cancellation, and safe-boundary-only
 pause semantics.
 
+P2.2 closes against the currently supported transport inventory. Host Chat, trusted tests, and
+HostSubprocess now have explicit opt-in pausable-handle adapters and dedicated live host evidence.
+The background OpenAI Responses transport remains intentionally ineligible because its provider
+contract exposes observe and cancel but no remote pause primitive; pausing local polling would not
+pause inference. The remaining provider modules are deterministic/test wrappers rather than an
+additional production transport. A future transport must supply a real trusted non-blocking pause
+primitive and receive separate authorization and qualification before UCA can extend this claim.
+
+P2.3a adds an opt-in publish-approval gate without adding publication authority. A Safe task sets
+`require_publish_approval=true`; after the canonical Git patch passes fixed tests and independent
+review, execution interrupts with the exact Base SHA, plan hash, scope hash, canonical patch
+reference and SHA-256, changed paths, test evidence, and review evidence. Resume requires an
+explicit approve/reject decision plus the exact patch SHA-256. Before recording the decision, UCA
+revalidates the materialized sandbox against the approved manifest and canonical patch. A missing,
+malformed, stale, or mismatched hash fails closed and rolls back agent-owned sandbox changes.
+
+The approval and rejection records are durable artifacts and survive service restart. Rejection of
+an otherwise valid patch records that publication was not authorized while retaining the reviewed
+sandbox patch for inspection. Approval authorizes only that exact patch; it still performs no Git
+stage, commit, push, pull-request creation, merge, deployment, credential access, or source-repository
+mutation. The next source-control-adapter slice must consume and revalidate this exact approval
+binding before it may perform any approved publication side effect.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

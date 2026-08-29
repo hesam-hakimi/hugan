@@ -56,6 +56,7 @@ def parser() -> argparse.ArgumentParser:
     safe.add_argument("--title")
     safe.add_argument("--task-id")
     safe.add_argument("--thread-id")
+    safe.add_argument("--require-publish-approval", action="store_true")
 
     safe_auto = sub.add_parser("safe-auto")
     safe_auto.add_argument("--repository", required=True)
@@ -77,10 +78,18 @@ def parser() -> argparse.ArgumentParser:
     safe_auto.add_argument("--title")
     safe_auto.add_argument("--task-id")
     safe_auto.add_argument("--thread-id")
+    safe_auto.add_argument("--require-publish-approval", action="store_true")
 
     safe_resume = sub.add_parser("safe-resume")
     safe_resume.add_argument("--thread-id", required=True)
     safe_resume.add_argument("--decision", choices=("approve", "reject"), required=True)
+
+    safe_publish_resume = sub.add_parser("safe-publish-resume")
+    safe_publish_resume.add_argument("--thread-id", required=True)
+    safe_publish_resume.add_argument(
+        "--decision", choices=("approve", "reject"), required=True
+    )
+    safe_publish_resume.add_argument("--patch-sha256", required=True)
 
     safe_status = sub.add_parser("safe-status")
     safe_status.add_argument("--thread-id", required=True)
@@ -109,7 +118,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if arguments.command == "serve":
         return _run_server(arguments, provider)
-    if arguments.command in {"safe", "safe-auto", "safe-resume", "safe-status"}:
+    if arguments.command in {
+        "safe",
+        "safe-auto",
+        "safe-resume",
+        "safe-publish-resume",
+        "safe-status",
+    }:
         return _run_safe(arguments, provider)
     return _run_observe(arguments, provider)
 
@@ -169,10 +184,17 @@ def _run_safe(arguments: argparse.Namespace, provider) -> int:
                 repository=RepositorySpec(url=arguments.repository, base_ref=arguments.ref),
                 manifest=ApprovedChangeManifest.model_validate(scope_payload),
                 policy=SafeModePolicy.model_validate(policy_payload),
+                require_publish_approval=arguments.require_publish_approval,
             )
             result = service.run(task)
         elif arguments.command == "safe-resume":
             result = service.resume(arguments.thread_id, arguments.decision == "approve")
+        elif arguments.command == "safe-publish-resume":
+            result = service.resume_publish(
+                arguments.thread_id,
+                approved=arguments.decision == "approve",
+                patch_sha256=arguments.patch_sha256,
+            )
         else:
             result = service.state(arguments.thread_id)
         print(json.dumps(result, indent=2, default=str))
@@ -202,6 +224,7 @@ def _run_discovered_safe(arguments: argparse.Namespace, provider) -> int:
         policy=policy,
         test_profiles=tuple(arguments.test_profiles),
         acceptance_criteria=criteria,
+        require_publish_approval=arguments.require_publish_approval,
     )
     print(json.dumps(result, indent=2, default=str))
     return 0

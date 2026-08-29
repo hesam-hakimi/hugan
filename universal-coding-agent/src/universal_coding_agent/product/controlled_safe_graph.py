@@ -80,6 +80,41 @@ class _ControlledSafeMixin:
         gate = self._control_gate(state, "review")
         return gate if gate is not None else super().review(state)
 
+    def approve_publish(self, state: SafeGraphState) -> dict[str, Any]:
+        gate = self._control_gate(state, "publish_approval")
+        if gate is not None:
+            return gate
+        result = super().approve_publish(state)
+        task = SafeTaskRequest.model_validate(state["task"])
+        if self.control.task_action(task.task_id) is ControlAction.CANCEL:
+            approval_payload = self.services.artifacts.read_json(
+                result["publish_approval_ref"]
+            )
+            approval_payload["approved"] = False
+            approval_payload["cancelled_before_effect"] = True
+            approval_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/publish-approval.json",
+                approval_payload,
+            )
+            return {
+                **result,
+                "status": TaskStatus.BLOCKED.value,
+                "publish_approval_ref": approval_ref.uri,
+                "publish_approved": False,
+                "safe_errors": [
+                    *result.get("safe_errors", []),
+                    "control:cancelled",
+                ],
+                "events": [
+                    *result.get("events", []),
+                    self._event(
+                        "control",
+                        "cancelled before publish approval could take effect",
+                    ),
+                ],
+            }
+        return result
+
     def finalize(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
         decision = self.control.task_action(task.task_id)

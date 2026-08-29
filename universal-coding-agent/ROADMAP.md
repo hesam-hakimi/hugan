@@ -50,10 +50,9 @@
 - [x] P2.2b opt-in Host Chat pausable-handle adapter with fail-closed configuration, deterministic and HTTP coverage, cancellation precedence, durable redacted evidence, source preservation, and dedicated `llama-cpp-python` live host qualification;
 - [x] P2.2c opt-in trusted-test cooperative pausable-handle adapter with fail-closed configuration, deterministic, Safe graph, HTTP, cancellation, durable-evidence, and source-preservation coverage, plus dedicated adapter-level live host qualification;
 - [x] P2.2d opt-in HostSubprocess cooperative pausable-handle adapter with a strict bounded child-control bridge, underlying-handle acknowledgements, cancellation precedence, redacted evidence, unchanged legacy behavior, and dedicated Azure live qualification;
-- [ ] cancellable adapters for any further supported in-process/remote provider transport;
-- [ ] active pause of any further already-running provider or trusted-test transport;
-- publish approval;
-- commit, push, and optional Draft PR through a source-control adapter.
+- [x] P2.2 current-transport inventory closure: every currently eligible provider/test transport has an opt-in pausable adapter; OpenAI Responses has no remote pause primitive and no additional production transport is presently eligible;
+- [x] P2.3a opt-in exact-patch publish approval with post-test/review interrupt, Base/plan/scope/patch binding, restart durability, explicit rejection, fail-closed mismatch rollback, and zero source-control side effects;
+- [ ] commit, push, and optional Draft PR through a source-control adapter that consumes and revalidates the exact publish approval.
 
 ## Milestone 3 — Project memory and large-program execution
 

@@ -126,6 +126,8 @@ def test_safe_graph_requires_approval_and_retains_only_passing_change(tmp_path: 
         assert report["canonical_patch_generated_by"] == "git"
         assert report["structured_edit_protocol"] == "v1"
         assert report["edit_repair_used"] is False
+        assert report["publish_approval_required"] is False
+        assert report["publish_approved"] is None
         assert report["stage_commit_push_pr_merge_deploy"] is False
 
         edit_proposal = service.artifacts.read_json(report["edit_proposal_ref"])
@@ -138,6 +140,240 @@ def test_safe_graph_requires_approval_and_retains_only_passing_change(tmp_path: 
         assert "return 42" in (source / "app.py").read_text(encoding="utf-8")
         assert _git(source, "status", "--porcelain") == ""
         assert _git(sandbox, "log", "-1", "--format=%s") == "fixture"
+    finally:
+        service.close()
+
+
+def test_safe_graph_binds_publish_approval_to_exact_retained_patch(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-publish-approved").model_copy(
+        update={"require_publish_approval": True}
+    )
+    try:
+        service.run(task)
+        pending = service.resume(task.thread_id, True)
+        assert pending["status"] == "reviewing"
+        assert service.state(task.thread_id)["next"] == ["publish_approval"]
+
+        validation = service.artifacts.read_json(pending["patch_validation_ref"])
+        patch_sha256 = validation["patch_sha256"]
+        final = service.resume_publish(
+            task.thread_id,
+            approved=True,
+            patch_sha256=patch_sha256,
+        )
+
+        assert final["status"] == "completed"
+        assert final["publish_approved"] is True
+        assert final["publish_patch_sha256"] == patch_sha256
+        report = service.artifacts.read_json(final["final_report_ref"])
+        approval = service.artifacts.read_json(report["publish_approval_ref"])
+        assert report["publish_approval_required"] is True
+        assert report["publish_approved"] is True
+        assert report["publish_patch_sha256"] == patch_sha256
+        assert approval["approved"] is True
+        assert approval["binding_valid"] is True
+        assert approval["base_sha"] == base_sha
+        assert approval["patch_sha256"] == patch_sha256
+        assert approval["confirmed_patch_sha256"] == patch_sha256
+        assert approval["source_control_side_effects"] is False
+        assert report["stage_commit_push_pr_merge_deploy"] is False
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_records_exact_publish_rejection_without_source_control(
+    tmp_path: Path,
+) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-publish-rejected").model_copy(
+        update={"require_publish_approval": True}
+    )
+    try:
+        service.run(task)
+        pending = service.resume(task.thread_id, True)
+        validation = service.artifacts.read_json(pending["patch_validation_ref"])
+        final = service.resume_publish(
+            task.thread_id,
+            approved=False,
+            patch_sha256=validation["patch_sha256"],
+        )
+
+        assert final["status"] == "completed"
+        assert final["publish_approved"] is False
+        report = service.artifacts.read_json(final["final_report_ref"])
+        approval = service.artifacts.read_json(report["publish_approval_ref"])
+        assert approval["approved"] is False
+        assert approval["binding_valid"] is True
+        assert report["sandbox_patch_retained"] is True
+        assert report["stage_commit_push_pr_merge_deploy"] is False
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_fails_closed_on_publish_patch_hash_mismatch(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-publish-hash-mismatch").model_copy(
+        update={"require_publish_approval": True}
+    )
+    try:
+        service.run(task)
+        service.resume(task.thread_id, True)
+        final = service.resume_publish(
+            task.thread_id,
+            approved=True,
+            patch_sha256="0" * 64,
+        )
+
+        assert final["status"] == "blocked"
+        assert final["publish_approved"] is False
+        assert final["rolled_back"] is True
+        assert "publish_approval:binding_mismatch" in final["safe_errors"]
+        report = service.artifacts.read_json(final["final_report_ref"])
+        approval = service.artifacts.read_json(report["publish_approval_ref"])
+        assert approval["approved"] is False
+        assert approval["binding_valid"] is False
+        assert report["sandbox_patch_retained"] is False
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_publish_approval_survives_service_restart(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    task = _task(source, base_sha, "safe-task-publish-restart").model_copy(
+        update={"require_publish_approval": True}
+    )
+    first = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    first.run(task)
+    pending = first.resume(task.thread_id, True)
+    patch_sha256 = first.artifacts.read_json(pending["patch_validation_ref"])[
+        "patch_sha256"
+    ]
+    first.close()
+
+    recovered = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    try:
+        assert recovered.state(task.thread_id)["next"] == ["publish_approval"]
+        final = recovered.resume_publish(
+            task.thread_id,
+            approved=True,
+            patch_sha256=patch_sha256,
+        )
+        assert final["status"] == "completed"
+        assert final["publish_approved"] is True
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        recovered.close()
+
+
+def test_safe_graph_fails_closed_when_materialized_patch_drifts_before_approval(
+    tmp_path: Path,
+) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-publish-worktree-drift").model_copy(
+        update={"require_publish_approval": True}
+    )
+    try:
+        service.run(task)
+        pending = service.resume(task.thread_id, True)
+        patch_sha256 = service.artifacts.read_json(pending["patch_validation_ref"])[
+            "patch_sha256"
+        ]
+        sandbox = state_root / "sandboxes" / task.task_id / "repo"
+        (sandbox / "app.py").write_text(
+            "def answer():\n    return 44\n",
+            encoding="utf-8",
+        )
+
+        final = service.resume_publish(
+            task.thread_id,
+            approved=True,
+            patch_sha256=patch_sha256,
+        )
+
+        assert final["status"] == "blocked"
+        assert final["publish_approved"] is False
+        assert final["rolled_back"] is True
+        assert "publish_approval:materialized_patch_drift" in final["safe_errors"]
+        report = service.artifacts.read_json(final["final_report_ref"])
+        approval = service.artifacts.read_json(report["publish_approval_ref"])
+        assert approval["decision_received"] is False
+        assert approval["binding_valid"] is False
+        assert _git(sandbox, "status", "--porcelain") == ""
+        assert _git(source, "status", "--porcelain") == ""
+    finally:
+        service.close()
+
+
+def test_safe_graph_cancellation_precedes_pending_publish_approval(tmp_path: Path) -> None:
+    source, base_sha = _source(tmp_path)
+    state_root = tmp_path / "state"
+    service = SafeAgentService.create(
+        state_root,
+        FakeModelProvider(),
+        allow_local_sources=True,
+    )
+    task = _task(source, base_sha, "safe-task-publish-cancelled").model_copy(
+        update={"require_publish_approval": True}
+    )
+    try:
+        service.run(task)
+        pending = service.resume(task.thread_id, True)
+        patch_sha256 = service.artifacts.read_json(pending["patch_validation_ref"])[
+            "patch_sha256"
+        ]
+        service.cancel(task.thread_id, reason="operator cancelled before publication")
+
+        final = service.resume_publish(
+            task.thread_id,
+            approved=True,
+            patch_sha256=patch_sha256,
+        )
+
+        assert final["status"] == "blocked"
+        assert final.get("publish_approved") is None
+        assert final["rolled_back"] is True
+        assert "control:cancelled" in final["safe_errors"]
+        report = service.artifacts.read_json(final["final_report_ref"])
+        assert report["publish_approval_ref"] is None
+        assert report["publish_approved"] is None
+        assert _git(source, "status", "--porcelain") == ""
     finally:
         service.close()
 

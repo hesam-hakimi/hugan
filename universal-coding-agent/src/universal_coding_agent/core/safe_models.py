@@ -188,6 +188,7 @@ class SafeTaskRequest(FrozenSafeModel):
     policy: SafeModePolicy = Field(default_factory=SafeModePolicy)
     mode: TaskMode = TaskMode.SAFE
     require_scope_approval: bool = True
+    require_publish_approval: bool = False
     metadata: dict[str, str] = Field(default_factory=dict)
     context_evidence: tuple[SafeContextEvidence, ...] = Field(default=(), max_length=8)
 

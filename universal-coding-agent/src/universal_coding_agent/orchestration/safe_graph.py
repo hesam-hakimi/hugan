@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import operator
 import subprocess
 from dataclasses import dataclass
@@ -64,6 +65,9 @@ class SafeGraphState(TypedDict, total=False):
     reviewer_validation_ref: str
     review_ref: str
     reviewer_verdict: str
+    publish_approval_ref: str
+    publish_approved: bool | None
+    publish_patch_sha256: str
     rollback_ref: str
     rolled_back: bool
     final_report_ref: str
@@ -101,6 +105,7 @@ class SafeModeGraph:
         builder.add_node("validate_patch", self.validate_patch)
         builder.add_node("tests", self.run_tests)
         builder.add_node("review", self.review)
+        builder.add_node("publish_approval", self.approve_publish)
         builder.add_node("finalize", self.finalize)
 
         builder.add_edge(START, "validate")
@@ -136,7 +141,12 @@ class SafeModeGraph:
             self.route_after_tests,
             {"review": "review", "finalize": "finalize"},
         )
-        builder.add_edge("review", "finalize")
+        builder.add_conditional_edges(
+            "review",
+            self.route_after_review,
+            {"publish_approval": "publish_approval", "finalize": "finalize"},
+        )
+        builder.add_edge("publish_approval", "finalize")
         builder.add_edge("finalize", END)
         return builder.compile(checkpointer=checkpointer)
 
@@ -674,6 +684,133 @@ class SafeModeGraph:
             ],
         }
 
+    def approve_publish(self, state: SafeGraphState) -> dict[str, Any]:
+        """Bind an explicit operator decision to the exact retained Safe patch.
+
+        This gate records authorization evidence only. It deliberately performs no Git staging,
+        commit, push, pull-request, merge, or deployment operation.
+        """
+
+        task = SafeTaskRequest.model_validate(state["task"])
+        proposal = PatchProposal.model_validate(
+            self.services.artifacts.read_json(state["patch_proposal_ref"])
+        )
+        edit_proposal = StructuredEditProposal.model_validate(
+            self.services.artifacts.read_json(state["edit_proposal_ref"])
+        )
+        patch_text = self.services.artifacts.read_text(state["patch_ref"])
+        patch_sha256 = hashlib.sha256(patch_text.encode("utf-8")).hexdigest()
+        try:
+            materialized = self.services.patch_engine.capture_worktree_proposal(
+                Path(state["sandbox_path"]),
+                task.manifest,
+                edit_proposal,
+            )
+            validation = self.services.patch_engine.validate_materialized(
+                Path(state["sandbox_path"]),
+                task.manifest,
+                proposal,
+            )
+            validation_matches = (
+                validation.valid
+                and validation.patch_sha256 == patch_sha256
+                and materialized.unified_diff == patch_text
+                and materialized.changed_paths == proposal.changed_paths
+            )
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
+            validation = None
+            validation_matches = False
+
+        changed_paths = list(validation.changed_paths) if validation is not None else []
+        if not validation_matches:
+            approval_ref = self.services.artifacts.write_json(
+                f"tasks/{task.task_id}/publish-approval.json",
+                {
+                    "approved": False,
+                    "binding_valid": False,
+                    "decision_received": False,
+                    "base_sha": task.manifest.base_sha,
+                    "plan_hash": task.manifest.plan_hash,
+                    "scope_hash": state["scope_hash"],
+                    "patch_ref": state["patch_ref"],
+                    "patch_sha256": patch_sha256,
+                    "confirmed_patch_sha256": "",
+                    "changed_paths": changed_paths,
+                    "tests_ref": state.get("tests_ref"),
+                    "review_ref": state.get("review_ref"),
+                    "reviewer_verdict": state.get("reviewer_verdict"),
+                    "source_control_side_effects": False,
+                },
+            )
+            return {
+                "status": TaskStatus.BLOCKED.value,
+                "publish_approval_ref": approval_ref.uri,
+                "publish_approved": False,
+                "publish_patch_sha256": patch_sha256,
+                "safe_errors": ["publish_approval:materialized_patch_drift"],
+                "events": [
+                    self._event("publish_approval", "materialized patch drifted")
+                ],
+            }
+
+        decision = interrupt(
+            {
+                "type": "safe_publish_approval",
+                "task_id": task.task_id,
+                "thread_id": task.thread_id,
+                "base_sha": task.manifest.base_sha,
+                "plan_hash": task.manifest.plan_hash,
+                "scope_hash": state["scope_hash"],
+                "patch_ref": state["patch_ref"],
+                "patch_sha256": patch_sha256,
+                "changed_paths": changed_paths,
+                "tests_ref": state.get("tests_ref"),
+                "review_ref": state.get("review_ref"),
+                "reviewer_verdict": state.get("reviewer_verdict"),
+                "action_required": "approve_or_reject_exact_patch",
+            }
+        )
+        approved = bool(decision.get("approved")) if isinstance(decision, dict) else False
+        confirmed_patch_sha256 = (
+            str(decision.get("patch_sha256", "")).strip().lower()
+            if isinstance(decision, dict)
+            else ""
+        )
+        binding_valid = validation_matches and confirmed_patch_sha256 == patch_sha256
+        approval_ref = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/publish-approval.json",
+            {
+                "approved": approved and binding_valid,
+                "binding_valid": binding_valid,
+                "base_sha": task.manifest.base_sha,
+                "plan_hash": task.manifest.plan_hash,
+                "scope_hash": state["scope_hash"],
+                "patch_ref": state["patch_ref"],
+                "patch_sha256": patch_sha256,
+                "confirmed_patch_sha256": confirmed_patch_sha256,
+                "changed_paths": changed_paths,
+                "tests_ref": state.get("tests_ref"),
+                "review_ref": state.get("review_ref"),
+                "reviewer_verdict": state.get("reviewer_verdict"),
+                "source_control_side_effects": False,
+            },
+        )
+        response: dict[str, Any] = {
+            "publish_approval_ref": approval_ref.uri,
+            "publish_approved": approved and binding_valid,
+            "publish_patch_sha256": patch_sha256,
+            "events": [
+                self._event(
+                    "publish_approval",
+                    "approved" if approved and binding_valid else "rejected",
+                )
+            ],
+        }
+        if not binding_valid:
+            response["status"] = TaskStatus.BLOCKED.value
+            response["safe_errors"] = ["publish_approval:binding_mismatch"]
+        return response
+
     def finalize(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
         tests_payload = (
@@ -761,6 +898,10 @@ class SafeModeGraph:
             "reviewer_validation_ref": state.get("reviewer_validation_ref"),
             "review_ref": state.get("review_ref"),
             "reviewer_verdict": state.get("reviewer_verdict"),
+            "publish_approval_required": task.require_publish_approval,
+            "publish_approval_ref": state.get("publish_approval_ref"),
+            "publish_approved": state.get("publish_approved"),
+            "publish_patch_sha256": state.get("publish_patch_sha256"),
             "safe_errors": safe_errors,
             "approved_changed_paths": tests_payload.get("actual_changed_paths", []),
             "sandbox_patch_retained": successful,
@@ -809,6 +950,17 @@ class SafeModeGraph:
     @staticmethod
     def route_after_tests(state: SafeGraphState) -> str:
         return "review" if state.get("tests_ref") else "finalize"
+
+    @staticmethod
+    def route_after_review(state: SafeGraphState) -> str:
+        task = SafeTaskRequest.model_validate(state["task"])
+        if (
+            task.require_publish_approval
+            and not state.get("safe_errors")
+            and state.get("reviewer_verdict") == "PASS"
+        ):
+            return "publish_approval"
+        return "finalize"
 
     @staticmethod
     def _edit_validation_is_repairable(errors: tuple[str, ...]) -> bool:

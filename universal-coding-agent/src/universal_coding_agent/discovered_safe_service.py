@@ -80,6 +80,7 @@ class DiscoveredSafeAgentService:
         acceptance_criteria: tuple[str, ...] = (),
         accepted_evidence: tuple[SafeContextEvidence, ...] = (),
         expected_base_sha: str = "",
+        require_publish_approval: bool = False,
     ) -> dict[str, Any]:
         requested_profiles = self._validate_test_profiles(policy, test_profiles)
         criteria = acceptance_criteria or (objective,)
@@ -214,6 +215,7 @@ class DiscoveredSafeAgentService:
             repository=repository,
             manifest=manifest,
             policy=policy,
+            require_publish_approval=require_publish_approval,
             context_evidence=accepted_evidence,
             metadata={
                 "scope_source": "solution_discovery",
@@ -244,6 +246,23 @@ class DiscoveredSafeAgentService:
         safe = self._safe_service()
         try:
             return safe.resume(thread_id, approved)
+        finally:
+            safe.close()
+
+    def resume_publish(
+        self,
+        thread_id: str,
+        *,
+        approved: bool,
+        patch_sha256: str,
+    ) -> dict[str, Any]:
+        safe = self._safe_service()
+        try:
+            return safe.resume_publish(
+                thread_id,
+                approved=approved,
+                patch_sha256=patch_sha256,
+            )
         finally:
             safe.close()
 

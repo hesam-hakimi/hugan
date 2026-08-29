@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -136,6 +137,30 @@ class SafeAgentService:
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
         config = {"configurable": {"thread_id": thread_id}}
         return self.graph.invoke(Command(resume={"approved": approved}), config=config)
+
+    def resume_publish(
+        self,
+        thread_id: str,
+        *,
+        approved: bool,
+        patch_sha256: str,
+    ) -> dict[str, Any]:
+        normalized_hash = patch_sha256.strip().lower()
+        if re.fullmatch(r"[0-9a-f]{64}", normalized_hash) is None:
+            raise ValueError("publish approval requires an exact SHA-256 patch hash")
+        snapshot = self.state(thread_id)
+        if snapshot["next"] != ["publish_approval"]:
+            raise RuntimeError("task is not awaiting publish approval")
+        config = {"configurable": {"thread_id": thread_id}}
+        return self.graph.invoke(
+            Command(
+                resume={
+                    "approved": approved,
+                    "patch_sha256": normalized_hash,
+                }
+            ),
+            config=config,
+        )
 
     def pause(self, thread_id: str, *, reason: str = "") -> dict[str, Any]:
         task_id = self._task_id(thread_id)
