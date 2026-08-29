@@ -578,8 +578,18 @@ precedence, invalid configuration and handle rejection, full Safe graph source p
 HTTP evidence with operation kind `test`. A tracked manual live qualifier observes the actual
 site-owned handle, requires a stable acknowledged pause with the operation still unfinished,
 requires successful resume and profile completion, reloads the durable redacted report, and checks
-the exact Git HEAD, tree, and clean status. P2.2c remains open until that dedicated adapter-level
-qualification passes on the trusted host checkout.
+the exact Git HEAD, tree, and clean status.
+
+P2.2c completed its dedicated adapter-level qualification on the trusted Azure host against HEAD
+`5e36cf0d919a88a8c3e48c4a46f07b3cf31a8b1f` with tree
+`25bebc1458597d60062b15be9d2e1cc7774ec7c7`. The site-owned trusted-test handle acknowledged pause
+within the existing bounded control call (`53.659 ms`), remained paused and unfinished for the full
+`1500 ms` stability window, acknowledged resume (`27.835 ms` control call), and completed the fixed
+trusted profile successfully. The exact durable redacted report reloaded after reopening the control
+store, with one owned pausable `test` operation, zero unsupported active operations, no cooperative
+fallback, no test errors, and preserved clean source HEAD and tree. This completes P2.2c for the
+explicitly configured trusted-test adapter only; unconfigured trusted tests retain the existing
+shell-disabled subprocess behavior and safe-boundary-only pause semantics.
 
 ## Context management
 
