@@ -1,38 +1,28 @@
-TASK: HF1_V2_REPAIR_PACKAGE_LIFECYCLE_GOVERNANCE_OWNER_DECISIONS_V2
+TASK: HF1_V2_REPAIR_PACKAGE_LIFECYCLE_GOVERNANCE_OWNER_DECISIONS_V3
 
 Work only inside:
 
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Use a fresh generic Local Agent session.
+Use a fresh generic Local Agent session with Claude Opus 5 Max.
 
-Do not invoke any repository-defined lifecycle Agent or consumer ETL Agent as the
-authority for this task.
+Do not select:
 
-This is a bounded governance implementation authorized by the repository owner.
-It repairs two confirmed governance defects:
+* etl-hotfix-implementer;
+* etl-independent-reviewer;
+* etl-release-verifier;
+* any source-governance Custom Agent;
+* ETL Orchestrator or any consumer Agent.
 
-1. VERSION_AND_PACKAGE is required to create one new versioned VSIX, but the
-    protected-path system currently has no create-only, stage-scoped exception.
-2. etl-release-verifier currently participates in both artifact production and
-    certification, allowing producer/certifier identity ambiguity.
+This is one atomic repository-owner-authorized governance repair.
 
-The preceding attempt ended correctly with:
+The preceding attempt ended truthfully with:
 
 PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
 BLOCKED_REQUIRED_CHANGE_OUTSIDE_BOUNDARY
 
-It made zero repository changes and proved that two additional implementation
-paths are required.
-
-Do not install the extension.
-Do not start Runtime QA.
-Do not rebuild or modify the 0.3.146 VSIX.
-Do not change package.json or its version.
-Do not create another VSIX.
-Do not modify product source or tests.
-Do not commit, push, stage, stash, reset, restore, clean, merge, or tag.
-Do not perform independent certification in this session.
+That attempt made zero repository changes and proved that the complete repair
+requires exactly eight authorized paths rather than five.
 
 ==================================================
 
@@ -56,328 +46,474 @@ b2e44c3a1a051aa7fa6008831d225bc06d22e847
 SOURCE_VERSION:
 0.3.146
 
-Required state:
+Required initial state:
 
 * exactly one effective repository target;
 * staged files: 0;
 * stash entries: 0;
 * package-lock.json absent;
 * no concurrent Agent mutation;
-* existing VSIX files preserved byte-for-byte;
-* databricks-etl-copilot-0.3.146.vsix present and unchanged.
+* databricks-etl-copilot-0.3.146.vsix present and unchanged;
+* expected VSIX size: 1,262,112 bytes.
 
-Prove native execution with visible output and real exit codes.
+Prove visible stdout, stderr, executable identity, and real exit codes for:
 
-If inline capture is empty, use task-owned file-redirection under the operating
-system temporary directory. Do not modify the repository to repair execution.
+* cmd.exe;
+* git.exe;
+* node.exe;
+* npm.cmd or the exact underlying Node executable.
 
-Stop without edits on identity mismatch, concurrent mutation, staged content, or
-unproven execution.
+If inline capture returns empty output, use a task-owned file-redirection helper
+under the operating-system temporary directory. Do not modify repository content
+to repair process execution.
 
-==================================================
-2. INDEPENDENT PRE-EDIT BASELINE
-
-Before editing, capture both:
-
-1. the canonical governance baseline;
-2. an independent OS-level path, size, SHA-256, and mtime snapshot.
-
-The independent snapshot must include tracked, untracked, ignored protected, and
-VSIX paths.
-
-Record exact pre-edit hashes for all authorized files and all existing VSIX
-artifacts.
-
-Do not rely solely on git ls-files, because *.vsix and other governance assets
-may be ignored or untracked.
+Stop without edits on identity mismatch, concurrent mutation, staged content,
+workspace ambiguity, or unproven process execution.
 
 ==================================================
-3. AUTHORIZED CHANGE BOUNDARY
+2. PRE-EDIT BASELINE
 
-Only these five files may be modified:
+Before editing, capture two independent baselines:
+
+1. the canonical governance baseline tool;
+2. an OS-level full-content snapshot independent of Git tracking and ignore state.
+
+Include:
+
+* tracked, untracked, ignored-but-protected, and protected paths;
+* all governance assets;
+* all *.vsix files;
+* package.json;
+* package-lock.json presence;
+* all Repair 11, 12, and 13 source/test paths;
+* all consumer Agent catalog and generated-resource paths;
+* HEAD, staged count, stash count;
+* per-path size and SHA-256.
+
+Store temporary scripts, logs, snapshots, mirrors, and fixtures only under a
+unique OS temporary directory.
+
+Do not rely only on git ls-files; the governance and VSIX assets include
+untracked or ignored content.
+
+==================================================
+3. ATOMIC AUTHORIZED CHANGE BOUNDARY
+
+Exactly these eight files may be modified:
 
 1. .github/agent-governance/process-manifest.json
 2. .github/agent-governance/schemas/process-manifest.schema.json
 3. scripts/agent-governance/verify-change-boundary.mjs
 4. scripts/agent-governance/tests/change-boundary-adversarial.test.mjs
 5. scripts/agent-governance/tests/manifest-registry.test.mjs
+6. scripts/agent-governance/emit-checkpoint.mjs
+7. scripts/agent-governance/tests/checkpoint-fidelity.test.mjs
+8. scripts/agent-governance/validate-customizations.mjs
 
-No other path is authorized.
+No ninth path is authorized.
 
-If a correct implementation requires any sixth path, stop without partial edits:
+If a correct implementation genuinely requires another path:
+
+* make no partial repair;
+* do not weaken a validator;
+* do not silently reinterpret the requirement;
+* stop with:
 
 PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
-BLOCKED_REQUIRED_CHANGE_OUTSIDE_BOUNDARY
+BLOCKED_ADDITIONAL_PATH_REQUIRED
+
+Do not modify:
+
+* package.json;
+* package-lock.json;
+* any existing or new VSIX;
+* product source;
+* Repair 11, 12, or 13 source/tests;
+* consumer Agent catalog or rendered Agent resources;
+* .claude/**;
+* QA workspace content;
+* testPatterns.ts;
+* evaluation baselines;
+* Git state.
 
 ==================================================
-4. OWNER DECISION A — CREATE-ONLY VSIX EXCEPTION
+4. DECISION A — CREATE-ONLY VERSIONED VSIX EXCEPTION
 
-Implement a machine-enforced protected-path exception that allows the
-VERSION_AND_PACKAGE stage to create exactly one new canonical VSIX for the exact
-package version being produced.
+Implement a narrow, machine-enforced exception for the VERSION_AND_PACKAGE
+stage.
 
-The manifest and schema must be capable of expressing all of these constraints:
+The exception must permit only:
 
-* applicable stage: VERSION_AND_PACKAGE only;
-* applicable protected path: the canonical root VSIX artifact only;
-* allowed change kind: CREATED only;
-* required explicit authorization token;
-* maximum newly created artifacts: exactly 1;
-* exact filename derived from the canonical extension/package identity and the
-    authorized target version;
-* artifact version must equal the authorized package version;
-* artifact identity must equal the canonical extension identity;
-* an existing artifact may not be modified, replaced, deleted, or renamed;
-* an artifact for another version may not be created;
-* a second new VSIX must be rejected;
-* the exception grants no install, activation, Runtime QA, approval, commit, push,
-    or publication authority.
+* change kind: CREATED;
+* artifact type: VSIX;
+* exactly one new artifact;
+* canonical filename derived from the declared extension identity and requested
+    version;
+* archive-declared extension ID equal to the manifest/package identity;
+* archive-declared version equal to the requested version;
+* an explicitly supplied authorization token;
+* no pre-existing VSIX content change.
 
-Do not implement this by excluding VSIX files from protection.
+The exception must never permit:
+
+* CONTENT_CHANGED;
+* DELETED;
+* replacement;
+* overwrite;
+* wrong version;
+* wrong filename;
+* wrong extension ID;
+* two or more new VSIX files;
+* reuse of an existing filename;
+* arbitrary *.vsix creation;
+* creation at another lifecycle stage;
+* missing, malformed, mismatched, or replayed authorization;
+* path traversal;
+* case or separator ambiguity;
+* an artifact outside the exact package destination.
+
+The live comparator already derives a change kind such as:
+
+* CREATED;
+* CONTENT_CHANGED;
+* DELETED.
+
+Change-boundary authorization must consult that exact change kind.
+
+Do not merely check whether a token exists.
 
 Do not weaken the global **/*.vsix protected-path rule.
 
-Do not authorize CONTENT_CHANGED, DELETED, RENAMED, or replacement.
+Add explicit versioned manifest/schema properties equivalent to:
 
-Do not rely on ordinary working-tree enumeration because ignored VSIX files may
-not appear there.
+* allowedChangeKinds: ["CREATED"];
+* maxNewArtifacts: 1;
+* exact artifact identity/filename derivation;
+* the required authorization token or token class.
 
-Update verify-change-boundary.mjs so the protected-path comparison branch:
+Use the repository’s existing schema conventions. Do not introduce an
+unvalidated free-form property.
 
-* evaluates the actual change kind;
-* enforces the exception’s allowed change kinds;
-* walks protected VSIX paths independently of Git tracking/ignore state;
-* derives pre/post artifact counts;
-* identifies the exact newly created artifact;
-* validates filename, package version, extension identity, and authorization;
-* fails closed when required identity evidence is missing or ambiguous;
-* emits deterministic structured findings and an appropriate exit code.
-
-The verifier must not treat the mere existence of an exception as blanket
-permission.
+The protected-path walker must continue detecting VSIX files independently of Git
+tracking and ignore state.
 
 ==================================================
-5. REQUIRED DECISION-A TEST MATRIX
+5. DECISION A — REQUIRED TEST MATRIX
 
-Add adversarial tests proving:
+Add dynamic positive and negative tests proving:
 
-1. no exception → new VSIX creation is BLOCKED;
-2. wrong stage → BLOCKED;
-3. missing authorization token → BLOCKED;
-4. wrong authorization token → BLOCKED;
-5. exactly one correctly named new VSIX for the authorized version → PASS;
-6. correct artifact created under another stage → BLOCKED;
-7. wrong version in filename → BLOCKED;
-8. wrong extension/artifact identity → BLOCKED;
-9. two new VSIX artifacts → BLOCKED;
-10. modification of a pre-existing VSIX → BLOCKED;
-11. replacement of a pre-existing VSIX → BLOCKED;
-12. deletion of a pre-existing VSIX → BLOCKED;
-13. rename of a pre-existing VSIX → BLOCKED;
-14. creation plus modification of an existing VSIX → BLOCKED;
-15. creation of a noncanonical VSIX path → BLOCKED;
-16. absent or malformed artifact identity evidence → BLOCKED;
-17. the existing VERSION_BUMP_AUTHORIZED package.json behavior remains unchanged;
-18. all unrelated protected paths remain fail-closed.
+1. exactly one correctly named new versioned VSIX with valid authorization:
+    PASS;
+2. same case without authorization:
+    BLOCKED;
+3. wrong filename:
+    BLOCKED;
+4. wrong version in filename:
+    BLOCKED;
+5. wrong archive manifest version:
+    BLOCKED;
+6. wrong extension ID:
+    BLOCKED;
+7. two new VSIX artifacts:
+    BLOCKED;
+8. modification of a pre-existing VSIX:
+    BLOCKED;
+9. replacement of a pre-existing VSIX:
+    BLOCKED;
+10. deletion of a pre-existing VSIX:
+    BLOCKED;
+11. creation outside VERSION_AND_PACKAGE:
+    BLOCKED;
+12. malformed or unknown change kind:
+    BLOCKED;
+13. malformed, missing, or unknown exception fields:
+    schema rejection or BLOCKED;
+14. case/separator/path traversal variants:
+    BLOCKED;
+15. other protected paths remain unchanged and fail closed.
 
-Include at least one negative control that removes the new allowed-change-kind
-check and proves the tests fail. Restore the implementation afterward and verify
-its hash/content.
-
-Tests must exercise real verifier behavior, not merely inspect manifest text.
-
-==================================================
-6. OWNER DECISION B — PRODUCER/CERTIFIER SEPARATION
-
-Mechanically enforce that an Agent or actor that produced a package artifact
-cannot independently certify that same artifact.
-
-The following must be true:
-
-* a different session ID alone is insufficient;
-* the same Agent identity in another session remains the same actor for
-    certification purposes;
-* etl-release-verifier may not certify an artifact it produced;
-* an Agent may not certify definitions, policies, manifests, schemas, validators,
-    or artifact paths that define or govern its own certification authority;
-* a fresh generic session or separately pinned external reviewer may certify only
-    when complete producer and reviewer provenance proves distinct actor identity;
-* missing or ambiguous producer provenance fails closed;
-* no repository-defined Agent gains new authority;
-* no new Agent is created;
-* no existing role gains install, write, approval, deployment, or Runtime QA
-    authority.
-
-Use the existing self-certification model, governanceAuthorityPaths,
-mayNotCertify.paths, provenance fields, and runtime enforcement architecture.
-Extend those mechanisms narrowly rather than creating a parallel policy system.
-
-The exact package-verification stage must remain independently executable, but a
-producer must be rejected as its certifier.
-
-Required negative findings must remain deterministic, including as applicable:
-
-* SELF_CERTIFICATION;
-* CERTIFIED_IN_IMPLEMENTATION_SESSION;
-* REVIEWER_CERTIFIES_OWN_AUTHORITY;
-* SELF_REVIEW_PROHIBITION_INCOMPLETE;
-* INDEPENDENCE_UNPROVEN_STOP_CODE;
-* OWNER_DECISION_REQUIRED.
+The positive test must validate the exception without weakening any negative test.
 
 ==================================================
-7. REQUIRED DECISION-B TEST MATRIX
+6. DECISION B — PRODUCER/CERTIFIER SEPARATION
 
-Add tests proving:
+Repair package-certification independence at its existing canonical enforcement
+seam:
 
-1. same Agent and same session produces and certifies → BLOCKED;
-2. same Agent with different session IDs → BLOCKED;
-3. same repository-defined release-verifier in separate chats → BLOCKED;
-4. missing producer identity → BLOCKED;
-5. missing producer session provenance → BLOCKED;
-6. malformed provenance → BLOCKED;
-7. reviewer certifies a path governing its own authority → BLOCKED;
-8. fresh generic reviewer with complete distinct provenance → eligible;
-9. pinned external reviewer with complete distinct provenance → eligible;
-10. different display name but same canonical actor identity → BLOCKED;
-11. consumer ETL Agent cannot certify source-package governance;
-12. certification eligibility grants no mutation or installation authority;
-13. all existing governance self-certification tests continue to pass.
+scripts/agent-governance/emit-checkpoint.mjs
 
-Do not encode trust solely from a user-facing actor name.
+Do not create a parallel policy system in verify-change-boundary.mjs.
+
+Certification must resolve canonical actor identity, role, lifecycle ownership,
+and session provenance rather than comparing only untrusted display-name strings.
+
+A package-certification PASS requires independently proven:
+
+* producer canonical identity;
+* certifier canonical identity;
+* producer role;
+* certifier role;
+* implementation/production session ID;
+* certification/review session ID;
+* distinct canonical actors;
+* distinct sessions;
+* certifier authorized for the exact stage;
+* producer not certifying its own artifact;
+* no actor alias resolving producer and certifier to the same principal;
+* no consumer Agent acting as release certifier;
+* complete and correctly typed provenance.
+
+Fail closed if any required producer or certifier identity is:
+
+* missing;
+* null;
+* empty;
+* unknown;
+* malformed;
+* wrong-typed;
+* unresolved;
+* supplied only as an untrusted display name;
+* inconsistent with the declared session;
+* inconsistent with manifest role ownership.
+
+Do not coerce malformed producer identity to null and continue.
+
+Do not allow changing spelling, casing, display name, alias, or session label to
+bypass self-certification.
 
 ==================================================
-8. VALIDATION
+7. DECISION B — ROLE MODEL
 
-Run write-producing validation only in a task-owned byte-faithful temporary
-mirror.
+Keep responsibilities distinct:
 
-Run at minimum:
+* VERSION_AND_PACKAGE:
+    produces the versioned package;
+* EXACT_PACKAGE_VERIFICATION:
+    independently verifies that package;
+* consumer ETL Agents:
+    are not source-release certifiers;
+* repository owner:
+    grants explicit lifecycle authorization but does not automatically become the
+    certifier;
+* a role may not certify an artifact it produced.
 
-* governance unit tests;
-* change-boundary adversarial tests;
-* manifest registry tests;
-* manifest/schema validation;
-* customization validation;
-* test-registration validation;
-* workflow validation;
-* evidence-packet and checkpoint validation;
-* compile;
-* compile:test;
-* lint;
-* canonical full unit suite;
-* Repair 11 focused suite;
-* Repair 12 focused suite;
-* Repair 13 focused suite;
-* Runtime-QA-support fixture suite;
-* package asset byte-lock tests.
+If the same source-governance Agent currently owns both production and
+certification stages, correct the manifest ownership or stage actor requirements
+without creating a new Agent.
 
-Expected known full-suite state:
+Do not broaden any Agent’s authority.
+
+Do not make the release verifier both producer and certifier merely because its
+name contains “verifier.”
+
+Update validate-customizations.mjs so static validation identifies and blocks:
+
+* the same canonical Agent owning package production and exact certification;
+* incomplete self-review prohibition;
+* unresolved certifier ownership;
+* consumer Agent certification authority;
+* role declarations exceeding manifest authority.
+
+==================================================
+8. DECISION B — REQUIRED TEST MATRIX
+
+In checkpoint-fidelity.test.mjs, directly test the real independence guard.
+
+Required cases:
+
+1. distinct authorized producer and certifier, distinct sessions, complete
+    provenance:
+    PASS;
+2. same canonical actor and same display name:
+    BLOCKED SELF_CERTIFICATION;
+3. same canonical actor under different display names:
+    BLOCKED;
+4. same canonical actor under an alias:
+    BLOCKED;
+5. different actor but same session:
+    BLOCKED;
+6. missing producer identity:
+    BLOCKED;
+7. null producer identity:
+    BLOCKED;
+8. empty producer identity:
+    BLOCKED;
+9. wrong-typed producer identity:
+    BLOCKED;
+10. unknown producer identity:
+    BLOCKED;
+11. malformed producer provenance:
+    BLOCKED;
+12. missing certifier identity:
+    BLOCKED;
+13. unauthorized certifier:
+    BLOCKED;
+14. consumer ETL Orchestrator attempts certification:
+    BLOCKED;
+15. another consumer Agent attempts certification:
+    BLOCKED;
+16. producer tries to certify through a renamed session:
+    BLOCKED;
+17. manifest ownership conflict:
+    BLOCKED;
+18. incomplete provenance must never produce a PASS checkpoint.
+
+For all blocked cases require:
+
+* exit code 2;
+* deterministic diagnostic;
+* OWNER_DECISION_REQUIRED or the canonical fail-closed stop code;
+* agreement between console, structured output, evidence packet, checkpoint, and
+    process exit code.
+
+==================================================
+9. MANIFEST AND SCHEMA INVARIANTS
+
+The repaired manifest and schema must prove:
+
+* every new property is schema-declared;
+* unknown properties remain rejected;
+* allowed change kinds are exhaustive and typed;
+* artifact-count limits are typed and bounded;
+* exact filename/identity derivation is deterministic;
+* stage ownership remains unambiguous;
+* no machine stage is unowned;
+* no Agent declaration exceeds manifest authority;
+* production and certification ownership are distinct;
+* self-certification prohibition is complete;
+* human terminal stages remain explicitly human-owned;
+* no consumer Agent gains source-release authority;
+* no negative-state predicate grants authority.
+
+Do not change the manifest solely to make tests green. Tests must exercise the
+actual runtime and manifest behavior.
+
+==================================================
+10. VALIDATION
+
+Run write-producing validation only in a byte-faithful task-owned temporary mirror.
+
+Reuse existing dependencies read-only. Do not install or download anything.
+
+Run:
+
+1. governance unit tests;
+2. checkpoint-fidelity tests;
+3. change-boundary adversarial tests;
+4. manifest-registry tests;
+5. manifest/schema validation;
+6. customization validation;
+7. test-registration validation;
+8. workflow validation;
+9. capture → create artifact → compare positive lifecycle;
+10. all negative VSIX lifecycle cases;
+11. all producer/certifier independence cases;
+12. compile;
+13. compile:test;
+14. lint;
+15. Repair 11 focused suite;
+16. Repair 12 focused suite;
+17. Repair 13 focused suite;
+18. Runtime-QA-support fixture suite;
+19. canonical full unit suite.
+
+Require fresh compilation; do not trust stale out/**.
+
+Expected known full-suite baseline:
 
 * 2298 passing;
 * 1 pending;
-* 2 failing;
+* 2 failing.
+
+The only acceptable failures are the exact unchanged F1 and F3 identities:
+
 * F1: missing
     .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md;
 * F3: eleven existing src/**/AGENT.md files.
 
-F1 and F3 must remain exact unchanged known failures.
+Compare exact test identities and fingerprints, not only counts.
 
 Required:
 
 * new functional regressions: 0;
 * new security regressions: 0;
-* new blocker/major/minor governance findings caused by this repair: 0;
-* all new adversarial tests pass;
-* existing VSIX artifacts remain byte-identical;
-* package version remains 0.3.146.
+* governance tests: all pass;
+* schema findings: 0;
+* manifest ownership conflicts: 0;
+* self-certification bypasses: 0;
+* VSIX create-only negative-case escapes: 0.
 
 ==================================================
-9. FINAL CHANGE-BOUNDARY PROOF
+11. FINAL CHANGE-BOUNDARY PROOF
 
-Compare final state against the independent pre-edit snapshot.
+Compare the final live repository against both pre-edit baselines.
 
 Required:
 
-AUTHORIZED_CHANGED_PATHS:
-exactly the subset of the five authorized files actually changed
-
-UNAUTHORIZED_CHANGED_PATHS:
-NONE
-
-Also require:
-
+* every task-attributable change is one of the eight authorized files;
+* unauthorized changed paths: NONE;
 * package.json unchanged;
-* package version unchanged at 0.3.146;
-* package-lock.json absent;
-* product/runtime source unchanged;
-* Repair 11/12/13 product behavior unchanged;
-* consumer Agent tool sets unchanged;
-* existing VSIX files unchanged;
-* no new VSIX created;
-* no extension installed or uninstalled;
-* Runtime QA not started;
+* package version remains 0.3.146;
+* package-lock.json remains absent;
+* all existing VSIX artifacts remain byte-identical;
+* databricks-etl-copilot-0.3.146.vsix remains byte-identical;
+* product source unchanged;
+* Repairs 11, 12, and 13 unchanged;
+* consumer Agent files and tool sets unchanged;
 * QA workspace untouched;
-* no Preview or Write;
 * staged files: 0;
 * stash entries: 0;
-* no commit, push, or tag.
+* commit/push/tag: none;
+* installation: not performed;
+* Runtime QA: not started;
+* Preview/Write: not performed.
+
+Do not certify this repair in the implementation session.
+
+Success authorizes only a fresh generic independent review.
+
+It does not authorize installation or Runtime QA.
 
 ==================================================
-10. HANDOFF — DO NOT SELF-CERTIFY
-
-This implementation session must not independently certify its own governance
-repair.
-
-Success means only:
-
-READY_FOR_FRESH_GENERIC_COMBINED_INDEPENDENT_REVIEW: YES
-
-The next session must be a fresh Generic Agent and must combine:
-
-1. independent read-only review of this five-file governance repair;
-2. exact read-only re-verification of the existing 0.3.146 VSIX.
-
-Do not perform that review in this chat.
-
-==================================================
-11. FINAL REPORT
+12. FINAL REPORT
 
 Return:
 
 IDENTITY_GATE: PASS/FAIL
 PROCESS_EXECUTION_GATE: PASS/FAIL
+CONCURRENT_AGENT_MUTATION: YES/NO
 INDEPENDENT_BASELINE_CAPTURED: YES/NO
+
 AUTHORIZED_CHANGED_PATHS: 
 UNAUTHORIZED_CHANGED_PATHS: 
 
-CREATE_ONLY_EXCEPTION_SCHEMA_PRESENT: YES/NO
-PROTECTED_BRANCH_CHECKS_CHANGE_KIND: YES/NO
-PROTECTED_BRANCH_DERIVES_ARTIFACT_COUNT: YES/NO
-PROTECTED_BRANCH_DERIVES_EXACT_IDENTITY: YES/NO
-IGNORED_VSIX_VISIBILITY_PROVEN: YES/NO
-
-CORRECT_SINGLE_NEW_VSIX_ALLOWED: YES/NO
-NO_TOKEN_BLOCKED: YES/NO
-WRONG_STAGE_BLOCKED: YES/NO
-WRONG_TOKEN_BLOCKED: YES/NO
-WRONG_VERSION_BLOCKED: YES/NO
-WRONG_IDENTITY_BLOCKED: YES/NO
-TWO_NEW_ARTIFACTS_BLOCKED: YES/NO
+CREATE_ONLY_VSIX_EXCEPTION_IMPLEMENTED: YES/NO
+CHANGE_KIND_ENFORCED: YES/NO
+MAX_NEW_ARTIFACTS_ENFORCED: YES/NO
+CANONICAL_VSIX_FILENAME_ENFORCED: YES/NO
+ARCHIVE_ID_AND_VERSION_ENFORCED: YES/NO
 PREEXISTING_VSIX_MODIFICATION_BLOCKED: YES/NO
-PREEXISTING_VSIX_REPLACEMENT_BLOCKED: YES/NO
-PREEXISTING_VSIX_DELETION_BLOCKED: YES/NO
-PREEXISTING_VSIX_RENAME_BLOCKED: YES/NO
+VSIX_NEGATIVE_MATRIX_PASS: YES/NO
 
-SAME_AGENT_SAME_SESSION_CERTIFICATION_BLOCKED: YES/NO
-SAME_AGENT_DIFFERENT_SESSION_CERTIFICATION_BLOCKED: YES/NO
+PRODUCER_IDENTITY_REQUIRED: YES/NO
+CERTIFIER_IDENTITY_REQUIRED: YES/NO
+CANONICAL_ACTOR_RESOLUTION_PRESENT: YES/NO
+DISTINCT_ACTOR_REQUIRED: YES/NO
+DISTINCT_SESSION_REQUIRED: YES/NO
 MISSING_PROVENANCE_FAILS_CLOSED: YES/NO
-OWN_AUTHORITY_CERTIFICATION_BLOCKED: YES/NO
-FRESH_GENERIC_REVIEWER_ELIGIBILITY_TEST: PASS/FAIL
-PINNED_EXTERNAL_REVIEWER_ELIGIBILITY_TEST: PASS/FAIL
-NEW_AGENT_CREATED: NO
-AGENT_AUTHORITY_BROADENED: NO
+MALFORMED_PROVENANCE_FAILS_CLOSED: YES/NO
+ALIAS_SELF_CERTIFICATION_BLOCKED: YES/NO
+CONSUMER_AGENT_CERTIFICATION_BLOCKED: YES/NO
+PRODUCER_CERTIFIER_STAGE_OWNERSHIP_DISTINCT: YES/NO
+SELF_REVIEW_PROHIBITION_COMPLETE: YES/NO
 
-GOVERNANCE_TESTS: <passing/failing>
+MANIFEST_SCHEMA_VALID: YES/NO
+UNOWNED_MACHINE_STAGE_COUNT: 
+AUTHORITY_CONFLICT_COUNT: 
+AGENT_AUTHORITY_BROADENED: YES/NO
+
+GOVERNANCE_TESTS_PASSING: 
+GOVERNANCE_TESTS_FAILING: 
 COMPILE_PASS: YES/NO
 COMPILE_TEST_PASS: YES/NO
 LINT_PASS: YES/NO
@@ -385,7 +521,6 @@ REPAIR_11_PASS: YES/NO
 REPAIR_12_PASS: YES/NO
 REPAIR_13_PASS: YES/NO
 RUNTIME_QA_SUPPORT_FIXTURE_PASS: YES/NO
-PACKAGE_ASSET_BYTE_LOCK_PASS: YES/NO
 
 FULL_UNIT_PASSING: 
 FULL_UNIT_PENDING: 
@@ -397,16 +532,18 @@ NEW_FUNCTIONAL_REGRESSIONS:
 NEW_SECURITY_REGRESSIONS: 
 
 PACKAGE_VERSION_CHANGED: NO
+PACKAGE_LOCK_CREATED: NO
 EXISTING_VSIX_CHANGED: NO
-NEW_VSIX_CREATED: NO
+REPAIR_SOURCE_CHANGED: NO
+CONSUMER_AGENT_FILES_CHANGED: NO
 QA_WORKSPACE_TOUCHED: NO
+INSTALL_PERFORMED: NO
 RUNTIME_QA_STARTED: NO
-EXTENSION_INSTALLED_OR_UNINSTALLED: NO
 COMMIT_CREATED: NO
 PUSH_EXECUTED: NO
 
 READY_FOR_FRESH_GENERIC_COMBINED_INDEPENDENT_REVIEW: YES/NO
-READY_FOR_LOCAL_INSTALL: NO
+READY_FOR_LOCAL_INSTALL_AND_ACTIVATION: NO
 READY_FOR_RUNTIME_QA: NO
 
 End exactly with one:
@@ -421,7 +558,10 @@ PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
 FAIL_UNAUTHORIZED_CHANGE
 
 PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
-BLOCKED_REQUIRED_CHANGE_OUTSIDE_BOUNDARY
+BLOCKED_ADDITIONAL_PATH_REQUIRED
 
 PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
-BLOCKED_IDENTITY_OR_EXECUTION
+BLOCKED_IDENTITY_OR_CONCURRENT_MUTATION
+
+PACKAGE_LIFECYCLE_GOVERNANCE_REPAIR_RESULT:
+BLOCKED_EXECUTION_ENVIRONMENT
