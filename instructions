@@ -45,6 +45,7 @@
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_cancellation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/openai_background_reconciliation_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/host_chat_pause_live.py
+- universal-coding-agent/src/universal_coding_agent/testlab/trusted_test_pause_live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/live.py
 - universal-coding-agent/src/universal_coding_agent/testlab/hard_reasoning.py
 - universal-coding-agent/src/universal_coding_agent/testlab/large_solution.py
@@ -56,6 +57,9 @@
 - universal-coding-agent/tests/test_openai_background_cancellation_live.py
 - universal-coding-agent/tests/test_openai_background_reconciliation_live.py
 - universal-coding-agent/tests/test_host_chat_pause_live.py
+- universal-coding-agent/tests/test_trusted_test_pause.py
+- universal-coding-agent/tests/test_trusted_test_pause_live.py
+- universal-coding-agent/tests/test_trusted_test_pause_service.py
 - universal-coding-agent/tests/test_remote_operation_reconciliation.py
 - universal-coding-agent/tests/test_hard_reasoning_lab.py
 - universal-coding-agent/tests/test_solution_discovery.py
@@ -65,6 +69,7 @@
 - universal-coding-agent/scripts/pretransfer-test-lab.sh
 - universal-coding-agent/scripts/pretransfer-live-openai.sh
 - universal-coding-agent/scripts/pretransfer-live-host-chat-pause.sh
+- universal-coding-agent/scripts/pretransfer-live-trusted-test-pause.sh
 - universal-coding-agent/src/universal_coding_agent/product/__init__.py
 - universal-coding-agent/src/universal_coding_agent/product/models.py
 - universal-coding-agent/src/universal_coding_agent/product/context_documents.py
@@ -111,6 +116,7 @@ for FILE in \
   src/universal_coding_agent/providers/base.py \
   src/universal_coding_agent/providers/host_chat.py \
   src/universal_coding_agent/testlab/host_chat_pause_live.py \
+  src/universal_coding_agent/testlab/trusted_test_pause_live.py \
   src/universal_coding_agent/providers/host_subprocess.py \
   src/universal_coding_agent/orchestration/structured_output.py \
   src/universal_coding_agent/orchestration/safe_graph.py \
@@ -126,6 +132,7 @@ for FILE in \
   src/universal_coding_agent/web/app.py \
   ../.github/workflows/pretransfer-live-openai.yml \
   scripts/pretransfer-live-host-chat-pause.sh \
+  scripts/pretransfer-live-trusted-test-pause.sh \
   tests/test_web_api.py \
   web/package.json \
   web/tsconfig.json \
@@ -157,6 +164,9 @@ for FILE in \
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
   tests/test_host_chat_pause_live.py \
+  tests/test_trusted_test_pause.py \
+  tests/test_trusted_test_pause_live.py \
+  tests/test_trusted_test_pause_service.py \
   tests/test_openai_background_reconciliation_live.py \
   tests/test_remote_operation_reconciliation.py \
   tests/test_hard_reasoning_lab.py \
@@ -217,7 +227,9 @@ from universal_coding_agent.storage.artifacts import ArtifactSizeLimitExceeded, 
 from universal_coding_agent.testlab.openai_background_cancellation_live import run_openai_background_cancellation_live
 from universal_coding_agent.testlab.openai_background_reconciliation_live import run_openai_background_reconciliation_live
 from universal_coding_agent.testlab.host_chat_pause_live import run_host_chat_pause_live
+from universal_coding_agent.testlab.trusted_test_pause_live import run_trusted_test_pause_live
 from universal_coding_agent.testlab.openai_responses import OPENAI_BACKGROUND_CANCELLATION_ENV, OpenAIBackgroundLifecycleRecorder, OpenAIResponsesProvider
+from universal_coding_agent.safe.testing import TRUSTED_TEST_ADAPTER_PATH_ENV, TRUSTED_TEST_PAUSABLE_FACTORY_ENV, SafeTestRunner
 from universal_coding_agent.testlab.product_foundation_live import run_product_foundation_live
 from universal_coding_agent.testlab.program_execution_live import run_program_execution_live
 from universal_coding_agent.web import ProductWebRuntime, create_product_app
@@ -254,6 +266,8 @@ assert CancellationCoordinator and CancellationReport and CancellationSignal
 assert OwnedCancellableOperation and HostChatCompletionsProvider
 assert OwnedPausableOperation and PauseReport and PauseRequested and PauseResumeResult
 assert CANCELLABLE_COMPLETION_FACTORY_ENV
+assert SafeTestRunner and TRUSTED_TEST_ADAPTER_PATH_ENV and TRUSTED_TEST_PAUSABLE_FACTORY_ENV
+assert run_host_chat_pause_live and run_trusted_test_pause_live
 assert OpenAIResponsesProvider and OpenAIBackgroundLifecycleRecorder
 assert OPENAI_BACKGROUND_CANCELLATION_ENV and run_openai_background_cancellation_live
 assert RemoteOperationAction and RemoteOperationLeaseStore and RemoteOperationSnapshot and RemoteOperationState
@@ -278,6 +292,7 @@ print("PROGRAM_ACCEPTED_PHASE_EVIDENCE_IMPORT_PREFLIGHT_PASS")
 print("STRONG_CANCELLATION_IMPORT_PREFLIGHT_PASS")
 print("FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_IMPORT_PREFLIGHT_PASS")
 print("HOST_CHAT_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
+print("TRUSTED_TEST_PAUSABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_RESPONSES_CANCELLABLE_ADAPTER_IMPORT_PREFLIGHT_PASS")
 print("OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_IMPORT_PREFLIGHT_PASS")
 print("REMOTE_OPERATION_RESTART_RECONCILIATION_IMPORT_PREFLIGHT_PASS")
@@ -311,6 +326,10 @@ Cmd 3
   tests/test_openai_testlab_provider.py \
   tests/test_openai_background_cancellation_live.py \
   tests/test_host_chat_provider.py \
+  tests/test_host_chat_pause_live.py \
+  tests/test_trusted_test_pause.py \
+  tests/test_trusted_test_pause_live.py \
+  tests/test_trusted_test_pause_service.py \
   tests/test_host_subprocess_provider.py \
   tests/test_requirement_draft_repair.py \
   tests/test_program_execution.py \
@@ -333,6 +352,7 @@ echo "PROGRAM_ACCEPTED_PHASE_EVIDENCE_PREFLIGHT_PASS" && \
 echo "STRONG_CANCELLATION_PREFLIGHT_PASS" && \
 echo "FAIL_CLOSED_PAUSABLE_OPERATION_CONTRACT_PREFLIGHT_PASS" && \
 echo "HOST_CHAT_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
+echo "TRUSTED_TEST_PAUSABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_RESPONSES_CANCELLABLE_ADAPTER_PREFLIGHT_PASS" && \
 echo "OPENAI_BACKGROUND_CANCELLATION_LIVE_QUALIFICATION_PREFLIGHT_PASS" && \
 echo "REMOTE_OPERATION_RESTART_RECONCILIATION_PREFLIGHT_PASS" && \
@@ -669,4 +689,25 @@ test "$(git rev-parse HEAD)" = "$HOST_PAUSE_HEAD_BEFORE"
 test "$(git rev-parse 'HEAD^{tree}')" = "$HOST_PAUSE_TREE_BEFORE"
 test -z "$(git status --porcelain)"
 echo "HOST_CHAT_ACTIVE_PAUSE_LIVE_PASS"
+```
+
+Cmd 22 — trusted-test active-pause qualification only
+
+```bash
+export PATH="$HOME/uca-host-lab/.venv/bin:$PATH"
+export UCA_TRUSTED_TEST_ADAPTER_PATH="$HOME/uca-host-lab/src/trusted_test_pause_adapter.py"
+export UCA_TRUSTED_TEST_PAUSABLE_FACTORY="create_pausable_test"
+TRUSTED_TEST_PAUSE_HEAD_BEFORE="$(git rev-parse HEAD)"
+TRUSTED_TEST_PAUSE_TREE_BEFORE="$(git rev-parse 'HEAD^{tree}')"
+test -z "$(git status --porcelain)"
+TRUSTED_TEST_PAUSE_STATE_ROOT="$HOME/uca-host-lab/logs/trusted-test-pause-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$TRUSTED_TEST_PAUSE_STATE_ROOT"
+bash scripts/pretransfer-live-trusted-test-pause.sh "$TRUSTED_TEST_PAUSE_STATE_ROOT" \
+  | tee "$TRUSTED_TEST_PAUSE_STATE_ROOT/console.log"
+python -m json.tool \
+  "$TRUSTED_TEST_PAUSE_STATE_ROOT/trusted-test-active-pause-live-summary.json"
+test "$(git rev-parse HEAD)" = "$TRUSTED_TEST_PAUSE_HEAD_BEFORE"
+test "$(git rev-parse 'HEAD^{tree}')" = "$TRUSTED_TEST_PAUSE_TREE_BEFORE"
+test -z "$(git status --porcelain)"
+echo "TRUSTED_TEST_ACTIVE_PAUSE_LIVE_PASS"
 ```

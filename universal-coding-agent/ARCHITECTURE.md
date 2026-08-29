@@ -561,6 +561,26 @@ cooperative fallback, invocation error, or source mutation was observed. This co
 the opt-in Host Chat transport only. The broader roadmap item for active pause across additional
 provider and trusted-test transports remains open.
 
+P2.2c introduces a separate opt-in trusted-test adapter without changing the default subprocess
+runner. A site must configure both `UCA_TRUSTED_TEST_ADAPTER_PATH` and
+`UCA_TRUSTED_TEST_PAUSABLE_FACTORY`; incomplete configuration, a missing module or factory, an
+invalid handle, or an invalid result fails closed. The site-owned factory receives only the fixed
+operator-approved argv, resolved sandbox cwd, restricted test environment, and bounded profile
+timeout. Its handle must expose a bounded `result(timeout_seconds=...)` returning explicit
+returncode/stdout/stderr fields plus the same non-blocking pause/resume/paused/cancel/done contract.
+UCA registers that handle only inside the matching task-scoped test operation. Unconfigured tests
+continue through the existing shell-disabled owned subprocess path with active cancellation and
+safe-boundary-only pause; UCA does not suspend an arbitrary process or infer pause from stopped
+output.
+
+Deterministic coverage exercises stable progress while paused, acknowledged resume, cancellation
+precedence, invalid configuration and handle rejection, full Safe graph source preservation, and
+HTTP evidence with operation kind `test`. A tracked manual live qualifier observes the actual
+site-owned handle, requires a stable acknowledged pause with the operation still unfinished,
+requires successful resume and profile completion, reloads the durable redacted report, and checks
+the exact Git HEAD, tree, and clean status. P2.2c remains open until that dedicated adapter-level
+qualification passes on the trusted host checkout.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

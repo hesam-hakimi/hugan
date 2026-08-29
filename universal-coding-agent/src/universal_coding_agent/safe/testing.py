@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 import subprocess
+import sys
 import time
+from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
+from types import ModuleType
+from typing import Any, Protocol, cast
 
 from universal_coding_agent.core.cancellation import (
     CancellationSignal,
@@ -17,9 +22,68 @@ from universal_coding_agent.core.safe_models import (
 )
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
+TRUSTED_TEST_ADAPTER_PATH_ENV = "UCA_TRUSTED_TEST_ADAPTER_PATH"
+TRUSTED_TEST_PAUSABLE_FACTORY_ENV = "UCA_TRUSTED_TEST_PAUSABLE_FACTORY"
 
+
+class _PausableTestHandle(Protocol):
+    def result(self, *, timeout_seconds: int) -> Any:
+        """Wait for the bounded trusted-test result."""
+
+    def cancel(self) -> None:
+        """Request termination without blocking."""
+
+    def done(self) -> bool:
+        """Return without blocking whether the test terminated."""
+
+    def pause(self) -> None:
+        """Request a cooperative pause without blocking."""
+
+    def resume(self) -> None:
+        """Request continuation without blocking."""
+
+    def paused(self) -> bool:
+        """Return without blocking whether the pause was acknowledged."""
+
+
+@dataclass
 class SafeTestRunner:
     """Run only operator-defined argv profiles with shell disabled."""
+
+    adapter_module_path: Path | None = None
+    pausable_factory_name: str | None = None
+    _module: ModuleType | None = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        has_path = self.adapter_module_path is not None
+        has_factory = bool(str(self.pausable_factory_name or "").strip())
+        if has_path != has_factory:
+            raise ValueError(
+                "configure both trusted-test adapter path and pausable factory"
+            )
+        if not has_path:
+            self.pausable_factory_name = None
+            return
+        assert self.adapter_module_path is not None
+        self.adapter_module_path = self.adapter_module_path.expanduser().resolve()
+        self.pausable_factory_name = str(self.pausable_factory_name).strip()
+        if not self.adapter_module_path.is_file():
+            raise ValueError("trusted-test adapter module was not found")
+
+    @classmethod
+    def from_environment(cls) -> SafeTestRunner:
+        path_value = os.getenv(TRUSTED_TEST_ADAPTER_PATH_ENV, "").strip()
+        factory_name = os.getenv(TRUSTED_TEST_PAUSABLE_FACTORY_ENV, "").strip()
+        if not path_value and not factory_name:
+            return cls()
+        if not path_value or not factory_name:
+            raise ValueError(
+                "trusted-test pausable adapter configuration is incomplete"
+            )
+        return cls(
+            adapter_module_path=Path(path_value),
+            pausable_factory_name=factory_name,
+        )
 
     def run_profiles(
         self,
@@ -68,12 +132,33 @@ class SafeTestRunner:
                 start_new_session=True,
             )
 
-            if cancellation is None:
+            if cancellation is not None and self.pausable_factory_name:
+                factory = self._pausable_factory()
+                start_pausable_test = partial(
+                    _create_pausable_test_handle,
+                    factory,
+                    argv=tuple(profile.argv),
+                    cwd=str(cwd),
+                    env=dict(environment),
+                    timeout_seconds=profile.timeout_seconds,
+                )
+
+                with cancellation.operation(OwnedOperationKind.TEST):
+                    with cancellation.owned_pausable_operation(
+                        OwnedOperationKind.TEST,
+                        start_pausable_test,
+                    ) as operation:
+                        returncode, stdout, stderr = _await_pausable_test_handle(
+                            cast(_PausableTestHandle, operation),
+                            timeout_seconds=profile.timeout_seconds,
+                        )
+            elif cancellation is None:
                 process = start_profile()
                 stdout, stderr = _communicate(
                     process,
                     timeout=profile.timeout_seconds,
                 )
+                returncode = process.returncode
             else:
                 with cancellation.operation(OwnedOperationKind.TEST):
                     with cancellation.owned_process(
@@ -84,6 +169,7 @@ class SafeTestRunner:
                             process,
                             timeout=profile.timeout_seconds,
                         )
+                returncode = process.returncode
             elapsed_ms = max(0, int((time.monotonic() - started) * 1000))
             combined = "\n".join(
                 part for part in (stdout, stderr) if part
@@ -92,13 +178,49 @@ class SafeTestRunner:
             results.append(
                 TestExecutionResult(
                     profile_id=profile.profile_id,
-                    passed=process.returncode == 0,
-                    returncode=process.returncode,
+                    passed=returncode == 0,
+                    returncode=returncode,
                     duration_ms=elapsed_ms,
                     output=output,
                 )
             )
         return tuple(results)
+
+    def _pausable_factory(self):
+        module = self._adapter_module()
+        factory = getattr(module, str(self.pausable_factory_name), None)
+        if not callable(factory):
+            raise ValueError(
+                "configured trusted-test pausable factory is unavailable"
+            )
+        return factory
+
+    def _adapter_module(self) -> ModuleType:
+        if self._module is not None:
+            return self._module
+        path = self.adapter_module_path
+        if path is None:
+            raise RuntimeError("trusted-test pausable adapter is not configured")
+        module_name = f"_uca_trusted_test_adapter_{abs(hash(str(path)))}"
+        spec = importlib.util.spec_from_file_location(module_name, path)
+        if spec is None or spec.loader is None:
+            raise ValueError("trusted-test adapter module could not load")
+        module = importlib.util.module_from_spec(spec)
+        parent = str(path.parent)
+        inserted = parent not in sys.path
+        if inserted:
+            sys.path.insert(0, parent)
+        try:
+            spec.loader.exec_module(module)
+        except Exception as exc:
+            raise ValueError(
+                f"trusted-test adapter failed to load safely: {type(exc).__name__}"
+            ) from None
+        finally:
+            if inserted and sys.path and sys.path[0] == parent:
+                sys.path.pop(0)
+        self._module = module
+        return module
 
 
 def _communicate(
@@ -112,3 +234,82 @@ def _communicate(
         process.kill()
         process.communicate()
         raise
+
+
+def _require_pausable_test_handle(value: Any) -> _PausableTestHandle:
+    required = ("result", "cancel", "done", "pause", "resume", "paused")
+    if not all(callable(getattr(value, name, None)) for name in required):
+        _cancel_test_handle(value)
+        raise RuntimeError("trusted-test pausable factory returned an invalid handle")
+    return cast(_PausableTestHandle, value)
+
+
+def _create_pausable_test_handle(
+    factory: Any,
+    *,
+    argv: tuple[str, ...],
+    cwd: str,
+    env: dict[str, str],
+    timeout_seconds: int,
+) -> _PausableTestHandle:
+    try:
+        value = factory(
+            argv=argv,
+            cwd=cwd,
+            env=env,
+            timeout_seconds=timeout_seconds,
+        )
+    except Exception as exc:
+        raise RuntimeError(
+            f"trusted-test pausable factory failed safely: {type(exc).__name__}"
+        ) from None
+    return _require_pausable_test_handle(value)
+
+
+def _await_pausable_test_handle(
+    handle: _PausableTestHandle,
+    *,
+    timeout_seconds: int,
+) -> tuple[int, str, str]:
+    completed = False
+    try:
+        try:
+            result = handle.result(timeout_seconds=timeout_seconds)
+        except (OSError, RuntimeError, subprocess.SubprocessError):
+            raise
+        except Exception as exc:
+            raise RuntimeError(
+                f"trusted-test pausable handle failed safely: {type(exc).__name__}"
+            ) from None
+        completed = _test_handle_done(handle)
+    finally:
+        if not _test_handle_done(handle):
+            _cancel_test_handle(handle)
+    if not completed:
+        raise RuntimeError("trusted-test pausable handle returned before termination")
+    return _require_test_result(result)
+
+
+def _require_test_result(value: Any) -> tuple[int, str, str]:
+    returncode = getattr(value, "returncode", None)
+    stdout = getattr(value, "stdout", None)
+    stderr = getattr(value, "stderr", None)
+    if isinstance(returncode, bool) or not isinstance(returncode, int):
+        raise RuntimeError("trusted-test pausable handle returned an invalid result")
+    if not isinstance(stdout, str) or not isinstance(stderr, str):
+        raise RuntimeError("trusted-test pausable handle returned an invalid result")
+    return returncode, stdout, stderr
+
+
+def _test_handle_done(handle: _PausableTestHandle) -> bool:
+    try:
+        return bool(handle.done())
+    except Exception:
+        return False
+
+
+def _cancel_test_handle(handle: Any) -> None:
+    try:
+        handle.cancel()
+    except Exception:
+        return

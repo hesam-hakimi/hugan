@@ -56,10 +56,12 @@ class SafeAgentService:
         allow_local_sources: bool = False,
         control: TaskControlService | None = None,
         remote_operations: SqliteRemoteOperationLeaseStore | None = None,
+        test_runner: SafeTestRunner | None = None,
     ) -> SafeAgentService:
         state_root = state_root.resolve()
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
         state_root.mkdir(parents=True, exist_ok=True)
+        selected_test_runner = test_runner or SafeTestRunner.from_environment()
         artifacts = ArtifactStore(state_root / "artifacts")
         owns_control = control is None
         control_service = control or TaskControlService(state_root / "task-control.sqlite")
@@ -99,7 +101,7 @@ class SafeAgentService:
             artifacts=artifacts,
             edit_engine=edit_engine,
             patch_engine=SafePatchEngine(),
-            test_runner=SafeTestRunner(),
+            test_runner=selected_test_runner,
             cancellation=control_service.cancellation,
         )
         connection = sqlite3.connect(
