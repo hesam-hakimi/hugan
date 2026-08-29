@@ -525,13 +525,13 @@ serialized per task; a concurrent duplicate control attempt fails closed while c
 remains available. Cancellation remains terminal and clears the in-runtime pause latch before
 invoking the existing bounded cancellation path.
 
-This foundation registers no production provider or test transport and changes no HTTP or React
-surface. Host Chat, OpenAI Responses, host subprocesses, and trusted test commands therefore retain
-their existing cancellation and safe-boundary pause behavior. The active-pause roadmap item stays
-open. P2.2b is explicitly backlogged until the Host Chat integration exposes a trusted,
-non-blocking, accurately acknowledged pause primitive and passes dedicated live host
-qualification. No OS process suspension, provider output consumption, retry/resume automation,
-Task or Program outcome change, publication, or broader hard-control claim is introduced.
+P2.2a itself registers no production provider or test transport and changes no HTTP or React
+surface. At that foundation boundary, Host Chat, OpenAI Responses, host subprocesses, and trusted
+test commands retained their existing cancellation and safe-boundary pause behavior. P2.2b was
+therefore gated on a trusted, non-blocking, accurately acknowledged Host Chat pause primitive and
+dedicated live host qualification. No OS process suspension, provider output consumption,
+retry/resume automation, Task or Program outcome change, publication, or broader hard-control
+claim was introduced by the foundation.
 
 P2.2b adds an opt-in Host Chat adapter for that exact contract. A site enables it only by naming
 `UCA_HOST_PAUSABLE_COMPLETION_FACTORY`; the factory must return one handle implementing the
@@ -548,8 +548,18 @@ site-owned handle without exposing model text, requires a stable acknowledged pa
 requires acknowledged resume and completed inference, reloads the durable redacted pause report,
 and verifies that the exact Git HEAD, tree, and clean status were preserved. The tracked runner is
 manual and provider-local; it opens no application port and grants no workflow or remote execution
-authority. P2.2b remains open until this adapter-level qualification passes on the trusted host
-checkout.
+authority.
+
+The adapter-level qualification passed on 2026-08-29 against the local
+Qwen2.5-Coder-0.5B-Instruct Q4_K_M `llama-cpp-python` host. The exact qualified source was HEAD
+`85b0fe6c7f81f75771b3091175f8a6c67f83f909` with tree
+`ed557ef73ced91268e6c168c0ff02d1b4f8aba0d`. One owned provider handle acknowledged pause within
+the existing bounded control call (`920.183 ms`), remained paused for the full `1500 ms` stability
+window, acknowledged resume (`27.845 ms` control call), completed inference, reloaded the exact
+durable redacted report, and preserved the clean source HEAD and tree. No unsupported active work,
+cooperative fallback, invocation error, or source mutation was observed. This completes P2.2b for
+the opt-in Host Chat transport only. The broader roadmap item for active pause across additional
+provider and trusted-test transports remains open.
 
 ## Context management
 

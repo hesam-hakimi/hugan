@@ -649,3 +649,24 @@ FINAL_REPORT="$(find "$PHASE2C_STATE_ROOT/artifacts/tasks" -type f -name safe-fi
 test -n "$FINAL_REPORT"
 .venv/bin/python -m json.tool "$FINAL_REPORT"
 ```
+
+Cmd 21 — trusted Host Chat active-pause qualification only
+
+```bash
+export PATH="$HOME/uca-host-lab/.venv/bin:$PATH"
+export UCA_HOST_CLIENT_PATH="$HOME/uca-host-lab/src/host_chat_pause_client.py"
+export UCA_HOST_PAUSABLE_COMPLETION_FACTORY="create_pausable_completion"
+HOST_PAUSE_HEAD_BEFORE="$(git rev-parse HEAD)"
+HOST_PAUSE_TREE_BEFORE="$(git rev-parse 'HEAD^{tree}')"
+test -z "$(git status --porcelain)"
+HOST_PAUSE_STATE_ROOT="$HOME/uca-host-lab/logs/host-chat-pause-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$HOST_PAUSE_STATE_ROOT"
+bash scripts/pretransfer-live-host-chat-pause.sh "$HOST_PAUSE_STATE_ROOT" \
+  | tee "$HOST_PAUSE_STATE_ROOT/console.log"
+python -m json.tool \
+  "$HOST_PAUSE_STATE_ROOT/host-chat-active-pause-live-summary.json"
+test "$(git rev-parse HEAD)" = "$HOST_PAUSE_HEAD_BEFORE"
+test "$(git rev-parse 'HEAD^{tree}')" = "$HOST_PAUSE_TREE_BEFORE"
+test -z "$(git status --porcelain)"
+echo "HOST_CHAT_ACTIVE_PAUSE_LIVE_PASS"
+```
