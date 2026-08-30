@@ -1,44 +1,87 @@
-Accept the current BLOCKED result. Do not commit, package, install, bump the
-version, or change the existing four-file product diff.
+Accept the prepared external F5 harness, but do not call it PASS yet.
 
-Important corrections:
+Keep the repository at the same four approved changes and version 0.3.147.
+Do not edit source or governance, commit, push, package, install, build a VSIX,
+bump the version, run jobs, approve writes, or deploy.
 
-1. The approved historical mapping is:
-   - Failure 1, missing maintainer delivery prompt:
-     F1 / ETL-TEST-DEBT-001
-   - Failure 3, stale module AGENT.md expectation:
-     F3 / ETL-TEST-DEBT-002
-   - Failure 2, business-context.instructions.md missing valid name:
-     unregistered blocker; do not quarantine it.
+Only these quarantines are approved:
+- F1 / ETL-TEST-DEBT-001
+- F3 / ETL-TEST-DEBT-002
 
-2. Do not treat:
-   code --extensionDevelopmentPath=...
-   as equivalent to an attached F5 debugging session.
+Failure 2, business-context.instructions.md missing a valid name, remains an
+unregistered blocker.
 
-3. Without modifying the repository, create a temporary external
-   .code-workspace under %TEMP% containing a real extensionHost launch
-   configuration for:
-   - the current source repository as extensionDevelopmentPath;
-   - the isolated QA workspace as the Extension Development Host workspace;
-   - correct compiled outFiles/source maps;
-   - no source repository folder inside the child QA workspace.
+Before I run F5, update only the external %TEMP% harness and operator runbook:
 
-4. Compile the current candidate and validate the temporary launch configuration.
-   Then stop and give the owner one minimal action: open that workspace and press F5.
+1. Replace the concurrent forEach invocations with deterministic sequential
+   valid and negative invocations.
 
-5. The real-host acceptance must include both:
-   A. Direct vscode.lm.invokeTool validation of TextPart + DataPart, MIME,
-      Uint8Array, parsed object, parity, malformed fail-closed, and containment.
-   B. Actual @etl /workflow execution using a synthetic Excel STTM workbook
-      from the QA workspace. A Markdown fixture alone is insufficient for
-      end-to-end acceptance.
+2. Capture and inspect the resolved result returned by:
+   vscode.lm.invokeTool('etl_interpret_sttm', ...)
+   Do not rely only on the producer-local variable `parts`.
 
-6. Until the real host runs, report:
-   REAL_HOST_F5_EXECUTED: NO
-   PUBLIC_STRUCTURED_OBJECT_VISIBLE: NOT_TESTED_ON_REAL_HOST
-   MARKDOWN_STRUCTURED_PARITY: NOT_TESTED_ON_REAL_HOST
-   PREVIEW_WORKSPACE_MUTATION: NOT_TESTED_ON_REAL_HOST
-   SOURCE_REPOSITORY_ACCESSED: NOT_TESTED_ON_REAL_HOST
+3. For a valid result, assert on returned result.content:
+   - exactly TextPart plus DataPart;
+   - MIME application/json;
+   - data is Uint8Array;
+   - decoded JSON is a non-null object with the expected schema;
+   - exact ordered mapping identities and affected rows;
+   - exact bidirectional diagnostic parity between Markdown and JSON.
 
-Do not add .vscode/launch.json to this product branch.
-Stop after preparing and validating the external F5 harness.
+4. Exercise missing, null, primitive, and malformed structured-result cases
+   independently. Each executed invalid case must fail closed with TextPart
+   only and no DataPart. Mark every unexecuted class individually as
+   NOT_TESTED_ON_REAL_HOST.
+
+5. Locate the actual @etl /workflow participant/tool-call path. Give me a
+   breakpoint at or after its vscode.lm.invokeTool call, or an equivalent host
+   tool-call trace. Hitting src/tools/index.ts:191 alone proves only producer
+   execution. Without consumer-return evidence report:
+   WORKFLOW_PUBLIC_SEAM: NOT_PROVEN
+
+6. Provide one numbered Desktop VS Code runbook in this exact order:
+   - open %TEMP%\etl-f5-harness.code-workspace;
+   - select its extensionHost configuration;
+   - set and confirm bound breakpoints;
+   - press F5;
+   - verify the child [Extension Development Host] contains only
+     %TEMP%\etl-consumer-qa;
+   - verify td-etl.databricks-etl-copilot@0.3.147 is running from the current
+     source checkout;
+   - run direct cases sequentially;
+   - run the synthetic Excel @etl /workflow case.
+
+   If a read-only tool confirmation appears, choose Continue once.
+   Never choose Always Allow. Any write/job/deploy approval request is failure.
+
+7. Save all evidence only under %TEMP%. Capture:
+   - HEAD and dirty-diff hash;
+   - selected launch configuration;
+   - extension ID, version, and development path;
+   - resolved public results;
+   - workflow tool name, caller evidence, and resolved QA workbook path;
+   - chat transcript;
+   - forced file, directory, and settings pre/post inventory;
+   - final git status.
+
+8. Define an observable proof for repository-local sample access using path/I/O
+   tracing or unique workbook provenance. Path separation alone is insufficient.
+   Report:
+   REPO_LOCAL_SAMPLE_STTM_READ: NO|YES|NOT_PROVEN
+
+Stop after producing the corrected copy/paste-safe runbook.
+Do not execute UI actions and do not claim PASS.
+
+Required post-run fields:
+
+REAL_HOST_F5_EXECUTED: YES|NO
+DIRECT_PUBLIC_TOOL_SEAM: PASS|FAIL|NOT_TESTED
+WORKFLOW_TOOL_INVOKED: YES|NO|NOT_PROVEN
+WORKFLOW_PUBLIC_SEAM: PASS|FAIL|NOT_PROVEN
+NEGATIVE_CLASSES: <per-class status>
+MARKDOWN_STRUCTURED_PARITY: PASS|FAIL|NOT_TESTED
+PREVIEW_WORKSPACE_MUTATION: NO|YES|NOT_PROVEN
+REPO_LOCAL_SAMPLE_STTM_READ: NO|YES|NOT_PROVEN
+REPOSITORY_DIFF_UNCHANGED: YES|NO
+STRUCTURED_OUTPUT_RUNTIME_GATE: PASS|FAIL|BLOCKED
+OVERALL_TASK_PR_GATE: BLOCKED_FAILURE_2
