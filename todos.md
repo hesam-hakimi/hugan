@@ -1,175 +1,192 @@
-TASK: HF1_V2_COMMIT_RECOVERY_AND_BUILD_EXACT_VSIX_0_3_147
+TASK: HF1_V2_RUNTIME_QA_PHASE_1_PREVIEW_ONLY_VERSION_0_3_147
 
-WORKTREE
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+ROLE
+Act as the installed ETL Extension runtime QA orchestrator.
 
-EXPECTED_BRANCH
-recovery/extension-product-0.3.147
+This is a product runtime test of the locally installed VSIX.
 
-EXPECTED_PRECOMMIT_HEAD
-b2e44c3a1a051aa7fa6008831d225bc06d22e847
+EXPECTED EXTENSION
 
-OWNER AUTHORIZATION
-I authorize:
+Extension ID: td-etl.databricks-etl-copilot
+Expected version: 0.3.147
 
-1. Staging exactly the already-reviewed 97 product paths.
-2. Creating one local commit on the recovery branch.
-3. Running product:verify once from the committed tree.
-4. Exporting the verified VSIX outside the Git repository.
+ENVIRONMENT
 
-I do not authorize push, merge, tag, release, installation, Runtime QA, reset,
-clean, stash, branch deletion or modification of the original dirty worktree.
+- Local VS Code Extension Host
+- Development Test Workspace
+- Not the ETL Extension source repository
+- Not the recovery worktree
+- Not SIT or Production
+- Synthetic/test inputs only
 
-PRECOMMIT GATE
+BOUNDARIES
 
-Verify before staging:
+This phase is preview-only and read-only.
 
-- current branch exactly matches the expected branch;
-- HEAD matches EXPECTED_PRECOMMIT_HEAD;
-- changed-path count is exactly 97;
-- runtime files: 41;
-- packaged resources: 8;
-- tests/fixtures: 43;
-- Phase H files: 2;
-- package metadata: 2;
-- product verification files: 1;
-- governance files: 0;
-- unexpected files: 0;
-- package version: 0.3.147;
-- staged files: 0.
+Do not:
 
-Stop if any value differs.
+- modify workspace files;
+- create or update ETL assets;
+- execute an approved write;
+- create a Databricks job;
+- access real business data;
+- commit, stage, stash, push or merge;
+- modify VS Code settings;
+- install another extension;
+- access or repair the ETL Extension source repository;
+- regenerate test fixtures;
+- claim Runtime QA passed if the installed version cannot be verified.
 
-STAGING
+PHASE 1 — INSTALLED PRODUCT IDENTITY
 
-1. Generate the complete explicit list of the 97 reviewed paths.
-2. Reject the list if it contains:
-   - .github/**
-   - .claude/**
-   - scripts/agent-governance/**
-   - temporary evidence;
-   - build output;
-   - *.vsix;
-   - local environment files;
-   - portfolio or unrelated documentation.
-3. Stage paths using the explicit list.
-4. Do not use broad `git add -A`, `git add .` or wildcard staging.
-5. Verify:
-   - staged count is 97;
-   - unstaged product changes are 0;
-   - staged diff exactly equals the reviewed precommit diff.
-6. Run:
+Verify and report:
 
-   git diff --cached --check
+- active Extension ID;
+- active Extension version;
+- Extension activation status;
+- local versus remote Extension Host;
+- currently opened workspace root;
+- whether the workspace is a permitted Development Test Workspace;
+- whether any ETL source-repository path is present.
 
-Do not rewrite or format files during staging.
+Expected:
 
-COMMIT
+- ID = td-etl.databricks-etl-copilot
+- version = 0.3.147
+- local Extension Host
+- source repository absent
 
-If Git author identity is unavailable, stop and report it. Do not change global or
-repository Git identity settings.
+If version 0.3.147 is not active, stop with:
 
-Create exactly one local commit with this message:
+BLOCKED_WRONG_INSTALLED_VERSION
 
-feat: recover ETL extension product baseline 0.3.147
+PHASE 2 — PACKAGED RESOURCE DISCOVERY
 
-Record:
+Using only the installed Extension and current test workspace, verify:
 
-- commit SHA;
-- commit tree SHA;
-- parent SHA;
-- author;
-- committed path count.
+- ETL Orchestrator is available;
+- required packaged Agent resources are readable;
+- required tools are registered;
+- STTM document-understanding guidance is available;
+- runtime does not depend on access to the maintainer source repository;
+- no missing packaged resource or absolute developer-machine path is observed.
 
-After commit, verify the recovery worktree is clean.
+Do not inspect the source repository as a fallback.
 
-Do not amend an existing commit.
+PHASE 3 — TEST INPUT DISCOVERY
 
-POST-COMMIT PRODUCT VERIFICATION
+Locate an existing authorized synthetic STTM/runtime-QA input in the Development
+Test Workspace.
 
-From the clean committed tree, run exactly once:
+Do not copy a fixture from the source repository.
 
-npm run product:verify
+The input should support as many of these cases as already available:
 
-Do not rerun the canonical full-unit suite.
+- active mapping;
+- inactive mapping;
+- conflicting state;
+- unresolved reference;
+- malformed short row;
+- malformed oversized row;
+- structured and Markdown diagnostic output.
 
-Require:
+If no authorized test input exists, stop with:
 
-- exit code 0;
-- package version 0.3.147;
-- 66 archive entries;
-- 54/54 required entries;
-- 0 forbidden entries;
-- all entries within the 8 allowed roots;
-- no repository pollution.
+BLOCKED_AUTHORIZED_TEST_INPUT_NOT_AVAILABLE
 
-EXACT ARTIFACT EXPORT
+PHASE 4 — PREVIEW-ONLY WORKFLOW
 
-Use the VSIX produced by the successful post-commit product verification.
+Invoke the installed ETL workflow in analysis/preview mode.
 
-Copy it outside the Git repository to:
+The workflow must:
 
-C:\repos\etl-extension\release-artifacts\0.3.147\
+1. Resolve the current workspace.
+2. Resolve the selected synthetic STTM input.
+3. Analyze existing workspace/environment evidence.
+4. Produce a preview manifest.
+5. Stop before approval or write.
+6. Perform no workspace mutation.
 
-Use this filename:
+Verify the preview distinguishes:
 
-databricks-etl-copilot-0.3.147-<short-commit-sha>.vsix
+- CREATE;
+- MODIFY;
+- UNCHANGED;
+- CONFLICT;
+- BLOCKED;
 
-Do not place a VSIX inside either Git worktree.
+where applicable to the selected synthetic scenario.
 
-Record:
+PHASE 5 — STRUCTURED DIAGNOSTIC QA
 
-- absolute artifact path;
-- file size;
-- SHA-256;
-- archive entry count;
-- package identity;
-- package version.
+Verify through the public consumer-visible output:
 
-Reopen and inspect the exported artifact to confirm it is byte-identical to the
-verified temporary artifact.
+- structured parser diagnostics are present;
+- Markdown diagnostics are present;
+- malformed rows fail closed;
+- malformed rows receive no active authority;
+- diagnostic codes agree between structured and Markdown channels;
+- affected-row identities agree;
+- valid mapping IDs and order remain preserved;
+- no internal-only model assertion is used as a substitute for public output;
+- no source attribute value is leaked through diagnostic messages.
 
-FINAL INTEGRITY CHECK
+Do not claim a scenario was tested if it was unreachable from the selected
+authorized input.
 
-Verify:
+PHASE 6 — WRITE-CONTAINMENT PROOF
 
-- recovery branch HEAD equals the new commit;
-- recovery worktree is clean;
-- original dirty worktree is unchanged;
-- no staged or stash changes were created;
-- no out/**, *.tsbuildinfo or *.vsix artifact leaked into the recovery worktree;
-- no push, merge, tag, install or Runtime QA occurred.
+After preview completes, prove:
+
+- no file was created;
+- no file was modified;
+- no workspace setting was changed;
+- no managed asset was recorded;
+- no job was submitted;
+- no explicit approval was requested or assumed;
+- no source-repository path was accessed;
+- Git status of the test workspace is unchanged, if it is a Git workspace.
 
 FINAL REPORT
 
-IDENTITY_GATE
-PRECOMMIT_CHANGED_PATH_COUNT
-STAGED_PATH_COUNT
-UNEXPECTED_STAGED_PATHS
-CACHED_DIFF_CHECK
-COMMIT_CREATED
-COMMIT_SHA
-COMMIT_TREE_SHA
-COMMIT_PARENT_SHA
-COMMITTED_PATH_COUNT
-WORKTREE_CLEAN_AFTER_COMMIT
-PRODUCT_VERIFY_PASS
-PACKAGE_VERSION
-EXPORTED_VSIX_PATH
-EXPORTED_VSIX_SIZE
-EXPORTED_VSIX_SHA256
-VSIX_ENTRY_COUNT
-REQUIRED_PACKAGE_ENTRIES_PRESENT
-FORBIDDEN_PACKAGE_ENTRIES_PRESENT
-ORIGINAL_WORKTREE_UNCHANGED
-PUSH_EXECUTED
-INSTALL_EXECUTED
-RUNTIME_QA_STARTED
-READY_TO_INSTALL_LOCALLY
+Keep the report concise and product-focused.
 
-Expected terminal verdict:
+Report:
 
-PASS_READY_TO_INSTALL_LOCALLY
+INSTALLED_EXTENSION_ID
+INSTALLED_EXTENSION_VERSION
+EXTENSION_HOST
+EXTENSION_ACTIVATED
+TEST_WORKSPACE
+SOURCE_REPOSITORY_ACCESSED
+PACKAGED_AGENT_RESOURCES_AVAILABLE
+REQUIRED_TOOLS_AVAILABLE
+AUTHORIZED_TEST_INPUT
+WORKFLOW_PREVIEW_STARTED
+WORKFLOW_PREVIEW_COMPLETED
+PREVIEW_MANIFEST_PRESENT
+STRUCTURED_DIAGNOSTIC_CHANNEL_PRESENT
+MARKDOWN_DIAGNOSTIC_CHANNEL_PRESENT
+DIAGNOSTIC_CODES_EQUAL
+DIAGNOSTIC_ROW_IDENTITIES_EQUAL
+MALFORMED_ROWS_FAIL_CLOSED
+MALFORMED_ROWS_ACTIVE_AUTHORITY
+VALID_MAPPING_IDS_AND_ORDER_PRESERVED
+WORKSPACE_FILES_CREATED
+WORKSPACE_FILES_MODIFIED
+JOB_SUBMITTED
+EXPLICIT_APPROVAL_EXECUTED
+NEW_RUNTIME_REGRESSIONS
+READY_FOR_BOUNDED_WRITE_RUNTIME_QA
 
-Stop without committing if the precommit gate differs from the reviewed 97-path
-product change set.
+Allowed verdicts:
+
+- PASS_READY_FOR_BOUNDED_WRITE_RUNTIME_QA
+- BLOCKED_WRONG_INSTALLED_VERSION
+- BLOCKED_EXTENSION_ACTIVATION
+- BLOCKED_PACKAGED_RESOURCE_MISSING
+- BLOCKED_AUTHORIZED_TEST_INPUT_NOT_AVAILABLE
+- BLOCKED_PREVIEW_RUNTIME_FAILURE
+- BLOCKED_UNEXPECTED_WORKSPACE_MUTATION
+
+Do not start the bounded-write phase in this session.
