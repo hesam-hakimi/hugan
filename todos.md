@@ -1,82 +1,44 @@
-TASK: HF1_V2_RECONCILE_AND_F5_PUBLIC_STTM_OUTPUT
+Accept the current BLOCKED result. Do not commit, package, install, bump the
+version, or change the existing four-file product diff.
 
-The focused public-STTM structured-output fix is complete, but the new
-engineering process was adopted while the previous task was running.
+Important corrections:
 
-Current status:
-- focused fix/tests passed;
-- five repository paths are changed;
-- package.json was prematurely bumped to 0.3.148;
-- a temporary VSIX was built outside the repository;
-- nothing was committed, installed, pushed, merged, or Runtime-QA tested;
-- full suite reported 2311 passing / 5 pending / 3 failing.
+1. The approved historical mapping is:
+   - Failure 1, missing maintainer delivery prompt:
+     F1 / ETL-TEST-DEBT-001
+   - Failure 3, stale module AGENT.md expectation:
+     F3 / ETL-TEST-DEBT-002
+   - Failure 2, business-context.instructions.md missing valid name:
+     unregistered blocker; do not quarantine it.
 
-Do not add another product feature.
-Do not commit, push, install, package, release, or invoke etl-release-verifier.
+2. Do not treat:
+   code --extensionDevelopmentPath=...
+   as equivalent to an attached F5 debugging session.
 
-1. Mark the temporary 0.3.148 VSIX as DEV_ONLY_NON_CANONICAL.
-   Never use it for installation, QA, or release.
+3. Without modifying the repository, create a temporary external
+   .code-workspace under %TEMP% containing a real extensionHost launch
+   configuration for:
+   - the current source repository as extensionDevelopmentPath;
+   - the isolated QA workspace as the Extension Development Host workspace;
+   - correct compiled outFiles/source maps;
+   - no source repository folder inside the child QA workspace.
 
-2. Revert only package.json version from 0.3.148 to 0.3.147.
-   Do not build another VSIX.
+4. Compile the current candidate and validate the temporary launch configuration.
+   Then stop and give the owner one minimal action: open that workspace and press F5.
 
-3. Preserve and review these four functional/test changes:
-   - src/tools/index.ts
-   - src/test/suite/sttmPublicToolResultEnvelope.test.ts
-   - src/test/helpers/registerVscodeStub.ts
-   - src/test/testPatterns.ts
+5. The real-host acceptance must include both:
+   A. Direct vscode.lm.invokeTool validation of TextPart + DataPart, MIME,
+      Uint8Array, parsed object, parity, malformed fail-closed, and containment.
+   B. Actual @etl /workflow execution using a synthetic Excel STTM workbook
+      from the QA workspace. A Markdown fixture alone is insufficient for
+      end-to-end acceptance.
 
-4. Prove that the stub/helper changes do not weaken existing assertions or
-   merely make the production fix self-confirming.
+6. Until the real host runs, report:
+   REAL_HOST_F5_EXECUTED: NO
+   PUBLIC_STRUCTURED_OBJECT_VISIBLE: NOT_TESTED_ON_REAL_HOST
+   MARKDOWN_STRUCTURED_PARITY: NOT_TESTED_ON_REAL_HOST
+   PREVIEW_WORKSPACE_MUTATION: NOT_TESTED_ON_REAL_HOST
+   SOURCE_REPOSITORY_ACCESSED: NOT_TESTED_ON_REAL_HOST
 
-5. In a separate clean 0.3.147 baseline worktree, run the same canonical full
-   suite once and capture the exact fully qualified identities of all failures
-   and pending tests.
-
-6. Compare baseline and candidate results:
-   - map only exact approved identities to F1 and F3;
-   - F1 ticket: ETL-TEST-DEBT-001
-   - F3 ticket: ETL-TEST-DEBT-002
-   - owner: ETL Repository Maintainer
-   - expiry: 2026-09-13
-   - do not create or broaden quarantine in this product branch;
-   - any third/unregistered failure remains a blocker.
-
-7. Run the configured Extension Development Host/F5 against the isolated
-   consumer QA workspace.
-
-8. Through the real contributed LM-tool/public-result path, verify with one
-   valid fixture and one negative/malformed fixture:
-   - the structured part has MIME application/json;
-   - the consumer extracts an object, not an opaque string;
-   - Markdown and structured diagnostics are both present;
-   - diagnostic codes match;
-   - affected-row identities and mapping order match;
-   - missing/null/primitive/malformed data fails closed;
-   - Preview creates or modifies no files or settings;
-   - no job, approval, write, deployment, or source-repository access occurs.
-
-9. If VS Code UI interaction cannot be executed by the Agent, provide the exact
-   minimal F5 steps and expected observations, then wait. Do not claim PASS.
-
-Stop after reporting:
-
-FOCUSED_FIX_PRESERVED: YES|NO
-TEMP_VSIX_CANONICAL: NO
-PACKAGE_VERSION_RESTORED_TO_0_3_147: YES|NO
-BASELINE_FAILURE_IDENTITIES_CAPTURED: YES|NO
-F1_F3_EXACTLY_MATCHED: YES|NO
-UNREGISTERED_FAILURES: NONE|<list>
-REAL_HOST_F5_EXECUTED: YES|NO
-PUBLIC_STRUCTURED_OBJECT_VISIBLE: YES|NO
-MARKDOWN_STRUCTURED_PARITY: PASS|FAIL|NOT_TESTED
-PREVIEW_WORKSPACE_MUTATION: NO|YES|NOT_TESTED
-SOURCE_REPOSITORY_ACCESSED: NO|YES|NOT_TESTED
-
-Success:
-PUBLIC_STTM_OUTPUT_DEVELOPMENT_RESULT:
-PASS_READY_FOR_TASK_PR_GATE
-
-Otherwise:
-PUBLIC_STTM_OUTPUT_DEVELOPMENT_RESULT:
-BLOCKED_<EXACT_REASON>
+Do not add .vscode/launch.json to this product branch.
+Stop after preparing and validating the external F5 harness.
