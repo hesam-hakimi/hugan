@@ -7,6 +7,7 @@ from universal_coding_agent.core.models import ProjectManifest, RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.context_documents import ContextDocumentService
+from universal_coding_agent.product.knowledge_packs import ProjectKnowledgePackService
 from universal_coding_agent.product.lifecycle_reservations import (
     DurableLifecycleReservationStore,
 )
@@ -36,6 +37,7 @@ class ProductWorkspace:
     provider: ModelProvider
     artifacts: ArtifactStore
     documents: ContextDocumentService
+    knowledge_packs: ProjectKnowledgePackService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -59,6 +61,12 @@ class ProductWorkspace:
         if isinstance(provider, RemoteOperationLeaseAwareProvider):
             provider.bind_remote_operation_store(remote_operations.provider_store())
         documents = ContextDocumentService(root / "documents.sqlite", artifacts)
+        knowledge_packs = ProjectKnowledgePackService(
+            root / "knowledge-packs.sqlite",
+            artifacts,
+            documents,
+            search,
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -72,6 +80,7 @@ class ProductWorkspace:
             provider=provider,
             artifacts=artifacts,
             documents=documents,
+            knowledge_packs=knowledge_packs,
             search=search,
             requirements=requirements,
             programs=programs,
@@ -82,6 +91,7 @@ class ProductWorkspace:
 
     def close(self) -> None:
         self.programs.close()
+        self.knowledge_packs.close()
         self.documents.close()
         self.search.close()
         self.control.close()

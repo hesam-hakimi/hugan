@@ -766,6 +766,27 @@ deterministic local simulation validates this lifecycle without credentials, but
 incomplete until the same harness reports `GITHUB_PUBLICATION_LIVE_PASS` against the approved
 hosted repository and isolated base branch.
 
+
+## Accepted project knowledge packs
+
+P3.1 adds immutable, versioned project knowledge-pack manifests above the existing text-document
+store. A draft pack binds an ordered set of document identifiers to their exact SHA-256 digests,
+roles, scopes, and project scope identifier. Version 1 must introduce a new pack; each later version
+must supersede the immediately prior accepted version. Existing accepted versions are never
+modified or deleted.
+
+Acceptance is an explicit human action bound to the exact canonical manifest hash. Before recording
+acceptance, UCA re-reads every bounded artifact and verifies its trusted content digest and stored
+provenance. Missing content, content drift, role/scope drift, a cross-project document, an unaccepted
+predecessor, or a mismatched approval hash fails closed. The acceptance receipt contains only pack,
+project, version, manifest-hash, document-hash, and confirmation evidence.
+
+Accepted packs can be indexed into a deterministic version-specific namespace. Replay first clears
+only that namespace and then rebuilds it from the verified accepted manifest, making retries
+idempotent without changing the accepted evidence. SQLite records and immutable artifact references
+survive Product workspace restart. This foundation adds no model/provider call, automatic
+acceptance, cross-project authority, source-control publication, merge, or deployment behavior.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
