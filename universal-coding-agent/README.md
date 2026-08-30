@@ -31,11 +31,13 @@ Implemented in this milestone:
 - retryable exact reconciliation and immutable completed publication receipts;
 - default-disabled GitHub Draft-PR integration with pinned repository/account identity, exact
   Base/Head SHA checks, Draft-only semantics, idempotent lookup, and redacted bounded failures.
+- a fail-closed hosted GitHub qualification harness with an isolated fixture/ref, exact adapter and
+  restart replay checks, remote-ref isolation, source preservation, and credential-state scanning.
 
 Not yet included:
 
 - arbitrary command execution;
-- live hosted GitHub feature-ref/Draft-PR qualification;
+- a successful live hosted GitHub feature-ref/Draft-PR qualification run;
 - merge or deployment;
 - Windows workers;
 - multi-user web UI.

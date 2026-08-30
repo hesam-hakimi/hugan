@@ -25,6 +25,9 @@
 - universal-coding-agent/src/universal_coding_agent/source_control/git.py
 - universal-coding-agent/src/universal_coding_agent/source_control/github.py
 - universal-coding-agent/src/universal_coding_agent/source_control/publication.py
+- universal-coding-agent/src/universal_coding_agent/testlab/github_publication_live.py
+- universal-coding-agent/qualification/github-live-fixture.txt
+- universal-coding-agent/scripts/pretransfer-live-github-publication.sh
 - universal-coding-agent/src/universal_coding_agent/web/__init__.py
 - universal-coding-agent/src/universal_coding_agent/web/app.py
 - .github/workflows/pretransfer-live-openai.yml
@@ -32,6 +35,7 @@
 - universal-coding-agent/tests/test_source_control_adapter.py
 - universal-coding-agent/tests/test_exact_patch_publication.py
 - universal-coding-agent/tests/test_github_source_control_adapter.py
+- universal-coding-agent/tests/test_github_publication_live.py
 - universal-coding-agent/web/package.json
 - universal-coding-agent/web/tsconfig.json
 - universal-coding-agent/web/vite.config.ts
@@ -877,3 +881,60 @@ passed in a dedicated test repository or isolated approved test branch. That liv
 the exact feature ref and Draft PR, Draft state, Base/Head/commit binding, idempotent replay,
 crash/retry reconciliation, durable receipts, credential redaction, and clean source preservation.
 It must not merge, deploy, update the base branch, rewrite history, delete refs, or create tags.
+
+Cmd 27 — P2.3c-b isolated live GitHub feature-ref and Draft-PR gate
+
+First run the deterministic simulation and the complete local quality gate:
+
+```bash
+python -m pytest -q \
+  tests/test_source_control_adapter.py \
+  tests/test_exact_patch_publication.py \
+  tests/test_github_source_control_adapter.py \
+  tests/test_github_publication_live.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "GITHUB_PUBLICATION_LIVE_HARNESS_PASS"
+```
+
+Run the hosted gate only from a clean checkout of the exact approved qualification base branch.
+The GitHub token needs repository Contents read/write and Pull requests read/write for the isolated
+test repository or branch. Enter it without adding it to shell history. Git push authorization is
+separate and must already be available through the host-owned SSH agent:
+
+```bash
+export PATH="$HOME/uca-host-lab/.venv/bin:$PATH"
+export UCA_GITHUB_REPOSITORY="owner/repository"
+export UCA_GITHUB_ACCOUNT_IDENTITY="stable-non-secret-account-identity"
+read -rsp "GitHub token: " UCA_GITHUB_TOKEN
+export UCA_GITHUB_TOKEN
+printf '\n'
+
+export UCA_GITHUB_LIVE_REPOSITORY_URL="git@github.com:${UCA_GITHUB_REPOSITORY}.git"
+export UCA_GITHUB_LIVE_BASE_BRANCH="$(git branch --show-current)"
+export UCA_GITHUB_LIVE_BASE_SHA="$(git rev-parse HEAD)"
+export UCA_GITHUB_LIVE_HEAD_BRANCH="uca/github-live-qualification-$(date -u +%Y%m%dT%H%M%SZ)"
+
+test -n "$SSH_AUTH_SOCK"
+ssh-add -L >/dev/null
+test -z "$(git status --porcelain)"
+test "$(git rev-parse HEAD)" = "$UCA_GITHUB_LIVE_BASE_SHA"
+
+GITHUB_LIVE_STATE_ROOT="$HOME/uca-host-lab/logs/github-publication-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$GITHUB_LIVE_STATE_ROOT"
+bash scripts/pretransfer-live-github-publication.sh "$GITHUB_LIVE_STATE_ROOT" \
+  | tee "$GITHUB_LIVE_STATE_ROOT/console.log"
+python -m json.tool "$GITHUB_LIVE_STATE_ROOT/github-publication-live-summary.json"
+test -z "$(git status --porcelain)"
+unset UCA_GITHUB_TOKEN
+echo "GITHUB_PUBLICATION_LIVE_PASS"
+```
+
+The gate performs one approved fixture-only change, adds one previously absent isolated feature
+ref, and creates one same-repository Draft PR. It then proves provider-level no-op reconciliation,
+service-restart receipt replay without an adapter call, exact Base/Head/commit binding, unchanged
+base and tags, no removed or rewritten refs, preserved clean source, and absence of the bearer token
+from every generated state file. The feature ref and Draft PR intentionally remain as durable
+evidence. Passing the gate grants no authority to merge, deploy, update the base branch, rewrite
+history, delete refs, create tags, or create a non-Draft PR.

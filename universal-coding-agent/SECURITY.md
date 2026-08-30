@@ -71,6 +71,15 @@ without response bodies, URLs containing credentials, or secret text. Hosted Git
 use the fixed Git adapter and ambient host SSH agent rather than embedding the API token in Git
 configuration or command arguments.
 
+The hosted GitHub qualification gate additionally requires a clean source checkout at the exact
+approved Base SHA, an absent head in the isolated `uca/github-live-qualification-...` namespace,
+and a state directory outside the checkout. It snapshots all remote heads and tags before and after
+publication, accepts only the addition of that exact head, proves the base and tags unchanged,
+reconciles the exact Draft PR through a fresh adapter, reloads the immutable receipt without an
+adapter call, and scans every generated state file for the bearer token. The qualification branch
+and Draft PR are retained as evidence; the gate has no merge, deployment, base-update, history-
+rewrite, tag, or ref-deletion authority.
+
 ## Resume
 
 Human interrupts are checkpointed. Safe Mode approval and publication fail closed if the repository,

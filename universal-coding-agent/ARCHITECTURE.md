@@ -740,6 +740,32 @@ evidence records only typed stages and codes. These deterministic contracts do n
 P2.3c-b live hosted qualification or authority to merge, deploy, update the base branch, rewrite or
 delete refs, or create a non-Draft pull request.
 
+P2.3c-b adds a dedicated, fail-closed live-qualification harness without widening publication
+authority. The operator must start from a clean checkout whose HEAD is the exact approved Base SHA,
+use a credential-free `git@github.com:owner/repository.git` URL pinned to the configured GitHub
+repository identity, provide the API token only through the host environment, and provide Git push
+authorization only through a host-owned SSH agent. The target head must be absent and use the
+isolated `uca/github-live-qualification-...` namespace. State is written outside the source
+checkout.
+
+The harness obtains a normal Safe Mode scope approval and exact publish approval for one harmless,
+dedicated qualification fixture. It then runs the production publication service and adapter to
+create one exact single-parent commit, add only the isolated remote head, and create one same-
+repository Draft PR. A fresh adapter must reconcile that exact ref and Draft PR without another
+commit, push, or PR creation. A reopened publication service must return the immutable completed
+receipt without calling the adapter. Before and after snapshots must prove that the base ref and all
+tags are unchanged, no ref was removed or rewritten, and only the expected head was added. The
+source HEAD, tree, and clean status must remain identical. Every generated state file, including
+the final summary, is scanned for the configured bearer token, and failure summaries expose only
+bounded exception type/code/stage metadata.
+
+The qualification ref and Draft PR remain in place as durable evidence; the harness has no cleanup
+authority because ref deletion is outside the approved boundary. It never merges, deploys, updates
+the base branch, rewrites history, deletes refs, creates tags, or creates a non-Draft PR. The
+deterministic local simulation validates this lifecycle without credentials, but P2.3c-b remains
+incomplete until the same harness reports `GITHUB_PUBLICATION_LIVE_PASS` against the approved
+hosted repository and isolated base branch.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
