@@ -1,192 +1,126 @@
-TASK: HF1_V2_RUNTIME_QA_PHASE_1_PREVIEW_ONLY_VERSION_0_3_147
+TASK: HF1_V2_FIX_PUBLIC_STTM_STRUCTURED_OUTPUT_0_3_148
 
-ROLE
-Act as the installed ETL Extension runtime QA orchestrator.
+Work only in:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-This is a product runtime test of the locally installed VSIX.
+Current state:
+- The recovery product branch is locally committed and clean.
+- VSIX 0.3.147 was successfully built, installed locally, and activated.
+- Installed identity:
+  td-etl.databricks-etl-copilot @ 0.3.147
+- All 16 contributed ETL tools were available.
+- Runtime QA used an isolated consumer workspace with no source repository.
+- Preview remained read-only and created or modified no files.
+- Runtime QA stopped with:
+  BLOCKED_PREVIEW_RUNTIME_FAILURE
 
-EXPECTED EXTENSION
+Observed product defect:
+- The public STTM workflow result exposes the Markdown diagnostic projection.
+- The required structured STTM diagnostic payload is not exposed through the
+  consumer-visible VS Code tool-result boundary.
+- Therefore diagnostic-code parity and affected-row identity parity cannot be verified.
+- Internal-only structured data does not satisfy this requirement.
 
-Extension ID: td-etl.databricks-etl-copilot
-Expected version: 0.3.147
+Primary objective:
+Trace and minimally repair the public result path from the STTM interpreter through
+the workflow/tool handler to the VS Code Language Model tool result, so both:
+1. the existing Markdown projection, and
+2. the structured STTM diagnostic payload
+are available to the real consumer.
 
-ENVIRONMENT
+Do not treat this as a governance, packaging, or QA-agent problem.
 
-- Local VS Code Extension Host
-- Development Test Workspace
-- Not the ETL Extension source repository
-- Not the recovery worktree
-- Not SIT or Production
-- Synthetic/test inputs only
+Branch handling:
+1. Confirm the current worktree is clean.
+2. Preserve the existing 0.3.147 commit unchanged.
+3. Create a new branch from the current commit:
+   fix/runtime-sttm-structured-output-0.3.148
+4. Do not operate on the original dirty worktree.
 
-BOUNDARIES
+Implementation requirements:
+1. Trace the exact production path:
+   public workflow command
+   → registered LM tool handler
+   → STTM interpreter/parser
+   → public LanguageModelToolResult
+2. Identify the exact point where structured `data` is dropped.
+3. Use the repository's existing public-result envelope or serialization convention.
+4. Do not invent a second incompatible STTM protocol.
+5. Preserve existing Markdown output and backward compatibility.
+6. Preserve valid mapping IDs and order.
+7. Preserve preview-only containment: no workspace write, settings change, job
+   submission, execution, publishing, or managed-asset recording.
+8. Missing or malformed structured results must fail closed.
 
-This phase is preview-only and read-only.
+Focused tests required:
+1. Test the actual public tool/workflow boundary, not only `interpretSttm` internally.
+2. Assert that the consumer-visible result contains both Markdown and structured data.
+3. Assert exact parity between both projections for:
+   - diagnostic codes
+   - affected-row identities
+   - ordering
+4. Cover:
+   - valid active mappings
+   - inactive mappings
+   - conflicting mappings
+   - unresolved references
+   - malformed short rows
+   - malformed oversized rows
+5. Confirm malformed rows never receive active authority.
+6. Confirm preview produces zero filesystem or configuration writes.
+7. Include a regression test that fails against the 0.3.147 behavior.
 
-Do not:
+Strict scope:
+Allowed:
+- Minimum production runtime files on the STTM public-result path
+- Focused tests and test fixtures
+- package.json version bump to exactly 0.3.148
+- Minimum package metadata required for the version bump
 
-- modify workspace files;
-- create or update ETL assets;
-- execute an approved write;
-- create a Databricks job;
-- access real business data;
-- commit, stage, stash, push or merge;
-- modify VS Code settings;
-- install another extension;
-- access or repair the ETL Extension source repository;
-- regenerate test fixtures;
-- claim Runtime QA passed if the installed version cannot be verified.
+Forbidden:
+- .github/**
+- .claude/**
+- scripts/agent-governance/**
+- governance manifests, schemas, agents, prompts, or checkpoints
+- Phase H reports
+- portfolio or roadmap documents
+- unrelated refactors or cleanup
+- weakening existing assertions
+- dependency or devDependency changes
+- package-lock.json creation
+- commit, push, merge, install, or Runtime QA
 
-PHASE 1 — INSTALLED PRODUCT IDENTITY
+Verification:
+Run in this order:
+1. New focused regression tests
+2. Existing STTM/runtime focused suites
+3. npm run compile
+4. npm run lint
+5. npm run product:verify or the existing product-verification command
+6. Canonical full unit suite once
 
-Verify and report:
+The full unit suite may retain only the exact already-known F1/F3 failures.
+No new failing or pending test identity is acceptable.
 
-- active Extension ID;
-- active Extension version;
-- Extension activation status;
-- local versus remote Extension Host;
-- currently opened workspace root;
-- whether the workspace is a permitted Development Test Workspace;
-- whether any ETL source-repository path is present.
+Packaging:
+- Version must be exactly 0.3.148.
+- Build one temporary VSIX with an explicit filename.
+- Do not overwrite or delete the 0.3.147 artifact.
+- Do not install the VSIX yet.
+- Verify required entries, forbidden entries, archive roots, extension ID, version,
+  entry count, size, and SHA-256.
 
-Expected:
+Stop before commit and report:
+- root cause
+- exact producer-to-consumer path
+- changed paths grouped as runtime / tests / package metadata
+- focused-test results
+- compile/lint/full-unit results
+- package verification result
+- VSIX temporary path, SHA-256, size, and entry count
+- confirmation of zero governance changes
+- confirmation that the original worktree and 0.3.147 artifact remain untouched
 
-- ID = td-etl.databricks-etl-copilot
-- version = 0.3.147
-- local Extension Host
-- source repository absent
-
-If version 0.3.147 is not active, stop with:
-
-BLOCKED_WRONG_INSTALLED_VERSION
-
-PHASE 2 — PACKAGED RESOURCE DISCOVERY
-
-Using only the installed Extension and current test workspace, verify:
-
-- ETL Orchestrator is available;
-- required packaged Agent resources are readable;
-- required tools are registered;
-- STTM document-understanding guidance is available;
-- runtime does not depend on access to the maintainer source repository;
-- no missing packaged resource or absolute developer-machine path is observed.
-
-Do not inspect the source repository as a fallback.
-
-PHASE 3 — TEST INPUT DISCOVERY
-
-Locate an existing authorized synthetic STTM/runtime-QA input in the Development
-Test Workspace.
-
-Do not copy a fixture from the source repository.
-
-The input should support as many of these cases as already available:
-
-- active mapping;
-- inactive mapping;
-- conflicting state;
-- unresolved reference;
-- malformed short row;
-- malformed oversized row;
-- structured and Markdown diagnostic output.
-
-If no authorized test input exists, stop with:
-
-BLOCKED_AUTHORIZED_TEST_INPUT_NOT_AVAILABLE
-
-PHASE 4 — PREVIEW-ONLY WORKFLOW
-
-Invoke the installed ETL workflow in analysis/preview mode.
-
-The workflow must:
-
-1. Resolve the current workspace.
-2. Resolve the selected synthetic STTM input.
-3. Analyze existing workspace/environment evidence.
-4. Produce a preview manifest.
-5. Stop before approval or write.
-6. Perform no workspace mutation.
-
-Verify the preview distinguishes:
-
-- CREATE;
-- MODIFY;
-- UNCHANGED;
-- CONFLICT;
-- BLOCKED;
-
-where applicable to the selected synthetic scenario.
-
-PHASE 5 — STRUCTURED DIAGNOSTIC QA
-
-Verify through the public consumer-visible output:
-
-- structured parser diagnostics are present;
-- Markdown diagnostics are present;
-- malformed rows fail closed;
-- malformed rows receive no active authority;
-- diagnostic codes agree between structured and Markdown channels;
-- affected-row identities agree;
-- valid mapping IDs and order remain preserved;
-- no internal-only model assertion is used as a substitute for public output;
-- no source attribute value is leaked through diagnostic messages.
-
-Do not claim a scenario was tested if it was unreachable from the selected
-authorized input.
-
-PHASE 6 — WRITE-CONTAINMENT PROOF
-
-After preview completes, prove:
-
-- no file was created;
-- no file was modified;
-- no workspace setting was changed;
-- no managed asset was recorded;
-- no job was submitted;
-- no explicit approval was requested or assumed;
-- no source-repository path was accessed;
-- Git status of the test workspace is unchanged, if it is a Git workspace.
-
-FINAL REPORT
-
-Keep the report concise and product-focused.
-
-Report:
-
-INSTALLED_EXTENSION_ID
-INSTALLED_EXTENSION_VERSION
-EXTENSION_HOST
-EXTENSION_ACTIVATED
-TEST_WORKSPACE
-SOURCE_REPOSITORY_ACCESSED
-PACKAGED_AGENT_RESOURCES_AVAILABLE
-REQUIRED_TOOLS_AVAILABLE
-AUTHORIZED_TEST_INPUT
-WORKFLOW_PREVIEW_STARTED
-WORKFLOW_PREVIEW_COMPLETED
-PREVIEW_MANIFEST_PRESENT
-STRUCTURED_DIAGNOSTIC_CHANNEL_PRESENT
-MARKDOWN_DIAGNOSTIC_CHANNEL_PRESENT
-DIAGNOSTIC_CODES_EQUAL
-DIAGNOSTIC_ROW_IDENTITIES_EQUAL
-MALFORMED_ROWS_FAIL_CLOSED
-MALFORMED_ROWS_ACTIVE_AUTHORITY
-VALID_MAPPING_IDS_AND_ORDER_PRESERVED
-WORKSPACE_FILES_CREATED
-WORKSPACE_FILES_MODIFIED
-JOB_SUBMITTED
-EXPLICIT_APPROVAL_EXECUTED
-NEW_RUNTIME_REGRESSIONS
-READY_FOR_BOUNDED_WRITE_RUNTIME_QA
-
-Allowed verdicts:
-
-- PASS_READY_FOR_BOUNDED_WRITE_RUNTIME_QA
-- BLOCKED_WRONG_INSTALLED_VERSION
-- BLOCKED_EXTENSION_ACTIVATION
-- BLOCKED_PACKAGED_RESOURCE_MISSING
-- BLOCKED_AUTHORIZED_TEST_INPUT_NOT_AVAILABLE
-- BLOCKED_PREVIEW_RUNTIME_FAILURE
-- BLOCKED_UNEXPECTED_WORKSPACE_MUTATION
-
-Do not start the bounded-write phase in this session.
+Final verdict must be exactly one of:
+PASS_READY_FOR_OWNER_PRODUCT_REVIEW
+BLOCKED_<SPECIFIC_PRODUCT_REASON>
