@@ -54,11 +54,11 @@
 - [x] P2.3a opt-in exact-patch publish approval with post-test/review interrupt, Base/plan/scope/patch binding, restart durability, explicit rejection, fail-closed mismatch rollback, and zero source-control side effects;
 - [x] P2.3b explicit post-approval source-control transaction with integrity-verified approval, patch, test, and review evidence; stable adapter/Draft-PR identity binding; immutable completed replay; retryable exact reconciliation with per-attempt evidence; temporary-index crash safety; isolated Git history/config verification; exact local commit; lease-guarded feature-ref creation/exact replay; an optional trusted Draft-PR creator contract; and deterministic local bare-remote qualification;
 - [x] P2.3c-a default-disabled GitHub hosted Draft-PR adapter with repository/account pinning, host-owned API credentials, exact Base/Head SHA revalidation, same-repository Draft-only creation, exact idempotent replay and create-race reconciliation, bounded redacted API failures, redirect rejection, and deterministic contract coverage;
-- [ ] P2.3c-b dedicated live GitHub feature-ref push and Draft-PR qualification in an isolated test repository/branch, including provider-level exact replay, service-restart replay, durable receipts, source preservation, credential-redaction evidence, and proof that only the approved feature ref was added; the fail-closed harness and deterministic local simulation are implemented, but the hosted gate must pass before any hosted publication claim.
+- [x] P2.3c-b dedicated live GitHub feature-ref push and Draft-PR qualification in an isolated approved branch, including provider-level exact replay, service-restart replay, durable receipts, source preservation, credential-redaction evidence, and proof that only the approved feature ref was added; qualified on Azure on 2026-08-30 with Draft PR #6 retained as durable evidence.
 
 ## Milestone 3 — Project memory and large-program execution
 
-- accepted project knowledge packs;
+- [ ] P3.1 accepted project knowledge packs: immutable versioned manifests, explicit human acceptance, document/content-hash and scope binding, provenance-preserving retrieval, deterministic indexing, and fail-closed replacement or drift handling;
 - [x] typed, provenance-preserving accepted prior-phase evidence for dependent Safe contexts;
 - phase/slice handoff compaction beyond the bounded accepted phase bundle;
 - project decision and ADR memory;
