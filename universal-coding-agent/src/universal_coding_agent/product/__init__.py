@@ -12,6 +12,10 @@ _EXPORTS = {
         "universal_coding_agent.product.lifecycle_reservations",
         "DurableLifecycleReservationStore",
     ),
+    "ProjectKnowledgePackService": (
+        "universal_coding_agent.product.knowledge_packs",
+        "ProjectKnowledgePackService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",
