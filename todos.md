@@ -1,4 +1,4 @@
-TASK: HF1_V2_REMOVE_UNRELATED_GOVERNANCE_TRANSFERS
+TASK: HF1_V2_COMMIT_RECOVERY_AND_BUILD_EXACT_VSIX_0_3_147
 
 WORKTREE
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
@@ -6,76 +6,170 @@ C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 EXPECTED_BRANCH
 recovery/extension-product-0.3.147
 
-OBJECTIVE
-Remove exactly the 11 unrelated governance-transfer changes identified by the
-owner product review, then run the minimal product verification once.
+EXPECTED_PRECOMMIT_HEAD
+b2e44c3a1a051aa7fa6008831d225bc06d22e847
 
-This is a mechanical correction, not a redesign or governance task.
+OWNER AUTHORIZATION
+I authorize:
 
-AUTHORIZED PATHS
+1. Staging exactly the already-reviewed 97 product paths.
+2. Creating one local commit on the recovery branch.
+3. Running product:verify once from the committed tree.
+4. Exporting the verified VSIX outside the Git repository.
 
-.github/instructions/business-context.instructions.md
-.github/instructions/change-safety.instructions.md
-.github/instructions/execution-recovery.instructions.md
-.github/instructions/workflow-asset-boundaries.instructions.md
-.github/instructions/workflow-coherence.instructions.md
-.github/prompts/01-implement-tool-aware-agent.prompt.md
-.github/prompts/build.prompt.md
-.github/prompts/investigate.prompt.md
-.github/prompts/plan-change.prompt.md
-.github/prompts/verify-change.prompt.md
-.github/prompts/verify-live-flow.prompt.md
+I do not authorize push, merge, tag, release, installation, Runtime QA, reset,
+clean, stash, branch deletion or modification of the original dirty worktree.
 
-No other path is authorized.
+PRECOMMIT GATE
 
-PROCEDURE
+Verify before staging:
 
-1. Verify repository root and branch.
-2. Record git status and diff for the 11 paths.
-3. For each path:
-   - if absent at the recovery base HEAD, remove it from this recovery worktree;
-   - if present at the recovery base HEAD, restore exactly its base-HEAD content.
-4. Do not modify the original dirty worktree.
-5. Do not modify any runtime, test, fixture, resource, package.json, Phase H or
-   product-verify file.
-6. Verify the 11 paths no longer differ from the base HEAD.
-7. Confirm the recovery diff now contains:
-   - 41 runtime files;
-   - 8 packaged resource files;
-   - 43 test/fixture files;
-   - 2 Phase H files;
-   - 2 package metadata files;
-   - 1 product-verification file;
-   - 0 governance files;
-   - 0 unexpected files.
-8. Run exactly once:
+- current branch exactly matches the expected branch;
+- HEAD matches EXPECTED_PRECOMMIT_HEAD;
+- changed-path count is exactly 97;
+- runtime files: 41;
+- packaged resources: 8;
+- tests/fixtures: 43;
+- Phase H files: 2;
+- package metadata: 2;
+- product verification files: 1;
+- governance files: 0;
+- unexpected files: 0;
+- package version: 0.3.147;
+- staged files: 0.
 
-   npm run product:verify
+Stop if any value differs.
 
-9. Do not rerun the full-unit suite.
-10. Do not commit, stage, push, package into the repository, install or start
-    Runtime QA.
+STAGING
+
+1. Generate the complete explicit list of the 97 reviewed paths.
+2. Reject the list if it contains:
+   - .github/**
+   - .claude/**
+   - scripts/agent-governance/**
+   - temporary evidence;
+   - build output;
+   - *.vsix;
+   - local environment files;
+   - portfolio or unrelated documentation.
+3. Stage paths using the explicit list.
+4. Do not use broad `git add -A`, `git add .` or wildcard staging.
+5. Verify:
+   - staged count is 97;
+   - unstaged product changes are 0;
+   - staged diff exactly equals the reviewed precommit diff.
+6. Run:
+
+   git diff --cached --check
+
+Do not rewrite or format files during staging.
+
+COMMIT
+
+If Git author identity is unavailable, stop and report it. Do not change global or
+repository Git identity settings.
+
+Create exactly one local commit with this message:
+
+feat: recover ETL extension product baseline 0.3.147
+
+Record:
+
+- commit SHA;
+- commit tree SHA;
+- parent SHA;
+- author;
+- committed path count.
+
+After commit, verify the recovery worktree is clean.
+
+Do not amend an existing commit.
+
+POST-COMMIT PRODUCT VERIFICATION
+
+From the clean committed tree, run exactly once:
+
+npm run product:verify
+
+Do not rerun the canonical full-unit suite.
+
+Require:
+
+- exit code 0;
+- package version 0.3.147;
+- 66 archive entries;
+- 54/54 required entries;
+- 0 forbidden entries;
+- all entries within the 8 allowed roots;
+- no repository pollution.
+
+EXACT ARTIFACT EXPORT
+
+Use the VSIX produced by the successful post-commit product verification.
+
+Copy it outside the Git repository to:
+
+C:\repos\etl-extension\release-artifacts\0.3.147\
+
+Use this filename:
+
+databricks-etl-copilot-0.3.147-<short-commit-sha>.vsix
+
+Do not place a VSIX inside either Git worktree.
+
+Record:
+
+- absolute artifact path;
+- file size;
+- SHA-256;
+- archive entry count;
+- package identity;
+- package version.
+
+Reopen and inspect the exported artifact to confirm it is byte-identical to the
+verified temporary artifact.
+
+FINAL INTEGRITY CHECK
+
+Verify:
+
+- recovery branch HEAD equals the new commit;
+- recovery worktree is clean;
+- original dirty worktree is unchanged;
+- no staged or stash changes were created;
+- no out/**, *.tsbuildinfo or *.vsix artifact leaked into the recovery worktree;
+- no push, merge, tag, install or Runtime QA occurred.
 
 FINAL REPORT
 
 IDENTITY_GATE
-REMOVED_OR_RESTORED_PATHS
-UNAUTHORIZED_CHANGED_PATHS
-TOTAL_CHANGED_PATHS
-GOVERNANCE_FILES_PRESENT
-UNEXPECTED_FILES_PRESENT
-PACKAGE_JSON_UNCHANGED_BY_THIS_TASK
-PRODUCT_FILES_UNCHANGED_BY_THIS_TASK
+PRECOMMIT_CHANGED_PATH_COUNT
+STAGED_PATH_COUNT
+UNEXPECTED_STAGED_PATHS
+CACHED_DIFF_CHECK
+COMMIT_CREATED
+COMMIT_SHA
+COMMIT_TREE_SHA
+COMMIT_PARENT_SHA
+COMMITTED_PATH_COUNT
+WORKTREE_CLEAN_AFTER_COMMIT
 PRODUCT_VERIFY_PASS
 PACKAGE_VERSION
-TEMP_VSIX_SHA256
+EXPORTED_VSIX_PATH
+EXPORTED_VSIX_SIZE
+EXPORTED_VSIX_SHA256
+VSIX_ENTRY_COUNT
 REQUIRED_PACKAGE_ENTRIES_PRESENT
 FORBIDDEN_PACKAGE_ENTRIES_PRESENT
-READY_TO_COMMIT_RECOVERY_BRANCH
+ORIGINAL_WORKTREE_UNCHANGED
+PUSH_EXECUTED
+INSTALL_EXECUTED
+RUNTIME_QA_STARTED
+READY_TO_INSTALL_LOCALLY
 
 Expected terminal verdict:
 
-PASS_READY_TO_COMMIT_RECOVERY_BRANCH
+PASS_READY_TO_INSTALL_LOCALLY
 
-Stop immediately if any correction requires touching a path outside the exact
-11-path authorization.
+Stop without committing if the precommit gate differs from the reviewed 97-path
+product change set.
