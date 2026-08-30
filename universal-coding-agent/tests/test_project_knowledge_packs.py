@@ -48,7 +48,7 @@ def _document(
 def test_pack_requires_explicit_hash_bound_acceptance_and_indexes_deterministically(
     tmp_path: Path,
 ) -> None:
-    artifacts, documents, search, packs = _services(tmp_path)
+    _artifacts, documents, search, packs = _services(tmp_path)
     try:
         _document(documents, document_id="architecture-001")
         _document(
