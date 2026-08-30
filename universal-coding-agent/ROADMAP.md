@@ -58,7 +58,7 @@
 
 ## Milestone 3 — Project memory and large-program execution
 
-- [ ] P3.1 accepted project knowledge packs: immutable versioned manifests, explicit human acceptance, document/content-hash and scope binding, provenance-preserving retrieval, deterministic indexing, and fail-closed replacement or drift handling;
+- [x] P3.1 accepted project knowledge packs: immutable versioned manifests, explicit human acceptance, document/content-hash and scope binding, provenance-preserving retrieval, deterministic indexing, and fail-closed replacement or drift handling;
 - [x] typed, provenance-preserving accepted prior-phase evidence for dependent Safe contexts;
 - phase/slice handoff compaction beyond the bounded accepted phase bundle;
 - project decision and ADR memory;
