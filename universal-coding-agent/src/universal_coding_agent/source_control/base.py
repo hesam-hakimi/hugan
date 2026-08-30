@@ -281,6 +281,7 @@ class DraftPullRequestRequest(FrozenModel):
     publication_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     repository: RepositorySpec
     base_branch: str = Field(min_length=1, max_length=240)
+    base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
     head_branch: str = Field(min_length=1, max_length=240)
     head_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
     title: str = Field(min_length=1, max_length=200)
@@ -303,6 +304,11 @@ class DraftPullRequestResult(FrozenModel):
     url: str = Field(min_length=1, max_length=4096)
     draft: Literal[True] = True
     base_branch: str = Field(min_length=1, max_length=240)
+    base_sha: str = Field(
+        default="",
+        pattern=r"^$|^[0-9a-f]{40,64}$",
+        description="Approved base SHA; empty only when reading a pre-P2.3c receipt.",
+    )
     head_branch: str = Field(min_length=1, max_length=240)
     head_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
     created: bool

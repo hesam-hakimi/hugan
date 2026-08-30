@@ -21,10 +21,17 @@
 - universal-coding-agent/src/universal_coding_agent/discovered_safe_service.py
 - universal-coding-agent/src/universal_coding_agent/sandbox/git.py
 - universal-coding-agent/src/universal_coding_agent/cli.py
+- universal-coding-agent/src/universal_coding_agent/source_control/base.py
+- universal-coding-agent/src/universal_coding_agent/source_control/git.py
+- universal-coding-agent/src/universal_coding_agent/source_control/github.py
+- universal-coding-agent/src/universal_coding_agent/source_control/publication.py
 - universal-coding-agent/src/universal_coding_agent/web/__init__.py
 - universal-coding-agent/src/universal_coding_agent/web/app.py
 - .github/workflows/pretransfer-live-openai.yml
 - universal-coding-agent/tests/test_web_api.py
+- universal-coding-agent/tests/test_source_control_adapter.py
+- universal-coding-agent/tests/test_exact_patch_publication.py
+- universal-coding-agent/tests/test_github_source_control_adapter.py
 - universal-coding-agent/web/package.json
 - universal-coding-agent/web/tsconfig.json
 - universal-coding-agent/web/vite.config.ts
@@ -841,3 +848,32 @@ shell, non-fast-forward history rewrite, ref deletion, tag, merge, deployment, o
 update. The deterministic
 qualification above is not authorization to publish to a hosted repository; configure and qualify
 a hosted adapter separately before using `push` or `draft_pr` against one.
+
+Cmd 26 — P2.3c-a deterministic GitHub hosted-adapter contract
+
+```bash
+python -m pytest -q \
+  tests/test_source_control_adapter.py \
+  tests/test_exact_patch_publication.py \
+  tests/test_github_source_control_adapter.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "GITHUB_HOSTED_DRAFT_PR_ADAPTER_CONTRACT_PASS"
+```
+
+The built-in trusted factory is
+`universal_coding_agent.source_control.github:create_adapter`. It remains disabled unless selected
+through `UCA_SOURCE_CONTROL_ADAPTER_FACTORY` and requires host-owned `UCA_GITHUB_TOKEN`, an exact
+`UCA_GITHUB_REPOSITORY=owner/name`, and a stable non-secret
+`UCA_GITHUB_ACCOUNT_IDENTITY`. Optional GitHub Enterprise configuration uses credential-free
+`UCA_GITHUB_API_URL` and `UCA_GITHUB_WEB_URL`. The API token is used only for bounded GitHub ref and
+Draft-PR operations; the fixed Git publisher still requires host-owned SSH-agent authorization for
+a hosted feature-ref push.
+
+This command is deterministic and contacts no hosted provider. Do not claim hosted qualification
+or run `safe-source-publish --action push|draft_pr` against a hosted repository until P2.3c-b has
+passed in a dedicated test repository or isolated approved test branch. That live gate must prove
+the exact feature ref and Draft PR, Draft state, Base/Head/commit binding, idempotent replay,
+crash/retry reconciliation, durable receipts, credential redaction, and clean source preservation.
+It must not merge, deploy, update the base branch, rewrite history, delete refs, or create tags.

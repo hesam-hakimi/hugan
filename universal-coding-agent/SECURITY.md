@@ -62,6 +62,15 @@ configuration and symlinked object/ref/reflog storage before publication. Local 
 a private Git-directory proxy fixed to the validated sandbox Git directory, while remote reads and
 pushes use a neutral temporary Git client that does not load sandbox-local configuration.
 
+The optional GitHub Draft-PR integration is disabled until its trusted factory and host-owned
+environment are explicitly configured. It pins one GitHub host, repository, and stable non-secret
+account identity; keeps the bearer token inside the control-plane API transport; permits only
+bounded ref reads, same-head/base PR lookup, and Draft-PR creation; rejects redirects; and emits
+typed errors
+without response bodies, URLs containing credentials, or secret text. Hosted Git pushes continue to
+use the fixed Git adapter and ambient host SSH agent rather than embedding the API token in Git
+configuration or command arguments.
+
 ## Resume
 
 Human interrupts are checkpointed. Safe Mode approval and publication fail closed if the repository,
