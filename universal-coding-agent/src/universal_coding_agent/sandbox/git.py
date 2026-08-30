@@ -45,7 +45,17 @@ class GitSandboxManager:
         repository_id = hashlib.sha256(normalized_url.encode("utf-8")).hexdigest()[:24]
         mirror = self.mirrors_root / f"{repository_id}.git"
         if mirror.exists():
-            self._run([self.git_binary, "-C", str(mirror), "fetch", "--prune", "origin"])
+            self._run(
+                [
+                    self.git_binary,
+                    "-C",
+                    str(mirror),
+                    "fetch",
+                    "--prune",
+                    "--no-auto-maintenance",
+                    "origin",
+                ]
+            )
         else:
             self._run([self.git_binary, "clone", "--mirror", normalized_url, str(mirror)])
         base_sha = self._resolve_ref(mirror, repository.base_ref)

@@ -1,0 +1,425 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from enum import StrEnum
+from typing import Any
+
+from pydantic import Field, model_validator
+
+from universal_coding_agent.core.models import FrozenModel, PhasePlan, SlicePlan
+
+_DECISION_KEY_PATTERN = r"^[a-z][a-z0-9_]{2,63}$"
+
+
+class DocumentRole(StrEnum):
+    REQUIREMENT = "requirement"
+    ARCHITECTURE = "architecture"
+    TECHNICAL_CONTRACT = "technical_contract"
+    ERROR_LOG = "error_log"
+    CONFIG_SAMPLE = "config_sample"
+    REFERENCE = "reference"
+    USER_INSTRUCTION = "user_instruction"
+
+
+class ContextScope(StrEnum):
+    PROGRAM = "program"
+    PHASE = "phase"
+    TASK = "task"
+
+
+class ContextDocument(FrozenModel):
+    document_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    filename: str = Field(min_length=1, max_length=255)
+    role: DocumentRole
+    scope: ContextScope
+    scope_id: str = Field(min_length=1, max_length=128)
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    size: int = Field(ge=0)
+    media_type: str = Field(min_length=1, max_length=128)
+    content_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    metadata_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+
+
+class SearchSourceType(StrEnum):
+    CODE = "code"
+    DOCUMENT = "document"
+    ARTIFACT = "artifact"
+    DECISION = "decision"
+
+
+class SearchHit(FrozenModel):
+    record_id: str
+    source_type: SearchSourceType
+    source_id: str
+    path: str
+    score: float = Field(ge=0)
+    excerpt: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ClarificationSeverity(StrEnum):
+    BLOCKING = "blocking"
+    MATERIAL = "material"
+    MINOR = "minor"
+
+
+class RequirementStatus(StrEnum):
+    NEEDS_CLARIFICATION = "needs_clarification"
+    READY_FOR_APPROVAL = "ready_for_approval"
+    APPROVED = "approved"
+    SUPERSEDED = "superseded"
+
+
+class DraftRequirement(FrozenModel):
+    statement: str = Field(min_length=1, max_length=4000)
+    category: str = Field(default="functional", min_length=1, max_length=64)
+    evidence_refs: tuple[str, ...] = ()
+
+
+class DraftAcceptanceCriterion(FrozenModel):
+    statement: str = Field(min_length=1, max_length=4000)
+    requirement_indexes: tuple[int, ...] = ()
+
+
+class DraftClarification(FrozenModel):
+    decision_key: str = Field(pattern=_DECISION_KEY_PATTERN)
+    question: str = Field(min_length=1, max_length=2000)
+    severity: ClarificationSeverity
+    rationale: str = Field(min_length=1, max_length=2000)
+    options: tuple[str, ...] = ()
+    recommended_answer: str = ""
+    evidence_refs: tuple[str, ...] = ()
+
+
+class RequirementDraft(FrozenModel):
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=8000)
+    requirements: tuple[DraftRequirement, ...]
+    acceptance_criteria: tuple[DraftAcceptanceCriterion, ...]
+    constraints: tuple[str, ...] = ()
+    exclusions: tuple[str, ...] = ()
+    assumptions: tuple[str, ...] = ()
+    clarifications: tuple[DraftClarification, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_clarification_keys(self) -> RequirementDraft:
+        keys = [item.decision_key for item in self.clarifications]
+        if len(keys) != len(set(keys)):
+            raise ValueError("clarification decision keys must be unique")
+        return self
+
+    @model_validator(mode="after")
+    def validate_acceptance_references(self) -> RequirementDraft:
+        requirement_count = len(self.requirements)
+        for criterion_index, criterion in enumerate(self.acceptance_criteria):
+            invalid = sorted(
+                {
+                    index
+                    for index in criterion.requirement_indexes
+                    if index < 0 or index >= requirement_count
+                }
+            )
+            if invalid:
+                raise ValueError(
+                    "acceptance criterion "
+                    f"{criterion_index} references unknown requirement indexes: {invalid}"
+                )
+        return self
+
+
+class RequirementItem(FrozenModel):
+    requirement_id: str = Field(pattern=r"^R-[0-9]{3}$")
+    statement: str = Field(min_length=1, max_length=4000)
+    category: str = Field(min_length=1, max_length=64)
+    evidence_refs: tuple[str, ...] = ()
+
+
+class AcceptanceCriterion(FrozenModel):
+    criterion_id: str = Field(pattern=r"^AC-[0-9]{3}$")
+    statement: str = Field(min_length=1, max_length=4000)
+    requirement_ids: tuple[str, ...] = ()
+
+
+class ClarificationQuestion(FrozenModel):
+    question_id: str = Field(pattern=r"^Q-[0-9]{3}$")
+    decision_key: str = Field(pattern=_DECISION_KEY_PATTERN)
+    question: str = Field(min_length=1, max_length=2000)
+    severity: ClarificationSeverity
+    rationale: str = Field(min_length=1, max_length=2000)
+    options: tuple[str, ...] = ()
+    recommended_answer: str = ""
+    evidence_refs: tuple[str, ...] = ()
+
+
+class RequirementContract(FrozenModel):
+    alignment_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    version: int = Field(ge=1)
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=8000)
+    requirements: tuple[RequirementItem, ...]
+    acceptance_criteria: tuple[AcceptanceCriterion, ...]
+    constraints: tuple[str, ...] = ()
+    exclusions: tuple[str, ...] = ()
+    assumptions: tuple[str, ...] = ()
+    clarifications: tuple[ClarificationQuestion, ...] = ()
+    answers: dict[str, str] = Field(default_factory=dict)
+    status: RequirementStatus
+
+    @model_validator(mode="after")
+    def validate_clarification_keys(self) -> RequirementContract:
+        keys = [item.decision_key for item in self.clarifications]
+        if len(keys) != len(set(keys)):
+            raise ValueError("contract clarification decision keys must be unique")
+        return self
+
+    def canonical_hash(self) -> str:
+        payload = self.model_dump(mode="json", exclude={"status"})
+        encoded = json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()
+
+
+class RequirementAlignmentResult(FrozenModel):
+    contract: RequirementContract
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    contract_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    context_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    validation_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+
+
+class ProgramStatus(StrEnum):
+    DRAFT = "draft"
+    AWAITING_APPROVAL = "awaiting_approval"
+    RUNNING = "running"
+    PAUSED = "paused"
+    BLOCKED = "blocked"
+    REALIGNMENT_REQUIRED = "realignment_required"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
+
+
+class PhaseStatus(StrEnum):
+    PENDING = "pending"
+    RUNNING = "running"
+    PAUSED = "paused"
+    BLOCKED = "blocked"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
+
+
+class ProgramExecutionStatus(StrEnum):
+    STARTING = "starting"
+    AWAITING_SCOPE_APPROVAL = "awaiting_scope_approval"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+
+class ProgramPhase(FrozenModel):
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=4000)
+    dependencies: tuple[str, ...] = ()
+    slices: tuple[SlicePlan, ...] = ()
+    acceptance_criteria: tuple[str, ...] = ()
+    stop_conditions: tuple[str, ...] = ()
+    expected_components: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_slices(self) -> ProgramPhase:
+        PhasePlan(
+            phase_id=self.phase_id,
+            title=self.title,
+            objective=self.objective,
+            slices=self.slices,
+        )
+        return self
+
+
+def _validate_program_phase_graph(phases: tuple[ProgramPhase, ...]) -> None:
+    phase_ids = [phase.phase_id for phase in phases]
+    if not phase_ids:
+        raise ValueError("program requires at least one phase")
+    if len(phase_ids) != len(set(phase_ids)):
+        raise ValueError("phase IDs must be unique")
+    known = set(phase_ids)
+    dependency_map = {phase.phase_id: set(phase.dependencies) for phase in phases}
+    for phase in phases:
+        unknown = dependency_map[phase.phase_id] - known
+        if unknown:
+            raise ValueError(
+                f"phase {phase.phase_id} has unknown dependencies: {sorted(unknown)}"
+            )
+        if phase.phase_id in phase.dependencies:
+            raise ValueError(f"phase {phase.phase_id} cannot depend on itself")
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(phase_id: str) -> None:
+        if phase_id in visiting:
+            raise ValueError("phase dependency graph contains a cycle")
+        if phase_id in visited:
+            return
+        visiting.add(phase_id)
+        for dependency in dependency_map[phase_id]:
+            visit(dependency)
+        visiting.remove(phase_id)
+        visited.add(phase_id)
+
+    for phase_id in phase_ids:
+        visit(phase_id)
+
+
+class ProgramPlan(FrozenModel):
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=8000)
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    phases: tuple[ProgramPhase, ...]
+    definition_of_done: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_phase_graph(self) -> ProgramPlan:
+        _validate_program_phase_graph(self.phases)
+        return self
+
+    def canonical_hash(self) -> str:
+        encoded = self.model_dump_json().encode("utf-8")
+        return hashlib.sha256(encoded).hexdigest()
+
+
+class ProgramPlanDraft(FrozenModel):
+    title: str = Field(min_length=1, max_length=200)
+    objective: str = Field(min_length=1, max_length=8000)
+    phases: tuple[ProgramPhase, ...]
+    definition_of_done: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_phase_graph(self) -> ProgramPlanDraft:
+        _validate_program_phase_graph(self.phases)
+        return self
+
+
+class PhaseResult(FrozenModel):
+    phase_id: str
+    summary: str = Field(min_length=1, max_length=8000)
+    changed_paths: tuple[str, ...] = ()
+    decisions: tuple[str, ...] = ()
+    tests: tuple[str, ...] = ()
+    reviewer_verdict: str = ""
+    known_risks: tuple[str, ...] = ()
+    artifact_refs: tuple[str, ...] = ()
+
+
+class AcceptedSafeExecutionEvidence(FrozenModel):
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    slice_id: str | None = Field(default=None, min_length=1, max_length=64)
+    source_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    result_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    result_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    tests_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    review_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    final_report_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    reviewer_verdict: str = Field(pattern=r"^PASS$")
+
+
+class AcceptedPhaseEvidence(FrozenModel):
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    result_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    result_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    summary_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    summary_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    phase_report_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    phase_report_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    summary: str = Field(min_length=1, max_length=8000)
+    changed_paths: tuple[str, ...] = ()
+    decisions: tuple[str, ...] = ()
+    tests: tuple[str, ...] = Field(min_length=1)
+    reviewer_verdict: str = Field(pattern=r"^PASS$")
+    known_risks: tuple[str, ...] = ()
+    executions: tuple[AcceptedSafeExecutionEvidence, ...] = Field(min_length=1)
+
+
+class AcceptedPhaseEvidenceBundle(FrozenModel):
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    target_phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    dependency_phase_ids: tuple[str, ...] = Field(min_length=1)
+    phases: tuple[AcceptedPhaseEvidence, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_dependency_order(self) -> AcceptedPhaseEvidenceBundle:
+        phase_ids = tuple(item.phase_id for item in self.phases)
+        if phase_ids != self.dependency_phase_ids:
+            raise ValueError("accepted phase evidence must match dependency order")
+        return self
+
+    def canonical_hash(self) -> str:
+        payload = json.dumps(
+            self.model_dump(mode="json"),
+            separators=(",", ":"),
+            sort_keys=True,
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
+
+class ProgramExecutionBinding(FrozenModel):
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    slice_id: str | None = Field(default=None, min_length=1, max_length=64)
+    task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    thread_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    status: ProgramExecutionStatus
+    safe_status: str = Field(default="", max_length=64)
+    result_ref: str = Field(default="", max_length=1024)
+    phase_report_ref: str = Field(default="", max_length=1024)
+    error_ref: str = Field(default="", max_length=1024)
+    accepted_evidence_ref: str = Field(default="", max_length=1024)
+    accepted_evidence_hash: str = Field(default="", max_length=64)
+    expected_base_sha: str = Field(default="", max_length=64)
+    remote_disposition_ref: str = Field(default="", max_length=1024)
+
+
+class ControlEntityType(StrEnum):
+    TASK = "task"
+    PROGRAM = "program"
+
+
+class ControlState(StrEnum):
+    RUNNING = "running"
+    PAUSE_REQUESTED = "pause_requested"
+    PAUSED = "paused"
+    CANCEL_REQUESTED = "cancel_requested"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+    COMPLETED = "completed"
+
+
+class ControlAction(StrEnum):
+    CONTINUE = "continue"
+    PAUSE = "pause"
+    CANCEL = "cancel"
+
+
+class ControlRecord(FrozenModel):
+    entity_type: ControlEntityType
+    entity_id: str
+    state: ControlState
+    reason: str = ""
+    revision: int = Field(ge=0)
+
+
+class ControlDecision(FrozenModel):
+    action: ControlAction
+    record: ControlRecord

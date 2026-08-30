@@ -343,7 +343,15 @@ class SafePatchEngine:
             if operation is ChangeOperation.MODIFY:
                 result = self._git(
                     root,
-                    ["diff", "--no-ext-diff", "--no-color", "--full-index", "--", path],
+                    [
+                        "diff",
+                        "--no-ext-diff",
+                        "--no-textconv",
+                        "--no-color",
+                        "--full-index",
+                        "--",
+                        path,
+                    ],
                     check=False,
                 )
                 if result.returncode != 0 or not result.stdout:
@@ -355,6 +363,7 @@ class SafePatchEngine:
                     [
                         "diff",
                         "--no-index",
+                        "--no-ext-diff",
                         "--no-color",
                         "--full-index",
                         "--",
@@ -644,9 +653,28 @@ class SafePatchEngine:
             "PATH": os.environ.get("PATH", ""),
             "HOME": os.environ.get("HOME", ""),
             "GIT_TERMINAL_PROMPT": "0",
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_SYSTEM": os.devnull,
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_NO_REPLACE_OBJECTS": "1",
         }
         process = subprocess.run(
-            [self.git_binary, "-C", str(root), *arguments],
+            [
+                self.git_binary,
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "credential.helper=",
+                "-c",
+                "protocol.ext.allow=never",
+                "-c",
+                "core.fsmonitor=false",
+                "-c",
+                "diff.external=",
+                "-C",
+                str(root),
+                *arguments,
+            ],
             check=False,
             capture_output=True,
             text=True,

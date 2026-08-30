@@ -14,7 +14,10 @@ from universal_coding_agent.core.models import (
     TaskRequest,
 )
 from universal_coding_agent.safety.sanitizer import sanitize_text
-from universal_coding_agent.storage.artifacts import ArtifactStore
+from universal_coding_agent.storage.artifacts import (
+    ArtifactSizeLimitExceeded,
+    ArtifactStore,
+)
 
 
 def test_task_is_observe_only() -> None:
@@ -75,6 +78,23 @@ def test_artifact_store_is_atomic_and_contained(tmp_path: Path) -> None:
     assert store.read_json(reference) == {"ok": True}
     with pytest.raises(ValueError):
         store.write_text("../escape.txt", "no")
+
+
+def test_artifact_store_bounded_json_read_stops_before_oversized_payload(
+    tmp_path: Path,
+) -> None:
+    store = ArtifactStore(tmp_path / "artifacts")
+    payload = {"value": "x" * 1024}
+    reference = store.write_json("tasks/t1/bounded.json", payload)
+
+    assert store.read_json_bounded(reference, max_bytes=reference.size) == payload
+    with pytest.raises(
+        ArtifactSizeLimitExceeded,
+        match="configured byte read limit",
+    ):
+        store.read_json_bounded(reference, max_bytes=reference.size - 1)
+    with pytest.raises(ValueError, match="read limit must be positive"):
+        store.read_json_bounded(reference, max_bytes=0)
 
 
 def test_context_compiler_is_bounded(tmp_path: Path) -> None:

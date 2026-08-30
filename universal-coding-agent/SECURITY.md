@@ -4,6 +4,12 @@
 
 Repository content, branches, instructions, tests, and build files are untrusted input. They cannot override agent safety policy.
 
+The configured state root and explicitly loaded adapter factory are trusted, host-owned control
+plane storage and code. Artifact hashes and immutable SQLite records detect drift and inconsistent
+corruption across bounded evidence; they are not a MAC or signature against an attacker who can
+rewrite the state database and every corresponding artifact coherently. Such write access is a
+control-plane compromise and is outside the repository-content threat boundary.
+
 The model service and source-control service use separate credentials and separate adapters.
 
 ```text
@@ -12,14 +18,20 @@ Git credential        -> control plane only
 Repository sandbox    -> receives neither credential
 ```
 
-## Observe milestone guarantees
+## Observe and Safe Mode guarantees
 
-- no source writes by graph nodes;
-- no staging, commit, push, PR, merge, or deployment;
+- Observe graph nodes perform no source writes;
+- Safe Mode writes only approved structured edits inside an isolated sandbox and verifies the
+  canonical Git patch, fixed tests, and independent review;
+- exact-patch approval performs no source-control action by itself;
+- post-approval commit, feature-ref creation, or Draft-PR creation requires a separate explicit
+  command and a trusted, default-disabled adapter;
+- no base-branch update, non-fast-forward history rewrite, merge, or deployment authority;
 - no arbitrary model-supplied shell commands;
 - Git commands use `shell=False` and explicit arguments;
 - base ref is resolved to an immutable commit SHA;
-- all repository reads remain inside the sandbox root;
+- repository-content reads remain inside the sandbox root; remote publication metadata is read only
+  through the bounded source-control adapter;
 - denied files are excluded before indexing and context compilation;
 - large/raw model responses and private reasoning are not persisted;
 - safe structured diagnostics are persisted instead;
@@ -41,11 +53,19 @@ Git metadata required for identity checks is accessed only through fixed Git com
 
 ## Repository URLs
 
-The sandbox manager rejects repository URLs containing embedded usernames/passwords, query strings, or fragments. Credentials must be supplied by a Git credential helper, SSH agent, GitHub App integration, or future source-control provider—not embedded into the clone URL.
+The sandbox manager rejects repository URLs containing embedded usernames/passwords, query strings,
+or fragments. Credentials must be supplied through host-controlled configuration such as an SSH
+agent, GitHub App integration, or source-control provider—not embedded into the clone URL or stored
+in publication evidence. The built-in publication adapter disables interactive prompts and Git
+credential helpers, isolates global/system configuration, and rejects unsafe sandbox-local Git
+configuration and symlinked object/ref/reflog storage before publication. Local Git operations use
+a private Git-directory proxy fixed to the validated sandbox Git directory, while remote reads and
+pushes use a neutral temporary Git client that does not load sandbox-local configuration.
 
 ## Resume
 
-Human interrupts are checkpointed. Future write-mode resume must fail closed if the repository, base SHA, sandbox, approved paths, diff hash, plan hash, or task policy has drifted.
+Human interrupts are checkpointed. Safe Mode approval and publication fail closed if the repository,
+base SHA, sandbox, approved paths, diff hash, plan hash, or sealed test/review evidence has drifted.
 
 ## Reporting vulnerabilities
 

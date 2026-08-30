@@ -7,8 +7,17 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from universal_coding_agent.core.cancellation import (
+    CancellationRequested,
+    CancellationSignal,
+    OwnedOperationKind,
+)
 from universal_coding_agent.core.models import ModelRequest, ModelResponse
-from universal_coding_agent.providers.base import ModelProvider, ModelProviderError
+from universal_coding_agent.providers.base import (
+    CancellableModelProvider,
+    ModelProvider,
+    ModelProviderError,
+)
 from universal_coding_agent.safety.sanitizer import sanitize_text
 
 _ModelT = TypeVar("_ModelT", bound=BaseModel)
@@ -48,6 +57,7 @@ def invoke_structured(
     repair_guidance: str = "",
     max_repair_attempts: int = 1,
     max_budget_retries: int = 1,
+    cancellation: CancellationSignal | None = None,
 ) -> StructuredOutputResult[_ModelT]:
     """Invoke one role with bounded output-budget retry and schema repair.
 
@@ -71,7 +81,12 @@ def invoke_structured(
 
     while True:
         attempt_index = len(attempts)
-        response = _invoke_provider(provider, current_request, attempt_index)
+        response = _invoke_provider(
+            provider,
+            current_request,
+            attempt_index,
+            cancellation=cancellation,
+        )
         raw_output = _raw_output(response)
 
         if _output_was_truncated(response):
@@ -177,9 +192,27 @@ def _invoke_provider(
     provider: ModelProvider,
     request: ModelRequest,
     attempt_index: int,
+    *,
+    cancellation: CancellationSignal | None = None,
 ) -> ModelResponse:
     try:
-        return provider.invoke(request)
+        if cancellation is None:
+            return provider.invoke(request)
+        with cancellation.operation(OwnedOperationKind.PROVIDER):
+            if isinstance(provider, CancellableModelProvider):
+                return provider.invoke_cancellable(request, cancellation)
+            return provider.invoke(request)
+    except CancellationRequested as exc:
+        raise StructuredOutputError(
+            "control_cancelled",
+            {
+                "role": request.role,
+                "repair_used": request.metadata.get("schema_repair") == "true",
+                "budget_retry_used": request.metadata.get("output_budget_retry") == "true",
+                "stage": "provider_invoke",
+                "error_type": type(exc).__name__,
+            },
+        ) from exc
     except ModelProviderError as exc:
         raise StructuredOutputError(
             exc.code,
