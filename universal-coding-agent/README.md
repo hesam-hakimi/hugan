@@ -28,12 +28,14 @@ Implemented in this milestone:
 - fixed policy-owned test profiles and independent Safe review;
 - exact-patch approval and rejection with durable SHA-256-bound evidence;
 - explicit post-approval local commit, feature-ref push, or Draft-PR adapter action;
-- retryable exact reconciliation and immutable completed publication receipts.
+- retryable exact reconciliation and immutable completed publication receipts;
+- default-disabled GitHub Draft-PR integration with pinned repository/account identity, exact
+  Base/Head SHA checks, Draft-only semantics, idempotent lookup, and redacted bounded failures.
 
 Not yet included:
 
 - arbitrary command execution;
-- trusted hosted source-control/Draft-PR integration and live qualification;
+- live hosted GitHub feature-ref/Draft-PR qualification;
 - merge or deployment;
 - Windows workers;
 - multi-user web UI.

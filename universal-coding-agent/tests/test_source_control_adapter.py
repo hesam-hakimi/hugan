@@ -930,6 +930,7 @@ class _DraftCreator:
             pull_request_id="17",
             url="https://example.test/pull/17",
             base_branch=request.base_branch,
+            base_sha=request.base_sha,
             head_branch=request.head_branch,
             head_sha=request.head_sha,
             created=True,
@@ -944,7 +945,23 @@ class _MismatchedDraftCreator:
             pull_request_id="18",
             url="https://example.test/pull/18",
             base_branch=request.base_branch,
+            base_sha=request.base_sha,
             head_branch="uca/wrong-head",
+            head_sha=request.head_sha,
+            created=True,
+        )
+
+
+@dataclass
+class _MismatchedBaseDraftCreator:
+    def ensure_draft(self, request: DraftPullRequestRequest) -> DraftPullRequestResult:
+        return DraftPullRequestResult(
+            provider="fixture",
+            pull_request_id="19",
+            url="https://example.test/pull/19",
+            base_branch=request.base_branch,
+            base_sha="f" * 40,
+            head_branch=request.head_branch,
             head_sha=request.head_sha,
             created=True,
         )
@@ -967,6 +984,7 @@ def test_git_adapter_creates_only_an_exact_optional_draft_pr(tmp_path: Path) -> 
     assert result.draft_pr.head_sha == result.commit_sha
     assert len(creator.requests) == 1
     assert creator.requests[0].base_branch == "main"
+    assert creator.requests[0].base_sha == fixture.base_sha
     assert creator.requests[0].head_branch == "uca/task-123"
 
 
@@ -1007,6 +1025,21 @@ def test_draft_pr_binding_failure_preserves_known_partial_effects(tmp_path: Path
     assert captured.value.partial_effects.draft_pr_url == "https://example.test/pull/18"
 
 
+def test_draft_pr_result_requires_the_exact_approved_base_sha(tmp_path: Path) -> None:
+    fixture = _fixture(tmp_path)
+    adapter = GitSourceControlAdapter(
+        allow_local_repositories=True,
+        draft_pr_creator=_MismatchedBaseDraftCreator(),
+        draft_pr_identity="fixture-draft",
+    )
+
+    with pytest.raises(SourceControlPublicationError) as captured:
+        adapter.publish_exact(_request(fixture, action=PublicationAction.DRAFT_PR))
+
+    assert captured.value.code == "draft_pr_result_mismatch"
+    assert captured.value.partial_effects.push_verified is True
+
+
 def test_draft_pr_creation_is_not_reported_as_a_fully_reused_action(
     tmp_path: Path,
 ) -> None:
@@ -1043,6 +1076,7 @@ def test_draft_pr_result_rejects_credential_bearing_or_non_https_url(url: str) -
             pull_request_id="19",
             url=url,
             base_branch="main",
+            base_sha="b" * 40,
             head_branch="uca/task-123",
             head_sha="a" * 40,
             created=True,

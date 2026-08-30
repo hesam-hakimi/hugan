@@ -338,6 +338,7 @@ class GitSourceControlAdapter:
                     publication_id=request.publication_id,
                     repository=request.repository,
                     base_branch=request.repository.base_ref,
+                    base_sha=base_sha,
                     head_branch=request.head_branch,
                     head_sha=commit_sha,
                     title=request.draft_pr_title,
@@ -354,6 +355,7 @@ class GitSourceControlAdapter:
                 )
                 if (
                     draft_result.base_branch != draft_request.base_branch
+                    or draft_result.base_sha != base_sha
                     or draft_result.head_branch != draft_request.head_branch
                     or draft_result.head_sha != commit_sha
                     or draft_result.draft is not True

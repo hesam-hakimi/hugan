@@ -719,6 +719,27 @@ deletion, tag, merge, deployment, or base-branch update authority. P2.3b therefo
 provider-neutral transaction and deterministic Git path; it does not claim a live hosted-provider
 or hosted Draft-PR qualification.
 
+P2.3c-a adds a built-in, default-disabled GitHub Draft-PR creator behind the same trusted
+`module:function` factory boundary. The factory requires a host-owned API token, an exact
+`owner/repository` allowlist, and a stable non-secret account or installation identity. Those fixed
+values derive the adapter and Draft-PR creator identities sealed into the publication intent; the
+token is retained only by the API transport and is not added to model input, subprocess arguments,
+repository URLs, artifacts, receipts, or error text. Git publication still uses the P2.3b fixed
+feature-only refspec and ambient host SSH agent. The GitHub token is used only for bounded ref reads,
+same-head/base PR lookup, and Draft-PR creation.
+
+Before looking up or creating a pull request, the GitHub creator proves that the request repository
+matches the configured GitHub host and repository, and that the hosted base and feature refs equal
+the exact approved Base and commit SHAs. It accepts only an open Draft PR in the same repository
+whose base branch/SHA, head branch/SHA, title, and body exactly match the sealed request. One exact
+match is an idempotent replay; a conflicting or ambiguous match fails closed. A create response is
+accepted only after both refs are checked again, and an HTTP conflict is reconciled only by finding
+that same exact Draft PR. API response reads are byte-bounded, redirects are rejected so the bearer
+credential cannot cross hosts, returned URLs must be credential-free GitHub HTTPS URLs, and failure
+evidence records only typed stages and codes. These deterministic contracts do not yet constitute
+P2.3c-b live hosted qualification or authority to merge, deploy, update the base branch, rewrite or
+delete refs, or create a non-Draft pull request.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
