@@ -1,207 +1,175 @@
-Perform the final read-only W1 acceptance gate.
+Implement one surgical W1 follow-up: close only the canonical destination-path alias gap found by the final acceptance review.
 
-Repository:
+Context
 
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+normalizeRelPath in src/tools/TrustedWriteApprovalStore.ts supplies identity normalization for inventory deduplication, approval checksums/storage, and drift comparison.
 
-Required branch:
+It currently leaves interior . components and repeated separators intact. Consequently:
 
-fix/workspace-write-completion-0.3.148
+* sql/x.yaml
+* sql/./x.yaml
+* sql//x.yaml
 
-Required HEAD:
+can become distinct inventory keys even though filesystem resolution targets the same file.
 
-64706129e0d1054ea615e150b28dd623fb3c629e
+With conflicting content, this permits ambiguous last-write-wins behavior within one approved operation. This contradicts the W1 collision-protection acceptance criteria.
 
-Do not repair or edit anything in this task.
+Preserve the current dirty worktree. Do not discard or recreate any existing W1 change.
 
-Preflight
+Required change
 
-Confirm:
+Make those valid relative-path spellings share one canonical identity.
 
-* Branch and HEAD match.
-* Nothing is staged.
-* git status --short contains exactly these 12 paths:
+* Extend only the existing normalizeRelPath implementation, or an immediately adjacent private helper if strictly necessary.
+* Remove path components that are exactly . at any depth.
+* Collapse repeated separators between relative-path components.
+* Preserve existing case folding, backslash handling, and leading-./ behavior.
+* Preserve valid dotted names such as:
+    * .env
+    * x..yaml
+    * a.b
+* Keep one shared normalization path.
+* Do not add call-site-specific normalization.
 
-Modified:
+Security invariants
 
-* src/chat/DeployCoordinator.ts
-* src/chat/WriteCoordinator.ts
-* src/core/trusted/WriteAuthorization.ts
-* src/test/helpers/mintTestWriteAuthorization.ts
-* src/test/suite/onboardingWriteApproval.test.ts
-* src/test/testPatterns.ts
-* src/tools/EtlActionToolService.ts
+* Do not use path.resolve, path.normalize, or another operation that consumes ...
+* Do not turn absolute, UNC, device, or drive-letter paths into relative paths by stripping root markers.
+* .., absolute paths, UNC paths, device paths, and drive-letter paths must remain hard-rejected.
+* Detect invalid rooted forms before removing empty or dot components.
+* Do not modify physical-containment behavior.
+* Do not modify PathValidator, PhysicalPathContainment, WorkspaceDestinationProbe, or RepoWriter.
+
+Required tests
+
+Add focused regressions only in:
+
+src/test/suite/workspaceWriteCollision.test.ts
+
+Use existing helpers and real temporary filesystem behavior where appropriate.
+
+Test 1 — identical aliases
+
+Prove that these paths with identical bytes and matching metadata collapse into one canonical inventory destination and cause one physical write:
+
+* sql/x.yaml
+* sql/./x.yaml
+* sql//x.yaml
+* an equivalent backslash or case variant
+
+Test 2 — conflicting aliases
+
+Cover both interior-dot and repeated-separator aliases with different bytes.
+
+They must:
+
+* be recognized as one physical destination;
+* trigger the existing conflict error;
+* fail before preview or confirmation;
+* fail before approval;
+* produce zero filesystem writes.
+
+Test 3 — dotted filenames
+
+Prove that only components exactly equal to . are removed.
+
+These names must remain valid and distinct:
+
+* .env
+* x..yaml
+* a.b
+
+Test 4 — invalid rooted paths remain rejected
+
+Confirm that this change does not make any of these acceptable:
+
+* ..
+* absolute paths
+* UNC paths
+* device paths
+* drive-letter paths
+
+Reuse existing coverage where possible and add only the smallest missing assertion.
+
+Testing integrity
+
+* Test through the public inventory or write flow.
+* Do not export a production-private function only for testing.
+* Do not derive both expected and actual results from the same normalization helper.
+* Do not add skipped, exclusive, or tautological tests.
+* Do not weaken existing assertions.
+
+Strict edit boundary
+
+Only these files may be modified:
+
 * src/tools/TrustedWriteApprovalStore.ts
-* src/writers/RepoWriter.ts
-
-Untracked:
-
-* src/core/artifacts/ArtifactDestinationInventory.ts
-* src/core/artifacts/WorkspaceDestinationProbe.ts
 * src/test/suite/workspaceWriteCollision.test.ts
 
-Run git diff --check and record a content hash for all 12 files.
+Do not modify src/core/artifacts/ArtifactDestinationInventory.ts; it already consumes the shared identity helper.
 
-If preflight differs, stop.
+If another production file is genuinely required, stop without editing it and explain why.
 
-Phase A — Static review
+Prohibited scope
 
-Inspect the complete diff and provide file-and-line evidence for every conclusion.
+Do not:
 
-1. W1-only scope
+* refactor unrelated code;
+* reformat unrelated regions;
+* add dependencies;
+* change packages or versions;
+* alter approval UI or checksum design beyond the required alias equivalence;
+* refresh evaluation baselines;
+* change CI, workflows, prompts, or documentation;
+* implement atomic multi-file apply;
+* implement rollback or managed ownership;
+* address broader TOCTOU concerns;
+* stage, commit, or push.
 
-Verify that:
+Verification
 
-* Every production change is required for destination inventory, collision classification, approval display/checksum, or final pre-write revalidation.
-* No package-version, Repair 13, atomic multi-file apply, managed ownership, CI, or unrelated behavior was changed.
+Run these commands:
 
-2. Fail-closed no-workspace behavior
-
-Verify that:
-
-* An undefined workspace root, missing workspace, containment failure, or probe error cannot be interpreted as “destination absent” or CREATE for a real write.
-* Every real write entry point fails before approval or writing when the workspace cannot be safely resolved.
-* No direct writer path bypasses the new guard.
-
-The new probe returning “nothing exists” when no workspace is available is acceptable only if a separate mandatory guard proves that every real write stops before approval and before filesystem mutation.
-
-3. Canonical inventory completeness
-
-Verify that:
-
-* The same production inventory drives collision checking and actual writes.
-* Independently enumerate every category written by RepoWriter.writeArtifacts and map it to the inventory, including:
-    * primary job config
-    * environment configs
-    * includes
-    * every additionalJobConfigs entry
-* Search for any writable category or side-write outside the inventory.
-* Tests do not prove completeness by deriving both expected and actual values from the same helper.
-
-4. Classification and duplicate behavior
-
-Verify that:
-
-* Missing destination → CREATE
-* Existing destination with identical intended bytes → UNCHANGED
-* Existing destination with different intended bytes → OVERWRITE
-* Conflicting duplicate destinations fail before approval and before writing.
-* Identical duplicates collapse deterministically.
-* Probe ambiguity, permission errors, or unsupported destination types fail closed.
-
-5. Path identity and containment
-
-Verify that:
-
-* Inventory, checksum, probe, revalidation, and writer use the same destination identity.
-* Windows case-only aliases, slash variants, dot segments, and drive-letter variants cannot be treated as different destinations.
-* Existing physical containment still blocks absolute paths, traversal, cross-root access, junction or symlink escapes, and dangling links.
-* A path normalization or probe error never becomes CREATE.
-
-6. Explicit trusted approval
-
-Verify that:
-
-* CREATE, OVERWRITE, and UNCHANGED are rendered separately.
-* Every path appears in the correct section.
-* Disposition, canonical path, intended bytes or hash, and relevant metadata are bound into the existing trusted approval checksum.
-* No second approval mechanism was introduced.
-* UNCHANGED files are not rewritten.
-
-7. Drift and TOCTOU boundary
-
-Verify that:
-
-* The complete approved inventory is re-probed after approval and immediately before the first filesystem mutation.
-* Identity, existence/disposition, destination type or link state, and relevant existing-content evidence are compared.
-* Any mismatch aborts before any file is written.
-* The approval cannot be replayed after rejection or drift.
-* Report every await or side effect between final revalidation and the first write.
-* Do not claim that W1 solves the residual operating-system race or multi-file rollback.
-
-8. Test integrity
-
-Verify that:
-
-* No assertion was removed or weakened merely to make tests pass.
-* No skip, only, swallowed error, or broader expectation was introduced.
-* Changed CREATE-to-OVERWRITE expectations are backed by fixtures that truly pre-create those destinations.
-* testPatterns.ts only adds the new headless suite.
-* GUI-dependent writeFlow.test.ts remains excluded.
-
-Hard blockers
-
-Return W1_ACCEPTANCE_BLOCKED and do not run tests if any of these is found:
-
-* Fail-open no-workspace or probe-error behavior
-* Missing inventory category or direct-write bypass
-* Incorrect CREATE/OVERWRITE/UNCHANGED classification
-* Windows path aliases treated as different destinations
-* Approval does not display and checksum-bind overwrite state
-* Revalidation happens after a write or checks insufficient state
-* Weakened or tautological tests
-* W1 scope expansion
-
-Phase B — Final execution
-
-Only if Phase A has no blocker, run exactly once each:
-
+git diff --check
 npm run compile
+
+Then run the narrowest supported command for:
+
+workspaceWriteCollision.test.ts
+
+Finally, run exactly once:
 
 npm run test:unit
 
-Do not rerun focused tests. Existing post-fix evidence already records 346 passing workspace-write tests.
+Requirements:
 
-Expected unit result:
-
-* 2326 passing
-* 5 pending
-* 5 failing
-* Exit code 1
-
-The only permitted failures are:
-
-1. The same three known failures in copilotWorkflowCustomization.test.js:
-    * missing deploy-v3 tool-context prompt
-    * missing frontmatter name
-    * module AGENT.md files
-2. Exactly two EvalGating freshness failures that only report stale committed evaluation evidence caused by the intentional W1 source changes.
-
-Acceptance requires:
-
-* Compile exits 0.
-* All 17 workspaceWriteCollision tests execute and pass.
+* Compilation passes.
+* Every existing and new workspace-write collision test passes.
 * No workspace-write test fails.
-* Totals and the five allowed failures match exactly.
-* No additional failure appears.
-* Starting and ending HEAD match.
-* All 12 before/after content hashes match.
-* Final Git status exactly matches preflight.
+* Report the known EvalGating freshness failures separately.
+* Report the three existing Copilot customization failures separately.
+* Do not fix or suppress those known failures.
 
-Return exactly one verdict:
-
-W1_ACCEPTANCE_PASS_EVAL_BASELINE_REFRESH_REQUIRED
-
-or:
-
-W1_ACCEPTANCE_BLOCKED
+Final report
 
 Report:
 
-* Static-review findings with file and line references
-* Commands, exit codes, and elapsed times
-* Passing, pending, and failing totals
-* Full names of every failure
-* Result of all 17 new tests
-* Before/after source-state comparison
-* Final Git status
-* Final verdict
+* exact files changed;
+* exact normalization behavior added;
+* new test names and results;
+* each command and exit code;
+* full unit-test totals;
+* complete names of remaining failures;
+* git diff --check result;
+* final git status --short;
+* confirmation that nothing was staged, committed, pushed, or baseline-refreshed.
 
-Restrictions:
+Return exactly one verdict:
 
-* Do not edit, format, repair, stage, commit, or push.
-* Do not refresh evaluation baselines.
-* Do not rerun any command.
-* Do not change the package version.
-* Do not run F5, packaging, installed QA, or the external harness.
-* Stop after reporting.
+W1_ALIAS_FIX_READY_FOR_FINAL_GATE
+
+or:
+
+W1_ALIAS_FIX_BLOCKED
+
+Stop after reporting.
