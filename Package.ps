@@ -1,7 +1,3 @@
-$manifest = Join-Path $env:TEMP "etl-f5-assets.sha256.json"
-
-[pscustomobject]@{
-    Path   = (Resolve-Path $manifest).Path
-    Bytes  = (Get-Item $manifest).Length
-    SHA256 = (Get-FileHash $manifest -Algorithm SHA256).Hash.ToLowerInvariant()
-}
+$hash = (Get-FileHash (Join-Path $env:TEMP "etl-f5-assets.sha256.json") -Algorithm SHA256).Hash.ToLowerInvariant()
+Write-Host "SHA256=$hash"
+Write-Host "LENGTH=$($hash.Length)"
