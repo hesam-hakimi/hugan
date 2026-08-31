@@ -1,1 +1,2 @@
-code -r "$env:TEMP\etl-f5-runbook.md"
+$inventoryScript = Join-Path $env:TEMP "qa-inventory.ps1"
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $inventoryScript -Phase pre
