@@ -1,105 +1,207 @@
-Implement only Workspace Write Completion step W1: collision detection and explicit overwrite approval.
+Perform the final read-only W1 acceptance gate.
 
 Repository:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Required starting branch:
-
-fix/runtime-sttm-structured-output-0.3.148
-
-Required starting HEAD:
-
-64706129e0d1054ea615e150b28dd623fb3c629e
-
-Preflight:
-
-1. Confirm the branch and HEAD.
-2. Confirm `git status --short` is empty.
-3. If either differs, stop.
-
-Create a new local branch:
+Required branch:
 
 fix/workspace-write-completion-0.3.148
 
-Do not push it.
+Required HEAD:
 
-Implementation scope — W1 only:
+64706129e0d1054ea615e150b28dd623fb3c629e
 
-1. Create one canonical artifact-destination inventory used by both:
+Do not repair or edit anything in this task.
 
-* Overwrite/collision detection
-* The actual artifact-writing path
+Preflight
 
-Do not maintain separate manually duplicated destination lists.
+Confirm:
 
-2. The inventory must include every artifact category that `RepoWriter.writeArtifacts` can write, including:
+* Branch and HEAD match.
+* Nothing is staged.
+* git status --short contains exactly these 12 paths:
 
-* Primary job configuration
-* Environment configurations
-* Include files
-* Every `additionalJobConfigs` entry
-* Any other currently writable artifact category discovered in the implementation
+Modified:
 
-3. Normalize and deduplicate destinations deterministically.
+* src/chat/DeployCoordinator.ts
+* src/chat/WriteCoordinator.ts
+* src/core/trusted/WriteAuthorization.ts
+* src/test/helpers/mintTestWriteAuthorization.ts
+* src/test/suite/onboardingWriteApproval.test.ts
+* src/test/testPatterns.ts
+* src/tools/EtlActionToolService.ts
+* src/tools/TrustedWriteApprovalStore.ts
+* src/writers/RepoWriter.ts
 
-If two artifacts resolve to the same destination with conflicting content or metadata, fail closed before approval and before writing.
+Untracked:
 
-4. Correct the existing defect where `additionalJobConfigs` can be written but is omitted from `checkOverwrites`.
+* src/core/artifacts/ArtifactDestinationInventory.ts
+* src/core/artifacts/WorkspaceDestinationProbe.ts
+* src/test/suite/workspaceWriteCollision.test.ts
 
-5. The approval confirmation must clearly and separately display:
+Run git diff --check and record a content hash for all 12 files.
 
-* CREATE
-* OVERWRITE
-* UNCHANGED
+If preflight differs, stop.
 
-An existing destination must never be shown as CREATE.
+Phase A — Static review
 
-6. Immediately before writing, revalidate the destination existence state against the approved preview.
+Inspect the complete diff and provide file-and-line evidence for every conclusion.
 
-If a destination changed between preview/approval and apply, reject the operation before writing any file.
+1. W1-only scope
 
-7. Continue using the existing trusted approval store and manifest checksum. Do not create a second approval mechanism.
+Verify that:
 
-Required headless tests:
+* Every production change is required for destination inventory, collision classification, approval display/checksum, or final pre-write revalidation.
+* No package-version, Repair 13, atomic multi-file apply, managed ownership, CI, or unrelated behavior was changed.
 
-* A missing additional job configuration is classified as CREATE.
-* An existing additional job configuration is classified as OVERWRITE.
-* An unchanged destination is classified as UNCHANGED.
-* The approval text places every path in the correct section.
-* A destination-state change after approval is rejected before any write.
-* Conflicting duplicate destinations fail closed.
-* The canonical inventory contains every artifact category written by `writeArtifacts`.
-* Existing approval, containment, and exact-byte tests continue to pass.
+2. Fail-closed no-workspace behavior
 
-Testing constraints:
+Verify that:
 
-1. Add the new coverage to an existing headless unit suite or a new headless suite.
-2. Do not add the GUI-dependent `writeFlow.test.ts` to `PURE_UNIT_TEST_PATTERNS`.
-3. Run at most:
+* An undefined workspace root, missing workspace, containment failure, or probe error cannot be interpreted as “destination absent” or CREATE for a real write.
+* Every real write entry point fails before approval or writing when the workspace cannot be safely resolved.
+* No direct writer path bypasses the new guard.
 
-* One smallest supported focused test command for the affected suite.
-* One execution of `npm run test:unit`.
+The new probe returning “nothing exists” when no workspace is available is acceptable only if a separate mandatory guard proves that every real write stops before approval and before filesystem mutation.
 
-The unit command may still return the same three known failures in `copilotWorkflowCustomization.test.js`. Do not fix them in this task. No new failure may appear in a workspace-write suite.
+3. Canonical inventory completeness
 
-Explicit exclusions:
+Verify that:
 
-* Do not implement atomic multi-file apply yet.
-* Do not implement managed-file ownership yet.
-* Do not modify Repair 13 structured-output behavior.
+* The same production inventory drives collision checking and actual writes.
+* Independently enumerate every category written by RepoWriter.writeArtifacts and map it to the inventory, including:
+    * primary job config
+    * environment configs
+    * includes
+    * every additionalJobConfigs entry
+* Search for any writable category or side-write outside the inventory.
+* Tests do not prove completeness by deriving both expected and actual values from the same helper.
+
+4. Classification and duplicate behavior
+
+Verify that:
+
+* Missing destination → CREATE
+* Existing destination with identical intended bytes → UNCHANGED
+* Existing destination with different intended bytes → OVERWRITE
+* Conflicting duplicate destinations fail before approval and before writing.
+* Identical duplicates collapse deterministically.
+* Probe ambiguity, permission errors, or unsupported destination types fail closed.
+
+5. Path identity and containment
+
+Verify that:
+
+* Inventory, checksum, probe, revalidation, and writer use the same destination identity.
+* Windows case-only aliases, slash variants, dot segments, and drive-letter variants cannot be treated as different destinations.
+* Existing physical containment still blocks absolute paths, traversal, cross-root access, junction or symlink escapes, and dangling links.
+* A path normalization or probe error never becomes CREATE.
+
+6. Explicit trusted approval
+
+Verify that:
+
+* CREATE, OVERWRITE, and UNCHANGED are rendered separately.
+* Every path appears in the correct section.
+* Disposition, canonical path, intended bytes or hash, and relevant metadata are bound into the existing trusted approval checksum.
+* No second approval mechanism was introduced.
+* UNCHANGED files are not rewritten.
+
+7. Drift and TOCTOU boundary
+
+Verify that:
+
+* The complete approved inventory is re-probed after approval and immediately before the first filesystem mutation.
+* Identity, existence/disposition, destination type or link state, and relevant existing-content evidence are compared.
+* Any mismatch aborts before any file is written.
+* The approval cannot be replayed after rejection or drift.
+* Report every await or side effect between final revalidation and the first write.
+* Do not claim that W1 solves the residual operating-system race or multi-file rollback.
+
+8. Test integrity
+
+Verify that:
+
+* No assertion was removed or weakened merely to make tests pass.
+* No skip, only, swallowed error, or broader expectation was introduced.
+* Changed CREATE-to-OVERWRITE expectations are backed by fixtures that truly pre-create those destinations.
+* testPatterns.ts only adds the new headless suite.
+* GUI-dependent writeFlow.test.ts remains excluded.
+
+Hard blockers
+
+Return W1_ACCEPTANCE_BLOCKED and do not run tests if any of these is found:
+
+* Fail-open no-workspace or probe-error behavior
+* Missing inventory category or direct-write bypass
+* Incorrect CREATE/OVERWRITE/UNCHANGED classification
+* Windows path aliases treated as different destinations
+* Approval does not display and checksum-bind overwrite state
+* Revalidation happens after a write or checks insufficient state
+* Weakened or tautological tests
+* W1 scope expansion
+
+Phase B — Final execution
+
+Only if Phase A has no blocker, run exactly once each:
+
+npm run compile
+
+npm run test:unit
+
+Do not rerun focused tests. Existing post-fix evidence already records 346 passing workspace-write tests.
+
+Expected unit result:
+
+* 2326 passing
+* 5 pending
+* 5 failing
+* Exit code 1
+
+The only permitted failures are:
+
+1. The same three known failures in copilotWorkflowCustomization.test.js:
+    * missing deploy-v3 tool-context prompt
+    * missing frontmatter name
+    * module AGENT.md files
+2. Exactly two EvalGating freshness failures that only report stale committed evaluation evidence caused by the intentional W1 source changes.
+
+Acceptance requires:
+
+* Compile exits 0.
+* All 17 workspaceWriteCollision tests execute and pass.
+* No workspace-write test fails.
+* Totals and the five allowed failures match exactly.
+* No additional failure appears.
+* Starting and ending HEAD match.
+* All 12 before/after content hashes match.
+* Final Git status exactly matches preflight.
+
+Return exactly one verdict:
+
+W1_ACCEPTANCE_PASS_EVAL_BASELINE_REFRESH_REQUIRED
+
+or:
+
+W1_ACCEPTANCE_BLOCKED
+
+Report:
+
+* Static-review findings with file and line references
+* Commands, exit codes, and elapsed times
+* Passing, pending, and failing totals
+* Full names of every failure
+* Result of all 17 new tests
+* Before/after source-state comparison
+* Final Git status
+* Final verdict
+
+Restrictions:
+
+* Do not edit, format, repair, stage, commit, or push.
+* Do not refresh evaluation baselines.
+* Do not rerun any command.
 * Do not change the package version.
-* Do not run F5, the external harness, packaging, or installed QA.
-* Do not commit, push, create a pull request, merge, rebase, reset, clean, or tag.
-* Do not rewrite unrelated files or line endings.
-
-Final report:
-
-* New local branch
-* Files changed
-* Exact behavior corrected
-* Tests added
-* Commands and results
-* Confirmation that the three known baseline failures are unchanged
-* Final `git status --short`
-* Stop without committing.
+* Do not run F5, packaging, installed QA, or the external harness.
+* Stop after reporting.
