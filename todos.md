@@ -1,34 +1,32 @@
-Work only in this repository:
+The expected HEAD in my previous instruction contained a transcription error.
 
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+The corrected and confirmed HEAD is:
 
-Perform one narrowly scoped Git staging operation.
+ca51faf652d85d5b44c1e4dd97baa704f634ec1c
 
-1. Verify:
+Your reported branch, actual HEAD, and four changed paths are correct. Do not rerun the full gate or any tests.
 
-* Current branch: fix/runtime-sttm-structured-output-0.3.148
-* Current HEAD: ca51faf652d85d5b44c1e4dd07baa704f634ec1c
-* Git status contains exactly these four paths:
-    * src/tools/index.ts
-    * src/test/helpers/registerVscodeStub.ts
-    * src/test/testPatterns.ts
-    * src/test/suite/sttmPublicToolResultEnvelope.test.ts
+Proceed now with the original staging step:
 
-2. If the branch, HEAD, or changed-file set differs, stop immediately and report the difference.
-3. Otherwise, stage only those four files using explicit paths.
-4. Run:
+1. Stage only these four explicit paths:
+
+* src/tools/index.ts
+* src/test/helpers/registerVscodeStub.ts
+* src/test/testPatterns.ts
+* src/test/suite/sttmPublicToolResultEnvelope.test.ts
+
+2. Use the same working Git executable method you already verified.
+3. Run and report:
 
 git diff –cached –name-status
 
 git status –short
 
-5. Confirm that the staged set contains exactly three modified files and one added test file.
-
-Restrictions:
+Restrictions remain unchanged:
 
 * Do not edit any file.
+* Do not commit or push.
 * Do not run tests or compilation.
 * Do not change the package version.
-* Do not commit or push.
 * Do not reset, clean, delete, or stash anything.
-* Stop after reporting the verification results.
+* Stop after reporting the staged-file verification.
