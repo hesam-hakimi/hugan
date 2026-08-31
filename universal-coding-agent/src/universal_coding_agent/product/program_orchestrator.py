@@ -19,6 +19,10 @@ from universal_coding_agent.orchestration.structured_output import (
     StructuredOutputError,
     invoke_structured,
 )
+from universal_coding_agent.product.handoff_compaction import (
+    HandoffCompactionError,
+    PhaseHandoffCompactor,
+)
 from universal_coding_agent.product.models import (
     AcceptedPhaseEvidence,
     AcceptedPhaseEvidenceBundle,
@@ -119,6 +123,7 @@ class ProgramOrchestrator:
         self.database_path = database_path.resolve()
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self.artifacts = artifacts
+        self.handoff_compactor = PhaseHandoffCompactor(artifacts)
         self.provider = provider
         self.search = search
         self.control = control
@@ -1000,37 +1005,11 @@ class ProgramOrchestrator:
             dependency_phase_ids=dependency_ids,
             phases=tuple(phases),
         )
-        content = json.dumps(
-            bundle.model_dump(mode="json"),
-            separators=(",", ":"),
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        evidence_hash = bundle.canonical_hash()
-        if len(content) > 48_000:
-            raise ProgramExecutionError(
-                "accepted prior-phase evidence exceeds the bounded Safe context budget"
-            )
-        reference = self.artifacts.write_text(
-            (
-                f"programs/{program_id}/phases/{target_phase.phase_id}/"
-                f"accepted-prior-phase-evidence-{evidence_hash}.json"
-            ),
-            content,
-            "application/json",
-        )
-        if reference.sha256 != evidence_hash:
-            raise ProgramExecutionError("accepted evidence artifact hash mismatch")
-        return (
-            (
-                SafeContextEvidence(
-                    source_ref=reference.uri,
-                    sha256=evidence_hash,
-                    content=content,
-                ),
-            ),
-            source_base_sha,
-        )
+        try:
+            evidence = self.handoff_compactor.compile(bundle)
+        except HandoffCompactionError as exc:
+            raise ProgramExecutionError(str(exc)) from exc
+        return ((evidence,), source_base_sha)
 
     def _prior_dependency_phase_ids(
         self,
