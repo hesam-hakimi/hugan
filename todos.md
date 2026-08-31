@@ -1,95 +1,55 @@
-Perform a strictly read-only audit of the previously implemented etl_write_to_workspace hotfix.
+Establish SHA-tied unit-test evidence for the inherited workspace-write hotfix.
 
 Repository:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Known commits:
-
-Current HEAD:
+Required HEAD:
 
 64706129e0d1054ea615e150b28dd623fb3c629e
 
-Recovered product baseline:
+Preflight:
 
-ca51faf652d85d5b44c1e4dd97baa704f634ec1c
+1. Confirm the current HEAD matches exactly.
+2. Confirm `git status --short` is empty.
+3. If either check fails, stop without running tests.
 
-Historical hotfix clue:
+Run exactly once:
 
-hotfix/hf1-oracle-fresh-consumer-v2
+npm run test:unit
 
-Do not assume that the historical branch still exists or that the hotfix is complete. Verify using local Git history, current source, and read-only GitHub server data where necessary.
+Do not add filters, retries, repairs, or additional commands that execute tests.
 
-Goal:
+Capture and report:
 
-Determine whether the recovered baseline and current HEAD contain the complete workspace-write hotfix and whether it has valid test evidence.
+* Exact command
+* Starting and ending HEAD
+* Exit code
+* Elapsed time
+* Total passing, pending, skipped, and failing tests
+* Full names and error messages of every failure
+* Whether each of these write-related suites was executed:
 
-Audit requirements:
+  * onboardingWriteApproval.test.ts
+  * repoWriterWorkspaceSelection.test.ts
+  * workspaceInputContainment.test.ts
+  * hf1OracleFreshConsumer.test.ts
+  * hf1v2GoldenPathPrePackage.test.ts
+  * physicalWriteContainment.test.ts
+* Confirm that `writeFlow.test.ts` was not included by this command.
+* Final output of `git status --short`
 
-1. Verify commit inheritance:
+Important interpretation:
 
-* Current HEAD must have ca51faf... as its direct parent.
-* The difference between them must be only the four Repair 13 structured-output files.
-* Confirm Repair 13 did not modify any workspace-write implementation path.
-
-2. Trace the complete real write flow and report exact files, classes, and functions for:
-
-* etl_write_to_workspace registration
-* Input validation
-* Preview creation
-* Final manifest creation
-* User approval
-* Apply/write operation
-* Managed-file ownership recording
-
-3. Evaluate these required guarantees individually:
-
-* Approval binding:
-    The approved manifest, bytes, paths, and hashes must be exactly what is written. Missing, stale, or mismatched approval must fail closed.
-* Workspace containment:
-    Absolute paths, .., paths outside the workspace, and symlink escape must be blocked.
-* Exact bytes and hashes:
-    Previewed and approved bytes must be written unchanged and must not be regenerated after approval.
-* Collision protection:
-    Existing unmanaged files must not be overwritten without an explicitly supported safe decision.
-* Atomic apply:
-    A multi-file failure must not silently leave an accepted partial result.
-* Managed ownership:
-    Only files owned by the applicable workflow or manifest may be updated, and ownership must be recorded after successful apply.
-
-4. For every guarantee, report separately:
-
-* Implementation file and function
-* Positive test name
-* Negative test name
-* Existing execution evidence tied to the current SHA, if any
-
-Do not treat the existence of a test file as proof that it passed.
-
-The recent F5 STTM test is not workspace-write evidence.
-
-5. Locate the provenance of the previous write hotfix:
-
-* Original commit or branch, if discoverable
-* Whether its changes are included in ca51faf...
-* Whether all those changes remain present at the current HEAD
-
-6. Return exactly one overall verdict:
-
-* INHERITED_AND_SHA_VALIDATED
-* INHERITED_BUT_NOT_SHA_VALIDATED
-* PARTIALLY_PRESENT_OR_UNSAFE
-* REGRESSED_AFTER_BASELINE
-* ABSENT
-* INDETERMINATE
-
-7. Recommend only the single next validation or repair action.
+* Passing tests do not close the already identified collision, atomic-apply, or managed-ownership gaps.
+* This run establishes the current baseline only.
+* If the command fails, report the evidence and stop. Do not diagnose or fix it in this turn.
 
 Restrictions:
 
-* Do not edit any file.
-* Do not run tests yet.
+* Do not run `npm install`.
+* Do not edit or format files.
+* Do not run the full suite, F5, packaging, or a harness.
 * Do not create commits, branches, tags, packages, or pull requests.
-* Do not push, fetch, merge, rebase, cherry-pick, reset, clean, or alter the fetch refspec.
-* Do not change the package version.
-* Stop after reporting the audit evidence and verdict.
+* Do not push, fetch, merge, rebase, reset, clean, or change the package version.
+* Run the command only once and stop after reporting.
