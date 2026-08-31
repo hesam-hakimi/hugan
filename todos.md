@@ -1,32 +1,37 @@
-The expected HEAD in my previous instruction contained a transcription error.
+Create one local commit from the currently staged Repair 13 files.
 
-The corrected and confirmed HEAD is:
+Before committing:
 
-ca51faf652d85d5b44c1e4dd97baa704f634ec1c
-
-Your reported branch, actual HEAD, and four changed paths are correct. Do not rerun the full gate or any tests.
-
-Proceed now with the original staging step:
-
-1. Stage only these four explicit paths:
+1. Confirm the staged set still contains exactly these four paths:
 
 * src/tools/index.ts
 * src/test/helpers/registerVscodeStub.ts
 * src/test/testPatterns.ts
 * src/test/suite/sttmPublicToolResultEnvelope.test.ts
 
-2. Use the same working Git executable method you already verified.
-3. Run and report:
+2. Run:
 
-git diff –cached –name-status
+git diff –cached –check
 
-git status –short
+If it reports a real whitespace error, stop and report it. A line-ending conversion warning by itself is non-blocking; do not rewrite any file to address it.
 
-Restrictions remain unchanged:
+3. If the check passes, create exactly one local commit with this message:
+
+fix: return structured STTM public tool results
+
+4. After the commit, report:
+
+* New commit SHA
+* Commit subject
+* Committed file names and statuses
+* Output of git status --short
+
+Expected final status: clean.
+
+Restrictions:
 
 * Do not edit any file.
-* Do not commit or push.
-* Do not run tests or compilation.
 * Do not change the package version.
-* Do not reset, clean, delete, or stash anything.
-* Stop after reporting the staged-file verification.
+* Do not run tests, compilation, or packaging.
+* Do not push, tag, amend, reset, clean, delete, or stash.
+* Stop immediately after reporting the local commit verification.
