@@ -1,82 +1,60 @@
-Create a draft pull request for Repair 13 in:
+Perform a strictly read-only GitHub branch and commit provenance investigation for:
 
 TD-Universe/agentic_etl
 
-Use GitHub server data rather than the incomplete local remote-tracking references.
+Known commits:
 
-Preflight:
+Baseline recovery commit:
 
-1. Confirm no pull request already exists for:
-    fix/runtime-sttm-structured-output-0.3.148
-2. Confirm this intended base branch exists on GitHub:
-    feature/v3-agentic-redesign
-3. Use GitHub’s comparison data to confirm that the pull request would contain:
+ca51faf652d85d5b44c1e4dd97baa704f634ec1c
 
-* Exactly one new commit:
-    64706129e0d1054ea615e150b28dd623fb3c629e
-* Exactly these four changed files:
+Repair 13 commit:
+
+64706129e0d1054ea615e150b28dd623fb3c629e
+
+Current integration-base candidate:
+
+feature/v3-agentic-redesign
+
+Use authenticated GitHub server data, not incomplete local origin/* references.
+
+Investigate:
+
+1. For the baseline recovery commit, report:
+
+* Full commit subject
+* Parent SHA
+* Associated open, closed, or merged pull requests
+* Every remote branch containing this commit
+* Every remote branch or tag pointing directly to it
+
+2. For each plausible target branch found on GitHub, run a server-side comparison against the Repair 13 branch.
+
+A valid Repair 13 base must produce exactly:
+
+* One new commit
+* Four changed files
+* Only these paths:
     * src/tools/index.ts
     * src/test/helpers/registerVscodeStub.ts
     * src/test/testPatterns.ts
     * src/test/suite/sttmPublicToolResultEnvelope.test.ts
 
-If the base is missing, the comparison contains unexpected commits/files, or an existing pull request is found, stop and report without creating anything.
+3. Classify the result as exactly one of:
 
-If all checks pass, create a draft pull request with:
+* Baseline recovery is already merged into an integration branch.
+* Baseline recovery belongs to an existing open pull request and Repair 13 can use its head branch as a stacked base.
+* Baseline recovery has no approved pull request or integration branch and must be reviewed first.
+* Another valid base exists; provide its exact branch and comparison result.
 
-Base:
-
-feature/v3-agentic-redesign
-
-Head:
-
-fix/runtime-sttm-structured-output-0.3.148
-
-Title:
-
-fix: return structured STTM public tool results
-
-Body:
-
-Summary
-
-* Return the complete Markdown result from the public STTM tool boundary.
-* Attach the same response data as a structured JSON data part when supported by the host.
-* Preserve the existing failure envelope for missing or malformed response data.
-* Add public-boundary regression coverage and the required VS Code test stub support.
-
-Validation
-
-* Focused regression tests passed.
-* Full suite result: 2311 passing, 5 pending, and 3 failures identical to the clean baseline.
-* Real VS Code Extension Development Host execution passed.
-* The live etl_interpret_sttm invocation returned exactly two result parts:
-    * Markdown text part
-    * Structured JSON data part
-* Structured result MIME type was application/json.
-* Structured bytes decoded successfully to a JSON object.
-* Copilot consumed the tool result and rendered the STTM mappings and transformation logic.
-
-Scope
-
-* Exactly four source/test files are included.
-* Package version remains unchanged at this stage.
-* VSIX packaging and installed-QA acceptance are deferred until CI review.
-* Unrelated diagnostics, governance findings, and DisposableStore warnings are outside this repair.
-
-After creation:
-
-1. Report the pull-request number and URL.
-2. Report whether CI checks were triggered for commit:
-    64706129e0d1054ea615e150b28dd623fb3c629e
-3. Report their initial status without waiting for completion.
+4. Recommend the narrowest safe integration path, but do not perform it.
 
 Restrictions:
 
-* Keep the pull request in draft state.
+* Do not create any branch or pull request.
+* Do not push anything.
 * Do not edit files or create commits.
+* Do not change the local fetch refspec.
+* Do not fetch, merge, rebase, cherry-pick, reset, clean, tag, or force push.
 * Do not change the package version.
-* Do not modify the local fetch refspec.
-* Do not push, merge, rebase, pull, tag, or force push.
-* Do not assign reviewers or labels.
-* Stop after reporting the pull request and initial CI status.
+* Stop after reporting the verified GitHub provenance and recommendation.
