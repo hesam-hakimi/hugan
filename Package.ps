@@ -1,3 +1,1 @@
-$hash = (Get-FileHash (Join-Path $env:TEMP "etl-f5-assets.sha256.json") -Algorithm SHA256).Hash.ToLowerInvariant()
-Write-Host "SHA256=$hash"
-Write-Host "LENGTH=$($hash.Length)"
+code "$env:TEMP\etl-f5-runbook.md"
