@@ -1,1 +1,2 @@
-Use the etl_interpret_sttm tool to read sttm/synthetic_workbook.xlsx and summarize its mappings and transformation logic.
+git add -- src/tools/index.ts src/test/helpers/registerVscodeStub.ts src/test/testPatterns.ts src/test/suite/sttmPublicToolResultEnvelope.test.ts
+git diff --cached --name-status
