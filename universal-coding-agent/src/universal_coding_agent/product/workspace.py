@@ -18,6 +18,7 @@ from universal_coding_agent.product.models import (
     ProgramExecutionBinding,
 )
 from universal_coding_agent.product.program_orchestrator import ProgramOrchestrator
+from universal_coding_agent.product.project_decisions import ProjectDecisionService
 from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
@@ -38,6 +39,7 @@ class ProductWorkspace:
     artifacts: ArtifactStore
     documents: ContextDocumentService
     knowledge_packs: ProjectKnowledgePackService
+    project_decisions: ProjectDecisionService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -67,6 +69,11 @@ class ProductWorkspace:
             documents,
             search,
         )
+        project_decisions = ProjectDecisionService(
+            root / "project-decisions.sqlite",
+            artifacts,
+            search,
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -81,6 +88,7 @@ class ProductWorkspace:
             artifacts=artifacts,
             documents=documents,
             knowledge_packs=knowledge_packs,
+            project_decisions=project_decisions,
             search=search,
             requirements=requirements,
             programs=programs,
@@ -91,6 +99,7 @@ class ProductWorkspace:
 
     def close(self) -> None:
         self.programs.close()
+        self.project_decisions.close()
         self.knowledge_packs.close()
         self.documents.close()
         self.search.close()

@@ -787,6 +787,35 @@ idempotent without changing the accepted evidence. SQLite records and immutable 
 survive Product workspace restart. This foundation adds no model/provider call, automatic
 acceptance, cross-project authority, source-control publication, merge, or deployment behavior.
 
+## Accepted project decision and ADR records
+
+P3.3a adds structured decision memory without treating repository ADR files or model output as
+automatically trusted. Each draft is bound to a project ID, decision ID, version, optional immediate
+predecessor, and bounded title, context, decision, rationale, alternatives, and consequences. Its
+canonical JSON is written as an immutable artifact whose SHA-256 is also the human-approval key.
+Version 1 introduces one project-scoped decision identity; each later draft must supersede the
+immediately prior accepted version. The same decision ID may exist independently in another project.
+
+Acceptance is an explicit confirmed action against the exact manifest SHA-256. Before recording it,
+the service performs a bounded verified artifact read and revalidates the canonical manifest against
+durable SQLite metadata. The immutable acceptance receipt binds project, decision, version, and
+manifest hash and is itself hash-addressed and verified on every accepted read. Exact repeated
+acceptance is idempotent. A stale approval hash, invalid version chain, missing acceptance evidence,
+database provenance mismatch, artifact drift, malformed UTF-8/JSON, or oversize fails closed.
+
+Indexing is also explicit. It first verifies the selected latest accepted version and every latest
+accepted decision for the project, then deterministically rebuilds only that project's decision
+`explicit:project-decisions:<project_id>` namespace as `SearchSourceType.DECISION`. Superseded
+accepted versions remain immutable evidence but are removed from the active project index. An
+unscoped search excludes every `explicit:` namespace; callers must name the project namespace;
+P3.3a does not automatically inject decisions into model context or permit cross-project retrieval.
+SQLite records, manifest and acceptance references, and index state survive Product workspace
+restart.
+
+This slice adds no automatic ADR-file discovery/import, UI or HTTP endpoint, model/provider call,
+automatic acceptance, autonomous conflict resolution, arbitrary shell authority, source-control
+publication, merge, or deployment behavior.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
