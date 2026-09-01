@@ -1,62 +1,92 @@
-Continue the same F5 runtime QA Phase 1 in the current Extension Development Host and the same isolated QA workspace.
+Continue the same Phase 1 runtime QA in this Extension Development Host and isolated QA workspace.
 
-The previous result was safely blocked by etl_validate_artifacts. No preview, approval, or write occurred. Treat that as a valid fail-closed result, not as permission to bypass validation.
-
-Do not restart the test, do not create a new identifier, and do not reinterpret the workbook unless the prior structured result is genuinely unavailable.
-
-Reuse exactly:
-
-* selected mapping: FM_F01417B0_00002
-* identifier: qa_sttm_workspace_write_smoke_20260901_095418_c5e982
-* the same two-artifact inventory only:
-    * one job configuration
-    * one generated environment configuration
-* no include files
-* no additional job configuration
-* the same synthetic transformation and writer intent
-
-Correct only the three path semantics reported by the validator:
-
-1. The environment source root incorrectly included /qa. Derive and use the host root required by the framework contract.
-2. The job source path must preserve and append the complete relative source path qa/customers.
-3. The environment destination/output root must preserve the complete output root qa/customer_name.
-
-Derive the exact corrected field values from the validator diagnostics, framework rules, and module contracts already retrieved. Do not guess, weaken, suppress, or bypass a validation rule.
-
-Use the registered render tools to rebuild the two artifacts in memory. Do not edit files directly.
-
-Then call etl_validate_artifacts again on the exact corrected rendered bytes.
-
-Report:
-
-* the three corrected field names and before/after values;
-* both proposed workspace destinations;
-* artifact count;
-* blocker count;
-* warning count;
-* physical workspace-containment result.
-
-If any blocker remains, stop without calling etl_write_to_workspace and return:
+The authoritative prior verdict is:
 
 PHASE1_CORRECTION_BLOCKED
 
-If validation has zero blockers and both destinations are physically contained in the current isolated QA workspace, call etl_write_to_workspace with those exact two validated artifacts.
+No confirmation or approval is currently available, and etl_write_to_workspace was not called.
 
-Pause at the trusted VS Code confirmation. Do not approve on my behalf.
+The three ADLS path corrections and physical workspace containment have passed. Preserve them exactly.
 
-Before pausing, report the complete confirmation manifest:
+Before rerendering, perform a read-only contract reconciliation using only:
 
-* workspace root;
-* CREATE paths;
-* OVERWRITE paths;
-* UNCHANGED paths;
-* blocked paths;
-* exact total count.
+* etl_get_framework_rules
+* etl_describe_module
+* etl_search_examples
 
-For this first write, both artifacts must be under CREATE. OVERWRITE and UNCHANGED must be empty. If that is not true, instruct me to reject and stop.
+Use complete packaged/local canonical examples rather than isolated keyword matches.
 
-Do not perform the identical rerun yet. Do not use direct filesystem writes, terminal commands, external services, Databricks, pipeline execution, publication, Git commit, or push.
+Establish explicit evidence for:
 
-If the correct trusted confirmation is displayed and awaiting my decision, return:
+1. The permitted destination extension for a HOCON job configuration.
+2. The complete stage-keyed modules structure.
+3. The exact location and permitted values of options.module and options.method for data_sourcing_process.
+4. The exact location, type, and required contents of sourceList.
+5. The exact output-strategy representation recognized for the selected dataframe_writer.
+6. Whether a SQL/include artifact is required for this sourced-view transformation.
 
-PHASE1_CORRECTION_READY_FOR_USER_APPROVAL
+Report the evidence source and exact relevant field structure for each item.
+
+If the packaged rules, module contract, canonical example, and Validator requirements are missing or contradictory, stop without rerendering or writing and return:
+
+PHASE1_CONTRACT_EVIDENCE_BLOCKED
+
+If the contract is unambiguous, perform exactly one additional correction cycle.
+
+Preserve:
+
+* mapping FM_F01417B0_00002;
+* identifier qa_sttm_workspace_write_smoke_20260901_095418_c5e982;
+* the three corrected ADLS relationships;
+* the synthetic transformation and writer intent;
+* all workspace destinations as relative paths.
+
+Correct only what the established contract requires:
+
+* replace the invalid job_config.yaml destination with the evidence-supported .conf or .json destination;
+* use the exact valid data_sourcing_process stage structure;
+* add the required non-empty sourceList;
+* express the output strategy in the recognized form;
+* add an include artifact only if the canonical contract proves it is required.
+
+The earlier restriction to exactly two artifacts is lifted only when the framework contract requires an include. Do not add any unrelated artifact, job, environment, or identifier.
+
+Use only the registered ETL render tools. Do not directly edit files.
+
+Call etl_validate_artifacts exactly once on the corrected rendered artifact set.
+
+Do not call etl_write_to_workspace if any of these remain:
+
+* any blocker;
+* HOCON extension mismatch;
+* missing or incorrect options.module/method;
+* missing or empty sourceList;
+* undetermined output strategy;
+* missing required include;
+* duplicate conflict;
+* absolute, escaping, or source-repository path;
+* any other structural or write-safety warning.
+
+The only acceptable residual warnings are the isolated-QA limitations stating that framework 0.0.0-qa was resolved locally but runtime/DBFS compatibility evidence is unavailable. Report these explicitly.
+
+If validation satisfies those conditions, call etl_write_to_workspace with the exact validated artifacts and pause at the trusted confirmation.
+
+The first confirmation must show:
+
+* every proposed destination under CREATE;
+* OVERWRITE empty;
+* UNCHANGED empty;
+* BLOCKED empty;
+* all paths inside the current isolated QA workspace.
+
+Report the complete manifest and wait for my manual decision. Do not approve on my behalf and do not perform the identical rerun yet.
+
+Do not use direct filesystem writes, terminal commands, external services, Databricks, pipeline execution, publication, Git commit, or push.
+
+Return exactly one verdict:
+
+PHASE1_CONTRACT_RECONCILED_CREATE_CONFIRMATION_READY
+
+or:
+
+PHASE1_CONTRACT_RECONCILIATION_BLOCKED
