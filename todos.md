@@ -1,382 +1,384 @@
-Follow-up Verification Addendum — Forge versus ETL Copilot Audit
+Step 0.1 — Close the Phase H Tracked-Input Coverage Gap
 
-Continue from the completed Forge/ETL comparison in this same session.
+Objective
 
-Do not repeat the original ten-section audit.
+Implement one bounded, tracking-only repair that:
 
-Treat the previous report and its marker:
+1. Adds the five confirmed behavior-critical surfaces to Phase H freshness tracking.
+2. Adds focused regression coverage using the real Phase H input collector.
+3. Proves the expanded baseline becomes stale before refresh.
+4. Runs npm run eval:golden exactly once.
+5. Reconciles the full test suite against the exact known baseline.
+6. Creates one atomic local commit.
 
-FORGE_ETL_COMPARISON_AUDIT_COMPLETE
+Do not begin F5, QA workspace, STTM, fixture, render, validation, preview, approval, or write work in this task.
 
-as provisional because it was produced without Terminal capability.
+Execution environment
 
-This follow-up must verify the missing evidence using repository-scoped, read-only Terminal access.
+Run in the normal writable VS Code source-repository window:
 
-Speak to the user in Persian, but keep commands, paths, evidence, classifications, tables, and final markers in English.
-
-Repository roots:
-
-Forge:
-C:\repos\etl-extension\forge\forge-agentic-engineering-suite
-
-Our solution:
+Repository root:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Required branch:
+fix/workspace-write-completion-0.3.148
+Required starting HEAD:
+edeaaa74fa84df715fedb7b2d9f50f2418018770
+Required starting subject:
+test: refresh Phase H evaluation baseline
 
-Expected Forge branch:
-main
+This path is a linked Git worktree. Operate only in this exact worktree root, not its parent clone.
 
-Forge HEAD reported by the previous static inspection:
-364c2c04e83840e1631738589e8bc0ef0ef8c957
+If PowerShell cannot resolve git, node, npm, or npx because PATHEXT is malformed, prefix only the affected invocation with:
 
-Expected branch for our solution:
+$env:PATHEXT = '.COM;.EXE;.BAT;.CMD'
+
+Do not persist that workaround.
+
+Preflight gate
+
+Before editing, verify and record:
+
+1. Canonical repository root.
+2. Branch.
+3. Full HEAD SHA and subject.
+4. Sole parent and parent count.
+5. Linear topology through Repair A, Repair B, and Eval Refresh.
+6. git status --short --untracked-files=all is empty.
+7. Index has no staged paths.
+8. Stash is empty.
+9. All required Git objects exist.
+10. Current Phase H report contains 257 tracked paths and does not include the five critical paths listed below.
+
+Stop immediately if any identity or cleanliness check differs.
+
+Do not fetch, pull, merge, rebase, reset, checkout, stash, clean, amend, cherry-pick, or push.
+
+Exact edit allowlist
+
+Only these four tracked files may change:
+
+src/test/eval/EvalGovernance.ts
+src/test/suite/evalGating.test.ts
+docs/eval/phase_h_latest_report.json
+docs/eval/phase_h_latest_report.md
+
+The two report files may change only through the single authorized Golden generation.
+
+Do not modify:
+
+* production source;
+* Repair A or Repair B implementation;
+* canonical contract contents;
+* package.json;
+* package version;
+* dependencies or lockfiles;
+* .vscode;
+* .vscodeignore;
+* launch configuration;
+* build scripts;
+* fixture or QA workspace files;
+* Eval generator behavior.
+
+If an additional tracked or untracked path changes, stop and report it.
+
+Phase 1 — Extend the authoritative tracking patterns
+
+In:
+
+src/test/eval/EvalGovernance.ts
+
+extend PHASE_H_TRACKED_INPUT_PATTERNS with exactly these category patterns:
+
+'package.json',
+'resources/copilot/context/**/*.md',
+'resources/framework/**/*.json',
+'src/tools/**/*.ts',
+
+Preserve all existing patterns and existing behavior.
+
+Do not replace the list with a broad src/**/*.ts or resources/**/* pattern.
+
+Before Golden refresh, enumerate every repository path newly matched by these four patterns. At minimum, the resulting tracked set must include:
+
+src/tools/EtlReadOnlyToolService.ts
+src/tools/EtlActionToolService.ts
+resources/framework/contracts/job-config-envelope.v1.json
+resources/copilot/context/etl-module-reference.md
+package.json
+
+The expected src/tools/**/*.ts expansion currently includes five runtime tool-boundary files:
+
+src/tools/EtlReadOnlyToolService.ts
+src/tools/EtlActionToolService.ts
+src/tools/index.ts
+src/tools/TrustedWriteApprovalStore.ts
+src/tools/WriteApprovalContext.ts
+
+Verify this from the live repository rather than relying only on this prompt.
+
+Phase 2 — Add focused regression coverage
+
+Update only:
+
+src/test/suite/evalGating.test.ts
+
+Add focused regression tests that exercise the real Phase H tracked-input collector and prove:
+
+1. All five confirmed critical paths are included.
+2. Windows and repository-relative path normalization does not invalidate the assertions.
+3. Representative src/test/** files remain excluded.
+4. docs/reference/ETL_MODULE_REFERENCE.md remains excluded.
+5. The test does not depend on a brittle total tracked-file count.
+6. The assertions validate actual collector output, not merely the presence of string literals in the source array.
+
+Let N be the exact number of new passing test cases added. Record N for final full-suite arithmetic.
+
+Do not modify tests to weaken any existing Eval gate.
+
+Phase 3 — Expected stale-baseline proof
+
+Compile using the repository-owned compile script as needed for the edited TypeScript:
+
+npm run compile
+
+Then run the narrow focused Eval tests using the repository’s existing supported test command.
+
+Before regenerating Golden, run:
+
+npm run eval:check
+
+This command is expected to fail only because:
+
+baselineStatus: stale
+
+The stale evidence must be limited to the paths newly admitted by the four added patterns.
+
+Before continuing, record:
+
+* old tracked-file count;
+* new collector file count;
+* every newly admitted relative path;
+* old tracked-input digest;
+* current digest;
+* exact stale-path inventory.
+
+Stop if:
+
+* eval:check unexpectedly passes;
+* an existing tracked path has an unexplained content change;
+* any required scenario fails;
+* schema, corpus, or scenario semantics change;
+* the stale set contains an unexpected path;
+* any failure is unrelated to expanded tracked-input coverage.
+
+Do not fix or bypass unexpected results.
+
+Phase 4 — Single Golden refresh
+
+Only after the expected stale state is proven, run exactly once:
+
+npm run eval:golden
+
+Do not run this command a second time.
+
+If the command fails or produces unexpected output, stop. Do not retry or overwrite the first-run evidence.
+
+After the single run, inspect both generated reports and prove:
+
+scenarioCount = 9
+coverage.missingRequiredScenarios = empty
+acceptanceRate = 1
+parityRate = 1
+validationSuccessRate = 1
+correctionRate = 0
+schema version = 1
+corpusVersion = phase-h-v1
+all 9 scenario rows = PASS / PASS
+overall gate = PASS
+
+Expected changes:
+
+* expanded tracked path list;
+* hashes for newly admitted files;
+* tracked-input digest;
+* changed-input evidence;
+* generatedAt;
+* per-scenario and aggregate latency values.
+
+Timestamps and latency are wall-clock fields and need not be byte-identical.
+
+No scenario meaning, prompt sample, Markdown answer, JSON answer, schema, acceptance result, parity result, validation result, or required-scenario inventory may change.
+
+The reports must show all five critical paths in the tracked-input inventory.
+
+Phase 5 — Post-refresh validation
+
+Run:
+
+npm run eval:check
+
+Require:
+
+baselineStatus: current
+Phase H gate: PASS
+
+Then run:
+
+1. The focused Eval gating suite.
+2. git diff --check.
+3. The sanctioned full unit suite exactly once:
+
+npm run test:unit
+
+Do not run workflow.test.js headlessly. It requires its supported VS Code/Extension Host harness and is outside this task.
+
+Full-suite reconciliation
+
+The pre-change sanctioned baseline was:
+
+2358 passing
+5 pending
+3 failing
+
+With N newly added passing regression tests, the expected final shape is:
+
+2358 + N passing
+5 pending
+3 failing
+
+The two former Eval freshness failures must pass and must not appear in the failure list.
+
+Only these three exact failures may remain:
+
+1. Exact test:
+
+Copilot workflow customization > maintainer delivery prompt references real repo-local agents
+
+Essential signature:
+
+ENOENT
+.github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
+
+2. Exact test:
+
+Copilot workflow customization > repo customization assets use valid frontmatter and agent file naming
+
+Essential signature:
+
+.github/instructions/business-context.instructions.md
+frontmatter must declare a name
+
+3. Exact test:
+
+Copilot workflow customization > source tree uses standard AGENTS.md guidance instead of module AGENT.md files
+
+Essential signature:
+
+11 tracked src/**/AGENT.md files versus expected []
+
+If these three identities and signatures match exactly:
+
+* record them as known baseline failures;
+* do not rerun them individually;
+* do not reinvestigate them;
+* do not modify unrelated files to silence them.
+
+Any additional failure, missing failure, changed signature, timeout, crash, infrastructure error, or Eval freshness failure blocks the commit.
+
+Enumerate all five pending test identities and their source locations. Confirm none covers:
+
+* Phase H freshness;
+* public ETL discovery;
+* public validation;
+* ETL Orchestrator;
+* Extension Development Host;
+* preview, approval, or write behavior.
+
+Do not attempt to fix pending tests in this task.
+
+Generated cache handling
+
+out/ is ignored and may be regenerated by the authorized compile/Golden commands. It must not be staged or committed.
+
+If and only if .tsbuildinfo.test becomes modified solely by the sanctioned compile/test commands:
+
+1. Record its diff and pre-run HEAD identity.
+2. Restore only that exact file from the pinned starting HEAD.
+3. Verify it is byte-identical to the starting HEAD.
+
+This is the only authorized restoration. Do not restore, reset, or checkout any other path.
+
+Phase 6 — Commit gate
+
+Before staging, require:
+
+git diff --check
+
+and prove the changed tracked-path inventory is exactly:
+
+src/test/eval/EvalGovernance.ts
+src/test/suite/evalGating.test.ts
+docs/eval/phase_h_latest_report.json
+docs/eval/phase_h_latest_report.md
+
+No other tracked or untracked path may exist.
+
+Verify all Repair A/B production, contract, packaged-documentation, package, W1-protected, and Eval implementation files outside this four-path allowlist remain byte-identical to the starting HEAD.
+
+Stage the four paths explicitly. Do not use:
+
+git add .
+git add -A
+
+Create exactly one local commit with subject:
+
+test: close Phase H tracked-input coverage gap
+
+Do not amend or squash any prior commit.
+
+Post-commit verification
+
+Prove:
+
+1. The new commit has exactly one parent.
+2. Its sole parent is:
+
+edeaaa74fa84df715fedb7b2d9f50f2418018770
+
+3. The commit contains exactly the four authorized paths.
+4. Branch remains:
+
 fix/workspace-write-completion-0.3.148
 
-Expected HEAD for our solution:
-edeaaa74fa84df715fedb7b2d9f50f2418018770
-
-==================================================
-
-1. TERMINAL CAPABILITY GATE
-    ==================================================
-
-Before any further analysis, prove that read-only Terminal commands can execute.
-
-Use this PowerShell prefix in every invocation using git, node, npm, npx, or cmd:
-
-$env:PATHEXT = ‘.COM;.EXE;.BAT;.CMD’;
-
-Do not persist this workaround.
-
-If Terminal remains unavailable, do not continue from filesystem inspection alone.
-
-Stop with:
-
-FORGE_AUDIT_VERIFICATION_TERMINAL_BLOCKED
-
-==================================================
-2. STRICT READ-ONLY BOUNDARY
-
-Do not:
-
-* edit, create, delete, rename, restore, or format files;
-* install packages or dependencies;
-* execute repository-owned scripts;
-* run builds or tests;
-* run APM, Pi, Compound Engineering, Forge, or ETL workflows;
-* initialize or update submodules;
-* fetch, pull, switch, checkout, merge, rebase, reset, clean, or stash;
-* stage, commit, or push;
-* access external services;
-* create a report file.
-
-Only static commands such as these are authorized:
-
-* git status
-* git rev-parse
-* git log
-* git show
-* git ls-files
-* git diff
-* git remote
-* git submodule status without initialization
-* rg
-* Get-Content
-* filesystem metadata inspection
-
-==================================================
-3. GIT-BACKED PREFLIGHT
-
-For both repositories, verify using actual Git commands:
-
-* exact repository root;
-* current branch;
-* exact HEAD;
-* HEAD subject;
-* commit date;
-* parent count;
-* origin URL;
-* git status --short --untracked-files=all;
-* staged-path inventory;
-* modified-path inventory;
-* untracked-path inventory;
-* declared submodules;
-* stash inventory, read-only.
-
-For Forge, confirm whether HEAD is exactly:
-
-364c2c04e83840e1631738589e8bc0ef0ef8c957
-
-For our solution, confirm whether HEAD is exactly:
-
-edeaaa74fa84df715fedb7b2d9f50f2418018770
-
-Both worktrees and indexes must be clean.
-
-If any baseline differs, do not fix it. Report the exact mismatch and stop with:
-
-FORGE_AUDIT_VERIFICATION_PREFLIGHT_BLOCKED
-
-Do not repeat claims that nothing changed unless Git-backed final verification proves them.
-
-==================================================
-4. AUTHORITATIVE TRACKED-FILE INVENTORY
-
-Use git ls-files as the authoritative inventory.
-
-Do not use an ordinary filesystem count as a substitute.
-
-For Forge, report:
-
-* total tracked paths;
-* tracked Markdown files;
-* tracked SKILL.md files;
-* tracked compounded-learning files;
-* tracked catalogs;
-* tracked agents;
-* tracked instruction paths;
-* tracked scripts;
-* tracked manifests;
-* tracked tests and evals;
-* tracked workflows;
-* tracked binaries or generated artifacts;
-* symlinks and submodules.
-
-List the exact path of every:
-
-* SKILL.md;
-* declared agent;
-* declared instruction path;
-* executable-looking script;
-* catalog;
-* manifest.
-
-Reconcile the previous report’s findings:
-
-* documentation claims 22 or 23 skills;
-* static filesystem count reported 25 skills;
-* documentation claims 63 lessons;
-* static filesystem count reported 58 lessons;
-* apm.yml reportedly declares 25 skills, 8 agents, and 4 instruction paths.
-
-Explain the exact reason for every count difference.
-
-Do not assume every declared path exists. Verify each declaration against tracked files.
-
-==================================================
-5. ACTIVATION AND DEPENDENCY VERIFICATION
-
-Using only locally available evidence, trace:
-
-apm.yml
-→ package or installer
-→ dependency resolution
-→ post-install behavior
-→ skill materialization
-→ harness loading
-→ skill selection
-→ tool execution
-→ output persistence
-
-Inspect the locally declared references to:
-
-* EveryInc/compound-engineering-plugin@v1.0.0;
-* pi-subagents;
-* pi-ask-user;
-* the Pi harness;
-* APM installer or package manager;
-* Compound Engineering prompts;
-* the eight declared agents;
-* the four declared instruction paths.
-
-Search both repository roots and the currently opened workspace for these components.
-
-Do not search unrelated machine directories.
-
-Do not install, clone, fetch, or execute them.
-
-For each dependency, classify:
-
-* PRESENT_AND_TRACKED
-* PRESENT_BUT_UNTRACKED
-* DECLARED_BUT_ABSENT
-* REFERENCE_ONLY
-* UNVERIFIABLE_WITH_CURRENT_SOURCES
-
-Answer with evidence:
-
-1. Is Forge intended for GitHub Copilot, Pi, another terminal harness, or multiple hosts?
-2. Does GitHub Copilot discover the top-level skills/** directory directly?
-3. Is an APM installation step required?
-4. Where would skills and agents be materialized?
-5. Is cloning alone sufficient?
-6. Can the seven-phase pipeline dispatch without the missing dependency?
-7. Is there any local evidence that the seven-phase pipeline has completed end to end?
-8. Which exact additional repository, package, or documentation source would be required to prove activation?
-
-Do not infer that a missing dependency is defective if it may intentionally be external. State only what the current clone proves.
-
-==================================================
-6. CORRECT THE PROOF-LEVEL CLASSIFICATIONS
-
-The previous report classified five scripts as:
-
-EXECUTABLE_RUNTIME
-
-No repository-owned script was executed, so that label is not yet proven.
-
-For each script, statically inspect:
-
-* path;
-* entry point;
-* inputs;
-* outputs;
-* dependencies;
-* filesystem side effects;
-* network side effects;
-* exit behavior;
-* path-containment behavior;
-* callers or references;
-* tests or evals.
-
-Use only these proof levels:
-
-* RUNTIME_EXECUTION_PROVEN
-* EXECUTABLE_CODE_PRESENT
-* REGISTERED_CUSTOMIZATION
-* DECLARATIVE_KNOWLEDGE
-* DOCS_OR_EXAMPLE_ONLY
-* CLAIM_ONLY
-* UNVERIFIED
-
-Do not use RUNTIME_EXECUTION_PROVEN unless existing repository evidence proves a prior controlled execution. Static readability is insufficient.
-
-Issue an explicit correction ledger for every previous classification that changes.
-
-==================================================
-7. COMPLETE STAGE-BY-STAGE MATRIX
-
-The earlier report summarized capabilities but did not provide the full requested stage matrix.
-
-Complete the comparison for all seventeen stages:
-
-1. Brownfield repository discovery.
-2. Existing ETL job reverse engineering.
-3. PRD and impact analysis.
-4. Source-surface and dependency mapping.
-5. Requirement clarification.
-6. STTM ingestion and interpretation.
-7. Semantic plan or Blueprint creation.
-8. ETL artifact generation.
-9. Job and environment configuration.
-10. Deterministic validation.
-11. Zero-write Preview.
-12. Explicit approval.
-13. Guarded write.
-14. Compile/test/run/publish support.
-15. Repair and upgrade.
-16. Knowledge capture and reuse.
-17. Cost and complexity analysis.
-
-For each solution and stage, report:
-
-* input;
-* output;
-* responsible component;
-* automation level;
-* model-driven versus deterministic behavior;
-* enforcement level;
-* failure behavior;
-* exact path evidence;
-* point where the workflow stops.
-
-Use narrow tables with no more than four columns. Split the matrix across multiple blocks if necessary.
-
-==================================================
-8. REVALIDATE THE EIGHT REPORTED GAPS
-
-Revalidate these previous findings against tracked, pinned source:
-
-* G-01 — Read-only job-behaviour/requirements deliverable.
-* G-02 — Python/external-module import-graph source-surface resolver.
-* G-03 — Per-job assumptions/open-questions/deferred-items register.
-* G-04 — Decision-point knowledge routing such as consultWhen.
-* G-05 — What-versus-how contamination detection.
-* G-06 — User-facing effort/complexity/cost surface.
-* G-07 — PySpark optimization knowledge.
-* G-08 — Source-line provenance in the framework contract.
-
-For every gap, return one status:
-
-* CONFIRMED
-* MODIFIED
-* RETRACTED
-* BLOCKED_BY_MISSING_EVIDENCE
-* INTENTIONAL_DIFFERENCE
-
-Provide:
-
-* exact Forge path evidence;
-* exact evidence from our solution;
-* missing user outcome;
-* whether the difference is a capability gap or assurance gap;
-* proposed integration boundary;
-* clean-room reuse classification;
-* confidence.
-
-Specifically check whether our existing explain, learning, redaction, decision, provenance, cost, or lineage implementations already provide an equivalent capability under another name.
-
-Do not preserve a previous gap merely for report consistency.
-
-==================================================
-9. REQUIRED ADDENDUM OUTPUT
-
-Return a screenshot-friendly addendum in six blocks:
-
-VERIFICATION SCREENSHOT 1 — Terminal-backed Git Baselines
-
-VERIFICATION SCREENSHOT 2 — Authoritative Tracked Inventory
-
-VERIFICATION SCREENSHOT 3 — Activation and Dependency Chain
-
-VERIFICATION SCREENSHOT 4 — Corrected Proof Levels
-
-VERIFICATION SCREENSHOT 5 — Seventeen-Stage Comparison and Gap Reconciliation
-
-VERIFICATION SCREENSHOT 6 — Final Evidence Verdict
-
-In the final block, clearly separate:
-
-* conclusions now fully verified;
-* conclusions corrected or retracted;
-* conclusions still unresolved;
-* exact additional source required for each unresolved item;
-* whether the earlier overall verdict remains valid;
-* whether another audit prompt is needed.
-
-Do not produce implementation instructions yet.
-
-==================================================
-10. FINAL SAFETY VERIFICATION
-
-Use Git commands to prove:
-
-* both branches and HEADs remain unchanged;
-* both worktrees remain clean;
-* both indexes remain empty;
-* no untracked file was created;
-* no dependency was installed;
-* no repository-owned code was executed;
-* no external service was contacted;
-* no commit or push occurred.
-
-End with exactly one marker:
-
-FORGE_AUDIT_VERIFICATION_ADDENDUM_COMPLETE
-
-or:
-
-FORGE_AUDIT_VERIFICATION_ADDENDUM_BLOCKED
-
-or:
-
-FORGE_AUDIT_VERIFICATION_TERMINAL_BLOCKED
+5. Worktree, index, untracked inventory, and stash are empty.
+6. Package version remains 0.3.147.
+7. No dependency or lockfile changed.
+8. No F5 launch, VSIX operation, QA workspace access, fixture authoring, external service call, approval, write, or push occurred.
+
+Required English report
+
+Return:
+
+1. Preflight evidence.
+2. Old and new pattern lists.
+3. Exact newly matched path inventory.
+4. Regression tests added and value of N.
+5. Expected pre-Golden stale evidence.
+6. Confirmation Golden ran exactly once.
+7. Post-Golden semantic report comparison.
+8. Focused test results.
+9. Full-suite totals.
+10. Exact three known failure identities/signatures.
+11. Exact five pending identities and source locations.
+12. git diff --check result.
+13. Final changed-path inventory.
+14. New full commit SHA, subject, and sole parent.
+15. Final clean-state evidence.
+
+Finish with exactly one of:
+
+PHASE_H_TRACKING_REPAIR_COMMITTED
+
+or, if any gate cannot be satisfied:
+
+PHASE_H_TRACKING_REPAIR_BLOCKED
