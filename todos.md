@@ -1,64 +1,81 @@
-@etl
+Continue F5 Runtime QA — Phase 1A: Deterministic STTM Interpretation Only
 
-F5 Runtime QA — Phase 0: Read-Only Capability and Identity Preflight
-
-Perform only a strictly read-only runtime preflight in the currently opened
-Extension Development Host.
-
-Do not interpret the workbook yet. Do not render, validate, preview, approve,
-confirm, or write any artifact.
-
-Expected runtime identity:
-
-- Chat participant: the registered ETL Orchestrator, not a general-purpose Agent.
-- Extension ID: td-etl.databricks-etl-copilot
-- Extension version: 0.3.147
-- Workspace root:
-  C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
-- Input workbook:
-  sttm/synthetic_workbook.xlsx
-- Expected workspace type: consumer ETL workspace with managed workflow assets.
-- Expected registered ETL tool count: 16.
-
-Required actions, in this exact order:
-
-1. Invoke the registered `etl_capabilities` tool exactly once.
-2. Report:
-   - active participant/orchestrator identity;
-   - extension ID and version;
-   - resolved physical workspace root;
-   - workspace classification;
-   - registered ETL tool count and exact tool names;
-   - runtime implementation source reported by the capability probe.
-3. Verify, read-only, that these workspace-relative assets exist:
-   - .github/
-   - resources/
-   - sttm/synthetic_workbook.xlsx
-4. Confirm that the workbook remains workspace-contained.
-   Do not manually parse, convert, copy, or modify the XLSX file.
-5. Confirm that no filesystem write, terminal command, external service call,
-   workflow initialization, render, validation, preview, approval, or write
-   operation occurred.
-
-Stop immediately and report BLOCKED if:
-
-- the participant is not the registered ETL Orchestrator;
-- the extension ID or version differs;
-- the physical workspace root differs;
-- any required asset is missing;
-- the workbook resolves outside the workspace;
-- the registered tool count is not exactly 16;
-- any capability required for the later deterministic flow is unavailable;
-- any mutation or external dependency is required.
-
-Do not attempt to repair or work around a mismatch.
-
-Return a concise evidence table with Expected, Actual, and Result columns.
-
-End with exactly one marker:
+Phase 0 completed with:
 
 F5_CAPABILITY_PREFLIGHT_PASS
 
+Remain inside the same registered ETL Orchestrator session and the same
+Extension Development Host workspace.
+
+This phase is strictly read-only.
+
+Allowed extension tool:
+
+- `etl_interpret_sttm`, invoked exactly once.
+
+Input:
+
+- workspaceRoot:
+  C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
+- sttmPath:
+  sttm/synthetic_workbook.xlsx
+- includeAudit: true
+
+Do not manually open, parse, convert, copy, or inspect the XLSX binary.
+Do not use a general-purpose parser or fallback implementation.
+
+Known expected fixture baseline:
+
+- Files discovered: 1
+- Files read: 1
+- Files blocked: 0
+- Active mappings: 8
+- Audit findings: 6
+- Expected valid mapping candidate:
+  FM_F01417B0_00002
+- Expected mapping evidence:
+  customers.cust_name -> target_db.customer_name
+- Both structured and consumer-visible Markdown results should be available.
+
+The six audit findings are known fixture evidence. If their identities and
+signatures match the returned deterministic result, record them without
+reinvestigating or attempting to repair them.
+
+Required report:
+
+1. Exact tool invocation count.
+2. Containment result and resolved workbook path.
+3. Files discovered/read/blocked.
+4. Active mapping count and ordered mapping IDs.
+5. Exact audit finding codes, row identities, and ordering.
+6. Structured-result availability.
+7. Markdown-result availability.
+8. Details of mapping `FM_F01417B0_00002`.
+9. Comparison of every expected baseline value against the actual value.
+10. Mutation attestation.
+
+Stop and report BLOCKED if:
+
+- containment fails;
+- the parser invocation fails;
+- any file is blocked;
+- any expected count or identity differs;
+- the expected mapping is missing or inactive;
+- structured or Markdown output is unavailable;
+- a second invocation, fallback parser, terminal command, external service,
+  manual XLSX inspection, or filesystem mutation would be required.
+
+Do not call framework discovery, module discovery, example search, render,
+validation, preview, approval, write, publish, pipeline, Databricks, Jira,
+or Confluence tools.
+
+Do not create or modify any job config, environment config, fixture,
+workflow asset, or source file.
+
+End with exactly one marker:
+
+F5_STTM_INTERPRETATION_PASS
+
 or
 
-F5_CAPABILITY_PREFLIGHT_BLOCKED
+F5_STTM_INTERPRETATION_BLOCKED
