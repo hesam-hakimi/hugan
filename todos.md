@@ -1,4 +1,4 @@
-Validate and regenerate the existing uncommitted Phase H EvalGating baseline evidence.
+Commit only the validated Phase H EvalGating baseline evidence.
 
 Repository:
 
@@ -8,214 +8,153 @@ Required branch:
 
 fix/workspace-write-completion-0.3.148
 
-Authorized starting state
+Required current HEAD:
 
-The working tree is intentionally expected to contain exactly these two unstaged modified files:
-
-docs/eval/phase_h_latest_report.json
-docs/eval/phase_h_latest_report.md
-
-Nothing else may be modified, staged, untracked, or deleted.
-
-These files appear to contain an earlier uncommitted baseline refresh, but their provenance has not yet been established.
-
-This task explicitly authorizes replacing only these two existing dirty files by running the repository’s authoritative baseline generator once.
-
-Do not discard, reset, stash, or manually edit them.
+cb972b7beee10ee436900097a40b6b29b474b18276
 
 Preflight
 
 Confirm:
 
 * Repository and branch match.
-* The index is clean.
-* The working tree contains exactly the two authorized modified files.
-* The current HEAD subject is:
-
-fix: enforce trusted workspace write collision checks
-
-* The current HEAD has exactly one parent.
-* Its parent is:
-
-64706129e0d1054ea615e150b28dd623fb3c629e
-
-Record:
-
-* full HEAD SHA;
-* SHA-256 hash of each current report file;
-* current diff of both files;
-* current generatedAt;
-* current trackedInputs.digest;
-* tracked input paths;
-* scenario identities, statuses, and counts;
-* all latency and timing fields.
-
-If any additional dirty or staged path exists, stop and return:
-
-EVAL_REGEN_PREFLIGHT_BLOCKED
-
-Discover the authoritative generator
-
-Locate the source for:
-
-EvalGating > passes against the committed Phase H baseline report
-EvalGating > allows deterministic v3 baseline reports without prompt telemetry
-
-Identify:
-
-* the authoritative generator;
-* the exact supported refresh command;
-* the expected output paths;
-* stable behavioral evidence fields;
-* observational or nondeterministic fields;
-* fields included in trackedInputs.digest;
-* fields intentionally excluded from behavioral identity.
-
-Do not infer the command from filenames alone.
-
-Do not manually modify report content, hashes, tracked inputs, timestamps, scenarios, or latency values.
-
-If no authoritative local generator exists, stop and return:
-
-EVAL_REGEN_PROCESS_BLOCKED
-
-Determinism interpretation
-
-Do not require the complete report files to be byte-identical between executions if the established generator intentionally includes:
-
-* generatedAt;
-* wall-clock duration;
-* measured latency;
-* environment-specific timing observations.
-
-These fields may change only if the official generator and schema explicitly define them as observational.
-
-The following must remain semantically stable:
-
-* tracked input paths;
-* tracked input content hashes;
-* trackedInputs.digest;
-* scenario identities;
-* scenario order where defined;
-* scenario outcome/status;
-* pass/fail classification;
-* absence of prompt telemetry;
-* report schema and version;
-* product-behavior conclusions.
-
-A latency-only difference is not a blocker when latency is explicitly observational and excluded from behavioral identity.
-
-Preserve the current evidence before regeneration
-
-Copy the two existing report files byte-for-byte to a unique temporary directory outside the repository.
-
-Record their SHA-256 hashes.
-
-The temporary copies are evidence only. Do not add them to Git or place them inside the repository.
-
-Regenerate once
-
-Run the authoritative refresh command exactly once in the repository.
-
-It may replace only:
+* HEAD matches the required SHA.
+* Nothing is staged.
+* The working tree contains exactly these two modified files and nothing else:
 
 docs/eval/phase_h_latest_report.json
 docs/eval/phase_h_latest_report.md
 
-Do not run the generator a second time.
-
-After generation, record:
-
-* SHA-256 of both newly generated files;
-* exact files changed;
-* diff against HEAD;
-* semantic differences from the preserved pre-existing reports;
-* differences limited to generated time or latency;
-* stable tracked-input and scenario comparison.
-
-If the generator modifies or creates any additional repository path, stop without staging or committing and return:
-
-EVAL_REGEN_OUTPUT_BLOCKED
-
-Do not delete or conceal unexpected output.
-
-Validate the refreshed evidence
-
-Confirm that the refreshed report represents exactly these accepted W1 tracked inputs:
-
-src/chat/DeployCoordinator.ts
-src/chat/WriteCoordinator.ts
-src/core/artifacts/ArtifactDestinationInventory.ts
-src/core/artifacts/WorkspaceDestinationProbe.ts
-src/core/trusted/WriteAuthorization.ts
-
-Confirm:
-
-* no unexpected tracked input appears;
-* every expected tracked input hash matches the current committed HEAD;
-* the digest is computed by the official generator;
-* no prompt telemetry is present;
-* no production source, tests, prompts, workflows, packages, versions, or Copilot customization assets were modified.
+* Neither file is untracked.
+* No production source, test, prompt, workflow, package, version, or Copilot customization file is modified.
 
 Run:
 
 git diff --check
 
-Then run the narrowest supported EvalGating test.
+The known line-ending advisory is acceptable, but whitespace errors are not.
 
-Both EvalGating tests must pass.
+If any condition differs, stop without staging and return:
 
-After the focused test passes, run exactly once:
+EVAL_BASELINE_COMMIT_BLOCKED
 
-npm run compile
-npm run test:unit
+Validate the exact evidence being committed
 
-Expected full unit result:
+Inspect the two-file diff and confirm:
 
+* Both files are direct output from the authoritative command:
+
+npm run eval:golden
+
+* Reported generator status is PASS.
+* trackedInputs.digest is internally consistent.
+* Independent recomputation covered all 257 tracked files with zero mismatch.
+* Drift from the previous committed baseline is exactly these five accepted W1 inputs:
+
+src/core/artifacts/ArtifactDestinationInventory.ts
+src/core/artifacts/WorkspaceDestinationProbe.ts
+src/chat/DeployCoordinator.ts
+src/chat/WriteCoordinator.ts
+src/core/trusted/WriteAuthorization.ts
+
+* No unexpected tracked input appears.
+* Scenario identity, order, coverage, acceptance, parity, validation, and behavior conclusions are stable.
+* Prompt telemetry remains absent.
+* Only sanctioned observational fields changed nondeterministically:
+    * generated timestamps
+    * measured latency values
+* No machine-specific absolute path or unrelated content appears.
+
+Do not regenerate or manually edit either report.
+
+Accepted test evidence
+
+Do not rerun tests.
+
+The immediately preceding verified evidence is:
+
+npm run eval:golden
+exit 0
+Phase H gate status: PASS
+Focused EvalGating:
+3 passing
+0 failing
+npm run compile:
+exit 0
+npm run test:unit:
 2332 passing
 5 pending
 3 failing
-exit code 1
+exit 1
 
-The only permitted failures are:
+The three remaining failures are the accepted pre-existing Copilot customization failures:
 
 1. Missing deploy-v3 agent tool-context prompt.
 2. Missing frontmatter name in the business-context instructions file.
 3. Residual module-level AGENT.md files.
 
-No workspace-write test may fail.
+No workspace-write test failed.
 
-Final state
+Stage exact files
 
-At completion:
+Stage only:
 
-* HEAD must be unchanged.
-* Nothing may be staged.
-* Exactly the two evaluation report files may remain modified.
-* No other repository path may be changed.
-* Do not restore the earlier report copies over the officially regenerated output.
-* Keep the temporary evidence copies only until the report is complete, then remove that temporary directory.
+docs/eval/phase_h_latest_report.json
+docs/eval/phase_h_latest_report.md
 
-Final report
+Do not use:
+
+git add .
+git add -A
+git add --all
+
+After staging, run:
+
+git diff --cached --name-status
+git diff --cached --check
+git status --short
+
+The staged set must contain exactly two modified files and no other path.
+
+If it differs, unstage only these two attempted paths, preserve their working-tree content, return EVAL_BASELINE_COMMIT_BLOCKED, and stop.
+
+Commit
+
+Create exactly one local commit with this subject:
+
+test: refresh Phase H evaluation baseline
+
+Do not amend the W1 commit.
+
+Use the previously proven Git executable invocation and safe PowerShell quoting. If a commit invocation fails before creating a commit, verify that HEAD is unchanged and retry at most once with the commit message passed as one correctly quoted argument.
+
+Post-commit verification
+
+Confirm:
+
+* The new commit has exactly one parent.
+* Its parent is:
+
+cb972b7beee10ee436900097a40b6b29b474b18276
+
+* The commit contains exactly the two evaluation report files.
+* Exactly two commits now exist above:
+
+64706129e0d1054ea615e150b28dd623fb3c629e
+
+* git status --short is empty.
+* git diff --cached --name-only is empty.
+* Nothing was pushed.
 
 Report:
 
-* starting and ending HEAD;
-* authoritative generator and exact command;
-* hashes of the pre-existing reports;
-* hashes of the officially regenerated reports;
-* semantic comparison between them;
-* explicitly sanctioned nondeterministic fields;
-* stable tracked-input digest and scenario comparison;
-* exact modified files;
-* focused EvalGating results;
-* compilation result;
-* full unit-test totals;
-* complete names of the three remaining failures;
-* final git status --short;
-* confirmation that nothing was staged, committed, or pushed.
+* new full commit SHA;
+* subject;
+* parent;
+* branch;
+* git show --name-status --format=fuller -1;
+* final Git status.
 
-Include:
+Carry forward this release note without adding it to repository files:
 
 Accepted release limitation:
 Batch atomicity and durable managed-file ownership are deferred.
@@ -224,21 +163,23 @@ Workspace changes remain reviewable and revertible through VS Code Source Contro
 
 Return exactly one verdict:
 
-EVAL_BASELINE_REGENERATED_READY_FOR_COMMIT
+EVAL_BASELINE_COMMITTED_NOT_PUSHED
 
-or one of the blocking verdicts defined above.
+or:
+
+EVAL_BASELINE_COMMIT_BLOCKED
 
 Restrictions
 
 Do not:
 
-* manually edit either report;
+* edit or regenerate either report;
+* run tests again;
 * modify production source or tests;
-* stage or commit;
+* modify prompts, workflows, packages, versions, or customization assets;
+* stage any other path;
+* create more than one commit;
 * push or create a pull request;
-* change package or version files;
-* change prompts, workflows, CI, or Copilot customization assets;
-* implement atomic apply or managed ownership;
 * run F5, package, install, or external QA;
 * merge, rebase, reset, clean, or stash.
 
