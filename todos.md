@@ -1,64 +1,73 @@
-# Phase 1B — Real Extension-Host Structured-Result Characterization
+# Phase 1B.1 — Unblock and Run the Real Extension-Host Structured-Result Characterization
 
-## Mode
+## Authorization
 
-Implement and run exactly one focused, test-only characterization at the real VS Code `vscode.lm.invokeTool` boundary.
+This prompt supersedes the previous Phase 1B edit allowlist.
 
-This is not a product repair.
-Do not change production code.
-Do not commit or stage anything.
+Explicitly authorize one minimal test-runner enhancement that allows the existing
+real-host runner to use the already installed VS Code executable instead of
+downloading another VS Code build.
+
+Then create and run exactly one focused real Extension Development Host
+characterization test.
+
+This remains a test-infrastructure and characterization task:
+
+- no production-code change;
+- no product repair;
+- no commit or staging;
+- no cache copying;
+- no VS Code download or installation;
+- no Chat/Orchestrator invocation;
+- no external service call.
 
 ## Authoritative environment
 
 Repository root:
+
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
 Required branch:
+
 fix/workspace-write-completion-0.3.148
 
 Required HEAD:
+
 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-QA workspace root:
+QA workspace:
+
 C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
 
-Workbook relative path:
+Workbook:
+
 sttm/synthetic_workbook.xlsx
 
+Installed VS Code executable:
+
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\Code.exe
+
+Required runtime version:
+
+1.135.0
+
 Extension ID:
+
 td-etl.databricks-etl-copilot
 
 Tool:
+
 etl_interpret_sttm
 
 Known pre-existing worktree modification:
+
 .github/templates/request.md
-
-## Objective
-
-Determine whether the current committed implementation’s
-`LanguageModelDataPart` survives a fresh, real Extension Development Host invocation through:
-
-vscode.lm.invokeTool(...)
-
-Inspect the result directly from:
-
-LanguageModelToolResult.content
-
-Do not use the ETL Orchestrator transcript or its offloaded Markdown resource as evidence for the structured channel.
-
-Evidence boundary:
-
-- This test can prove the extension-to-real-`vscode.lm` programmatic boundary.
-- It cannot prove what the model-facing Chat/Orchestrator offload layer receives.
-- A passing result must not be reported as proving or disproving
-  `VS_CODE_CHAT_HOST_OFFLOAD_LIMITATION`.
 
 ## 1. Mandatory preflight
 
 Before editing:
 
-1. Verify the exact repository root, branch, and HEAD.
+1. Verify exact repository root, branch, and HEAD.
 2. Run and record:
 
    git status --short --untracked-files=all
@@ -67,114 +76,205 @@ Before editing:
 
    .github/templates/request.md
 
-4. Record the SHA-256 and exact Git diff of that file.
-5. Do not edit, format, stage, restore, stash, reset, clean, commit, or otherwise alter it.
-6. Confirm every implementation file on the audited tool path is byte-identical to HEAD.
-7. Confirm every intended test/harness file is initially clean.
-8. Record:
-   - `package.json` version;
-   - `package.json.main`;
-   - installed `code --version`;
-   - SHA-256 and UTC mtime of `out/tools/index.js`.
+4. Record its:
+   - SHA-256;
+   - exact Git diff;
+   - size;
+   - UTC mtime.
 
-Do not change the package version. Version `0.3.147` on the `0.3.148` branch is known and is not sufficient build identity.
+5. Never edit, format, stage, restore, stash, reset, clean, or commit it.
+6. Confirm these intended paths are initially clean or absent as appropriate:
+   - `src/test/runTest.ts`
+   - `src/test/testPatterns.ts`
+   - `src/test/suite/sttmRealHostStructuredResult.test.ts`
+7. Confirm all production files on the `etl_interpret_sttm` path are byte-identical to HEAD.
+8. Verify the configured `Code.exe` path:
+   - is absolute;
+   - exists;
+   - is a regular file;
+   - is `Code.exe`, not `code.cmd` or a directory.
+9. Run that exact executable with `--version`.
+10. Require and record:
+    - version `1.135.0`;
+    - commit identifier;
+    - architecture;
+    - executable SHA-256.
 
-If repository identity differs, an intended test file is already dirty, or any additional pre-existing changed path exists, stop with:
+Do not embed quote characters inside the environment-variable path value.
+
+If repository identity, initial status, protected-file identity, intended-path
+cleanliness, executable identity, or VS Code version differs, make no edits and end:
 
 F5_REAL_HOST_STRUCTURED_RESULT_BLOCKED
 
-## 2. Real-host infrastructure gate
+## 2. Exact edit allowlist
 
-Inspect the existing integration-test conventions read-only.
+Authorize changes only to:
 
-Proceed only if one focused test can run in a fresh, real Extension Development Host using the already installed VS Code.
+1. `src/test/runTest.ts`
+2. one new file:
+   `src/test/suite/sttmRealHostStructuredResult.test.ts`
+3. `src/test/testPatterns.ts` only if strictly required to classify the new test under `INTEGRATION_TEST_PATTERNS`
 
-Do not:
+No other tracked or untracked repository path may be created or modified.
 
-- download or install VS Code;
-- run `npm install`;
-- use a VS Code stub;
-- use `registerVscodeStub`;
-- intercept `Module._load`;
-- call `EtlReadOnlyToolService.interpretSttm` directly;
-- call the parser implementation directly;
-- reuse the currently running or previous manual F5 host.
-
-If no existing focused real-host runner exists, or implementing this requires production/configuration/dependency changes, stop and report the exact blocker. Do not invent a broad new harness.
-
-## 3. Edit allowlist
-
-Authorize at most:
-
-1. one new characterization test inside the existing real Extension Development Host integration-test tree; and
-2. `src/test/testPatterns.ts` only if strictly required to place the new test in `INTEGRATION_TEST_PATTERNS`.
+Generated compiler output may be regenerated only by the existing sanctioned compiler.
+Never edit `out/**` manually.
 
 Do not modify:
 
 - production TypeScript;
 - `package.json` or lockfiles;
+- version fields;
 - launch configurations;
 - contracts;
 - fixtures or the XLSX;
 - documentation or Eval reports;
+- existing tests;
 - the existing stub-based result-envelope suite;
-- `.github/templates/request.md`;
-- generated `out/**` manually.
+- `.github/templates/request.md`.
 
-Do not weaken, rename, remove, or reclassify any existing test.
+Do not weaken, rename, remove, skip, or reclassify any existing test.
 
-If more than the two authorized test paths are required, stop before making additional edits.
+## 3. Minimal supported runner enhancement
 
-## 4. Fresh-build and fresh-host identity
+Modify `src/test/runTest.ts` only enough to support this process-scoped variable:
 
-Use only the repository’s established focused test-compilation command and real-host integration runner.
+ETL_TEST_VSCODE_EXECUTABLE_PATH
 
-Before launching the new Extension Development Host:
+Required behavior:
 
-1. Compile the current worktree using the narrow sanctioned command.
-2. Record:
-   - exact compile command;
-   - UTC compile completion time;
-   - SHA-256 and UTC mtime of `out/tools/index.js`;
-   - confirmation that compiled output contains explicit
-     `application/json` structured-result construction.
+1. If the variable is absent, preserve the existing
+   `downloadAndUnzipVSCode()` behavior exactly.
+2. If the variable is present:
+   - trim it;
+   - reject an empty value;
+   - require an absolute path;
+   - require an existing regular file;
+   - use it directly as `vscodeExecutablePath` in `runTests(...)`;
+   - do not call `downloadAndUnzipVSCode()`;
+   - do not fall back to downloading if validation fails.
+3. Emit a concise diagnostic:
+   - executable source: environment override;
+   - resolved executable path.
+4. Do not add automatic executable discovery, cache copying, downloads, persisted configuration, or global state.
+5. Keep `reuseMachineInstall` false or omitted.
+6. Preserve the normal no-variable behavior for existing callers.
 
-Launch a new Extension Development Host only after that compilation.
+This runner change is explicitly authorized even though it was excluded by the
+previous Phase 1B prompt.
 
-Inside the real-host test, record:
+## 4. Isolated test-host directories
 
-- `vscode.version`;
-- process PID;
-- approximate process-start UTC using `Date.now() - process.uptime()`;
-- extension ID;
-- resolved extension path;
-- extension package version;
-- `extension.isActive`;
-- resolved compiled main path.
+The installed VS Code executable must not use the user’s normal VS Code profile and
+must not create `.vscode-test` inside the repository.
 
-The extension path must resolve to the authoritative source repository, and the host process must start after the recorded build.
+Support this additional process-scoped variable:
 
-Do not rely on package version alone.
+ETL_TEST_VSCODE_ISOLATION_ROOT
 
-If compilation dirties a tracked incremental cache that was clean at preflight, restore it byte-for-byte from its committed HEAD blob only after proving compilation was the sole cause. Do not use checkout, reset, restore, clean, or stash.
+When the executable override is active:
+
+1. Require this variable to contain an absolute directory under `$env:TEMP`.
+2. Require it to be outside:
+   - the source repository;
+   - the QA workspace.
+3. Preserve all existing launch arguments.
+4. Add:
+
+   --user-data-dir=<isolation-root>\user-data
+   --extensions-dir=<isolation-root>\extensions
+   --disable-extensions
+
+5. The extension under test must still load through `extensionDevelopmentPath`.
+6. Do not use or copy any sibling repository’s `.vscode-test`.
+7. Verify no `.vscode-test` directory appears in the current repository.
+
+Use `extensionTestsEnv` or the runner’s established equivalent to pass these
+process-scoped values to the real-host test:
+
+- `ETL_F5_QA_WORKSPACE_ROOT`
+- `MOCHA_GREP`
+- `MOCHA_RESULT_FILE`
+
+Do not persist any environment variable.
 
 ## 5. Characterization test
 
-Use real `require('vscode')`.
+Create exactly:
 
-The test must derive the QA workspace root from this process-scoped environment variable:
+src/test/suite/sttmRealHostStructuredResult.test.ts
+
+Use this unique grep-safe test title:
+
+Phase 1B real host structured result characterization
+
+Classify it as a real-host integration test, never as a pure unit test.
+
+The test must use the real:
+
+require('vscode')
+
+It must not use:
+
+- `registerVscodeStub`;
+- any VS Code stub;
+- `Module._load` interception;
+- `EtlReadOnlyToolService.interpretSttm` directly;
+- the parser implementation directly;
+- a private registration object;
+- the Chat or Orchestrator transcript.
+
+Read the QA root only from:
 
 ETL_F5_QA_WORKSPACE_ROOT
 
-Set that variable only for the focused runner process to:
+Fail if it is absent, empty, nonexistent, or not absolute.
+Do not hardcode the absolute QA path in tracked test source.
 
-C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
+### Real-host identity
 
-Do not hardcode that absolute path in tracked test source.
+Inside the test:
 
-Activate the extension and verify that `etl_interpret_sttm` appears in `vscode.lm.tools`.
+1. Record `vscode.version` and require exactly `1.135.0`.
+2. Record process PID.
+3. Record approximate process-start UTC using:
 
-Invoke the registered tool exactly once:
+   Date.now() - process.uptime() * 1000
+
+4. Resolve:
+
+   vscode.extensions.getExtension(
+     'td-etl.databricks-etl-copilot'
+   )
+
+5. Require the extension to exist.
+6. Record its resolved extension path and package version.
+7. Require its canonical resolved path to equal the authoritative repository.
+8. Activate it.
+9. Require `extension.isActive === true`.
+10. Require `etl_interpret_sttm` to appear in the real `vscode.lm.tools`.
+
+### QA mutation guard
+
+Before invoking the tool, inventory every QA-workspace file using:
+
+- workspace-relative POSIX-normalized path;
+- size;
+- SHA-256.
+
+Hashing the XLSX for mutation detection is allowed.
+Do not manually parse, convert, copy, or modify it.
+
+Repeat the identical inventory after invocation and require an exact match.
+
+Do not write logs, snapshots, results, or temporary files into the QA workspace.
+
+### Exactly one public invocation
+
+Create one `vscode.CancellationTokenSource`.
+
+Invoke exactly once:
 
 await vscode.lm.invokeTool(
   'etl_interpret_sttm',
@@ -185,79 +285,168 @@ await vscode.lm.invokeTool(
       includeAudit: true
     },
     toolInvocationToken: undefined
-  }
+  },
+  cancellationTokenSource.token
 );
 
+Dispose the token source afterward.
+
 Do not invoke `etl_capabilities` or any other ETL tool.
-Do not perform a second parser invocation.
-Do not manually open, parse, convert, copy, or modify the XLSX.
+Do not invoke `etl_interpret_sttm` a second time.
 
-Before passing the result to any repository extractor, capture the raw returned result.
+Capture the raw returned `LanguageModelToolResult` before passing it to any repository extractor.
 
-Record and assert:
+### Raw result assertions
+
+Record:
 
 1. `result.content.length`;
-2. ordered constructor/type name of every content part;
-3. TextPart value length;
-4. DataPart `mimeType`;
-5. whether DataPart data is a `Uint8Array`;
-6. DataPart byte length;
-7. UTF-8 decode success;
-8. `JSON.parse` success;
-9. parsed top-level keys;
-10. exact deterministic fixture evidence:
-    - files discovered/read/blocked = 1/1/0;
-    - active mapping count = 8;
-    - audit finding count = 6;
-    - `FM_F01417B0_00002` is present, active, and first;
-    - `customers.cust_name -> target_db.customer_name`;
-11. Markdown contains the same deterministic mapping evidence.
+2. ordered constructor name of every part;
+3. stable API classification using the real VS Code classes;
+4. TextPart value length;
+5. DataPart MIME type;
+6. whether DataPart data is a `Uint8Array`;
+7. DataPart byte length;
+8. strict UTF-8 decoding result;
+9. JSON parsing result;
+10. parsed top-level keys.
 
-Reuse the exact field paths and assertions from the existing stub-based envelope test rather than inventing a second interpretation of the payload.
+Require exactly two ordered parts:
 
-The expected successful result is exactly:
+1. index 0: `vscode.LanguageModelTextPart`
+2. index 1: `vscode.LanguageModelDataPart`
 
-- index 0: `LanguageModelTextPart`;
-- index 1: `LanguageModelDataPart`;
-- DataPart MIME: `application/json`;
-- non-empty, valid UTF-8 JSON bytes.
+Require:
 
-If confirmation or approval UI prevents the focused test from completing, do not bypass it using private APIs or direct implementation calls. Report:
+- exact MIME `application/json`;
+- non-empty `Uint8Array`;
+- strict UTF-8 decoding using `TextDecoder` with fatal error handling;
+- valid JSON.
 
-APPROVAL_UI_BLOCKED
+Do not rely only on `constructor.name`.
+Use real API `instanceof` assertions and record constructor names only as supporting evidence.
 
-## 6. Workspace mutation guard
+Reuse the exact payload field paths and deterministic assertions from:
 
-Before and after the single invocation, compare the QA workspace inventory and hashes.
+src/test/suite/sttmPublicToolResultEnvelope.test.ts
 
-The parser invocation must not create, modify, rename, or delete any file in:
+Do not invent alternative payload interpretations.
 
+Require:
+
+- files discovered/read/blocked = 1/1/0;
+- active mappings = 8;
+- audit findings = 6;
+- `FM_F01417B0_00002` is present, active, and first;
+- source `customers.cust_name`;
+- target `target_db.customer_name`;
+- rendered Markdown contains the same mapping evidence.
+
+## 6. Fresh build and focused execution
+
+Use only the repository’s existing narrow TypeScript test-compilation command and
+existing `src/test/runTest.ts` runner.
+
+Do not create a replacement launcher.
+
+Before compilation, record:
+
+- SHA-256 and UTC mtime of `out/tools/index.js`;
+- package version;
+- `package.json.main`.
+
+After compilation, record:
+
+- exact compile command;
+- compile completion UTC;
+- SHA-256 and UTC mtime of `out/tools/index.js`;
+- confirmation that compiled production output constructs the explicit
+  `application/json` DataPart.
+
+If an unexplained production-output difference appears, do not launch the host.
+Report BLOCKED.
+
+For the single focused runner process, set:
+
+ETL_TEST_VSCODE_EXECUTABLE_PATH=
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\Code.exe
+
+ETL_F5_QA_WORKSPACE_ROOT=
 C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
 
-Do not write test logs or snapshots into the QA workspace.
+ETL_TEST_VSCODE_ISOLATION_ROOT=
+<one unique directory created under $env:TEMP for this run>
+
+MOCHA_GREP=
+Phase 1B real host structured result characterization
+
+MOCHA_RESULT_FILE=
+<one unique JSON result path under $env:TEMP>
+
+The two `<...>` values must be generated dynamically under `$env:TEMP`; never
+hardcode them in tracked source.
+
+Before host launch, require the runner diagnostic to confirm the executable override.
+
+If any VS Code download begins, stop immediately and classify BLOCKED.
+
+All variables must remain process-scoped and be restored or removed after the run,
+including on failure.
+
+If the known Windows command-resolution issue affects bare `git`, `node`, or `npm`,
+set:
+
+$env:PATHEXT = '.COM;.EXE;.BAT;.CMD'
+
+only inside the affected process and restore the prior value afterward.
 
 ## 7. Execution limits
 
-Run only the focused real-host characterization test.
+The Extension Development Host may launch exactly once.
+
+`etl_interpret_sttm` may be invoked exactly once.
+
+Do not rerun after the real-host launch, regardless of PASS, FAIL, or error.
+
+If compilation fails before host launch, correct only an error within the authorized
+test-runner/test files. If another path is required, stop.
+
+If host launch fails before tool invocation, report BLOCKED.
+Do not improvise a direct service call or second launcher.
+
+If approval UI blocks invocation, do not bypass it with private APIs.
+Report `APPROVAL_UI_BLOCKED` and classify BLOCKED.
 
 Do not run:
 
 - the full unit suite;
 - Eval Golden;
 - packaging or VSIX operations;
-- publish, pipeline, Databricks, Jira, or Confluence calls;
-- render, preview, approval, or workspace-write flows;
-- another Orchestrator STTM invocation.
+- install or download commands;
+- the stub-only result-envelope test;
+- render, validation, preview, approval, write, publish, or pipeline flows;
+- Databricks, Jira, or Confluence calls;
+- another Orchestrator interaction.
 
-Do not rerun after an actual `etl_interpret_sttm` invocation. If the runner fails before invoking the tool, report the blocker rather than improvising another route.
-
-The five pending tests and these three known unrelated failures are out of scope and must not be investigated:
+The five pending tests and these three known unrelated failures remain out of scope:
 
 1. missing `.github/prompts/deploy-v3-agent-tool-context-gap.prompt.md`;
-2. missing `name` in `.github/instructions/business-context.instructions.md` frontmatter;
+2. missing `name` in `.github/instructions/business-context.instructions.md`;
 3. eleven tracked `src/**/AGENT.md` files versus an expected empty inventory.
 
-## 8. Result classification
+Do not investigate them.
+
+## 8. Incremental-cache handling
+
+If compilation changes a tracked incremental cache that was clean at preflight:
+
+1. prove compilation alone caused it;
+2. restore only that cache byte-for-byte from its committed HEAD blob;
+3. verify its final SHA-256 equals its preflight/HEAD hash.
+
+Do not use `git checkout`, `git restore`, reset, clean, or stash.
+
+## 9. Classification
 
 Use exactly one classification.
 
@@ -265,59 +454,80 @@ Use exactly one classification.
 
 Use only if:
 
-- fresh build and host identity are proven;
-- the tool was invoked exactly once;
+- the installed `Code.exe` override was used;
+- the fresh host reports VS Code `1.135.0`;
+- extension path and build identity are proven;
+- exactly one public invocation occurred;
 - the raw result contains the expected ordered TextPart and
   `application/json` DataPart;
-- the structured bytes parse and match the deterministic baseline;
-- the QA workspace is unchanged.
+- JSON and deterministic fixture evidence pass;
+- QA inventory is byte-identical before and after.
 
-Allowed conclusion:
+Supported conclusion:
 
-The structured part survives the real `vscode.lm.invokeTool` boundary. The earlier `F5_STTM_INTERPRETATION_BLOCKED` was an observability failure of the Chat/offloaded evidence method, not evidence of a parser or current result-construction defect.
+The structured part survives the real `vscode.lm.invokeTool` programmatic boundary.
+The earlier Orchestrator result was an evidence-observability failure, not evidence
+of a parser or current result-construction defect.
 
-Do not claim that the Chat-host offload mechanism itself has been proven.
+Do not claim this proves or disproves what the model-facing Chat offload layer receives.
 
 ### F5_REAL_HOST_STRUCTURED_RESULT_FAIL
 
-Use only if fresh-build identity is proven and the direct public invocation returns a missing, malformed, reordered, or wrong-MIME structured part.
+Use only if executable, fresh host, extension path, and build identity are proven,
+but the raw public result has a missing, malformed, reordered, invalid, or wrong-MIME
+DataPart.
 
-Capture complete raw part metadata and stop. Do not repair product code.
+Capture all raw content-part metadata and stop.
+Do not repair production code.
 
 ### F5_REAL_HOST_STRUCTURED_RESULT_BLOCKED
 
-Use if repository/build identity, focused real-host launch, fixture access, tool registration, confirmation handling, or mutation safety cannot be proven.
+Use if identity, runner override, build, host launch, registration, approval, fixture
+access, invocation count, or mutation safety cannot be proven.
 
 Report the exact blocker and stop without fallback.
 
-## 9. Final report
+## 10. Final report and integrity
 
 Report:
 
-1. repository identity and initial status;
+1. repository root, branch, HEAD, and initial status;
 2. protected `request.md` hash/diff before and after;
 3. exact authorized changed paths;
-4. compile command and build identity;
-5. real-host identity;
-6. tool-registration evidence;
-7. exact invocation count;
-8. raw ordered content-part metadata;
-9. decoded structured-data checks;
-10. Markdown/structured parity;
-11. QA workspace before/after comparison;
-12. classification and narrowly supported conclusion;
-13. final `git status --short --untracked-files=all`.
+4. runner override diff and fallback-preservation evidence;
+5. executable path, SHA-256, version, commit, and architecture;
+6. temporary isolation paths;
+7. compile command and compiled build identity;
+8. host PID/start time, `vscode.version`, extension path/version/activity;
+9. real-tool registration evidence;
+10. exact invocation count;
+11. raw ordered part metadata;
+12. decoded JSON and Markdown parity;
+13. QA inventory comparison;
+14. selected classification;
+15. final:
+
+   git status --short --untracked-files=all
+
+The only permissible final repository changes are:
+
+- pre-existing `.github/templates/request.md`;
+- `src/test/runTest.ts`;
+- new `src/test/suite/sttmRealHostStructuredResult.test.ts`;
+- optionally `src/test/testPatterns.ts`.
 
 Confirm explicitly:
 
-- no product code changed;
-- no fixture changed;
-- no package/version/lockfile changed;
-- no existing test was weakened or reclassified;
+- `.github/templates/request.md` is byte-for-byte unchanged;
+- no product code or fixture changed;
+- package version and lockfiles are unchanged;
+- no existing test was altered or weakened;
+- no `.vscode-test` cache was copied or created in the repository;
+- no download or installation occurred;
 - no full suite or Eval Golden ran;
 - no external service or write flow ran;
 - nothing was staged or committed;
-- `.github/templates/request.md` is byte-for-byte unchanged from preflight.
+- only one real-host launch and one `etl_interpret_sttm` invocation occurred.
 
 End with exactly one marker:
 
