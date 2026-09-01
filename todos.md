@@ -1,81 +1,109 @@
-Continue F5 Runtime QA — Phase 1A: Deterministic STTM Interpretation Only
+Structured Result Boundary Audit — Read-Only Diagnosis Only
 
-Phase 0 completed with:
+Environment:
 
-F5_CAPABILITY_PREFLIGHT_PASS
+- Run in the normal source-repository VS Code window, not inside the
+  Extension Development Host.
+- Repository:
+  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+- Expected branch:
+  fix/workspace-write-completion-0.3.148
+- Expected HEAD:
+  45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-Remain inside the same registered ETL Orchestrator session and the same
-Extension Development Host workspace.
+Objective:
 
-This phase is strictly read-only.
+Determine exactly why the F5 ETL Orchestrator received the complete rendered
+Markdown STTM report but could not observe a structured-data result channel.
 
-Allowed extension tool:
+This is diagnosis only. Do not implement a fix.
 
-- `etl_interpret_sttm`, invoked exactly once.
+Validated runtime evidence:
 
-Input:
+- `etl_interpret_sttm` was invoked exactly once.
+- Workbook containment passed.
+- Files discovered/read/blocked: 1/1/0.
+- Active mappings: 8.
+- Audit findings: 6.
+- Mapping `FM_F01417B0_00002` was present, active, and first.
+- Markdown output was complete.
+- The chat host offloaded the large result into a session-resource content file.
+- That file exposed only rendered Markdown.
+- No structured data part was observable by the Orchestrator.
+- Runtime marker:
+  `F5_STTM_INTERPRETATION_BLOCKED`
 
-- workspaceRoot:
-  C:\Users\tag5916\AppData\Local\Temp\etl-w1-qa-20260901-054832-c5e982
-- sttmPath:
-  sttm/synthetic_workbook.xlsx
-- includeAudit: true
+Do not rerun `etl_interpret_sttm`. Do not repeat the F5 workflow.
 
-Do not manually open, parse, convert, copy, or inspect the XLSX binary.
-Do not use a general-purpose parser or fallback implementation.
+Phase 0 — Repository identity and protection
 
-Known expected fixture baseline:
+1. Verify repository root, branch, and HEAD.
+2. Record `git status --short --untracked-files=all`.
+3. Preserve every pre-existing modification exactly.
+4. Use committed HEAD content as the audit baseline.
+5. If an implementation file involved in this audit differs from HEAD, stop and
+   report the exact path and diff. Do not restore or modify it.
 
-- Files discovered: 1
-- Files read: 1
-- Files blocked: 0
-- Active mappings: 8
-- Audit findings: 6
-- Expected valid mapping candidate:
-  FM_F01417B0_00002
-- Expected mapping evidence:
-  customers.cust_name -> target_db.customer_name
-- Both structured and consumer-visible Markdown results should be available.
+If bare `git`, `node`, or `npm` fails because PATHEXT is corrupted, set this only
+inside each required PowerShell invocation:
 
-The six audit findings are known fixture evidence. If their identities and
-signatures match the returned deterministic result, record them without
-reinvestigating or attempting to repair them.
+$env:PATHEXT = '.COM;.EXE;.BAT;.CMD'
+
+Do not persist that environment change.
+
+Audit the complete committed runtime path:
+
+1. Trace registration of `etl_interpret_sttm`.
+2. Trace its `execute()` result type and actual returned object.
+3. Trace `BaseReadOnlyTool.invoke()` in `src/tools/index.ts`.
+4. Trace `createToolResult(...)`.
+5. Trace construction of `vscode.LanguageModelToolResult`.
+6. Inspect the compiled `out/**` implementation actually loaded by F5 and
+   reconcile it against the TypeScript source.
+7. Determine:
+   - whether the raw service response contains distinct structured and Markdown
+     representations;
+   - the exact number and types of content parts emitted by `createToolResult`;
+   - whether the extension emits a structured part at all;
+   - whether the installed VS Code API supports the intended structured part;
+   - whether the Chat host’s large-result offload drops, hides, or converts
+     non-text parts;
+   - whether the current automated tests verify only the service response or the
+     real registered public-tool boundary.
+
+Inspect existing relevant tests, but do not add or modify tests and do not run the
+full test suite, Eval Golden, compilation, packaging, VSIX, F5, or external calls.
+
+Classify the root cause as exactly one of:
+
+A. EXTENSION_RESULT_CONSTRUCTION_DEFECT
+B. PUBLIC_TOOL_BOUNDARY_TEST_GAP
+C. VS_CODE_CHAT_HOST_OFFLOAD_LIMITATION
+D. QA_HARNESS_OBSERVABILITY_GAP
+E. MULTIPLE_CAUSES
+F. EVIDENCE_INSUFFICIENT
 
 Required report:
 
-1. Exact tool invocation count.
-2. Containment result and resolved workbook path.
-3. Files discovered/read/blocked.
-4. Active mapping count and ordered mapping IDs.
-5. Exact audit finding codes, row identities, and ordering.
-6. Structured-result availability.
-7. Markdown-result availability.
-8. Details of mapping `FM_F01417B0_00002`.
-9. Comparison of every expected baseline value against the actual value.
-10. Mutation attestation.
+- Repository identity and protected worktree inventory.
+- Source-to-compiled call path with exact files and symbols.
+- Raw service response shape.
+- Public `LanguageModelToolResult` content-part shape.
+- Supported VS Code API content-part types.
+- Existing test coverage and exact missing boundary.
+- Root-cause classification.
+- Whether product code requires repair.
+- Whether only the QA harness/evidence method requires repair.
+- Smallest safe next implementation or characterization-test task.
+- Explicit confirmation that nothing was modified.
 
-Stop and report BLOCKED if:
-
-- containment fails;
-- the parser invocation fails;
-- any file is blocked;
-- any expected count or identity differs;
-- the expected mapping is missing or inactive;
-- structured or Markdown output is unavailable;
-- a second invocation, fallback parser, terminal command, external service,
-  manual XLSX inspection, or filesystem mutation would be required.
-
-Do not call framework discovery, module discovery, example search, render,
-validation, preview, approval, write, publish, pipeline, Databricks, Jira,
-or Confluence tools.
-
-Do not create or modify any job config, environment config, fixture,
-workflow asset, or source file.
+Do not weaken the dual-channel success criterion and do not infer structured
+output from Markdown.
 
 End with exactly one marker:
 
-F5_STTM_INTERPRETATION_PASS
+STRUCTURED_RESULT_BOUNDARY_AUDIT_COMPLETE
 
 or
 
-F5_STTM_INTERPRETATION_BLOCKED
+STRUCTURED_RESULT_BOUNDARY_AUDIT_BLOCKED
