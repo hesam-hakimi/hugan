@@ -60,7 +60,7 @@
 
 - [x] P3.1 accepted project knowledge packs: immutable versioned manifests, explicit human acceptance, document/content-hash and scope binding, provenance-preserving retrieval, deterministic indexing, and fail-closed replacement or drift handling;
 - [x] typed, provenance-preserving accepted prior-phase evidence for dependent Safe contexts;
-- phase/slice handoff compaction beyond the bounded accepted phase bundle;
+- [x] P3.2 deterministic phase/slice handoff compaction beyond the bounded accepted phase bundle, with an immutable source-bundle hash, adaptive semantic excerpts, exact list/phase digests, bounded verified artifact reads, and fail-closed byte limits;
 - project decision and ADR memory;
 - incremental repository index;
 - dependency/call graph and test-impact analysis;

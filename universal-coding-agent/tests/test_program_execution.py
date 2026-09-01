@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from threading import Event, Thread
 from typing import Any
@@ -68,6 +69,15 @@ class MissingBaseEvidenceExecutor(RecordingDiscoveredSafeExecutor):
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
         result = super().resume(thread_id, approved)
         result.pop("base_sha", None)
+        return result
+
+
+class LargeAcceptedEvidenceExecutor(RecordingDiscoveredSafeExecutor):
+    def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
+        result = super().resume(thread_id, approved)
+        result["actual_changed_paths"] = [
+            f"src/generated/component_{index}_{'x' * 600}.py" for index in range(100)
+        ]
         return result
 
 
@@ -277,6 +287,48 @@ def test_completed_safe_units_unlock_slices_and_dependent_phases(tmp_path: Path)
         ]
         report = workspace.artifacts.read_json(second.phase_report_ref)
         assert report["phase_status"] == "completed"
+    finally:
+        workspace.close()
+
+
+def test_large_accepted_phase_bundle_uses_compacted_handoff(tmp_path: Path) -> None:
+    workspace, program_id, requirement_hash = _approved_workspace(tmp_path)
+    executor = LargeAcceptedEvidenceExecutor()
+    try:
+        first = _start_next(workspace, program_id, requirement_hash, executor)
+        workspace.programs.continue_execution(
+            program_id=program_id,
+            task_id=first.task_id,
+            current_requirement_hash=requirement_hash,
+            executor=executor,
+            approved=True,
+        )
+        second = _start_next(workspace, program_id, requirement_hash, executor)
+        workspace.programs.continue_execution(
+            program_id=program_id,
+            task_id=second.task_id,
+            current_requirement_hash=requirement_hash,
+            executor=executor,
+            approved=True,
+        )
+
+        third = _start_next(workspace, program_id, requirement_hash, executor)
+
+        accepted = executor.starts[-1]["accepted_evidence"]
+        assert len(accepted) == 1
+        assert accepted[0].context_type == "accepted_phase_handoff"
+        assert third.accepted_evidence_ref == accepted[0].source_ref
+        assert third.accepted_evidence_hash == accepted[0].sha256
+        assert len(accepted[0].content.encode("utf-8")) <= 48_000
+        handoff = json.loads(accepted[0].content)
+        assert handoff["source_bundle_ref"].startswith("artifact://programs/")
+        source_bundle = workspace.artifacts.read_text_bounded_verified(
+            handoff["source_bundle_ref"],
+            expected_sha256=handoff["source_bundle_sha256"],
+            max_bytes=512_000,
+        )
+        assert len(source_bundle.encode("utf-8")) > 48_000
+        assert json.loads(source_bundle)["dependency_phase_ids"] == ["phase-1"]
     finally:
         workspace.close()
 

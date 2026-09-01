@@ -373,6 +373,59 @@ class AcceptedPhaseEvidenceBundle(FrozenModel):
         return hashlib.sha256(payload).hexdigest()
 
 
+class CompactedEvidenceSequence(FrozenModel):
+    item_count: int = Field(ge=0)
+    items_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    items: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_prefix_length(self) -> CompactedEvidenceSequence:
+        if len(self.items) > self.item_count:
+            raise ValueError("compacted evidence prefix exceeds its source item count")
+        return self
+
+
+class CompactedPhaseHandoff(FrozenModel):
+    phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    phase_evidence_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    summary_chars: int = Field(ge=1)
+    summary_excerpt: str = ""
+    changed_paths: CompactedEvidenceSequence
+    decisions: CompactedEvidenceSequence
+    tests: CompactedEvidenceSequence
+    reviewer_verdict: str = Field(pattern=r"^PASS$")
+    known_risks: CompactedEvidenceSequence
+    execution_count: int = Field(ge=1)
+
+
+class AcceptedPhaseHandoff(FrozenModel):
+    schema_version: str = Field(default="1", pattern=r"^1$")
+    program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    target_phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")
+    requirement_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    source_bundle_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    source_bundle_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    dependency_phase_ids: tuple[str, ...] = Field(min_length=1)
+    phases: tuple[CompactedPhaseHandoff, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_dependency_order(self) -> AcceptedPhaseHandoff:
+        phase_ids = tuple(item.phase_id for item in self.phases)
+        if phase_ids != self.dependency_phase_ids:
+            raise ValueError("compacted phase handoff must match dependency order")
+        return self
+
+    def canonical_hash(self) -> str:
+        payload = json.dumps(
+            self.model_dump(mode="json"),
+            separators=(",", ":"),
+            sort_keys=True,
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
+
 class ProgramExecutionBinding(FrozenModel):
     program_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
     phase_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{1,63}$")

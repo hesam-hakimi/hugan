@@ -808,8 +808,18 @@ edit authority. Missing provenance, a non-PASS review, missing test evidence, mi
 a current checkout that no longer matches the evidence Base SHA stops before new model work.
 
 This handoff deliberately transfers no prior sandbox source or patch. Automatic full-program
-execution, cross-phase patched-source integration, retry/replan policy, and general project-memory
-compaction remain future work.
+execution, cross-phase patched-source integration, and retry/replan policy remain future work.
+
+P3.2 extends that contract when the complete accepted evidence bundle is too large for one Safe
+context. The control plane first writes the canonical source bundle under its SHA-256, verifies it
+with a separate source-bundle byte ceiling, and then creates a deterministic compact handoff. The
+handoff retains Program/phase identity, requirement and Base bindings, the immutable source-bundle
+reference and hash, one exact digest per source phase, PASS verdicts, execution counts, and exact
+count/hash metadata for changed paths, decisions, tests, and risks. Human-readable excerpts are
+reduced through fixed profiles until the result fits the existing 48,000-byte Safe-context limit;
+the complete accepted source remains addressable but is not copied into model context. If even the
+provenance-only form or the source bundle exceeds its independent bound, execution fails closed
+before model work. Small bundles preserve the existing accepted-phase-evidence representation.
 
 ## Portability
 
