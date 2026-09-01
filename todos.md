@@ -1,477 +1,364 @@
-Implement the audited runtime artifact-contract parity fixes in the ETL extension source repository. This is a narrow source repair. Do not launch F5 or modify the QA workspace in this turn.
+Repair B — Validator consumption parity
 
-Repository and audited starting state
-
-Repository:
+Run this task only in the normal VS Code source-repository window/Claude Code session opened at:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+
+Do not run it in:
+
+* the Extension Development Host;
+* the isolated F5 QA workspace;
+* a consumer workspace;
+* the ETL Orchestrator chat.
+
+This is a bounded source implementation task.
+
+Required Repair A identity
+
+Expected Repair A full commit SHA:
+
+<REPAIR_A_FULL_SHA>
+
+Before executing this prompt, replace that placeholder with the exact full SHA reported by Repair A.
+
+Do not infer, approximate, or search for a “similar” commit.
+
+Required Repair A marker:
+
+REPAIR_A_CONTRACT_DISCOVERY_COMMITTED
 
 Expected branch:
 
 fix/workspace-write-completion-0.3.148
 
-Expected audited HEAD:
+Expected Repair A commit subject:
 
-* short SHA begins with a7ec728;
-* subject is test: refresh Phase H evaluation baseline;
-* its parent is the W1 commit fix: enforce trusted workspace write collision checks;
-* the parent of W1 is Repair 13 commit 64706129e0d1054ea615e150b28dd623fb3c629e.
+fix: expose canonical runtime artifact contract
 
-Audit classification:
+This task addresses independently source-audit-proven defects.
 
-MULTIPLE_DEFECTS
+The runtime Orchestrator QA did not reach validation. Do not claim these defects were executed by that QA run.
 
-Preflight — hard gate
+Reproduce the defects using focused characterization tests before changing production code.
+
+Do not ask for another approval if every gate passes.
+
+Do not push.
+
+Phase 0 — Mandatory preflight
 
 Before editing, report:
 
 * repository root;
-* branch;
+* current branch;
 * full HEAD SHA and subject;
-* the last three commits with parents;
+* HEAD parent topology;
 * git status --short;
-* staged paths.
+* staged paths;
+* confirmation that HEAD exactly equals <REPAIR_A_FULL_SHA>;
+* exact baseline failure names and signatures reported by Repair A.
 
-Requirements:
+Stop immediately if:
 
-* branch and topology must match the audited state;
-* index and working tree must be clean;
-* nothing may already be staged.
+* the branch differs;
+* HEAD differs from the exact Repair A SHA;
+* HEAD subject differs;
+* worktree or index is not clean;
+* baseline failure identities are unavailable;
+* unexpected merge/topology changes exist.
 
-Stop if any requirement differs. Do not reset, clean, stash, restore, amend, rebase, fetch, merge, or discard anything.
+A matching failure count alone is not a baseline.
 
-Capture before-state hashes for the protected W1 files listed below.
+Do not fetch, pull, merge, rebase, reset, checkout, stash, clean, amend, or repair repository state.
 
-Defect 1 — parser parity
+Allowed scope
 
-src/core/validation/DataSourcingConfigValidator.ts uses colon-only HOCON block parsing in or around:
+Allowed production files:
 
-* hasSourceBlock;
-* extractSourceBlocks;
-* extractDataSourcingModule.
+1. src/core/validation/DataSourcingConfigValidator.ts
+2. src/tools/EtlActionToolService.ts — validation-only hunks defined below
 
-This contradicts:
+Allowed additional changes:
 
-* resources/framework/contracts/job-config-envelope.v1.json;
-* src/core/framework/TrustedJobConfigEnvelopeResolver.ts;
-* src/core/utils/ModuleSequenceExtractor.ts.
-
-The contract permits:
-
-* stage: {
-* stage = {
-* stage {
-
-Required behavior:
-
-* reuse the shared module parser to locate the data_sourcing_process stage and its exact content;
-* eliminate the colon-only assumption;
-* recognize stage-local options.module, options.method, sourceList, and named source blocks for every permitted separator;
-* preserve all existing validation codes, messages, path/interpolation rules, and fail-closed behavior;
-* do not introduce another independent HOCON grammar.
-
-Defect 2 — incomplete public discovery and F5 drift
-
-Primary file:
-
-src/tools/EtlReadOnlyToolService.ts
-
-Relevant symbols include:
-
-* getFrameworkRules;
-* describeModule;
-* MODULE_REFERENCE_SOURCES;
-* module-reference parsing used to derive commonKeys.
-
-Required behavior:
-
-1. Reuse TrustedJobConfigEnvelopeResolver; do not duplicate the contract.
-2. Add a compact structured executable-envelope description to:
-    * etl_get_framework_rules;
-    * etl_describe_module.
-3. Expose:
-    * root key modules;
-    * stage-keyed entries;
-    * options.module;
-    * options.method;
-    * default method process;
-    * supported separators;
-    * per-module required module and option keys;
-    * sourceList requirements and its relationship to named source blocks;
-    * permitted job-config extensions.
-4. Rank the packaged canonical reference first:
-    * resources/copilot/context/etl-module-reference.md
-5. Correct the conflicting development reference:
-    * docs/reference/ETL_MODULE_REFERENCE.md
-6. Ensure equals-form and omitted-separator fields remain visible to reference parsing.
-7. Preserve etl_search_examples local-workspace precedence and isolation behavior.
-8. Do not change .vscodeignore; F5 and packaged VSIX discovery must converge without shipping docs/**.
-
-Defect 3 — undiscoverable job-config extension rule
-
-Job configurations must use:
-
-* .conf
-* .json
-
-They must not use:
-
-* .yaml
-* .yml
-
-Environment configuration behavior remains unchanged.
-
-Required behavior:
-
-* add permitted job-config extensions to:
-    * resources/framework/contracts/job-config-envelope.v1.json;
-* expose them through the public discovery repair;
-* update only the jobConfigPath description in package.json if necessary;
-* do not change the Validator to accept YAML job configurations;
-* update the contract type/canonicalization in TrustedJobConfigEnvelopeResolver.ts only as required;
-* recompute the trusted contract fingerprint using the repository’s deterministic supported mechanism;
-* report old and new fingerprints.
-
-Stop if a supported deterministic fingerprint-update mechanism cannot be established.
-
-Defect 4 — empty Blueprint in public Validation
-
-Primary file:
-
-src/tools/EtlActionToolService.ts
-
-Limit changes to validateRenderedArtifacts and directly necessary imports or validation-only helpers.
-
-Required behavior:
-
-* populate blueprint.modules from extractModuleSequence(artifacts.jobConfig);
-* derive outputDecision from recognized modules:
-    * load_enrich_process → curated_load_enrich;
-    * dataframe_writer → generic_dataframe_write;
-    * retain existing database-out and TIBCO-out discrimination;
-* allow existing transformation and strategy validators to inspect the real module sequence;
-* do not place search metadata such as strategy into executable Job content;
-* do not globally suppress OUTPUT_STRATEGY_REVIEW_REQUIRED;
-* recognized canonical writers must not receive the false warning;
-* genuinely unknown strategies must retain manual-review/fail-closed behavior;
-* keep OutputStrategyConfigValidator unchanged unless a focused test disproves the Audit. If so, stop before expanding Scope.
-
-Contract behavior to preserve
-
-The executable Job configuration must have:
-
-* root object modules;
-* modules keyed by stage name;
-* stage-local fields plus options;
-* options.module set to a supported module type;
-* options.method = process;
-* sourceList as a non-empty string array, sibling to options;
-* every sourceList entry naming a sibling source block;
-* inline SQL allowed for this transformation/writer path;
-* no Include artifact added merely to silence a warning;
-* generic_dataframe_write represented by a dataframe_writer stage.
-
-W1 protection boundary
+* directly related focused tests under src/test/**;
+* only imports necessary to call an existing shared parser or validation helper.
 
 Do not modify:
 
-* src/chat/DeployCoordinator.ts
-* src/chat/WriteCoordinator.ts
-* src/core/trusted/WriteAuthorization.ts
-* src/test/helpers/mintTestWriteAuthorization.ts
-* src/test/suite/onboardingWriteApproval.test.ts
-* src/tools/TrustedWriteApprovalStore.ts
-* src/writers/RepoWriter.ts
-* src/core/artifacts/ArtifactDestinationInventory.ts
-* src/core/artifacts/WorkspaceDestinationProbe.ts
-* src/test/suite/workspaceWriteCollision.test.ts
+* src/core/utils/ModuleSequenceExtractor.ts, unless a focused characterization test proves the shared parser itself violates the trusted contract. If that happens, stop and report; do not expand scope.
+* Repair A contract, discovery, fingerprint, reference, documentation, or package-description files;
+* resources/framework/contracts/job-config-envelope.v1.json;
+* package version, dependencies, or lockfiles;
+* evaluation reports or baselines;
+* any F5/QA fixture;
+* renderer/scaffolding architecture;
+* W1 write behavior;
+* atomic multi-file apply/rollback;
+* durable managed-file ownership;
+* sibling repositories or etl-framework-gen-utils.
 
-Do not change:
+W1 hunk protection
 
-* destination inventory;
-* CREATE / OVERWRITE / UNCHANGED classification;
-* collision or duplicate handling;
-* trusted Preview and checksum;
-* explicit approval;
-* post-approval state validation;
-* physical containment;
-* per-file results;
-* partial-apply reporting.
+src/tools/EtlActionToolService.ts overlaps completed W1 work.
 
-src/tools/EtlActionToolService.ts overlaps W1. Its diff must be limited to the read-only Validation adapter. Do not touch Preview, Approval, probing, classification, drift checking, writeToWorkspace, or write execution.
+Before editing it:
 
-Do not implement:
+1. Record the exact current line range and deterministic content hash of validateRenderedArtifacts.
+2. Record the current bodies and deterministic hashes of all protected W1 methods/regions, including:
+    * writeToWorkspace;
+    * performWrite;
+    * collectManifestFiles;
+    * buildApprovalManifest;
+    * evaluateToolPlanScopedConsent;
+    * preview construction;
+    * probing;
+    * authorization;
+    * approval handling;
+    * write-result and per-file result construction.
+3. Record the W1 file inventory from commit cb972b7.
+4. Record hashes for every W1 file other than the permitted validation-only area.
+5. Record the Eval-refresh file inventory from commit a7ec7284906697321b2af5f7bf99de99211f7b70 and their current hashes.
 
-* atomic multi-file apply or rollback;
-* durable managed ownership;
-* automatic Git rollback.
+Permitted hunks in EtlActionToolService.ts are limited to:
 
-src/test/testPatterns.ts may receive only minimum additive test registration. Do not remove, reorder, or weaken existing entries.
+* validateRenderedArtifacts;
+* one narrowly scoped validation-only helper, if genuinely required;
+* its necessary import.
 
-Allowed implementation paths
+No broad formatting, import reordering, method movement, or unrelated cleanup is allowed.
 
-Production changes must stay within:
+Any hunk touching write, preview, probing, authorization, confirmation, approval, manifest creation, consent evaluation, collision handling, drift handling, filesystem mutation, or write-result construction is an immediate blocker.
 
-* src/core/validation/DataSourcingConfigValidator.ts
-* src/tools/EtlReadOnlyToolService.ts
-* src/tools/EtlActionToolService.ts
-* src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-* resources/framework/contracts/job-config-envelope.v1.json
-* resources/copilot/context/etl-module-reference.md
-* docs/reference/ETL_MODULE_REFERENCE.md
-* package.json — only jobConfigPath description
-* directly related unit-test files
-* one narrowly named new contract-parity test file if required
-* src/test/testPatterns.ts only if required to execute that suite
+If this boundary cannot be maintained, do not commit and report:
 
-Do not modify sibling etl-framework-gen-utils.
+REPAIR_B_W1_BOUNDARY_BLOCKED
 
-Stop before changing any additional Production path.
+Phase 1 — Characterization before production edits
 
-Required automated tests
+Add focused tests before changing either production file.
 
-1. Parser parity
+Run them and record exact pre-fix failures.
 
-Extend the existing DataSourcingConfigValidator suite with the same canonical configuration parameterized over:
+If an audited defect cannot be reproduced at the specified real boundary, stop without speculative production changes and report the discrepancy.
 
-* stage: {
-* stage = {
-* stage {
+1. Data-sourcing grammar characterization
 
-For all three, assert recognition of:
+Use repository-owned canonical job-config bytes—not isolated regex fragments.
 
-* valid sourcing stage;
+Parameterize all three trusted HOCON object-opening forms:
+
+* key: {
+* key = {
+* key {
+
+Cover both:
+
+* the data_sourcing_process stage opener;
+* every named sibling source-block opener referenced by sourceList.
+
+For every valid variant, characterize whether validation resolves:
+
+* the correct data_sourcing_process stage rather than a nested source block such as primary;
 * options.module;
 * options.method;
-* non-empty sourceList;
-* referenced source block.
+* a non-empty sourceList;
+* every source block named by sourceList.
 
-Assert absence of:
+After repair, valid variants must not produce:
 
 * MISSING_MODULE_OPTIONS
 * MISSING_SOURCE_LIST
 * MISSING_SOURCE_BLOCK
 
-Retain negative coverage for genuinely missing fields.
+Preserve negative tests proving that genuinely absent module options, sourceList, or named source blocks remain fail-closed with existing issue codes and messages.
 
-2. Public Discovery
+2. Public validation-adapter characterization
 
-Call the real handlers for:
+Exercise repository-owned canonical dataframe-writer bytes through the real registered etl_validate_artifacts public boundary.
 
-* etl_get_framework_rules;
-* etl_describe_module("data_sourcing_process").
+Do not test only a private helper or OutputStrategyConfigValidator in isolation.
 
-Assert structured results expose:
+Add direct service-level coverage where useful.
 
-* modules root;
-* stage-keyed envelope;
-* options.module;
-* options.method;
-* default method;
-* supported separators;
-* required sourceList;
-* .conf and .json;
-* a canonical executable example.
+Characterize and later prove:
 
-Prove F5 source selection no longer prefers the conflicting development-only reference.
+1. blueprint.modules is populated from actual parsed job-config modules in their real order.
+2. outputDecision is derived only from recognized modules.
+3. dataframe_writer maps to generic_dataframe_write.
+4. Existing load_enrich_process, database-output, and TIBCO discriminators retain supported behavior.
+5. Unknown or ambiguous module sequences remain fail-closed and still produce OUTPUT_STRATEGY_REVIEW_REQUIRED.
+6. The warning is not globally suppressed.
+7. OutputStrategyConfigValidator itself is not weakened.
 
-3. Canonical bytes through the public Validator
+Use the repository-owned canonical dataframe-writer example rather than an approximate replacement.
 
-Feed canonical Job content from:
+3. Anti-cascade extension boundary
 
-resources/copilot/knowledge/examples/dataframe-writer-export.example.json
+Feed byte-identical canonical content through the public validator at:
 
-through the real EtlActionToolService.validateArtifacts path using:
+* valid path: job_conf/conf/QA/qa_job.conf
+* invalid job-config path: job_conf/conf/QA/qa_job.yaml
 
-job_conf/conf/QA/qa_job.conf
+For .conf:
 
-Assert:
+* canonical content must produce zero artifact-content errors;
+* recognized dataframe-writer content must not receive a false OUTPUT_STRATEGY_REVIEW_REQUIRED.
 
-* zero validation errors;
-* sourcing and sourceList recognized;
-* generic_dataframe_write recognized;
-* no OUTPUT_STRATEGY_REVIEW_REQUIRED;
-* no filesystem write.
+For .yaml:
 
-4. Invalid extension boundary
+* it must fail at the job-config extension boundary;
+* it must not additionally report:
+    * MISSING_MODULE_OPTIONS;
+    * MISSING_SOURCE_LIST;
+    * MISSING_SOURCE_BLOCK;
+    * OUTPUT_STRATEGY_REVIEW_REQUIRED.
 
-Use identical valid bytes at:
+Unrelated environment/readiness warnings may remain only when they exactly match the grounded baseline and are not content defects.
 
-job_conf/conf/QA/qa_job.yaml
+Do not relax the job-config extension validator to accept YAML.
 
-Assert:
+Phase 2 — Production repair
 
-* exactly the extension mismatch;
-* no sourcing/module/sourceList error;
-* no false output-strategy warning;
-* path is not accepted or rewritten.
+A. DataSourcingConfigValidator
 
-Do not globally short-circuit the Validation pipeline.
+Make DataSourcingConfigValidator consume the trusted module-envelope grammar already used by ModuleSequenceExtractor.
 
-5. W1 regression
+Preferred implementation:
 
-Run established headless suites covering:
+* reuse the existing shared parser;
+* select the stage whose module type is data_sourcing_process;
+* validate that stage’s content;
+* resolve sourceList and its named sibling source blocks using the same accepted object-opening grammar.
 
-* workspace classification parity;
-* workspace collision;
-* onboarding approval;
-* physical containment;
-* workspace input containment;
-* RepoWriter workspace selection;
-* action-tool workspace-write lifecycle.
+Do not retain or introduce three competing colon-only regex implementations.
 
-All must pass unchanged.
+If named source-block extraction cannot directly reuse the shared parser, use one narrowly scoped validation-local helper whose accepted separators exactly match the trusted contract.
 
-Test integrity
+Do not create another independent envelope grammar.
 
-Do not add skipped, exclusive, pending, tautological, snapshot-only, or bypassing tests. Do not add Production exports solely for testing.
+Preserve:
 
-Command budget
+* all existing issue codes;
+* all existing issue messages;
+* path, zone, read-format, and interpolation rules;
+* the existing no-data_sourcing_process early return;
+* fail-closed behavior for genuinely missing fields.
 
-After editing:
+B. EtlActionToolService validation adapter
 
-1. git diff --check
-2. npm run compile
-3. one focused contract/parser/discovery/validator test invocation
-4. one focused W1 suite invocation
-5. npm run test:unit exactly once
+Inside validateRenderedArtifacts only:
 
-If compile or focused contract tests reveal an implementation error, allow only one correction cycle:
+* extract the real module sequence from artifacts.jobConfig using the existing shared parser;
+* populate blueprint.modules from that real sequence;
+* derive outputDecision only when parsed modules provide authoritative recognized evidence.
 
-* one additional compile;
-* one additional focused contract-test invocation.
+Required recognized mapping:
 
-Do not rerun the full suite.
+* dataframe_writer → generic_dataframe_write
 
-Do not run:
+Preserve existing supported handling for:
 
-* npm install
-* packaging/VSIX
-* F5
-* npm run eval:golden
-* external QA
-* Databricks, DBFS, pipeline, publication, or network-dependent commands.
+* load_enrich_process → curated_load_enrich;
+* database output;
+* TIBCO output.
 
-Full-unit interpretation
+Use existing discriminators and decision types.
 
-Permitted failures are only:
+Do not invent a new strategy schema.
 
-* two EvalGating freshness failures naming exactly the intended changed files;
-* the three pre-existing copilotWorkflowCustomization failures:
-    * missing delivery Prompt;
-    * missing frontmatter name;
-    * residual module-level AGENT.md files.
+If module sequence is absent, conflicting, or unknown:
 
-No workspace-write, parser, discovery, contract, renderer, Validator, or new test may fail.
+* do not choose a default;
+* remain fail-closed;
+* preserve OUTPUT_STRATEGY_REVIEW_REQUIRED.
 
-Do not modify:
+Do not change any write-path input, output, preview, manifest, approval, consent, or result structure.
 
-* docs/eval/phase_h_latest_report.json
-* docs/eval/phase_h_latest_report.md
+Validation order
 
-Eval refresh must be a separate follow-up and separate Commit.
+Run:
 
-Stop without committing for any unexpected failure.
+1. git diff --check;
+2. repository compile/typecheck;
+3. focused DataSourcingConfigValidator separator-parity tests;
+4. focused validation-adapter tests;
+5. real registered etl_validate_artifacts boundary tests;
+6. canonical .conf/.yaml anti-cascade tests;
+7. unknown-strategy fail-closed test;
+8. focused W1 collision, approval, unchanged, and drift regression tests;
+9. full unit suite exactly once after focused tests pass.
 
-Deterministic F5 fixture limitation
+For the full suite:
 
-Do not hard-code synthetic ADLS values, credentials, schemas, or QA-only defaults into Production.
+* compare each failure by exact test identity and signature with the Repair A baseline;
+* matching failure count is insufficient;
+* each permitted failure must be demonstrably unaffected by this diff;
+* any new, missing, renamed, or behaviorally changed failure blocks the commit.
 
-This Commit repairs Discovery and Validation parity only.
+Do not refresh evaluation artifacts.
 
-Report whether an existing repository-owned fixture or generator already provides:
+Final hunk and byte-identity gate
 
-* one complete executable active Mapping;
-* authoritative synthetic source and target paths;
-* deterministic Env configuration or generated-new-env inputs;
-* required schema, column, and predicate values;
-* no credentials or real consumer values.
+Before committing:
 
-If none exists, report:
+1. Show git diff --name-status <REPAIR_A_FULL_SHA>.
+2. Show git diff --check.
+3. Show git diff --unified=0 <REPAIR_A_FULL_SHA> -- src/tools/EtlActionToolService.ts.
+4. Prove every EtlActionToolService.ts hunk is limited to:
+    * validateRenderedArtifacts;
+    * an explicitly validation-only helper;
+    * its required import.
+5. Recompute protected W1 method/region hashes and prove they are byte-identical.
+6. Prove all other W1 files are byte-identical.
+7. Prove Eval-report files are unchanged.
+8. Prove Repair A contract/discovery files are unchanged by Repair B.
+9. Prove package version and dependencies are unchanged.
+10. Prove no deterministic fixture was added.
+11. List every changed file and justify it against the allowlist.
 
-DETERMINISTIC_F5_QA_FIXTURE_REQUIRED
+Any failed proof blocks the commit.
 
-Do not create the Fixture in this Commit.
+Commit
 
-Commit policy
+Only if every gate passes, create exactly one commit:
 
-Commit only if:
+fix: align artifact validation with canonical contract
 
-* Compile and focused tests pass;
-* W1 focused suites pass;
-* full-unit failures are limited to the permitted set;
-* git diff --check passes;
-* all changed paths remain in Scope;
-* protected W1 files remain byte-identical;
-* EtlActionToolService.ts changes Validation only;
-* Evaluation reports, version, dependencies, scripts, Workflow, CI and unrelated files are unchanged.
+Requirements:
 
-Before committing, report:
-
-* git status --short;
-* git diff --stat;
-* git diff --check;
-* every Production hunk by symbol;
-* protected W1 hashes;
-* staged path list and staged diffstat.
-
-Create exactly one Commit:
-
-fix: align runtime artifact discovery and validation
-
-Do not amend, push, create a PR/tag, change version, merge, or rebase.
-
-After committing, verify:
-
-* full HEAD and subject;
-* parent is the previous a7ec728... Commit;
-* exactly one new Commit exists;
-* index and worktree are clean;
-* nothing was pushed.
-
-F5 handoff — do not execute
-
-Do not reuse the existing Extension Development Host; it contains the old build and an initialized QA Workspace.
-
-Report the later manual Gate:
-
-1. close the stale Host;
-2. create a new temporary Workspace outside the Source;
-3. prepare the deterministic QA Fixture separately;
-4. copy sttm/synthetic_workbook.xlsx;
-5. launch a new Extension Development Host;
-6. invoke @etl /workflow;
-7. verify public Discovery exposes the canonical envelope and .conf/.json;
-8. render and validate canonical Job bytes;
-9. require zero errors and no false strategy warning;
-10. reach trusted confirmation with CREATE-only destinations;
-11. wait for explicit user approval;
-12. verify per-file results;
-13. rerun identical bytes and verify all destinations are UNCHANGED.
+* do not amend or squash Repair A;
+* the commit’s sole parent must be <REPAIR_A_FULL_SHA>;
+* do not create another branch;
+* do not push;
+* leave worktree and index clean.
 
 Final report
 
-Return:
+Report:
 
-* Preflight;
-* root-cause-to-change table;
-* changed files and symbols;
-* contract fingerprint before/after;
-* test commands and exact results;
-* full-unit failure names;
-* protected W1 hash comparison;
-* implementation Commit SHA and parent;
-* final git status --short;
-* confirmation that nothing was pushed;
-* Eval status:
-    * DEFERRED_TO_SEPARATE_COMMIT
-* deterministic F5 Fixture status;
-* manual F5 handoff.
+* branch;
+* Repair A starting SHA;
+* Repair B full commit SHA and parent SHA;
+* exact changed-file inventory;
+* pre-fix characterization failures;
+* post-fix focused-test results;
+* .conf and .yaml anti-cascade results;
+* unknown-strategy fail-closed result;
+* W1 protected-region before/after hashes;
+* focused W1 regression results;
+* full-suite totals;
+* exact reconciled baseline failure identities;
+* confirmation that no fixture, version, Eval report, W1 write behavior, external service, F5 run, or push occurred;
+* final git status --short.
 
-End with exactly:
+Do not claim end-to-end F5 QA is fixed.
 
-RUNTIME_ARTIFACT_CONTRACT_FIX_COMMITTED_NOT_PUSHED
+The deterministic physical QA fixture remains a separate task.
+
+End with exactly one marker:
+
+REPAIR_B_VALIDATOR_CONSUMPTION_COMMITTED
 
 or:
 
-RUNTIME_ARTIFACT_CONTRACT_FIX_BLOCKED
+REPAIR_B_VALIDATOR_CONSUMPTION_BLOCKED
