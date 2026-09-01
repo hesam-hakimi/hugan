@@ -1,14 +1,64 @@
-$harness = "$env:TEMP\etl-f5-harness.code-workspace"
-$oldPath = 'C:\\Users\\tag5916\\AppData\\Local\\Temp\\etl-consumer-qa'
-$newPath = 'C:\\Users\\tag5916\\AppData\\Local\\Temp\\etl-w1-qa-20260901-054832-c5e982'
+$ErrorActionPreference = "Stop"
 
-$content = Get-Content -LiteralPath $harness -Raw
+$harnessFile = Join-Path $env:TEMP "etl-f5-harness.code-workspace"
+$qaWorkspace = Join-Path $env:TEMP "etl-w1-qa-20260901-054832-c5e982"
 
-if (($content.Split($oldPath).Count - 1) -ne 1) {
-    throw "Expected exactly one old QA path; no change was made."
+if (-not (Test-Path -LiteralPath $harnessFile -PathType Leaf)) {
+    throw "Harness file not found: $harnessFile"
 }
 
-$content.Replace($oldPath, $newPath) |
-    Set-Content -LiteralPath $harness -Encoding utf8
+if (-not (Test-Path -LiteralPath $qaWorkspace -PathType Container)) {
+    throw "QA workspace not found: $qaWorkspace"
+}
 
-Get-Content -LiteralPath $harness -Raw
+$workspace = Get-Content -LiteralPath $harnessFile -Raw |
+    ConvertFrom-Json
+
+$configurations = @(
+    $workspace.launch.configurations |
+        Where-Object { $_.type -eq "extensionHost" }
+)
+
+if ($configurations.Count -ne 1) {
+    throw "Expected exactly one extensionHost configuration; found $($configurations.Count)."
+}
+
+$configuration = $configurations[0]
+$launchArguments = @($configuration.args)
+
+if ($launchArguments.Count -ne 2) {
+    throw "Expected exactly two launch arguments; found $($launchArguments.Count)."
+}
+
+if (-not ([string]$launchArguments[0]).StartsWith("--extensionDevelopmentPath=")) {
+    throw "The first launch argument is not extensionDevelopmentPath."
+}
+
+$backupFile = "$harnessFile.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+Copy-Item -LiteralPath $harnessFile -Destination $backupFile
+
+$configuration.args[1] = $qaWorkspace
+
+$workspace |
+    ConvertTo-Json -Depth 20 |
+    Set-Content -LiteralPath $harnessFile -Encoding utf8
+
+$verifiedWorkspace = Get-Content -LiteralPath $harnessFile -Raw |
+    ConvertFrom-Json
+
+$verifiedConfigurations = @(
+    $verifiedWorkspace.launch.configurations |
+        Where-Object { $_.type -eq "extensionHost" }
+)
+
+if (
+    $verifiedConfigurations.Count -ne 1 -or
+    [string]$verifiedConfigurations[0].args[1] -ne $qaWorkspace
+) {
+    throw "Harness verification failed. Backup: $backupFile"
+}
+
+Write-Host ""
+Write-Host "HARNESS_TARGET_UPDATED_AND_VERIFIED" -ForegroundColor Green
+Write-Host "Target: $qaWorkspace"
+Write-Host "Backup: $backupFile"
