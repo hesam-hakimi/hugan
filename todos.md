@@ -1,229 +1,382 @@
-Step 0 — Phase H Coverage and F5 Launch-Provenance Audit
+Follow-up Verification Addendum — Forge versus ETL Copilot Audit
 
-Objective
+Continue from the completed Forge/ETL comparison in this same session.
 
-Perform a strictly read-only audit of:
+Do not repeat the original ten-section audit.
 
-1. Phase H tracked-input coverage for Repair A and Repair B.
-2. The repository-defined compile/F5 launch path needed to prove that a future Extension Development Host loads the repaired source code.
+Treat the previous report and its marker:
 
-Do not implement fixes, compile, launch F5, regenerate Eval Golden, run tests, or modify any file.
+FORGE_ETL_COMPARISON_AUDIT_COMPLETE
 
-Execution environment
+as provisional because it was produced without Terminal capability.
 
-Run only in the normal VS Code source-repository window:
+This follow-up must verify the missing evidence using repository-scoped, read-only Terminal access.
 
-Repository root:
+Speak to the user in Persian, but keep commands, paths, evidence, classifications, tables, and final markers in English.
+
+Repository roots:
+
+Forge:
+C:\repos\etl-extension\forge\forge-agentic-engineering-suite
+
+Our solution:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-Required branch:
+
+Expected Forge branch:
+main
+
+Forge HEAD reported by the previous static inspection:
+364c2c04e83840e1631738589e8bc0ef0ef8c957
+
+Expected branch for our solution:
 fix/workspace-write-completion-0.3.148
-Required HEAD:
+
+Expected HEAD for our solution:
 edeaaa74fa84df715fedb7b2d9f50f2418018770
-Required HEAD subject:
-test: refresh Phase H evaluation baseline
 
-This is not:
+==================================================
 
-* the Extension Development Host;
-* the QA workspace;
-* a consumer workspace;
-* an installed VSIX session.
+1. TERMINAL CAPABILITY GATE
+    ==================================================
 
-If PowerShell cannot resolve bare git, node, npm, or npx commands because PATHEXT is malformed, prefix only the affected invocation with:
+Before any further analysis, prove that read-only Terminal commands can execute.
 
-$env:PATHEXT = '.COM;.EXE;.BAT;.CMD'
+Use this PowerShell prefix in every invocation using git, node, npm, npx, or cmd:
 
-Do not persist that workaround in the registry, profile, VS Code settings, repository, or operating-system environment.
+$env:PATHEXT = ‘.COM;.EXE;.BAT;.CMD’;
 
-Hard safety restrictions
+Do not persist this workaround.
 
-This entire task is read-only.
+If Terminal remains unavailable, do not continue from filesystem inspection alone.
+
+Stop with:
+
+FORGE_AUDIT_VERIFICATION_TERMINAL_BLOCKED
+
+==================================================
+2. STRICT READ-ONLY BOUNDARY
 
 Do not:
 
-* edit, create, delete, rename, restore, stage, or commit files;
-* run npm run eval:golden;
-* run compile or test commands;
-* launch or reload F5;
-* access or modify the QA workspace;
-* inspect broad external directories or VS Code workspaceStorage;
-* fetch, pull, merge, rebase, reset, checkout, stash, clean, amend, cherry-pick, push, or publish;
-* build, install, package, or inspect a VSIX;
-* alter Git refs, index, configuration, environment profiles, or settings;
-* treat a version string such as 0.3.147 as proof that repaired runtime code is loaded.
+* edit, create, delete, rename, restore, or format files;
+* install packages or dependencies;
+* execute repository-owned scripts;
+* run builds or tests;
+* run APM, Pi, Compound Engineering, Forge, or ETL workflows;
+* initialize or update submodules;
+* fetch, pull, switch, checkout, merge, rebase, reset, clean, or stash;
+* stage, commit, or push;
+* access external services;
+* create a report file.
 
-If any required preflight identity differs, stop immediately and report the exact mismatch.
+Only static commands such as these are authorized:
 
-Phase 0 — Repository preflight
+* git status
+* git rev-parse
+* git log
+* git show
+* git ls-files
+* git diff
+* git remote
+* git submodule status without initialization
+* rg
+* Get-Content
+* filesystem metadata inspection
 
-Record exact evidence for:
+==================================================
+3. GIT-BACKED PREFLIGHT
 
-1. Canonical repository root.
-2. Current branch.
-3. Full HEAD SHA.
-4. HEAD subject.
-5. Sole parent SHA and parent count.
-6. git status --short --untracked-files=all.
-7. Staged-path inventory.
-8. Stash inventory.
-9. Confirmation that these commits are present in this exact linear order:
+For both repositories, verify using actual Git commands:
 
-46f6930e8474f6ac07d157cc85d21687a08869f3
-fix: expose canonical runtime artifact contract
-6107aa0b0e0d5bb26a998db62ee26712a728139a
-fix: align artifact validation with canonical contract
+* exact repository root;
+* current branch;
+* exact HEAD;
+* HEAD subject;
+* commit date;
+* parent count;
+* origin URL;
+* git status --short --untracked-files=all;
+* staged-path inventory;
+* modified-path inventory;
+* untracked-path inventory;
+* declared submodules;
+* stash inventory, read-only.
+
+For Forge, confirm whether HEAD is exactly:
+
+364c2c04e83840e1631738589e8bc0ef0ef8c957
+
+For our solution, confirm whether HEAD is exactly:
+
 edeaaa74fa84df715fedb7b2d9f50f2418018770
-test: refresh Phase H evaluation baseline
 
-Validate every SHA using Git object inspection. Do not rely on abbreviated SHAs or commit subjects alone.
+Both worktrees and indexes must be clean.
 
-The worktree, index, untracked inventory, and stash must all be empty.
+If any baseline differs, do not fix it. Report the exact mismatch and stop with:
 
-Phase 1 — Establish the authoritative Repair A/B path inventories
+FORGE_AUDIT_VERIFICATION_PREFLIGHT_BLOCKED
 
-Using Git history only, enumerate every path changed by:
+Do not repeat claims that nothing changed unless Git-backed final verification proves them.
 
-Repair A:
-46f6930e8474f6ac07d157cc85d21687a08869f3
-Repair B:
-6107aa0b0e0d5bb26a998db62ee26712a728139a
+==================================================
+4. AUTHORITATIVE TRACKED-FILE INVENTORY
 
-Classify each changed path as one of:
+Use git ls-files as the authoritative inventory.
 
-* production behavior;
-* canonical contract;
-* public tool boundary;
-* packaged runtime documentation/context;
-* package/tool description;
-* test;
-* generated or non-behavioral.
+Do not use an ordinary filesystem count as a substitute.
 
-Do not infer the list from previous reports. Resolve it directly from Git.
+For Forge, report:
 
-At minimum, explicitly determine the status of:
+* total tracked paths;
+* tracked Markdown files;
+* tracked SKILL.md files;
+* tracked compounded-learning files;
+* tracked catalogs;
+* tracked agents;
+* tracked instruction paths;
+* tracked scripts;
+* tracked manifests;
+* tracked tests and evals;
+* tracked workflows;
+* tracked binaries or generated artifacts;
+* symlinks and submodules.
 
-resources/framework/contracts/job-config-envelope.v1.json
-src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-src/tools/EtlReadOnlyToolService.ts
-src/core/validation/DataSourcingConfigValidator.ts
-src/tools/EtlActionToolService.ts
-resources/copilot/context/etl-module-reference.md
-package.json
+List the exact path of every:
 
-Also include every other Repair A/B path discovered from Git.
+* SKILL.md;
+* declared agent;
+* declared instruction path;
+* executable-looking script;
+* catalog;
+* manifest.
 
-Phase 2 — Audit Phase H tracked-input coverage
+Reconcile the previous report’s findings:
 
-Locate the authoritative definition and all consumers of:
+* documentation claims 22 or 23 skills;
+* static filesystem count reported 25 skills;
+* documentation claims 63 lessons;
+* static filesystem count reported 58 lessons;
+* apm.yml reportedly declares 25 skills, 8 agents, and 4 instruction paths.
 
-PHASE_H_TRACKED_INPUT_PATTERNS
+Explain the exact reason for every count difference.
 
-Read the relevant implementation, tests, report-generation logic, and current committed Phase H JSON/Markdown reports sufficiently to prove:
+Do not assume every declared path exists. Verify each declaration against tracked files.
 
-1. The exact tracked patterns.
-2. How patterns are expanded.
-3. Whether directories are recursive.
-4. Whether contract JSON, public tool adapters, packaged documentation, and package descriptions are included.
-5. Whether the tracked-input digest covers file contents, paths, or both.
-6. Whether missing/new files affect the digest.
-7. Which Repair A/B changed paths contributed to the latest refreshed report.
-8. Why the current report lists the changed tracked inputs it lists.
+==================================================
+5. ACTIVATION AND DEPENDENCY VERIFICATION
 
-Build an exact coverage matrix with these columns:
+Using only locally available evidence, trace:
 
-Repair	Path	Behavior role	Matching Phase H pattern	Covered?	Evidence
+apm.yml
+→ package or installer
+→ dependency resolution
+→ post-install behavior
+→ skill materialization
+→ harness loading
+→ skill selection
+→ tool execution
+→ output persistence
 
-Use only these classifications:
+Inspect the locally declared references to:
 
-TRACKED
-UNTRACKED_BEHAVIOR_CRITICAL
-NOT_BEHAVIOR_INPUT_WITH_EVIDENCE
-UNRESOLVED
+* EveryInc/compound-engineering-plugin@v1.0.0;
+* pi-subagents;
+* pi-ask-user;
+* the Pi harness;
+* APM installer or package manager;
+* Compound Engineering prompts;
+* the eight declared agents;
+* the four declared instruction paths.
 
-Do not dismiss a path merely because focused tests cover it. This phase is specifically auditing the completeness of Phase H freshness tracking.
+Search both repository roots and the currently opened workspace for these components.
 
-Pay special attention to whether the latest Golden refresh tracked only:
+Do not search unrelated machine directories.
 
-src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-src/core/validation/DataSourcingConfigValidator.ts
+Do not install, clone, fetch, or execute them.
 
-Verify this from the committed report and implementation rather than assuming it.
+For each dependency, classify:
 
-Phase 3 — Assess the current Eval Golden claim
+* PRESENT_AND_TRACKED
+* PRESENT_BUT_UNTRACKED
+* DECLARED_BUT_ABSENT
+* REFERENCE_ONLY
+* UNVERIFIABLE_WITH_CURRENT_SOURCES
 
-Determine which statement is supported:
+Answer with evidence:
 
-A. PHASE_H_TRACKING_COMPLETE
-B. PHASE_H_TRACKING_GAP
-C. PHASE_H_TRACKING_UNRESOLVED
+1. Is Forge intended for GitHub Copilot, Pi, another terminal harness, or multiple hosts?
+2. Does GitHub Copilot discover the top-level skills/** directory directly?
+3. Is an APM installation step required?
+4. Where would skills and agents be materialized?
+5. Is cloning alone sufficient?
+6. Can the seven-phase pipeline dispatch without the missing dependency?
+7. Is there any local evidence that the seven-phase pipeline has completed end to end?
+8. Which exact additional repository, package, or documentation source would be required to prove activation?
 
-Use PHASE_H_TRACKING_GAP if any behavior-critical Repair A/B contract, public handler, packaged runtime context, or behavior-facing package declaration is absent from the tracked-input set.
+Do not infer that a missing dependency is defective if it may intentionally be external. State only what the current clone proves.
 
-If a gap exists:
+==================================================
+6. CORRECT THE PROOF-LEVEL CLASSIFICATIONS
 
-* identify the exact missing paths;
-* identify the narrowest authoritative pattern change that would cover them;
-* state whether another single Eval Golden refresh would then be required;
-* do not implement the change;
-* do not run the generator.
+The previous report classified five scripts as:
 
-The current Golden report contains timestamps and latency values. Do not require full byte-for-byte reproducibility of generated reports. Assess deterministic semantic fields, tracked-input digest, schema, scenario rows, and gate metrics separately from wall-clock fields.
+EXECUTABLE_RUNTIME
 
-Phase 4 — Read-only F5 launch-provenance plan
+No repository-owned script was executed, so that label is not yet proven.
 
-Inspect only repository-owned launch/build configuration needed for the next phase, including as applicable:
+For each script, statically inspect:
 
-package.json
-.vscode/launch.json
-.vscode/tasks.json
-tsconfig files
-the configured extension entry point
-relevant repository instructions
+* path;
+* entry point;
+* inputs;
+* outputs;
+* dependencies;
+* filesystem side effects;
+* network side effects;
+* exit behavior;
+* path-containment behavior;
+* callers or references;
+* tests or evals.
 
-Do not compile or launch anything.
+Use only these proof levels:
 
-Report:
+* RUNTIME_EXECUTION_PROVEN
+* EXECUTABLE_CODE_PRESENT
+* REGISTERED_CUSTOMIZATION
+* DECLARATIVE_KNOWLEDGE
+* DOCS_OR_EXAMPLE_ONLY
+* CLAIM_ONLY
+* UNVERIFIED
 
-1. Extension ID derived from repository metadata.
-2. package.json entry point used by VS Code.
-3. Exact compile/prelaunch task required by the intended F5 configuration.
-4. Exact F5 launch configuration name.
-5. How extensionDevelopmentPath is established.
-6. How the QA workspace should be opened in the new Extension Development Host.
-7. Whether ignored generated output such as out/ can remain stale.
-8. Which evidence can prove that the active extension comes from this source repository rather than an installed extension.
-9. How to prove exactly one active extension instance.
-10. How to ensure the Extension Development Host has exactly one workspace root.
-11. How to open a fresh ETL Orchestrator chat after the host launches.
-12. Which registered public discovery calls can behaviorally prove Repair A is active.
-13. How the later public etl_validate_artifacts call will behaviorally prove Repair B is active.
+Do not use RUNTIME_EXECUTION_PROVEN unless existing repository evidence proves a prior controlled execution. Static readability is insufficient.
 
-Version 0.3.147 alone must explicitly be classified as insufficient provenance.
+Issue an explicit correction ledger for every previous classification that changes.
 
-Do not inspect installed-extension directories or launch F5 during this audit.
+==================================================
+7. COMPLETE STAGE-BY-STAGE MATRIX
 
-Required final report
+The earlier report summarized capabilities but did not provide the full requested stage matrix.
 
-Return a concise but complete English report containing:
+Complete the comparison for all seventeen stages:
 
-1. Preflight evidence table.
-2. Repair A changed-path inventory.
-3. Repair B changed-path inventory.
-4. Phase H coverage matrix.
-5. Exact Phase H verdict.
-6. Missing critical tracked inputs, if any.
-7. Minimal recommended tracking correction, without implementing it.
-8. Whether a new Golden refresh would be required after that correction.
-9. F5 compile/launch configuration facts.
-10. Runtime-provenance evidence required in the next phase.
-11. Exact statement that no file, index entry, ref, stash, setting, build output, Eval artifact, or workspace content was modified.
+1. Brownfield repository discovery.
+2. Existing ETL job reverse engineering.
+3. PRD and impact analysis.
+4. Source-surface and dependency mapping.
+5. Requirement clarification.
+6. STTM ingestion and interpretation.
+7. Semantic plan or Blueprint creation.
+8. ETL artifact generation.
+9. Job and environment configuration.
+10. Deterministic validation.
+11. Zero-write Preview.
+12. Explicit approval.
+13. Guarded write.
+14. Compile/test/run/publish support.
+15. Repair and upgrade.
+16. Knowledge capture and reuse.
+17. Cost and complexity analysis.
 
-Finish with exactly one of:
+For each solution and stage, report:
 
-SOURCE_COVERAGE_PROVENANCE_AUDIT_COMPLETE
+* input;
+* output;
+* responsible component;
+* automation level;
+* model-driven versus deterministic behavior;
+* enforcement level;
+* failure behavior;
+* exact path evidence;
+* point where the workflow stops.
 
-or, if the audit cannot be completed safely:
+Use narrow tables with no more than four columns. Split the matrix across multiple blocks if necessary.
 
-SOURCE_COVERAGE_PROVENANCE_AUDIT_BLOCKED
+==================================================
+8. REVALIDATE THE EIGHT REPORTED GAPS
 
-Do not claim that fixture authoring or F5 QA is ready. The only permitted outcome is an evidence-backed coverage and launch-provenance assessment.
+Revalidate these previous findings against tracked, pinned source:
+
+* G-01 — Read-only job-behaviour/requirements deliverable.
+* G-02 — Python/external-module import-graph source-surface resolver.
+* G-03 — Per-job assumptions/open-questions/deferred-items register.
+* G-04 — Decision-point knowledge routing such as consultWhen.
+* G-05 — What-versus-how contamination detection.
+* G-06 — User-facing effort/complexity/cost surface.
+* G-07 — PySpark optimization knowledge.
+* G-08 — Source-line provenance in the framework contract.
+
+For every gap, return one status:
+
+* CONFIRMED
+* MODIFIED
+* RETRACTED
+* BLOCKED_BY_MISSING_EVIDENCE
+* INTENTIONAL_DIFFERENCE
+
+Provide:
+
+* exact Forge path evidence;
+* exact evidence from our solution;
+* missing user outcome;
+* whether the difference is a capability gap or assurance gap;
+* proposed integration boundary;
+* clean-room reuse classification;
+* confidence.
+
+Specifically check whether our existing explain, learning, redaction, decision, provenance, cost, or lineage implementations already provide an equivalent capability under another name.
+
+Do not preserve a previous gap merely for report consistency.
+
+==================================================
+9. REQUIRED ADDENDUM OUTPUT
+
+Return a screenshot-friendly addendum in six blocks:
+
+VERIFICATION SCREENSHOT 1 — Terminal-backed Git Baselines
+
+VERIFICATION SCREENSHOT 2 — Authoritative Tracked Inventory
+
+VERIFICATION SCREENSHOT 3 — Activation and Dependency Chain
+
+VERIFICATION SCREENSHOT 4 — Corrected Proof Levels
+
+VERIFICATION SCREENSHOT 5 — Seventeen-Stage Comparison and Gap Reconciliation
+
+VERIFICATION SCREENSHOT 6 — Final Evidence Verdict
+
+In the final block, clearly separate:
+
+* conclusions now fully verified;
+* conclusions corrected or retracted;
+* conclusions still unresolved;
+* exact additional source required for each unresolved item;
+* whether the earlier overall verdict remains valid;
+* whether another audit prompt is needed.
+
+Do not produce implementation instructions yet.
+
+==================================================
+10. FINAL SAFETY VERIFICATION
+
+Use Git commands to prove:
+
+* both branches and HEADs remain unchanged;
+* both worktrees remain clean;
+* both indexes remain empty;
+* no untracked file was created;
+* no dependency was installed;
+* no repository-owned code was executed;
+* no external service was contacted;
+* no commit or push occurred.
+
+End with exactly one marker:
+
+FORGE_AUDIT_VERIFICATION_ADDENDUM_COMPLETE
+
+or:
+
+FORGE_AUDIT_VERIFICATION_ADDENDUM_BLOCKED
+
+or:
+
+FORGE_AUDIT_VERIFICATION_TERMINAL_BLOCKED
