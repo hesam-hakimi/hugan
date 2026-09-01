@@ -1,6 +1,6 @@
-Phase H — One-time Eval Golden refresh after Repair A and Repair B
+Step 1 — Read-only deterministic F5 fixture readiness audit
 
-Execute this task in the normal writable VS Code source-repository workspace:
+Run this task in the normal VS Code source-repository workspace:
 
 Repository:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
@@ -8,386 +8,221 @@ C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 Required branch:
 fix/workspace-write-completion-0.3.148
 
-Required starting HEAD — committed Repair B:
-6107aa0b0e0d5bb26a998db62ee26712a728139a
+Required starting HEAD:
+edeaaa74f8d4df715fedb7b2d9f50f2418018770
 
 Required HEAD subject:
-fix: align artifact validation with canonical contract
+test: refresh Phase H evaluation baseline
 
-Required sole parent — committed Repair A:
-46f6930e8474f6ac07d157cc85d21687a08869f3
+Speak with the user in Persian, but keep technical evidence, paths, identifiers, commands, and final markers in English.
 
-Speak with the user in Persian, but keep commands, paths, test identities, commit messages, technical evidence, and final markers in English.
+This is a strictly read-only audit.
 
-This task performs exactly one deterministic Phase H Eval Golden refresh after Repair A and Repair B.
-
-It is not a source repair, feature implementation, runtime QA run, fixture task, release task, or W1 change.
+Do not create the fixture yet. Do not edit, stage, commit, push, render, validate, preview, approve, write, package, install, or run F5.
 
 ==================================================
-0. ENVIRONMENT AND CAPABILITY GATE
 
-Run only in the normal writable source repository.
+1. POWERSHELL PREFIX
+    ==================================================
 
-Do not run in:
-
-* Extension Development Host;
-* F5 QA workspace;
-* consumer ETL workspace;
-* ETL Orchestrator chat;
-* read-only agent mode.
-
-The session must have repository-scoped Read, Write/Edit, and Terminal capabilities.
-
-If report generation cannot write the authorized files, stop with:
-
-PHASE_H_EVAL_GOLDEN_WRITE_BLOCKED
-
-This PowerShell environment may inherit PATHEXT=.CPL.
-
-Every terminal invocation using git, node, npm, npx, or cmd must set this in the same invocation:
+Every terminal invocation using git, node, npm, npx, or cmd must begin with:
 
 $env:PATHEXT = ‘.COM;.EXE;.BAT;.CMD’;
 
-Do not persist that workaround through setx, registry, profiles, VS Code settings, or repository files.
+Do not persist this workaround.
 
 ==================================================
+2. PREFLIGHT
 
-1. STRICT PREFLIGHT
-    ==================================================
+Verify:
 
-Before running any generator, verify:
-
-1. Repository root is exactly:
-    C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-2. Current branch is exactly:
-    fix/workspace-write-completion-0.3.148
-3. HEAD is exactly:
+* repository root is exact;
+* branch is exact;
+* HEAD is exactly:
+    edeaaa74f8d4df715fedb7b2d9f50f2418018770
+* HEAD subject is exact;
+* HEAD has exactly one parent:
     6107aa0b0e0d5bb26a998db62ee26712a728139a
-4. HEAD subject is exactly:
-    fix: align artifact validation with canonical contract
-5. HEAD has exactly one parent:
-    46f6930e8474f6ac07d157cc85d21687a08869f3
-6. git status --short --untracked-files=all is empty.
-7. No staged paths exist.
-8. The topology is linear:
-    Repair A → Repair B
-9. Repair B contains exactly these four paths:
-    * src/core/validation/DataSourcingConfigValidator.ts
-    * src/tools/EtlActionToolService.ts
-    * src/test/suite/dataSourcingConfigValidator.test.ts
-    * src/test/suite/etlActionTools.test.ts
-10. Repair A and Repair B commit objects are valid and reachable from HEAD.
+* worktree, index, and untracked inventory are empty;
+* topology is linear:
+    Repair A → Repair B → Phase H Eval refresh.
 
-If any check differs, do not repair, infer, search for a similar commit, fetch, merge, rebase, reset, checkout, stash, clean, amend, or continue.
+If anything differs, stop with:
 
-Stop with:
-
-PHASE_H_EVAL_GOLDEN_PREFLIGHT_BLOCKED
+DETERMINISTIC_F5_FIXTURE_AUDIT_BLOCKED
 
 ==================================================
-2. AUTHORIZED SCOPE
+3. AUDIT OBJECTIVE
 
-The only authorized persistent modifications are the generator-produced changes to:
+Determine the smallest authoritative deterministic fixture required for the intended ETL Orchestrator F5 QA flow to proceed from STTM interpretation through:
 
-* docs/eval/phase_h_latest_report.json
-* docs/eval/phase_h_latest_report.md
+* canonical artifact construction;
+* render;
+* validation;
+* write preview;
+* trusted confirmation readiness.
 
-No manual content editing is authorized.
+Do not perform those runtime actions in this step.
 
-Do not modify any:
+The previous runtime QA selected:
 
-* TypeScript source;
-* test source;
-* contract;
-* documentation outside the two Phase H reports;
-* package.json;
-* dependency;
-* engine;
-* lockfile;
-* extension version;
-* VSIX artifact;
-* fixture;
-* STTM workbook;
-* job config;
-* environment config;
-* W1 file;
-* prompt or agent file;
-* EvalGating or EvalGovernance implementation;
-* tracked-input patterns.
+* mapping: FM_F01417B0_00002
+* strategy: generic_dataframe_write
+* chain:
+    data_sourcing_process → data_transformation → dataframe_writer
+* writer mode: overwrite
+* environment choice: new synthetic environment config
 
-Do not weaken, bypass, suppress, or mock the Eval freshness gate.
+Previous evidence reported missing:
 
-==================================================
-3. GENERATOR INSPECTION
+* authoritative physical source path;
+* authoritative target path;
+* deterministic environment roots;
+* source/schema details required by JC_001;
+* executable column and predicate details required by FT_001;
+* complete canonical artifact bytes.
 
-Before executing it, inspect the existing eval:golden package script and the directly invoked repository-owned generator only far enough to confirm:
-
-* the exact command;
-* expected output paths;
-* whether it reads the current committed HEAD;
-* whether it is deterministic under the repository’s existing rules;
-* that it does not publish, push, install, package a VSIX, call an external service, or modify production source.
-
-Do not redesign or edit the generator.
-
-If its declared persistent output is broader than the two authorized Phase H report files, stop and report the additional paths with:
-
-PHASE_H_EVAL_GOLDEN_SCOPE_BLOCKED
+Treat those statements as audit leads, not permission to invent values.
 
 ==================================================
-4. ONE-TIME GOLDEN REFRESH
+4. AUTHORITATIVE SOURCES TO INSPECT
 
-Run exactly once:
+Inspect read-only:
 
-npm run eval:golden
+1. The trusted job-config envelope contract.
+2. TrustedJobConfigEnvelopeResolver.
+3. The repaired public discovery projection.
+4. The packaged canonical dataframe-writer example.
+5. The packaged and source module-reference documentation.
+6. Environment-config generation and validation contracts.
+7. Data-sourcing, transformation, and dataframe-writer validators.
+8. First-render invariant and path/interpolation guards.
+9. Existing repository-owned synthetic examples, fixtures, or QA configurations.
+10. Existing tests demonstrating valid source, target, environment-root, schema, column, predicate, inline-SQL, and writer representations.
+11. The STTM native parser/tool contract and any available structured evidence for:
+    FM_F01417B0_00002, JC_001, and FT_001.
 
-Do not rerun it merely to obtain different timestamps, formatting, ordering, or output.
+If an STTM workbook is not inside the current repository, do not search unrelated external directories and do not request broad filesystem access. Record that the workbook must be inspected later in the isolated QA workspace.
 
-If the command fails, stop and report the exact command, exit code, and first actionable error. Do not improvise a manual report.
-
-After the command succeeds, verify that:
-
-1. Only these files are modified:
-    * docs/eval/phase_h_latest_report.json
-    * docs/eval/phase_h_latest_report.md
-2. The JSON is valid.
-3. The Markdown and JSON describe the same refreshed Phase H baseline.
-4. The report is based on current Repair B HEAD:
-    6107aa0b0e0d5bb26a998db62ee26712a728139a
-5. The refreshed tracked-input evidence incorporates the currently committed Repair A and Repair B source state.
-6. The report does not claim that F5 QA, fixture creation, write preview, approval, confirmation, publication, or runtime write occurred.
-7. No source or test file was modified.
-
-If any unexpected path appears, stop without committing.
+Do not parse an Excel STTM with an improvised parser when the registered native STTM interpreter is required.
 
 ==================================================
-5. VALIDATION
+5. QUESTIONS THE AUDIT MUST ANSWER
 
-After generation, run validation in this order:
+Report with file-and-symbol evidence:
 
-1. Validate the generated JSON syntax.
-2. git diff --check
-3. Run the focused EvalGating/EvalGovernance test suite that contains:
-    * EvalGating > passes against the committed Phase H baseline report
-    * EvalGating > allows deterministic v3 baseline reports without prompt telemetry
-4. Run any directly related report-schema or deterministic-baseline tests.
-5. Run the sanctioned full unit suite exactly once:
-    npm run test:unit
-
-The two previous KNOWN_EVAL_FRESHNESS_FAILURE tests must now pass.
-
-Do not classify them as expected failures after the refresh.
-
-==================================================
-6. REMAINING EXPECTED FAILURE MANIFEST
-
-After a successful golden refresh, only these three known baseline failures are permitted.
-
-An exact test identity and essential signature match is required. Matching only the failure count is insufficient.
-
-1. Test identity:
-
-Copilot workflow customization > maintainer delivery prompt references real repo-local agents
-
-Essential signature:
-
-ENOENT opening:
-.github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
-
-Classification:
-
-KNOWN_BASELINE_FAILURE
-
-Action:
-
-Record and continue without reinvestigation or individual rerun.
-
-2. Test identity:
-
-Copilot workflow customization > repo customization assets use valid frontmatter and agent file naming
-
-Essential signature:
-
-business-context.instructions.md frontmatter declares applyTo but no name
-
-Classification:
-
-KNOWN_BASELINE_FAILURE
-
-Action:
-
-Record and continue without reinvestigation or individual rerun.
-
-3. Test identity:
-
-Copilot workflow customization > source tree uses standard AGENTS.md guidance instead of module AGENT.md files
-
-Essential signature:
-
-11 tracked src/*/AGENT.md files versus expected empty inventory
-
-Classification:
-
-KNOWN_BASELINE_FAILURE
-
-Action:
-
-Record and continue without reinvestigation or individual rerun.
-
-Expected full-suite shape, subject to exact identity reconciliation:
-
-* 2358 passing
-* 5 pending
-* 3 failing
-
-If test totals differ only because deterministic test discovery adds or removes passing tests, report the arithmetic and continue only if:
-
-* the only failures are the exact three manifest entries;
-* both former EvalGating failures pass;
-* no test disappeared unexpectedly.
-
-Any additional failure, changed signature, Eval freshness failure, timeout, crash, or infrastructure error blocks the commit.
-
-Do not rerun manifest-matching failures individually.
+1. Does a complete repository-owned deterministic fixture already exist?
+2. If yes:
+    * exact path;
+    * exact purpose;
+    * whether it is safe for isolated F5 QA;
+    * whether it supplies all required physical and executable values.
+3. If no, identify the exact missing fields without guessing their values.
+4. What is the canonical environment-config extension and structure?
+5. Which environment-root keys are required for:
+    * physical source;
+    * transformation/intermediate output, if applicable;
+    * dataframe-writer destination?
+6. What path form is accepted by the first-render guard?
+7. Which values must be interpolated instead of hard-coded?
+8. What exact sourcing-stage structure is required, including:
+    * options.module;
+    * options.method;
+    * sourceList;
+    * named source blocks;
+    * read format;
+    * path;
+    * zone;
+    * schema or dataset details.
+9. What exact executable transformation representation is required for FT_001?
+10. Does FT_001 require:
+    * inline SQL;
+    * column expressions;
+    * predicates;
+    * aliases;
+    * include artifacts;
+    * or another contract field?
+11. What exact dataframe-writer options are required for:
+    * generic_dataframe_write;
+    * overwrite mode;
+    * format;
+    * destination path;
+    * inline SQL or input view.
+12. Which values are authoritative from STTM evidence, and which must come from a QA-owned fixture decision?
+13. Where should the fixture live:
+    * source repository;
+    * isolated QA workspace;
+    * or both?
+14. What exact files would need to be created in the next step?
+15. Which files must remain protected and untouched?
 
 ==================================================
-7. GENERATED CACHE HANDLING
+6. SAFETY REQUIREMENTS
 
-The sanctioned tests may dirty the tracked incremental compilation cache:
+The proposed fixture must be:
 
-.tsbuildinfo.test
+* synthetic;
+* deterministic;
+* isolated to a QA workspace;
+* free of real customer or production data;
+* free of external service dependency;
+* free of Databricks, DBFS, ABFSS, network, or credential requirements unless the existing F5 contract explicitly requires them;
+* incapable of writing outside its isolated QA roots;
+* reusable across repeated F5 runs;
+* explicit enough that the Orchestrator does not need to guess any executable value.
 
-This file is not an authorized deliverable.
+Do not propose relaxing validation or invariant guards merely to make the fixture pass.
 
-If and only if .tsbuildinfo.test is the sole non-report modification and its change was generated by the required test commands, restore it byte-for-byte from the pinned Repair B HEAD:
-
-6107aa0b0e0d5bb26a998db62ee26712a728139a
-
-The only authorized restore operation is:
-
-git restore –source=6107aa0b0e0d5bb26a998db62ee26712a728139a – .tsbuildinfo.test
-
-Then verify that it has zero diff.
-
-Do not use checkout, reset, clean, stash, or broad restore commands.
-
-Any other unexpected modified or untracked path is a blocker.
+Do not modify Repair A, Repair B, Eval reports, W1 code, version, dependencies, contracts, examples, or documentation.
 
 ==================================================
-8. PRE-COMMIT GATE
+7. NO TEST OR GENERATION WORK
 
-Before committing, report:
+Do not run:
 
-1. Branch.
-2. HEAD before commit.
-3. Sole parent and linear topology.
-4. Exact generator command and exit code.
-5. Exact changed-path inventory.
-6. Diff summary.
-7. JSON validation result.
-8. git diff --check result.
-9. Focused Eval test results.
-10. Full-suite totals.
-11. Proof that both former Eval freshness failures now pass.
-12. Exact reconciliation of the three remaining known failures.
-13. Proof that every production and test path is byte-identical to Repair B HEAD.
-14. Proof that W1 files and behavior are unchanged.
-15. Proof that package version remains 0.3.147.
-16. Proof that dependencies, devDependencies, engines, and lockfile state are unchanged.
-17. Proof that no fixture, STTM, job config, environment config, VSIX, generated build artifact, or unexpected file exists.
+* npm run eval:golden;
+* full unit suite;
+* F5;
+* VSIX build/package/install;
+* ETL Orchestrator;
+* renderer;
+* validator;
+* preview;
+* write;
+* external services.
 
-Commit only if:
-
-* npm run eval:golden succeeded;
-* focused Eval tests pass;
-* both old Eval freshness failures are gone;
-* the full suite has only the three exact manifest failures;
-* only the two authorized report files remain modified;
-* all protected boundaries remain unchanged.
-
-Stage the two report paths explicitly:
-
-* docs/eval/phase_h_latest_report.json
-* docs/eval/phase_h_latest_report.md
-
-Do not use:
-
-git add -A
-
-Do not use:
-
-git add .
-
-Create exactly one commit with subject:
-
-test: refresh Phase H evaluation baseline
-
-Do not amend Repair A or Repair B.
-
-Do not push.
+Small read-only inspection commands are permitted.
 
 ==================================================
-9. POST-COMMIT VERIFICATION
+8. REQUIRED OUTPUT
 
-After committing, verify:
+Return a concise readiness report with:
 
-1. The new commit has exactly one parent.
-2. Its sole parent is:
-    6107aa0b0e0d5bb26a998db62ee26712a728139a
-3. Its subject is exactly:
-    test: refresh Phase H evaluation baseline
-4. It contains exactly:
-    * docs/eval/phase_h_latest_report.json
-    * docs/eval/phase_h_latest_report.md
-5. Worktree, index, and untracked inventory are empty.
-6. Repair B remains the immediate parent.
-7. No source, test, W1, fixture, version, dependency, lockfile, or generated artifact was committed.
-8. No push occurred.
+1. Preflight result.
+2. Existing-fixture finding.
+3. Authoritative contract findings.
+4. Exact missing-field inventory.
+5. STTM-derived versus QA-owned decision table.
+6. Proposed minimal fixture file inventory.
+7. Recommended fixture location.
+8. Exact protected boundaries.
+9. Any unresolved evidence that must be obtained from the isolated QA workspace.
+10. A clear verdict:
 
-==================================================
-10. NON-GOALS
+* READY_TO_AUTHOR_FIXTURE
+* EXISTING_FIXTURE_REUSABLE
+* FIXTURE_EVIDENCE_INCOMPLETE
 
-Do not:
+11. Confirmation that nothing was modified and git status remains empty.
 
-* create the deterministic physical fixture;
-* run F5 QA;
-* run the ETL Orchestrator;
-* render or validate a runtime STTM candidate;
-* create a job or environment config;
-* build, package, or install a VSIX;
-* perform write preview, approval, confirmation, or write;
-* call external services;
-* publish or push;
-* create a branch;
-* modify Repair A or Repair B;
-* claim end-to-end QA readiness.
-
-The deterministic physical source/target/environment fixture remains the next separate task after this commit.
-
-==================================================
-11. FINAL RESPONSE
-
-Return a concise evidence report containing:
-
-* Eval refresh commit SHA;
-* sole parent SHA;
-* commit subject;
-* exact changed paths;
-* npm run eval:golden result;
-* focused Eval test results;
-* full-suite result;
-* proof that the two freshness failures now pass;
-* reconciliation of the three remaining known baseline failures;
-* protected-file verification;
-* final worktree state;
-* explicit statement that no source code changed;
-* explicit statement that no F5 QA or fixture work occurred;
-* explicit statement that no push occurred.
+Do not create a fixture-authoring prompt yet; return the evidence first.
 
 End with exactly one marker:
 
-PHASE_H_EVAL_GOLDEN_REFRESH_COMMITTED
+DETERMINISTIC_F5_FIXTURE_AUDIT_COMPLETE
 
-or, if blocked:
+or:
 
-PHASE_H_EVAL_GOLDEN_REFRESH_BLOCKED
+DETERMINISTIC_F5_FIXTURE_AUDIT_BLOCKED
+
+answer in english only
