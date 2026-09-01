@@ -1,4 +1,4 @@
-Repair B — Validator consumption parity
+Phase H — One-time Eval Golden refresh after Repair A and Repair B
 
 Execute this task in the normal writable VS Code source-repository workspace:
 
@@ -8,320 +8,182 @@ C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 Required branch:
 fix/workspace-write-completion-0.3.148
 
-Required starting HEAD — committed Repair A:
-46f6930e8474f6ac07d157cc85d21687a08869f3
+Required starting HEAD — committed Repair B:
+6107aa0b0e0d5bb26a998db62ee26712a728139a
 
 Required HEAD subject:
-fix: expose canonical runtime artifact contract
+fix: align artifact validation with canonical contract
 
-Speak to the user in Persian, but keep source code, code comments, test names, commit messages, commands, technical reports, and final markers in English.
+Required sole parent — committed Repair A:
+46f6930e8474f6ac07d157cc85d21687a08869f3
 
-This is Repair B only: validator consumption parity.
+Speak with the user in Persian, but keep commands, paths, test identities, commit messages, technical evidence, and final markers in English.
 
-Repair A is complete and committed. Do not repeat, amend, redesign, squash, or revert Repair A.
+This task performs exactly one deterministic Phase H Eval Golden refresh after Repair A and Repair B.
 
-Do not run this task in:
-
-* the Extension Development Host;
-* an F5 QA workspace;
-* a consumer ETL workspace;
-* an ETL Orchestrator chat;
-* a read-only agent session.
-
-The session must provide repository-scoped Read, Write/Edit, and Terminal capabilities. If Write/Edit is unavailable, stop immediately with:
-
-REPAIR_B_WRITE_EDIT_UNAVAILABLE
-
-Do not use a general-purpose or read-only workflow as a substitute.
+It is not a source repair, feature implementation, runtime QA run, fixture task, release task, or W1 change.
 
 ==================================================
-0. POWERSHELL COMMAND PREFIX
+0. ENVIRONMENT AND CAPABILITY GATE
 
-This shell may inherit PATHEXT=.CPL.
+Run only in the normal writable source repository.
 
-Every terminal invocation that uses git, node, npm, npx, or cmd must set PATHEXT in that same invocation:
+Do not run in:
+
+* Extension Development Host;
+* F5 QA workspace;
+* consumer ETL workspace;
+* ETL Orchestrator chat;
+* read-only agent mode.
+
+The session must have repository-scoped Read, Write/Edit, and Terminal capabilities.
+
+If report generation cannot write the authorized files, stop with:
+
+PHASE_H_EVAL_GOLDEN_WRITE_BLOCKED
+
+This PowerShell environment may inherit PATHEXT=.CPL.
+
+Every terminal invocation using git, node, npm, npx, or cmd must set this in the same invocation:
 
 $env:PATHEXT = ‘.COM;.EXE;.BAT;.CMD’;
 
-Do not persist this workaround with setx, registry edits, profile edits, VS Code settings, or repository files.
+Do not persist that workaround through setx, registry, profiles, VS Code settings, or repository files.
 
 ==================================================
 
 1. STRICT PREFLIGHT
     ==================================================
 
-Before editing anything, verify:
+Before running any generator, verify:
 
 1. Repository root is exactly:
     C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 2. Current branch is exactly:
     fix/workspace-write-completion-0.3.148
 3. HEAD is exactly:
-    46f6930e8474f6ac07d157cc85d21687a08869f3
+    6107aa0b0e0d5bb26a998db62ee26712a728139a
 4. HEAD subject is exactly:
-    fix: expose canonical runtime artifact contract
+    fix: align artifact validation with canonical contract
 5. HEAD has exactly one parent:
-    a7ec7284906897321b2af5f7bf99de99211f7b70
+    46f6930e8474f6ac07d157cc85d21687a08869f3
 6. git status --short --untracked-files=all is empty.
-7. Index contains no staged paths.
-8. No unexpected merge topology exists.
-9. Repair A contains exactly nine changed paths relative to its parent.
-10. The two Phase H report files remain unchanged from the Repair A parent:
+7. No staged paths exist.
+8. The topology is linear:
+    Repair A → Repair B
+9. Repair B contains exactly these four paths:
+    * src/core/validation/DataSourcingConfigValidator.ts
+    * src/tools/EtlActionToolService.ts
+    * src/test/suite/dataSourcingConfigValidator.test.ts
+    * src/test/suite/etlActionTools.test.ts
+10. Repair A and Repair B commit objects are valid and reachable from HEAD.
+
+If any check differs, do not repair, infer, search for a similar commit, fetch, merge, rebase, reset, checkout, stash, clean, amend, or continue.
+
+Stop with:
+
+PHASE_H_EVAL_GOLDEN_PREFLIGHT_BLOCKED
+
+==================================================
+2. AUTHORIZED SCOPE
+
+The only authorized persistent modifications are the generator-produced changes to:
 
 * docs/eval/phase_h_latest_report.json
 * docs/eval/phase_h_latest_report.md
 
-If any check differs, do not infer, repair, checkout, reset, clean, stash, fetch, merge, rebase, amend, or continue. Stop and report the exact mismatch with:
+No manual content editing is authorized.
 
-REPAIR_B_PREFLIGHT_BLOCKED
+Do not modify any:
 
-Do not use destructive Git commands.
+* TypeScript source;
+* test source;
+* contract;
+* documentation outside the two Phase H reports;
+* package.json;
+* dependency;
+* engine;
+* lockfile;
+* extension version;
+* VSIX artifact;
+* fixture;
+* STTM workbook;
+* job config;
+* environment config;
+* W1 file;
+* prompt or agent file;
+* EvalGating or EvalGovernance implementation;
+* tracked-input patterns.
 
-==================================================
-2. REPAIR B OBJECTIVE
-
-Align artifact validation with the canonical executable contract established by Repair A.
-
-Repair the two validator-consumption defects:
-
-A. DataSourcingConfigValidator must consume the shared canonical HOCON module grammar instead of relying on colon-only block extraction.
-
-B. The public artifact-validation adapter must populate the real module sequence and provide the correct output-strategy decision for recognized canonical writers, instead of validating an empty Blueprint and producing a false strategy warning.
-
-This task does not redesign artifact rendering, writing, approval, preview, manifest handling, collision handling, drift detection, or runtime QA.
-
-==================================================
-3. AUTHORIZED PRODUCTION SCOPE
-
-Production edits are authorized only in:
-
-1. src/core/validation/DataSourcingConfigValidator.ts
-2. src/tools/EtlActionToolService.ts
-
-For EtlActionToolService.ts, only validation-related hunks inside or directly supporting validateRenderedArtifacts are authorized.
-
-A small validation-only helper or import immediately supporting that function is permitted.
-
-No other behavior in EtlActionToolService.ts may change.
-
-Before editing EtlActionToolService.ts:
-
-* record the current blob OID;
-* record the exact current line range of validateRenderedArtifacts;
-* record the names of adjacent write-related methods;
-* preserve the pre-edit file for post-edit hunk comparison.
-
-After editing, prove that every changed hunk is either:
-
-* inside validateRenderedArtifacts; or
-* a minimal validation-only helper/import used exclusively by that path.
-
-Any hunk touching or changing the behavior of these areas is an immediate blocker:
-
-* writeToWorkspace
-* performWrite
-* collectManifestFiles
-* buildApprovalManifest
-* evaluateToolPlanScopedConsent
-* preview
-* probing
-* approval
-* authorization
-* consent
-* manifest generation
-* collision handling
-* drift handling
-* checksum handling
-* write-result construction
-* trusted write state
-* W1 ownership or atomic-apply behavior
-
-If a required fix cannot be made without touching one of those areas, stop with:
-
-REPAIR_B_W1_BOUNDARY_BLOCKED
+Do not weaken, bypass, suppress, or mock the Eval freshness gate.
 
 ==================================================
-4. AUTHORIZED TEST SCOPE
+3. GENERATOR INSPECTION
 
-Prefer extending existing directly related tests.
+Before executing it, inspect the existing eval:golden package script and the directly invoked repository-owned generator only far enough to confirm:
 
-Authorized test paths are limited to existing or newly created focused tests whose sole purpose is one of these components:
+* the exact command;
+* expected output paths;
+* whether it reads the current committed HEAD;
+* whether it is deterministic under the repository’s existing rules;
+* that it does not publish, push, install, package a VSIX, call an external service, or modify production source.
 
-* DataSourcingConfigValidator
-* EtlActionToolService.validateRenderedArtifacts
-* the registered public etl_validate_artifacts boundary
+Do not redesign or edit the generator.
 
-Before creating a new test file, prove that the behavior cannot be clearly expressed in an existing directly related suite.
+If its declared persistent output is broader than the two authorized Phase H report files, stop and report the additional paths with:
 
-Do not modify:
-
-* EvalGating or EvalGovernance tests;
-* Phase H reports;
-* W1 collision/approval tests;
-* workspace classification tests;
-* unrelated shared test utilities;
-* test expectations merely to hide a genuine regression.
+PHASE_H_EVAL_GOLDEN_SCOPE_BLOCKED
 
 ==================================================
-5. CHARACTERIZATION BEFORE PRODUCTION EDITS
+4. ONE-TIME GOLDEN REFRESH
 
-Do not rerun or reinvestigate the full known baseline before editing.
+Run exactly once:
 
-First run focused characterization tests that prove the current behavior for:
+npm run eval:golden
 
-1. Colon-form HOCON stage:
-    stage: { … }
-2. Equals-form HOCON stage:
-    stage = { … }
-3. Omitted-separator HOCON stage:
-    stage { … }
-4. Canonical data-sourcing configuration containing:
-    * a modules root;
-    * a stage whose options.module is data_sourcing_process;
-    * module-local sourceList;
-    * named source blocks referenced by sourceList;
-    * options.method.
-5. Canonical dataframe_writer bytes passed through the real public validation path.
-6. A valid canonical job config at a .conf path.
-7. The same canonical bytes at a .yaml path.
-8. Recognized writer output currently receiving or not receiving:
-    OUTPUT_STRATEGY_REVIEW_REQUIRED
+Do not rerun it merely to obtain different timestamps, formatting, ordering, or output.
 
-Record the focused red/green evidence. A failing characterization test must demonstrate the intended defect, not an unrelated setup problem.
+If the command fails, stop and report the exact command, exit code, and first actionable error. Do not improvise a manual report.
 
-Do not run F5 QA or create a physical fixture.
+After the command succeeds, verify that:
+
+1. Only these files are modified:
+    * docs/eval/phase_h_latest_report.json
+    * docs/eval/phase_h_latest_report.md
+2. The JSON is valid.
+3. The Markdown and JSON describe the same refreshed Phase H baseline.
+4. The report is based on current Repair B HEAD:
+    6107aa0b0e0d5bb26a998db62ee26712a728139a
+5. The refreshed tracked-input evidence incorporates the currently committed Repair A and Repair B source state.
+6. The report does not claim that F5 QA, fixture creation, write preview, approval, confirmation, publication, or runtime write occurred.
+7. No source or test file was modified.
+
+If any unexpected path appears, stop without committing.
 
 ==================================================
-6. PARSER CONSUMPTION REPAIR
+5. VALIDATION
 
-In DataSourcingConfigValidator:
+After generation, run validation in this order:
 
-* stop maintaining an independent colon-only interpretation of module blocks;
-* reuse the repository’s shared canonical module-sequence grammar from:
-    src/core/utils/ModuleSequenceExtractor.ts
-    wherever safely possible;
-* ensure all contract-supported separators are recognized equivalently:
-    * stage: { ... }
-    * stage = { ... }
-    * stage { ... }
-* identify the actual stage whose canonical dispatch field resolves to:
-    options.module = data_sourcing_process
-* validate data-sourcing keys from that stage’s complete content;
-* read sourceList as a module-local array and a sibling of options;
-* verify that every sourceList entry names a source block inside the same stage;
-* preserve all existing validation rules for paths, zones, read formats, interpolation, required source attributes, and issue codes;
-* preserve fail-closed behavior;
-* preserve the existing “no data_sourcing module” valid early return unless the trusted contract explicitly requires otherwise;
-* do not weaken validation to make malformed content pass;
-* do not implement another ad-hoc parser if the shared extractor can provide the required structure.
+1. Validate the generated JSON syntax.
+2. git diff --check
+3. Run the focused EvalGating/EvalGovernance test suite that contains:
+    * EvalGating > passes against the committed Phase H baseline report
+    * EvalGating > allows deterministic v3 baseline reports without prompt telemetry
+4. Run any directly related report-schema or deterministic-baseline tests.
+5. Run the sanctioned full unit suite exactly once:
+    npm run test:unit
 
-The following outcomes must disappear for valid canonical bytes:
+The two previous KNOWN_EVAL_FRESHNESS_FAILURE tests must now pass.
 
-* MISSING_MODULE_OPTIONS
-* MISSING_SOURCE_LIST
-* MISSING_SOURCE_BLOCK
-
-They must still occur for genuinely invalid configurations.
+Do not classify them as expected failures after the refresh.
 
 ==================================================
-7. PUBLIC VALIDATION ADAPTER REPAIR
+6. REMAINING EXPECTED FAILURE MANIFEST
 
-In the validation-only path of EtlActionToolService:
+After a successful golden refresh, only these three known baseline failures are permitted.
 
-* parse the real module sequence from artifacts.jobConfig;
-* populate blueprint.modules from the recognized canonical modules;
-* do not pass an empty module list when canonical modules are present;
-* derive outputDecision only for recognized supported output modules;
-* use existing output-strategy discriminators and mappings where available;
-* do not duplicate contract parsing rules.
-
-Required recognized mapping:
-
-* dataframe_writer → generic_dataframe_write
-* load_enrich_process → curated_load_enrich
-
-Preserve the existing supported behavior and discriminators for:
-
-* database_out
-* tibco_out
-
-Unknown, contradictory, malformed, or unsupported output modules must remain fail-closed or review-required according to the existing validator contract.
-
-Do not fabricate an output decision when the module sequence does not justify one.
-
-A valid canonical dataframe-writer configuration must not receive the false warning:
-
-OUTPUT_STRATEGY_REVIEW_REQUIRED
-
-Do not weaken OutputStrategyConfigValidator itself. Repair the adapter input supplied to it.
-
-==================================================
-8. EXTENSION-BOUNDARY REQUIREMENTS
-
-Repair A established job-config extensions:
-
-* .conf
-* .json
-
-Do not add .yaml or .yml as permitted job-config extensions.
-
-Required behavior:
-
-1. Valid canonical bytes at a .conf path pass validation.
-2. Valid canonical bytes at a .json path pass validation when the content is otherwise supported.
-3. The same valid canonical job bytes at a .yaml path fail only at the job-config extension boundary.
-4. The .yaml result must not cascade into unrelated errors such as:
-    * MISSING_MODULE_OPTIONS
-    * MISSING_SOURCE_LIST
-    * MISSING_SOURCE_BLOCK
-    * OUTPUT_STRATEGY_REVIEW_REQUIRED
-
-Environment-config YAML behavior is out of scope and must remain unchanged.
-
-==================================================
-9. REQUIRED ACCEPTANCE TESTS
-
-The focused tests must prove at least:
-
-1. DataSourcingConfigValidator accepts equivalent valid sourcing stages using all three separators:
-    * colon;
-    * equals;
-    * omitted separator.
-2. Canonical sourceList and its named source blocks are resolved from the correct sourcing stage.
-3. Valid canonical sourcing bytes produce none of:
-    * MISSING_MODULE_OPTIONS
-    * MISSING_SOURCE_LIST
-    * MISSING_SOURCE_BLOCK
-4. Truly missing or empty sourceList still produces the correct existing issue.
-5. A referenced but absent named source block still produces the correct existing issue.
-6. The real public etl_validate_artifacts handler accepts repository-owned canonical dataframe-writer bytes at a .conf path.
-7. The same canonical bytes at a .yaml path produce exactly the extension mismatch and no parser or strategy cascade.
-8. A recognized canonical dataframe writer produces no false:
-    OUTPUT_STRATEGY_REVIEW_REQUIRED
-9. Unknown or unsupported output strategy remains fail-closed/review-required.
-10. Existing database and TIBCO strategy behavior remains unchanged.
-
-Tests must exercise both applicable layers:
-
-* direct service/validator behavior;
-* the registered public tool boundary through the real handler, including its structured application/json result.
-
-Do not prove only a private helper while leaving the public payload incorrect.
-
-==================================================
-10. EXPECTED FAILURE MANIFEST
-
-This manifest is authoritative for this task and exists to avoid repeated investigation.
-
-The full unit suite may be run once after focused tests pass.
-
-An expected failure is acceptable only when its exact test identity and essential signature match this manifest.
-
-Do not accept a failure merely because the total failure count matches.
-
-⸻
-
-A. KNOWN_BASELINE_FAILURE
+An exact test identity and essential signature match is required. Matching only the failure count is insufficient.
 
 1. Test identity:
 
@@ -332,10 +194,13 @@ Essential signature:
 ENOENT opening:
 .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
 
+Classification:
+
+KNOWN_BASELINE_FAILURE
+
 Action:
 
-Record as KNOWN_BASELINE_FAILURE and continue.
-Do not investigate or rerun it individually.
+Record and continue without reinvestigation or individual rerun.
 
 2. Test identity:
 
@@ -345,10 +210,13 @@ Essential signature:
 
 business-context.instructions.md frontmatter declares applyTo but no name
 
+Classification:
+
+KNOWN_BASELINE_FAILURE
+
 Action:
 
-Record as KNOWN_BASELINE_FAILURE and continue.
-Do not investigate or rerun it individually.
+Record and continue without reinvestigation or individual rerun.
 
 3. Test identity:
 
@@ -358,162 +226,89 @@ Essential signature:
 
 11 tracked src/*/AGENT.md files versus expected empty inventory
 
+Classification:
+
+KNOWN_BASELINE_FAILURE
+
 Action:
 
-Record as KNOWN_BASELINE_FAILURE and continue.
-Do not investigate or rerun it individually.
+Record and continue without reinvestigation or individual rerun.
 
-⸻
+Expected full-suite shape, subject to exact identity reconciliation:
 
-B. KNOWN_EVAL_FRESHNESS_FAILURE
+* 2358 passing
+* 5 pending
+* 3 failing
 
-4. Test identity:
+If test totals differ only because deterministic test discovery adds or removes passing tests, report the arithmetic and continue only if:
 
-EvalGating > passes against the committed Phase H baseline report
+* the only failures are the exact three manifest entries;
+* both former EvalGating failures pass;
+* no test disappeared unexpectedly.
 
-5. Test identity:
+Any additional failure, changed signature, Eval freshness failure, timeout, crash, or infrastructure error blocks the commit.
 
-EvalGating > allows deterministic v3 baseline reports without prompt telemetry
-
-Required essential signature for both:
-
-Tracked prompt or behavior inputs changed since the last baseline report
-
-The changed-path list may contain only a nonempty subset of these authorized tracked inputs:
-
-* src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-* src/core/validation/DataSourcingConfigValidator.ts
-* src/tools/EtlActionToolService.ts
-
-The Repair A resolver path is already an expected tracked difference.
-
-Repair B may add only its authorized production paths to the same freshness signature.
-
-If the two exact EvalGating tests fail with that exact failure class and their changed paths are confined to the list above:
-
-* classify them as KNOWN_EVAL_FRESHNESS_FAILURE;
-* record the actual changed-path list verbatim;
-* do not investigate them again;
-* do not rerun them individually;
-* do not modify or weaken EvalGating;
-* do not run npm run eval:golden;
-* continue toward the Repair B commit.
-
-If the failure names, failure class, or changed paths differ, stop.
-
-If an expected failure disappears, continue and report that the manifest entry may be removed later.
-
-Any additional failure, changed signature, unexpected changed path, timeout, crash, or infrastructure error blocks the commit.
+Do not rerun manifest-matching failures individually.
 
 ==================================================
-11. VALIDATION ORDER
+7. GENERATED CACHE HANDLING
 
-Run validation in this order:
+The sanctioned tests may dirty the tracked incremental compilation cache:
 
-1. git diff --check
-2. Compile.
-3. Focused DataSourcingConfigValidator tests.
-4. Focused EtlActionToolService validation tests.
-5. Registered public etl_validate_artifacts boundary tests.
-6. Relevant existing strategy-validation tests.
-7. Relevant W1 protection/collision/approval tests, without changing their bytes.
-8. Full unit suite exactly once after all focused tests pass.
+.tsbuildinfo.test
 
-For the full suite:
+This file is not an authorized deliverable.
 
-* reconcile failures by exact identity and signature against Section 10;
-* do not reinvestigate exact manifest matches;
-* do not rerun exact manifest matches individually;
-* stop on any unexpected failure.
+If and only if .tsbuildinfo.test is the sole non-report modification and its change was generated by the required test commands, restore it byte-for-byte from the pinned Repair B HEAD:
 
-Do not run:
+6107aa0b0e0d5bb26a998db62ee26712a728139a
 
-* npm run eval:golden
-* F5 QA
-* VSIX build/package/install
-* external service calls
-* publication or release commands
+The only authorized restore operation is:
+
+git restore –source=6107aa0b0e0d5bb26a998db62ee26712a728139a – .tsbuildinfo.test
+
+Then verify that it has zero diff.
+
+Do not use checkout, reset, clean, stash, or broad restore commands.
+
+Any other unexpected modified or untracked path is a blocker.
 
 ==================================================
-12. PROTECTED FILES AND NON-GOALS
-
-Do not modify:
-
-* Repair A contract/discovery files;
-* resources/framework/contracts/job-config-envelope.v1.json
-* src/core/framework/TrustedJobConfigEnvelopeResolver.ts
-* src/tools/EtlReadOnlyToolService.ts
-* resources/copilot/context/etl-module-reference.md
-* docs/reference/ETL_MODULE_REFERENCE.md
-* package.json
-* Repair A focused test files unless one is also an existing directly related Repair B test and an edit is strictly necessary;
-* src/core/utils/ModuleSequenceExtractor.ts
-* src/test/testPatterns.ts
-* src/tools/TrustedWriteApprovalStore.ts
-* src/tools/index.ts
-* .vscodeignore
-* docs/eval/phase_h_latest_report.json
-* docs/eval/phase_h_latest_report.md
-* any STTM workbook;
-* any job config;
-* any environment config;
-* any QA fixture;
-* any generated build artifact;
-* any version, dependency, devDependency, engine, or lockfile;
-* release notes;
-* W1 implementation or W1 tests.
-
-Do not:
-
-* run npm run eval:golden;
-* create a deterministic physical fixture;
-* run end-to-end F5 QA;
-* redesign renderer ownership;
-* make renderers synthesize caller bytes;
-* alter etl_search_examples;
-* change write, preview, approval, consent, manifest, collision, checksum, drift, or atomic-apply behavior;
-* fetch, pull, merge, rebase, reset, checkout, stash, clean, amend, cherry-pick, squash, push, publish, or create a branch.
-
-The missing deterministic physical source/target/environment fixture remains a separate later task.
-
-Repair B must not claim that end-to-end F5 QA is now confirmation-ready.
-
-==================================================
-13. PRE-COMMIT GATE
+8. PRE-COMMIT GATE
 
 Before committing, report:
 
-1. Current branch.
+1. Branch.
 2. HEAD before commit.
-3. Exact changed-path inventory.
-4. Exact diff summary.
-5. git diff --check result.
-6. Compile result.
-7. Focused test commands and totals.
-8. Full-suite totals.
-9. Expected Failure Manifest reconciliation with:
-    * exact test identity;
-    * exact observed signature;
-    * classification;
-    * action taken.
-10. Proof that all EtlActionToolService.ts hunks are validation-only.
-11. Proof that W1-owned paths and behavior are unchanged.
-12. Proof that Repair A production files are unchanged.
-13. Proof that Eval report files are byte-identical to Repair A HEAD.
-14. Proof that package version, dependencies, engines, and lockfile state are unchanged.
-15. Proof that no fixture, VSIX, generated artifact, or unexpected file exists.
+3. Sole parent and linear topology.
+4. Exact generator command and exit code.
+5. Exact changed-path inventory.
+6. Diff summary.
+7. JSON validation result.
+8. git diff --check result.
+9. Focused Eval test results.
+10. Full-suite totals.
+11. Proof that both former Eval freshness failures now pass.
+12. Exact reconciliation of the three remaining known failures.
+13. Proof that every production and test path is byte-identical to Repair B HEAD.
+14. Proof that W1 files and behavior are unchanged.
+15. Proof that package version remains 0.3.147.
+16. Proof that dependencies, devDependencies, engines, and lockfile state are unchanged.
+17. Proof that no fixture, STTM, job config, environment config, VSIX, generated build artifact, or unexpected file exists.
 
 Commit only if:
 
-* all focused tests pass;
-* compile passes;
-* no unexpected full-suite failure exists;
-* the only full-suite failures are exact manifest matches;
-* every changed path is authorized;
-* every EtlActionToolService.ts hunk is validation-only;
-* all protected boundaries remain intact.
+* npm run eval:golden succeeded;
+* focused Eval tests pass;
+* both old Eval freshness failures are gone;
+* the full suite has only the three exact manifest failures;
+* only the two authorized report files remain modified;
+* all protected boundaries remain unchanged.
 
-Stage each authorized path explicitly.
+Stage the two report paths explicitly:
+
+* docs/eval/phase_h_latest_report.json
+* docs/eval/phase_h_latest_report.md
 
 Do not use:
 
@@ -523,53 +318,76 @@ Do not use:
 
 git add .
 
-If the gate passes, create exactly one commit with subject:
+Create exactly one commit with subject:
 
-fix: align artifact validation with canonical contract
+test: refresh Phase H evaluation baseline
 
-Do not amend Repair A.
+Do not amend Repair A or Repair B.
 
 Do not push.
 
 ==================================================
-14. POST-COMMIT VERIFICATION
+9. POST-COMMIT VERIFICATION
 
 After committing, verify:
 
 1. The new commit has exactly one parent.
 2. Its sole parent is:
-    46f6930e8474f6ac07d157cc85d21687a08869f3
+    6107aa0b0e0d5bb26a998db62ee26712a728139a
 3. Its subject is exactly:
-    fix: align artifact validation with canonical contract
-4. It contains only authorized Repair B paths.
+    test: refresh Phase H evaluation baseline
+4. It contains exactly:
+    * docs/eval/phase_h_latest_report.json
+    * docs/eval/phase_h_latest_report.md
 5. Worktree, index, and untracked inventory are empty.
-6. Repair A remains the immediate parent.
-7. Phase H reports remain unchanged.
-8. No W1, fixture, version, dependency, lockfile, generated artifact, or unrelated file was changed.
+6. Repair B remains the immediate parent.
+7. No source, test, W1, fixture, version, dependency, lockfile, or generated artifact was committed.
+8. No push occurred.
 
 ==================================================
-15. FINAL RESPONSE
+10. NON-GOALS
+
+Do not:
+
+* create the deterministic physical fixture;
+* run F5 QA;
+* run the ETL Orchestrator;
+* render or validate a runtime STTM candidate;
+* create a job or environment config;
+* build, package, or install a VSIX;
+* perform write preview, approval, confirmation, or write;
+* call external services;
+* publish or push;
+* create a branch;
+* modify Repair A or Repair B;
+* claim end-to-end QA readiness.
+
+The deterministic physical source/target/environment fixture remains the next separate task after this commit.
+
+==================================================
+11. FINAL RESPONSE
 
 Return a concise evidence report containing:
 
-* Repair B commit SHA;
+* Eval refresh commit SHA;
 * sole parent SHA;
 * commit subject;
 * exact changed paths;
-* focused test results;
+* npm run eval:golden result;
+* focused Eval test results;
 * full-suite result;
-* Expected Failure Manifest reconciliation;
-* EtlActionToolService validation-only hunk proof;
+* proof that the two freshness failures now pass;
+* reconciliation of the three remaining known baseline failures;
 * protected-file verification;
 * final worktree state;
-* explicit statement that npm run eval:golden was not run;
-* explicit statement that no push occurred;
-* explicit statement that deterministic F5 fixture work remains separate.
+* explicit statement that no source code changed;
+* explicit statement that no F5 QA or fixture work occurred;
+* explicit statement that no push occurred.
 
 End with exactly one marker:
 
-REPAIR_B_VALIDATOR_CONSUMPTION_COMMITTED
+PHASE_H_EVAL_GOLDEN_REFRESH_COMMITTED
 
 or, if blocked:
 
-REPAIR_B_VALIDATOR_CONSUMPTION_BLOCKED
+PHASE_H_EVAL_GOLDEN_REFRESH_BLOCKED
