@@ -12,6 +12,7 @@ from universal_coding_agent.product.models import ContextDocument, SearchHit, Se
 from universal_coding_agent.storage.artifacts import ArtifactStore
 
 _TOKEN = re.compile(r"[A-Za-z0-9_./:-]+")
+_EXPLICIT_NAMESPACE_PREFIX = "explicit:"
 
 
 class SearchService:
@@ -235,6 +236,9 @@ class SearchService:
         if namespaces:
             clauses.append("namespace IN (" + ",".join("?" for _ in namespaces) + ")")
             params.extend(namespaces)
+        else:
+            clauses.append("namespace NOT LIKE ?")
+            params.append(f"{_EXPLICIT_NAMESPACE_PREFIX}%")
         if source_types:
             clauses.append("source_type IN (" + ",".join("?" for _ in source_types) + ")")
             params.extend(item.value for item in source_types)

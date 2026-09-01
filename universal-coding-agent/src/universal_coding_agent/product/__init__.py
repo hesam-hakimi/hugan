@@ -16,6 +16,10 @@ _EXPORTS = {
         "universal_coding_agent.product.knowledge_packs",
         "ProjectKnowledgePackService",
     ),
+    "ProjectDecisionService": (
+        "universal_coding_agent.product.project_decisions",
+        "ProjectDecisionService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",
