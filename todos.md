@@ -1,92 +1,136 @@
-Continue the same Phase 1 runtime QA in this Extension Development Host and isolated QA workspace.
+Perform a strictly read-only source audit of the runtime artifact-contract mismatch exposed by F5 Phase 1. Do not implement a fix in this turn.
 
-The authoritative prior verdict is:
+Repository:
 
-PHASE1_CORRECTION_BLOCKED
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-No confirmation or approval is currently available, and etl_write_to_workspace was not called.
+Preflight
 
-The three ADLS path corrections and physical workspace containment have passed. Preserve them exactly.
+Verify:
 
-Before rerendering, perform a read-only contract reconciliation using only:
+* branch is fix/workspace-write-completion-0.3.148;
+* current full HEAD and subject;
+* index and working tree are clean.
 
+Stop if dirty. Do not edit, format, stage, commit, fetch, reset, stash, clean, build, test, package, push, or create a branch.
+
+Observed runtime evidence
+
+The Extension Development Host successfully interpreted the Excel STTM, rendered artifacts, and contained both destinations inside the isolated QA workspace. Validation then reported:
+
+* HOCON job configuration must use .conf or .json, not .yaml;
+* data_sourcing_process options.module/method missing or incorrect;
+* sourceList missing or empty;
+* output strategy undetermined.
+
+Read-only discovery then found an apparent mismatch:
+
+* render guard expects stage-local options.module and options.method;
+* packaged data_sourcing_process example omits options;
+* packaged example shows stage-local sourceList;
+* writer metadata exposes strategy: generic_dataframe_write, but it is unclear whether this is executable content or search metadata;
+* no complete canonical executable job envelope was exposed.
+
+Audit
+
+Use rg, git grep, git show, and read-only file inspection to locate and inspect the exact implementation and packaged evidence. Start with these symbols/messages, resolving actual paths dynamically:
+
+* renderJobConfig
+* validateArtifacts
+* PreWriteValidationPipeline
 * etl_get_framework_rules
 * etl_describe_module
 * etl_search_examples
+* job-config-envelope.v1
+* data_sourcing_process
+* dataframe_writer
+* sourceList
+* options.module
+* options.method
+* generic_dataframe_write
+* HOCON config must use .json or .conf
+* Output strategy could not be determined
 
-Use complete packaged/local canonical examples rather than isolated keyword matches.
+Inspect, where present:
 
-Establish explicit evidence for:
+* src/tools/EtlActionToolService.ts
+* tool registration and handlers under src/tools/**
+* validation code under src/**
+* packaged rules, module contracts, schemas, and examples under resources/**, src/context_files/**, or equivalent;
+* package.json, .vscodeignore, and packaging-copy logic governing which contracts and examples reach the Extension Host.
 
-1. The permitted destination extension for a HOCON job configuration.
-2. The complete stage-keyed modules structure.
-3. The exact location and permitted values of options.module and options.method for data_sourcing_process.
-4. The exact location, type, and required contents of sourceList.
-5. The exact output-strategy representation recognized for the selected dataframe_writer.
-6. Whether a SQL/include artifact is required for this sourced-view transformation.
+If the extension loader explicitly references the sibling etl-framework-gen-utils checkout, inspect only the referenced files there and clearly distinguish upstream source from packaged extension content.
 
-Report the evidence source and exact relevant field structure for each item.
+Required findings
 
-If the packaged rules, module contract, canonical example, and Validator requirements are missing or contradictory, stop without rerendering or writing and return:
+Produce exact file-and-line evidence for:
 
-PHASE1_CONTRACT_EVIDENCE_BLOCKED
+1. The authoritative executable job envelope.
+2. Permitted job-config extensions and which component chooses or validates the destination.
+3. Exact modules.<stage> structure.
+4. Exact placement and allowed values of options.module and options.method.
+5. Exact sourceList type, placement, and relationship to named source blocks.
+6. Exact executable representation of generic_dataframe_write.
+7. Whether inline SQL is valid or an include artifact is required.
+8. What each runtime discovery tool actually exposes to Copilot.
+9. Whether packaged assets differ from their source or are omitted during packaging.
+10. Whether the invalid .yaml extension causes the semantic errors to cascade or whether they are independent defects.
 
-If the contract is unambiguous, perform exactly one additional correction cycle.
+Classify the result as exactly one:
 
-Preserve:
+* CALLER_INPUT_ONLY
+* VALIDATION_CASCADE
+* DISCOVERY_CONTRACT_INCOMPLETE
+* RENDER_VALIDATOR_CONTRADICTION
+* PACKAGING_DRIFT
+* MULTIPLE_DEFECTS
+* INDETERMINATE
 
-* mapping FM_F01417B0_00002;
-* identifier qa_sttm_workspace_write_smoke_20260901_095418_c5e982;
-* the three corrected ADLS relationships;
-* the synthetic transformation and writer intent;
-* all workspace destinations as relative paths.
+Do not assume the screenshots represent four independent defects.
 
-Correct only what the established contract requires:
+Minimal-fix recommendation
 
-* replace the invalid job_config.yaml destination with the evidence-supported .conf or .json destination;
-* use the exact valid data_sourcing_process stage structure;
-* add the required non-empty sourceList;
-* express the output strategy in the recognized form;
-* add an include artifact only if the canonical contract proves it is required.
+Without editing, propose the smallest correction with:
 
-The earlier restriction to exactly two artifacts is lifted only when the framework contract requires an include. Do not add any unrelated artifact, job, environment, or identifier.
+* exact files and symbols;
+* behavior changed;
+* behavior intentionally unchanged;
+* whether the authoritative source belongs in this repository or upstream;
+* whether generated or packaged copies must be synchronized.
 
-Use only the registered ETL render tools. Do not directly edit files.
+Recommend branch placement:
 
-Call etl_validate_artifacts exactly once on the corrected rendered artifact set.
+* If current packaged discovery or renderer/validator parity blocks the accepted W1 runtime gate, recommend a separate narrow commit on the current fix/workspace-write-completion-0.3.148 branch before push.
+* If the defect is owned upstream and cannot be correctly fixed here, recommend a dedicated upstream branch and identify the required downstream synchronization.
+* Do not create either branch.
 
-Do not call etl_write_to_workspace if any of these remain:
+Acceptance-test proposal
 
-* any blocker;
-* HOCON extension mismatch;
-* missing or incorrect options.module/method;
-* missing or empty sourceList;
-* undetermined output strategy;
-* missing required include;
-* duplicate conflict;
-* absolute, escaping, or source-repository path;
-* any other structural or write-safety warning.
+Specify the narrowest automated tests that would prove:
 
-The only acceptable residual warnings are the isolated-QA limitations stating that framework 0.0.0-qa was resolved locally but runtime/DBFS compatibility evidence is unavailable. Report these explicitly.
+1. a complete canonical minimal .conf or .json job is discoverable through the public ETL tools;
+2. its rendered bytes pass the same validator used by etl_validate_artifacts;
+3. data_sourcing_process, non-empty sourceList, and generic_dataframe_write are recognized;
+4. invalid .yaml input fails at the correct boundary without misleading downstream semantic errors;
+5. existing W1 collision and approval tests remain unchanged.
 
-If validation satisfies those conditions, call etl_write_to_workspace with the exact validated artifacts and pause at the trusted confirmation.
+Also specify the final manual F5 rerun required after implementation.
 
-The first confirmation must show:
+Return:
 
-* every proposed destination under CREATE;
-* OVERWRITE empty;
-* UNCHANGED empty;
-* BLOCKED empty;
-* all paths inside the current isolated QA workspace.
+* preflight;
+* source-of-truth table;
+* producer-to-validator trace;
+* root cause and classification;
+* minimal fix plan;
+* proposed tests;
+* branch recommendation;
+* final clean git status --short.
 
-Report the complete manifest and wait for my manual decision. Do not approve on my behalf and do not perform the identical rerun yet.
+End with exactly:
 
-Do not use direct filesystem writes, terminal commands, external services, Databricks, pipeline execution, publication, Git commit, or push.
-
-Return exactly one verdict:
-
-PHASE1_CONTRACT_RECONCILED_CREATE_CONFIRMATION_READY
+RUNTIME_ARTIFACT_CONTRACT_AUDIT_COMPLETE
 
 or:
 
-PHASE1_CONTRACT_RECONCILIATION_BLOCKED
+RUNTIME_ARTIFACT_CONTRACT_AUDIT_BLOCKED
