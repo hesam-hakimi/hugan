@@ -20,6 +20,10 @@ _EXPORTS = {
         "universal_coding_agent.product.project_decisions",
         "ProjectDecisionService",
     ),
+    "RepositoryIndexService": (
+        "universal_coding_agent.product.repository_indexes",
+        "RepositoryIndexService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",

@@ -22,6 +22,7 @@ from universal_coding_agent.product.project_decisions import ProjectDecisionServ
 from universal_coding_agent.product.remote_operations import (
     SqliteRemoteOperationLeaseStore,
 )
+from universal_coding_agent.product.repository_indexes import RepositoryIndexService
 from universal_coding_agent.product.requirement_alignment import RequirementAlignmentService
 from universal_coding_agent.product.search_service import SearchService
 from universal_coding_agent.product.task_control import TaskControlService
@@ -40,6 +41,7 @@ class ProductWorkspace:
     documents: ContextDocumentService
     knowledge_packs: ProjectKnowledgePackService
     project_decisions: ProjectDecisionService
+    repository_indexes: RepositoryIndexService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -74,6 +76,7 @@ class ProductWorkspace:
             artifacts,
             search,
         )
+        repository_indexes = RepositoryIndexService(artifacts, search)
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -89,6 +92,7 @@ class ProductWorkspace:
             documents=documents,
             knowledge_packs=knowledge_packs,
             project_decisions=project_decisions,
+            repository_indexes=repository_indexes,
             search=search,
             requirements=requirements,
             programs=programs,

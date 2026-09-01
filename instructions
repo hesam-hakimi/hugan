@@ -90,6 +90,8 @@
 - universal-coding-agent/src/universal_coding_agent/product/context_documents.py
 - universal-coding-agent/src/universal_coding_agent/product/lifecycle_reservations.py
 - universal-coding-agent/src/universal_coding_agent/product/search_service.py
+- universal-coding-agent/src/universal_coding_agent/product/repository_indexes.py
+- universal-coding-agent/src/universal_coding_agent/repository/indexer.py
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
 - universal-coding-agent/ARCHITECTURE.md
@@ -99,6 +101,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/controlled_safe_graph.py
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
+- universal-coding-agent/tests/test_incremental_repository_indexes.py
 - universal-coding-agent/tests/test_lifecycle_reservations.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
@@ -965,3 +968,35 @@ not authorize automatic ADR-file discovery/import, UI or HTTP endpoints, automat
 injection, cross-project retrieval, autonomous decision resolution, arbitrary model shell access,
 publication, merge, or deployment. Do not weaken the existing test profiles, source-preservation
 checks, live thresholds, or final aggregators when qualifying this slice.
+
+Cmd 29 — P3.4a incremental repository index foundation
+
+```bash
+python -m compileall -q src tests
+python -m pytest -q \
+  tests/test_incremental_repository_indexes.py \
+  tests/test_repository.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "INCREMENTAL_REPOSITORY_INDEX_FOUNDATION_PASS"
+```
+
+The focused gate proves immutable bounded repository snapshots bound to project, repository, exact
+Base SHA, indexing policy, and chunk policy; explicit predecessor compare-and-swap; deterministic
+add, modify, delete, rename, and unchanged-file reuse; full-rebuild manifest equivalence; atomic
+SQLite search-delta and active-state advancement; workspace restart and exact-base replay; stale
+search removal for denied, oversize, and non-UTF-8 transitions; and fail-closed handling of dirty
+source, non-ancestor history, source or policy mismatch, artifact drift, byte-limit overflow, and
+transaction failure with exact retry.
+
+This command is deterministic and makes no model/provider or hosted source-control call. P3.4a does
+not add dependency or call graphs, semantic embeddings, watcher/background indexing, dirty-worktree
+indexing, automatic model-context injection, cross-project retrieval, UI or HTTP endpoints,
+arbitrary model shell access, source-control publication, merge, or deployment. An immutable
+snapshot artifact written before a failed SQLite transaction may remain as unreferenced evidence;
+the active index and search records remain on the verified predecessor and exact retry is safe. Do
+not claim production readiness or weaken existing test profiles, source-preservation checks, live
+thresholds, or final aggregators when qualifying this slice.

@@ -62,7 +62,9 @@
 - [x] typed, provenance-preserving accepted prior-phase evidence for dependent Safe contexts;
 - [x] P3.2 deterministic phase/slice handoff compaction beyond the bounded accepted phase bundle, with an immutable source-bundle hash, adaptive semantic excerpts, exact list/phase digests, bounded verified artifact reads, and fail-closed byte limits;
 - [x] P3.3a accepted project decision and ADR records: immutable project-scoped versions, explicit hash-bound human acceptance, deterministic latest-accepted supersession and indexing, bounded verified artifact reads, SQLite restart recovery, and fail-closed provenance, drift, oversize, and scope handling;
-- incremental repository index;
+- [x] P3.4a incremental repository index foundation: immutable bounded Base-SHA and policy-bound
+  snapshots, explicit predecessor compare-and-swap, unchanged-file reuse, deterministic deltas,
+  atomic SQLite search/state advancement, restart recovery, and fail-closed integrity handling;
 - dependency/call graph and test-impact analysis;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
