@@ -1,562 +1,223 @@
-Repair A — Canonical runtime-artifact contract and public discovery parity
+Repair A — Explicit expected-failure reconciliation and commit authorization
 
-Execution environment
+Continue in the same writable source-repository Agent/Claude session where the immediately preceding Repair A implementation and validation completed.
 
-Run this task only in the normal writable VS Code source-repository Agent/Claude session opened at:
+Repository:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Do not run it in:
+Branch:
 
-* the Extension Development Host;
-* the isolated F5 QA workspace;
-* a consumer workspace;
-* the ETL Orchestrator chat;
-* an ETL Verifier or other read-only agent;
-* the previous Repair B conversation.
+fix/workspace-write-completion-0.3.148
 
-This is Repair A only.
+Pinned parent HEAD:
 
-Ignore the earlier Repair B prompt. No REPAIR_A_FULL_SHA placeholder applies to this task.
+a7ec7284906897321b2af5f7bf99de99211f7b70
 
-Mandatory capability gate
+This follow-up authorizes reconciliation of the five exact failures already observed in the immediately preceding Repair A run.
 
-Before running tests or editing files, confirm that this session provides:
+It does not authorize new implementation changes.
 
-* repository-scoped file reading;
-* Write or Edit file-authoring capability;
-* terminal execution.
+PowerShell requirement
 
-If Write/Edit is unavailable:
-
-* do not attempt terminal redirection, PowerShell file writes, scripts, patches, or another editing fallback;
-* do not modify anything;
-* report WRITE_EDIT_UNAVAILABLE;
-* finish with:
-
-REPAIR_A_CONTRACT_DISCOVERY_BLOCKED
-
-PowerShell PATHEXT requirement
-
-This environment has a known process-local PATHEXT problem. Each new PowerShell tool invocation may inherit only .CPL.
-
-At the beginning of every independent PowerShell terminal invocation that calls git, node, npm, npx, or cmd, set this in the same invocation:
+For every independent PowerShell terminal invocation, prefix the same invocation with:
 
 $env:PATHEXT = '.COM;.EXE;.BAT;.CMD';
 
-Shell state does not persist between tool calls, so repeat it for every independent PowerShell invocation.
+Do not persist this value through setx, registry, profile, VS Code settings, or repository changes.
 
-Do not use setx.
+Decision
 
-Do not modify Windows user/system environment variables, the registry, PowerShell profiles, VS Code settings, or repository files to persist this workaround.
+Do not run npm run eval:golden.
 
-Pinned source identity
+Do not modify or regenerate:
 
-The only permitted starting state is:
+* docs/eval/phase_h_latest_report.json
+* docs/eval/phase_h_latest_report.md
+* any other Eval report or baseline artifact
 
-* repository:
-    C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-* branch:
-    fix/workspace-write-completion-0.3.148
-* baseline HEAD:
-    a7ec7284906897321b2af5f7bf99de99211f7b70
-* baseline HEAD subject:
-    test: refresh Phase H evaluation baseline
-* sole parent/W1 commit:
-    cb972b7bee10ee43690097a40b6b29b474b18276
-* baseline grandparent/Repair13:
-    64706129e0d1054ea615e150b28dd623fb3c629e
+The Eval baseline will be refreshed once, in a separate commit, after Repair B is complete. Refreshing it now would create avoidable duplicate work.
 
-These are full SHAs. Do not substitute a short SHA or infer a nearby commit.
+The two newly observed EvalGating failures are authorized as temporary expected freshness failures caused directly by the scoped Repair A source change.
 
-Objective
+Expected Failure Manifest
 
-Implement one bounded producer-side repair so the registered read-only ETL discovery tools expose the repository-owned canonical executable job-config contract consistently in both:
+Use the exact test identities and signatures captured in the immediately preceding Phase 0B and full-suite reports.
 
-* source/F5 layout;
-* packaged-VSIX layout.
+Do not rediscover or re-investigate an entry that matches this manifest exactly.
 
-This task does not repair validator consumers. Repair B must not begin in this run.
+Known baseline failures — continue without investigation
 
-Evidence classification:
+The three pre-existing failures must match the exact identities and signatures recorded before Repair A.
 
-QA-proven blockers
+Their grounded root causes are:
 
-* Public discovery did not expose enough executable-envelope information for authoritative artifact construction.
-* Permitted job-config extensions were not discoverable through the public contract/tools.
+1. Missing:
+    .github/prompts/deploy-v3-agent-tool-context-gap.prompt.md
+2. business-context.instructions.md frontmatter declares applyTo but does not declare name.
+3. Eleven tracked src/*/AGENT.md files exist where the test expects an empty inventory.
 
-Independently source-audit-proven defects
+Classification:
 
-* Development and packaged module-reference precedence differs.
-* The authoritative contract does not publish the job-config extension rule.
+KNOWN_BASELINE_FAILURE
 
-Separate blocker — report only
+Required behavior:
 
-* The current QA workspace has no deterministic physical source, target, and environment fixture.
+* confirm exact identity and signature match;
+* record the match;
+* do not investigate again;
+* do not rerun the test individually;
+* continue.
 
-Do not describe this as a W1/write failure. The Orchestrator stopped before render, validation, preview, confirmation, or write.
+Authorized Eval freshness failures — continue without investigation
 
-Do not claim that Repair A alone fixes end-to-end F5 QA.
+The following two exact tests are authorized:
 
-Phase 0 — Fail-closed repository preflight
+1. EvalGating > passes against the committed Phase H baseline report
+2. EvalGating > allows deterministic v3 baseline reports without prompt telemetry
 
-Before editing anything, report:
+Expected failure signature:
 
-* resolved repository root;
-* current branch;
-* exact HEAD SHA and subject;
-* exact HEAD parent SHA;
-* exact HEAD grandparent SHA;
-* git rev-list --parents -n 1 HEAD;
-* concise commit graph around HEAD;
-* git status --short --untracked-files=all;
-* staged-path inventory;
-* untracked-path inventory.
+AssertionError: Tracked project or behavior inputs changed since the last baseline report: src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 
-Verify all of the following:
+Classification:
 
-1. Repository root is exact.
-2. Branch is exact.
-3. HEAD exactly equals:
-    a7ec7284906897321b2af5f7bf99de99211f7b70
-4. HEAD subject exactly equals:
-    test: refresh Phase H evaluation baseline
-5. git rev-list --parents -n 1 HEAD shows exactly one parent.
-6. The sole parent exactly equals:
-    cb972b7bee10ee43690097a40b6b29b474b18276
-7. HEAD^^ exactly equals:
-    64706129e0d1054ea615e150b28dd623fb3c629e
-8. Index is clean.
-9. Working tree is clean.
-10. Untracked-path count is zero.
+KNOWN_EVAL_FRESHNESS_FAILURE
 
-Stop immediately if any check differs.
+Reason:
 
-Do not fetch, pull, merge, rebase, reset, checkout, stash, clean, amend, cherry-pick, or repair repository state.
+Repair A intentionally changed an input tracked by PHASE_H_TRACKED_INPUT_PATTERNS, while this task intentionally protects the previously committed Phase H report from modification.
 
-Phase 0A — Protected-file baseline
+Required behavior:
 
-Obtain the changed-path inventories from:
+* confirm both test names match exactly;
+* confirm the failure class and changed tracked path match exactly;
+* record them as expected temporary Eval freshness failures;
+* do not investigate again;
+* do not rerun them individually;
+* do not weaken EvalGovernance;
+* do not modify tracked-input patterns;
+* do not regenerate Eval reports;
+* continue.
 
-* W1 commit:
-    cb972b7bee10ee43690097a40b6b29b474b18276
-* Eval-refresh commit:
-    a7ec7284906897321b2af5f7bf99de99211f7b70
+Fail-closed mismatch rules
 
-Use Git-native inspection such as git diff-tree --no-commit-id --name-status -r.
+Stop without committing if:
 
-For every inventoried path, record its baseline state as it exists at baseline HEAD:
+* any baseline failure has a different test identity;
+* any baseline failure has a different signature or root cause;
+* either EvalGating test name differs;
+* the Eval failure identifies an unexpected changed path;
+* another failure appears;
+* a previously observed failure disappears for an unexplained reason;
+* the suite totals differ from the immediately preceding report without a grounded explanation;
+* the current diff differs from the immediately preceding validated Repair A diff.
 
-* path;
-* present or absent;
-* Git blob OID when present.
+A matching count alone is insufficient.
 
-Keep this manifest in the task report/in-memory evidence only. Do not create a repository manifest file.
+Expected validated evidence
 
-Before editing, compare the intended Repair A production and test paths against both protected inventories.
+The immediately preceding Repair A report recorded:
 
-If any intended changed path overlaps a W1 or Eval-refresh protected path, protection wins:
-
-* do not edit the overlapping path;
-* stop and report the overlap;
-* finish blocked.
-
-Use Git diff/blob identity rather than OS-level hashes where possible to avoid CRLF ambiguity.
-
-Phase 0B — Grounded test baseline
-
-Before adding characterization tests or changing production code:
-
-1. Read applicable repository-local contributor and agent instructions completely.
-2. Inspect existing package scripts and test conventions.
-3. Run the existing compile/typecheck command.
-4. Run the full unit suite once.
-5. Record:
-    * exact command;
-    * total tests;
-    * passed tests;
-    * failed tests;
-    * skipped tests;
-    * exact failing test names;
-    * exact failure signatures and root causes.
-
-A failure count alone is not a valid baseline.
-
-Stop if the pre-change suite contains an unexplained failure.
-
-Phase 1 — Characterization tests before production edits
-
-Add focused characterization tests before changing production code.
-
-Run them against unchanged production code and record the expected red results.
-
-The tests must exercise both direct service methods and the real registered public-tool boundary.
-
-A. Direct service layer
-
-Exercise the real service implementations corresponding to:
-
-* EtlReadOnlyToolService.getFrameworkRules;
-* EtlReadOnlyToolService.describeModule('data_sourcing_process').
-
-Do not fabricate a replacement service object.
-
-B. Registered public-tool boundary
-
-Invoke the registered tools through their real BaseReadOnlyTool.invoke path:
-
-* etl_get_framework_rules;
-* etl_describe_module.
-
-Inspect the actual public structured application/json payload.
-
-Do not test only a private helper.
-
-Where the tools currently return Markdown or textual content, verify that channel as well so backward compatibility remains protected.
-
-C. Source/package layout parity
-
-Characterize both layouts:
-
-1. Development/source layout where:
-    docs/reference/ETL_MODULE_REFERENCE.md
-    is present.
-2. Packaged-only layout where the development document is absent and:
-    resources/copilot/context/etl-module-reference.md
-    is available.
-
-Prove whether the two layouts currently expose equivalent authoritative executable-envelope semantics.
-
-Ephemeral test-only temporary directories and inline test data are allowed for layout simulation.
-
-Do not add a tracked deterministic F5/STTM/physical source/target/environment fixture.
-
-D. Contract discoverability
-
-Characterize whether the public service and registered-tool payloads currently expose:
-
-* authoritative modules root semantics;
-* stage-keyed module entries;
-* module dispatch field;
-* method dispatch field;
-* default method;
-* accepted object-opening separators;
-* module/stage order;
-* required module keys;
-* required option keys;
-* permitted job-config extensions.
-
-Characterize that .conf and .json are not currently discoverable from the authoritative public contract/tool payloads.
-
-Each characterization failure must arise from the audited product defect—not broken registration, incorrect mocks, path mistakes, or malformed tests.
-
-If a claimed defect does not reproduce:
-
-* do not edit production code;
-* remove only the characterization-test changes created during this task using the available file-authoring tools;
-* verify the repository returns to its clean baseline;
-* report the discrepancy;
-* finish blocked.
-
-Do not commit a red-test-only checkpoint.
-
-Allowed production scope
-
-Production edits are limited to the smallest necessary hunks in:
+* pre-change suite:
+    * 2332 passing
+    * 5 pending
+    * 3 failing
+* characterization before repair:
+    * 84 passing
+    * 15 expected failing
+* characterization after repair:
+    * 99 passing
+    * 0 failing
+* compile:
+    * exit 0
+* package asset tests:
+    * 34 passing
+* post-change full suite:
+    * 2340 passing
+    * 5 pending
+    * 5 failing
+* failure composition:
+    * 3 exact pre-existing baseline failures
+    * 2 exact authorized EvalGating freshness failures
+    * no other regression
+
+Use this evidence only if the working-tree diff is byte-for-byte unchanged from the immediately preceding report.
+
+Do not rerun the full unit suite when the diff and test evidence are unchanged.
+
+Authorized changed paths
+
+The working tree must contain exactly these nine changed paths and no others:
 
 1. resources/framework/contracts/job-config-envelope.v1.json
 2. src/core/framework/TrustedJobConfigEnvelopeResolver.ts
 3. src/tools/EtlReadOnlyToolService.ts
 4. resources/copilot/context/etl-module-reference.md
 5. docs/reference/ETL_MODULE_REFERENCE.md
-6. package.json — only the existing jobConfigPath or directly related tool-description text
+6. package.json
+7. src/test/suite/EtlReadOnlyToolService.test.ts
+8. src/test/suite/EtlReadOnlyTools.test.ts
+9. src/test/suite/trustedJobConfigEnvelope.test.ts
 
-Focused test changes are allowed only under src/test/** and only for:
+Expected diff summary from the preceding report:
 
-* trusted contract resolution/fingerprint behavior;
-* direct read-only discovery;
-* registered public-tool invocation;
-* structured application/json payloads;
-* source/package reference parity;
-* directly related backward-compatibility regression coverage.
+* 9 files changed
+* 704 insertions
+* 10 deletions
 
-Before editing, list the exact proposed test paths.
+If the changed-path inventory or diff differs, stop and report the difference.
 
-No other production or test path is authorized.
+No additional edits
 
-If implementation requires another production path, generated copy, manifest, lockfile, helper, fixture, or test category, stop and report the required scope expansion before touching it.
+Do not make any new production, test, documentation, formatting, Eval, fixture, version, dependency, or lockfile edit.
 
-Production hunk boundaries
+Do not alter the current Repair A diff merely to silence the two EvalGating failures.
 
-Contract JSON
+Do not begin Repair B.
 
-Changes are limited to:
+Final pre-commit verification
 
-* the authoritative job-config extension field;
-* authoritative executable-envelope semantic fields proven missing from public projection;
-* the contract fingerprint required by the repository’s existing canonicalization process.
+Before staging:
 
-Do not redesign unrelated contract sections.
-
-TrustedJobConfigEnvelopeResolver
-
-Changes are limited to:
-
-* validation/resolution of newly published authoritative contract fields;
-* deterministic shared projection of contract data;
-* existing canonical fingerprint computation and verification.
-
-Do not loosen or bypass fail-closed validation.
-
-EtlReadOnlyToolService
-
-Changes are limited to:
-
-* obtaining the contract through TrustedJobConfigEnvelopeResolver;
-* one shared deterministic contract projection;
-* getFrameworkRules;
-* describeModule;
-* necessary reference-source ordering/import changes.
-
-Both public tools must consume the same shared authoritative projection.
-
-Do not place independently maintained copies of the contract in each tool.
-
-Do not change:
-
-* etl_search_examples root selection;
-* local-workspace example precedence;
-* snippet sizing;
-* snippet whitespace behavior;
-* search ranking;
-* unrelated tool output;
-* global formatting.
-
-package.json
-
-Only the existing job-config-path/tool description may change.
-
-Do not change:
-
-* package version;
-* dependencies;
-* devDependencies;
-* scripts;
-* activation events;
-* commands;
-* contributed tool schemas unrelated to the job-config description.
-
-Reference documents
-
-Changes are limited to making the development and packaged references agree with the trusted executable-envelope contract.
-
-Do not add unrelated documentation.
-
-No broad formatting or cleanup is allowed in any production file.
-
-Required implementation behavior
-
-Treat:
-
-resources/framework/contracts/job-config-envelope.v1.json
-
-resolved by TrustedJobConfigEnvelopeResolver, as the single source of authority.
-
-Do not duplicate an independently maintained job envelope in tool/service code.
-
-Publish through both read-only tools, using existing response conventions, the authoritative structural semantics required to create structurally valid job-config bytes when mapping and physical fixture values are available.
-
-The shared public projection must include, using repository-owned field names:
-
-* modules as the root object;
-* stage-keyed module entries;
-* options.module as module dispatch;
-* options.method as method dispatch;
-* default method process;
-* accepted separators:
-    * colon;
-    * equals;
-    * omitted-before-open-brace;
-* stage/module ordering;
-* per-module required module keys;
-* per-module required option keys;
-* permitted job-config extensions exactly:
-    * .conf
-    * .json
-
-Do not advertise or permit .yaml or .yml for job configs.
-
-Do not change environment-config extension behavior.
-
-Preserve:
-
-* existing public fields;
-* existing Markdown/text output;
-* existing MIME/result-envelope behavior;
-* deterministic ordering where required;
-* backward compatibility for existing consumers.
-
-Source/F5 and packaged-VSIX convergence
-
-Ensure:
-
-* the packaged canonical reference is not shadowed by the development-only non-executable reference;
-* the development reference’s executable example agrees with the trusted contract;
-* packaged resources remain usable when docs/** is absent;
-* source/F5 and packaged-only layouts return equivalent authoritative contract semantics.
-
-Do not modify .vscodeignore.
-
-Do not change etl_search_examples behavior or local-workspace precedence.
-
-Contract fingerprint
-
-Recompute the trusted-contract fingerprint only through the repository’s existing canonicalization implementation.
-
-Report:
-
-* previous fingerprint;
-* new fingerprint;
-* the exact existing repository mechanism used to recompute it.
-
-Do not:
-
-* guess the fingerprint;
-* add a second canonicalization implementation;
-* disable verification;
-* bypass mismatch detection;
-* loosen fail-closed behavior.
-
-If the correct fingerprint update requires changing another tracked path outside the allowlist, stop for scope review.
-
-Explicit non-goals and protected boundaries
-
-Do not modify:
-
-* src/tools/EtlActionToolService.ts;
-* DataSourcingConfigValidator;
-* ModuleSequenceExtractor;
-* any validator consumer;
-* any W1-owned file or hunk;
-* any Eval-refresh/report file;
-* STTM workbooks;
-* job configs;
-* environment configs;
-* deterministic QA fixtures;
-* package version;
-* dependencies or lockfiles;
-* release notes;
-* generated build or VSIX artifacts;
-* sibling etl-framework-gen-utils;
-* external repositories.
-
-Do not change or invoke:
-
-* writeToWorkspace;
-* performWrite;
-* preview;
-* approval;
-* confirmation;
-* consent;
-* probing;
-* authorization;
-* manifest construction;
-* collision handling;
-* checksum handling;
-* drift handling;
-* filesystem write behavior;
-* write-result construction;
-* renderer/scaffolding architecture.
-
-Do not:
-
-* run F5;
-* build, install, or package a VSIX;
-* access external services;
-* create another branch;
-* push;
-* publish;
-* rewrite Git history.
-
-Phase 2 — Required validation after implementation
-
-After production changes, run in this order:
-
-1. git diff --check
-2. repository compile/typecheck
-3. focused contract-schema tests
-4. focused contract-fingerprint tests
-5. focused direct-service discovery tests
-6. focused registered public-tool tests inspecting real structured application/json
-7. Markdown/backward-field compatibility tests
-8. source-present versus packaged-only reference-parity tests
-9. focused W1 regression tests without modifying W1 tests
-10. full unit suite once
-
-The focused tests must prove:
-
-* characterization tests were red before production edits and green afterward;
-* both read-only tools expose the same shared authoritative contract semantics;
-* the registered public-tool result contains structured JSON—not merely a textual summary;
-* .conf and .json are discoverable;
-* .yaml and .yml are not advertised for job configs;
-* source/F5 and packaged-only layouts return equivalent contract semantics;
-* the corrected development example parses as the trusted modules { ... } envelope;
-* existing public fields and Markdown remain available;
-* local consumer-example precedence is unchanged;
-* tampered trusted contract content still fails closed during fingerprint verification.
-
-Full-suite reconciliation gate
-
-Do not authorize a commit because a total failure count matches an expected number.
-
-A remaining full-suite failure is permitted only when:
-
-1. its exact test identity and failure signature match the grounded pre-change baseline; or
-2. it is an exact EvalGating freshness failure caused solely by intentionally leaving the separately owned evaluation snapshot unchanged; and
-3. repository evidence proves the failure is unaffected by the Repair A diff.
-
-Record a before/after table containing:
-
-* exact test identity;
-* pre-change signature;
-* post-change signature;
-* classification;
-* reason it is unaffected.
-
-Any new, missing, renamed, similar-looking, unexplained, or differently rooted failure blocks the commit.
-
-Do not refresh Eval artifacts in this task.
-
-The exact reconciled baseline failure identities and signatures must be included in the final report for use by Repair B.
-
-Pre-commit protection gate
-
-Before committing:
-
-1. Show git diff --check.
-2. Show git diff --stat.
-3. Show git diff --name-status relative to:
+1. Confirm branch is:
+    fix/workspace-write-completion-0.3.148
+2. Confirm HEAD is:
     a7ec7284906897321b2af5f7bf99de99211f7b70
-4. Show the complete production and test diff.
-5. Prove every changed path and hunk is within the allowlist.
-6. Compare the final protected presence/blob manifest with the Phase 0A baseline.
-7. Prove every W1-protected path is unchanged.
-8. Prove every Eval-refresh-protected path is unchanged.
-9. Prove src/tools/EtlActionToolService.ts is unchanged.
-10. Prove validator consumers are unchanged.
-11. Prove etl_search_examples behavior is unchanged.
-12. Prove package.json changed only in the permitted description hunk.
-13. Prove package version, dependencies, and lockfiles are unchanged.
-14. Prove no deterministic fixture or generated artifact was added.
-15. Confirm all focused tests pass.
-16. Reconcile every full-suite failure by exact identity.
+3. Confirm the nine changed paths exactly match the authorized inventory.
+4. Run:
+    git diff --check
+5. Confirm the diff is unchanged from the immediately preceding validated report.
+6. Confirm all W1-protected paths remain unchanged.
+7. Confirm both Eval-report files remain unchanged.
+8. Confirm:
+    * package version remains 0.3.147;
+    * dependencies remain unchanged;
+    * no lockfile was added or modified;
+    * no fixture was added;
+    * src/tools/EtlActionToolService.ts is unchanged;
+    * DataSourcingConfigValidator is unchanged;
+    * ModuleSequenceExtractor is unchanged;
+    * no generated build or VSIX artifact exists.
+9. Produce a five-entry reconciliation table containing:
+    * exact test identity;
+    * exact signature;
+    * classification;
+    * baseline SHA;
+    * reason;
+    * action taken.
 
-If any gate fails, do not commit.
+The action for all five entries must be:
 
-Commit gate
+recorded and continued without reinvestigation
 
-Only if every gate passes, create exactly one commit with subject:
+Commit authorization
+
+If and only if every verification above passes, stage only the nine authorized paths explicitly.
+
+Do not use git add -A.
+
+Create exactly one commit with subject:
 
 fix: expose canonical runtime artifact contract
 
@@ -564,17 +225,21 @@ The commit must:
 
 * have sole parent:
     a7ec7284906897321b2af5f7bf99de99211f7b70
-* contain only Repair A changes;
-* not amend or squash existing commits;
-* not create another branch;
+* contain exactly the nine authorized paths;
+* contain no Eval-report modification;
+* contain no W1 change;
+* not amend or squash another commit;
 * not be pushed.
+
+Post-commit verification
 
 After committing, verify:
 
-* exactly one new commit exists above the pinned baseline;
+* exactly one commit exists above the pinned parent;
 * the new commit has exactly one parent;
-* its parent is the pinned baseline;
+* its parent is the pinned parent;
 * its subject is exact;
+* its changed-path inventory contains exactly the nine authorized paths;
 * worktree and index are clean;
 * untracked-path count is zero.
 
@@ -582,31 +247,23 @@ Final report
 
 Report:
 
-* repository root;
 * branch;
-* pinned baseline HEAD;
-* baseline parent and grandparent;
-* new Repair A full commit SHA;
-* new commit parent SHA;
+* Repair A full commit SHA;
+* parent SHA;
 * exact changed paths;
-* production hunk summary;
-* pre-fix characterization results;
-* post-fix focused-test results;
-* old/new trusted-contract fingerprint;
-* before/after full-suite failure table with exact identities and signatures;
-* protected W1/Eval presence/blob comparison;
-* package version/dependency/lockfile protection results;
-* confirmation that no validator, W1 write behavior, fixture, F5, VSIX, external service, push, or publication occurred;
+* final five-entry Expected Failure Manifest;
+* confirmation that the three baseline failures were not reinvestigated;
+* confirmation that the two EvalGating failures were classified as expected temporary freshness failures;
+* confirmation that eval:golden was not run;
+* confirmation that Eval reports were unchanged;
+* confirmation that W1 behavior was unchanged;
+* confirmation that no Repair B, fixture, F5, VSIX, external service, push, or publication occurred;
 * final git status --short --untracked-files=all.
-
-Do not claim end-to-end F5 QA is fixed.
-
-Do not begin Repair B.
 
 End with exactly one marker:
 
 REPAIR_A_CONTRACT_DISCOVERY_COMMITTED
 
-or, if any gate blocks completion:
+or, if any identity or protection check fails:
 
 REPAIR_A_CONTRACT_DISCOVERY_BLOCKED
