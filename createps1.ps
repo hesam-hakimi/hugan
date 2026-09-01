@@ -1,1 +1,14 @@
+$harness = "$env:TEMP\etl-f5-harness.code-workspace"
+$oldPath = 'C:\\Users\\tag5916\\AppData\\Local\\Temp\\etl-consumer-qa'
+$newPath = 'C:\\Users\\tag5916\\AppData\\Local\\Temp\\etl-w1-qa-20260901-054832-c5e982'
 
+$content = Get-Content -LiteralPath $harness -Raw
+
+if (($content.Split($oldPath).Count - 1) -ne 1) {
+    throw "Expected exactly one old QA path; no change was made."
+}
+
+$content.Replace($oldPath, $newPath) |
+    Set-Content -LiteralPath $harness -Encoding utf8
+
+Get-Content -LiteralPath $harness -Raw
