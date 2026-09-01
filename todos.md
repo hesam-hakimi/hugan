@@ -1,175 +1,170 @@
-Implement one surgical W1 follow-up: close only the canonical destination-path alias gap found by the final acceptance review.
+Finalize and commit the accepted W1 workspace-write collision repair.
 
-Context
+Repository:
 
-normalizeRelPath in src/tools/TrustedWriteApprovalStore.ts supplies identity normalization for inventory deduplication, approval checksums/storage, and drift comparison.
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-It currently leaves interior . components and repeated separators intact. Consequently:
+Required branch:
 
-* sql/x.yaml
-* sql/./x.yaml
-* sql//x.yaml
+fix/workspace-write-completion-0.3.148
 
-can become distinct inventory keys even though filesystem resolution targets the same file.
+Required current HEAD:
 
-With conflicting content, this permits ambiguous last-write-wins behavior within one approved operation. This contradicts the W1 collision-protection acceptance criteria.
+64706129e0d1054ea615e150b28dd623fb3c629e
 
-Preserve the current dirty worktree. Do not discard or recreate any existing W1 change.
+This task may stage and create exactly one local commit. It must not edit any source file.
 
-Required change
+Preflight
 
-Make those valid relative-path spellings share one canonical identity.
+Confirm:
 
-* Extend only the existing normalizeRelPath implementation, or an immediately adjacent private helper if strictly necessary.
-* Remove path components that are exactly . at any depth.
-* Collapse repeated separators between relative-path components.
-* Preserve existing case folding, backslash handling, and leading-./ behavior.
-* Preserve valid dotted names such as:
-    * .env
-    * x..yaml
-    * a.b
-* Keep one shared normalization path.
-* Do not add call-site-specific normalization.
+* The repository path matches.
+* The branch matches.
+* HEAD matches the required SHA.
+* Nothing is currently staged.
+* git status --short contains exactly these 12 paths:
 
-Security invariants
+Modified:
 
-* Do not use path.resolve, path.normalize, or another operation that consumes ...
-* Do not turn absolute, UNC, device, or drive-letter paths into relative paths by stripping root markers.
-* .., absolute paths, UNC paths, device paths, and drive-letter paths must remain hard-rejected.
-* Detect invalid rooted forms before removing empty or dot components.
-* Do not modify physical-containment behavior.
-* Do not modify PathValidator, PhysicalPathContainment, WorkspaceDestinationProbe, or RepoWriter.
-
-Required tests
-
-Add focused regressions only in:
-
-src/test/suite/workspaceWriteCollision.test.ts
-
-Use existing helpers and real temporary filesystem behavior where appropriate.
-
-Test 1 — identical aliases
-
-Prove that these paths with identical bytes and matching metadata collapse into one canonical inventory destination and cause one physical write:
-
-* sql/x.yaml
-* sql/./x.yaml
-* sql//x.yaml
-* an equivalent backslash or case variant
-
-Test 2 — conflicting aliases
-
-Cover both interior-dot and repeated-separator aliases with different bytes.
-
-They must:
-
-* be recognized as one physical destination;
-* trigger the existing conflict error;
-* fail before preview or confirmation;
-* fail before approval;
-* produce zero filesystem writes.
-
-Test 3 — dotted filenames
-
-Prove that only components exactly equal to . are removed.
-
-These names must remain valid and distinct:
-
-* .env
-* x..yaml
-* a.b
-
-Test 4 — invalid rooted paths remain rejected
-
-Confirm that this change does not make any of these acceptable:
-
-* ..
-* absolute paths
-* UNC paths
-* device paths
-* drive-letter paths
-
-Reuse existing coverage where possible and add only the smallest missing assertion.
-
-Testing integrity
-
-* Test through the public inventory or write flow.
-* Do not export a production-private function only for testing.
-* Do not derive both expected and actual results from the same normalization helper.
-* Do not add skipped, exclusive, or tautological tests.
-* Do not weaken existing assertions.
-
-Strict edit boundary
-
-Only these files may be modified:
-
+* src/chat/DeployCoordinator.ts
+* src/chat/WriteCoordinator.ts
+* src/core/trusted/WriteAuthorization.ts
+* src/test/helpers/mintTestWriteAuthorization.ts
+* src/test/suite/onboardingWriteApproval.test.ts
+* src/test/testPatterns.ts
+* src/tools/EtlActionToolService.ts
 * src/tools/TrustedWriteApprovalStore.ts
+* src/writers/RepoWriter.ts
+
+Untracked:
+
+* src/core/artifacts/ArtifactDestinationInventory.ts
+* src/core/artifacts/WorkspaceDestinationProbe.ts
 * src/test/suite/workspaceWriteCollision.test.ts
 
-Do not modify src/core/artifacts/ArtifactDestinationInventory.ts; it already consumes the shared identity helper.
-
-If another production file is genuinely required, stop without editing it and explain why.
-
-Prohibited scope
-
-Do not:
-
-* refactor unrelated code;
-* reformat unrelated regions;
-* add dependencies;
-* change packages or versions;
-* alter approval UI or checksum design beyond the required alias equivalence;
-* refresh evaluation baselines;
-* change CI, workflows, prompts, or documentation;
-* implement atomic multi-file apply;
-* implement rollback or managed ownership;
-* address broader TOCTOU concerns;
-* stage, commit, or push.
-
-Verification
-
-Run these commands:
+Run:
 
 git diff --check
-npm run compile
 
-Then run the narrowest supported command for:
+Stop without staging if any preflight condition differs or if the diff check fails.
 
-workspaceWriteCollision.test.ts
+Final narrow inspection
 
-Finally, run exactly once:
+Inspect the current diff without editing it.
 
-npm run test:unit
+Confirm that the alias follow-up:
 
-Requirements:
+* collapses interior . path components;
+* collapses repeated separators;
+* preserves case folding and backslash normalization;
+* does not convert absolute, UNC, device, drive-letter, or traversal paths into relative paths;
+* uses the existing shared destination identity;
+* adds only the four focused alias tests;
+* does not weaken any existing test;
+* does not introduce unrelated formatting or refactoring.
 
-* Compilation passes.
-* Every existing and new workspace-write collision test passes.
-* No workspace-write test fails.
-* Report the known EvalGating freshness failures separately.
-* Report the three existing Copilot customization failures separately.
-* Do not fix or suppress those known failures.
+Also confirm that the complete W1 diff remains limited to:
 
-Final report
+* canonical destination inventory;
+* real destination-state probing;
+* CREATE, OVERWRITE, and UNCHANGED classification;
+* explicit trusted overwrite approval;
+* approval checksum binding;
+* duplicate-destination rejection;
+* final destination-state revalidation before writing;
+* supporting tests.
+
+Do not reopen the already accepted residual operating-system race, atomic multi-file apply, managed ownership, or the pre-existing x..yaml PathValidator behavior in this task.
+
+If this inspection finds any mismatch, return W1_COMMIT_BLOCKED and stop without staging.
+
+Accepted test evidence
+
+Do not rerun tests.
+
+The immediately preceding verified results are:
+
+* git diff --check: exit 0
+* npm run compile: exit 0
+* focused workspaceWriteCollision suite: 21 passing, 0 failing
+* npm run test:unit: 2330 passing, 5 pending, 5 failing
+* no workspace-write failure
+* exactly two expected EvalGating freshness failures
+* exactly three pre-existing Copilot customization failures
+
+Do not refresh the EvalGating baseline. It will be refreshed once after the remaining workspace-write completion steps, avoiding repeated baseline churn.
+
+Stage exact files
+
+Stage only the 12 paths listed above using explicit path arguments.
+
+Do not use:
+
+git add .
+git add -A
+git add --all
+
+After staging, run:
+
+git diff --cached --name-status
+git diff --cached --check
+git status --short
+
+The staged set must contain exactly:
+
+* 9 modified files
+* 3 added files
+* no other path
+
+If the staged set differs, unstage only these 12 attempted paths, preserve all working-tree content, return W1_COMMIT_BLOCKED, and stop.
+
+Commit
+
+Create exactly one local commit with this subject:
+
+fix: enforce trusted workspace write collision checks
+
+Do not amend any existing commit.
+
+Post-commit verification
 
 Report:
 
-* exact files changed;
-* exact normalization behavior added;
-* new test names and results;
-* each command and exit code;
-* full unit-test totals;
-* complete names of remaining failures;
-* git diff --check result;
-* final git status --short;
-* confirmation that nothing was staged, committed, pushed, or baseline-refreshed.
+* new full commit SHA;
+* commit subject;
+* parent SHA;
+* branch;
+* git show --name-status --format=fuller -1;
+* git status --short;
+* confirmation that the commit contains exactly the expected 12 files;
+* confirmation that the working tree is clean;
+* confirmation that exactly one commit was added above 64706129e0d1054ea615e150b28dd623fb3c629e.
+
+The parent of the new commit must be:
+
+64706129e0d1054ea615e150b28dd623fb3c629e
+
+Restrictions
+
+Do not:
+
+* edit or format any file;
+* refresh evaluation baselines;
+* change the package version;
+* modify documentation, prompts, CI, or workflows;
+* implement atomic multi-file apply;
+* implement managed ownership;
+* create another commit;
+* push;
+* create a pull request;
+* tag, merge, rebase, reset, clean, or stash.
 
 Return exactly one verdict:
 
-W1_ALIAS_FIX_READY_FOR_FINAL_GATE
+W1_COMMITTED_NOT_PUSHED
 
 or:
 
-W1_ALIAS_FIX_BLOCKED
+W1_COMMIT_BLOCKED
 
 Stop after reporting.
