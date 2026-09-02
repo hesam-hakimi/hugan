@@ -65,7 +65,11 @@
 - [x] P3.4a incremental repository index foundation: immutable bounded Base-SHA and policy-bound
   snapshots, explicit predecessor compare-and-swap, unchanged-file reuse, deterministic deltas,
   atomic SQLite search/state advancement, restart recovery, and fail-closed integrity handling;
-- dependency/call graph and test-impact analysis;
+- [x] P3.4b deterministic Python module dependency and test-impact foundation: exact snapshot and
+  graph binding, bounded immutable graphs and reports, safe incremental reuse, typed unresolved
+  imports, predecessor-aware delete and rename impact, atomic active state, and restart recovery;
+- P3.4c symbol-level call graphs, dynamic-dispatch evidence, additional-language dependency
+  analysis, and coverage-backed test selection;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
 - context deduplication and model-budget policies.

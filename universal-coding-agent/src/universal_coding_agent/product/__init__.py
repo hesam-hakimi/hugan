@@ -24,6 +24,10 @@ _EXPORTS = {
         "universal_coding_agent.product.repository_indexes",
         "RepositoryIndexService",
     ),
+    "RepositoryDependencyService": (
+        "universal_coding_agent.product.dependency_graphs",
+        "RepositoryDependencyService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",

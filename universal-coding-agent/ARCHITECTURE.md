@@ -849,6 +849,46 @@ watcher or background indexing, dirty-worktree indexing, automatic model-context
 cross-project retrieval, UI or HTTP endpoints, arbitrary model shell access, publication, merge,
 deployment, or production-readiness claims.
 
+## Python dependency and test-impact evidence
+
+P3.4b builds a deterministic, project-scoped Python module dependency graph only from a verified
+active P3.4a snapshot. The graph is bound to the exact repository snapshot reference and digest,
+project and repository identity, clean Base SHA, resolver policy, index policy, every configured
+node, edge, unresolved-import, traversal, depth, and artifact byte limit, and its optional exact
+predecessor graph. Index policy version 2 preserves leading dots in Python `ImportFrom` metadata so
+relative imports remain distinguishable from absolute imports.
+
+The static resolver maps Python paths to modules, including the conventional repository `src/`
+layout, and resolves only exact absolute or package-relative module identities. A `from` import
+prefers an exact in-repository child module and otherwise binds to the exact base module. Missing or
+external modules, ambiguous module paths, invalid imports, and relative imports outside the package
+boundary are retained as typed unresolved evidence; the resolver never guesses between candidates.
+The graph records source-to-dependency edges and test classification but adds no symbol or dynamic
+call inference.
+
+Graph construction uses compare-and-swap against the exact active graph digest. An unchanged Python
+node reuses its prior resolution only when its content metadata and the complete module map are both
+unchanged; any module-map change safely recomputes all current Python nodes. The canonical graph is
+written as a bounded hash-addressed artifact, then its active pointer advances only if the repository
+snapshot is still exact. Repository snapshot provenance, graph predecessor, and active graph state
+are checked in one `BEGIN IMMEDIATE` SQLite transaction. Failure leaves the active graph on the
+verified predecessor; an already-written graph artifact may remain as unreferenced immutable
+evidence. Exact replay and Product workspace restart are deterministic.
+
+Test-impact analysis is explicit and delta-bound. Added and modified paths seed reverse-dependency
+traversal in the current graph; deleted and old rename paths seed the verified immediate predecessor
+graph. Cycles terminate deterministically, the shortest stable path is retained for each result,
+depth zero and one are high confidence, and deeper transitive paths are medium confidence. Reports
+include impacted source evidence but recommend only tests still tracked by the current snapshot.
+Traversal count, depth, result count, and canonical report bytes are bounded, and every graph,
+snapshot, predecessor, policy, and artifact mismatch fails closed.
+
+P3.4b does not execute or skip tests automatically, claim coverage-minimal selection, infer symbols,
+calls, dynamic imports, reflection, or runtime dispatch, analyze non-Python dependencies, watch the
+worktree, inject model context, expose UI or HTTP endpoints, grant arbitrary model shell access, or
+authorize publication, merge, deployment, or production-readiness claims. Those graph extensions
+require a separately approved P3.4c slice.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

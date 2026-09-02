@@ -289,6 +289,37 @@ class RepositoryIndexService:
             source_types=(SearchSourceType.CODE,),
         )
 
+    def verified_active_snapshot(
+        self,
+        project_id: str,
+        *,
+        expected_snapshot_sha256: str,
+    ) -> tuple[RepositorySearchIndexState, RepositoryIndexSnapshot]:
+        if not _PROJECT_ID.fullmatch(project_id):
+            raise RepositoryIndexError("project ID is invalid")
+        state = self.search.repository_index_state(self.namespace(project_id))
+        if state is None:
+            raise RepositoryIndexError("active repository index does not exist")
+        if not hmac.compare_digest(state.snapshot_sha256, expected_snapshot_sha256):
+            raise RepositoryIndexError("active repository snapshot hash does not match")
+        snapshot = self._load_active_snapshot(state)
+        self._verify_compatible_previous(
+            snapshot,
+            project_id=project_id,
+            repository_url=snapshot.repository_url,
+            base_ref=snapshot.base_ref,
+            policy_sha256=self._policy_sha256(),
+        )
+        return state, snapshot
+
+    def verified_snapshot(
+        self,
+        reference: str,
+        *,
+        expected_sha256: str,
+    ) -> RepositoryIndexSnapshot:
+        return self._load_snapshot(reference, expected_sha256)
+
     @staticmethod
     def namespace(project_id: str) -> str:
         return f"explicit:repository-index:{project_id}"

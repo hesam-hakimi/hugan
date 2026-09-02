@@ -24,7 +24,7 @@ DEFAULT_DENY_PATTERNS = (
     "**/token.json",
     "**/*shell_history*",
 )
-INDEX_POLICY_VERSION = "1"
+INDEX_POLICY_VERSION = "2"
 
 
 class RepositoryIndexingError(ValueError):
@@ -241,6 +241,6 @@ class RepositoryIndexer:
             elif isinstance(node, ast.Import):
                 imports.extend(alias.name for alias in node.names)
             elif isinstance(node, ast.ImportFrom):
-                module = node.module or ""
+                module = f"{'.' * node.level}{node.module or ''}"
                 imports.extend(f"{module}:{alias.name}" for alias in node.names)
         return tuple(sorted(set(symbols))), tuple(sorted(set(imports)))
