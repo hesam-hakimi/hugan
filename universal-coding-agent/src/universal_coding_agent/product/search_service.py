@@ -20,6 +20,10 @@ class RepositorySearchIndexError(ValueError):
     """A repository search-index transition failed before partial state was exposed."""
 
 
+class RepositoryDependencyGraphStateError(ValueError):
+    """A repository dependency-graph state transition failed closed."""
+
+
 @dataclass(frozen=True)
 class RepositorySearchDocument:
     source_id: str
@@ -37,6 +41,20 @@ class RepositorySearchIndexState:
     base_sha: str
     snapshot_ref: str
     snapshot_sha256: str
+    policy_sha256: str
+
+
+@dataclass(frozen=True)
+class RepositoryDependencyGraphState:
+    namespace: str
+    project_id: str
+    repository_url: str
+    base_ref: str
+    base_sha: str
+    repository_snapshot_ref: str
+    repository_snapshot_sha256: str
+    graph_ref: str
+    graph_sha256: str
     policy_sha256: str
 
 
@@ -94,6 +112,22 @@ class SearchService:
             )
             """
         )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS repository_dependency_graph_state (
+                namespace TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                repository_url TEXT NOT NULL,
+                base_ref TEXT NOT NULL,
+                base_sha TEXT NOT NULL,
+                repository_snapshot_ref TEXT NOT NULL,
+                repository_snapshot_sha256 TEXT NOT NULL,
+                graph_ref TEXT NOT NULL,
+                graph_sha256 TEXT NOT NULL,
+                policy_sha256 TEXT NOT NULL
+            )
+            """
+        )
         self.connection.commit()
 
     def close(self) -> None:
@@ -102,6 +136,16 @@ class SearchService:
     def clear_namespace(self, namespace: str) -> None:
         try:
             self.connection.execute("BEGIN IMMEDIATE")
+            self.connection.execute(
+                """
+                DELETE FROM repository_dependency_graph_state
+                WHERE namespace = ?
+                   OR project_id IN (
+                    SELECT project_id FROM repository_index_state WHERE namespace = ?
+                )
+                """,
+                (namespace, namespace),
+            )
             self.connection.execute("DELETE FROM search_records WHERE namespace = ?", (namespace,))
             self.connection.execute(
                 "DELETE FROM repository_index_state WHERE namespace = ?", (namespace,)
@@ -122,6 +166,118 @@ class SearchService:
             (namespace,),
         ).fetchone()
         return RepositorySearchIndexState(*row) if row is not None else None
+
+    def repository_dependency_graph_state(
+        self, namespace: str
+    ) -> RepositoryDependencyGraphState | None:
+        row = self.connection.execute(
+            """
+            SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                   repository_snapshot_ref, repository_snapshot_sha256,
+                   graph_ref, graph_sha256, policy_sha256
+            FROM repository_dependency_graph_state
+            WHERE namespace = ?
+            """,
+            (namespace,),
+        ).fetchone()
+        return RepositoryDependencyGraphState(*row) if row is not None else None
+
+    def apply_repository_dependency_graph_state(
+        self,
+        *,
+        state: RepositoryDependencyGraphState,
+        expected_previous_graph_sha256: str | None,
+    ) -> None:
+        expected_namespace = (
+            f"explicit:repository-dependency-graph:{state.project_id}"
+        )
+        if state.namespace != expected_namespace:
+            raise RepositoryDependencyGraphStateError(
+                "repository dependency graphs require an explicit project namespace"
+            )
+        repository_namespace = f"explicit:repository-index:{state.project_id}"
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            repository_row = self.connection.execute(
+                """
+                SELECT project_id, repository_url, base_ref, base_sha,
+                       snapshot_ref, snapshot_sha256
+                FROM repository_index_state
+                WHERE namespace = ?
+                """,
+                (repository_namespace,),
+            ).fetchone()
+            expected_repository = (
+                state.project_id,
+                state.repository_url,
+                state.base_ref,
+                state.base_sha,
+                state.repository_snapshot_ref,
+                state.repository_snapshot_sha256,
+            )
+            if repository_row != expected_repository:
+                raise RepositoryDependencyGraphStateError(
+                    "active repository snapshot changed before graph state advancement"
+                )
+
+            current_row = self.connection.execute(
+                """
+                SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                       repository_snapshot_ref, repository_snapshot_sha256,
+                       graph_ref, graph_sha256, policy_sha256
+                FROM repository_dependency_graph_state
+                WHERE namespace = ?
+                """,
+                (state.namespace,),
+            ).fetchone()
+            current = (
+                RepositoryDependencyGraphState(*current_row)
+                if current_row is not None
+                else None
+            )
+            if current is None and expected_previous_graph_sha256 is not None:
+                raise RepositoryDependencyGraphStateError(
+                    "expected predecessor dependency graph does not exist"
+                )
+            if current is not None:
+                if expected_previous_graph_sha256 != current.graph_sha256:
+                    raise RepositoryDependencyGraphStateError(
+                        "dependency graph predecessor does not match active state"
+                    )
+                if current == state:
+                    self.connection.commit()
+                    return
+
+            self.connection.execute(
+                """
+                INSERT OR REPLACE INTO repository_dependency_graph_state (
+                    namespace, project_id, repository_url, base_ref, base_sha,
+                    repository_snapshot_ref, repository_snapshot_sha256,
+                    graph_ref, graph_sha256, policy_sha256
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    state.namespace,
+                    state.project_id,
+                    state.repository_url,
+                    state.base_ref,
+                    state.base_sha,
+                    state.repository_snapshot_ref,
+                    state.repository_snapshot_sha256,
+                    state.graph_ref,
+                    state.graph_sha256,
+                    state.policy_sha256,
+                ),
+            )
+            self.connection.commit()
+        except RepositoryDependencyGraphStateError:
+            self.connection.rollback()
+            raise
+        except sqlite3.DatabaseError as exc:
+            self.connection.rollback()
+            raise RepositoryDependencyGraphStateError(
+                "dependency graph state transaction failed"
+            ) from exc
 
     def apply_repository_delta(
         self,

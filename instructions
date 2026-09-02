@@ -91,6 +91,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/lifecycle_reservations.py
 - universal-coding-agent/src/universal_coding_agent/product/search_service.py
 - universal-coding-agent/src/universal_coding_agent/product/repository_indexes.py
+- universal-coding-agent/src/universal_coding_agent/product/dependency_graphs.py
 - universal-coding-agent/src/universal_coding_agent/repository/indexer.py
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
@@ -102,6 +103,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/workspace.py
 - universal-coding-agent/tests/test_product_foundation.py
 - universal-coding-agent/tests/test_incremental_repository_indexes.py
+- universal-coding-agent/tests/test_repository_dependency_graphs.py
 - universal-coding-agent/tests/test_lifecycle_reservations.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
@@ -1000,3 +1002,37 @@ snapshot artifact written before a failed SQLite transaction may remain as unref
 the active index and search records remain on the verified predecessor and exact retry is safe. Do
 not claim production readiness or weaken existing test profiles, source-preservation checks, live
 thresholds, or final aggregators when qualifying this slice.
+
+Cmd 30 — P3.4b deterministic Python dependency and test-impact foundation
+
+```bash
+python -m compileall -q src tests
+python -m pytest -q \
+  tests/test_repository_dependency_graphs.py \
+  tests/test_incremental_repository_indexes.py \
+  tests/test_repository.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "PYTHON_DEPENDENCY_TEST_IMPACT_FOUNDATION_PASS"
+```
+
+The focused gate proves exact active-snapshot and predecessor-graph binding; deterministic absolute,
+relative, and conventional `src/` Python module resolution; explicit ambiguous, missing/external,
+invalid, and outside-package unresolved evidence; safe node reuse only under an unchanged module
+map; full semantic equivalence with clean recomputation; cycle-safe reverse dependency traversal;
+predecessor-aware delete impact; current-snapshot test recommendations; bounded graph and impact
+artifacts; graph-policy, predecessor, snapshot, and artifact drift rejection; atomic active-state
+rollback and exact retry; project isolation; and Product workspace restart replay.
+
+This command is deterministic and makes no model/provider or hosted source-control call. P3.4b does
+not execute or skip tests automatically, claim coverage-minimal test selection, infer symbol-level
+or dynamic call graphs, resolve dynamic imports or reflection, analyze non-Python dependencies,
+watch or index a dirty worktree, inject model context, expose UI or HTTP endpoints, grant arbitrary
+model shell access, publish source control, merge, or deploy. Graph artifacts written before a
+failed SQLite state transition can remain as unreferenced immutable evidence while the active state
+stays on the verified predecessor. Do not claim production readiness or weaken existing test
+profiles, source-preservation checks, live thresholds, or final aggregators when qualifying this
+slice.
