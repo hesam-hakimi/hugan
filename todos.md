@@ -1,276 +1,154 @@
-Phase 1B.3L-PRE — Read-Only Existing Logging Capability Audit
+Phase 1B.3M-R — Independent No-Host argv Transport Proof
 
-Work locally in the currently open desktop VS Code repository:
+Environment
+
+Run locally in VS Code Agent mode from:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-This phase is strictly read-only.
+This is an operational-only, read-only validation of the Windows multi-development-path repair retained from Phase 1B.3M.
 
-Do not:
+Objective
 
-* edit any repository, compiled, installed-product, QA, or evidence file;
-* compile or run tests;
-* invoke npm, npx, tsc, esbuild, Code.exe, or the compiled runner;
-* launch an Extension Host;
-* invoke vscode.lm.invokeTool;
-* install, copy, seed, or update an extension;
-* use Marketplace or network access;
-* use F5, Cloud, ETL Orchestrator, or another worktree;
-* stage, commit, stash, restore, reset, or clean;
-* inspect credentials, tokens, authentication state, or real-profile prompt contents.
+Independently prove whether the current retained repair transports both --extensionDevelopmentPath arguments through the exact installed @vscode/test-electron Windows spawn layer without splitting the Copilot path at spaces.
 
-Context
+This phase must not launch VS Code or the Extension Host.
 
-Phase 1B.3K has already passed and its changes have been accepted with Keep.
+Absolute prohibitions
 
-Expected repository identity:
+* Do not edit any repository file.
+* Do not edit anything under node_modules.
+* Do not run npm run compile.
+* Do not invoke the repository test runner.
+* Do not invoke Code.exe.
+* Do not launch an Extension Host.
+* Do not run any focused test.
+* Do not copy, install, seed, move, or modify an extension.
+* Do not use inline node -e or an inline PowerShell-generated JavaScript expression.
+* Do not retry the transport probe.
+* Do not stage, commit, stash, reset, restore, clean, or change branches.
+* Do not click or use F5.
 
-Branch:
+Step 1 — Read-only premise verification
 
-fix/workspace-write-completion-0.3.148
+Record:
 
-HEAD:
-
-45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-
-Expected Git status:
-
-M .github/templates/request.md
-M src/extension.ts
-M src/test/runTest.ts
-?? src/test/suite/sttmRealHostStructuredResult.test.ts
-
-Do not treat these existing changes as audit mutations.
-
-The VS Code Output selector currently shows at least:
-
-* ETL Copilot
-* ETL Copilot - Prompt Debug Log
-
-The next proposed operation is Phase 1B.3L, a one-shot isolated real-Host run using two explicit development-extension paths.
-
-Before spending that launch, determine whether the existing logging implementation provides enough evidence to diagnose each relevant boundary.
-
-Step 1 — Preserve and verify current state
-
-Read and report:
-
-1. Repository path, branch, HEAD, and Git status.
-2. git diff --check.
-3. A complete SHA-256 baseline for:
-    * src/extension.ts
+* repository root
+* branch
+* HEAD
+* exact git status --porcelain
+* SHA-256 of:
     * src/test/runTest.ts
-    * package.json
-    * out/extension.js
     * out/test/runTest.js
-    * out/test/suite/sttmRealHostStructuredResult.test.js
-4. Confirm that no command used by this audit can mutate the working tree.
+    * src/extension.ts
+    * out/extension.js
+    * .github/templates/request.md
+    * src/test/suite/sttmRealHostStructuredResult.test.ts
+    * package.json
+    * tsconfig.json
 
-Do not stop merely because the four expected existing changes are present.
+Verify that the retained Phase 1B.3M change is confined to the Windows final adapter boundary in src/test/runTest.ts and its compiler-generated out/test/runTest.js.
 
-Stop as BLOCKED only if additional unexpected repository changes make the logging implementation ambiguous.
+Statically confirm that:
 
-Step 2 — Map the current logging architecture
+1. the raw Copilot path is validated and canonicalized before encoding;
+2. unsafe Windows shell metacharacters and trailing backslashes are rejected;
+3. exactly one quoting layer is added only for the Windows isolated-run call;
+4. the ordered pair remains:
+    [etlRepositoryPath, bundledCopilotExtensionPath];
+5. normal runs and non-Windows behavior are unchanged;
+6. exactly one production runTests(...) call remains.
 
-Search tracked source, tests, manifests, and compiled output for all logging-related implementations, including:
+If any premise fails, stop without running the probe and report BLOCKED.
 
-* createOutputChannel
-* LogOutputChannel
-* OutputChannel
-* ETL Copilot
-* ETL Copilot - Prompt Debug Log
-* trace
-* debug
-* info
-* warn
-* error
-* append
-* appendLine
-* console.log
-* console.warn
-* console.error
-* logger
-* logLevel
-* outputLevel
-* telemetry
-* correlationId
-* requestId
-* invocationId
-* redaction or sanitization
+Step 2 — Create a unique temporary probe directory
 
-For each of the two visible ETL channels report:
+Create exactly one unique directory beneath %TEMP%, outside the repository and QA workspace.
 
-1. Exact source file and symbol that creates it.
-2. Whether it uses OutputChannel or LogOutputChannel.
-3. When it is created and disposed.
-4. Which execution modes create it:
-    * Production
-    * Development
-    * Test
-    * opted-in Test mode using ETL_TEST_READ_ONLY_TOOL_ONLY=1
-5. Whether it supports configurable levels.
-6. Exact setting, command, or environment contract controlling its level.
-7. Default level.
-8. Whether timestamps and severity are generated automatically or manually.
-9. Whether logs are persisted to disk or visible only in the Output UI.
-10. Whether it performs redaction.
-11. Whether Prompt Debug logging is opt-in.
-12. Whether prompt contents, STTM data, paths, generated code, credentials, tokens, or authentication information could be exposed.
-13. Whether the authoritative source and compiled output agree.
+Using PowerShell file cmdlets, write these separate files into it:
 
-Do not assume behavior from channel names alone.
+* argv-recorder.js
+* fake-code.cmd
+* transport-probe.js
+* expected-argv.json
 
-Step 3 — Inventory all current log call sites
+Do not use an inline Node program.
 
-Produce a concise matrix of every relevant logging call site grouped by stage:
+argv-recorder.js must write process.argv.slice(2) as strict UTF-8 JSON to a result file whose path is supplied through a dedicated temporary environment variable.
 
-* runner preflight and launch configuration;
-* Extension Host startup;
-* ETL extension activation start;
-* github.copilot-chat resolution;
-* Copilot activation start/success/failure;
-* Copilot readiness;
-* Test-mode gate selection;
-* etl_interpret_sttm registration start/success/failure;
-* invokeTool entry;
-* tool input validation;
-* workspace and STTM resolution;
-* workbook parsing;
-* semantic validation;
-* manifest/preview creation;
-* LanguageModelToolResult construction;
-* result part count and types;
-* tool completion;
-* caught and uncaught errors;
-* extension deactivation.
+fake-code.cmd must invoke the resolved node.exe and the absolute argv-recorder.js path, forwarding all received arguments exactly once. It must not invoke Code.exe.
 
-For each stage report:
+transport-probe.js must:
 
-* exact file/function;
-* log channel;
-* severity;
-* data recorded;
-* whether it executes in the opted-in Test-only path;
-* whether it runs before and after the relevant operation;
-* whether failure includes stack/cause information;
-* whether sensitive data is safely excluded.
+1. require the repository’s exact installed @vscode/test-electron;
+2. use the current retained repair’s exact Windows argument representation;
+3. call the installed runTests(...) transport exactly once;
+4. set vscodeExecutablePath to the temporary fake-code.cmd;
+5. supply the repaired ordered development-path pair;
+6. use harmless temporary placeholder values for any required test/workspace arguments;
+7. perform no repository write.
 
-Explicitly distinguish:
+Step 3 — Expected arguments
 
-* implemented log evidence;
-* test assertion evidence;
-* runner console output;
-* VS Code Extension Host logs;
-* missing evidence.
+The child recorder must receive these two complete argument entries, in this order:
 
-Step 4 — Evaluate Phase 1B.3L diagnostic coverage
+--extensionDevelopmentPath=C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Determine whether a single failed Phase 1B.3L run would allow us to distinguish all of these outcomes without another diagnostic Host launch:
+--extensionDevelopmentPath=C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\08d4889f9e\resources\app\extensions\copilot
 
-1. The ordered development-path array was accepted.
-2. The bundled Copilot extension was discovered from the explicit development path.
-3. Built-in shadowing did or did not occur.
-4. github.copilot-chat resolution succeeded or failed.
-5. Copilot activation started and succeeded or failed.
-6. ETL extension activation started and succeeded or failed.
-7. The opted-in Test-mode branch was selected.
-8. etl_interpret_sttm registration started and succeeded or failed.
-9. invokeTool was attempted or never reached.
-10. invokeTool returned or rejected.
-11. LanguageModelToolResult construction started and completed.
-12. The returned part count, part types, MIME type, and byte length.
-13. Workbook/parser/validator stage reached.
-14. The exact first failing boundary.
-15. A usable error name, message, cause, and stack was retained.
-16. Logs and evidence would survive beneath the isolated evidence root after Host exit.
+After Windows command parsing, neither recorded value may retain transport-only quote characters.
 
-For every outcome classify coverage as:
+The recorded argv must not contain any standalone or truncated fragments including:
 
-* FULL
-* PARTIAL
-* NONE
+* C:\Users\tag5916\AppData\Local\Programs\Microsoft
+* VS
+* Code\08d4889f9e\resources\app\extensions\copilot
+* any partial --extensionDevelopmentPath value
 
-Do not claim FULL coverage unless the exact source/compiled path proves it.
+There must be exactly two --extensionDevelopmentPath= entries.
 
-Step 5 — Inspect retained isolated evidence only
+Step 4 — Classification
 
-If present, inspect read-only evidence beneath:
+PASS only if all of the following are proven:
 
-C:\Users\tag5916\AppData\Local\Temp\etl-phase-1b3i-seeded-20260902-113624-f3a807760bbe
+* the temporary recorder was reached;
+* the installed @vscode/test-electron transport was called exactly once;
+* both expected arguments were recorded byte-for-byte after command parsing;
+* their order is correct;
+* no truncated fragments exist;
+* Code.exe invocations: 0;
+* Extension Host launches: 0;
+* repository edits: 0;
+* compiles: 0;
+* retries: 0.
 
-Use it only to determine:
+Otherwise classify BLOCKED. Do not repair or retry in this phase.
 
-* which ETL, runner, and Extension Host logs were actually retained;
-* whether the existing ETL Output channels appeared in retained disk evidence;
-* whether prior Copilot resolution/activation failure was observable;
-* whether an Output-channel message can be recovered after Host exit.
+Step 5 — Final integrity
 
-Do not inspect the real VS Code user profile or unrelated logs.
+Recheck and report:
 
-Do not modify or delete the retained evidence.
+* branch and HEAD unchanged;
+* exact Git status unchanged;
+* every Step 1 hash unchanged;
+* git diff --check;
+* repository edits made by this phase: 0;
+* compiles: 0;
+* transport probes attempted/successful: 1/1 or 1/0;
+* Code.exe invocations: 0;
+* Extension Host launches: 0;
+* test bodies evaluated: 0;
+* vscode.lm.invokeTool calls: 0;
+* extension copies/installations: 0.
 
-Step 6 — Security and operability audit
+On PASS, remove only the exact unique temporary probe directory using PowerShell cmdlets after retaining all evidence in the response.
 
-Evaluate whether the existing implementation:
+On BLOCKED, retain the exact temporary directory and report its full path.
 
-* avoids credentials, tokens, authentication state, and full environment dumps;
-* avoids recording full STTM workbook contents by default;
-* avoids recording full prompts and generated source unless explicitly opted in;
-* supports a safe production default;
-* can enable Debug/Trace without a code change;
-* uses correlation identifiers consistently;
-* records elapsed time for major stages;
-* provides actionable errors without exposing sensitive content;
-* prevents unbounded log volume.
+End with exactly one marker:
 
-Separate mandatory diagnostic gaps from optional product improvements.
+F5_LOCAL_WINDOWS_MULTI_DEVELOPMENT_PATH_ARGV_PROOF_PASS
 
-Final decisions
+or
 
-Return exactly one logging classification:
-
-A. CURRENT_LOGGING_SUFFICIENT_FOR_1B3L
-
-B. CURRENT_LOGGING_EXISTS_BUT_GAPS_REQUIRE_TARGETED_INSTRUMENTATION
-
-C. CURRENT_LOGGING_NOT_SUITABLE_FOR_HOST_DIAGNOSIS
-
-Also return exactly one operational decision:
-
-1. RUN_1B3L_NOW_WITH_CURRENT_LOGGING
-2. PAUSE_1B3L_AND_ADD_INSTRUMENTATION_FIRST
-
-Choose decision 2 only if a failure during the one-shot run would leave the first failing activation/registration/invocation boundary ambiguous.
-
-If instrumentation is required, provide a minimal future patch plan only:
-
-* exact authoritative source files and functions;
-* exact missing events;
-* recommended channel to reuse;
-* required log levels;
-* safe fields to record;
-* fields that must never be recorded;
-* whether a correlation ID is needed;
-* smallest static tests;
-* whether one compile would be required.
-
-Prefer extending the existing ETL Copilot channel. Do not recommend creating a third channel unless the current architecture proves that reuse is impossible.
-
-Do not implement the plan.
-
-Required counters
-
-Report:
-
-* repository edits: 0
-* QA edits: 0
-* compiled-file edits: 0
-* compiles: 0
-* runner invocations: 0
-* Host launches: 0
-* invokeTool calls: 0
-* extension copies/installations: 0
-
-End with exactly:
-
-F5_LOCAL_EXISTING_LOGGING_AUDIT_COMPLETE
+F5_LOCAL_WINDOWS_MULTI_DEVELOPMENT_PATH_ARGV_PROOF_BLOCKED
