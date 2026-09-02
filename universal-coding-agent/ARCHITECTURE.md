@@ -889,6 +889,61 @@ worktree, inject model context, expose UI or HTTP endpoints, grant arbitrary mod
 authorize publication, merge, deployment, or production-readiness claims. Those graph extensions
 require a separately approved P3.4c slice.
 
+## Deterministic Python symbol and static call-graph evidence
+
+P3.4c-1 derives a project-scoped Python symbol and static call graph from one exact active P3.4a
+repository snapshot and one exact active P3.4b dependency graph. The caller supplies both the
+artifact reference and SHA-256 for each input. The service verifies the complete active provenance
+chain before reading source, and the resulting graph binds project and repository identity, Base
+ref and SHA, both input reference/digest pairs, the resolver-policy digest, configured limits, and
+an optional exact predecessor call-graph reference/digest pair.
+
+Source analysis is read-only and bounded. The checkout must have the exact clean snapshot Base SHA
+before analysis and again before active-state advancement. Every regular tracked Python file is
+read beneath the resolved source root, total source bytes are capped, and its size and SHA-256 must
+match the verified snapshot and dependency node. Invalid UTF-8, invalid Python syntax, and
+non-regular Git modes remain typed per-file parse evidence rather than silently disappearing.
+Source text is not copied into the call-graph artifact.
+
+Named functions, async functions, classes, and methods receive deterministic identities of the
+form `python:<module>:<lexical-qualname>:<kind>:<line>:<column>`. Lexical qualified names retain
+class nesting and Python-style `<locals>` segments for named definitions nested in functions.
+Definition spans, async identity, parent identity, path, and module are evidence fields; duplicate
+qualified definitions remain separate candidates instead of being collapsed.
+
+The resolver emits an edge only when a call target is unique under its conservative static binding
+rules. Supported evidence includes an exact lexical symbol, an exact symbol imported from an
+unambiguous P3.4b module edge, an exact attribute on an imported module, and an exact method reached
+through an explicit class identity. Parameters, assignments, `global`/`nonlocal`, unresolved
+imports, wildcard imports, conditional bindings, duplicate or reassigned exports, dynamic
+receivers such as `self` and `cls`, lambdas, decorators/default expressions, and unsupported callee
+shapes never produce guessed edges. Each such call is retained with a typed reason, stable source
+location and expression identity, and sorted candidate symbol IDs when candidates exist. Decorator
+semantics are not inferred beyond preserving the underlying definition identity.
+
+Independent limits cap total source bytes, symbols, edges, unresolved calls, calls per file, callee
+expression bytes, and canonical artifact bytes. The full symbol-resolution index is hashed. Calls
+for an unchanged file may be reused only when that file evidence and the complete resolution index
+are unchanged; any symbol-identity, ambiguity, parse-state, module-map, or export-safety change
+forces deterministic recomputation. A clean derivation produces the same files, symbols, edges,
+and unresolved evidence as an incremental derivation.
+
+The immutable canonical graph is written under its content hash and read back with a bounded digest
+and canonical-hash check. Its explicit `repository_call_graph_state` pointer advances through one
+`BEGIN IMMEDIATE` compare-and-swap transaction only while both the active repository snapshot and
+active dependency graph still match every bound reference and digest. A failed transaction leaves
+the prior active graph unchanged; an already-written artifact may remain as unreferenced evidence,
+and exact retry is safe. Exact replay and Product workspace restart reload and reverify the same
+bounded artifact. Clearing a project repository index removes only that project's dependent graph
+pointers, preserving cross-project isolation.
+
+P3.4c-1 does not infer runtime or dynamic dispatch, reflection, monkey-patching, dynamic imports,
+decorator replacement behavior, inherited method resolution, or calls through values and
+callbacks. It does not analyze non-Python languages, execute or select tests, claim coverage or
+minimality, create semantic embeddings, inject model context, add UI/HTTP behavior, grant model
+shell access, publish source control, merge, deploy, or establish production readiness. Those
+capabilities remain separate, explicitly authorized slices.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

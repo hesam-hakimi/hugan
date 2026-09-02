@@ -6,6 +6,7 @@ from pathlib import Path
 from universal_coding_agent.core.models import ProjectManifest, RepositorySpec
 from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
+from universal_coding_agent.product.call_graphs import RepositoryCallGraphService
 from universal_coding_agent.product.context_documents import ContextDocumentService
 from universal_coding_agent.product.dependency_graphs import RepositoryDependencyService
 from universal_coding_agent.product.knowledge_packs import ProjectKnowledgePackService
@@ -44,6 +45,7 @@ class ProductWorkspace:
     project_decisions: ProjectDecisionService
     repository_indexes: RepositoryIndexService
     dependency_graphs: RepositoryDependencyService
+    call_graphs: RepositoryCallGraphService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -84,6 +86,11 @@ class ProductWorkspace:
             search,
             repository_indexes,
         )
+        call_graphs = RepositoryCallGraphService(
+            artifacts,
+            search,
+            dependency_graphs,
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -101,6 +108,7 @@ class ProductWorkspace:
             project_decisions=project_decisions,
             repository_indexes=repository_indexes,
             dependency_graphs=dependency_graphs,
+            call_graphs=call_graphs,
             search=search,
             requirements=requirements,
             programs=programs,
