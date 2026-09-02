@@ -1,228 +1,173 @@
-Phase 1B.3N — One-Shot Multi-Development-Path Real-Host Structured-Result Run
+Phase 1B.3N-R — Corrected Preflight and First Real-Host Execution
 
-Environment
-
-Run locally in VS Code Agent mode from:
+Run locally from:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-This is an operational-only, one-shot real Extension Host characterization.
+Phase 1B.3N stopped during preflight. Runner invocations and Host launches were both zero, so the authorized one-shot real-Host execution budget remains unused.
 
-The Windows multi-development-path transport repair has already passed an independent no-Host argv proof. Do not repeat that probe.
+The previous BLOCKED result was caused by:
 
-Objective
+1. an incorrect 65-character pinned package.json hash;
+2. PowerShell converting known native stderr output from git diff --check into a terminating NativeCommandError.
 
-Launch exactly one fresh isolated VS Code Extension Host using the current compiled runner and these two ordered development-extension paths:
+These are preflight-harness defects, not product failures.
 
-1. ETL repository:
+Prohibitions
 
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-
-2. Bundled Copilot extension:
-
-C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\08d4889f9e\resources\app\extensions\copilot
-
-Run the existing focused structured-result suite exactly once and determine whether the raw vscode.LanguageModelToolResult.content boundary preserves the expected structured parts.
-
-Absolute prohibitions
-
-* Do not edit any source, test, generated, package, configuration, QA, or extension file.
+* Do not edit any repository, generated, package, test, QA, or extension file.
 * Do not compile.
-* Do not run npm install, npm update, or package preparation.
-* Do not copy, seed, install, update, disable, or modify any extension.
+* Do not install, copy, seed, update, or disable extensions.
+* Do not modify node_modules.
+* Do not use F5.
 * Do not use the normal VS Code profile.
-* Do not use Marketplace or network remediation.
-* Do not launch manually with F5.
-* Do not invoke Code.exe --version.
-* Do not run a second Host, runner, suite, or test attempt.
-* Do not retry after any failure.
-* Do not repair any newly observed problem.
-* Do not stage, commit, stash, restore, reset, clean, switch branches, or modify Git state.
-* Do not expose environment-variable values other than the explicitly authorized paths and test-control flags.
-* Do not substitute earlier results for evidence from this run.
+* Do not retry or relaunch.
+* Do not stage, commit, stash, restore, reset, clean, or switch branches.
+* Do not treat this as a second Host attempt: no Host was launched previously.
 
-Step 1 — Read-only preflight
-
-Record:
-
-* repository root;
-* branch;
-* HEAD;
-* exact git status --porcelain;
-* resolved node.exe;
-* installed @vscode/test-electron version;
-* VS Code executable path;
-* bundled Copilot canonical path, manifest ID, version, engine, file count, and reparse-point count;
-* absence of a matching still-running isolated Host from earlier phases.
+1. Corrected preflight
 
 Require:
 
-* branch: fix/workspace-write-completion-0.3.148
+* Branch: fix/workspace-write-completion-0.3.148
 * HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-* VS Code: 1.135.0
-* bundled dependency ID: github.copilot-chat
-* bundled dependency version: 0.63.0
-* bundled dependency engine: ^1.135.0
 
-Verify these SHA-256 values exactly:
+Exact Git status:
 
-* src/test/runTest.ts
-    05A083F77C6231443A2169502AFE4CA6702305E157A02ECF9C4B1744ECD56787
-* out/test/runTest.js
-    730F294F961AE3CBE7E56DE08BE5AF22E7614435497257E945F6D4EF3A2346C1
-* src/extension.ts
-    4872337F0F97BBB2A2109F21EE7F362CD4A35F5932B49533936DE8E48FBFC7BC
-* out/extension.js
-    2A323B09ACB640F65DAF50C494951242B3CAC4779A7B095A3EB92A499B5E5890
-* .github/templates/request.md
-    2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84
-* src/test/suite/sttmRealHostStructuredResult.test.ts
-    8713EC3B3F2F75B06541F9B68AC4D9026CA0A17D052E07898EA12C5E12FAABCE
-* package.json
-    7D0D882FA21594B7B04FA7F282221EA837A5FEB3BAF5D5BB8E0F19BF08B58B40C
-* tsconfig.json
-    06E2452EBB943F26DF490129ABD39B630BF44C5DA5C936E66ADBA9993EAB856E
+ M .github/templates/request.md
+ M src/extension.ts
+ M src/test/runTest.ts
+?? src/test/suite/sttmRealHostStructuredResult.test.ts
 
-Also verify:
+Verify these SHA-256 values:
 
-* QA inventory: exactly 23 files;
-* workbook size: exactly 13,201 bytes;
-* workbook SHA-256:
-    3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
-* git diff --check exits 0; the already-known line-ending warning alone is not a blocker.
+src/test/runTest.ts
+05A083F77C6231443A2169502AFE4CA6702305E157A02ECF9C4B1744ECD56787
+out/test/runTest.js
+730F294F961AE3CBE7E56DE08BE5AF22E7614435497257E945F6D4EF3A2346C1
+src/extension.ts
+4872337F0F97BBB2A2109F21EE7F362CD4A35F5932B49533936DE8E48FBFC7BC
+out/extension.js
+2A323B09ACB640F65DAF50C494951242B3CAC4779A7B095A3EB92A499B5E5890
+.github/templates/request.md
+2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84
+src/test/suite/sttmRealHostStructuredResult.test.ts
+8713EC3B3F2F75B06541F9B68AC4D9026CA0A17D052E07898EA12C5E12FAABCE
+package.json
+7D0D882FA21594B7B04FA7F28221EA837A5FEB3BAF5D5BB8E0F19BF08B58B40C
+tsconfig.json
+06E2452EBB943F26DF490129ABD39B630BF44C5DA5C936E66ADBA9993EAB856E
 
-If any required premise differs, stop before launch and classify BLOCKED.
+The corrected package.json hash is exactly 64 hexadecimal characters. Do not reuse the earlier 65-character literal.
 
-Step 2 — Understand the existing runner contract
+Verify:
 
-Read the current source and compiled runner plus the focused test before launch.
+* VS Code executable resolves beneath the versioned application directory;
+* VS Code manifest version is 1.135.0;
+* installed @vscode/test-electron is 2.5.2;
+* bundled Copilot canonical path is:
 
-Use their existing authoritative environment-variable names and launch contract. Do not invent a replacement runner or duplicate its logic.
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\08d4889f9e\resources\app\extensions\copilot
 
-Confirm statically that this run will:
+* Copilot ID is github.copilot-chat;
+* Copilot version is 0.63.0;
+* engine is ^1.135.0;
+* inventory is 98 files with zero reparse points;
+* QA inventory is 23 files;
+* workbook size is 13,201 bytes;
+* workbook SHA-256 is:
 
-* enable isolated dependencies;
-* use the bundled Copilot path;
-* enable Test-only/read-only-tool-only activation;
-* pass the two ordered development paths through the repaired Windows adapter;
-* create fresh isolated user-data and extensions directories;
-* select exactly the intended focused suite;
-* call the top-level runTests(...) exactly once;
-* restore all process-scoped environment variables in finally.
+3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
 
-Step 3 — Create evidence root
+Reliable git diff --check
 
-Create one unique %TEMP% isolation/evidence root outside:
+Run git diff --check through a read-only .NET ProcessStartInfo invocation with:
 
-* the repository;
-* the QA workspace;
-* all earlier retained evidence roots.
+* UseShellExecute = false;
+* stdout redirected;
+* stderr redirected;
+* the process exit code captured directly.
 
-Record its exact path before launch.
+A known LF-to-CRLF warning on stderr is informational when the actual process exit code is 0. Do not classify stderr presence alone as failure.
 
-All observable runtime, Mocha, terminal, activation, registry, and structured-result evidence must be retained there.
+If the actual exit code is nonzero or any other premise differs, stop before Host launch and report BLOCKED.
 
-Do not place evidence in the repository or QA workspace.
+2. One fresh evidence root
 
-Step 4 — One authorized execution
+Create one new unique evidence/isolation root under %TEMP%, outside the repository, QA workspace, and all prior evidence roots.
 
-Set only the existing runner’s required test-control environment variables, using the exact bundled Copilot path above.
+Retain it after completion regardless of PASS, FAIL, or BLOCKED.
 
-Invoke:
+3. One authorized real execution
 
-node.exe out\test\runTest.js
+Read the existing source and compiled runner to use their authoritative environment-variable names.
 
-exactly once from the repository root.
+Configure the existing isolated test controls so that the runner uses:
 
-This invocation consumes the complete execution budget.
+1. ETL development path:
 
-Do not relaunch regardless of stdout quality, exit code, timeout, activation failure, test failure, or missing evidence.
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Wait only within the runner’s existing bounded timeout. After it returns, perform read-only evidence collection.
+2. Bundled Copilot development path:
 
-Step 5 — Required observations
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\08d4889f9e\resources\app\extensions\copilot
 
-Report only directly observed facts for:
+Enable the existing isolated-dependency and Test-only/read-only-tool-only controls.
+
+Then invoke exactly once from the repository root:
+
+C:\Program Files\nodejs\node.exe out\test\runTest.js
+
+Do not invoke it again under any circumstance.
+
+4. Required runtime evidence
+
+Report directly observed values for:
 
 * runner invocations;
-* Host launches attempted and proven;
-* actual Host VS Code version and PID;
-* both development-extension paths as resolved by the Host;
-* ETL extension identity and version;
-* Copilot dependency discovery, identity, version, and activation state;
-* ETL activation state;
+* Host launches attempted/proven;
+* Host PID and VS Code version;
+* both development paths received by the Host;
+* discovery and activation of github.copilot-chat;
+* activation of the ETL extension;
 * etl_interpret_sttm registration count;
-* focused suites selected;
-* authored test bodies;
-* evaluated test bodies;
-* Mocha passes, failures, pending, and duration;
-* vscode.lm.invokeTool call count;
-* raw LanguageModelToolResult.content availability;
-* structured part count, order, runtime types, MIME values, and byte lengths;
-* strict UTF-8 decoding;
-* JSON decoding;
+* selected suite count;
+* authored and evaluated test counts;
+* Mocha passes/failures/pending;
+* vscode.lm.invokeTool calls;
+* whether raw LanguageModelToolResult.content was reached;
+* structured-part count, order, runtime types, MIME types, and byte lengths;
+* UTF-8 and JSON decoding;
 * deterministic STTM comparison;
-* parser invocation cardinality, only if independently observable;
-* resolved source value, only if independently observed;
-* runner exit code;
-* retained evidence files.
+* parser cardinality and resolved source only when independently observable;
+* runner exit code.
 
-Never infer an unobserved value and never replace missing runtime evidence with static source expectations.
+5. Classification
 
-Step 6 — Classification
+PASS only if one runner and one Host launch occur, both development paths arrive intact, both extensions activate, the tool registers exactly once, invokeTool runs exactly once, the raw structured boundary is reached, every focused assertion passes, and the runner exits 0.
 
-PASS
+FAIL only if the raw structured-result boundary is reached and an assertion fails.
 
-Classify PASS only if:
+BLOCKED if execution stops before that boundary.
 
-* exactly one runner and one Host launch occurred;
-* the Host received both complete development-extension paths;
-* github.copilot-chat was discovered and usable;
-* the ETL extension activated;
-* etl_interpret_sttm registered exactly once;
-* exactly the intended focused suite executed;
-* vscode.lm.invokeTool was called exactly once;
-* the raw structured-result boundary was reached;
-* every existing focused structured-result assertion passed;
-* the runner exited 0.
+Never classify a dependency, activation, registration, Host, or suite-selection problem as FAIL.
 
-FAIL
+6. Final integrity
 
-Classify FAIL only if the real raw structured-result boundary was reached but one or more focused assertions failed.
+Verify:
 
-Report the exact expected-versus-observed mismatch without repair or retry.
-
-BLOCKED
-
-Classify BLOCKED if execution stopped before the raw structured-result boundary, including:
-
-* dependency discovery or activation failure;
-* ETL activation or registration failure;
-* Host/runner infrastructure failure;
-* suite-selection failure;
-* timeout before the boundary;
-* missing authoritative evidence.
-
-Do not misclassify a pre-boundary blocker as FAIL.
-
-Step 7 — Final integrity
-
-After completion, verify:
-
-* branch and HEAD unchanged;
-* Git status exactly matches preflight;
-* all pinned hashes unchanged;
-* QA inventory, workbook size, and workbook hash unchanged;
-* bundled Copilot inventory unchanged;
-* repository and QA edits made by this phase: 0;
+* branch, HEAD, Git status, and all pinned hashes unchanged;
+* QA and Copilot inventories unchanged;
+* repository and QA edits: 0;
 * compiles: 0;
-* runner invocations: 1;
+* runner invocations: 1 if preflight passed, otherwise 0;
+* Host launches: at most 1;
 * retries/relaunches: 0;
 * extension copies/installations: 0;
-* no matching isolated Host process remains;
-* all process-scoped environment variables were restored.
+* no matching isolated Host remains;
+* process-scoped environment restored.
 
-Retain the isolation/evidence root for every classification and report its exact full path.
+Report the full retained evidence-root path.
 
 End with exactly one marker:
 
