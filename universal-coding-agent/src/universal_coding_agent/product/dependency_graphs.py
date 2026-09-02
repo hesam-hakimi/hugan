@@ -345,7 +345,15 @@ class RepositoryDependencyService:
                 )
             previous = self._load_active_graph(active_state)
             self._verify_graph_compatibility(previous, project_id=project_id)
-            if active_state.repository_snapshot_sha256 == repository_state.snapshot_sha256:
+            if hmac.compare_digest(
+                active_state.repository_snapshot_sha256,
+                repository_state.snapshot_sha256,
+            ):
+                if active_state.repository_snapshot_ref != repository_state.snapshot_ref:
+                    raise RepositoryDependencyError(
+                        "active dependency graph snapshot reference does not match "
+                        "the active repository state"
+                    )
                 return RepositoryDependencyGraphResult(
                     graph_ref=active_state.graph_ref,
                     graph_sha256=active_state.graph_sha256,
@@ -411,7 +419,13 @@ class RepositoryDependencyService:
             raise RepositoryDependencyError("active dependency graph does not exist")
         if not hmac.compare_digest(graph_state.graph_sha256, expected_graph_sha256):
             raise RepositoryDependencyError("active dependency graph hash does not match")
-        if graph_state.repository_snapshot_sha256 != repository_state.snapshot_sha256:
+        if (
+            graph_state.repository_snapshot_ref != repository_state.snapshot_ref
+            or not hmac.compare_digest(
+                graph_state.repository_snapshot_sha256,
+                repository_state.snapshot_sha256,
+            )
+        ):
             raise RepositoryDependencyError(
                 "active dependency graph does not match the active repository snapshot"
             )

@@ -356,6 +356,58 @@ def test_deleted_module_uses_predecessor_graph_for_current_test_impact(
         search.close()
 
 
+def test_renamed_module_uses_predecessor_graph_for_current_test_impact(
+    tmp_path: Path,
+) -> None:
+    root, first_sha = _repository(
+        tmp_path,
+        {
+            "old.py": "VALUE = 1\n",
+            "consumer.py": "import old\nVALUE = old.VALUE\n",
+            "tests/test_consumer.py": "import consumer\n",
+        },
+    )
+    _artifacts, search, indexes, dependencies = _services(tmp_path / "state")
+    try:
+        first_index = _index(indexes, root, first_sha, None)
+        first_graph = _build(dependencies, first_index.snapshot_sha256, None)
+
+        _git(root, "mv", "old.py", "new.py")
+        second_sha = _commit(root, "rename imported module")
+        second_index = _index(
+            indexes,
+            root,
+            second_sha,
+            first_index.snapshot_sha256,
+        )
+        assert tuple(
+            (item.old_path, item.new_path)
+            for item in second_index.snapshot.delta.renamed_paths
+        ) == (("old.py", "new.py"),)
+        second_graph = _build(
+            dependencies,
+            second_index.snapshot_sha256,
+            first_graph.graph_sha256,
+        )
+        result = dependencies.analyze_current_delta(
+            project_id=PROJECT_ID,
+            expected_repository_snapshot_sha256=second_index.snapshot_sha256,
+            expected_graph_sha256=second_graph.graph_sha256,
+        )
+
+        assert result.report.changed_paths == ("new.py", "old.py")
+        assert result.report.previous_graph_sha256 == first_graph.graph_sha256
+        impacted_test = result.report.impacted_tests[0]
+        assert impacted_test.dependency_chain == (
+            "old.py",
+            "consumer.py",
+            "tests/test_consumer.py",
+        )
+        assert impacted_test.present_in_current_snapshot is True
+    finally:
+        search.close()
+
+
 def test_hash_policy_and_artifact_drift_fail_closed_without_state_change(
     tmp_path: Path,
 ) -> None:
@@ -396,6 +448,45 @@ def test_hash_policy_and_artifact_drift_fail_closed_without_state_change(
             )
         state = search.repository_dependency_graph_state(namespace)
         assert state is not None
+        assert state.graph_sha256 == built.graph_sha256
+    finally:
+        search.close()
+
+
+def test_snapshot_reference_drift_fails_closed_even_when_bytes_match(
+    tmp_path: Path,
+) -> None:
+    root, base_sha = _repository(tmp_path, {"a.py": "VALUE = 1\n"})
+    artifacts, search, indexes, dependencies = _services(tmp_path / "state")
+    try:
+        indexed = _index(indexes, root, base_sha, None)
+        built = _build(dependencies, indexed.snapshot_sha256, None)
+        alternate = artifacts.write_text(
+            "repository-indexes/project-alpha/alternate/snapshot-copy.json",
+            indexed.snapshot.canonical_content(),
+            "application/json",
+        )
+        assert alternate.uri != indexed.snapshot_ref
+        assert alternate.sha256 == indexed.snapshot_sha256
+        search.connection.execute(
+            "UPDATE repository_index_state SET snapshot_ref = ? WHERE namespace = ?",
+            (alternate.uri, indexes.namespace(PROJECT_ID)),
+        )
+        search.connection.commit()
+
+        with pytest.raises(RepositoryDependencyError, match="snapshot reference"):
+            _build(dependencies, indexed.snapshot_sha256, built.graph_sha256)
+        with pytest.raises(RepositoryDependencyError, match="active repository snapshot"):
+            dependencies.analyze_current_delta(
+                project_id=PROJECT_ID,
+                expected_repository_snapshot_sha256=indexed.snapshot_sha256,
+                expected_graph_sha256=built.graph_sha256,
+            )
+        state = search.repository_dependency_graph_state(
+            dependencies.namespace(PROJECT_ID)
+        )
+        assert state is not None
+        assert state.repository_snapshot_ref == indexed.snapshot_ref
         assert state.graph_sha256 == built.graph_sha256
     finally:
         search.close()
@@ -570,5 +661,106 @@ def test_graph_and_impact_bounds_fail_before_exposing_new_active_evidence(
                 expected_repository_snapshot_sha256=second_index.snapshot_sha256,
                 expected_graph_sha256=second_graph.graph_sha256,
             )
+    finally:
+        search.close()
+
+
+@pytest.mark.parametrize(
+    ("dependency_limits", "files", "error"),
+    (
+        (
+            {"max_edges": 1},
+            {
+                "a.py": "VALUE = 1\n",
+                "b.py": "import a\n",
+                "c.py": "import a\n",
+            },
+            "edge limit",
+        ),
+        (
+            {"max_unresolved": 1},
+            {"a.py": "import external_one\nimport external_two\n"},
+            "unresolved-import limit",
+        ),
+        (
+            {"graph_max_bytes": 100},
+            {"a.py": "VALUE = 1\n"},
+            "byte limit",
+        ),
+    ),
+)
+def test_each_remaining_graph_bound_fails_before_active_state(
+    tmp_path: Path,
+    dependency_limits: dict[str, int],
+    files: dict[str, str],
+    error: str,
+) -> None:
+    root, base_sha = _repository(tmp_path, files)
+    _artifacts, search, indexes, dependencies = _services(
+        tmp_path / "state",
+        **dependency_limits,
+    )
+    try:
+        indexed = _index(indexes, root, base_sha, None)
+        with pytest.raises(RepositoryDependencyError, match=error):
+            _build(dependencies, indexed.snapshot_sha256, None)
+        assert search.repository_dependency_graph_state(
+            dependencies.namespace(PROJECT_ID)
+        ) is None
+    finally:
+        search.close()
+
+
+@pytest.mark.parametrize(
+    ("dependency_limits", "error"),
+    (
+        ({"max_impact_nodes": 1}, "traversal limit"),
+        ({"impact_max_bytes": 100}, "byte limit"),
+    ),
+)
+def test_each_remaining_impact_bound_preserves_active_graph_state(
+    tmp_path: Path,
+    dependency_limits: dict[str, int],
+    error: str,
+) -> None:
+    root, first_sha = _repository(
+        tmp_path,
+        {
+            "core.py": "VALUE = 1\n",
+            "consumer.py": "import core\n",
+        },
+    )
+    _artifacts, search, indexes, dependencies = _services(
+        tmp_path / "state",
+        **dependency_limits,
+    )
+    try:
+        first_index = _index(indexes, root, first_sha, None)
+        first_graph = _build(dependencies, first_index.snapshot_sha256, None)
+        _write(root, "core.py", "VALUE = 2\n")
+        second_sha = _commit(root, "trigger impact bound")
+        second_index = _index(
+            indexes,
+            root,
+            second_sha,
+            first_index.snapshot_sha256,
+        )
+        second_graph = _build(
+            dependencies,
+            second_index.snapshot_sha256,
+            first_graph.graph_sha256,
+        )
+
+        with pytest.raises(RepositoryDependencyError, match=error):
+            dependencies.analyze_current_delta(
+                project_id=PROJECT_ID,
+                expected_repository_snapshot_sha256=second_index.snapshot_sha256,
+                expected_graph_sha256=second_graph.graph_sha256,
+            )
+        state = search.repository_dependency_graph_state(
+            dependencies.namespace(PROJECT_ID)
+        )
+        assert state is not None
+        assert state.graph_sha256 == second_graph.graph_sha256
     finally:
         search.close()
