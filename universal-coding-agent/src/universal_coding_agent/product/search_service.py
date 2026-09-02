@@ -4,6 +4,7 @@ import json
 import re
 import sqlite3
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,30 @@ from universal_coding_agent.storage.artifacts import ArtifactStore
 
 _TOKEN = re.compile(r"[A-Za-z0-9_./:-]+")
 _EXPLICIT_NAMESPACE_PREFIX = "explicit:"
+
+
+class RepositorySearchIndexError(ValueError):
+    """A repository search-index transition failed before partial state was exposed."""
+
+
+@dataclass(frozen=True)
+class RepositorySearchDocument:
+    source_id: str
+    path: str
+    text: str
+    metadata: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class RepositorySearchIndexState:
+    namespace: str
+    project_id: str
+    repository_url: str
+    base_ref: str
+    base_sha: str
+    snapshot_ref: str
+    snapshot_sha256: str
+    policy_sha256: str
 
 
 class SearchService:
@@ -55,14 +80,141 @@ class SearchService:
         self.connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_search_path ON search_records(path)"
         )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS repository_index_state (
+                namespace TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                repository_url TEXT NOT NULL,
+                base_ref TEXT NOT NULL,
+                base_sha TEXT NOT NULL,
+                snapshot_ref TEXT NOT NULL,
+                snapshot_sha256 TEXT NOT NULL,
+                policy_sha256 TEXT NOT NULL
+            )
+            """
+        )
         self.connection.commit()
 
     def close(self) -> None:
         self.connection.close()
 
     def clear_namespace(self, namespace: str) -> None:
-        self.connection.execute("DELETE FROM search_records WHERE namespace = ?", (namespace,))
-        self.connection.commit()
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            self.connection.execute("DELETE FROM search_records WHERE namespace = ?", (namespace,))
+            self.connection.execute(
+                "DELETE FROM repository_index_state WHERE namespace = ?", (namespace,)
+            )
+            self.connection.commit()
+        except sqlite3.DatabaseError:
+            self.connection.rollback()
+            raise
+
+    def repository_index_state(self, namespace: str) -> RepositorySearchIndexState | None:
+        row = self.connection.execute(
+            """
+            SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                   snapshot_ref, snapshot_sha256, policy_sha256
+            FROM repository_index_state
+            WHERE namespace = ?
+            """,
+            (namespace,),
+        ).fetchone()
+        return RepositorySearchIndexState(*row) if row is not None else None
+
+    def apply_repository_delta(
+        self,
+        *,
+        state: RepositorySearchIndexState,
+        expected_previous_snapshot_sha256: str | None,
+        remove_source_ids: tuple[str, ...],
+        upserts: tuple[RepositorySearchDocument, ...],
+    ) -> int:
+        if not state.namespace.startswith("explicit:repository-index:"):
+            raise RepositorySearchIndexError(
+                "incremental repository indexes require an explicit project namespace"
+            )
+        ordered_removals = tuple(sorted(set(remove_source_ids)))
+        ordered_upserts = tuple(sorted(upserts, key=lambda item: item.source_id))
+        source_ids = [item.source_id for item in ordered_upserts]
+        if len(source_ids) != len(set(source_ids)):
+            raise RepositorySearchIndexError(
+                "repository search delta contains duplicate source identifiers"
+            )
+        if any(not item.source_id or not item.path for item in ordered_upserts):
+            raise RepositorySearchIndexError(
+                "repository search delta contains an empty source identifier or path"
+            )
+
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            current_row = self.connection.execute(
+                """
+                SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                       snapshot_ref, snapshot_sha256, policy_sha256
+                FROM repository_index_state
+                WHERE namespace = ?
+                """,
+                (state.namespace,),
+            ).fetchone()
+            current = RepositorySearchIndexState(*current_row) if current_row is not None else None
+            if current is None and expected_previous_snapshot_sha256 is not None:
+                raise RepositorySearchIndexError(
+                    "expected predecessor repository index does not exist"
+                )
+            if current is not None:
+                if expected_previous_snapshot_sha256 != current.snapshot_sha256:
+                    raise RepositorySearchIndexError(
+                        "repository index predecessor does not match active state"
+                    )
+                if current == state:
+                    self.connection.commit()
+                    return 0
+
+            for source_id in sorted(set(ordered_removals) | set(source_ids)):
+                self.connection.execute(
+                    "DELETE FROM search_records WHERE namespace = ? AND source_id = ?",
+                    (state.namespace, source_id),
+                )
+
+            chunk_count = 0
+            for document in ordered_upserts:
+                chunk_count += self._index_text_without_commit(
+                    namespace=state.namespace,
+                    source_type=SearchSourceType.CODE,
+                    source_id=document.source_id,
+                    path=document.path,
+                    text=document.text,
+                    metadata=document.metadata,
+                )
+
+            self.connection.execute(
+                """
+                INSERT OR REPLACE INTO repository_index_state (
+                    namespace, project_id, repository_url, base_ref, base_sha,
+                    snapshot_ref, snapshot_sha256, policy_sha256
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    state.namespace,
+                    state.project_id,
+                    state.repository_url,
+                    state.base_ref,
+                    state.base_sha,
+                    state.snapshot_ref,
+                    state.snapshot_sha256,
+                    state.policy_sha256,
+                ),
+            )
+            self.connection.commit()
+            return chunk_count
+        except RepositorySearchIndexError:
+            self.connection.rollback()
+            raise
+        except sqlite3.DatabaseError as exc:
+            self.connection.rollback()
+            raise RepositorySearchIndexError("repository search-index transaction failed") from exc
 
     def index_repository(
         self,
@@ -141,6 +293,27 @@ class SearchService:
         text: str,
         metadata: dict[str, Any] | None = None,
     ) -> int:
+        count = self._index_text_without_commit(
+            namespace=namespace,
+            source_type=source_type,
+            source_id=source_id,
+            path=path,
+            text=text,
+            metadata=metadata,
+        )
+        self.connection.commit()
+        return count
+
+    def _index_text_without_commit(
+        self,
+        *,
+        namespace: str,
+        source_type: SearchSourceType,
+        source_id: str,
+        path: str,
+        text: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> int:
         chunks = self._chunks(text)
         for index, chunk in enumerate(chunks):
             record_id = f"{namespace}:{source_type.value}:{source_id}:{index:06d}"
@@ -160,7 +333,6 @@ class SearchService:
                     json.dumps(metadata or {}, sort_keys=True, ensure_ascii=False),
                 ),
             )
-        self.connection.commit()
         return len(chunks)
 
     def search(

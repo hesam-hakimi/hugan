@@ -816,6 +816,39 @@ This slice adds no automatic ADR-file discovery/import, UI or HTTP endpoint, mod
 automatic acceptance, autonomous conflict resolution, arbitrary shell authority, source-control
 publication, merge, or deployment behavior.
 
+## Incremental repository index snapshots
+
+P3.4a adds an explicit project-scoped repository index without changing the legacy manifest entry
+point or automatically adding repository content to model context. Each immutable canonical
+snapshot binds the project and repository identity, exact clean Git Base SHA, base ref, indexing
+policy digest, file-size ceiling, search chunk policy, optional predecessor reference and digest,
+and every eligible tracked file's Git mode, blob object ID, content digest, and extracted metadata.
+The snapshot artifact has an independent byte ceiling and is read back through bounded digest and
+canonical-hash verification.
+
+An initial build requires an explicitly absent predecessor. Every later build uses
+compare-and-swap against the exact active snapshot digest and requires the predecessor Base SHA to
+be an ancestor of the requested Base SHA. Fixed-argument Git metadata identifies unchanged paths,
+so their immutable metadata is reused without reopening their content. Changed eligible paths are
+reprocessed; deterministic content-and-mode matching reports renames; denied and oversize paths are
+excluded before content reads. A clean HEAD/Base check runs before construction and again before
+state advancement. Source, artifact, policy, predecessor, ancestry, or working-tree drift fails
+closed.
+
+The search service stores the active snapshot provenance alongside project-isolated
+`explicit:repository-index:<project_id>` code chunks. Deletions and replacements, changed-file
+chunk insertion, and active-state advancement occur in one `BEGIN IMMEDIATE` SQLite transaction.
+Failure rolls back both search and active state to the verified predecessor; an already-written
+hash-addressed snapshot may remain as unreferenced immutable evidence. Exact retry and exact-Base
+replay are idempotent, and SQLite plus artifact state survives Product workspace restart. Binary
+files remain in eligible snapshot metadata when within the size limit but contribute no text
+chunks; a text-to-binary transition atomically removes stale searchable content.
+
+This foundation does not provide dependency/call graphs, test-impact analysis, semantic embeddings,
+watcher or background indexing, dirty-worktree indexing, automatic model-context injection,
+cross-project retrieval, UI or HTTP endpoints, arbitrary model shell access, publication, merge,
+deployment, or production-readiness claims.
+
 ## Context management
 
 The context compiler uses progressive disclosure:
