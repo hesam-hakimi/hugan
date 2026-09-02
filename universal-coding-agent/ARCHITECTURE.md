@@ -944,6 +944,45 @@ minimality, create semantic embeddings, inject model context, add UI/HTTP behavi
 shell access, publish source control, merge, deploy, or establish production readiness. Those
 capabilities remain separate, explicitly authorized slices.
 
+## Conservative Python dynamic-dispatch evidence
+
+P3.4c-2a adds a separate, project-scoped evidence layer over one exact active P3.4c-1 call graph.
+The caller supplies the call-graph artifact reference and SHA-256, and the service verifies the
+complete snapshot, dependency-graph, and call-graph chain before reading source. The canonical
+artifact binds all three upstream reference/digest pairs, repository identity, Base ref and SHA,
+policy digest, configured limits, and an optional exact predecessor evidence reference/digest.
+
+The resolver records canonical class identities, direct base expressions, resolved in-repository
+base candidates, and whether each hierarchy is safe for this bounded analysis. Only a unique
+top-level class name, a unique imported class, or a unique imported-module class attribute is an
+eligible type binding. Multiple inheritance, cycles, unresolved or unsupported bases, unsafe
+symbol bindings, conditional assignments, decorated-method receiver conventions, and ambiguous
+annotations remain typed unresolved evidence. They never produce candidate method targets.
+
+Candidate sites are restricted to calls already recorded by P3.4c-1 as dynamic receivers. A
+receiver type may come from an explicit simple parameter annotation, the undecorated instance
+method receiver, or a direct local assignment from an exact class constructor. For an eligible
+declared type, the evidence includes its known in-repository descendants and each unique method
+implementation selected along a safe single-inheritance chain. These are conservative static
+candidate targets, not proof of runtime dispatch, completeness over external subclasses, or
+permission to replace the unresolved P3.4c-1 call with an executable edge.
+
+Independent limits cap source bytes, classes, base expressions, dispatch sites, total receiver and
+method candidates, expression bytes, and canonical artifact bytes. Exact replay reuses the active
+artifact only while the complete active call graph and policy remain unchanged; a changed upstream
+graph performs a deterministic full derivation. Source must match the exact clean Base before
+analysis and before state advancement. The immutable artifact is bounded and hash-verified, and an
+explicit SQLite pointer advances through one compare-and-swap transaction only while the active
+call graph still matches every bound field. Transaction failure leaves the predecessor active;
+exact retry and Product workspace restart are safe, and repository-index cleanup cascades without
+cross-project deletion.
+
+P3.4c-2a performs no runtime execution or tracing and does not infer reflection, monkey patching,
+dynamic imports, decorator replacement, descriptor behavior, arbitrary MRO, callback targets, or
+non-Python dispatch. It does not execute or select tests, claim coverage or runtime completeness,
+inject model context, expose UI/HTTP behavior, grant arbitrary model shell access, publish source
+control, merge, deploy, or establish production readiness.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

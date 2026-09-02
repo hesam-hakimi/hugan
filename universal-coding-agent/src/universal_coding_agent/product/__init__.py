@@ -8,6 +8,10 @@ _EXPORTS = {
         "universal_coding_agent.product.call_graphs",
         "RepositoryCallGraphService",
     ),
+    "RepositoryDispatchEvidenceService": (
+        "universal_coding_agent.product.dispatch_evidence",
+        "RepositoryDispatchEvidenceService",
+    ),
     "ContextDocumentService": (
         "universal_coding_agent.product.context_documents",
         "ContextDocumentService",
