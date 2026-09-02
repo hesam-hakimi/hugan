@@ -68,8 +68,12 @@
 - [x] P3.4b deterministic Python module dependency and test-impact foundation: exact snapshot and
   graph binding, bounded immutable graphs and reports, safe incremental reuse, typed unresolved
   imports, predecessor-aware delete and rename impact, atomic active state, and restart recovery;
-- P3.4c symbol-level call graphs, dynamic-dispatch evidence, additional-language dependency
-  analysis, and coverage-backed test selection;
+- [x] P3.4c-1 deterministic Python symbol and static call-graph foundation: exact snapshot and
+  dependency-graph reference/digest binding, canonical function/class/method identities, only
+  statically unambiguous in-repository call edges, typed unresolved evidence, bounded immutable
+  artifacts, atomic active state, safe reuse, and restart recovery;
+- P3.4c-2 dynamic-dispatch evidence, additional-language dependency analysis, and coverage-backed
+  test selection;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
 - context deduplication and model-budget policies.

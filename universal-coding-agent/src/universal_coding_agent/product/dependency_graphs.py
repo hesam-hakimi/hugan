@@ -20,6 +20,7 @@ from universal_coding_agent.product.repository_indexes import (
 from universal_coding_agent.product.search_service import (
     RepositoryDependencyGraphState,
     RepositoryDependencyGraphStateError,
+    RepositorySearchIndexState,
     SearchService,
 )
 from universal_coding_agent.repository.indexer import INDEX_POLICY_VERSION
@@ -398,6 +399,63 @@ class RepositoryDependencyService:
             graph_sha256=graph_sha256,
             graph=verified,
         )
+
+    def verified_active_graph(
+        self,
+        *,
+        project_id: str,
+        expected_repository_snapshot_ref: str,
+        expected_repository_snapshot_sha256: str,
+        expected_graph_ref: str,
+        expected_graph_sha256: str,
+    ) -> tuple[
+        RepositorySearchIndexState,
+        RepositoryIndexSnapshot,
+        RepositoryDependencyGraphState,
+        PythonDependencyGraph,
+    ]:
+        """Load one exact active dependency graph and all of its verified provenance."""
+
+        self._validate_project_id(project_id)
+        try:
+            repository_state, snapshot = self.repository_indexes.verified_active_snapshot(
+                project_id,
+                expected_snapshot_sha256=expected_repository_snapshot_sha256,
+            )
+        except RepositoryIndexError as exc:
+            raise RepositoryDependencyError(str(exc)) from exc
+        if repository_state.snapshot_ref != expected_repository_snapshot_ref:
+            raise RepositoryDependencyError(
+                "active repository snapshot reference does not match"
+            )
+        graph_state = self.search.repository_dependency_graph_state(
+            self.namespace(project_id)
+        )
+        if graph_state is None:
+            raise RepositoryDependencyError("active dependency graph does not exist")
+        if (
+            graph_state.graph_ref != expected_graph_ref
+            or not hmac.compare_digest(
+                graph_state.graph_sha256,
+                expected_graph_sha256,
+            )
+        ):
+            raise RepositoryDependencyError(
+                "active dependency graph reference or hash does not match"
+            )
+        if (
+            graph_state.repository_snapshot_ref != repository_state.snapshot_ref
+            or not hmac.compare_digest(
+                graph_state.repository_snapshot_sha256,
+                repository_state.snapshot_sha256,
+            )
+        ):
+            raise RepositoryDependencyError(
+                "active dependency graph does not match the active repository snapshot"
+            )
+        graph = self._load_active_graph(graph_state)
+        self._verify_graph_compatibility(graph, project_id=project_id)
+        return repository_state, snapshot, graph_state, graph
 
     def analyze_current_delta(
         self,
