@@ -1,64 +1,73 @@
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
 
-$harnessFile = Join-Path $env:TEMP "etl-f5-harness.code-workspace"
-$qaWorkspace = Join-Path $env:TEMP "etl-w1-qa-20260901-054832-c5e982"
+$repo = 'C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147'
+$cmd = 'C:\Windows\System32\cmd.exe'
+$git = (Get-Command git.exe -CommandType Application -ErrorAction Stop).Source
+$node = (Get-Command node.exe -CommandType Application -ErrorAction Stop).Source
+$probe = Join-Path $env:TEMP "etl-native-probe-$([guid]::NewGuid().ToString('N')).txt"
 
-if (-not (Test-Path -LiteralPath $harnessFile -PathType Leaf)) {
-    throw "Harness file not found: $harnessFile"
-}
-
-if (-not (Test-Path -LiteralPath $qaWorkspace -PathType Container)) {
-    throw "QA workspace not found: $qaWorkspace"
-}
-
-$workspace = Get-Content -LiteralPath $harnessFile -Raw |
-    ConvertFrom-Json
-
-$configurations = @(
-    $workspace.launch.configurations |
-        Where-Object { $_.type -eq "extensionHost" }
+$expectedStatus = @(
+    ' M .github/templates/request.md'
+    ' M src/test/runTest.ts'
+    '?? src/test/suite/sttmRealHostStructuredResult.test.ts'
 )
 
-if ($configurations.Count -ne 1) {
-    throw "Expected exactly one extensionHost configuration; found $($configurations.Count)."
+try {
+    $LASTEXITCODE = $null
+    & $cmd /d /c ("echo NATIVE_CMD_OK>{0}" -f $probe)
+    $cmdExit = $LASTEXITCODE
+    $cmdResult = if (Test-Path -LiteralPath $probe) {
+        (Get-Content -LiteralPath $probe -Raw).Trim()
+    } else {
+        'FILE_MISSING'
+    }
+
+    $LASTEXITCODE = $null
+    $gitOutput = @(& $git --version 2>&1)
+    $gitExit = $LASTEXITCODE
+
+    $LASTEXITCODE = $null
+    $nodeOutput = @(& $node --version 2>&1)
+    $nodeExit = $LASTEXITCODE
+
+    $LASTEXITCODE = $null
+    $status = @(& $git -C $repo status --porcelain=v1 --untracked-files=all 2>&1)
+    $statusExit = $LASTEXITCODE
+
+    $statusExact = (($status -join "`n") -ceq ($expectedStatus -join "`n"))
+
+    [pscustomobject]@{
+        CmdResult                   = $cmdResult
+        CmdExit                     = $cmdExit
+        GitPath                     = $git
+        GitVersion                  = ($gitOutput -join ' ')
+        GitExit                     = $gitExit
+        NodePath                    = $node
+        NodeVersion                 = ($nodeOutput -join ' ')
+        NodeExit                    = $nodeExit
+        GitStatusExit               = $statusExit
+        GitStatusExact              = $statusExact
+        ElectronRunAsNodePresent    = [bool](
+            Get-ChildItem Env: |
+            Where-Object { $_.Name -ieq 'ELECTRON_RUN_AS_NODE' }
+        )
+    } | Format-List
+
+    $status | ForEach-Object { "STATUS: $_" }
+
+    if (
+        $cmdResult -eq 'NATIVE_CMD_OK' -and
+        $cmdExit -eq 0 -and
+        $gitExit -eq 0 -and
+        $nodeExit -eq 0 -and
+        $statusExit -eq 0 -and
+        $statusExact
+    ) {
+        Write-Host 'F5_NATIVE_TERMINAL_PASS' -ForegroundColor Green
+    } else {
+        Write-Host 'F5_NATIVE_TERMINAL_BLOCKED' -ForegroundColor Red
+    }
 }
-
-$configuration = $configurations[0]
-$launchArguments = @($configuration.args)
-
-if ($launchArguments.Count -ne 2) {
-    throw "Expected exactly two launch arguments; found $($launchArguments.Count)."
+finally {
+    Remove-Item -LiteralPath $probe -Force -ErrorAction SilentlyContinue
 }
-
-if (-not ([string]$launchArguments[0]).StartsWith("--extensionDevelopmentPath=")) {
-    throw "The first launch argument is not extensionDevelopmentPath."
-}
-
-$backupFile = "$harnessFile.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-Copy-Item -LiteralPath $harnessFile -Destination $backupFile
-
-$configuration.args[1] = $qaWorkspace
-
-$workspace |
-    ConvertTo-Json -Depth 20 |
-    Set-Content -LiteralPath $harnessFile -Encoding utf8
-
-$verifiedWorkspace = Get-Content -LiteralPath $harnessFile -Raw |
-    ConvertFrom-Json
-
-$verifiedConfigurations = @(
-    $verifiedWorkspace.launch.configurations |
-        Where-Object { $_.type -eq "extensionHost" }
-)
-
-if (
-    $verifiedConfigurations.Count -ne 1 -or
-    [string]$verifiedConfigurations[0].args[1] -ne $qaWorkspace
-) {
-    throw "Harness verification failed. Backup: $backupFile"
-}
-
-Write-Host ""
-Write-Host "HARNESS_TARGET_UPDATED_AND_VERIFIED" -ForegroundColor Green
-Write-Host "Target: $qaWorkspace"
-Write-Host "Backup: $backupFile"
