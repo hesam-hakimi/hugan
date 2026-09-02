@@ -9,6 +9,7 @@ from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentSe
 from universal_coding_agent.product.call_graphs import RepositoryCallGraphService
 from universal_coding_agent.product.context_documents import ContextDocumentService
 from universal_coding_agent.product.dependency_graphs import RepositoryDependencyService
+from universal_coding_agent.product.dispatch_evidence import RepositoryDispatchEvidenceService
 from universal_coding_agent.product.knowledge_packs import ProjectKnowledgePackService
 from universal_coding_agent.product.lifecycle_reservations import (
     DurableLifecycleReservationStore,
@@ -46,6 +47,7 @@ class ProductWorkspace:
     repository_indexes: RepositoryIndexService
     dependency_graphs: RepositoryDependencyService
     call_graphs: RepositoryCallGraphService
+    dispatch_evidence: RepositoryDispatchEvidenceService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -91,6 +93,11 @@ class ProductWorkspace:
             search,
             dependency_graphs,
         )
+        dispatch_evidence = RepositoryDispatchEvidenceService(
+            artifacts,
+            search,
+            call_graphs,
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -109,6 +116,7 @@ class ProductWorkspace:
             repository_indexes=repository_indexes,
             dependency_graphs=dependency_graphs,
             call_graphs=call_graphs,
+            dispatch_evidence=dispatch_evidence,
             search=search,
             requirements=requirements,
             programs=programs,

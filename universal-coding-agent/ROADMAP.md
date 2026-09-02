@@ -72,8 +72,10 @@
   dependency-graph reference/digest binding, canonical function/class/method identities, only
   statically unambiguous in-repository call edges, typed unresolved evidence, bounded immutable
   artifacts, atomic active state, safe reuse, and restart recovery;
-- P3.4c-2 dynamic-dispatch evidence, additional-language dependency analysis, and coverage-backed
-  test selection;
+- [x] P3.4c-2a conservative Python dynamic-dispatch evidence: exact static-call-graph binding,
+  bounded class hierarchy evidence, explicit receiver-type candidates, typed unresolved outcomes,
+  immutable artifacts, atomic active state, exact replay, and restart recovery;
+- P3.4c-2b additional-language dependency analysis and coverage-backed test selection;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
 - context deduplication and model-budget policies.
