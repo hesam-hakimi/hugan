@@ -1,20 +1,78 @@
-# Phase 1B.3G-C1 — Corrected Hash Gate and Resume One-Shot Host Run
+# Phase 1B.3G-C2 — Corrected One-Suite Real-Host Characterization
 
-The previous BLOCKED result was caused solely by an incorrect expected hash
-supplied in the prompt.
+Continue in the current desktop VS Code GitHub Copilot Local normal-Agent
+session and current repository folder.
 
-No runner was invoked.
-No Extension Host was launched.
-No focused test was evaluated.
-No isolation/evidence directory was created.
-No repository, QA, or environment state was changed.
+The preceding Phase 1B.3G attempts stopped during read-only preflight:
 
-Therefore, this is not a Host retry and the one-shot launch budget remains
-completely unused.
+- runner invocations: 0
+- Extension Host launches: 0
+- focused suites evaluated: 0
+- invokeTool calls: 0
 
-## Authoritative correction
+Therefore, the single authorized Host budget remains completely unused.
 
-The correct SHA-256 for:
+This prompt supersedes conflicting acceptance conditions from the previous
+Phase 1B.3G prompts.
+
+Do not edit or compile.
+Do not use npm, F5, Cloud, ETL Orchestrator, a worktree, harness workspace,
+wrapper, sidecar, Start-Process, Code.exe directly, or retry.
+
+## Corrected authoritative semantics
+
+The focused artifact intentionally defines:
+
+- exactly one focused Mocha suite;
+- exactly eight Mocha test cases inside that suite;
+- exactly one shared vscode.lm.invokeTool('etl_interpret_sttm', ...) call
+  in the suite setup/before path;
+- eight tests asserting different properties of that same shared result.
+
+Therefore:
+
+- selecting one suite and evaluating eight tests is expected;
+- eight Mocha tests do not mean eight tool invocations;
+- replace every previous “exactly one focused test” requirement with
+  “exactly one focused suite containing eight tests.”
+
+The current test has no independent internal parser-call counter.
+
+This is nonblocking for the real-host DataPart transport question. Report:
+
+parser cardinality: NOT_INDEPENDENTLY_OBSERVABLE
+
+Do not claim that parser count 1 was directly observed.
+
+The current test does not independently assert or persist:
+
+source_db.customers.cust_name
+
+That semantic field was covered by the deterministic Phase 1A analysis and
+is not required to establish whether LanguageModelDataPart survives the real
+Extension Host boundary.
+
+Report it only if directly present in retained runtime evidence; otherwise:
+
+resolved source: NOT_OBSERVED_BY_CURRENT_TEST
+
+Do not reconstruct it from Markdown. This status does not prevent a boundary
+PASS.
+
+## Step 1 — Minimal corrected gate
+
+Reconfirm without editing:
+
+1. Repository path, branch, HEAD and exact three-line Git status remain
+   unchanged.
+2. Protected request.md and focused-test hashes still match.
+3. The current runTest.ts hash matches the immediately preceding successful
+   sanitization report. Read it directly from disk; do not use OCR or introduce
+   another manually transcribed expected value.
+4. All five compiled artifact hashes still match the successful Phase 1B.3F
+   report.
+
+The authoritative corrected hash for:
 
 out/test/suite/index.js
 
@@ -22,59 +80,137 @@ is:
 
 D6151E50E5996F048E3E60129B10AB75205A7300988847748A75DDD3BF9222CC
 
-The previously supplied value containing:
+5. QA inventory remains exactly 23 files and the workbook remains:
 
-A75D0D3
+   size: 13201 bytes
 
-was a transcription error. The authoritative compiled artifact contains:
+   SHA-256:
+   3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
 
-A75DDD3
+6. Confirm from the current source and compiled test:
 
-All other fixed values, hashes, guardrails, evidence requirements and
-PASS/FAIL/BLOCKED definitions from Phase 1B.3G remain unchanged.
+   - MOCHA_GREP selects exactly one suite;
+   - the selected suite contains exactly eight tests;
+   - one shared invokeTool call supplies their raw result;
+   - all tests inspect that shared result;
+   - structured data comes directly from LanguageModelToolResult.content;
+   - it is not reconstructed from rendered Markdown.
 
-## Corrected resume gate
+7. Reconfirm the compiled runner has:
 
-1. Verify the corrected suite/index.js hash directly from disk.
-2. Reconfirm that:
+   - exactly one runTests invocation;
+   - no redundant positional development path;
+   - scoped Electron-variable sanitation and finally restoration;
+   - no retry;
+   - no --disable-extensions.
 
-   - repository path, branch and HEAD remain unchanged;
-   - Git status remains exactly the same three lines;
-   - the other four compiled hashes still match;
-   - request.md and focused-test hashes still match;
-   - the current runTest.ts hash matches the immediately preceding
-     sanitization PASS state;
-   - the QA inventory still contains exactly 23 byte-identical files;
-   - the workbook size and SHA-256 still match;
-   - runner invocations remain 0;
-   - Host launches remain 0;
-   - focused tests evaluated remain 0;
-   - no isolation/evidence directory was created by the blocked preflight.
+8. Reconfirm these variables are absent from the parent Local terminal:
 
-Do not compile, edit, repair, or create a new expected hash.
+   - ELECTRON_RUN_AS_NODE
+   - VSCODE_CLI
+   - ELECTRON_NO_ATTACH_CONSOLE
+   - NODE_OPTIONS
 
-If this corrected gate passes, resume the previously authorized Phase 1B.3G
-at Step 2.
+If any corrected gate fails, stop before launch and report BLOCKED.
+Do not add another evidence requirement or modify anything.
 
-## One authorized Host invocation
+## Step 2 — Prepare exactly one isolated run
 
-Create one unique Temp isolation/evidence directory and set only the
-environment-variable contracts already verified in the current source.
+Create exactly one unique empty isolation/evidence directory under the
+current user’s Temp directory, outside the repository and QA root.
 
-Then, from the repository root, invoke exactly once:
+Retain it after every result.
+
+Using only environment-variable names already implemented and verified in
+the runner/test:
+
+- select the installed VS Code 1.135.0 executable;
+- enable isolated-dependency mode;
+- point the isolation and evidence paths to the unique Temp directory;
+- point the focused test to the fixed QA root and workbook;
+- set MOCHA_GREP to the exact focused-suite title;
+- set MOCHA_RESULT_FILE inside the evidence directory.
+
+Set the variables only for the same Integrated PowerShell process that will
+invoke the runner.
+
+Do not invent an environment-variable name.
+Do not use the real VS Code profile.
+Do not install, copy, update or download extensions.
+Do not pass --disable-extensions.
+
+## Step 3 — Invoke exactly once
+
+From the repository root invoke exactly once:
 
 & 'C:\Program Files\nodejs\node.exe' '.\out\test\runTest.js'
 
-Do not use npm, F5, Code.exe directly, Start-Process, a wrapper, sidecar,
-Cloud, ETL Orchestrator, or another launcher.
+This is the only authorized runner invocation and Extension Host launch.
 
+Wait for this same invocation to finish.
 Do not retry.
 
-Apply all structured-result requirements and classification rules from the
-original Phase 1B.3G prompt.
+If it times out, terminate only that invocation and classify BLOCKED.
 
-After completion, verify repository, compiled artifacts and QA integrity and
-retain the isolation/evidence directory.
+If approval or sign-in UI prevents invocation, do not bypass it or relaunch.
+Classify BLOCKED.
+
+## Boundary PASS requirements
+
+PASS requires:
+
+- the real Extension Host launches;
+- the extension activates and registers etl_interpret_sttm;
+- exactly one focused suite is selected;
+- exactly eight tests are evaluated;
+- all eight pass with none skipped;
+- one shared invokeTool call is executed;
+- direct raw result evidence confirms content.length === 2;
+- part 0 is a nonempty LanguageModelTextPart;
+- part 1 is LanguageModelDataPart;
+- MIME is exactly application/json;
+- data is a nonempty Uint8Array;
+- strict UTF-8 decoding succeeds;
+- JSON parsing succeeds;
+- the existing authored cross-channel and deterministic assertions pass;
+- runner exit code is 0.
+
+Report parser cardinality as:
+
+NOT_INDEPENDENTLY_OBSERVABLE
+
+Report resolved source as its directly observed value or:
+
+NOT_OBSERVED_BY_CURRENT_TEST
+
+Neither non-observable item prevents a real-host DataPart boundary PASS.
+
+## Classification
+
+FAIL only if invokeTool reaches the real raw result boundary and an existing
+structured-result assertion fails.
+
+BLOCKED applies to Host boot, dependency, activation, registration,
+approval/sign-in, timeout, zero selected suite, missing raw-result evidence,
+or another failure before the boundary.
+
+Do not classify only from process exit code.
+
+## Final integrity
+
+After the single invocation:
+
+- restore only process-scoped environment state;
+- retain the isolation/evidence directory;
+- verify repository, compiled artifacts, protected file and QA workspace
+  remain unchanged;
+- report runner, Host, suite, test and invokeTool counts;
+- report raw part types/order, MIME, byte length, UTF-8 and JSON results;
+- report 8/8 Mocha result and runner exit;
+- report the non-observable fields honestly;
+- report retained evidence path and integrity result.
+
+Do not edit, compile, repair, retry, clean up or begin another phase.
 
 End with exactly one marker:
 
