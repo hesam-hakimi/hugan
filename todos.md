@@ -1,304 +1,427 @@
-# Phase 1B.3J — Read-Only Dependency Contract and Supported Host Strategy Audit
+# Phase 1B.3K — Multi-Development-Path Harness Patch and Compile
 
 Work locally in the currently open desktop VS Code repository:
 
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-This phase is strictly read-only.
+This is a narrowly authorized implementation-and-compile phase.
 
-Do not:
+Do not request another implementation confirmation. Platform permission prompts
+may still be shown.
 
-- edit any repository, compiled, installed-product or QA file;
-- compile or run tests;
-- invoke npm;
-- create another isolation root;
-- copy or install any extension;
-- invoke the runner;
-- launch Code.exe or an Extension Host;
-- call vscode.lm.invokeTool;
-- use Marketplace or network access;
-- use F5, Cloud, ETL Orchestrator or another worktree;
-- stage, commit, stash, restore, reset or clean;
-- inspect credentials, tokens or account contents.
+Do not launch an Extension Host in this phase.
 
-## Authoritative preceding result
+## Authoritative preceding decision
 
-Phase 1B.3I performed exactly one seeded-dependency Host run.
+Phase 1B.3J completed with:
 
-Observed:
+B. FUNCTIONAL_DEPENDENCY_REQUIRES_MULTI_DEVELOPMENT_PATH_TEST
 
-- one seeded github.copilot-chat@0.63.0 was discovered;
-- VS Code explicitly skipped it “in favour of the builtin extension”;
-- the effective Extension Host still reported github.copilot-chat as unknown;
-- Databricks ETL Copilot failed activation in its before-all hook;
-- test bodies executed: 0 of 8;
-- passes: 0;
-- failures: 1 before-all failure;
-- vscode.lm.invokeTool calls: 0;
-- Host launches: 1;
-- retries/relaunches: 0;
-- repository edits caused by the phase: 0;
-- QA edits: 0.
+The manifest-only dependency-removal hypothesis was DISPROVED.
 
-Primary classification:
+Established facts:
 
-F. DEPENDENCY_DISABLED_OR_REMOVED_IN_ISOLATED_PROFILE
+1. Root package.json is the authoritative extension manifest.
+2. package.json declares github.copilot-chat in extensionDependencies.
+3. src/extension.ts explicitly resolves and activates github.copilot-chat before
+   ETL read-only tool registration.
+4. The STTM tool uses stable VS Code core APIs, but the current production
+   activation flow still treats Copilot Chat activation as a prerequisite.
+5. Installed @vscode/test-electron 2.5.2 supports:
 
-Refinement:
+   extensionDevelopmentPath: string | string[]
 
-SEEDED_COPY_DISCOVERED_BUT_SHADOWED_BY_BUILTIN
+6. It emits one --extensionDevelopmentPath argument for every array entry.
+7. VS Code merges development extensions after built-in extensions, allowing an
+   explicit Copilot development path to replace the same built-in identifier.
+8. The supported future launch shape is:
 
-Retained evidence root:
+   extensionDevelopmentPath: [
+     etlRepositoryPath,
+     bundledCopilotExtensionPath
+   ]
 
-C:\Users\tag5916\AppData\Local\Temp\etl-phase-1b3i-seeded-20260902-113624-f3a807760bbe
+9. The existing ExtensionMode.Test early return currently occurs before Copilot
+   readiness and ETL read-only tool registration.
+10. Production behavior must remain unchanged.
 
-Repository state:
+Audited bundled Copilot directory:
 
-Branch:
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\08d4889f9e\resources\app\extensions\copilot
+
+Audited package identity:
+
+- canonical ID: github.copilot-chat
+- version: 0.63.0
+- engines.vscode: ^1.135.0
+- extensionDependencies: absent or empty
+- file inventory: 98 files
+- reparse points: none
+
+## Fixed repository state
+
+Expected branch:
+
 fix/workspace-write-completion-0.3.148
 
-HEAD:
+Expected HEAD:
+
 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-Expected Git status, exactly:
+Expected pre-edit Git status, exactly:
 
  M .github/templates/request.md
  M src/test/runTest.ts
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 
-The QA root correctly contains 23 files. Do not repeat the prior invalid
-assumption that the QA root should contain only the workbook.
+Protected-file SHA-256:
+
+.github/templates/request.md
+2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84
 
-## Goal
+Current runner-source SHA-256:
+
+src/test/runTest.ts
+56CF4FAB4CA798178C503806BDE94D8ABAB59F1E861B9D44B14A27442DE0E771
 
-Determine whether:
+Focused-test SHA-256:
 
-extensionDependencies: ["github.copilot-chat"]
+src/test/suite/sttmRealHostStructuredResult.test.ts
+8713EC3B3F2F75B06541F9B68AC4D9026CA0A17D052E07898EA12C5E12FAABCE
 
-is a genuine runtime requirement of the ETL extension or only a manifest-level
-activation gate that is unnecessary for registering and directly invoking the
-ETL Language Model Tool.
+Read hashes directly from disk. Do not use screenshots or OCR as hash evidence.
 
-Then identify exactly one evidence-supported next implementation/test path.
+## Authorized scope
+
+Authored source edits are allowed only in:
+
+1. src/test/runTest.ts
+2. src/extension.ts
+
+One compile may regenerate files under:
+
+out/**
+
+Do not modify:
+
+- package.json;
+- package-lock.json;
+- tsconfig.json;
+- .github/templates/request.md;
+- src/test/suite/sttmRealHostStructuredResult.test.ts;
+- tool implementation files;
+- QA files;
+- installed VS Code files;
+- bundled Copilot files;
+- previous isolation/evidence directories.
+
+Do not:
+
+- remove or alter extensionDependencies;
+- hard-code the local Copilot path in source;
+- install, copy or seed an extension;
+- use Marketplace or network access;
+- run npm install;
+- run tests;
+- run F5;
+- invoke Code.exe;
+- invoke out/test/runTest.js;
+- launch an Extension Host;
+- invoke vscode.lm.invokeTool;
+- use Cloud, ETL Orchestrator or another worktree;
+- stage, commit, stash, restore, reset or clean;
+- retry a failed compile.
+
+This phase authorizes exactly one compile command:
+
+npm run compile
+
+No other npm, npx, tsc or esbuild invocation is authorized.
 
-Do not implement or execute that path in this phase.
+## Step 1 — Pre-edit gate
 
-## Step 1 — Integrity verification
+Before editing, verify:
 
-Read the retained Phase 1B.3I evidence and verify:
+1. Repository path, branch, HEAD and exact three-line Git status.
+2. All fixed hashes above.
+3. package.json still declares exactly the github.copilot-chat dependency.
+4. Capture pre-edit hashes for package.json and src/extension.ts.
+5. The bundled Copilot directory and manifest still prove the audited identity.
+6. The Copilot path is inside the selected VS Code application installation,
+   contains no reparse points and has the expected 98-file inventory.
+7. @vscode/test-electron still supports string | string[] and emits one
+   development-path argument per array entry.
+8. src/test/runTest.ts still contains:
+   - exactly one runTests(...) call;
+   - top-level extensionDevelopmentPath;
+   - no bare positional extensionDevelopmentPath in launchArgs;
+   - scoped sanitation/restoration for ELECTRON_RUN_AS_NODE, VSCODE_CLI and
+     ELECTRON_NO_ATTACH_CONSOLE;
+   - restoration in finally;
+   - no retry;
+   - no --disable-extensions in isolated-dependency mode.
+9. src/extension.ts still contains:
+   - the ordinary ExtensionMode.Test early return;
+   - the existing Copilot resolve/activate/readiness path;
+   - a separable ETL read-only tool-registration point;
+   - participant/sidebar/action-tool/UI initialization after that point.
+10. Capture pre-compile hashes of the five pinned compiled artifacts.
+11. QA inventory remains exactly 23 files.
+12. The workbook remains 13201 bytes with SHA-256:
 
-1. repository path, branch, HEAD and exact Git status;
-2. protected-file identity;
-3. current runner and focused-test identities;
-4. all five compiled artifact identities;
-5. QA inventory remains exactly 23 files;
-6. workbook remains 13201 bytes with SHA-256:
+    3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
 
-   3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
+If a fixed identity or required premise differs, make no edits, do not compile
+and classify BLOCKED.
 
-7. the seeded source/destination comparison remained 98 of 98 files with
-   zero mismatches;
-8. no matching isolated Host process remains.
+## Step 2 — Add the narrow runner contract
 
-Use hashes read directly from disk and retained evidence. Do not transcribe
-hashes from screenshots or OCR.
+Modify only src/test/runTest.ts.
 
-If integrity differs, report the exact difference and stop without mutation.
+Reuse an equivalent existing contract if one already exists. Otherwise add this
+test-only environment contract:
 
-## Step 2 — Map the authoritative manifest chain
+ETL_TEST_COPILOT_EXTENSION_PATH
 
-Locate every manifest involved in building and packaging:
+Required behavior:
 
-td-etl.databricks-etl-copilot
+1. Consult it only when ETL_TEST_ENABLE_ISOLATED_DEPENDENCIES is enabled.
+2. In isolated-dependency mode:
+   - require a nonempty value;
+   - require an absolute existing directory;
+   - resolve and normalize its real path;
+   - require it to remain inside the selected VS Code installation root;
+   - read its package.json;
+   - require canonical ID github.copilot-chat;
+   - require a nonempty version and VS Code engine;
+   - fail before runTests if validation fails;
+   - do not hard-code the machine path or version into source;
+   - pass exactly:
 
-Map, without editing:
+     extensionDevelopmentPath: [
+       etlRepositoryPath,
+       bundledCopilotExtensionPath
+     ]
 
-authoritative source manifest
-→ build/package transformation
-→ packaged manifest
-→ currently compiled/installed development manifest
+3. Outside isolated-dependency mode:
+   - do not require or resolve the Copilot path;
+   - preserve the existing single ETL development path;
+   - preserve default runner behavior.
+4. Pass development paths only through the top-level runTests option.
+5. Do not put either path in launchArgs.
+6. Do not manually construct --extensionDevelopmentPath arguments.
+7. Preserve:
+   - exactly one runTests(...) invocation;
+   - executable-path override;
+   - isolation-root/user-data/extensions-directory contracts;
+   - the existing --disable-extensions gate;
+   - process-variable sanitation and finally restoration;
+   - no retries or fallback launches.
+8. Do not log environment-variable values.
 
-For every occurrence of either:
+Do not copy or mutate the bundled Copilot extension.
 
-github.copilot-chat
-GitHub.copilot-chat
-github.copilot
+## Step 3 — Add an explicitly gated Test-mode activation path
 
-report:
+Modify only src/extension.ts.
 
-- exact file and JSON/property path;
-- whether it is tracked source, generated output or installed-product data;
-- whether it affects activation, packaging, recommendations or UI only;
-- whether changing the authoritative occurrence automatically updates the
-  packaged occurrence.
+Use this exact additional opt-in contract:
 
-Identify exactly which authoritative file owns:
+ETL_TEST_READ_ONLY_TOOL_ONLY=1
 
-extensionDependencies: ["github.copilot-chat"]
+The special activation path must require both:
 
-Do not assume that the repository-root package.json is the packaged extension
-manifest unless the build chain proves it.
+context.extensionMode === vscode.ExtensionMode.Test
 
-## Step 3 — Prove or disprove a functional Copilot dependency
+and:
 
-Search tracked source, compiled output and focused tests for direct use of:
+process.env.ETL_TEST_READ_ONLY_TOOL_ONLY === '1'
 
-- vscode.extensions.getExtension('github.copilot-chat');
-- activation of github.copilot-chat;
-- Copilot extension exports;
-- Copilot-specific commands;
-- Copilot-specific context keys;
-- imports or requires from Copilot packages;
-- authentication or session APIs supplied by Copilot;
-- any code path that cannot execute without Copilot Chat activation.
+Required behavior:
 
-Separately map the ETL tool implementation:
+### Ordinary Test mode without the opt-in
 
-- contributes.languageModelTools declaration;
-- activation event responsible for ETL tool registration;
-- vscode.lm.registerTool call;
-- tool ID etl_interpret_sttm;
-- vscode.lm.invokeTool usage in the focused test;
-- LanguageModelToolResult creation;
-- LanguageModelTextPart creation;
-- LanguageModelDataPart creation;
-- application/json DataPart construction.
+Preserve the current early-return behavior exactly.
 
-For every relevant result distinguish:
+It must not activate Copilot or register tools merely because the extension is
+running in Test mode.
 
-- VS Code core API dependency;
-- Copilot-extension API dependency;
-- Node/npm dependency;
-- manifest-only dependency;
-- no dependency.
+### Opted-in Test mode
 
-Do not infer a functional dependency merely because the string appears in
-extensionDependencies, recommendations or documentation.
+When both conditions are true:
 
-## Step 4 — Verify the VS Code 1.135.0 API contract
+1. Execute the existing production Copilot resolution, activation and readiness
+   checks without bypassing, weakening or mocking them.
+2. Register exactly the existing ETL read-only Language Model Tool:
 
-Using the installed VS Code 1.135.0 API declarations, the repository’s
-@types/vscode version and locally installed documentation/source, determine:
+   etl_interpret_sttm
 
-1. whether vscode.lm.registerTool is a core API in this supported version;
-2. whether vscode.lm.invokeTool is a core API;
-3. whether either call requires Copilot Chat to be activated;
-4. whether the languageModelTools contribution point requires
-   github.copilot-chat;
-5. whether enabledApiProposals or a Copilot-provided proposed API is used;
-6. whether direct programmatic invokeTool requires a language-model provider,
-   sign-in or chat UI;
-7. whether the existing focused test exercises only direct tool registration
-   and invocation.
+3. Use the same production implementation and registration logic.
+4. Add the registration disposable to context.subscriptions.
+5. Return immediately after read-only tool registration.
+6. Do not initialize or register:
+   - chat participant UI;
+   - sidebar or view UI;
+   - action/write tools;
+   - unrelated commands;
+   - walkthrough/onboarding behavior;
+   - model selection;
+   - model sendRequest calls;
+   - authentication or sign-in behavior.
 
-Explicitly separate:
+### Production and Development modes
 
-- tool registration/invocation;
-- presenting the tool to an AI model or Agent UI;
-- selecting or calling a language model.
+Preserve their existing behavior and registration order.
 
-These are not automatically the same dependency contract.
+The presence of ETL_TEST_READ_ONLY_TOOL_ONLY in Production or Development mode
+must have no effect.
 
-## Step 5 — Evaluate the manifest-only hypothesis
+Additional requirements:
 
-Evaluate this exact hypothesis:
+- Do not register etl_interpret_sttm twice.
+- Do not duplicate its implementation.
+- Do not create a fake Copilot dependency or fake vscode.lm API.
+- Do not change the tool ID, input or result contract.
+- Do not refactor unrelated activation code.
+- Prefer a narrow relocation/gating of the existing Test-mode early return.
+- Keep package.json and extensionDependencies unchanged.
 
-“The ETL extension uses only VS Code core Language Model Tool APIs.
-It consumes no API, export, command, authentication state or runtime service
-from github.copilot-chat. Therefore extensionDependencies creates an
-unnecessary hard activation gate and may be removed without changing the
-tool’s registration or direct-invocation behavior.”
+If these requirements cannot be satisfied through a narrow change, stop before
+compile and classify FAIL.
 
-Classify it as:
+## Step 4 — Pre-compile static verification
 
-PROVED
-DISPROVED
-UNRESOLVED
+Before compiling, verify:
 
-A PROVED result requires all of the following:
+### Runner
 
-- no functional Copilot API/export/command/context dependency;
-- registerTool and invokeTool are supported core APIs;
-- languageModelTools is declared by the ETL extension itself;
-- direct focused invocation does not select or call a language model;
-- no relevant proposed API is supplied by Copilot Chat;
-- the authoritative manifest path is known;
-- packaged-manifest propagation is understood.
+- exactly one runTests(...) call;
+- isolated mode produces exactly two development paths;
+- order is ETL repository first and bundled Copilot second;
+- normal mode retains one ETL development path;
+- ETL_TEST_COPILOT_EXTENSION_PATH is consulted only in isolated mode;
+- no hard-coded user or VS Code installation path;
+- no positional development path;
+- no manually constructed --extensionDevelopmentPath flag;
+- no retry;
+- existing sanitation/restoration remains in finally;
+- existing --disable-extensions behavior remains unchanged.
 
-## Step 6 — Conditional supported test strategy
+### Activation
 
-If the manifest-only hypothesis is PROVED:
+Verify all four cases:
 
-Recommend a narrowly scoped future patch plan only.
+1. Production mode, regardless of test opt-in:
+   existing production activation remains unchanged.
 
-The plan must specify:
+2. Development mode, regardless of test opt-in:
+   existing development activation remains unchanged.
 
-- exact authoritative manifest file/property to change;
-- whether any generated/package manifest must also be updated or regenerated;
-- the smallest static/manifest regression test needed;
-- one compile;
-- one later isolated Host run;
-- no dependency seed;
-- no real user profile;
-- no Marketplace/network access.
+3. Test mode without ETL_TEST_READ_ONLY_TOOL_ONLY=1:
+   existing early return remains unchanged.
 
-Do not apply the patch now.
+4. Test mode with ETL_TEST_READ_ONLY_TOOL_ONLY=1:
+   Copilot readiness executes, etl_interpret_sttm registers exactly once, and
+   all participant/sidebar/action/write/UI initialization is unreachable.
 
-If the hypothesis is DISPROVED because a real Copilot API dependency exists:
+Also verify:
 
-Inspect, read-only, whether the installed @vscode/test-electron contract
-supports extensionDevelopmentPath as string[].
+- failed or missing Copilot activation registers no ETL tool;
+- package.json dependency remains unchanged;
+- no environment values are logged;
+- neither new environment contract is mutated by the source.
 
-Determine whether a future test could load both:
+If static verification fails, do not compile. Report FAIL.
 
-1. the ETL repository extension; and
-2. the audited application-bundled Copilot extension
+## Step 5 — Compile exactly once
 
-as explicit development extensions in one temporary isolated profile.
+Record a UTC compile-start timestamp.
 
-Also determine whether development-extension precedence is proven to bypass
-the observed built-in shadowing.
+From the repository root invoke exactly once:
 
-Do not recommend this path unless both array support and precedence behavior
-are proven from installed code.
+npm run compile
 
-If neither path is fully proved, report NO_SAFE_PATH_YET and identify the
-single smallest missing observation or instrumentation needed next.
+Capture stdout, stderr and exit code.
 
-Do not recommend normal-profile execution unless all isolated supported paths
-are disproved. The real profile must remain the last resort because it can
-hide packaging defects and introduce user-state/authentication effects.
+Do not retry.
 
-## Final decision
+Do not run any test, compiled runner, Code.exe or Extension Host afterward.
 
-Return exactly one primary decision:
+## Step 6 — Post-compile verification
 
-A. MANIFEST_ONLY_DEPENDENCY_REMOVAL_SUPPORTED
+PASS requires:
 
-B. FUNCTIONAL_DEPENDENCY_REQUIRES_MULTI_DEVELOPMENT_PATH_TEST
+1. The single compile exits 0.
+2. All five pinned compiled artifacts exist and are newer than compile start.
+3. out/test/runTest.js proves:
+   - exactly one runTests call;
+   - conditional single-path versus ordered two-path behavior;
+   - the new Copilot-path contract;
+   - no hard-coded local path;
+   - no manual/positional development-path argument;
+   - no retry;
+   - retained sanitation and finally restoration.
+4. out/extension.js proves all four activation cases above.
+5. package.json is byte-for-byte unchanged.
+6. extensionDependencies remains unchanged.
+7. package-lock.json and tsconfig.json remain unchanged.
+8. request.md and the focused test retain their fixed hashes.
+9. Only src/test/runTest.ts and src/extension.ts have authored changes.
+10. Generated changes are confined to out/**.
+11. Branch and HEAD remain unchanged.
+12. Final Git status is exactly:
 
-C. NO_SAFE_PATH_YET
+    M .github/templates/request.md
+    M src/extension.ts
+    M src/test/runTest.ts
+    ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 
-For the chosen decision report:
+13. QA inventory and workbook remain unchanged.
+14. Bundled Copilot remains unchanged.
+15. Operational counters remain:
+    - test executions: 0;
+    - runner invocations: 0;
+    - Host launches: 0;
+    - invokeTool calls: 0;
+    - extension copies/installations: 0;
+    - retries: 0.
 
-- direct evidence;
-- exact authoritative files involved;
-- proposed future delta;
-- why the delta should cross the activation boundary;
-- remaining risks;
-- exact preflight required before another one-shot Host launch.
+This phase proves only patch integrity, compilation and static launch-shape
+readiness. It does not prove production Copilot/Agent integration.
 
-Also report these counters:
+## Final report
 
-- repository edits: 0
-- QA edits: 0
-- compiled-file edits: 0
-- extension copies/installations: 0
-- compiles: 0
-- runner invocations: 0
-- Host launches: 0
-- invokeTool calls: 0
+Report:
 
-End with exactly:
+- classification;
+- exact authored files changed;
+- new/reused environment contracts and semantics;
+- Test-mode activation behavior before and after;
+- confirmation that production behavior and package dependency are preserved;
+- static verification;
+- compile count and exit code;
+- relevant source and compiled pre/post hashes;
+- final branch, HEAD and Git status;
+- QA/workbook integrity;
+- bundled Copilot integrity;
+- all operational counters.
 
-F5_LOCAL_DEPENDENCY_CONTRACT_AUDIT_COMPLETE
+Classification:
+
+- PASS: both narrow edits, static verification, one compile and all integrity
+  checks succeed.
+- FAIL: an authorized edit occurred but static verification or compilation
+  failed. Preserve the working tree and do not retry.
+- BLOCKED: a pre-edit identity or prerequisite failed. Make no edits.
+
+End with exactly one marker:
+
+F5_LOCAL_MULTI_DEVELOPMENT_PATH_HARNESS_PASS
+
+or
+
+F5_LOCAL_MULTI_DEVELOPMENT_PATH_HARNESS_FAIL
+
+or
+
+F5_LOCAL_MULTI_DEVELOPMENT_PATH_HARNESS_BLOCKED
