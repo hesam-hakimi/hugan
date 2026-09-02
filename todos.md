@@ -1,225 +1,253 @@
-# Phase 1B.3G-C2 — Corrected One-Suite Real-Host Characterization
+# Phase 1B.3H — Read-Only Copilot Dependency Visibility Audit
 
 Continue in the current desktop VS Code GitHub Copilot Local normal-Agent
 session and current repository folder.
 
-The preceding Phase 1B.3G attempts stopped during read-only preflight:
+The preceding Phase 1B.3G-C2 result is authoritative:
 
-- runner invocations: 0
-- Extension Host launches: 0
-- focused suites evaluated: 0
+- runner invocations: 1
+- real Extension Host launches attempted/proven: 1/1
+- Host VS Code version: 1.135.0
+- focused suite selected: 1
+- test bodies evaluated: 0/8
+- before-all failures: 1
 - invokeTool calls: 0
+- runner exit: 1
+- classification: BLOCKED before the raw tool-result boundary
 
-Therefore, the single authorized Host budget remains completely unused.
+Activation failed with:
 
-This prompt supersedes conflicting acceptance conditions from the previous
-Phase 1B.3G prompts.
+Cannot activate the 'Databricks ETL Copilot' extension because it depends
+on unknown extension 'github.copilot-chat'.
+
+Retained evidence directory:
+
+C:\Users\tag5916\AppData\Local\Temp\etl-phase-1b3g-c2-ea9575f1ed28431d9edd7b56d50830d7
+
+This phase is READ-ONLY DIAGNOSIS ONLY.
 
 Do not edit or compile.
-Do not use npm, F5, Cloud, ETL Orchestrator, a worktree, harness workspace,
-wrapper, sidecar, Start-Process, Code.exe directly, or retry.
+Do not launch another Extension Host.
+Do not invoke the runner, Code.exe, F5, npm, invokeTool or any ETL tool.
+Do not install, copy, move, rename, update, enable or disable an extension.
+Do not access Marketplace or the network.
+Do not modify the repository, QA root, installed VS Code, user profile,
+retained evidence, or environment variables.
+Do not read authentication tokens, credential stores, secrets or Copilot
+account data.
 
-## Corrected authoritative semantics
+## Step 1 — Preserve and verify state
 
-The focused artifact intentionally defines:
+Verify:
 
-- exactly one focused Mocha suite;
-- exactly eight Mocha test cases inside that suite;
-- exactly one shared vscode.lm.invokeTool('etl_interpret_sttm', ...) call
-  in the suite setup/before path;
-- eight tests asserting different properties of that same shared result.
+- repository path, branch, HEAD and exact three-line Git status;
+- protected request.md hash;
+- current runTest.ts and focused-test hashes;
+- all five compiled hashes;
+- QA 23-file inventory and workbook identity;
+- retained evidence directory and its existing files.
 
-Therefore:
+Require zero changes since Phase 1B.3G-C2.
 
-- selecting one suite and evaluating eight tests is expected;
-- eight Mocha tests do not mean eight tool invocations;
-- replace every previous “exactly one focused test” requirement with
-  “exactly one focused suite containing eight tests.”
+## Step 2 — Verify the declared dependency
 
-The current test has no independent internal parser-call counter.
+Read the repository package.json and report:
 
-This is nonblocking for the real-host DataPart transport question. Report:
+- extension publisher;
+- extension name and canonical ID;
+- version;
+- complete extensionDependencies array;
+- exact spelling and casing of the Copilot dependency.
 
-parser cardinality: NOT_INDEPENDENTLY_OBSERVABLE
+Determine whether the declared canonical dependency is:
 
-Do not claim that parser count 1 was directly observed.
+github.copilot-chat
 
-The current test does not independently assert or persist:
+Do not change the manifest.
 
-source_db.customers.cust_name
+## Step 3 — Inventory installed Copilot extension packages
 
-That semantic field was covered by the deterministic Phase 1A analysis and
-is not required to establish whether LanguageModelDataPart survives the real
-Extension Host boundary.
+Using PowerShell filesystem and JSON reads only, inspect the following
+candidate locations when they exist:
 
-Report it only if directly present in retained runtime evidence; otherwise:
+1. Installed VS Code application extensions:
 
-resolved source: NOT_OBSERVED_BY_CURRENT_TEST
+   C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\resources\app\extensions
 
-Do not reconstruct it from Markdown. This status does not prevent a boundary
-PASS.
+2. User-installed extensions:
 
-## Step 1 — Minimal corrected gate
+   C:\Users\tag5916\.vscode\extensions
 
-Reconfirm without editing:
+3. Any extension directory explicitly recorded in the retained Host launch
+   evidence.
 
-1. Repository path, branch, HEAD and exact three-line Git status remain
-   unchanged.
-2. Protected request.md and focused-test hashes still match.
-3. The current runTest.ts hash matches the immediately preceding successful
-   sanitization report. Read it directly from disk; do not use OCR or introduce
-   another manually transcribed expected value.
-4. All five compiled artifact hashes still match the successful Phase 1B.3F
-   report.
+4. The exact isolated extensions directory created by Phase 1B.3G-C2.
 
-The authoritative corrected hash for:
+For every candidate package related to GitHub Copilot or Copilot Chat,
+read only its package.json and record:
 
-out/test/suite/index.js
+- absolute directory;
+- publisher;
+- name;
+- canonical lowercase `${publisher}.${name}` ID;
+- displayName;
+- version;
+- engines.vscode;
+- extensionKind;
+- extensionDependencies;
+- package.json SHA-256;
+- whether it is application-bundled, user-installed, or isolated-run content.
 
-is:
+Do not identify an extension from its folder name alone. Derive its ID from
+publisher and name in package.json.
 
-D6151E50E5996F048E3E60129B10AB75205A7300988847748A75DDD3BF9222CC
+Explicitly determine whether these IDs exist and where:
 
-5. QA inventory remains exactly 23 files and the workbook remains:
+- github.copilot
+- github.copilot-chat
 
-   size: 13201 bytes
+## Step 4 — Inspect installed VS Code product metadata
 
-   SHA-256:
-   3F9743877E50B46C50AD398FEF1CD649281C1E74188D8E942A8875465798F3AA
+Read only:
 
-6. Confirm from the current source and compiled test:
+C:\Users\tag5916\AppData\Local\Programs\Microsoft VS Code\resources\app\product.json
 
-   - MOCHA_GREP selects exactly one suite;
-   - the selected suite contains exactly eight tests;
-   - one shared invokeTool call supplies their raw result;
-   - all tests inspect that shared result;
-   - structured data comes directly from LanguageModelToolResult.content;
-   - it is not reconstructed from rendered Markdown.
+Report relevant entries from:
 
-7. Reconfirm the compiled runner has:
+- defaultChatAgent;
+- builtInExtensions;
+- builtInExtensionsEnabledWithAutoUpdates;
+- any other product entry referencing GitHub.copilot or
+  GitHub.copilot-chat.
 
-   - exactly one runTests invocation;
-   - no redundant positional development path;
-   - scoped Electron-variable sanitation and finally restoration;
-   - no retry;
-   - no --disable-extensions.
+Do not invoke Code.exe and do not update anything.
 
-8. Reconfirm these variables are absent from the parent Local terminal:
+Determine whether product metadata references an extension whose physical
+package is absent, present under another ID, or present only outside the
+isolated scan path.
 
-   - ELECTRON_RUN_AS_NODE
-   - VSCODE_CLI
-   - ELECTRON_NO_ATTACH_CONSOLE
-   - NODE_OPTIONS
+## Step 5 — Inspect the failed Host’s actual scan evidence
 
-If any corrected gate fails, stop before launch and report BLOCKED.
-Do not add another evidence requirement or modify anything.
+Read the retained evidence directory and isolated user-data logs.
 
-## Step 2 — Prepare exactly one isolated run
+Search only for relevant lines containing:
 
-Create exactly one unique empty isolation/evidence directory under the
-current user’s Temp directory, outside the repository and QA root.
+- github.copilot
+- github.copilot-chat
+- unknown extension
+- extensionDependencies
+- extension scan
+- extensionDevelopmentPath
+- extensions-dir
+- user-data-dir
+- disable-extensions
+- activation
 
-Retain it after every result.
+Report:
 
-Using only environment-variable names already implemented and verified in
-the runner/test:
+- exact executable used;
+- exact Host launch arguments;
+- exact user-data directory;
+- exact extensions directory;
+- whether --disable-extensions was absent;
+- which Copilot IDs the failed Host actually discovered;
+- which Copilot IDs were absent;
+- whether an extension was found but rejected as incompatible, disabled,
+  removed, or duplicate;
+- the precise log evidence for the activation failure.
 
-- select the installed VS Code 1.135.0 executable;
-- enable isolated-dependency mode;
-- point the isolation and evidence paths to the unique Temp directory;
-- point the focused test to the fixed QA root and workbook;
-- set MOCHA_GREP to the exact focused-suite title;
-- set MOCHA_RESULT_FILE inside the evidence directory.
+Do not modify or clean the retained directory.
 
-Set the variables only for the same Integrated PowerShell process that will
-invoke the runner.
+## Step 6 — Determine dependency closure
 
-Do not invent an environment-variable name.
-Do not use the real VS Code profile.
-Do not install, copy, update or download extensions.
-Do not pass --disable-extensions.
+If github.copilot-chat exists anywhere locally:
 
-## Step 3 — Invoke exactly once
+1. Read its manifest.
+2. Recursively identify only its declared extensionDependencies.
+3. For each dependency, locate its exact installed directory, version,
+   engine compatibility and package manifest hash.
+4. Produce the minimum complete dependency closure required by the isolated
+   Host.
 
-From the repository root invoke exactly once:
+Do not copy the closure in this phase.
 
-& 'C:\Program Files\nodejs\node.exe' '.\out\test\runTest.js'
+## Root-cause classification
 
-This is the only authorized runner invocation and Extension Host launch.
+Choose exactly one primary classification supported by direct evidence:
 
-Wait for this same invocation to finish.
-Do not retry.
+A. DEPENDENCY_NOT_INSTALLED_LOCALLY
 
-If it times out, terminate only that invocation and classify BLOCKED.
+B. DEPENDENCY_PRESENT_IN_USER_EXTENSION_DIR_BUT_EXCLUDED_BY_ISOLATION
 
-If approval or sign-in UI prevents invocation, do not bypass it or relaunch.
-Classify BLOCKED.
+C. DEPENDENCY_PRESENT_IN_VSCODE_APPLICATION_BUT_NOT_SCANNED_BY_HOST
 
-## Boundary PASS requirements
+D. DEPENDENCY_ID_MISMATCH
 
-PASS requires:
+E. DEPENDENCY_ENGINE_INCOMPATIBLE
 
-- the real Extension Host launches;
-- the extension activates and registers etl_interpret_sttm;
-- exactly one focused suite is selected;
-- exactly eight tests are evaluated;
-- all eight pass with none skipped;
-- one shared invokeTool call is executed;
-- direct raw result evidence confirms content.length === 2;
-- part 0 is a nonempty LanguageModelTextPart;
-- part 1 is LanguageModelDataPart;
-- MIME is exactly application/json;
-- data is a nonempty Uint8Array;
-- strict UTF-8 decoding succeeds;
-- JSON parsing succeeds;
-- the existing authored cross-channel and deterministic assertions pass;
-- runner exit code is 0.
+F. DEPENDENCY_DISABLED_OR_REMOVED_IN_ISOLATED_PROFILE
 
-Report parser cardinality as:
+G. MULTIPLE_CAUSES
 
-NOT_INDEPENDENTLY_OBSERVABLE
+H. NOT_DETERMINED
 
-Report resolved source as its directly observed value or:
+Do not infer the cause only from the activation error.
 
-NOT_OBSERVED_BY_CURRENT_TEST
+## Recommendation
 
-Neither non-observable item prevents a real-host DataPart boundary PASS.
+Recommend exactly one smallest safe next action, but do not implement it.
 
-## Classification
+Prefer a deterministic isolated solution. Compare only when supported:
 
-FAIL only if invokeTool reaches the real raw result boundary and an existing
-structured-result assertion fails.
+1. Seed the next unique isolated extensions directory with the exact existing
+   compatible dependency closure.
 
-BLOCKED applies to Host boot, dependency, activation, registration,
-approval/sign-in, timeout, zero selected suite, missing raw-result evidence,
-or another failure before the boundary.
+2. Reference an existing extension directory read-only if the runner already
+   supports it safely.
 
-Do not classify only from process exit code.
+3. Use the application-bundled extension if direct evidence proves why it was
+   omitted and how the runner can expose it.
 
-## Final integrity
+Do not recommend Marketplace download, changing package.json dependencies,
+using the real VS Code profile broadly, or removing the dependency unless
+direct evidence proves that is the correct product design.
 
-After the single invocation:
+For the recommended action provide:
 
-- restore only process-scoped environment state;
-- retain the isolation/evidence directory;
-- verify repository, compiled artifacts, protected file and QA workspace
-  remain unchanged;
-- report runner, Host, suite, test and invokeTool counts;
-- report raw part types/order, MIME, byte length, UTF-8 and JSON results;
-- report 8/8 Mocha result and runner exit;
-- report the non-observable fields honestly;
-- report retained evidence path and integrity result.
+- exact source extension directories;
+- exact destination concept;
+- complete dependency closure;
+- versions and engine compatibility;
+- required runner/configuration change, if any;
+- whether another compile is necessary;
+- risks and integrity guards for one newly authorized Host run.
 
-Do not edit, compile, repair, retry, clean up or begin another phase.
+## Final response
+
+Report:
+
+- repository and QA integrity;
+- declared dependency ID;
+- every located Copilot package and canonical ID;
+- product.json findings;
+- failed Host launch/scan findings;
+- minimum dependency closure;
+- exact root-cause classification;
+- one smallest safe recommended next action.
+
+Confirm:
+
+- repository edits: 0
+- QA edits: 0
+- extension copies/installations: 0
+- compiles: 0
+- new Host launches: 0
+- invokeTool calls: 0
 
 End with exactly one marker:
 
-F5_LOCAL_REAL_HOST_STRUCTURED_RESULT_PASS
+F5_LOCAL_COPILOT_DEPENDENCY_AUDIT_COMPLETE
 
 or
 
-F5_LOCAL_REAL_HOST_STRUCTURED_RESULT_FAIL
-
-or
-
-F5_LOCAL_REAL_HOST_STRUCTURED_RESULT_BLOCKED
+F5_LOCAL_COPILOT_DEPENDENCY_AUDIT_BLOCKED
