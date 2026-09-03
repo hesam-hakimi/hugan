@@ -1,31 +1,71 @@
-IMPLEMENTATION ONLY — COMMENT ACCURACY. No compile, no test execution,
-no runner, no commit. Edit only src/test/runTest.ts. Change only comment
-text. Do not change a single line of executable code, type, or field.
+INDEPENDENT REVIEW — READ ONLY. Do not compile, run tests, launch a
+runner or Extension Host, install anything, or edit any file. You did
+not write this change. Do not assume it is correct. Do not fix anything.
 
-Two doc comments now overstate the invariant after the scope correction.
-Rewrite them to describe what is actually true.
+Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Branch:     fix/workspace-write-completion-0.3.148
+File under review: src/test/runTest.ts (uncommitted working-tree change)
 
-1. The comment above `interface RunnerEvidenceDeclarations` currently
-   claims this block is the only place where a hard-coded value carries
-   meaning. That is no longer accurate. Rewrite it to say: this block
-   holds values asserted by the author rather than observed by the
-   runner; it is not the only literal in the evidence, and the remaining
-   literals are marked individually at their fields.
+INTENT AS AUTHORISED BY THE OWNER
+The runner's evidence file must not present a literal value as an
+observation. Two specific fields were in scope:
+  - runnerAliveWhileWritingEvidence, a hard-coded true presented as an
+    observation, was to be removed and replaced only by something
+    genuinely observable.
+  - parentPostExitCheckRequired was to move into a new top-level
+    `declarations` block meaning "asserted by the author, not observed".
+Everything else was to be reported, not changed. Two doc comments were
+then corrected for accuracy. taskId was deliberately left alone.
 
-2. The comment above `interface RunnerEvidence` currently claims every
-   field outside `declarations` is an observation. Rewrite it to say:
-   fields marked "must be computed, never literal" are observations and
-   must be produced from a runtime value at the moment of writing;
-   fields carrying an explicit literal comment are known exceptions;
-   the shape is closed, so the compiler rejects a newly invented field,
-   but TypeScript cannot distinguish a hard-coded value from a computed
-   one of the same type.
+The permitted JSON shape delta is exactly:
+  two keys removed from finalProcessIntegrity,
+  two keys added to finalProcessIntegrity,
+  one new top-level key `declarations` containing parentPostExitCheck
+  only.
 
-Do not add, remove, or reword any other comment. Do not add a comment to
-any field. Do not touch `taskId`.
+WHAT TO CHECK — answer each with file:line evidence and a verdict of
+CONFIRMED, VIOLATED, or CANNOT_DETERMINE_STATICALLY
+
+A. Read the current file and derive the emitted JSON shape from source.
+   List every top-level key and every key inside finalProcessIntegrity,
+   activationOrderObservation, and declarations. State whether the shape
+   delta matches the permitted delta exactly — no more, no less.
+
+B. Is every field now inside finalProcessIntegrity produced from a
+   runtime value at the moment of writing? Quote each one and its right
+   hand side. Name any that is still a literal.
+
+C. evidenceWriterPid and evidenceWriterSampledAtUtc were added as the
+   replacement. Do they actually observe anything meaningful about the
+   writing process, or are they a differently-shaped restatement of the
+   same unverifiable claim? Say plainly which.
+
+D. observedAfterRunTests is now derived from runTestsOutcome. Is that
+   derivation sound — can runTestsOutcome hold a value that makes this
+   field assert something false?
+
+E. Scan the whole file for any remaining value that is presented under
+   an observation-shaped key but is hard-coded. List every one, with
+   file:line. Include ones the author declared as accepted exceptions.
+
+F. Do the two rewritten doc comments accurately describe the file as it
+   now stands? Quote them and name any claim that is still false.
+
+G. Does anything in this change alter runner behaviour — control flow,
+   exit codes, write ordering, file path, encoding, or what is written
+   in a failing run? Answer for a passing run and a failing run
+   separately.
+
+H. Search the repository for any consumer of the evidence file or of
+   any key in it. Report each by file:line. State plainly that you can
+   only see consumers inside this repository.
+
+I. Report any change you find that serves no stated part of the intent
+   above. Scope creep is a finding, not a favour.
 
 REPORT
-1. Unified diff of the two comment blocks only.
-2. Confirm in one line that no executable line, type declaration, or
-   field changed.
-3. Stop. Independent review follows.
+1. The verdicts, in order A through I.
+2. A single overall verdict: ACCEPTABLE, or NOT_ACCEPTABLE with the
+   blocking findings listed.
+3. What you could not determine without compiling or running.
+4. Do not propose fixes. Do not edit. Do not compile. Stop.
