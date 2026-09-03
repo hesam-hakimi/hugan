@@ -75,7 +75,16 @@
 - [x] P3.4c-2a conservative Python dynamic-dispatch evidence: exact static-call-graph binding,
   bounded class hierarchy evidence, explicit receiver-type candidates, typed unresolved outcomes,
   immutable artifacts, atomic active state, exact replay, and restart recovery;
-- P3.4c-2b additional-language dependency analysis and coverage-backed test selection;
+- [x] P3.4c-2b1 host-attested trusted coverage evidence foundation: exact Base, Git tree, trusted
+  profile, run, repository snapshot, dependency graph, call graph, and dispatch-evidence binding;
+  exact whole-snapshot Base-blob verification and whole-tracked-set eligibility; bounded canonical
+  per-test line evidence;
+  conservative symbol-span projection; immutable run identity, hash-bound input, and
+  content-addressed derived artifacts; atomic active state; exact replay; and restart recovery;
+- P3.4c-2b2 conservative coverage-backed test selection combining dependency, static-call,
+  dynamic-dispatch, and host-attested coverage evidence with explicit compatible execution-
+  environment and collector/configuration identity, without claiming minimality;
+- P3.4c-3 additional-language dependency analysis;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
 - context deduplication and model-budget policies.
