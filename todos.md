@@ -1,58 +1,68 @@
-IMPLEMENTATION ONLY — REVERT AND SIMPLIFY. No compile, no test
-execution, no runner, no Extension Host, no commit, no stage, no version
-bump, no packaging. Edit only src/test/runTest.ts. Do not self-certify.
+INDEPENDENT REVIEW — READ ONLY. Do not compile, run tests, launch a
+runner or Extension Host, install anything, or edit any file. Read-only
+git and file-read commands are acceptable. Writing, staging, or
+committing is not.
 
-CONTEXT
-An independent review returned NOT_ACCEPTABLE. The replacement fields
-added earlier are tautological: they cannot ever be false, so they carry
-no information. The owner's decision is to delete them and add nothing
-in their place. Do not propose a better replacement. Do not argue.
+You did not write this change. The author may be a model of the same
+family as you. That is a reason to be stricter, not softer.
 
-REQUIRED CHANGES
+Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+File under review: src/test/runTest.ts (uncommitted working-tree change)
 
-1. In the finalProcessIntegrity emission block, delete these two fields
-   entirely:
-     evidenceWriterPid
-     evidenceWriterSampledAtUtc
-   Add nothing in their place. finalProcessIntegrity must end with the
-   three fields that were there originally: observedAfterRunTests,
-   hostPidStates, runnerPid.
+BACKGROUND
+A previous version of this change was reviewed and rejected. The
+rejection found that two fields added as replacements were tautological:
+they could never be false, so they carried no information. The author
+has now deleted them and added nothing in their place.
 
-2. In the declarations block, change parentPostExitCheck from an object
-   to the flat boolean the owner authorised:
-     declarations: { parentPostExitCheckRequired: true }
-   Delete the `implemented` sub-field. It was never authorised.
+AUTHORISED INTENT — the whole of it
+The evidence file must not present a literal value as an observation.
+Exactly two things were authorised:
+  1. Remove runnerAliveWhileWritingEvidence from finalProcessIntegrity
+     and put nothing in its place.
+  2. Move parentPostExitCheckRequired out of finalProcessIntegrity into
+     a new top-level `declarations` object, as a flat boolean, keeping
+     its original name.
+Plus: correct the two doc comments so every sentence in them is true.
+Nothing else was authorised.
 
-3. Update both interfaces to match exactly:
-   - Remove evidenceWriterPid and evidenceWriterSampledAtUtc from the
-     RunnerEvidence finalProcessIntegrity shape.
-   - Change RunnerEvidenceDeclarations to a single flat boolean field
-     parentPostExitCheckRequired.
+CHECKS — each with file:line evidence and a verdict of CONFIRMED,
+VIOLATED, or CANNOT_DETERMINE_STATICALLY
 
-4. Rewrite the two doc comments so that every sentence in them is true
-   of the file as it stands after this revert. Specifically:
-   - Do not claim that all remaining literals are marked. They are not.
-   - Do not claim that every marked field is produced at the moment of
-     writing. Several are captured earlier in the run.
-   - Do not assert an exhaustive taxonomy of fields.
-   Say only what you can verify by reading the file. If you cannot make
-   a sentence true, delete the sentence rather than soften it.
+A. List every key in finalProcessIntegrity and in declarations as
+   emitted. Confirm finalProcessIntegrity gained nothing, lost exactly
+   two keys, and that declarations holds exactly one flat boolean named
+   parentPostExitCheckRequired.
 
-CONSTRAINTS
-- Do not touch retriesOrRelaunches. It stays the literal 0 with its
-  existing comment. It is a known open item, not this task.
-- Do not touch taskId, activationOrderObservation, the manifest
-  cardinality check, evidence write ordering, exit-code handling, or any
-  other known defect.
-- Do not change the evidence file path, name, write flag, or encoding.
-- Add no new field, type, comment, or refactor beyond the above.
+B. Is any field anywhere in the emitted object an assertion that no
+   possible run could falsify? Name each one. This is the failure the
+   previous review found; verify it is gone and has not reappeared in
+   another form.
+
+C. Take each sentence of both doc comments in turn. For each, state
+   whether it is true of the file as it now stands, with the file:line
+   that makes it true or false. A sentence that is true only under a
+   charitable reading counts as false.
+
+D. Does the file still declare a rule that it then violates? Compare
+   every "must be computed, never literal" marker against the value
+   actually emitted for that field.
+
+E. Does this change alter runner behaviour — control flow, exit codes,
+   write ordering, file path, encoding, or what is written in a failing
+   run? Answer for a passing run and a failing run separately.
+
+F. Report any change that serves no part of the authorised intent above.
+   Scope creep is a finding, not a favour.
+
+G. A baseline copy of the pre-change file may exist at:
+     %TEMP%\runTest.baseline-2026-09-03.ts
+   If it exists, diff against it and report anything the author did not
+   declare. If it does not exist, say so plainly and state which of your
+   verdicts are weakened by its absence.
 
 REPORT
-1. Unified diff of this revert only.
-2. The complete list of keys in finalProcessIntegrity and in
-   declarations after this change.
-3. State the resulting JSON shape delta from the original, in one line.
-4. Quote both rewritten doc comments in full and, for each sentence,
-   state the file:line evidence that makes it true.
-5. Anything you could not verify without compiling.
-6. Stop. Independent review follows.
+1. Verdicts A through G.
+2. Overall verdict: ACCEPTABLE, or NOT_ACCEPTABLE with blocking findings.
+3. What you could not determine without compiling or running.
+4. Do not propose fixes. Do not edit. Do not compile. Stop.
