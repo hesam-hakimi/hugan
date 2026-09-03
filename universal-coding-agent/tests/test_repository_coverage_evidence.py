@@ -996,12 +996,28 @@ def test_git_verification_is_bounded(
     monkeypatch: pytest.MonkeyPatch,
     failure: str,
 ) -> None:
+    fcntl_module = None
+    if failure == "descendant":
+        fcntl_module = pytest.importorskip(
+            "fcntl", reason="descendant process-group qualification requires POSIX"
+        )
     services = _services(
         tmp_path / "state",
         git_timeout_seconds=1,
         git_output_max_bytes=1,
     )
-    child_pid_path = tmp_path / "child.pid"
+    descendant_started = tmp_path / "descendant-started"
+    descendant_lock = tmp_path / "descendant.lock"
+    descendant_code = (
+        "import fcntl\n"
+        "import time\n"
+        "from pathlib import Path\n"
+        f"lock_path = Path({str(descendant_lock)!r})\n"
+        "with lock_path.open('w') as handle:\n"
+        "    fcntl.flock(handle, fcntl.LOCK_EX)\n"
+        f"    Path({str(descendant_started)!r}).write_text('started')\n"
+        "    time.sleep(10)\n"
+    )
     try:
         fake_bin = tmp_path / "bin"
         fake_bin.mkdir()
@@ -1018,9 +1034,15 @@ def test_git_verification_is_bounded(
             "if mode == 'timeout':\n"
             "    time.sleep(10)\n"
             "elif mode == 'descendant':\n"
-            "    child = subprocess.Popen([sys.executable, '-c', "
-            "'import time; time.sleep(10)'], stdout=sys.stdout, stderr=sys.stderr)\n"
-            f"    Path({str(child_pid_path)!r}).write_text(str(child.pid))\n"
+            f"    subprocess.Popen([sys.executable, '-c', {descendant_code!r}], "
+            "stdout=sys.stdout, stderr=sys.stderr)\n"
+            f"    started = Path({str(descendant_started)!r})\n"
+            "    for _ in range(200):\n"
+            "        if started.exists():\n"
+            "            break\n"
+            "        time.sleep(0.01)\n"
+            "    else:\n"
+            "        raise RuntimeError('descendant did not start')\n"
             "elif mode == 'combined':\n"
             "    os.write(1, b'x')\n"
             "    os.write(2, b'y')\n"
@@ -1040,21 +1062,25 @@ def test_git_verification_is_bounded(
         with pytest.raises(RepositoryCoverageEvidenceError, match=message):
             services.coverage._run_git(tmp_path, ("rev-parse", "HEAD"))
         assert time.monotonic() - started < 3
-        if failure == "descendant" and os.name == "posix":
-            child_pid = int(child_pid_path.read_text(encoding="utf-8"))
-            live_deadline = time.monotonic() + 1
-            while True:
-                try:
-                    status = Path(f"/proc/{child_pid}/stat").read_text(
-                        encoding="ascii"
-                    )
-                except FileNotFoundError:
-                    break
-                if status.split()[2] == "Z":
-                    break
-                if time.monotonic() >= live_deadline:
-                    pytest.fail("Git descendant remained live after bounded failure")
-                time.sleep(0.01)
+        if failure == "descendant":
+            assert descendant_started.read_text(encoding="utf-8") == "started"
+            assert fcntl_module is not None
+            lock_deadline = time.monotonic() + 1
+            with descendant_lock.open("r+") as handle:
+                while True:
+                    try:
+                        fcntl_module.flock(
+                            handle, fcntl_module.LOCK_EX | fcntl_module.LOCK_NB
+                        )
+                    except BlockingIOError:
+                        if time.monotonic() >= lock_deadline:
+                            pytest.fail(
+                                "Git descendant remained live after bounded failure"
+                            )
+                        time.sleep(0.01)
+                    else:
+                        fcntl_module.flock(handle, fcntl_module.LOCK_UN)
+                        break
     finally:
         services.search.close()
 
