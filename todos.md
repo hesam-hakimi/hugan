@@ -1,25 +1,24 @@
-READ-ONLY INVESTIGATION. No edits, no compile, no test execution, no
-Extension Host launch.
+READ-ONLY INVESTIGATION. No edits, no compile, no test execution.
 
-In src/extension.ts and its activation call graph, produce an ordered
-comparison of two activation routes:
+Confirm or refute each of the following purely by reading the current
+files. For each, quote the relevant lines and answer CONFIRMED,
+REFUTED, or CANNOT_DETERMINE_STATICALLY:
 
-Route A: opted-in ExtensionMode.Test read-only-tool-only activation
-         (ETL_TEST_READ_ONLY_TOOL_ONLY=1)
-Route B: normal installed-VSIX activation used by @etl /workflow
+1. In sttmRealHostStructuredResult.test.ts, the parser export is
+   replaced before the restorer is returned, leaving a window in which a
+   setup failure can leave the wrapper installed. Show the exact
+   assignment, the return, and where the caller's try/finally begins.
+2. In src/test/suite/index.ts, the loader globs all integration test
+   files and relies on Mocha grep rather than exclusive module loading.
+3. Host evidence is written only in suiteTeardown, after assertions can
+   fail, so early validation failures produce no retained evidence.
+4. A failed evidence write yields exit code 1 with no machine-readable
+   infrastructure-versus-product classification, and no parent
+   post-exit check is implemented.
+5. runTest.ts enforces an exactly-eight-file manifest.
 
-For each route, list in execution order every initialization step, and
-mark each step as PRESENT_IN_A, PRESENT_IN_B, or BOTH. Explicitly
-identify:
-1. Where etl_interpret_sttm is registered in each route, and whether the
-   same handler implementation is used in both.
-2. Every code path between the tool handler and the constructed
-   LanguageModelToolResult, and whether any of those paths differ
-   between the two routes.
-3. Every place a LanguageModelDataPart is constructed or appended, and
-   any conditional that could omit it — including any dependency on
-   chat participant state, model availability, authentication, or
-   configuration that exists in Route B but not Route A.
-
-Report the diff as findings. Do not conclude that the installed defect
-is explained or closed.
+Also report: does the DataPart payload construction guarantee ASCII-only
+content? The retained observation records 24,186 bytes decoding to
+24,186 characters. Identify any field in the serialized structure that
+could contain non-ASCII text and would break a byte-length-equals-
+character-length assumption in a future oracle.
