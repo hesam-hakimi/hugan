@@ -1,12 +1,12 @@
-TASK: PHASE_1B_3N_U_SOURCE_CONTRACT_RECONCILIATION_READ_ONLY
+TASK: PHASE_1B_3N_V_TEST_ORACLE_AND_EVIDENCE_HARDENING_IMPLEMENTATION_ONLY
 
 ROLE
 
-Act as a fresh independent evidence and contract reviewer. Communicate conclusions to the owner in Persian. Keep technical identifiers and report markers in English.
+Use the normal local GitHub Copilot Agent, not the ETL Orchestrator.
 
-This is a read-only diagnosis and decision-support task. You are not authorized to implement, edit, compile, run tests, launch an Extension Host, retry Phase 1B.3N-T, package, install, commit, merge, or publish.
+This is a bounded test/harness implementation task. It does not authorize compilation, test execution, runner invocation, Extension Host launch, retry, packaging, installation, version change, commit, merge, publication, or product-source modification.
 
-FROZEN INPUTS
+AUTHORITATIVE BASELINE
 
 Repository:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
@@ -17,98 +17,156 @@ fix/workspace-write-completion-0.3.148
 HEAD:
 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
+Expected Git status:
+M .github/templates/request.md
+M src/extension.ts
+M src/test/runTest.ts
+?? src/test/suite/sttmRealHostStructuredResult.test.ts
+
 Retained Phase 1B.3N-T evidence:
 C:\Users\tag5916\AppData\Local\Temp\etl-phase1b3n-t-evidence-bb866c7be991469abd3bf924b0373fc0
 
-Frozen observed result:
+Do not modify or delete the retained evidence.
 
-* Raw LanguageModelToolResult.content boundary reached.
-* One runner, one runTests call, one Host launch, zero retries.
-* Eight tests evaluated: seven passed and one failed.
-* Mapping: FM_F01417B0_00002
-* Expected source: customers.cust_name
-* Observed source: source_db.customers.cust_name
-* Runner exit code: 1
-* Repository and QA integrity remained unchanged.
+ACCEPTED PHASE 1B.3N-U FINDINGS
 
-PURPOSE
+1. Canonical structured source is db.entity.field when all components exist.
+2. Markdown intentionally renders the shorter entity.field source label.
+3. The fixture authors:
+    * sourceDb = source_db
+    * sourceEntity = customers
+    * sourceField = cust_name
+4. The public adapter serializes response.data without rewriting mapping fields.
+5. Cross-channel parity applies to mapping ID, order, count, exclusions, and diagnostics—not byte-identical source display strings.
+6. The observed structured value source_db.customers.cust_name conforms to the current product contract.
+7. The focused test incorrectly reused the Markdown expectation customers.cust_name for the structured channel.
+8. No product projection change is authorized or required.
 
-Determine the authoritative public contract for the structured mapping source field and identify whether the observed mismatch represents:
+PREFLIGHT — READ ONLY
 
-1. a product projection defect;
-2. a stale or over-qualified test expectation;
-3. an intentional channel-specific representation with an incorrect parity assertion; or
-4. an unresolved owner-level contract decision.
+Before editing:
 
-REQUIRED READ-ONLY WORK
+1. Verify repository, branch, HEAD and exact four-line Git status.
+2. Confirm no concurrent Agent is modifying the worktree.
+3. Read the complete focused test and existing test-owned evidence helpers.
+4. Identify a genuine test-only seam for observing parser invocation cardinality.
+5. Confirm evidence can be captured without modifying:
+    * src/extension.ts
+    * src/core/**
+    * Markdown renderer
+    * public adapter
+    * package.json
+    * compiled output
+    * QA files
+6. Reconcile, from existing runner/evidence only:
+    * argvDevelopmentPaths must be [etlRepositoryPath, bundledCopilotExtensionPath];
+    * activation/log order is a separate non-contractual observation.
+7. If parser cardinality cannot be observed without production changes, stop before editing and report:
+    BLOCKED_TEST_ONLY_PARSER_INSTRUMENTATION
 
-1. Read completely every existing machine-readable file under the retained evidence root, including:
+AUTHORIZED CHANGES
 
-* phase-result.json
-* mocha-result.evidence.json
-* any raw structured-result, integrity, process, Host, or pre/post-state manifests already present
+Prefer changing only:
 
-Do not create or modify evidence files.
+src/test/suite/sttmRealHostStructuredResult.test.ts
 
-2. Confirm the recorded values for:
+If strictly necessary, a minimal existing helper or runner under src/test/** may also be changed solely for test-owned evidence capture. Explain why before changing it.
 
-* repository, branch, HEAD and four-line Git status;
-* eight protected hashes and QA identity;
-* runner/runTests/Host/retry counts;
-* Host PID and VS Code version;
-* ordered development paths;
-* Copilot and ETL activation;
-* tool registration;
-* suite/test/invokeTool counts;
-* raw part order, types, MIME values and byte lengths;
-* UTF-8/JSON decoding;
-* observed source and target fields;
-* parser invocation cardinality, only if already recorded;
-* final integrity.
+Do not modify any production path.
 
-3. Trace the source contract through the existing source, tests, fixtures, accepted documentation and relevant Git history. Include at minimum:
+IMPLEMENTATION REQUIREMENTS
 
-* the resolved STTM mapping projection;
-* Markdown report rendering;
-* the public LanguageModelToolResult adapter;
-* sttmRealHostStructuredResult.test.ts;
-* synthetic workbook fixture generation;
-* existing consumer-visible contract tests;
-* accepted packaged skill/documentation wording.
+1. Replace the shared source expectation with separate values:
 
-4. Answer these questions with direct evidence:
+* structured source:
+    source_db.customers.cust_name
+* Markdown source display:
+    customers.cust_name
+* cross-channel parity:
+    mapping ID, order, and count
 
-* Is the canonical structured source format db.entity.field or entity.field?
-* Does parity require identical source strings or only identical mapping identity/order?
-* Is source_db intentionally authoritative or display-only?
-* Is the focused test expectation supported by an accepted contract?
-* Can the unevaluated target assertion be checked from retained raw data without rerunning?
-* Is parser cardinality already observable from retained evidence?
+2. Preserve and independently ground the existing target expectation from the fixture and structured projection. Do not invent or weaken it.
+3. Prevent first-assertion masking:
 
-RULES
+* capture all observed values before asserting;
+* evaluate source and target comparisons independently;
+* collect deterministic mismatches;
+* fail once at the end with the complete mismatch set.
 
-* Do not choose a contract merely to make the test pass.
-* Do not treat an untracked test assertion as authoritative unless accepted source, documentation, fixtures, or history support it.
-* Do not alter the frozen FAIL evidence.
-* Do not execute the runner or launch a Host.
-* Do not edit source, tests, compiled files, QA files, or documentation.
-* If evidence conflicts, identify the exact owner decision required.
-* Keep product remediation separate from test remediation.
+4. Prepare machine-readable evidence for the future authorized run containing:
+
+* exact argv development paths in order;
+* activation order as a separate field;
+* runner, runTests, Host, suite, test and invokeTool counts;
+* part order and constructor/type;
+* MIME for every applicable part;
+* character length and UTF-8 byte length;
+* SHA-256 for TextPart and DataPart;
+* exact DataPart bytes or an equivalent lossless retained representation;
+* decoded JSON;
+* observed structured source and target;
+* observed Markdown source and target;
+* every deterministic comparison result;
+* exact parser invocation cardinality;
+* exact pre/post values for all eight protected file hashes;
+* QA inventory, workbook size/hash and final process integrity.
+
+Evidence must be written only to the future unique test-owned isolation/evidence directory, never to the repository or QA workspace.
+
+5. Parser cardinality must come from a real test-only observation seam. Do not substitute:
+
+* invokeTool count;
+* registration count;
+* static call-graph inference;
+* expected behavior.
+
+6. Preserve:
+
+* preview-only behavior;
+* zero consumer writes;
+* production extensionDependencies = ["github.copilot-chat"];
+* production and normal-development activation behavior;
+* all existing QA and repository safety boundaries.
+
+PROHIBITED
+
+Do not:
+
+* change structured output to remove sourceDb;
+* change Markdown rendering;
+* change the public adapter;
+* change product code;
+* compile;
+* run tests;
+* invoke the compiled runner;
+* launch an Extension Host;
+* retry Phase 1B.3N-T;
+* create or install a VSIX;
+* bump the version;
+* stage, commit, merge, push, publish, or clean the worktree.
 
 FINAL REPORT
 
-Provide:
+Return:
 
-1. authoritative contract findings;
-2. exact evidence supporting each finding;
-3. classification as PRODUCT_PROJECTION_DEFECT, STALE_TEST_ORACLE, CHANNEL_CONTRACT_MISMATCH, or BLOCKED_OWNER_DECISION;
-4. the smallest proposed changed-path boundary for each viable resolution;
-5. evidence gaps that can be answered without rerunning;
-6. whether an owner contract decision is required;
-7. whether implementation can be authorized next.
+1. Preflight identity result.
+2. Exact changed paths.
+3. Exact source-oracle change.
+4. How target evaluation avoids short-circuiting.
+5. Exact parser-cardinality observation seam.
+6. Evidence fields prepared for the future run.
+7. Resolution of argv order versus activation order.
+8. Confirmation of zero product-source changes.
+9. New hashes for every changed test/harness file.
+10. Remaining evidence gaps.
+11. Proposed scope of the future one-shot qualification—but do not execute it.
 
-End with:
+End with exactly:
 
-SOURCE_CONTRACT_RECONCILIATION: 
-NEW_RUN_REQUIRED_NOW: NO
-READY_FOR_OWNER_IMPLEMENTATION_AUTHORIZATION: YES|NO
+PHASE_1B_3N_V_IMPLEMENTATION_RESULT: PASS_READY_FOR_REVIEW
+or
+PHASE_1B_3N_V_IMPLEMENTATION_RESULT: BLOCKED_<EXACT_REASON>
+
+COMPILE_OR_TEST_EXECUTED: NO
+RUNNER_OR_HOST_EXECUTED: NO
+FUTURE_RUN_AUTHORIZATION_REQUIRED: YES
