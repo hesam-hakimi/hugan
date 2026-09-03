@@ -1,27 +1,52 @@
-IMPLEMENTATION ONLY — ONE SENTENCE. No compile, no test execution, no
-runner, no commit, no stage. Edit only src/test/runTest.ts. Change only
-comment text inside the doc comment above `interface RunnerEvidence`.
-Do not touch any executable line, type, field, or the other doc comment.
+INDEPENDENT REVIEW — READ ONLY. Do not compile, run tests, launch a
+runner or Extension Host, install anything, or edit any file. Read-only
+git and file-read commands are acceptable.
 
-An independent review found one blocking defect. The doc comment above
-`interface RunnerEvidence` states that a field marked "must be computed,
-never literal" is filled from a runtime value. One field carries that
-marker and is emitted as a hard-coded literal: retriesOrRelaunches,
-declared at runTest.ts:134 and emitted at runTest.ts:1980. The file
-therefore states a rule it breaks.
+You did not write this change. Be strict.
 
-REQUIRED CHANGE
-Restore an explicit carve-out so the sentence is true of this file. The
-comment must state that a marked field whose emission site carries an
-explicit literal comment is a known exception, and that exactly one such
-exception exists today.
+Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+File: src/test/runTest.ts (uncommitted working-tree change)
 
-Do not remove the marker from retriesOrRelaunches. Do not change its
-value. Do not add or reword any other sentence.
+A previous review of this file returned NOT_ACCEPTABLE with exactly one
+blocking finding: the doc comment above `interface RunnerEvidence`
+asserted that every field marked "must be computed, never literal" is
+filled from a runtime value, while one such field is emitted as a
+hard-coded literal. The author was authorised to restore a carve-out in
+that one sentence, and nothing else.
+
+CHECKS — each with file:line evidence and a verdict
+
+A. Read the doc comment above `interface RunnerEvidence` in full. Take
+   each sentence in turn and state whether it is true of the file as it
+   now stands. A sentence true only under a charitable reading counts as
+   false.
+
+B. The comment now claims exactly one exception exists. Enumerate every
+   field carrying the "must be computed, never literal" marker, and for
+   each, state whether its emission site is a runtime value or a
+   literal. Confirm or refute the count of one.
+
+C. Does the file still declare any rule that it then violates anywhere?
+
+D. Confirm no executable line, type declaration, field, marker, or
+   emitted value changed in this edit.
+
+E. Report any change outside the single authorised sentence, including
+   whitespace or line-wrapping changes to neighbouring lines.
+
+F. Independently of this edit, list every value in the emitted evidence
+   object that no possible run could falsify. For each, state whether it
+   sits under a container the file explicitly declares as authored
+   rather than observed.
+
+G. VS Code local history for this file is at
+     %APPDATA%\Code\User\History\7179216d
+   Use it to establish the pre-edit state. Diff against the most recent
+   snapshot that predates this edit and report anything the author did
+   not declare.
 
 REPORT
-1. Unified diff of that one comment block only.
-2. Quote the comment in full and, for each sentence, give the file:line
-   evidence that makes it true of the file as it now stands.
-3. Confirm no executable line, type, or field changed.
-4. Stop.
+1. Verdicts A through G.
+2. Overall verdict: ACCEPTABLE, or NOT_ACCEPTABLE with blocking findings.
+3. What you could not determine without compiling or running.
+4. Do not propose fixes. Do not edit. Stop
