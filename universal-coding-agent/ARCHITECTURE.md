@@ -983,6 +983,91 @@ non-Python dispatch. It does not execute or select tests, claim coverage or runt
 inject model context, expose UI/HTTP behavior, grant arbitrary model shell access, publish source
 control, merge, deploy, or establish production readiness.
 
+## Host-attested trusted coverage evidence
+
+P3.4c-2b1 adds a provider-neutral ingestion boundary for normalized per-test line evidence. The
+service accepts only a canonical `uca-trusted-test-coverage-v1` receipt through an exact bounded
+artifact reference and SHA-256. It does not accept raw Coverage.py JSON, `.coverage` databases,
+arbitrary filesystem paths, aggregate Safe test-result artifacts, or producer-supplied symbol IDs.
+The trusted host/test adapter must create the normalized receipt separately; this slice does not
+execute tests or add arguments to an existing test command.
+
+Each receipt binds the project and repository identity, Base ref and SHA, exact Git tree object ID
+observed both before and after execution, and exact reference/digest pairs for the active repository
+snapshot, dependency graph, static call graph, and dynamic-dispatch evidence. It also binds the
+canonical whole `SafeModePolicy` digest and every selected `TestProfile` digest. Recording fails
+closed unless every referenced profile is present in that operator-owned policy, reports a zero
+return code and PASS, and explicitly attests complete collection and execution. An old receipt is
+therefore invalid after a Base, source tree, policy, profile, or upstream evidence change, including
+when two commits happen to share the same Git tree.
+
+The receipt declares a sorted, hash-bound coverage scope and exact source digest for every scoped
+file. Each completed test has a bounded opaque identity beginning with its separately normalized
+tracked test path, the test file's exact snapshot digest, and canonical non-overlapping,
+non-adjacent line ranges per covered file. A completed test may explicitly cover no scoped file, but
+at least one completed test in the run must carry attributed line evidence. Unattributed line ranges
+remain explicit evidence rather than being silently assigned to a test. Covered paths must be in
+the declared scope and active snapshot, line ranges must fit verified UTF-8 regular-file content,
+and source reads are deduplicated per verification pass across every regular file in the active
+indexed snapshot under an aggregate byte ceiling. Every indexed file is matched to its exact Base
+tree mode and Git blob object ID from live bytes, including Python files outside the declared
+coverage scope. A tracked path excluded from the active snapshot is never opened and makes the
+repository ineligible for coverage recording; so does any symlink, gitlink, unsupported index mode,
+or index visibility hint such as `assume-unchanged` or `skip-worktree` anywhere in the tracked set.
+Visibility and staged identity come from one bounded index read. Repository-configured fsmonitor is
+forcibly disabled and its cached state ignored rather than executed or trusted; all eligible tracked
+source is independently read and matched byte-for-byte. The trusted host must also preserve the
+existing isolated-sandbox ownership boundary against direct concurrent filesystem or index mutation
+while a receipt is being recorded.
+This conservative byte identity deliberately rejects a checkout representation whose bytes differ
+from the committed blob rather than invoking repository-configured content filters.
+
+UCA derives, rather than accepts, symbol mappings. For each test/file pair it conservatively records
+every exact P3.4c-1 Python symbol whose definition span intersects an observed line range. Nested
+spans may therefore produce multiple symbol IDs, while non-Python files and Python lines outside a
+known symbol remain useful file-level evidence. Explicitly unattributed ranges receive the same
+symbol-span projection but remain unassigned to any test. This projection is not proof that a
+function was invoked, that a dispatch candidate ran, or that a call edge is complete.
+
+Independent limits cap input-receipt bytes, derived-artifact bytes, verified source bytes, trusted
+policy and individual profile bytes, profiles, scope files, tests, files per test, total file
+observations, ranges per file, total ranges, covered-line cardinality, derived symbol bindings,
+symbol-intersection evaluations, emitted symbol-identity bytes, test-identity bytes, JSON structural
+items and depth, an aggregate record-operation deadline shared by every Git verification, and each
+Git process's aggregate captured output. Git verification suppresses repository-local fsmonitor,
+hook, credential, protocol, lazy-fetch, external-diff, replacement-object, and ambient configuration
+execution surfaces. A schema-aware streaming structural preflight rejects excess nested
+cardinality, unknown or duplicate fields, missing required nested fields, and incompatible member
+shapes before Pydantic model allocation; fail-fast iterable validation is a second boundary.
+Incremental UTF-8 line counting avoids newline-density amplification. Derived canonical JSON
+encoding stops before it exceeds its byte ceiling. The complete canonical input receipt remains a
+separate hash-bound artifact, and the content-addressed derived artifact redundantly binds its exact
+reference and digest. Bounded digest verification and a canonical-hash check protect every reload.
+
+The active `repository_coverage_evidence_state` pointer advances only through an exact predecessor
+reference/digest compare-and-swap in one `BEGIN IMMEDIATE` transaction. The transaction rechecks the
+active repository snapshot, dependency graph, call graph, and dispatch evidence rather than trusting
+a stale downstream pointer. A failed transition leaves the predecessor active; an already-written
+hash-addressed artifact may remain as unreferenced evidence, and exact retry is safe. Exact replay
+revalidates the input run, mappings, current policies, upstream chain, Base, and source tree.
+Workspace restart reloads the same bounded artifacts, and repository-index cleanup removes only the
+same project's dependent coverage pointer. A project-scoped immutable run ledger prevents one
+`run_id` from later being rebound to a different receipt reference or digest, including after the
+active coverage pointer advances or is cleared.
+
+"Trusted" here means that the operator-owned policy, test runner/adapter, and state-root control path
+are trusted inputs to the control plane. SHA-256 detects drift but does not authenticate a coherent
+control-plane compromise. Repository code can still distort in-process instrumentation, and test
+contexts do not prove causality for background threads, subprocesses, import-time work, native code,
+or unsupported runtimes. P3.4c-2b1 does not claim complete runtime or branch/path coverage, select or
+skip tests, claim a minimal safe test set, analyze additional-language dependencies, inject model
+context, add UI/HTTP behavior, grant arbitrary model shell access, publish source control, merge,
+deploy, or establish production readiness. Conservative selection and stronger privilege-separated
+collection remain separately approved future work. Before P3.4c-2b2 may use this history for a
+selection or skip decision, its separately approved contract must add and validate compatible
+execution-environment and coverage-collector/configuration identities; this foundation does not
+infer those identities from a Base or test-profile digest.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

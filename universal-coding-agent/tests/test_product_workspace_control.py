@@ -16,9 +16,16 @@ def test_product_workspace_discovered_safe_shares_task_control(tmp_path):
 
 
 def test_product_public_exports_are_cycle_safe_after_safe_service_import():
-    from universal_coding_agent.product import ProductWorkspace, TaskControlService
+    from universal_coding_agent.product import (
+        ProductWorkspace,
+        RepositoryCoverageEvidenceService,
+        TaskControlService,
+    )
     from universal_coding_agent.safe_service import SafeAgentService
 
     assert SafeAgentService is not None
     assert ProductWorkspace.__name__ == "ProductWorkspace"
+    assert RepositoryCoverageEvidenceService.__name__ == (
+        "RepositoryCoverageEvidenceService"
+    )
     assert TaskControlService.__name__ == "TaskControlService"

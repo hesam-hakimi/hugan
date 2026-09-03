@@ -32,6 +32,10 @@ class RepositoryDispatchEvidenceStateError(ValueError):
     """A repository dispatch-evidence state transition failed closed."""
 
 
+class RepositoryCoverageEvidenceStateError(ValueError):
+    """A repository coverage-evidence state transition failed closed."""
+
+
 @dataclass(frozen=True)
 class RepositorySearchDocument:
     source_id: str
@@ -95,6 +99,31 @@ class RepositoryDispatchEvidenceState:
     dependency_graph_sha256: str
     call_graph_ref: str
     call_graph_sha256: str
+    evidence_ref: str
+    evidence_sha256: str
+    policy_sha256: str
+
+
+@dataclass(frozen=True)
+class RepositoryCoverageEvidenceState:
+    namespace: str
+    project_id: str
+    repository_url: str
+    base_ref: str
+    base_sha: str
+    source_tree_oid: str
+    repository_snapshot_ref: str
+    repository_snapshot_sha256: str
+    dependency_graph_ref: str
+    dependency_graph_sha256: str
+    call_graph_ref: str
+    call_graph_sha256: str
+    dispatch_evidence_ref: str
+    dispatch_evidence_sha256: str
+    trusted_run_ref: str
+    trusted_run_sha256: str
+    test_run_id: str
+    trusted_test_policy_sha256: str
     evidence_ref: str
     evidence_sha256: str
     policy_sha256: str
@@ -208,15 +237,70 @@ class SearchService:
             )
             """
         )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS repository_coverage_evidence_state (
+                namespace TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                repository_url TEXT NOT NULL,
+                base_ref TEXT NOT NULL,
+                base_sha TEXT NOT NULL,
+                source_tree_oid TEXT NOT NULL,
+                repository_snapshot_ref TEXT NOT NULL,
+                repository_snapshot_sha256 TEXT NOT NULL,
+                dependency_graph_ref TEXT NOT NULL,
+                dependency_graph_sha256 TEXT NOT NULL,
+                call_graph_ref TEXT NOT NULL,
+                call_graph_sha256 TEXT NOT NULL,
+                dispatch_evidence_ref TEXT NOT NULL,
+                dispatch_evidence_sha256 TEXT NOT NULL,
+                trusted_run_ref TEXT NOT NULL,
+                trusted_run_sha256 TEXT NOT NULL,
+                test_run_id TEXT NOT NULL,
+                trusted_test_policy_sha256 TEXT NOT NULL,
+                evidence_ref TEXT NOT NULL,
+                evidence_sha256 TEXT NOT NULL,
+                policy_sha256 TEXT NOT NULL
+            )
+            """
+        )
+        self.connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS repository_coverage_run_ledger (
+                project_id TEXT NOT NULL,
+                test_run_id TEXT NOT NULL,
+                trusted_run_ref TEXT NOT NULL,
+                trusted_run_sha256 TEXT NOT NULL,
+                PRIMARY KEY (project_id, test_run_id)
+            )
+            """
+        )
         self.connection.commit()
 
     def close(self) -> None:
         self.connection.close()
 
     def clear_namespace(self, namespace: str) -> None:
+        connection = sqlite3.connect(self.database_path)
         try:
-            self.connection.execute("BEGIN IMMEDIATE")
-            self.connection.execute(
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                """
+                DELETE FROM repository_coverage_evidence_state
+                WHERE namespace = ?
+                   OR project_id IN (
+                    SELECT project_id FROM repository_index_state WHERE namespace = ?
+                    UNION
+                    SELECT project_id FROM repository_dependency_graph_state WHERE namespace = ?
+                    UNION
+                    SELECT project_id FROM repository_call_graph_state WHERE namespace = ?
+                    UNION
+                    SELECT project_id FROM repository_dispatch_evidence_state WHERE namespace = ?
+                )
+                """,
+                (namespace, namespace, namespace, namespace, namespace),
+            )
+            connection.execute(
                 """
                 DELETE FROM repository_dispatch_evidence_state
                 WHERE namespace = ?
@@ -230,7 +314,7 @@ class SearchService:
                 """,
                 (namespace, namespace, namespace, namespace),
             )
-            self.connection.execute(
+            connection.execute(
                 """
                 DELETE FROM repository_call_graph_state
                 WHERE namespace = ?
@@ -242,7 +326,7 @@ class SearchService:
                 """,
                 (namespace, namespace, namespace),
             )
-            self.connection.execute(
+            connection.execute(
                 """
                 DELETE FROM repository_dependency_graph_state
                 WHERE namespace = ?
@@ -252,14 +336,16 @@ class SearchService:
                 """,
                 (namespace, namespace),
             )
-            self.connection.execute("DELETE FROM search_records WHERE namespace = ?", (namespace,))
-            self.connection.execute(
+            connection.execute("DELETE FROM search_records WHERE namespace = ?", (namespace,))
+            connection.execute(
                 "DELETE FROM repository_index_state WHERE namespace = ?", (namespace,)
             )
-            self.connection.commit()
+            connection.commit()
         except sqlite3.DatabaseError:
-            self.connection.rollback()
+            connection.rollback()
             raise
+        finally:
+            connection.close()
 
     def repository_index_state(self, namespace: str) -> RepositorySearchIndexState | None:
         row = self.connection.execute(
@@ -320,6 +406,304 @@ class SearchService:
             (namespace,),
         ).fetchone()
         return RepositoryDispatchEvidenceState(*row) if row is not None else None
+
+    def repository_coverage_evidence_state(
+        self, namespace: str
+    ) -> RepositoryCoverageEvidenceState | None:
+        row = self.connection.execute(
+            """
+            SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                   source_tree_oid,
+                   repository_snapshot_ref, repository_snapshot_sha256,
+                   dependency_graph_ref, dependency_graph_sha256,
+                   call_graph_ref, call_graph_sha256,
+                   dispatch_evidence_ref, dispatch_evidence_sha256,
+                   trusted_run_ref, trusted_run_sha256, test_run_id,
+                   trusted_test_policy_sha256,
+                   evidence_ref, evidence_sha256, policy_sha256
+            FROM repository_coverage_evidence_state
+            WHERE namespace = ?
+            """,
+            (namespace,),
+        ).fetchone()
+        return RepositoryCoverageEvidenceState(*row) if row is not None else None
+
+    def apply_repository_coverage_evidence_state(
+        self,
+        *,
+        state: RepositoryCoverageEvidenceState,
+        expected_previous_evidence_ref: str | None,
+        expected_previous_evidence_sha256: str | None,
+    ) -> None:
+        expected_namespace = f"explicit:repository-coverage-evidence:{state.project_id}"
+        if state.namespace != expected_namespace:
+            raise RepositoryCoverageEvidenceStateError(
+                "repository coverage evidence requires an explicit project namespace"
+            )
+        if (expected_previous_evidence_ref is None) != (expected_previous_evidence_sha256 is None):
+            raise RepositoryCoverageEvidenceStateError(
+                "coverage-evidence predecessor reference and hash must be paired"
+            )
+        repository_namespace = f"explicit:repository-index:{state.project_id}"
+        dependency_namespace = f"explicit:repository-dependency-graph:{state.project_id}"
+        call_namespace = f"explicit:repository-call-graph:{state.project_id}"
+        dispatch_namespace = f"explicit:repository-dispatch-evidence:{state.project_id}"
+        try:
+            connection = sqlite3.connect(self.database_path)
+        except sqlite3.DatabaseError as exc:
+            raise RepositoryCoverageEvidenceStateError(
+                "coverage-evidence state connection failed"
+            ) from exc
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            repository_row = connection.execute(
+                """
+                SELECT project_id, repository_url, base_ref, base_sha,
+                       snapshot_ref, snapshot_sha256
+                FROM repository_index_state
+                WHERE namespace = ?
+                """,
+                (repository_namespace,),
+            ).fetchone()
+            expected_repository = (
+                state.project_id,
+                state.repository_url,
+                state.base_ref,
+                state.base_sha,
+                state.repository_snapshot_ref,
+                state.repository_snapshot_sha256,
+            )
+            dependency_row = connection.execute(
+                """
+                SELECT project_id, repository_url, base_ref, base_sha,
+                       repository_snapshot_ref, repository_snapshot_sha256,
+                       graph_ref, graph_sha256
+                FROM repository_dependency_graph_state
+                WHERE namespace = ?
+                """,
+                (dependency_namespace,),
+            ).fetchone()
+            expected_dependency = (
+                state.project_id,
+                state.repository_url,
+                state.base_ref,
+                state.base_sha,
+                state.repository_snapshot_ref,
+                state.repository_snapshot_sha256,
+                state.dependency_graph_ref,
+                state.dependency_graph_sha256,
+            )
+            call_row = connection.execute(
+                """
+                SELECT project_id, repository_url, base_ref, base_sha,
+                       repository_snapshot_ref, repository_snapshot_sha256,
+                       dependency_graph_ref, dependency_graph_sha256,
+                       graph_ref, graph_sha256
+                FROM repository_call_graph_state
+                WHERE namespace = ?
+                """,
+                (call_namespace,),
+            ).fetchone()
+            expected_call = (
+                state.project_id,
+                state.repository_url,
+                state.base_ref,
+                state.base_sha,
+                state.repository_snapshot_ref,
+                state.repository_snapshot_sha256,
+                state.dependency_graph_ref,
+                state.dependency_graph_sha256,
+                state.call_graph_ref,
+                state.call_graph_sha256,
+            )
+            dispatch_row = connection.execute(
+                """
+                SELECT project_id, repository_url, base_ref, base_sha,
+                       repository_snapshot_ref, repository_snapshot_sha256,
+                       dependency_graph_ref, dependency_graph_sha256,
+                       call_graph_ref, call_graph_sha256,
+                       evidence_ref, evidence_sha256
+                FROM repository_dispatch_evidence_state
+                WHERE namespace = ?
+                """,
+                (dispatch_namespace,),
+            ).fetchone()
+            expected_dispatch = (
+                state.project_id,
+                state.repository_url,
+                state.base_ref,
+                state.base_sha,
+                state.repository_snapshot_ref,
+                state.repository_snapshot_sha256,
+                state.dependency_graph_ref,
+                state.dependency_graph_sha256,
+                state.call_graph_ref,
+                state.call_graph_sha256,
+                state.dispatch_evidence_ref,
+                state.dispatch_evidence_sha256,
+            )
+            if (
+                repository_row != expected_repository
+                or dependency_row != expected_dependency
+                or call_row != expected_call
+                or dispatch_row != expected_dispatch
+            ):
+                raise RepositoryCoverageEvidenceStateError(
+                    "active repository evidence chain changed before coverage state advancement"
+                )
+
+            run_row = connection.execute(
+                """
+                SELECT trusted_run_ref, trusted_run_sha256
+                FROM repository_coverage_run_ledger
+                WHERE project_id = ? AND test_run_id = ?
+                """,
+                (state.project_id, state.test_run_id),
+            ).fetchone()
+            expected_run = (state.trusted_run_ref, state.trusted_run_sha256)
+            if run_row is not None and run_row != expected_run:
+                raise RepositoryCoverageEvidenceStateError(
+                    "test-run identity conflicts with immutable coverage-run evidence"
+                )
+
+            current_row = connection.execute(
+                """
+                SELECT namespace, project_id, repository_url, base_ref, base_sha,
+                       source_tree_oid,
+                       repository_snapshot_ref, repository_snapshot_sha256,
+                       dependency_graph_ref, dependency_graph_sha256,
+                       call_graph_ref, call_graph_sha256,
+                       dispatch_evidence_ref, dispatch_evidence_sha256,
+                       trusted_run_ref, trusted_run_sha256, test_run_id,
+                       trusted_test_policy_sha256,
+                       evidence_ref, evidence_sha256, policy_sha256
+                FROM repository_coverage_evidence_state
+                WHERE namespace = ?
+                """,
+                (state.namespace,),
+            ).fetchone()
+            current = (
+                RepositoryCoverageEvidenceState(*current_row)
+                if current_row is not None
+                else None
+            )
+            if current is None and expected_previous_evidence_sha256 is not None:
+                raise RepositoryCoverageEvidenceStateError(
+                    "expected predecessor coverage evidence does not exist"
+                )
+            if current is not None:
+                if (
+                    expected_previous_evidence_ref != current.evidence_ref
+                    or expected_previous_evidence_sha256 != current.evidence_sha256
+                ):
+                    raise RepositoryCoverageEvidenceStateError(
+                        "coverage-evidence predecessor does not match active state"
+                    )
+                if current == state:
+                    if run_row is None:
+                        connection.execute(
+                            """
+                            INSERT INTO repository_coverage_run_ledger (
+                                project_id, test_run_id,
+                                trusted_run_ref, trusted_run_sha256
+                            ) VALUES (?, ?, ?, ?)
+                            """,
+                            (
+                                state.project_id,
+                                state.test_run_id,
+                                state.trusted_run_ref,
+                                state.trusted_run_sha256,
+                            ),
+                        )
+                    verified_run_row = connection.execute(
+                        """
+                        SELECT trusted_run_ref, trusted_run_sha256
+                        FROM repository_coverage_run_ledger
+                        WHERE project_id = ? AND test_run_id = ?
+                        """,
+                        (state.project_id, state.test_run_id),
+                    ).fetchone()
+                    if verified_run_row != expected_run:
+                        raise RepositoryCoverageEvidenceStateError(
+                            "immutable coverage-run ledger verification failed"
+                        )
+                    connection.commit()
+                    return
+            if run_row is None:
+                connection.execute(
+                    """
+                    INSERT INTO repository_coverage_run_ledger (
+                        project_id, test_run_id, trusted_run_ref, trusted_run_sha256
+                    ) VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        state.project_id,
+                        state.test_run_id,
+                        state.trusted_run_ref,
+                        state.trusted_run_sha256,
+                    ),
+                )
+            verified_run_row = connection.execute(
+                """
+                SELECT trusted_run_ref, trusted_run_sha256
+                FROM repository_coverage_run_ledger
+                WHERE project_id = ? AND test_run_id = ?
+                """,
+                (state.project_id, state.test_run_id),
+            ).fetchone()
+            if verified_run_row != expected_run:
+                raise RepositoryCoverageEvidenceStateError(
+                    "immutable coverage-run ledger verification failed"
+                )
+            connection.execute(
+                """
+                INSERT OR REPLACE INTO repository_coverage_evidence_state (
+                    namespace, project_id, repository_url, base_ref, base_sha,
+                    source_tree_oid,
+                    repository_snapshot_ref, repository_snapshot_sha256,
+                    dependency_graph_ref, dependency_graph_sha256,
+                    call_graph_ref, call_graph_sha256,
+                    dispatch_evidence_ref, dispatch_evidence_sha256,
+                    trusted_run_ref, trusted_run_sha256, test_run_id,
+                    trusted_test_policy_sha256,
+                    evidence_ref, evidence_sha256, policy_sha256
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    state.namespace,
+                    state.project_id,
+                    state.repository_url,
+                    state.base_ref,
+                    state.base_sha,
+                    state.source_tree_oid,
+                    state.repository_snapshot_ref,
+                    state.repository_snapshot_sha256,
+                    state.dependency_graph_ref,
+                    state.dependency_graph_sha256,
+                    state.call_graph_ref,
+                    state.call_graph_sha256,
+                    state.dispatch_evidence_ref,
+                    state.dispatch_evidence_sha256,
+                    state.trusted_run_ref,
+                    state.trusted_run_sha256,
+                    state.test_run_id,
+                    state.trusted_test_policy_sha256,
+                    state.evidence_ref,
+                    state.evidence_sha256,
+                    state.policy_sha256,
+                ),
+            )
+            connection.commit()
+        except RepositoryCoverageEvidenceStateError:
+            connection.rollback()
+            raise
+        except sqlite3.DatabaseError as exc:
+            connection.rollback()
+            raise RepositoryCoverageEvidenceStateError(
+                "coverage-evidence state transaction failed"
+            ) from exc
+        finally:
+            connection.close()
 
     def apply_repository_dispatch_evidence_state(
         self,

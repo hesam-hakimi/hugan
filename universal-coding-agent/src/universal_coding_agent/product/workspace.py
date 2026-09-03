@@ -8,6 +8,7 @@ from universal_coding_agent.core.safe_models import SafeModePolicy
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.call_graphs import RepositoryCallGraphService
 from universal_coding_agent.product.context_documents import ContextDocumentService
+from universal_coding_agent.product.coverage_evidence import RepositoryCoverageEvidenceService
 from universal_coding_agent.product.dependency_graphs import RepositoryDependencyService
 from universal_coding_agent.product.dispatch_evidence import RepositoryDispatchEvidenceService
 from universal_coding_agent.product.knowledge_packs import ProjectKnowledgePackService
@@ -48,6 +49,7 @@ class ProductWorkspace:
     dependency_graphs: RepositoryDependencyService
     call_graphs: RepositoryCallGraphService
     dispatch_evidence: RepositoryDispatchEvidenceService
+    coverage_evidence: RepositoryCoverageEvidenceService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -98,6 +100,11 @@ class ProductWorkspace:
             search,
             call_graphs,
         )
+        coverage_evidence = RepositoryCoverageEvidenceService(
+            artifacts,
+            search,
+            dispatch_evidence,
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -117,6 +124,7 @@ class ProductWorkspace:
             dependency_graphs=dependency_graphs,
             call_graphs=call_graphs,
             dispatch_evidence=dispatch_evidence,
+            coverage_evidence=coverage_evidence,
             search=search,
             requirements=requirements,
             programs=programs,

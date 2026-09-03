@@ -12,6 +12,10 @@ _EXPORTS = {
         "universal_coding_agent.product.dispatch_evidence",
         "RepositoryDispatchEvidenceService",
     ),
+    "RepositoryCoverageEvidenceService": (
+        "universal_coding_agent.product.coverage_evidence",
+        "RepositoryCoverageEvidenceService",
+    ),
     "ContextDocumentService": (
         "universal_coding_agent.product.context_documents",
         "ContextDocumentService",
