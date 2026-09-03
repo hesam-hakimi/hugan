@@ -1,172 +1,162 @@
-TASK: PHASE_1B_3N_V_TEST_ORACLE_AND_EVIDENCE_HARDENING_IMPLEMENTATION_ONLY
+TASK: PHASE_1B_3N_W_INDEPENDENT_DIFF_AND_BASELINE_REVIEW_READ_ONLY
 
 ROLE
 
+Act as a fresh independent reviewer. Do not use the Agent that implemented Phase 1B.3N-V to certify its own changes.
+
 Use the normal local GitHub Copilot Agent, not the ETL Orchestrator.
 
-This is a bounded test/harness implementation task. It does not authorize compilation, test execution, runner invocation, Extension Host launch, retry, packaging, installation, version change, commit, merge, publication, or product-source modification.
+This task is strictly read-only. You may inspect the repository, Git state, source files, and retained evidence. You may not edit, format, restore, stage, compile, test, invoke the runner, launch an Extension Host, install, package, commit, merge, publish, or delete anything.
 
-AUTHORITATIVE BASELINE
+REPOSITORY
 
-Repository:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Branch:
+Expected branch:
 fix/workspace-write-completion-0.3.148
 
-HEAD:
+Expected HEAD:
 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-Expected Git status:
+PRE-V PROTECTED STATUS
+
 M .github/templates/request.md
 M src/extension.ts
 M src/test/runTest.ts
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 
-Retained Phase 1B.3N-T evidence:
-C:\Users\tag5916\AppData\Local\Temp\etl-phase1b3n-t-evidence-bb866c7be991469abd3bf924b0373fc0
+PHASE V REPORTED CHANGES
 
-Do not modify or delete the retained evidence.
+* src/test/runTest.ts
+* src/test/suite/index.ts
+* src/test/suite/sttmRealHostStructuredResult.test.ts
 
-ACCEPTED PHASE 1B.3N-U FINDINGS
+Phase V reported approximately 2,902 additions and 652 deletions. Do not assume this volume is intentional until the complete diff is reviewed.
 
-1. Canonical structured source is db.entity.field when all components exist.
-2. Markdown intentionally renders the shorter entity.field source label.
-3. The fixture authors:
-    * sourceDb = source_db
-    * sourceEntity = customers
-    * sourceField = cust_name
-4. The public adapter serializes response.data without rewriting mapping fields.
-5. Cross-channel parity applies to mapping ID, order, count, exclusions, and diagnostics—not byte-identical source display strings.
-6. The observed structured value source_db.customers.cust_name conforms to the current product contract.
-7. The focused test incorrectly reused the Markdown expectation customers.cust_name for the structured channel.
-8. No product projection change is authorized or required.
+REVIEW REQUIREMENTS
 
-PREFLIGHT — READ ONLY
+1. Verify the exact repository, branch, HEAD, staged state, final git status --short, and absence of concurrent mutation or Git lock.
+2. Reconstruct the exact post-V status. Do not continue using the old four-line baseline if src/test/suite/index.ts adds another status entry.
+3. Review the complete diff of all three Phase V files.
 
-Before editing:
+The focused test is untracked, so inspect its complete contents explicitly. Do not rely on ordinary git diff or git diff --check to cover an untracked file.
 
-1. Verify repository, branch, HEAD and exact four-line Git status.
-2. Confirm no concurrent Agent is modifying the worktree.
-3. Read the complete focused test and existing test-owned evidence helpers.
-4. Identify a genuine test-only seam for observing parser invocation cardinality.
-5. Confirm evidence can be captured without modifying:
-    * src/extension.ts
-    * src/core/**
-    * Markdown renderer
-    * public adapter
-    * package.json
-    * compiled output
-    * QA files
-6. Reconcile, from existing runner/evidence only:
-    * argvDevelopmentPaths must be [etlRepositoryPath, bundledCopilotExtensionPath];
-    * activation/log order is a separate non-contractual observation.
-7. If parser cardinality cannot be observed without production changes, stop before editing and report:
-    BLOCKED_TEST_ONLY_PARSER_INSTRUMENTATION
+4. Explain the large line count:
 
-AUTHORIZED CHANGES
+* distinguish semantic changes from whitespace or line-ending conversion;
+* identify any full-file rewrite;
+* report semantic additions/deletions separately;
+* reject unrelated refactoring or formatting churn.
 
-Prefer changing only:
+5. Confirm scope containment:
 
-src/test/suite/sttmRealHostStructuredResult.test.ts
+* no Phase V change under src/core/**;
+* no Phase V change to src/extension.ts;
+* no Phase V change to .github/templates/request.md;
+* no change to package.json, production dependencies, resources, QA, compiled files, or documentation;
+* extensionDependencies remains exactly ["github.copilot-chat"].
 
-If strictly necessary, a minimal existing helper or runner under src/test/** may also be changed solely for test-owned evidence capture. Explain why before changing it.
+6. Review the focused test and verify:
 
-Do not modify any production path.
+* Structured source expectation is source_db.customers.cust_name;
+* Markdown source expectation is customers.cust_name;
+* Structured and Markdown target expectation is grounded as target_db.customer_name;
+* cross-channel parity covers mapping ID, order, and count;
+* source, target, IDs, counts, and projections are captured before assertions;
+* all mismatches are collected before the test fails;
+* evidence is persisted before any assertion can abort execution.
 
-IMPLEMENTATION REQUIREMENTS
+7. Review parser cardinality instrumentation:
 
-1. Replace the shared source expectation with separate values:
+* the wrapped CommonJS export is the exact mutable export consumed by the ETL activation path;
+* no production module captures or destructures the original parser before the wrapper is installed;
+* ETL activation cannot race ahead of wrapper installation;
+* original this, arguments, result, rejection, and error behavior are preserved;
+* every invocation path/outcome is recorded;
+* exactly one call is asserted;
+* restoration always occurs in finally, including setup, activation, parser, assertion, and evidence-write failure;
+* the hook cannot leak into another suite or ordinary test run.
 
-* structured source:
-    source_db.customers.cust_name
-* Markdown source display:
-    customers.cust_name
-* cross-channel parity:
-    mapping ID, order, and count
+If this seam is not reliable, report BLOCKED_PARSER_OBSERVATION_SEAM. Do not fix it.
 
-2. Preserve and independently ground the existing target expectation from the fixture and structured projection. Do not invent or weaken it.
-3. Prevent first-assertion masking:
+8. Review src/test/suite/index.ts and prove that:
 
-* capture all observed values before asserting;
-* evaluate source and target comparisons independently;
-* collect deterministic mismatches;
-* fail once at the end with the complete mismatch set.
+* the focused suite is loaded only under the explicit isolated qualification control;
+* ordinary suites do not import or execute it;
+* the loader does not import all suites and merely filter their reported results;
+* authored/evaluated suite and test counts cannot be falsified by hidden imports or side effects.
 
-4. Prepare machine-readable evidence for the future authorized run containing:
+9. Review src/test/runTest.ts and the evidence design:
 
-* exact argv development paths in order;
-* activation order as a separate field;
-* runner, runTests, Host, suite, test and invokeTool counts;
-* part order and constructor/type;
-* MIME for every applicable part;
-* character length and UTF-8 byte length;
-* SHA-256 for TextPart and DataPart;
-* exact DataPart bytes or an equivalent lossless retained representation;
-* decoded JSON;
-* observed structured source and target;
-* observed Markdown source and target;
-* every deterministic comparison result;
-* exact parser invocation cardinality;
-* exact pre/post values for all eight protected file hashes;
-* QA inventory, workbook size/hash and final process integrity.
+* exactly one canonical evidence root is shared by controller, runner, and Host;
+* evidence writes are restricted to etl-phase1b3n-v-evidence-<32 hex> under a test-owned temporary location;
+* raw argv order is recorded as [etlRepositoryPath, bundledCopilotExtensionPath];
+* activation/log order is stored separately and is not compared with argv order;
+* complete TextPart and DataPart metadata, UTF-8 lengths, SHA-256, lossless DataPart base64, decoded JSON, projections, and all comparison results are retained;
+* runner, runTests, Host, suite, test, invokeTool, registration, and parser counts are distinguishable;
+* the parent independently records runner exit and verifies no runner or Host process remains;
+* evidence is available for BLOCKED, FAIL, and PASS paths;
+* a failed evidence write cannot be reported as product FAIL.
 
-Evidence must be written only to the future unique test-owned isolation/evidence directory, never to the repository or QA workspace.
+10. Review the reported 45 comparisons:
 
-5. Parser cardinality must come from a real test-only observation seam. Do not substitute:
+* enumerate their categories and counts;
+* confirm they are independent and contract-relevant;
+* identify duplicate, tautological, or implementation-only comparisons;
+* confirm a first mismatch cannot suppress later observations.
 
-* invokeTool count;
-* registration count;
-* static call-graph inference;
-* expected behavior.
+11. Reconstruct an authoritative protected-path manifest proposal.
 
-6. Preserve:
+The previous eight-entry manifest is not automatically sufficient because Phase V introduced src/test/suite/index.ts and its future compiled artifact.
 
-* preview-only behavior;
-* zero consumer writes;
-* production extensionDependencies = ["github.copilot-chat"];
-* production and normal-development activation behavior;
-* all existing QA and repository safety boundaries.
+List every source, harness, contract, configuration, and compiled path that must be pinned for the compile and one-shot qualification gates. For each currently existing file, report its exact SHA-256.
 
-PROHIBITED
+Mark compiled files expected to change during the future compile as STALE_UNTIL_COMPILE; do not treat their current hashes as qualification hashes.
 
-Do not:
+Do not write the manifest to disk during this review.
 
-* change structured output to remove sourceDb;
-* change Markdown rendering;
-* change the public adapter;
-* change product code;
-* compile;
-* run tests;
-* invoke the compiled runner;
-* launch an Extension Host;
-* retry Phase 1B.3N-T;
-* create or install a VSIX;
-* bump the version;
-* stage, commit, merge, push, publish, or clean the worktree.
+12. Confirm retained Phase 1B.3N-T evidence was not modified.
+
+CLASSIFICATION
+
+PASS_READY_FOR_COMPILE_GATE requires:
+
+* complete diff review;
+* no product or unauthorized change;
+* no accidental rewrite or line-ending churn;
+* reliable parser observation;
+* exclusive focused-suite loading;
+* complete evidence lifecycle;
+* exact post-V Git baseline;
+* complete protected-manifest proposal.
+
+If any condition is not established, return BLOCKED_<EXACT_REASON>.
 
 FINAL REPORT
 
-Return:
+Report:
 
-1. Preflight identity result.
-2. Exact changed paths.
-3. Exact source-oracle change.
-4. How target evaluation avoids short-circuiting.
-5. Exact parser-cardinality observation seam.
-6. Evidence fields prepared for the future run.
-7. Resolution of argv order versus activation order.
-8. Confirmation of zero product-source changes.
-9. New hashes for every changed test/harness file.
-10. Remaining evidence gaps.
-11. Proposed scope of the future one-shot qualification—but do not execute it.
+1. exact repository, branch, HEAD and post-V Git status;
+2. exact changed paths;
+3. semantic diff summary per file;
+4. explanation of the large line count;
+5. unauthorized or unrelated changes, if any;
+6. oracle and target correctness;
+7. parser-hook verdict;
+8. focused-loader verdict;
+9. evidence-lifecycle verdict;
+10. 45-comparison audit;
+11. protected manifest table with path and SHA-256;
+12. remaining blockers;
+13. whether Phase V changes should be kept or revised;
+14. exact proposed scope for the later compile-only gate.
 
-End with exactly:
+End with:
 
-PHASE_1B_3N_V_IMPLEMENTATION_RESULT: PASS_READY_FOR_REVIEW
-or
-PHASE_1B_3N_V_IMPLEMENTATION_RESULT: BLOCKED_<EXACT_REASON>
-
+PHASE_1B_3N_W_REVIEW_RESULT: PASS_READY_FOR_COMPILE_GATE|BLOCKED_<EXACT_REASON>
+DIFF_ACCEPTABLE: YES|NO
+EXACT_POST_V_STATUS_CAPTURED: YES|NO
+PROTECTED_MANIFEST_COMPLETE: YES|NO
 COMPILE_OR_TEST_EXECUTED: NO
 RUNNER_OR_HOST_EXECUTED: NO
 FUTURE_RUN_AUTHORIZATION_REQUIRED: YES
