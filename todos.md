@@ -1,36 +1,50 @@
 READ-ONLY INVESTIGATION. Do not compile, run tests, launch a runner or
-Extension Host, install anything, or edit any file. Report only.
+Extension Host, install anything, package anything, or edit any file.
+Report findings only. Do not assert PASS, FAIL, or BLOCKED, and do not
+propose or apply a fix.
 
-PART A — confirm or refute each item purely by reading current files.
-For each, quote the relevant lines and answer CONFIRMED, REFUTED, or
-CANNOT_DETERMINE_STATICALLY:
+Compare two activation routes of this extension:
 
-1. In src/test/suite/sttmRealHostStructuredResult.test.ts, the parser
-   export is replaced before the restore function is returned, leaving a
-   window in which a setup failure can leave the wrapper installed. Show
-   the assignment, the return, and where the caller's try/finally begins.
-2. In src/test/suite/index.ts, the loader globs all integration test
-   files and relies on Mocha grep rather than exclusive module loading.
-3. Host evidence is written only in suiteTeardown, after assertions can
-   fail, so an early validation failure produces no retained evidence.
-4. A failed evidence write yields exit code 1 with no machine-readable
-   distinction between an infrastructure failure and a product failure,
-   and no parent post-exit check exists.
-5. src/test/runTest.ts enforces an exactly-eight-record manifest.
+  Route A: the opted-in ExtensionMode.Test read-only tool-only route
+           (ETL_TEST_READ_ONLY_TOOL_ONLY=1)
+  Route B: normal installed-VSIX activation used by @etl /workflow
 
-PART B — assertion-strength inventory.
-Across src/test/**, list every assertion that inspects a composed source
-or target label string. For each, give file:line, the assertion, and
-classify its strength as one of:
-  EXACT_EQUALITY | SUFFIX_ONLY | PREFIX_ONLY | SUBSTRING_ONLY | OTHER
-Then state which of these are structurally incapable of detecting a
-missing middle component in a dot-joined label.
+PART 1 — activation diff
+Starting at src/extension.ts activate(), produce an ordered list of every
+initialization step in each route. Mark each step PRESENT_IN_A,
+PRESENT_IN_B, or BOTH. Quote the exact conditionals that cause any
+divergence, with file:line.
 
-PART C — encoding.
-Identify where the structured payload is serialized, and report whether
-any field in it can carry non-ASCII text. State whether a
-byte-length-equals-character-length assumption is safe for a future
-oracle.
+PART 2 — tool registration
+For etl_interpret_sttm specifically:
+  a. Where is it registered in each route? Quote both call sites.
+  b. Is the same handler implementation used in both? Answer YES or NO
+     and show the evidence.
+  c. Does anything about registration order, timing, or the set of other
+     registered tools differ between the routes?
 
-Report findings only. Do not propose or apply fixes, and do not assert
-any PASS, FAIL, or BLOCKED judgment.
+PART 3 — the structured DataPart, end to end
+Trace every code path from the tool handler entry to the constructed
+LanguageModelToolResult.
+  a. Enumerate every place a LanguageModelDataPart is constructed or
+     appended, with file:line.
+  b. For each, list every condition that could cause it to be skipped,
+     omitted, or replaced by a text-only result. Quote each guard.
+  c. For each such condition, state whether it can be satisfied in
+     Route A, Route B, both, or neither — and why.
+  d. Report specifically whether any of these depend on: the host API
+     surface actually present at runtime, chat participant state, model
+     availability, authentication, workspace trust, configuration
+     values, or activation events. Quote the relevant checks.
+
+PART 4 — packaging
+Is anything on the DataPart construction path affected by how the
+extension is packaged rather than how it is run — bundling, tree
+shaking, .vscodeignore exclusions, dependency externalization, activation
+events declared in package.json, or engine/API version constraints?
+Quote package.json and any bundler configuration present.
+
+PART 5 — bounds
+State plainly which parts of the Route B behaviour are NOT determinable
+from source alone and would require runtime observation. Be explicit
+about what static reading cannot settle here.
