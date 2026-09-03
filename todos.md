@@ -1,74 +1,58 @@
-INDEPENDENT REVIEW — READ ONLY. Do not compile, run tests, launch a
-runner or Extension Host, install anything, or edit any file. Read-only
-git commands are acceptable. Writing, staging, or committing is not.
+IMPLEMENTATION ONLY — REVERT AND SIMPLIFY. No compile, no test
+execution, no runner, no Extension Host, no commit, no stage, no version
+bump, no packaging. Edit only src/test/runTest.ts. Do not self-certify.
 
-You did not write this change. The author may be a model of the same
-family as you. That is a reason to be stricter, not softer. Do not
-assume the change is correct. Do not fix anything.
+CONTEXT
+An independent review returned NOT_ACCEPTABLE. The replacement fields
+added earlier are tautological: they cannot ever be false, so they carry
+no information. The owner's decision is to delete them and add nothing
+in their place. Do not propose a better replacement. Do not argue.
 
-Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-Branch:     fix/workspace-write-completion-0.3.148
-File under review: src/test/runTest.ts (uncommitted working-tree change)
+REQUIRED CHANGES
 
-INTENT AS AUTHORISED BY THE OWNER
-The runner's evidence file must not present a literal value as an
-observation. Two fields were in scope:
-  - runnerAliveWhileWritingEvidence, a hard-coded true presented as an
-    observation, to be removed and replaced only by something genuinely
-    observable.
-  - parentPostExitCheckRequired, to move into a new top-level
-    `declarations` block meaning "asserted by the author, not observed".
-Everything else was to be reported, not changed. Two doc comments were
-then corrected for accuracy. taskId was deliberately left alone.
+1. In the finalProcessIntegrity emission block, delete these two fields
+   entirely:
+     evidenceWriterPid
+     evidenceWriterSampledAtUtc
+   Add nothing in their place. finalProcessIntegrity must end with the
+   three fields that were there originally: observedAfterRunTests,
+   hostPidStates, runnerPid.
 
-The permitted JSON shape delta is exactly:
-  two keys removed from finalProcessIntegrity,
-  two keys added to finalProcessIntegrity,
-  one new top-level key `declarations` containing parentPostExitCheck
-  only.
+2. In the declarations block, change parentPostExitCheck from an object
+   to the flat boolean the owner authorised:
+     declarations: { parentPostExitCheckRequired: true }
+   Delete the `implemented` sub-field. It was never authorised.
 
-WHAT TO CHECK — answer each with file:line evidence and a verdict of
-CONFIRMED, VIOLATED, or CANNOT_DETERMINE_STATICALLY
+3. Update both interfaces to match exactly:
+   - Remove evidenceWriterPid and evidenceWriterSampledAtUtc from the
+     RunnerEvidence finalProcessIntegrity shape.
+   - Change RunnerEvidenceDeclarations to a single flat boolean field
+     parentPostExitCheckRequired.
 
-A. Derive the emitted JSON shape from source. List every top-level key,
-   and every key inside finalProcessIntegrity, activationOrderObservation,
-   and declarations. State whether the shape delta matches the permitted
-   delta exactly — no more, no less.
+4. Rewrite the two doc comments so that every sentence in them is true
+   of the file as it stands after this revert. Specifically:
+   - Do not claim that all remaining literals are marked. They are not.
+   - Do not claim that every marked field is produced at the moment of
+     writing. Several are captured earlier in the run.
+   - Do not assert an exhaustive taxonomy of fields.
+   Say only what you can verify by reading the file. If you cannot make
+   a sentence true, delete the sentence rather than soften it.
 
-B. Is every field now inside finalProcessIntegrity produced from a
-   runtime value at the moment of writing? Quote each one and its right
-   hand side. Name any that is still a literal.
-
-C. evidenceWriterPid and evidenceWriterSampledAtUtc were added as the
-   replacement. Do they actually observe anything meaningful about the
-   writing process, or are they a differently-shaped restatement of the
-   same unverifiable claim? Say plainly which.
-
-D. observedAfterRunTests is now derived from runTestsOutcome. Is that
-   derivation sound — can runTestsOutcome hold a value that makes this
-   field assert something false?
-
-E. Scan the whole file for any remaining value presented under an
-   observation-shaped key but hard-coded. List every one with file:line,
-   including ones the author declared as accepted exceptions.
-
-F. Do the two doc comments accurately describe the file as it now
-   stands? Quote them and name any claim that is still false.
-
-G. Does this change alter runner behaviour — control flow, exit codes,
-   write ordering, file path, encoding, or what is written in a failing
-   run? Answer for a passing run and a failing run separately.
-
-H. Search the repository for any consumer of the evidence file or of any
-   key in it. Report each by file:line. State plainly that you can only
-   see consumers inside this repository.
-
-I. Report any change that serves no stated part of the intent above.
-   Scope creep is a finding, not a favour.
+CONSTRAINTS
+- Do not touch retriesOrRelaunches. It stays the literal 0 with its
+  existing comment. It is a known open item, not this task.
+- Do not touch taskId, activationOrderObservation, the manifest
+  cardinality check, evidence write ordering, exit-code handling, or any
+  other known defect.
+- Do not change the evidence file path, name, write flag, or encoding.
+- Add no new field, type, comment, or refactor beyond the above.
 
 REPORT
-1. Verdicts, in order A through I.
-2. A single overall verdict: ACCEPTABLE, or NOT_ACCEPTABLE with the
-   blocking findings listed.
-3. What you could not determine without compiling or running.
-4. Do not propose fixes. Do not edit. Do not compile. Stop.
+1. Unified diff of this revert only.
+2. The complete list of keys in finalProcessIntegrity and in
+   declarations after this change.
+3. State the resulting JSON shape delta from the original, in one line.
+4. Quote both rewritten doc comments in full and, for each sentence,
+   state the file:line evidence that makes it true.
+5. Anything you could not verify without compiling.
+6. Stop. Independent review follows.
