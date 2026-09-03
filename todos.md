@@ -1,20 +1,20 @@
 READ-ONLY INVESTIGATION. No edits, no compile, no test execution.
 
-In src/**, answer with exact quoted code and line numbers:
-1. In SttmMarkdownBundleParser.ts, show the header-recognition table or
-   alias map that maps STTM column headings to parsed fields. List every
-   heading it recognizes for SOURCE components and every heading it
-   recognizes for TARGET components, side by side.
-2. Show lines 960-1000 and state precisely whether any branch assigns a
-   targetEntity from a 'Target Table Name' column, and if not, what the
-   target projection is composed of instead.
-3. Do the same for the Excel path in SttmExcelWorkbookParser.ts. State
-   whether the two parsers agree on target-component recognition.
-4. In generateSyntheticWorkbook.ts, quote the authored target columns.
-5. Search the whole repository for any test, fixture, or documentation
-   string containing a three-component target of the form
-   <db>.<entity>.<field>, and report whether any existing committed test
-   asserts a three-component target.
+Quote the exact current text, with line numbers, of each of these and
+explain in one sentence what each one asserts about source/target
+string composition:
+1. SttmResolvedEvidence.ts, the canonical source-composition logic
+   (reported near line 630) including every fallback branch.
+2. SttmUnderstandingReportRenderer.ts, the Markdown Active Mappings
+   source rendering (reported near line 218).
+3. The public tool-result adapter (reported at index.ts:181) — show
+   exactly what it adds to and what it copies verbatim from the internal
+   service response.
+4. package.json, the description or contract string reported at line 574
+   containing wording about values being carried identically.
+5. sttmPublicToolResultEnvelope.test.ts around line 346, and
+   etl-verifier.agent.md around line 35.
 
-Report findings only. Do not propose or apply a fix, and do not decide
-whether this is intended behaviour — that is an owner decision.
+Then state, as an observation and not a decision: which artifacts define
+parity by mapping ID/order/count, and which artifacts could be read as
+requiring byte-identical display strings.
