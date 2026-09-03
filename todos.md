@@ -1,50 +1,59 @@
-READ-ONLY INVESTIGATION. Do not compile, run tests, launch a runner or
-Extension Host, install anything, package anything, or edit any file.
-Report findings only. Do not assert PASS, FAIL, or BLOCKED, and do not
-propose or apply a fix.
+IMPLEMENTATION ONLY. No compile, no test execution, no runner, no
+Extension Host, no commit, no stage, no version bump, no packaging.
+Edit only the file named below. Do not touch any other file.
+Do not self-certify: report what you changed and stop. An independent
+review follows.
 
-Compare two activation routes of this extension:
+Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Branch:     fix/workspace-write-completion-0.3.148  (do not switch)
+File:       src/test/runTest.ts  (already modified, uncommitted)
 
-  Route A: the opted-in ExtensionMode.Test read-only tool-only route
-           (ETL_TEST_READ_ONLY_TOOL_ONLY=1)
-  Route B: normal installed-VSIX activation used by @etl /workflow
+GOAL
+The runner's evidence file must never present a literal value as an
+observation. Every field in the emitted evidence must be either
+  (a) computed from a runtime value at the moment of writing, or
+  (b) placed under an explicit top-level `declarations` block whose
+      meaning is "asserted by the author, not observed by the runner".
 
-PART 1 — activation diff
-Starting at src/extension.ts activate(), produce an ordered list of every
-initialization step in each route. Mark each step PRESENT_IN_A,
-PRESENT_IN_B, or BOTH. Quote the exact conditionals that cause any
-divergence, with file:line.
+REQUIRED CHANGES
+1. In the finalProcessIntegrity block (reported near runTest.ts:1943-1949):
+   a. Remove `runnerAliveWhileWritingEvidence: true`. Do not replace it
+      with another literal. If a genuinely observable substitute exists
+      (for example the runner's own process.pid plus a timestamp
+      captured immediately before the write call), add that instead,
+      named so it cannot be misread as a liveness claim.
+   b. Move `parentPostExitCheckRequired: true` out of
+      finalProcessIntegrity into a new top-level `declarations` object:
+        declarations: {
+          parentPostExitCheck: { required: true, implemented: false }
+        }
+   c. Leave observedAfterRunTests, hostPidStates, runnerPid unchanged
+      unless any of them is also a literal. If so, report it and apply
+      the same rule.
 
-PART 2 — tool registration
-For etl_interpret_sttm specifically:
-  a. Where is it registered in each route? Quote both call sites.
-  b. Is the same handler implementation used in both? Answer YES or NO
-     and show the evidence.
-  c. Does anything about registration order, timing, or the set of other
-     registered tools differ between the routes?
+2. Audit the rest of the evidence object assembled in the same function
+   for any other literal true/false/string presented under an
+   observation-shaped key. Apply the same rule to each and list it in
+   the report. Do not audit other files.
 
-PART 3 — the structured DataPart, end to end
-Trace every code path from the tool handler entry to the constructed
-LanguageModelToolResult.
-  a. Enumerate every place a LanguageModelDataPart is constructed or
-     appended, with file:line.
-  b. For each, list every condition that could cause it to be skipped,
-     omitted, or replaced by a text-only result. Quote each guard.
-  c. For each such condition, state whether it can be satisfied in
-     Route A, Route B, both, or neither — and why.
-  d. Report specifically whether any of these depend on: the host API
-     surface actually present at runtime, chat participant state, model
-     availability, authentication, workspace trust, configuration
-     values, or activation events. Quote the relevant checks.
+3. Update the TypeScript type for the evidence object so that, where
+   expressible, the compiler would reject a future literal in an
+   observation field. Where not expressible, add a one-line comment at
+   the field: "must be computed, never literal".
 
-PART 4 — packaging
-Is anything on the DataPart construction path affected by how the
-extension is packaged rather than how it is run — bundling, tree
-shaking, .vscodeignore exclusions, dependency externalization, activation
-events declared in package.json, or engine/API version constraints?
-Quote package.json and any bundler configuration present.
+CONSTRAINTS
+- Do not change the manifest cardinality check, evidence write ordering,
+  exit-code handling, or any other known defect in this file. Those are
+  separate tasks.
+- Do not change the evidence file path, name, write flag, or encoding.
+- Do not add, remove, or rename any evidence field other than those
+  named above or found in step 2.
+- Preserve existing behaviour for every field you did not touch.
 
-PART 5 — bounds
-State plainly which parts of the Route B behaviour are NOT determinable
-from source alone and would require runtime observation. Be explicit
-about what static reading cannot settle here.
+REPORT, in this order
+1. Complete unified diff of src/test/runTest.ts.
+2. Table: field | before | after | rule applied (a or b).
+3. Every consumer inside this repository that reads a field you moved or
+   removed, by file:line, found by search only. Do not modify consumers.
+4. What you could not verify without compiling, stated plainly.
+5. Stop. Do not run tsc, do not run tests, do not commit.
