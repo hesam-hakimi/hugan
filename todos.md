@@ -1,20 +1,20 @@
-READ-ONLY INVESTIGATION. Do not compile, run tests, launch a runner or
-Extension Host, install anything, or edit any file. Report only.
+READ-ONLY INVESTIGATION. No edits, no compile, no test execution.
 
-Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+In src/**, answer with exact quoted code and line numbers:
+1. In SttmMarkdownBundleParser.ts, show the header-recognition table or
+   alias map that maps STTM column headings to parsed fields. List every
+   heading it recognizes for SOURCE components and every heading it
+   recognizes for TARGET components, side by side.
+2. Show lines 960-1000 and state precisely whether any branch assigns a
+   targetEntity from a 'Target Table Name' column, and if not, what the
+   target projection is composed of instead.
+3. Do the same for the Excel path in SttmExcelWorkbookParser.ts. State
+   whether the two parsers agree on target-component recognition.
+4. In generateSyntheticWorkbook.ts, quote the authored target columns.
+5. Search the whole repository for any test, fixture, or documentation
+   string containing a three-component target of the form
+   <db>.<entity>.<field>, and report whether any existing committed test
+   asserts a three-component target.
 
-Report, each as a separate labelled block:
-1. git rev-parse --abbrev-ref HEAD, git rev-parse HEAD, and the exact
-   porcelain status, with a literal count of status paths.
-2. Whether the staging area is empty and whether .git/index.lock exists.
-3. The full repository-relative path of every file named index.ts under
-   src/**, so the three ambiguous manifest entries can be disambiguated.
-4. The exact current text of runTest.ts lines 340-370, and state
-   whether the manifest cardinality is hard-coded, derived, or
-   configurable.
-5. The SHA-256 of src/test/runTest.ts, src/test/suite/index.ts, and
-   src/test/suite/sttmRealHostStructuredResult.test.ts as they exist
-   now on disk.
-
-Do not compare against any hash I have not given you. Do not conclude
-PASS, FAIL, or BLOCKED. Just report observed values.
+Report findings only. Do not propose or apply a fix, and do not decide
+whether this is intended behaviour — that is an owner decision.
