@@ -1,59 +1,66 @@
-IMPLEMENTATION ONLY. No compile, no test execution, no runner, no
-Extension Host, no commit, no stage, no version bump, no packaging.
-Edit only the file named below. Do not touch any other file.
-Do not self-certify: report what you changed and stop. An independent
-review follows.
+IMPLEMENTATION ONLY — SCOPE CORRECTION. No compile, no test execution,
+no runner, no Extension Host, no commit, no stage, no version bump, no
+packaging. Edit only src/test/runTest.ts. Do not self-certify.
 
-Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-Branch:     fix/workspace-write-completion-0.3.148  (do not switch)
-File:       src/test/runTest.ts  (already modified, uncommitted)
+CONTEXT
+Your previous edit exceeded the authorised scope. The owner accepts part
+of it and is reverting the rest. This is not a rejection of quality; it
+is a scope decision. Do not re-argue it, do not re-apply anything you
+are told to revert, and do not introduce new improvements.
 
-GOAL
-The runner's evidence file must never present a literal value as an
-observation. Every field in the emitted evidence must be either
-  (a) computed from a runtime value at the moment of writing, or
-  (b) placed under an explicit top-level `declarations` block whose
-      meaning is "asserted by the author, not observed by the runner".
+KEEP EXACTLY AS YOU LEFT THEM
+1. finalProcessIntegrity.runnerAliveWhileWritingEvidence — removed,
+   replaced by evidenceWriterPid and evidenceWriterSampledAtUtc.
+2. finalProcessIntegrity.parentPostExitCheckRequired — moved into
+   declarations.parentPostExitCheck { required, implemented }.
+3. finalProcessIntegrity.observedAfterRunTests — now computed from
+   runTestsOutcome.
+4. The RunnerEvidenceDeclarations interface and the declarations block.
+5. The "must be computed, never literal" comments.
 
-REQUIRED CHANGES
-1. In the finalProcessIntegrity block (reported near runTest.ts:1943-1949):
-   a. Remove `runnerAliveWhileWritingEvidence: true`. Do not replace it
-      with another literal. If a genuinely observable substitute exists
-      (for example the runner's own process.pid plus a timestamp
-      captured immediately before the write call), add that instead,
-      named so it cannot be misread as a liveness claim.
-   b. Move `parentPostExitCheckRequired: true` out of
-      finalProcessIntegrity into a new top-level `declarations` object:
-        declarations: {
-          parentPostExitCheck: { required: true, implemented: false }
-        }
-   c. Leave observedAfterRunTests, hostPidStates, runnerPid unchanged
-      unless any of them is also a literal. If so, report it and apply
-      the same rule.
+REVERT TO THE PRE-EDIT VALUE
+6. runner.retriesOrRelaunches — restore the literal 0. Your derived
+   expression encodes a definition of "retry" that no specification in
+   this repository states. Restore the literal and add exactly this
+   comment on the line:
+     // literal: retry semantics undefined; see open item
+7. activationOrderObservation.contractual — restore it in place as the
+   literal false. Remove declarations.activationOrderContractual.
+8. activationOrderObservation.source — restore it in place as the
+   original literal string. Remove declarations.activationOrderSource.
 
-2. Audit the rest of the evidence object assembled in the same function
-   for any other literal true/false/string presented under an
-   observation-shaped key. Apply the same rule to each and list it in
-   the report. Do not audit other files.
+Items 7 and 8 are reverted because the emitted JSON shape must not
+change beyond what item 2 already requires. declarations must therefore
+contain parentPostExitCheck only.
 
-3. Update the TypeScript type for the evidence object so that, where
-   expressible, the compiler would reject a future literal in an
-   observation field. Where not expressible, add a one-line comment at
-   the field: "must be computed, never literal".
+DECIDED BY THE OWNER — DO NOT CHANGE
+9. taskId stays exactly where and as it is. An identifier is not an
+   observation. Do not move it, do not comment on it further.
+
+TYPE SHAPE
+10. Keep the RunnerEvidence interface, but update it so it matches the
+    reverted JSON shape exactly: activationOrderObservation regains
+    contractual and source; declarations narrows to parentPostExitCheck
+    only.
+11. If `satisfies` cannot be used without a TypeScript version you
+    cannot confirm, replace it with a plain type annotation and say so.
+    Do not leave a construct whose support you have not verified.
 
 CONSTRAINTS
-- Do not change the manifest cardinality check, evidence write ordering,
-  exit-code handling, or any other known defect in this file. Those are
-  separate tasks.
+- Do not touch the manifest cardinality check, evidence write ordering,
+  exit-code handling, or any other known defect.
 - Do not change the evidence file path, name, write flag, or encoding.
-- Do not add, remove, or rename any evidence field other than those
-  named above or found in step 2.
-- Preserve existing behaviour for every field you did not touch.
+- Do not add any field, comment, type, or refactor not named above.
+- Do not "improve" anything you notice along the way. Report it instead.
 
 REPORT, in this order
-1. Complete unified diff of src/test/runTest.ts.
-2. Table: field | before | after | rule applied (a or b).
-3. Every consumer inside this repository that reads a field you moved or
-   removed, by file:line, found by search only. Do not modify consumers.
-4. What you could not verify without compiling, stated plainly.
-5. Stop. Do not run tsc, do not run tests, do not commit.
+1. Unified diff of this correction only, against the state you left the
+   file in.
+2. The complete list of top-level keys in the emitted JSON, before your
+   first edit and after this correction, side by side, so the shape
+   delta is exactly visible.
+3. Confirm in one line that the only JSON shape change from the original
+   is: two keys removed from finalProcessIntegrity, two keys added to
+   finalProcessIntegrity, one new top-level key `declarations`.
+4. Anything you could not verify without compiling.
+5. Stop. Independent review follows.
