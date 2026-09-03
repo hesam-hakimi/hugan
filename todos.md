@@ -1,52 +1,47 @@
-INDEPENDENT REVIEW — READ ONLY. Do not compile, run tests, launch a
-runner or Extension Host, install anything, or edit any file. Read-only
-git and file-read commands are acceptable.
+IMPLEMENTATION ONLY — COMMENT ACCURACY, PRE-EXISTING DEFECT. No compile,
+no test execution, no runner, no Extension Host, no commit, no stage.
+Edit only src/test/runTest.ts. Change only comment text. Do not change
+any executable line, type, field, or behaviour.
 
-You did not write this change. Be strict.
+An independent review found a comment that asserts something untrue of
+the code it documents. It predates the current task; the owner has now
+authorised fixing it.
 
-Repository: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-File: src/test/runTest.ts (uncommitted working-tree change)
+THE DEFECT
+runTest.ts:1362 states the function resolves the disposable profile root
+"without mutating it", and runTest.ts:1364 states "The caller must create
+this directory first." Both are unqualified and both are false: the
+function creates the directory tree at runTest.ts:1409 whenever its
+allowRootCreation parameter is true, and the non-focused call site passes
+true at runTest.ts:1633.
 
-A previous review of this file returned NOT_ACCEPTABLE with exactly one
-blocking finding: the doc comment above `interface RunnerEvidence`
-asserted that every field marked "must be computed, never literal" is
-filled from a runtime value, while one such field is emitted as a
-hard-coded literal. The author was authorised to restore a carve-out in
-that one sentence, and nothing else.
+REQUIRED CHANGE
+Rewrite those comments so they describe what the function actually does.
+State the conditional plainly: the function does not mutate the
+filesystem unless allowRootCreation is true, in which case it creates the
+directory tree itself; the caller is responsible for creating it only
+when allowRootCreation is false. Use whatever wording is accurate — do
+not copy that sentence verbatim if the code does something subtler than
+this description.
 
-CHECKS — each with file:line evidence and a verdict
+Read runTest.ts:1350-1420 and runTest.ts:1625-1640 before writing, and
+base the wording on what the code does, not on what I have described.
+If my description of the defect is itself wrong, say so and change
+nothing.
 
-A. Read the doc comment above `interface RunnerEvidence` in full. Take
-   each sentence in turn and state whether it is true of the file as it
-   now stands. A sentence true only under a charitable reading counts as
-   false.
-
-B. The comment now claims exactly one exception exists. Enumerate every
-   field carrying the "must be computed, never literal" marker, and for
-   each, state whether its emission site is a runtime value or a
-   literal. Confirm or refute the count of one.
-
-C. Does the file still declare any rule that it then violates anywhere?
-
-D. Confirm no executable line, type declaration, field, marker, or
-   emitted value changed in this edit.
-
-E. Report any change outside the single authorised sentence, including
-   whitespace or line-wrapping changes to neighbouring lines.
-
-F. Independently of this edit, list every value in the emitted evidence
-   object that no possible run could falsify. For each, state whether it
-   sits under a container the file explicitly declares as authored
-   rather than observed.
-
-G. VS Code local history for this file is at
-     %APPDATA%\Code\User\History\7179216d
-   Use it to establish the pre-edit state. Diff against the most recent
-   snapshot that predates this edit and report anything the author did
-   not declare.
+CONSTRAINTS
+- Change only these comments. Do not touch the function, its parameters,
+  its call sites, or any other comment in the file.
+- Do not add a comment anywhere else.
+- Do not fix, note, or reword any other inaccurate comment you notice.
+  Report it instead.
+- Write the edit in a single save. Do not reflow neighbouring lines.
 
 REPORT
-1. Verdicts A through G.
-2. Overall verdict: ACCEPTABLE, or NOT_ACCEPTABLE with blocking findings.
-3. What you could not determine without compiling or running.
-4. Do not propose fixes. Do not edit. Stop
+1. Unified diff of the comment blocks only.
+2. Quote the rewritten comments in full and, for each sentence, give the
+   file:line evidence in the function body that makes it true.
+3. Confirm no executable line, type, field, or call site changed.
+4. List any other comment in this file you found to be inaccurate,
+   without changing it.
+5. Stop. Independent review follows.
