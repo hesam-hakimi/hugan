@@ -1,47 +1,85 @@
-IMPLEMENTATION ONLY — COMMENT ACCURACY, PRE-EXISTING DEFECT. No compile,
-no test execution, no runner, no Extension Host, no commit, no stage.
-Edit only src/test/runTest.ts. Change only comment text. Do not change
-any executable line, type, field, or behaviour.
+READ-ONLY DIAGNOSTIC — WORKING TREE RECONCILIATION FOR src/test/runTest.ts
 
-An independent review found a comment that asserts something untrue of
-the code it documents. It predates the current task; the owner has now
-authorised fixing it.
+Do not edit any file. Do not use any patch, edit, or write tool. Do not
+accept or discard any pending editor change — do not press Keep or Undo,
+and do not invoke any equivalent command. No compile, no lint, no test
+execution, no runner, no Extension Host, no stage, no commit, no stash,
+no checkout, no restore. Read-only commands only.
 
-THE DEFECT
-runTest.ts:1362 states the function resolves the disposable profile root
-"without mutating it", and runTest.ts:1364 states "The caller must create
-this directory first." Both are unqualified and both are false: the
-function creates the directory tree at runTest.ts:1409 whenever its
-allowRootCreation parameter is true, and the non-focused call site passes
-true at runTest.ts:1633.
+If you believe something is wrong, report it. Do not fix it.
 
-REQUIRED CHANGE
-Rewrite those comments so they describe what the function actually does.
-State the conditional plainly: the function does not mutate the
-filesystem unless allowRootCreation is true, in which case it creates the
-directory tree itself; the caller is responsible for creating it only
-when allowRootCreation is false. Use whatever wording is accurate — do
-not copy that sentence verbatim if the code does something subtler than
-this description.
+REPOSITORY
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+This is a LINKED GIT WORKTREE. Its index lives under the parent repository
+at etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
+Do not assume a local .git directory.
 
-Read runTest.ts:1350-1420 and runTest.ts:1625-1640 before writing, and
-base the wording on what the code does, not on what I have described.
-If my description of the defect is itself wrong, say so and change
-nothing.
+BACKGROUND
+An earlier session reported a comment-only edit to src/test/runTest.ts:
+one hunk, doc-comment text only, no executable line changed. The editor
+change counter displayed "1 file changed +1702 -49" for the same file,
+and the same session disclosed a second hunk near line 119 that it says
+predates the task. These have not been reconciled. Establish the facts.
 
-CONSTRAINTS
-- Change only these comments. Do not touch the function, its parameters,
-  its call sites, or any other comment in the file.
-- Do not add a comment anywhere else.
-- Do not fix, note, or reword any other inaccurate comment you notice.
-  Report it instead.
-- Write the edit in a single save. Do not reflow neighbouring lines.
+Q1 — ON-DISK STATE
+a. Report SHA-256, byte size, and total line count of src/test/runTest.ts.
+b. The previously recorded pre-task values were
+   9fc4041b2cbd0394329fdd8ee16631ef969edda13c4c858d7369a025d4b55447
+   and 82517 bytes. State only SAME or DIFFERENT for each. Do not infer
+   what the difference means.
+c. Locate the function that resolves the disposable profile root. Quote
+   its complete preceding doc comment verbatim, with live line numbers.
+   State whether the on-disk text is the original wording or the
+   rewritten wording.
+
+Q2 — DIFF VOLUME AGAINST HEAD
+Run and report the raw output of each:
+  git --no-pager diff --numstat -- src/test/runTest.ts
+  git --no-pager diff -w --numstat -- src/test/runTest.ts
+  git --no-pager diff -U0 -- src/test/runTest.ts
+For the last one, report the total number of hunks and list every hunk
+header line (the @@ lines) in file order. Do not paste the full diff body
+here.
+
+Q3 — EVERY HUNK THAT IS NOT THE COMMENT HUNK
+For each hunk identified in Q2 other than the doc-comment hunk, print the
+hunk header and the complete hunk body. State for each whether it touches
+an executable line, a type, a field, a parameter, or a call site.
+
+Q4 — RECONCILE THE COUNTER
+State whether the displayed "+1702 -49" can be reproduced from any
+read-only comparison available to you, and if so which two states it
+compares. If it cannot be reproduced, answer exactly:
+COUNTER_ORIGIN: CANNOT_DETERMINE_STATICALLY
+
+Q5 — BASELINE COMPARISON
+VS Code local history for this file is at
+  %APPDATA%\Code\User\History\7179216d
+Read its entries.json. Confirm the resource it maps to. List every entry
+with its timestamp in chronological order. Identify the latest entry
+whose timestamp precedes the comment edit. Then run:
+  git --no-pager diff --no-index --numstat -- "<that entry>" "src\test\runTest.ts"
+  git --no-pager diff --no-index -U0 -- "<that entry>" "src\test\runTest.ts"
+Report the numstat line, the hunk count, and every hunk header.
+
+Q6 — RE-DERIVE LINE NUMBERS LIVE
+Do not use any line number from this prompt or from any document. Report
+the current live line number of each of the following, quoting the line:
+  1. the signature of the function that resolves the disposable profile root
+  2. the guard that tests whether the isolation root does not already exist
+  3. the throw taken when allowRootCreation is false
+  4. the call that creates the directory tree
+  5. the call site that passes allowRootCreation false
+  6. the call site that passes allowRootCreation true
+If any of these does not exist as described, say so plainly.
 
 REPORT
-1. Unified diff of the comment blocks only.
-2. Quote the rewritten comments in full and, for each sentence, give the
-   file:line evidence in the function body that makes it true.
-3. Confirm no executable line, type, field, or call site changed.
-4. List any other comment in this file you found to be inaccurate,
-   without changing it.
-5. Stop. Independent review follows.
+1. Q1–Q6, in order, with raw command output where requested.
+2. A list of every command you ran, and confirmation that all were
+   read-only.
+3. Confirmation that no file was written, no editor change was accepted
+   or discarded, and no compile, test, runner, Host, stage, or commit
+   occurred.
+4. Anything you found that this prompt did not ask about — reported,
+   not changed.
+5. Stop.
