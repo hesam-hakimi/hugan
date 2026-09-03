@@ -1,20 +1,25 @@
-READ-ONLY INVESTIGATION. No edits, no compile, no test execution.
+READ-ONLY INVESTIGATION. No edits, no compile, no test execution, no
+Extension Host launch.
 
-Quote the exact current text, with line numbers, of each of these and
-explain in one sentence what each one asserts about source/target
-string composition:
-1. SttmResolvedEvidence.ts, the canonical source-composition logic
-   (reported near line 630) including every fallback branch.
-2. SttmUnderstandingReportRenderer.ts, the Markdown Active Mappings
-   source rendering (reported near line 218).
-3. The public tool-result adapter (reported at index.ts:181) — show
-   exactly what it adds to and what it copies verbatim from the internal
-   service response.
-4. package.json, the description or contract string reported at line 574
-   containing wording about values being carried identically.
-5. sttmPublicToolResultEnvelope.test.ts around line 346, and
-   etl-verifier.agent.md around line 35.
+In src/extension.ts and its activation call graph, produce an ordered
+comparison of two activation routes:
 
-Then state, as an observation and not a decision: which artifacts define
-parity by mapping ID/order/count, and which artifacts could be read as
-requiring byte-identical display strings.
+Route A: opted-in ExtensionMode.Test read-only-tool-only activation
+         (ETL_TEST_READ_ONLY_TOOL_ONLY=1)
+Route B: normal installed-VSIX activation used by @etl /workflow
+
+For each route, list in execution order every initialization step, and
+mark each step as PRESENT_IN_A, PRESENT_IN_B, or BOTH. Explicitly
+identify:
+1. Where etl_interpret_sttm is registered in each route, and whether the
+   same handler implementation is used in both.
+2. Every code path between the tool handler and the constructed
+   LanguageModelToolResult, and whether any of those paths differ
+   between the two routes.
+3. Every place a LanguageModelDataPart is constructed or appended, and
+   any conditional that could omit it — including any dependency on
+   chat participant state, model availability, authentication, or
+   configuration that exists in Route B but not Route A.
+
+Report the diff as findings. Do not conclude that the installed defect
+is explained or closed.
