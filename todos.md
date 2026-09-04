@@ -1,103 +1,107 @@
-TASK_ID: ETL-0903-DIAG03
-TYPE: READ-ONLY INVESTIGATION — PROTECTED-HASH COUNT DEFECT IN src/test/runTest.ts
+TASK_ID: ETL-0903-DIAG04
+TYPE: READ-ONLY INVESTIGATION — STALE COMPILED RUNNER (runTest.js)
 
-Echo TASK_ID: ETL-0903-DIAG03 as the first line of your report.
+Echo TASK_ID: ETL-0903-DIAG04 as the first line of your report.
 
 Do not edit any file. Do not use any patch, edit, or write tool. Do not
 accept, discard, or otherwise resolve any pending editor change — no
 Keep, no Undo, no equivalent command. Several chat-editing sessions hold
-unresolved pending entries for this file against a much older snapshot;
-leave every one of them exactly as it is. No compile, no lint, no test
-execution, no runner, no Extension Host, no stage, no commit, no stash,
-no checkout, no restore, no reset. Read-only commands only.
+unresolved pending entries for src/test/runTest.ts against a much older
+snapshot; leave every one exactly as it is. No compile, no build, no
+lint, no test execution, no runner, no Extension Host, no npm install,
+no stage, no commit, no stash, no checkout, no restore, no reset.
+Read-only commands only.
 
-Report what you find. Fix nothing. Propose, do not apply.
+Report what you find. Fix nothing. Build nothing. Propose, do not apply.
 
 REPOSITORY
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-This is a LINKED GIT WORKTREE. Its index lives under the parent
-repository at
+LINKED GIT WORKTREE — index lives under the parent repository at
 etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
-There is no local .git directory. HEAD is not a usable baseline for
-src/test/runTest.ts — the committed blob is 79 lines and the working file
-is over 2,000.
+There is no local .git directory.
 
-DERIVE EVERY LINE NUMBER YOURSELF
-Project documents cite this defect at three different lines and none is
-authoritative. Take no line number from this prompt or from any document.
-Locate everything by reading the file.
+DERIVE EVERYTHING YOURSELF
+Take no line number, path, size, or timestamp from this prompt or from
+any document. Locate everything by reading.
 
 BACKGROUND
-The runner reads a protected-hash manifest, captures hashes before a run
-and after it, and compares them. A count of protected entries is believed
-to be hard-coded as the literal 8 somewhere in this file, while the real
-manifest is believed to contain 39 paths. If so, the assertion cannot
-detect a manifest that has grown or shrunk, and may be asserting
-something no run could falsify. Establish whether that is true.
+package.json defines the test script as "node runTest.js". A file of
+that name exists and is far smaller and older than the TypeScript source
+src/test/runTest.ts, and searching it for the source's protected-hash
+identifiers returns nothing. If that is right, the current test entry
+point does not contain the logic under qualification, and nothing on
+that path has ever executed in this worktree. Establish the facts.
 
 WHAT TO ESTABLISH
 
-Q1 — THE MANIFEST, AS IT ACTUALLY IS
-Locate the protected-hash manifest that this runner reads at runtime.
-Report its resolved path, whether it exists on disk, its SHA-256, its
-byte size, and the exact number of path entries it declares. Show how you
-counted. If the manifest is generated rather than stored, say so and
-report what generates it.
+Q1 — IDENTIFY BOTH ARTEFACTS
+For runTest.js and src/test/runTest.ts report: resolved absolute path,
+byte size, line count, SHA-256, and last-write time. State where exactly
+runTest.js sits relative to the repository root.
 
-Q2 — EVERY HARD-CODED COUNT IN THIS FILE
-Scan the whole of src/test/runTest.ts for numeric literals used as an
-expected count, length, or size in a comparison, assertion, throw
-condition, or evidence field. For each, report file:line, the full
-statement, what it is counting, and what value it would have to be today
-for the assertion to be correct. Include the suspected 8. Do not restrict
-yourself to the protected-hash area.
+Q2 — HOW THE TEST IS INVOKED
+Quote every script in package.json that runs tests, with file:line.
+Trace what each one actually executes. State plainly which file is the
+entry point today, and whether any script compiles TypeScript before
+running it.
 
-Q3 — THE PROTECTED-HASH PATH, END TO END
-Trace and report, with file:line for each step:
-  a. where the manifest is read;
-  b. where the "before" hashes are captured;
-  c. where the "after" hashes are captured;
-  d. every comparison performed between them, and between either of them
-     and the manifest;
-  e. every throw or failure condition on that path, quoted;
-  f. every evidence field this path emits, and whether each is computed
-     at runtime or written as a literal.
+Q3 — WHAT PRODUCES runTest.js
+Determine whether runTest.js is a build output, a hand-written file, or
+something else. Report the TypeScript configuration that governs
+src/test/**: its path, its outDir, its include and exclude, and where a
+compiled runTest.js would be written. State whether that location is the
+same file the test script runs. If they differ, say so explicitly and
+give both paths.
 
-Q4 — WHICH ASSERTIONS CANNOT FAIL
-For every assertion, comparison, and evidence field identified in Q3,
-state whether any possible run could make it false. Classify each as:
-  FALSIFIABLE — a real run could produce a failing value;
-  BLIND — structurally cannot fail as written; explain why;
-  CANNOT_DETERMINE_STATICALLY.
-For each BLIND item, state precisely what a reader would wrongly conclude
-from seeing it pass.
+Q4 — VERSION SKEW, MEASURED
+Do not compile. Compare the two files textually and report:
+  a. identifiers present in the .ts source but absent from the .js;
+  b. identifiers present in the .js but absent from the .ts;
+  c. whether the .js contains any protected-hash, isolation-root, or
+     evidence-emission logic at all;
+  d. your best evidence for roughly which state of the source the .js was
+     produced from — cite what you matched on.
 
-Q5 — WHAT CORRECT WOULD LOOK LIKE
-Describe, without writing or applying any edit, the smallest change that
-would make each BLIND item falsifiable. State for each whether it is a
-pure test-tooling change or whether it would alter what the extension
-does for a user. Flag anything in the second category loudly and
-separately — that is an owner decision, not yours.
+Q5 — TRACKED OR NOT
+For runTest.js and for any compiled output directory, report whether git
+tracks them, whether they are ignored, and by which ignore rule with
+file:line. Report whether runTest.js differs from its committed version
+if one exists. Use read-only git commands and prefer --no-optional-locks.
 
-Q6 — BLAST RADIUS
-List every other file in the repository that reads, writes, generates, or
-asserts against this manifest, or that hard-codes a count derived from
-it. Report path and file:line. Do not open files outside the repository
-except VS Code local history if you need a baseline.
+Q6 — WHAT A BUILD WOULD TOUCH
+Without running anything, determine what a compile of this project would
+write: every output path or directory, and whether any of them already
+contains files. State whether a compile could overwrite or delete
+anything currently uncommitted anywhere in the worktree. Name every such
+path. This is the question that matters most — answer it carefully.
+
+Q7 — PRECONDITIONS FOR A BUILD
+Report whether the toolchain a compile needs is present: node_modules,
+the TypeScript compiler, and any build script the project defines. Do
+not install anything. Report absence as absence.
+
+Q8 — THE SMALLEST SAFE PATH FORWARD
+Describe, without applying it, the smallest sequence that would make the
+test entry point run the current source. For each step state whether it
+writes to the worktree, what it would overwrite, and whether it is
+reversible. Flag separately anything that would alter what the extension
+does for a user — that is an owner decision, not yours.
 
 REPORT
 1. TASK_ID line.
-2. Q1 to Q6 in order, with raw command output where relevant.
+2. Q1 to Q8 in order, with raw command output where relevant.
 3. Every command you ran, and confirmation all were read-only.
-4. Anything you found that this prompt did not ask about — reported,
-   not changed.
+4. Anything found that this prompt did not ask about — reported, not
+   changed.
 5. Close with exactly:
-     TASK_ID: ETL-0903-DIAG03
-     MANIFEST_ENTRY_COUNT: <number>
-     HARD_CODED_COUNTS_FOUND: <number>
-     BLIND_ASSERTIONS_FOUND: <number>
-     OWNER_DECISIONS_REQUIRED: <number>
+     TASK_ID: ETL-0903-DIAG04
+     TEST_ENTRY_POINT: <path>
+     ENTRY_POINT_IS_CURRENT: YES / NO
+     RUNTEST_JS_TRACKED: YES / NO
+     BUILD_WOULD_OVERWRITE_UNCOMMITTED: YES / NO / CANNOT_DETERMINE
+     PATHS_AT_RISK: <count>
+     OWNER_DECISIONS_REQUIRED: <count>
      FILES_MODIFIED: NONE
      PENDING_EDITOR_CHANGES_RESOLVED: NONE
-     COMPILE_OR_TEST_EXECUTED: NO
+     COMPILE_OR_BUILD_EXECUTED: NO
 6. Stop.
