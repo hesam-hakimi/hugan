@@ -1,107 +1,118 @@
-TASK_ID: ETL-0903-TYPECHECK01
-TYPE: AUTHORISED TYPE-CHECK — NO EMIT
+TASK_ID: ETL-0903-DIAG06
+TYPE: READ-ONLY INVESTIGATION — UNCOMMITTED CHANGE IN src/extension.ts
 
-Echo TASK_ID: ETL-0903-TYPECHECK01 as the first line of your report.
+Echo TASK_ID: ETL-0903-DIAG06 as the first line of your report.
 
-EXACTLY ONE COMMAND IS AUTHORISED IN THIS TASK:
+Do not edit any file. Do not use any patch, edit, or write tool. Do not
+accept, discard, or otherwise resolve any pending editor change — no
+Keep, no Undo, no equivalent command. Several chat-editing sessions hold
+unresolved pending entries for files in this worktree against much older
+snapshots; leave every one exactly as it is. No compile, no build, no
+emit, no lint, no test execution, no runner, no Extension Host, no npm
+install, no stage, no commit, no stash, no checkout, no restore, no
+reset. Read-only commands only. Prefer git --no-optional-locks.
 
-    npx tsc -p ./ --noEmit
+Report what you find. Fix nothing. Judge nothing as acceptable or not —
+that is the owner's call, not yours.
 
-Run it once, from the repository root. Nothing else is authorised.
+REPOSITORY
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+LINKED GIT WORKTREE — index lives under the parent repository at
+etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
+There is no local .git directory.
 
-Specifically forbidden, without exception:
-  - npm run compile, npm run compile:test, npm test, npm run pretest,
-    npm run bundle, npm run bundle:sttm, or any other npm script
-  - tsc with -p tsconfig.test.json (that config sets incremental: true
-    and tsBuildInfoFile: ".tsbuildinfo.test" and would rewrite a TRACKED
-    file — do not use it)
-  - tsc without --noEmit
-  - npm install, npm ci, or any dependency change
-  - eslint, mocha, node, vsce, the runner, the Extension Host
-  - any edit, patch, or write tool
-  - accepting or discarding any pending editor change — no Keep, no
-    Undo, no equivalent command. Several chat-editing sessions hold
-    unresolved pending entries for src/test/runTest.ts against much
-    older snapshots. Leave every one exactly as it is. Do not inspect,
-    resolve, or comment on them.
-  - stage, commit, stash, checkout, restore, reset, clean
-  - deleting or moving anything, especially anything under out/
+DERIVE EVERYTHING YOURSELF
+Take no line number, count, or path from this prompt or from any
+document. Locate everything by reading.
 
-WHY THIS IS NARROW
-The out/ directory holds 2,016 generated files and is the only working
-build in this worktree. It is git-ignored, so no git operation can
-restore it. The repository's own compile script deletes out/ before
-invoking the compiler. That script is not authorised here. --noEmit
-writes nothing at all, which is the entire point of this step.
+BACKGROUND
+src/extension.ts carries uncommitted changes. It is product code — the
+extension entry point — and unlike the test harness it ships to users.
+A compile of the test runner necessarily compiles this file too, so its
+contents cannot be deferred. Establish exactly what changed and what it
+would do differently for a user.
 
-If npx attempts to download or install anything, stop and report that
-instead of proceeding.
+WHAT TO ESTABLISH
 
-BEFORE RUNNING — RECORD THE STARTING STATE
-Read-only. Report:
-  a. SHA-256, byte size, and line count of src/test/runTest.ts
-  b. file count and total byte size under out/
-  c. SHA-256, byte size, and mtime of .tsbuildinfo.test (this file is
-     TRACKED; it must be unchanged at the end)
-  d. git --no-optional-locks status --porcelain=v1 --untracked-files=all
+Q1 — THE FILE AND THE DELTA
+Report the file's SHA-256, byte size, and line count. Report the diff
+against HEAD: numstat, hunk count, and every hunk header. Confirm whether
+HEAD is a usable baseline for this file — state the committed blob's size
+and line count, and say plainly whether the uncommitted change is a small
+delta on a mostly-committed file or something larger.
 
-RUN
-Execute the single authorised command. Capture its complete stdout and
-stderr verbatim, and its exit code. Do not re-run it. Do not run a
-variant if it fails. Do not attempt a fix.
+Q2 — THE FULL DIFF
+Print the complete diff against HEAD, every hunk, in full. Do not
+summarise or abbreviate. If it is too large to print whole, say so, give
+the total changed-line count, and print it in labelled parts across your
+answer rather than omitting any of it.
 
-REPORT THE RESULT
+Q3 — WHAT EACH HUNK DOES
+For each hunk, in file order, report:
+  a. live line numbers;
+  b. what the code did before and what it does now, in plain terms;
+  c. classification — one of:
+       BEHAVIOUR — changes what the extension does at runtime
+       INTERFACE — changes a command, setting, contribution, or API shape
+       DIAGNOSTIC — logging, telemetry, error text
+       COMMENT — comment or doc text only
+       REFACTOR — same behaviour, different structure
+       DEAD — unreachable or unused as written
+  d. whether it is reachable when a user runs the extension normally.
 
-1. Exit code.
+Q4 — USER-VISIBLE EFFECT
+State plainly, for a user of the packaged extension, what would be
+different. If nothing user-visible changes, say so and show why. If
+something does, describe it concretely: what they would see, when, and
+under what conditions.
 
-2. Total number of diagnostics. If zero, say so plainly.
+Q5 — COMPLETENESS
+Assess whether the change looks finished. Report specifically:
+  - references to identifiers, functions, files, or settings that do not
+    exist;
+  - added code that nothing calls;
+  - removed code that something still calls;
+  - error paths that are started but not completed;
+  - TODO, FIXME, HACK, or debug markers;
+  - anything commented out rather than removed.
+For each, give file:line. If you find none, say so plainly.
 
-3. If there are errors, group them by file, with a count per file. Then
-   list every distinct error code with its count and one representative
-   message.
+Q6 — DOES IT COMPILE ON ITS OWN TERMS
+Without compiling anything, report whether every identifier the new code
+references is declared and imported, and whether the file's imports and
+exports are consistent with what it now uses. A successful project-wide
+type-check has already been observed, so treat any apparent gap as your
+own reading error first and re-check before reporting it.
 
-4. For src/test/runTest.ts specifically: every diagnostic, with live line
-   number, the error code, the full message, and the source line quoted.
+Q7 — COUPLING TO THE OTHER UNCOMMITTED FILES
+The worktree carries other uncommitted changes. Report whether this
+change depends on any of them, or they on it — shared identifiers, shared
+settings, call relationships. State whether src/extension.ts could be
+committed alone, coherently, or whether it is part of a set.
 
-5. Classify each error as one of:
-     PRE-EXISTING — present in code that was already committed
-     NEW — in the uncommitted 1,998 lines of src/test/runTest.ts
-     OTHER — anywhere else
-   State how you determined the classification. Do not guess.
-
-6. State plainly, in one sentence, whether the current sources compile.
-
-AFTER RUNNING — PROVE NOTHING CHANGED
-Re-measure and compare against the starting state:
-  a. src/test/runTest.ts SHA-256 — must be identical
-  b. out/ file count and total byte size — must be identical
-  c. .tsbuildinfo.test SHA-256 and mtime — must be identical
-  d. git status --porcelain — must be identical
-Report each as SAME or DIFFERENT. If any is DIFFERENT, say so loudly and
-explain what you observed. Do not attempt to repair it.
-
-DO NOT FIX ANYTHING
-If the type-check fails, that is the finding. Report it and stop.
-Proposing a fix is welcome; applying one is not authorised.
+Q8 — WHAT SHIPS
+Read the packaging ignore rules and confirm whether this file's compiled
+output is included in a package. State which built artefact carries it
+and whether that artefact is currently present in the build output.
 
 REPORT
 1. TASK_ID line.
-2. Starting state.
-3. The command, its exit code, and its complete raw output.
-4. Items 1 to 6 above.
-5. The after-state comparison.
-6. Anything found that this prompt did not ask about — reported, not
+2. Q1 to Q8 in order, with raw command output where relevant.
+3. Every command you ran, and confirmation all were read-only.
+4. Anything found that this prompt did not ask about — reported, not
    changed.
-7. Close with exactly:
-     TASK_ID: ETL-0903-TYPECHECK01
-     COMMAND_RUN: npx tsc -p ./ --noEmit
-     EXIT_CODE: <n>
-     TOTAL_DIAGNOSTICS: <n>
-     ERRORS_IN_RUNTEST_TS: <n>
-     SOURCES_COMPILE: YES / NO
-     OUT_DIRECTORY_UNCHANGED: YES / NO
-     TSBUILDINFO_TEST_UNCHANGED: YES / NO
+5. Close with exactly:
+     TASK_ID: ETL-0903-DIAG06
+     LINES_ADDED: <n>
+     LINES_DELETED: <n>
+     HUNKS: <n>
+     BEHAVIOUR_HUNKS: <n>
+     INTERFACE_HUNKS: <n>
+     USER_VISIBLE_CHANGE: YES / NO
+     CHANGE_APPEARS_COMPLETE: YES / NO / CANNOT_DETERMINE
+     COMMITTABLE_ALONE: YES / NO / CANNOT_DETERMINE
+     OWNER_DECISIONS_REQUIRED: <n>
      FILES_MODIFIED: NONE
      PENDING_EDITOR_CHANGES_RESOLVED: NONE
-     EMIT_OCCURRED: NO
-8. Stop.
+     COMPILE_OR_BUILD_EXECUTED: NO
+6. Stop.
