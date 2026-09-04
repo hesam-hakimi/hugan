@@ -1,85 +1,110 @@
-READ-ONLY DIAGNOSTIC — WORKING TREE RECONCILIATION FOR src/test/runTest.ts
+TASK_ID: ETL-0903-REV04
+TYPE: INDEPENDENT REVIEW — DOC COMMENT ACCURACY IN src/test/runTest.ts
 
-Do not edit any file. Do not use any patch, edit, or write tool. Do not
-accept or discard any pending editor change — do not press Keep or Undo,
-and do not invoke any equivalent command. No compile, no lint, no test
-execution, no runner, no Extension Host, no stage, no commit, no stash,
-no checkout, no restore. Read-only commands only.
+Echo TASK_ID: ETL-0903-REV04 as the first line of your report.
 
-If you believe something is wrong, report it. Do not fix it.
+You are reviewing, not implementing. Do not edit any file. Do not use any
+patch, edit, or write tool. Do not accept or discard any pending editor
+change — no Keep, no Undo, no equivalent command. No compile, no lint, no
+test execution, no runner, no Extension Host, no stage, no commit, no
+stash, no checkout, no restore, no reset. Read-only commands only.
+
+If you find something wrong, report it. Do not fix it. Anything you find
+outside the scope defined below goes under "out of scope" and is changed
+by nobody.
 
 REPOSITORY
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-This is a LINKED GIT WORKTREE. Its index lives under the parent repository
-at etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
-Do not assume a local .git directory.
+This is a LINKED GIT WORKTREE. Its index lives under the parent
+repository at
+etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
+There is no local .git directory.
 
-BACKGROUND
-An earlier session reported a comment-only edit to src/test/runTest.ts:
-one hunk, doc-comment text only, no executable line changed. The editor
-change counter displayed "1 file changed +1702 -49" for the same file,
-and the same session disclosed a second hunk near line 119 that it says
-predates the task. These have not been reconciled. Establish the facts.
+BASELINE — READ THIS BEFORE COMPARING ANYTHING
+HEAD is not a usable baseline for this file. HEAD:src/test/runTest.ts is
+79 lines; the working file is over 2,000. Roughly 96% of the file is
+uncommitted and there is no commit and no stash containing it.
 
-Q1 — ON-DISK STATE
-a. Report SHA-256, byte size, and total line count of src/test/runTest.ts.
-b. The previously recorded pre-task values were
-   9fc4041b2cbd0394329fdd8ee16631ef969edda13c4c858d7369a025d4b55447
-   and 82517 bytes. State only SAME or DIFFERENT for each. Do not infer
-   what the difference means.
-c. Locate the function that resolves the disposable profile root. Quote
-   its complete preceding doc comment verbatim, with live line numbers.
-   State whether the on-disk text is the original wording or the
-   rewritten wording.
-
-Q2 — DIFF VOLUME AGAINST HEAD
-Run and report the raw output of each:
-  git --no-pager diff --numstat -- src/test/runTest.ts
-  git --no-pager diff -w --numstat -- src/test/runTest.ts
-  git --no-pager diff -U0 -- src/test/runTest.ts
-For the last one, report the total number of hunks and list every hunk
-header line (the @@ lines) in file order. Do not paste the full diff body
-here.
-
-Q3 — EVERY HUNK THAT IS NOT THE COMMENT HUNK
-For each hunk identified in Q2 other than the doc-comment hunk, print the
-hunk header and the complete hunk body. State for each whether it touches
-an executable line, a type, a field, a parameter, or a call site.
-
-Q4 — RECONCILE THE COUNTER
-State whether the displayed "+1702 -49" can be reproduced from any
-read-only comparison available to you, and if so which two states it
-compares. If it cannot be reproduced, answer exactly:
-COUNTER_ORIGIN: CANNOT_DETERMINE_STATICALLY
-
-Q5 — BASELINE COMPARISON
-VS Code local history for this file is at
+The baseline is VS Code local history:
   %APPDATA%\Code\User\History\7179216d
-Read its entries.json. Confirm the resource it maps to. List every entry
-with its timestamp in chronological order. Identify the latest entry
-whose timestamp precedes the comment edit. Then run:
-  git --no-pager diff --no-index --numstat -- "<that entry>" "src\test\runTest.ts"
-  git --no-pager diff --no-index -U0 -- "<that entry>" "src\test\runTest.ts"
-Report the numstat line, the hunk count, and every hunk header.
+Read its entries.json, confirm it maps to src/test/runTest.ts, and list
+all entries with timestamps in chronological order.
 
-Q6 — RE-DERIVE LINE NUMBERS LIVE
-Do not use any line number from this prompt or from any document. Report
-the current live line number of each of the following, quoting the line:
-  1. the signature of the function that resolves the disposable profile root
-  2. the guard that tests whether the isolation root does not already exist
-  3. the throw taken when allowRootCreation is false
-  4. the call that creates the directory tree
-  5. the call site that passes allowRootCreation false
-  6. the call site that passes allowRootCreation true
-If any of these does not exist as described, say so plainly.
+The change under review is a doc-comment rewrite. Identify the latest
+entry whose timestamp precedes that rewrite and use that entry as the
+baseline. Do not use any hash supplied by any document — at least one
+document in this project carries a baseline hash that is a full day stale,
+and using it silently absorbs an entire intervening work session. State
+which entry you selected, its filename, timestamp and size, and why. If
+you cannot identify one unambiguously, say so and stop.
+
+Note: several chat-editing sessions may hold unresolved pending entries
+for this file against a much older snapshot. Ignore them for baseline
+purposes and do not resolve any of them.
+
+SCOPE
+Exactly one doc comment: the one immediately preceding the function that
+resolves the disposable profile root. Nothing else in the file is under
+review.
+
+The comment was rewritten because its previous wording asserted that the
+function does not mutate the filesystem and that the caller must create
+the directory first. Both statements were unqualified and both were
+false. Your task is to determine whether the replacement wording is true.
+
+WHAT TO DETERMINE
+
+1. Diff the baseline entry against the on-disk file. Report numstat, hunk
+   count, and every hunk header. State whether every hunk falls inside
+   the doc comment. If any hunk touches an executable line, a type, a
+   field, a parameter, or a call site, quote it in full.
+
+2. Quote the current comment verbatim with live line numbers.
+
+3. For EACH SENTENCE of the current comment, independently and in order:
+   - restate the proposition the sentence asserts;
+   - find the code that makes it true or false, and cite file:line;
+   - give a verdict of TRUE, FALSE, IMPRECISE, or
+     CANNOT_DETERMINE_STATICALLY.
+   Derive every line number yourself by reading the file. Do not accept
+   any line number from this prompt or from any document.
+   A sentence that is true only under an unstated condition is IMPRECISE,
+   not TRUE.
+
+4. Read the function body in full and answer directly, from the code:
+   - Under exactly which conditions does this function mutate the
+     filesystem?
+   - Under exactly which conditions does it not?
+   - Which call sites exist, and what does each pass?
+   Then state whether the comment's account matches yours. If it does
+   not, the comment is wrong regardless of how it is worded.
+
+5. State whether any true and material behaviour of the function is
+   absent from the comment. Omission that misleads counts against it.
+
+6. Confirm or refute, from the file itself, that the function's
+   signature and every call site are unchanged from the baseline entry.
+
+VERDICT
+End with exactly one of:
+  REVIEW_4_RESULT: ACCEPTABLE
+  REVIEW_4_RESULT: NOT_ACCEPTABLE
+followed by a numbered list of every blocking finding. A blocking finding
+is a false or misleading sentence in the comment, or any change outside
+the comment. Report non-blocking observations separately.
+
+Also report:
+  TASK_ID: ETL-0903-REV04
+  EDIT_WAS_COMMENT_ONLY: YES / NO
+  BASELINE_ENTRY_USED: <filename> <timestamp> <bytes>
+  COMPILE_OR_TEST_EXECUTED: NO
+  FILES_MODIFIED: NONE
+  PENDING_EDITOR_CHANGES_RESOLVED: NONE
 
 REPORT
-1. Q1–Q6, in order, with raw command output where requested.
-2. A list of every command you ran, and confirmation that all were
-   read-only.
-3. Confirmation that no file was written, no editor change was accepted
-   or discarded, and no compile, test, runner, Host, stage, or commit
-   occurred.
-4. Anything you found that this prompt did not ask about — reported,
-   not changed.
-5. Stop.
+1. TASK_ID line, then baseline selection and justification.
+2. Items 1 to 6 above, in order, with raw command output where relevant.
+3. Every command you ran, and confirmation all were read-only.
+4. Out-of-scope findings — reported, not changed.
+5. The verdict block.
+6. Stop.
