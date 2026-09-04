@@ -1,137 +1,85 @@
-TASK_ID: ETL-0903-DIAG07
-TYPE: READ-ONLY INVESTIGATION — WHAT CHANGED BETWEEN 0.3.145 AND 0.3.147
+# ETL\-0904\-DIAG01 — Protected\-Set Decision Packet
 
-Echo TASK_ID: ETL-0903-DIAG07 as the first line of your report.
+You are the normal local VS Code engineering Agent on Windows\. You are **not** the ETL Orchestrator\.
 
-Do not edit any file. Do not use any patch, edit, or write tool. Do not
-accept, discard, or otherwise resolve any pending editor change — no
-Keep, no Undo, no equivalent command. Several chat-editing sessions hold
-unresolved pending entries in this worktree; leave every one exactly as
-it is. No compile, no build, no emit, no lint, no test, no runner, no
-Extension Host, no npm install, no stage, no commit, no stash, no merge,
-no rebase, no cherry-pick, no tag.
+## Authorization boundary
 
-**Absolutely no checkout, switch, restore, reset, clean, or worktree
-add/remove.** You may read any commit's content with `git show`,
-`git cat-file`, and `git diff <ref> <ref>` without moving HEAD. Moving
-HEAD would discard 2,000 uncommitted lines that exist in no git object.
-Use --no-optional-locks throughout.
+This task authorizes **read\-only inspection only**\. Do not edit, generate, delete, restore, format, compile, emit, test, launch a runner or Extension Host, package, install, commit, merge, bump a version, release, or write to QA/evidence/profile/consumer\-workspace locations\. Do not run cleanup commands\. Do not use Bypass Permissions to expand this scope\.
 
-Report what you find. Fix nothing. Do not propose a repair.
+## Goal
 
-REPOSITORY
-Original source repository:
-  C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
-Active qualification worktree (run from here):
-  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-The second is a LINKED WORKTREE of the first. Both share one object
-store, so history for either is readable from either.
+Prepare an evidence\-backed owner decision packet defining the exact protected\-file set for the next focused real\-Host qualification of release `0.3.148`\. Do not choose policy on the owner’s behalf and do not implement any Phase W repair\.
 
-DERIVE EVERYTHING YOURSELF
-Take no commit id, tag, version, path, or line number from this prompt or
-from any document. Locate everything by reading git and the filesystem.
+## Reported baseline to verify read\-only
 
-BACKGROUND
-Version 0.3.147 was committed, packaged, installed and exercised. It is
-retained as an immutable known-bad candidate: the installed extension
-exposed a Markdown channel to the consumer but did not expose the
-required structured channel.
+- Active worktree: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
+- Linked primary worktree: `C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
+- Branch: `fix/workspace-write-completion-0.3.148`
+- HEAD: `45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19`
+- Manifest version: `0.3.147`
+- Extension identifier: `td-etl.databricks-etl-copilot`
+- Expected dirty paths:
+  - ` M .github/templates/request.md`
+  - ` M src/extension.ts`
+  - ` M src/test/runTest.ts`
+  - ` M src/test/suite/index.ts`
+  - `?? src/test/suite/sttmRealHostStructuredResult.test.ts`
 
-An earlier version, 0.3.145, was intended to deliver both channels. It is
-not established whether that version's acceptance tested the wrong seam,
-or whether a later change dropped the structured payload. That comparison
-has never been performed. Perform it.
+Treat these values only as a comparison baseline\. Re\-derive them from the live worktree\. If worktree, branch, HEAD, manifest version, extension identifier, or dirty\-path inventory differs, stop without further investigation and report:
 
-Separately, feature work was in progress when a release became urgent,
-and the release was cut from the line carrying that feature work rather
-than from a clean product line. Whether feature code reached the released
-artefact is unknown. Establish it.
+`ETL_0904_DIAG01_RESULT: BLOCKED_BASELINE_DRIFT`
 
-WHAT TO ESTABLISH
+Do not modify or normalize the five dirty paths\. The branch name does not prove that `0.3.148` exists, and `0.3.147` remains immutable\.
 
-Q1 — LOCATE THE TWO VERSIONS IN HISTORY
-Find the commit at which package.json declared each version. Report for
-each: commit id, author date, subject, branch or branches containing it,
-and any tag pointing at it. If a version was never committed, or was
-committed more than once, say so plainly. List every version between
-them in order.
+## Read\-only investigation
 
-Q2 — THE STRUCTURED CHANNEL, AS OF EACH VERSION
-Identify the public adapter — the seam where a tool result is returned to
-the host — and the code path that produces the consumer-visible result.
-For each of the two versions, read that code as it stood in that commit
-and report:
-  a. which result channels the adapter constructs, with file:line as of
-     that commit;
-  b. whether a structured channel is populated unconditionally, populated
-     conditionally, or absent;
-  c. if conditional, quote the condition and state what must be true.
-Show the code. Do not describe it only.
+1. Trace the protected\-manifest declaration, population, reading, and comparison logic in `src/test/runTest.ts`, including every downstream consumer\.
+2. Inspect the existing control\-plane cleanliness policy &#40;including `assert-control-plane-clean.mjs`, if present&#41; and explain why its protected entries are not automatically the qualification protected set\.
+3. Classify relevant paths into:
+  - product source and public adapter;
+  - test harness and focused suite;
+  - compiled outputs/build metadata;
+  - package/configuration inputs;
+  - QA workbook and inventory inputs;
+  - evidence/control\-plane artifacts\.
+4. Produce:
+  - one **minimal recommended repo\-defined protected set**; and
+  - one **extended alternative set**, only if materially justified\.
+5. For every included and excluded path, give a concrete invariant and rationale\. Use repository\-relative paths, deterministic sorting, and a count derived from the selected list\. Do not reuse `8`, `39`, historical hashes, or operator\-supplied counts as truth\.
+6. Recommend a contract in which the canonical path policy, operator\-generated manifest, pre\-run digests, post\-run digests, manifest self\-digest, and external post\-exit verification cannot silently disagree\.
+7. Explain how the owner’s choice affects the five unresolved Phase W objections:
+  - total parser\-wrapper installation/restoration;
+  - exclusive focused\-suite loading;
+  - evidence persistence on early failure;
+  - machine\-readable infrastructure/product/evidence\-write classification plus parent post\-exit verification;
+  - removal of hard\-coded protected\-set cardinality\.
 
-Q3 — WHERE IT WAS LOST
-Diff the two versions restricted to the files identified in Q2. Report
-numstat, and the full diff of any hunk touching result construction.
+Use read\-only commands only\. Quote exact paths, symbols, and re\-derived line numbers\. Distinguish observed facts, recommendations, and unknowns\.
 
-Then find the single commit that changed the behaviour. Use `git log -S`
-or `git log -L` on the relevant identifiers or line ranges to bisect by
-content rather than by guess. Report that commit's id, date, subject, and
-full diff for the relevant file. If the behaviour was never present in
-0.3.145 either, say so — that is an equally valid finding and it means
-the acceptance tested the wrong seam.
+## Required output
 
-Q4 — WAS IT TESTED, AND AT WHICH SEAM
-Find the tests that were supposed to cover this contract as of 0.3.145.
-For each, report path, what it asserts, and — decisively — whether it
-exercises the public adapter or only an internal parser or service.
-State plainly whether a test existed that could have caught the loss.
+Return, in this order:
 
-Q5 — FEATURE WORK IN THE RELEASED LINE
-Determine what the released commit's line contains beyond product fixes.
-Report:
-  a. the merge-base of the two worktrees' branches, and each branch's
-     current commit;
-  b. commits reachable from the released version that belong to feature
-     work rather than to the fix line — identify them by what they touch,
-     and say how you decided;
-  c. whether these four paths exist in the released commit, in the
-     working tree, or nowhere:
-       src/core/settings/EtlSettingsInventory.ts
-       src/core/settings/EtlSettingsProvenance.ts
-       src/core/settings/EtlSettingsVsCodeBindings.ts
-       src/test/suite/settingsInventoryProvenance.test.ts
-  d. for any that exist in the released commit, whether their compiled
-     output would have been included in the package.
+1. verified live identity and exact status;
+2. code\-flow trace for the current manifest/protection mechanism;
+3. minimal protected set in a sorted table with category and invariant;
+4. optional extended set and its incremental cost/benefit;
+5. explicitly excluded paths and reasons;
+6. conflicts or unknowns;
+7. two owner\-decision options, with one recommendation;
+8. this exact proposed decision sentence, completed without ambiguity:
+  `OWNER_DECISION_PROPOSED: For ETL 0.3.148 focused qualification, the authoritative protected set SHALL be <repo-defined/operator-supplied> and SHALL contain exactly: <sorted repo-relative paths>.`
 
-Q6 — WHAT THE PACKAGE ACTUALLY CONTAINED
-Read the packaging ignore rules as of the released commit and list which
-source trees were included. Search the repository and its parent for any
-built .vsix artefact. If one exists, report path, size, SHA-256 and
-mtime — do not open or extract it. If none exists, say so.
+End with exactly:
 
-Q7 — THE TWO WORKTREES
-Report `git worktree list` verbatim. For each worktree: path, branch,
-commit, and whether its working tree is clean. Do not enter or modify the
-other worktree; read-only inspection of its recorded state only.
+`ETL_0904_DIAG01_RESULT: DECISION_PACKET_READY`
 
-REPORT
-1. TASK_ID line.
-2. Q1 to Q7 in order, with raw command output where relevant.
-3. Every command you ran, and confirmation all were read-only and that
-   HEAD was never moved in either worktree.
-4. Anything found that this prompt did not ask about — reported, not
-   changed.
-5. Close with exactly:
-     TASK_ID: ETL-0903-DIAG07
-     VERSION_0_3_145_COMMIT: <id or NOT_FOUND>
-     VERSION_0_3_147_COMMIT: <id or NOT_FOUND>
-     STRUCTURED_CHANNEL_PRESENT_IN_0_3_145: YES / NO / CONDITIONAL / CANNOT_DETERMINE
-     REGRESSION_COMMIT: <id or NONE or CANNOT_DETERMINE>
-     TEST_COVERED_PUBLIC_ADAPTER: YES / NO / CANNOT_DETERMINE
-     FEATURE_CODE_IN_RELEASED_COMMIT: YES / NO / CANNOT_DETERMINE
-     SA_FILES_IN_RELEASED_COMMIT: <count 0-4>
-     VSIX_FOUND: YES / NO
-     HEAD_MOVED: NO
-     FILES_MODIFIED: NONE
-     PENDING_EDITOR_CHANGES_RESOLVED: NONE
-     COMPILE_OR_BUILD_EXECUTED: NO
-6. Stop.
+`FILES_CHANGED: 0`
+
+`COMPILE_OR_TEST_EXECUTED: NO`
+
+`RUNNER_OR_HOST_EXECUTED: NO`
+
+`OWNER_DECISION_REQUIRED: YES`
+
+Stop after the decision packet\. Do not propose or begin implementation, compile, qualification, packaging, installation, merge, version bump, or release\.
