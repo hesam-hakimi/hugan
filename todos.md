@@ -1,117 +1,136 @@
-TASK_ID: ETL-0903-DIAG06
-TYPE: READ-ONLY INVESTIGATION — UNCOMMITTED CHANGE IN src/extension.ts
+TASK_ID: ETL-0903-DIAG07
+TYPE: READ-ONLY INVESTIGATION — WHAT CHANGED BETWEEN 0.3.145 AND 0.3.147
 
-Echo TASK_ID: ETL-0903-DIAG06 as the first line of your report.
+Echo TASK_ID: ETL-0903-DIAG07 as the first line of your report.
 
 Do not edit any file. Do not use any patch, edit, or write tool. Do not
 accept, discard, or otherwise resolve any pending editor change — no
 Keep, no Undo, no equivalent command. Several chat-editing sessions hold
-unresolved pending entries for files in this worktree against much older
-snapshots; leave every one exactly as it is. No compile, no build, no
-emit, no lint, no test execution, no runner, no Extension Host, no npm
-install, no stage, no commit, no stash, no checkout, no restore, no
-reset. Read-only commands only. Prefer git --no-optional-locks.
+unresolved pending entries in this worktree; leave every one exactly as
+it is. No compile, no build, no emit, no lint, no test, no runner, no
+Extension Host, no npm install, no stage, no commit, no stash, no merge,
+no rebase, no cherry-pick, no tag.
 
-Report what you find. Fix nothing. Judge nothing as acceptable or not —
-that is the owner's call, not yours.
+**Absolutely no checkout, switch, restore, reset, clean, or worktree
+add/remove.** You may read any commit's content with `git show`,
+`git cat-file`, and `git diff <ref> <ref>` without moving HEAD. Moving
+HEAD would discard 2,000 uncommitted lines that exist in no git object.
+Use --no-optional-locks throughout.
+
+Report what you find. Fix nothing. Do not propose a repair.
 
 REPOSITORY
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-LINKED GIT WORKTREE — index lives under the parent repository at
-etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
-There is no local .git directory.
+Original source repository:
+  C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Active qualification worktree (run from here):
+  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+The second is a LINKED WORKTREE of the first. Both share one object
+store, so history for either is readable from either.
 
 DERIVE EVERYTHING YOURSELF
-Take no line number, count, or path from this prompt or from any
-document. Locate everything by reading.
+Take no commit id, tag, version, path, or line number from this prompt or
+from any document. Locate everything by reading git and the filesystem.
 
 BACKGROUND
-src/extension.ts carries uncommitted changes. It is product code — the
-extension entry point — and unlike the test harness it ships to users.
-A compile of the test runner necessarily compiles this file too, so its
-contents cannot be deferred. Establish exactly what changed and what it
-would do differently for a user.
+Version 0.3.147 was committed, packaged, installed and exercised. It is
+retained as an immutable known-bad candidate: the installed extension
+exposed a Markdown channel to the consumer but did not expose the
+required structured channel.
+
+An earlier version, 0.3.145, was intended to deliver both channels. It is
+not established whether that version's acceptance tested the wrong seam,
+or whether a later change dropped the structured payload. That comparison
+has never been performed. Perform it.
+
+Separately, feature work was in progress when a release became urgent,
+and the release was cut from the line carrying that feature work rather
+than from a clean product line. Whether feature code reached the released
+artefact is unknown. Establish it.
 
 WHAT TO ESTABLISH
 
-Q1 — THE FILE AND THE DELTA
-Report the file's SHA-256, byte size, and line count. Report the diff
-against HEAD: numstat, hunk count, and every hunk header. Confirm whether
-HEAD is a usable baseline for this file — state the committed blob's size
-and line count, and say plainly whether the uncommitted change is a small
-delta on a mostly-committed file or something larger.
+Q1 — LOCATE THE TWO VERSIONS IN HISTORY
+Find the commit at which package.json declared each version. Report for
+each: commit id, author date, subject, branch or branches containing it,
+and any tag pointing at it. If a version was never committed, or was
+committed more than once, say so plainly. List every version between
+them in order.
 
-Q2 — THE FULL DIFF
-Print the complete diff against HEAD, every hunk, in full. Do not
-summarise or abbreviate. If it is too large to print whole, say so, give
-the total changed-line count, and print it in labelled parts across your
-answer rather than omitting any of it.
+Q2 — THE STRUCTURED CHANNEL, AS OF EACH VERSION
+Identify the public adapter — the seam where a tool result is returned to
+the host — and the code path that produces the consumer-visible result.
+For each of the two versions, read that code as it stood in that commit
+and report:
+  a. which result channels the adapter constructs, with file:line as of
+     that commit;
+  b. whether a structured channel is populated unconditionally, populated
+     conditionally, or absent;
+  c. if conditional, quote the condition and state what must be true.
+Show the code. Do not describe it only.
 
-Q3 — WHAT EACH HUNK DOES
-For each hunk, in file order, report:
-  a. live line numbers;
-  b. what the code did before and what it does now, in plain terms;
-  c. classification — one of:
-       BEHAVIOUR — changes what the extension does at runtime
-       INTERFACE — changes a command, setting, contribution, or API shape
-       DIAGNOSTIC — logging, telemetry, error text
-       COMMENT — comment or doc text only
-       REFACTOR — same behaviour, different structure
-       DEAD — unreachable or unused as written
-  d. whether it is reachable when a user runs the extension normally.
+Q3 — WHERE IT WAS LOST
+Diff the two versions restricted to the files identified in Q2. Report
+numstat, and the full diff of any hunk touching result construction.
 
-Q4 — USER-VISIBLE EFFECT
-State plainly, for a user of the packaged extension, what would be
-different. If nothing user-visible changes, say so and show why. If
-something does, describe it concretely: what they would see, when, and
-under what conditions.
+Then find the single commit that changed the behaviour. Use `git log -S`
+or `git log -L` on the relevant identifiers or line ranges to bisect by
+content rather than by guess. Report that commit's id, date, subject, and
+full diff for the relevant file. If the behaviour was never present in
+0.3.145 either, say so — that is an equally valid finding and it means
+the acceptance tested the wrong seam.
 
-Q5 — COMPLETENESS
-Assess whether the change looks finished. Report specifically:
-  - references to identifiers, functions, files, or settings that do not
-    exist;
-  - added code that nothing calls;
-  - removed code that something still calls;
-  - error paths that are started but not completed;
-  - TODO, FIXME, HACK, or debug markers;
-  - anything commented out rather than removed.
-For each, give file:line. If you find none, say so plainly.
+Q4 — WAS IT TESTED, AND AT WHICH SEAM
+Find the tests that were supposed to cover this contract as of 0.3.145.
+For each, report path, what it asserts, and — decisively — whether it
+exercises the public adapter or only an internal parser or service.
+State plainly whether a test existed that could have caught the loss.
 
-Q6 — DOES IT COMPILE ON ITS OWN TERMS
-Without compiling anything, report whether every identifier the new code
-references is declared and imported, and whether the file's imports and
-exports are consistent with what it now uses. A successful project-wide
-type-check has already been observed, so treat any apparent gap as your
-own reading error first and re-check before reporting it.
+Q5 — FEATURE WORK IN THE RELEASED LINE
+Determine what the released commit's line contains beyond product fixes.
+Report:
+  a. the merge-base of the two worktrees' branches, and each branch's
+     current commit;
+  b. commits reachable from the released version that belong to feature
+     work rather than to the fix line — identify them by what they touch,
+     and say how you decided;
+  c. whether these four paths exist in the released commit, in the
+     working tree, or nowhere:
+       src/core/settings/EtlSettingsInventory.ts
+       src/core/settings/EtlSettingsProvenance.ts
+       src/core/settings/EtlSettingsVsCodeBindings.ts
+       src/test/suite/settingsInventoryProvenance.test.ts
+  d. for any that exist in the released commit, whether their compiled
+     output would have been included in the package.
 
-Q7 — COUPLING TO THE OTHER UNCOMMITTED FILES
-The worktree carries other uncommitted changes. Report whether this
-change depends on any of them, or they on it — shared identifiers, shared
-settings, call relationships. State whether src/extension.ts could be
-committed alone, coherently, or whether it is part of a set.
+Q6 — WHAT THE PACKAGE ACTUALLY CONTAINED
+Read the packaging ignore rules as of the released commit and list which
+source trees were included. Search the repository and its parent for any
+built .vsix artefact. If one exists, report path, size, SHA-256 and
+mtime — do not open or extract it. If none exists, say so.
 
-Q8 — WHAT SHIPS
-Read the packaging ignore rules and confirm whether this file's compiled
-output is included in a package. State which built artefact carries it
-and whether that artefact is currently present in the build output.
+Q7 — THE TWO WORKTREES
+Report `git worktree list` verbatim. For each worktree: path, branch,
+commit, and whether its working tree is clean. Do not enter or modify the
+other worktree; read-only inspection of its recorded state only.
 
 REPORT
 1. TASK_ID line.
-2. Q1 to Q8 in order, with raw command output where relevant.
-3. Every command you ran, and confirmation all were read-only.
+2. Q1 to Q7 in order, with raw command output where relevant.
+3. Every command you ran, and confirmation all were read-only and that
+   HEAD was never moved in either worktree.
 4. Anything found that this prompt did not ask about — reported, not
    changed.
 5. Close with exactly:
-     TASK_ID: ETL-0903-DIAG06
-     LINES_ADDED: <n>
-     LINES_DELETED: <n>
-     HUNKS: <n>
-     BEHAVIOUR_HUNKS: <n>
-     INTERFACE_HUNKS: <n>
-     USER_VISIBLE_CHANGE: YES / NO
-     CHANGE_APPEARS_COMPLETE: YES / NO / CANNOT_DETERMINE
-     COMMITTABLE_ALONE: YES / NO / CANNOT_DETERMINE
-     OWNER_DECISIONS_REQUIRED: <n>
+     TASK_ID: ETL-0903-DIAG07
+     VERSION_0_3_145_COMMIT: <id or NOT_FOUND>
+     VERSION_0_3_147_COMMIT: <id or NOT_FOUND>
+     STRUCTURED_CHANNEL_PRESENT_IN_0_3_145: YES / NO / CONDITIONAL / CANNOT_DETERMINE
+     REGRESSION_COMMIT: <id or NONE or CANNOT_DETERMINE>
+     TEST_COVERED_PUBLIC_ADAPTER: YES / NO / CANNOT_DETERMINE
+     FEATURE_CODE_IN_RELEASED_COMMIT: YES / NO / CANNOT_DETERMINE
+     SA_FILES_IN_RELEASED_COMMIT: <count 0-4>
+     VSIX_FOUND: YES / NO
+     HEAD_MOVED: NO
      FILES_MODIFIED: NONE
      PENDING_EDITOR_CHANGES_RESOLVED: NONE
      COMPILE_OR_BUILD_EXECUTED: NO
