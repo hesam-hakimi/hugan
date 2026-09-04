@@ -1114,10 +1114,39 @@ bind that history to the target snapshot's exact predecessor chain.
 P3.4c-2b2a does not select, omit, skip, or execute tests; change `TestProfile` argv; integrate with
 the Safe test runner; claim coverage or runtime completeness; or claim a minimal safe test set. It
 adds no model/provider call, model context, UI or HTTP behavior, arbitrary shell authority,
-source-control publication, merge, deployment, or production-readiness claim. P3.4c-2b2b remains
-separately open to combine dependency, static-call, dynamic-dispatch, and eligible coverage evidence
-into a conservative test-selection artifact with its own explicit target-Base and predecessor
-contract.
+source-control publication, merge, deployment, or production-readiness claim.
+
+## Conservative coverage-backed test selection
+
+P3.4c-2b2b consumes one verified P3.4c-2b2a eligibility advisory and the active analysis chain for
+one exact target Base. The target repository snapshot, dependency graph, static call graph, and
+dynamic-dispatch evidence must each name the corresponding historical coverage input as its exact
+direct predecessor. A skipped generation, unrelated history, stale active pointer, reference/hash
+drift, or project/repository/Base/policy conflict fails closed without producing a selection.
+
+For a supported target, the selector starts from the canonical repository delta and computes the
+reverse Python dependency closure. It selects historical test IDs, separately for every requested
+trusted profile, when their identity-qualified coverage intersects that affected path set. Test
+files must remain byte-identical to the historical run so a former test ID cannot name changed
+collection behavior. The artifact binds the target snapshot/dependency/call/dispatch references and
+hashes, predecessor coverage evidence, eligibility advisory, trusted policy, changed paths,
+affected paths, selected IDs, and selector policy. It is canonical, bounded, content-addressed,
+reloaded before return, and independently replay-verifiable.
+
+The initial conservative support envelope accepts only modified, tracked, non-test Python source
+files. Added, deleted, renamed, non-Python, or test-file changes fall back to every requested
+operator-owned profile. A coverage-scope gap, relevant unattributed coverage, absent selected test
+for any requested profile, changed or missing test source, parse failure, unresolved relevant
+import/call, unsafe symbol binding, unsafe hierarchy, or unresolved relevant dispatch site has the
+same full-profile fallback. Fallback artifacts never enumerate test IDs. Structural malformation,
+tampering, oversize input/output, policy drift, or provenance conflict remains a hard failure rather
+than a fallback.
+
+This slice only returns selected test identities. It does not mutate `TestProfile.argv`, execute or
+skip a test, authorize execution, integrate with the Safe runner, claim minimality or complete
+runtime causality, call a model/provider, inject model context, expose UI or HTTP behavior, grant
+shell authority, publish source control, merge, deploy, or establish production readiness. Safe
+execution integration and broader change-language support remain separate future slices.
 
 ## Context management
 

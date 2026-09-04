@@ -11,19 +11,37 @@ from pydantic import Field, field_validator, model_validator
 
 from universal_coding_agent.core.models import FrozenModel
 from universal_coding_agent.core.safe_models import SafeModePolicy
+from universal_coding_agent.product.call_graphs import PythonCallGraph
 from universal_coding_agent.product.coverage_evidence import (
     DEFAULT_COVERAGE_MAX_PROFILES,
     RepositoryCoverageEvidence,
     RepositoryCoverageEvidenceError,
     RepositoryCoverageEvidenceService,
     TrustedCoverageRun,
+    VerifiedHistoricalCoverageEvidence,
     trusted_test_policy_sha256,
     trusted_test_profile_sha256,
+)
+from universal_coding_agent.product.dependency_graphs import (
+    PythonDependencyEdge,
+    PythonDependencyGraph,
+)
+from universal_coding_agent.product.dispatch_evidence import (
+    DispatchResolution,
+    PythonDispatchEvidence,
+    RepositoryDispatchEvidenceError,
+    RepositoryDispatchEvidenceService,
+)
+from universal_coding_agent.product.repository_indexes import (
+    RepositoryIndexDelta,
+    RepositoryIndexSnapshot,
 )
 from universal_coding_agent.storage.artifacts import ArtifactStore
 
 DEFAULT_COVERAGE_QUALIFICATION_MAX_BYTES = 512_000
 DEFAULT_COVERAGE_SELECTION_ADVISORY_MAX_BYTES = 512_000
+DEFAULT_COVERAGE_TEST_SELECTION_MAX_BYTES = 2_000_000
+DEFAULT_COVERAGE_TEST_SELECTION_MAX_TESTS = 100_000
 DEFAULT_COVERAGE_SELECTION_MAX_JSON_ITEMS = 8_192
 DEFAULT_COVERAGE_SELECTION_MAX_JSON_DEPTH = 16
 COVERAGE_SELECTION_POLICY_VERSION = "1"
@@ -49,6 +67,21 @@ class CoverageSelectionFallbackReason(StrEnum):
     EXECUTION_ENVIRONMENT_MISMATCH = "execution_environment_mismatch"
     COLLECTOR_IDENTITY_MISMATCH = "collector_identity_mismatch"
     COLLECTOR_CONFIGURATION_MISMATCH = "collector_configuration_mismatch"
+
+
+class CoverageTestSelectionDisposition(StrEnum):
+    SELECTED = "SELECTED"
+    FULL_PROFILE_FALLBACK = "FULL_PROFILE_FALLBACK"
+
+
+class CoverageTestSelectionFallbackReason(StrEnum):
+    ELIGIBILITY_FALLBACK = "eligibility_fallback"
+    UNSUPPORTED_CHANGE = "unsupported_change"
+    INCOMPLETE_STATIC_EVIDENCE = "incomplete_static_evidence"
+    COVERAGE_GAP = "coverage_gap"
+    UNATTRIBUTED_COVERAGE = "unattributed_coverage"
+    TEST_IDENTITY_DRIFT = "test_identity_drift"
+    PROFILE_WITHOUT_SELECTED_TESTS = "profile_without_selected_tests"
 
 
 class CoverageExecutionEnvironmentIdentity(FrozenModel):
@@ -232,6 +265,130 @@ class RepositoryCoverageSelectionResult(FrozenModel):
     advisory: CoverageSelectionAdvisory
 
 
+class CoverageSelectedProfile(FrozenModel):
+    profile_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$")
+    test_ids: tuple[str, ...] = Field(
+        min_length=1, max_length=DEFAULT_COVERAGE_TEST_SELECTION_MAX_TESTS
+    )
+
+    @field_validator("test_ids")
+    @classmethod
+    def validate_test_ids(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        if values != tuple(sorted(set(values))):
+            raise ValueError("selected test IDs must be unique and sorted")
+        if any(
+            value != value.strip()
+            or not value
+            or len(value.encode("utf-8")) > 8_192
+            or any(ord(character) < 32 for character in value)
+            for value in values
+        ):
+            raise ValueError("selected test ID is invalid")
+        return values
+
+
+class CoverageBackedTestSelection(FrozenModel):
+    """Conservative test IDs only; execution remains separately authorized."""
+
+    schema_version: Literal["1"] = "1"
+    selection_format: Literal["coverage-backed-test-selection-v1"] = (
+        "coverage-backed-test-selection-v1"
+    )
+    project_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
+    repository_url: str = Field(min_length=1, max_length=2048)
+    base_ref: str = Field(min_length=1, max_length=256)
+    target_base_sha: str = Field(pattern=r"^[0-9a-f]{40,64}$")
+    target_snapshot_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    target_snapshot_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    target_dependency_graph_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    target_dependency_graph_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    target_call_graph_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    target_call_graph_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    target_dispatch_evidence_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    target_dispatch_evidence_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    predecessor_coverage_evidence_ref: str = Field(
+        pattern=r"^artifact://[a-zA-Z0-9._/-]+$"
+    )
+    predecessor_coverage_evidence_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    eligibility_advisory_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    eligibility_advisory_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    trusted_test_policy_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    policy_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    requested_profile_ids: tuple[str, ...] = Field(
+        min_length=1, max_length=DEFAULT_COVERAGE_MAX_PROFILES
+    )
+    changed_paths: tuple[str, ...]
+    affected_paths: tuple[str, ...]
+    disposition: CoverageTestSelectionDisposition
+    selected_profiles: tuple[CoverageSelectedProfile, ...] = ()
+    fallback_profile_ids: tuple[str, ...] = ()
+    fallback_reasons: tuple[CoverageTestSelectionFallbackReason, ...] = ()
+    authorizes_execution: Literal[False] = False
+    claims_minimality: Literal[False] = False
+
+    @field_validator("requested_profile_ids", "fallback_profile_ids")
+    @classmethod
+    def validate_profile_ids(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        if values != tuple(sorted(set(values))):
+            raise ValueError("test-selection profile IDs must be unique and sorted")
+        return values
+
+    @field_validator("changed_paths", "affected_paths")
+    @classmethod
+    def validate_paths(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        if values != tuple(sorted(set(values))):
+            raise ValueError("test-selection paths must be unique and sorted")
+        return values
+
+    @field_validator("selected_profiles")
+    @classmethod
+    def validate_selected_profiles(
+        cls, values: tuple[CoverageSelectedProfile, ...]
+    ) -> tuple[CoverageSelectedProfile, ...]:
+        ids = tuple(item.profile_id for item in values)
+        if ids != tuple(sorted(set(ids))):
+            raise ValueError("selected profiles must be unique and sorted")
+        return values
+
+    @field_validator("fallback_reasons")
+    @classmethod
+    def validate_fallback_reasons(
+        cls, values: tuple[CoverageTestSelectionFallbackReason, ...]
+    ) -> tuple[CoverageTestSelectionFallbackReason, ...]:
+        if values != tuple(sorted(set(values), key=lambda item: item.value)):
+            raise ValueError("test-selection fallback reasons must be unique and sorted")
+        return values
+
+    @model_validator(mode="after")
+    def validate_disposition(self) -> CoverageBackedTestSelection:
+        if self.disposition is CoverageTestSelectionDisposition.SELECTED:
+            if self.fallback_profile_ids or self.fallback_reasons:
+                raise ValueError("selected tests cannot contain fallback data")
+            if tuple(item.profile_id for item in self.selected_profiles) != (
+                self.requested_profile_ids
+            ):
+                raise ValueError("selected tests must cover every requested profile")
+        elif (
+            self.selected_profiles
+            or self.fallback_profile_ids != self.requested_profile_ids
+            or not self.fallback_reasons
+        ):
+            raise ValueError("full-profile fallback must preserve every requested profile")
+        return self
+
+    def canonical_content(self) -> str:
+        return _canonical_json(self.model_dump(mode="json"))
+
+    def canonical_hash(self) -> str:
+        return hashlib.sha256(self.canonical_content().encode("utf-8")).hexdigest()
+
+
+class CoverageBackedTestSelectionResult(FrozenModel):
+    selection_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    selection_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    selection: CoverageBackedTestSelection
+
+
 class RepositoryCoverageSelectionService:
     """Issue bounded advisory eligibility without selecting or running any test."""
 
@@ -239,12 +396,15 @@ class RepositoryCoverageSelectionService:
         self,
         artifacts: ArtifactStore,
         coverage_evidence: RepositoryCoverageEvidenceService,
+        dispatch_evidence: RepositoryDispatchEvidenceService | None = None,
         *,
         qualification_max_bytes: int = DEFAULT_COVERAGE_QUALIFICATION_MAX_BYTES,
         advisory_max_bytes: int = DEFAULT_COVERAGE_SELECTION_ADVISORY_MAX_BYTES,
         max_profiles: int = DEFAULT_COVERAGE_MAX_PROFILES,
         max_json_items: int = DEFAULT_COVERAGE_SELECTION_MAX_JSON_ITEMS,
         max_json_depth: int = DEFAULT_COVERAGE_SELECTION_MAX_JSON_DEPTH,
+        selection_max_bytes: int = DEFAULT_COVERAGE_TEST_SELECTION_MAX_BYTES,
+        max_selected_tests: int = DEFAULT_COVERAGE_TEST_SELECTION_MAX_TESTS,
     ) -> None:
         limits = (
             qualification_max_bytes,
@@ -252,6 +412,8 @@ class RepositoryCoverageSelectionService:
             max_profiles,
             max_json_items,
             max_json_depth,
+            selection_max_bytes,
+            max_selected_tests,
         )
         if any(type(limit) is not int for limit in limits):
             raise ValueError("coverage-selection limits must be integers")
@@ -259,13 +421,18 @@ class RepositoryCoverageSelectionService:
             raise ValueError("coverage-selection limits must be positive")
         if max_profiles > DEFAULT_COVERAGE_MAX_PROFILES:
             raise ValueError("coverage-selection profile limit exceeds its schema maximum")
+        if max_selected_tests > DEFAULT_COVERAGE_TEST_SELECTION_MAX_TESTS:
+            raise ValueError("selected-test limit exceeds its schema maximum")
         self.artifacts = artifacts
         self.coverage_evidence = coverage_evidence
+        self.dispatch_evidence = dispatch_evidence
         self.qualification_max_bytes = qualification_max_bytes
         self.advisory_max_bytes = advisory_max_bytes
         self.max_profiles = max_profiles
         self.max_json_items = max_json_items
         self.max_json_depth = max_json_depth
+        self.selection_max_bytes = selection_max_bytes
+        self.max_selected_tests = max_selected_tests
 
     def assess_eligibility(
         self,
@@ -377,6 +544,466 @@ class RepositoryCoverageSelectionService:
                 "coverage-selection advisory policy does not match"
             )
         return advisory
+
+    def select_tests(
+        self,
+        *,
+        project_id: str,
+        expected_target_base_sha: str,
+        trusted_test_policy: SafeModePolicy,
+        requested_profile_ids: tuple[str, ...],
+        eligibility_advisory_ref: str,
+        eligibility_advisory_sha256: str,
+        expected_target_dispatch_evidence_ref: str,
+        expected_target_dispatch_evidence_sha256: str,
+    ) -> CoverageBackedTestSelectionResult:
+        """Select conservative test IDs for one directly succeeding target snapshot."""
+
+        if self.dispatch_evidence is None:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed selection requires target dispatch evidence"
+            )
+        if _PROJECT_ID.fullmatch(project_id) is None:
+            raise RepositoryCoverageSelectionError("project ID is invalid")
+        if _OBJECT_ID.fullmatch(expected_target_base_sha) is None:
+            raise RepositoryCoverageSelectionError("expected target Base SHA is invalid")
+        if requested_profile_ids != tuple(sorted(set(requested_profile_ids))):
+            raise RepositoryCoverageSelectionError(
+                "requested selector profile IDs must be unique and sorted"
+            )
+        if not requested_profile_ids or len(requested_profile_ids) > self.max_profiles:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed selection profile request is empty or oversized"
+            )
+        policy_profiles = trusted_test_policy.profile_map()
+        if any(profile_id not in policy_profiles for profile_id in requested_profile_ids):
+            raise RepositoryCoverageSelectionError(
+                "requested selector profile is outside the trusted test policy"
+            )
+
+        eligibility = self.verified_advisory(
+            eligibility_advisory_ref, eligibility_advisory_sha256
+        )
+        policy_sha256 = trusted_test_policy_sha256(trusted_test_policy)
+        if (
+            eligibility.project_id != project_id
+            or eligibility.requested_profile_ids != requested_profile_ids
+            or not hmac.compare_digest(
+                eligibility.trusted_test_policy_sha256, policy_sha256
+            )
+        ):
+            raise RepositoryCoverageSelectionError(
+                "eligibility advisory conflicts with the selector request"
+            )
+
+        try:
+            dispatch_state, target_dispatch = (
+                self.dispatch_evidence.verified_active_evidence(
+                    project_id=project_id,
+                    expected_evidence_ref=expected_target_dispatch_evidence_ref,
+                    expected_evidence_sha256=(
+                        expected_target_dispatch_evidence_sha256
+                    ),
+                )
+            )
+            call_state, target_calls = (
+                self.dispatch_evidence.call_graphs.verified_active_graph(
+                    project_id=project_id,
+                    expected_graph_ref=dispatch_state.call_graph_ref,
+                    expected_graph_sha256=dispatch_state.call_graph_sha256,
+                )
+            )
+            (
+                repository_state,
+                target_snapshot,
+                dependency_state,
+                target_dependencies,
+            ) = self.dispatch_evidence.call_graphs.dependencies.verified_active_graph(
+                project_id=project_id,
+                expected_repository_snapshot_ref=call_state.repository_snapshot_ref,
+                expected_repository_snapshot_sha256=(
+                    call_state.repository_snapshot_sha256
+                ),
+                expected_graph_ref=call_state.dependency_graph_ref,
+                expected_graph_sha256=call_state.dependency_graph_sha256,
+            )
+            historical = self.coverage_evidence.verified_historical_evidence(
+                project_id=project_id,
+                trusted_test_policy=trusted_test_policy,
+                expected_evidence_ref=eligibility.coverage_evidence_ref,
+                expected_evidence_sha256=eligibility.coverage_evidence_sha256,
+            )
+        except (
+            RepositoryDispatchEvidenceError,
+            RepositoryCoverageEvidenceError,
+            AttributeError,
+            TypeError,
+            ValueError,
+        ) as exc:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed selector inputs failed verification"
+            ) from exc
+
+        if target_snapshot.base_sha != expected_target_base_sha:
+            raise RepositoryCoverageSelectionError(
+                "active target snapshot does not match the expected Base SHA"
+            )
+        predecessor_actual = (
+            target_snapshot.previous_snapshot_ref,
+            target_snapshot.previous_snapshot_sha256,
+            target_dependencies.previous_graph_ref,
+            target_dependencies.previous_graph_sha256,
+            target_calls.previous_graph_ref,
+            target_calls.previous_graph_sha256,
+            target_dispatch.previous_evidence_ref,
+            target_dispatch.previous_evidence_sha256,
+        )
+        predecessor_expected = (
+            historical.evidence.repository_snapshot_ref,
+            historical.evidence.repository_snapshot_sha256,
+            historical.evidence.dependency_graph_ref,
+            historical.evidence.dependency_graph_sha256,
+            historical.evidence.call_graph_ref,
+            historical.evidence.call_graph_sha256,
+            historical.evidence.dispatch_evidence_ref,
+            historical.evidence.dispatch_evidence_sha256,
+        )
+        if predecessor_actual != predecessor_expected:
+            raise RepositoryCoverageSelectionError(
+                "target analysis is not the exact direct successor of coverage history"
+            )
+        target_provenance = (
+            target_snapshot.project_id,
+            target_snapshot.repository_url,
+            target_snapshot.base_ref,
+            target_snapshot.base_sha,
+            target_dependencies.repository_snapshot_ref,
+            target_dependencies.repository_snapshot_sha256,
+            target_calls.dependency_graph_ref,
+            target_calls.dependency_graph_sha256,
+            target_dispatch.call_graph_ref,
+            target_dispatch.call_graph_sha256,
+        )
+        expected_provenance = (
+            project_id,
+            eligibility.repository_url,
+            eligibility.base_ref,
+            expected_target_base_sha,
+            repository_state.snapshot_ref,
+            repository_state.snapshot_sha256,
+            dependency_state.graph_ref,
+            dependency_state.graph_sha256,
+            call_state.graph_ref,
+            call_state.graph_sha256,
+        )
+        if target_provenance != expected_provenance:
+            raise RepositoryCoverageSelectionError(
+                "target analysis provenance conflicts with the selector request"
+            )
+
+        changed_paths = _target_changed_paths(target_snapshot.delta)
+        affected_paths = _reverse_dependency_paths(
+            changed_paths, target_dependencies.edges
+        )
+        reasons = self._test_selection_fallback_reasons(
+            eligibility=eligibility,
+            changed_paths=changed_paths,
+            affected_paths=affected_paths,
+            target_snapshot=target_snapshot,
+            target_dependencies=target_dependencies,
+            target_calls=target_calls,
+            target_dispatch=target_dispatch,
+            historical=historical,
+            requested_profile_ids=requested_profile_ids,
+        )
+        selected_profiles: tuple[CoverageSelectedProfile, ...] = ()
+        if not reasons:
+            current_files = {
+                item.path: item.project_file.sha256 for item in target_snapshot.files
+            }
+            selected: list[CoverageSelectedProfile] = []
+            for profile_id in requested_profile_ids:
+                test_ids = tuple(
+                    sorted(
+                        item.test_id
+                        for item in historical.evidence.tests
+                        if item.profile_id == profile_id
+                        and any(
+                            covered.path in affected_paths
+                            for covered in item.covered_files
+                        )
+                        and current_files.get(item.test_path)
+                        == item.test_source_sha256
+                    )
+                )
+                selected.append(
+                    CoverageSelectedProfile(profile_id=profile_id, test_ids=test_ids)
+                )
+            selected_profiles = tuple(selected)
+            selected_count = sum(len(item.test_ids) for item in selected_profiles)
+            if selected_count > self.max_selected_tests:
+                raise RepositoryCoverageSelectionError(
+                    "coverage-backed selection exceeds its selected-test limit"
+                )
+
+        selection = CoverageBackedTestSelection(
+            project_id=project_id,
+            repository_url=target_snapshot.repository_url,
+            base_ref=target_snapshot.base_ref,
+            target_base_sha=target_snapshot.base_sha,
+            target_snapshot_ref=repository_state.snapshot_ref,
+            target_snapshot_sha256=repository_state.snapshot_sha256,
+            target_dependency_graph_ref=dependency_state.graph_ref,
+            target_dependency_graph_sha256=dependency_state.graph_sha256,
+            target_call_graph_ref=call_state.graph_ref,
+            target_call_graph_sha256=call_state.graph_sha256,
+            target_dispatch_evidence_ref=dispatch_state.evidence_ref,
+            target_dispatch_evidence_sha256=dispatch_state.evidence_sha256,
+            predecessor_coverage_evidence_ref=eligibility.coverage_evidence_ref,
+            predecessor_coverage_evidence_sha256=(
+                eligibility.coverage_evidence_sha256
+            ),
+            eligibility_advisory_ref=eligibility_advisory_ref,
+            eligibility_advisory_sha256=eligibility_advisory_sha256,
+            trusted_test_policy_sha256=policy_sha256,
+            policy_sha256=self._selector_policy_sha256(),
+            requested_profile_ids=requested_profile_ids,
+            changed_paths=changed_paths,
+            affected_paths=affected_paths,
+            disposition=(
+                CoverageTestSelectionDisposition.FULL_PROFILE_FALLBACK
+                if reasons
+                else CoverageTestSelectionDisposition.SELECTED
+            ),
+            selected_profiles=selected_profiles,
+            fallback_profile_ids=(requested_profile_ids if reasons else ()),
+            fallback_reasons=reasons,
+        )
+        return self._write_test_selection(selection)
+
+    def verified_test_selection(
+        self, selection_ref: str, selection_sha256: str
+    ) -> CoverageBackedTestSelection:
+        value = self._load_bounded_json(
+            selection_ref,
+            selection_sha256,
+            max_bytes=self.selection_max_bytes,
+            context="coverage-backed test selection",
+        )
+        try:
+            selection = CoverageBackedTestSelection.model_validate(value)
+        except ValueError as exc:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection failed bounded validation"
+            ) from exc
+        if not hmac.compare_digest(selection.canonical_hash(), selection_sha256):
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection canonical hash does not match"
+            )
+        if not hmac.compare_digest(
+            selection.policy_sha256, self._selector_policy_sha256()
+        ):
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection policy does not match"
+            )
+        if sum(len(item.test_ids) for item in selection.selected_profiles) > (
+            self.max_selected_tests
+        ):
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection exceeds its selected-test limit"
+            )
+        return selection
+
+    def _test_selection_fallback_reasons(
+        self,
+        *,
+        eligibility: CoverageSelectionAdvisory,
+        changed_paths: tuple[str, ...],
+        affected_paths: tuple[str, ...],
+        target_snapshot: RepositoryIndexSnapshot,
+        target_dependencies: PythonDependencyGraph,
+        target_calls: PythonCallGraph,
+        target_dispatch: PythonDispatchEvidence,
+        historical: VerifiedHistoricalCoverageEvidence,
+        requested_profile_ids: tuple[str, ...],
+    ) -> tuple[CoverageTestSelectionFallbackReason, ...]:
+        reasons: set[CoverageTestSelectionFallbackReason] = set()
+        if eligibility.disposition is not CoverageSelectionDisposition.ELIGIBLE:
+            reasons.add(CoverageTestSelectionFallbackReason.ELIGIBILITY_FALLBACK)
+
+        current_files = {item.path: item for item in target_snapshot.files}
+        unsupported = (
+            not changed_paths
+            or bool(target_snapshot.delta.added_paths)
+            or bool(target_snapshot.delta.deleted_paths)
+            or bool(target_snapshot.delta.renamed_paths)
+            or any(not path.endswith(".py") for path in changed_paths)
+            or any(
+                path not in current_files or current_files[path].project_file.is_test
+                for path in changed_paths
+            )
+        )
+        if unsupported:
+            reasons.add(CoverageTestSelectionFallbackReason.UNSUPPORTED_CHANGE)
+
+        affected = set(affected_paths)
+        affected_sources = {
+            path
+            for path in affected
+            if path in current_files and not current_files[path].project_file.is_test
+        }
+        incomplete = any(
+            item.source_path in affected_sources
+            for item in target_dependencies.unresolved_imports
+        ) or any(
+            item.path in affected_sources and item.parse_failure is not None
+            for item in target_calls.files
+        )
+        incomplete = incomplete or any(
+            item.source_path in affected_sources for item in target_calls.unresolved_calls
+        )
+        target_symbols = {item.symbol_id: item for item in target_calls.symbols}
+        incomplete = incomplete or any(
+            any(
+                target_symbols[candidate].path in affected_sources
+                for candidate in item.candidate_symbol_ids
+                if candidate in target_symbols
+            )
+            for item in target_calls.unsafe_symbol_bindings
+        )
+        incomplete = incomplete or any(
+            item.path in affected_sources and not item.hierarchy_safe
+            for item in target_dispatch.classes
+        )
+        incomplete = incomplete or any(
+            item.source_path in affected_sources
+            and item.resolution
+            not in {
+                DispatchResolution.EXACT_DECLARED_TYPE,
+                DispatchResolution.POLYMORPHIC_CANDIDATES,
+            }
+            for item in target_dispatch.dispatch_sites
+        )
+        historical_symbols = {
+            item.symbol_id: item for item in historical.call_graph.symbols
+        }
+        incomplete = incomplete or any(
+            item.source_path in affected_sources
+            for item in historical.dependency_graph.unresolved_imports
+        )
+        incomplete = incomplete or any(
+            item.path in affected_sources and item.parse_failure is not None
+            for item in historical.call_graph.files
+        )
+        incomplete = incomplete or any(
+            item.source_path in affected_sources
+            for item in historical.call_graph.unresolved_calls
+        )
+        incomplete = incomplete or any(
+            any(
+                historical_symbols[candidate].path in affected_sources
+                for candidate in item.candidate_symbol_ids
+                if candidate in historical_symbols
+            )
+            for item in historical.call_graph.unsafe_symbol_bindings
+        )
+        incomplete = incomplete or any(
+            item.path in affected_sources and not item.hierarchy_safe
+            for item in historical.dispatch_evidence.classes
+        )
+        incomplete = incomplete or any(
+            item.source_path in affected_sources
+            and item.resolution
+            not in {
+                DispatchResolution.EXACT_DECLARED_TYPE,
+                DispatchResolution.POLYMORPHIC_CANDIDATES,
+            }
+            for item in historical.dispatch_evidence.dispatch_sites
+        )
+        if incomplete:
+            reasons.add(CoverageTestSelectionFallbackReason.INCOMPLETE_STATIC_EVIDENCE)
+
+        historical_scope = {item.path for item in historical.evidence.coverage_scope}
+        if affected_sources - historical_scope:
+            reasons.add(CoverageTestSelectionFallbackReason.COVERAGE_GAP)
+        if any(
+            item.path in affected for item in historical.evidence.unattributed_files
+        ):
+            reasons.add(CoverageTestSelectionFallbackReason.UNATTRIBUTED_COVERAGE)
+
+        current_sha256 = {
+            path: item.project_file.sha256 for path, item in current_files.items()
+        }
+        for profile_id in requested_profile_ids:
+            candidates = tuple(
+                item
+                for item in historical.evidence.tests
+                if item.profile_id == profile_id
+                and any(covered.path in affected for covered in item.covered_files)
+            )
+            if not candidates:
+                reasons.add(
+                    CoverageTestSelectionFallbackReason.PROFILE_WITHOUT_SELECTED_TESTS
+                )
+            if any(
+                current_sha256.get(item.test_path) != item.test_source_sha256
+                for item in candidates
+            ):
+                reasons.add(CoverageTestSelectionFallbackReason.TEST_IDENTITY_DRIFT)
+        return tuple(sorted(reasons, key=lambda item: item.value))
+
+    def _write_test_selection(
+        self, selection: CoverageBackedTestSelection
+    ) -> CoverageBackedTestSelectionResult:
+        content = selection.canonical_content()
+        if len(content.encode("utf-8")) > self.selection_max_bytes:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection exceeds its byte limit"
+            )
+        digest = selection.canonical_hash()
+        reference = self.artifacts.write_text(
+            (
+                f"coverage-test-selection/{selection.project_id}/"
+                f"{selection.target_base_sha}/selection-{digest}.json"
+            ),
+            content,
+            "application/json",
+        )
+        if not hmac.compare_digest(reference.sha256, digest):
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test-selection artifact hash mismatch"
+            )
+        verified = self.verified_test_selection(reference.uri, digest)
+        if verified != selection:
+            raise RepositoryCoverageSelectionError(
+                "coverage-backed test selection changed during recording"
+            )
+        return CoverageBackedTestSelectionResult(
+            selection_ref=reference.uri,
+            selection_sha256=digest,
+            selection=verified,
+        )
+
+    def _selector_policy_sha256(self) -> str:
+        return hashlib.sha256(
+            _canonical_json(
+                {
+                    "schema_version": "1",
+                    "coverage_selection_policy_version": (
+                        COVERAGE_SELECTION_POLICY_VERSION
+                    ),
+                    "selection_format": "coverage-backed-test-selection-v1",
+                    "predecessor": "exact-direct-artifact-chain-v1",
+                    "impact": "reverse-python-dependency-closure-v1",
+                    "uncertainty": "full-requested-profile-fallback-v1",
+                    "selection_max_bytes": self.selection_max_bytes,
+                    "max_selected_tests": self.max_selected_tests,
+                    "max_profiles": self.max_profiles,
+                    "max_json_items": self.max_json_items,
+                    "max_json_depth": self.max_json_depth,
+                }
+            ).encode("utf-8")
+        ).hexdigest()
 
     def _validate_request(
         self,
@@ -763,6 +1390,37 @@ def _validate_profile_identity_order(
     profile_ids = tuple(item.profile_id for item in values)
     if profile_ids != tuple(sorted(set(profile_ids))):
         raise ValueError(f"{context} profiles must be unique and sorted")
+
+
+def _target_changed_paths(delta: RepositoryIndexDelta) -> tuple[str, ...]:
+    return tuple(
+        sorted(
+            set(delta.added_paths)
+            | set(delta.modified_paths)
+            | set(delta.deleted_paths)
+            | {item.old_path for item in delta.renamed_paths}
+            | {item.new_path for item in delta.renamed_paths}
+        )
+    )
+
+
+def _reverse_dependency_paths(
+    changed_paths: tuple[str, ...], edges: tuple[PythonDependencyEdge, ...]
+) -> tuple[str, ...]:
+    reverse: dict[str, set[str]] = {}
+    for edge in edges:
+        reverse.setdefault(edge.target_path, set()).add(edge.source_path)
+    affected = set(changed_paths)
+    queue = list(changed_paths)
+    cursor = 0
+    while cursor < len(queue):
+        target = queue[cursor]
+        cursor += 1
+        for source in sorted(reverse.get(target, ())):
+            if source not in affected:
+                affected.add(source)
+                queue.append(source)
+    return tuple(sorted(affected))
 
 
 def _preflight_json(content: str, *, max_items: int, max_depth: int) -> None:
