@@ -1232,3 +1232,40 @@ identity from Base or profile digests, inject model context, expose UI or HTTP e
 arbitrary model shell access, publish source control, merge, deploy, or establish production
 readiness. Do not weaken existing test profiles, source-preservation checks, live thresholds, or
 final aggregators when qualifying this slice.
+
+Cmd 35 — P3.4c-2b2b conservative coverage-backed test selection
+
+```bash
+python -m compileall -q src tests
+python -m pytest -q \
+  tests/test_repository_coverage_selection.py \
+  tests/test_repository_coverage_evidence.py \
+  tests/test_repository_dispatch_evidence.py \
+  tests/test_repository_call_graphs.py \
+  tests/test_repository_dependency_graphs.py \
+  tests/test_incremental_repository_indexes.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "CONSERVATIVE_COVERAGE_BACKED_TEST_SELECTION_PASS"
+```
+
+The focused gate proves exact direct-predecessor binding from one identity-qualified historical
+coverage chain to the active target snapshot, dependency graph, static call graph, and
+dynamic-dispatch evidence. For supported modified Python source files it proves deterministic
+reverse-dependency impact, exact unchanged test-source identity, per-requested-profile coverage
+intersection, bounded selected-test counts, canonical content addressing, verification replay, and
+no repository or test execution side effect. Added, deleted, renamed, non-Python, or test changes;
+coverage gaps; relevant unattributed coverage; missing per-profile selections; changed test source;
+and relevant dependency, call, symbol, hierarchy, or dispatch uncertainty produce a complete
+requested-profile fallback with no test IDs.
+
+Malformed, noncanonical, tampered, oversized, policy-incompatible, stale, non-direct, or
+provenance-incompatible artifacts fail closed without a selection. The selector does not change
+`TestProfile.argv`, run or skip tests, authorize execution, claim minimality or complete runtime
+causality, add model/provider calls, inject model context, expose UI or HTTP behavior, grant
+arbitrary shell access, publish source control, merge, deploy, or establish production readiness.
+Do not weaken existing test profiles, source-preservation checks, live thresholds, or final
+aggregators when qualifying this slice.

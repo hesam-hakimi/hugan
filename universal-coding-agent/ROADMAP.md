@@ -85,9 +85,10 @@
   per-profile execution-environment and coverage-collector/configuration identities; exact
   digest compatibility; bounded historical coverage-chain verification; advisory eligible or
   complete-requested-profile fallback outcomes; and preserved P3.4c-2b1 v1 evidence;
-- P3.4c-2b2b conservative coverage-backed test selection combining dependency, static-call,
-  dynamic-dispatch, and identity-bound host-attested coverage evidence, without claiming
-  minimality;
+- [x] P3.4c-2b2b conservative coverage-backed test selection: exact direct-predecessor binding;
+  reverse Python dependency impact; identity-qualified per-test coverage; fail-closed static-call
+  and dynamic-dispatch uncertainty; hash-addressed selected-test or complete-profile-fallback
+  artifacts; no execution authorization or minimality claim;
 - P3.4c-3 additional-language dependency analysis;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;

@@ -8,6 +8,7 @@ import pytest
 from test_repository_coverage_evidence import (
     PROJECT_ID,
     _build_upstreams,
+    _commit,
     _git,
     _policy,
     _record,
@@ -23,12 +24,15 @@ from universal_coding_agent.product.coverage_evidence import (
     trusted_test_profile_sha256,
 )
 from universal_coding_agent.product.coverage_selection import (
+    CoverageBackedTestSelection,
     CoverageCollectorIdentity,
     CoverageExecutionEnvironmentIdentity,
     CoverageProfileIdentity,
     CoverageSelectionDisposition,
     CoverageSelectionFallbackReason,
     CoverageSelectionRequiredIdentities,
+    CoverageTestSelectionDisposition,
+    CoverageTestSelectionFallbackReason,
     RepositoryCoverageSelectionError,
     RepositoryCoverageSelectionService,
     TrustedCoverageQualificationReceipt,
@@ -46,6 +50,7 @@ class _SelectionContext:
     policy: object
     run: object
     recorded: object
+    upstreams: object | None = None
 
 
 def _run_for_every_profile(root, upstreams, policy):
@@ -67,7 +72,9 @@ def _run_for_every_profile(root, upstreams, policy):
         )
         for profile in sorted(policy.profiles, key=lambda item: item.profile_id)
     )
-    return baseline.model_copy(update={"profiles": profiles, "tests": tests})
+    return baseline.model_copy(
+        update={"profiles": profiles, "tests": tests, "unattributed_files": ()}
+    )
 
 
 def _workspace_services(workspace: ProductWorkspace) -> _Services:
@@ -108,6 +115,7 @@ def selection_context(tmp_path: Path):
             policy=policy,
             run=run,
             recorded=recorded,
+            upstreams=upstreams,
         )
     finally:
         services.search.close()
@@ -828,3 +836,245 @@ def test_nonpositive_boolean_or_nonintegral_limits_reject(
             )
     finally:
         services.search.close()
+
+
+def _eligibility_for_selector(context: _SelectionContext, *, eligible: bool = True):
+    if not eligible:
+        return _assess(context)
+    identities = _identities(context, ("focused", "integration"))
+    qualification_ref, qualification_sha256 = _write_qualification(
+        context,
+        _qualification(context, identities),
+    )
+    return _assess(
+        context,
+        required_identities=identities,
+        qualification_ref=qualification_ref,
+        qualification_sha256=qualification_sha256,
+    )
+
+
+def _advance_selector_target(
+    context: _SelectionContext,
+    *,
+    path: str = "src/pkg/core.py",
+    content: str = (
+        "def leaf(value: int):\n"
+        "    return value + 2\n"
+        "\n"
+        "class Worker:\n"
+        "    def run(self):\n"
+        "        return leaf(1)\n"
+    ),
+    previous=None,
+):
+    target = context.root / path
+    target.write_text(content, encoding="utf-8")
+    base_sha = _commit(context.root, "advance selector target")
+    upstreams = _build_upstreams(
+        context.root,
+        base_sha,
+        context.services,
+        previous=previous or context.upstreams,
+    )
+    return base_sha, upstreams
+
+
+def _select_target(
+    context: _SelectionContext,
+    eligibility,
+    base_sha: str,
+    upstreams,
+):
+    service = RepositoryCoverageSelectionService(
+        context.services.artifacts,
+        context.services.coverage,
+        context.services.dispatch,
+    )
+    return service.select_tests(
+        project_id=PROJECT_ID,
+        expected_target_base_sha=base_sha,
+        trusted_test_policy=context.policy,
+        requested_profile_ids=("focused", "integration"),
+        eligibility_advisory_ref=eligibility.advisory_ref,
+        eligibility_advisory_sha256=eligibility.advisory_sha256,
+        expected_target_dispatch_evidence_ref=upstreams.dispatch.evidence_ref,
+        expected_target_dispatch_evidence_sha256=upstreams.dispatch.evidence_sha256,
+    )
+
+
+def test_direct_successor_selects_hash_bound_tests_without_execution(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    base_sha, upstreams = _advance_selector_target(selection_context)
+
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+
+    assert result.selection.disposition is CoverageTestSelectionDisposition.SELECTED
+    assert tuple(item.profile_id for item in result.selection.selected_profiles) == (
+        "focused",
+        "integration",
+    )
+    assert all(
+        item.test_ids
+        == (
+            "tests/test_core.py::test_leaf",
+            "tests/test_core.py::test_worker",
+        )
+        for item in result.selection.selected_profiles
+    )
+    assert result.selection.authorizes_execution is False
+    assert result.selection.claims_minimality is False
+    assert result.selection.changed_paths == ("src/pkg/core.py",)
+    assert result.selection.affected_paths == (
+        "src/pkg/core.py",
+        "tests/test_core.py",
+    )
+    assert RepositoryCoverageSelectionService(
+        selection_context.services.artifacts,
+        selection_context.services.coverage,
+        selection_context.services.dispatch,
+    ).verified_test_selection(
+        result.selection_ref, result.selection_sha256
+    ) == result.selection
+
+
+def test_unsupported_non_python_change_falls_back_every_profile(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    base_sha, upstreams = _advance_selector_target(
+        selection_context,
+        path="notes.txt",
+        content="changed non-Python evidence\n",
+    )
+
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+
+    assert result.selection.disposition is (
+        CoverageTestSelectionDisposition.FULL_PROFILE_FALLBACK
+    )
+    assert result.selection.fallback_profile_ids == ("focused", "integration")
+    assert CoverageTestSelectionFallbackReason.UNSUPPORTED_CHANGE in (
+        result.selection.fallback_reasons
+    )
+    assert result.selection.selected_profiles == ()
+
+
+def test_coverage_gap_falls_back_every_profile(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    base_sha, upstreams = _advance_selector_target(
+        selection_context,
+        path="src/pkg/__init__.py",
+        content="PACKAGE_VERSION = 2\n",
+    )
+
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+
+    assert CoverageTestSelectionFallbackReason.COVERAGE_GAP in (
+        result.selection.fallback_reasons
+    )
+    assert result.selection.fallback_profile_ids == ("focused", "integration")
+
+
+def test_unresolved_call_in_affected_source_falls_back_every_profile(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    base_sha, upstreams = _advance_selector_target(
+        selection_context,
+        content=(
+            "def leaf(value: int):\n"
+            "    return unresolved_runtime_call(value)\n"
+            "\n"
+            "class Worker:\n"
+            "    def run(self):\n"
+            "        return leaf(1)\n"
+        ),
+    )
+
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+
+    assert CoverageTestSelectionFallbackReason.INCOMPLETE_STATIC_EVIDENCE in (
+        result.selection.fallback_reasons
+    )
+    assert result.selection.selected_profiles == ()
+
+
+def test_ineligible_history_preserves_full_profile_fallback(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context, eligible=False)
+    base_sha, upstreams = _advance_selector_target(selection_context)
+
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+
+    assert CoverageTestSelectionFallbackReason.ELIGIBILITY_FALLBACK in (
+        result.selection.fallback_reasons
+    )
+    assert result.selection.fallback_profile_ids == ("focused", "integration")
+
+
+def test_non_direct_target_predecessor_hard_fails(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    first_sha, first = _advance_selector_target(selection_context)
+    assert first_sha
+    second_path = selection_context.root / "src/pkg/core.py"
+    second_path.write_text(second_path.read_text().replace("+ 2", "+ 3"))
+    second_sha = _commit(selection_context.root, "advance selector target again")
+    second = _build_upstreams(
+        selection_context.root,
+        second_sha,
+        selection_context.services,
+        previous=first,
+    )
+
+    with pytest.raises(RepositoryCoverageSelectionError, match="direct successor"):
+        _select_target(selection_context, eligibility, second_sha, second)
+
+
+def test_test_selection_tamper_and_policy_drift_fail_closed(
+    selection_context: _SelectionContext,
+) -> None:
+    eligibility = _eligibility_for_selector(selection_context)
+    base_sha, upstreams = _advance_selector_target(selection_context)
+    result = _select_target(selection_context, eligibility, base_sha, upstreams)
+    path = selection_context.services.artifacts.root / result.selection_ref.removeprefix(
+        "artifact://"
+    )
+    original = path.read_text(encoding="utf-8")
+    path.write_text("{}", encoding="utf-8")
+    service = RepositoryCoverageSelectionService(
+        selection_context.services.artifacts,
+        selection_context.services.coverage,
+        selection_context.services.dispatch,
+    )
+    with pytest.raises(RepositoryCoverageSelectionError, match="integrity"):
+        service.verified_test_selection(result.selection_ref, result.selection_sha256)
+
+    path.write_text(original, encoding="utf-8")
+    drifted = RepositoryCoverageSelectionService(
+        selection_context.services.artifacts,
+        selection_context.services.coverage,
+        selection_context.services.dispatch,
+        max_selected_tests=99_999,
+    )
+    with pytest.raises(RepositoryCoverageSelectionError, match="policy"):
+        drifted.verified_test_selection(result.selection_ref, result.selection_sha256)
+
+
+def test_selector_models_reject_noncanonical_or_executable_claims() -> None:
+    assert CoverageBackedTestSelection.__name__ == "CoverageBackedTestSelection"
+    with pytest.raises(ValueError):
+        CoverageBackedTestSelection.model_validate(
+            {
+                "schema_version": "1",
+                "selection_format": "coverage-backed-test-selection-v1",
+                "authorizes_execution": True,
+            }
+        )

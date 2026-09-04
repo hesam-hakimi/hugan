@@ -112,6 +112,7 @@ class ProductWorkspace:
         coverage_selection = RepositoryCoverageSelectionService(
             artifacts,
             coverage_evidence,
+            dispatch_evidence,
         )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(

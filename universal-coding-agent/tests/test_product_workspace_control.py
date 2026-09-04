@@ -16,6 +16,10 @@ def test_product_workspace_discovered_safe_shares_task_control(tmp_path):
             workspace.coverage_selection.coverage_evidence
             is workspace.coverage_evidence
         )
+        assert (
+            workspace.coverage_selection.dispatch_evidence
+            is workspace.dispatch_evidence
+        )
     finally:
         workspace.close()
 
