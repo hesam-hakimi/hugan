@@ -20,6 +20,10 @@ _EXPORTS = {
         "universal_coding_agent.product.coverage_selection",
         "RepositoryCoverageSelectionService",
     ),
+    "RepositoryCoverageTestExecutionService": (
+        "universal_coding_agent.product.coverage_execution",
+        "RepositoryCoverageTestExecutionService",
+    ),
     "ContextDocumentService": (
         "universal_coding_agent.product.context_documents",
         "ContextDocumentService",

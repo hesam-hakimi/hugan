@@ -11,6 +11,7 @@ from pathlib import Path
 from universal_coding_agent.core.models import RepositorySpec, SandboxInfo
 
 _SHA = re.compile(r"^[0-9a-f]{40,64}$")
+_TASK_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$")
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,15 @@ class CommandResult:
     returncode: int
     stdout: str
     stderr: str
+
+
+@dataclass(frozen=True)
+class SandboxCheckoutState:
+    """Bounded identity evidence for tracked source in one owned sandbox."""
+
+    head_sha: str
+    source_tree_oid: str
+    tracked_worktree_clean: bool
 
 
 class GitSandboxManager:
@@ -59,8 +69,7 @@ class GitSandboxManager:
         else:
             self._run([self.git_binary, "clone", "--mirror", normalized_url, str(mirror)])
         base_sha = self._resolve_ref(mirror, repository.base_ref)
-        sandbox = (self.sandboxes_root / task_id / "repo").resolve()
-        self._assert_contained(sandbox, self.sandboxes_root)
+        sandbox = self.sandbox_path(task_id)
         if sandbox.exists():
             raise FileExistsError(f"sandbox already exists for task {task_id}")
         sandbox.parent.mkdir(parents=True, exist_ok=True)
@@ -76,6 +85,96 @@ class GitSandboxManager:
             base_sha=base_sha,
             path=str(sandbox),
             clean=True,
+        )
+
+    def sandbox_path(self, task_id: str) -> Path:
+        """Resolve one canonical owned-sandbox path without creating it."""
+
+        if not isinstance(task_id, str) or _TASK_ID.fullmatch(task_id) is None:
+            raise ValueError("sandbox task ID is invalid")
+        sandbox = (self.sandboxes_root / task_id / "repo").resolve()
+        self._assert_contained(sandbox, self.sandboxes_root)
+        return sandbox
+
+    def inspect_checkout(self, sandbox_path: Path) -> SandboxCheckoutState:
+        """Read exact commit/tree identity and tracked-worktree cleanliness."""
+
+        root = sandbox_path.resolve()
+        self._assert_contained(root, self.sandboxes_root)
+        if not root.is_dir():
+            raise FileNotFoundError("sandbox checkout was not found")
+        head = self._run_checkout_git(root, ["rev-parse", "HEAD"]).stdout.strip()
+        source_tree = self._run_checkout_git(
+            root, ["rev-parse", "HEAD^{tree}"]
+        ).stdout.strip()
+        if _SHA.fullmatch(head) is None or _SHA.fullmatch(source_tree) is None:
+            raise RuntimeError("sandbox checkout identity is malformed")
+        status = self._run_checkout_git(
+            root,
+            ["status", "--porcelain=v1", "--untracked-files=no"],
+        )
+        return SandboxCheckoutState(
+            head_sha=head,
+            source_tree_oid=source_tree,
+            tracked_worktree_clean=not status.stdout.strip(),
+        )
+
+    def restore_tracked_checkout(
+        self,
+        sandbox_path: Path,
+        *,
+        expected_base_sha: str,
+    ) -> SandboxCheckoutState:
+        """Restore tracked files in one owned sandbox to an exact approved commit."""
+
+        if not isinstance(expected_base_sha, str) or _SHA.fullmatch(
+            expected_base_sha
+        ) is None:
+            raise ValueError("expected sandbox Base SHA is invalid")
+        root = sandbox_path.resolve()
+        self._assert_contained(root, self.sandboxes_root)
+        if not root.is_dir():
+            raise FileNotFoundError("sandbox checkout was not found")
+        self._run_checkout_git(
+            root,
+            ["reset", "--hard", expected_base_sha],
+        )
+        return self.inspect_checkout(root)
+
+    def _run_checkout_git(
+        self,
+        root: Path,
+        arguments: list[str],
+        *,
+        check: bool = True,
+    ) -> CommandResult:
+        """Run fixed checkout-local Git commands without ambient execution helpers."""
+
+        return self._run(
+            [
+                self.git_binary,
+                "--no-pager",
+                "--no-replace-objects",
+                "-c",
+                f"core.hooksPath={os.devnull}",
+                "-c",
+                "credential.helper=",
+                "-c",
+                "credential.interactive=never",
+                "-c",
+                "protocol.ext.allow=never",
+                "-c",
+                "protocol.allow=never",
+                "-c",
+                "core.fsmonitor=false",
+                "-c",
+                "diff.external=",
+                "-C",
+                str(root),
+                *arguments,
+            ],
+            check=check,
+            isolate_git_config=True,
         )
 
     def read_only_git_checks(self, sandbox_path: Path) -> list[dict[str, object]]:
@@ -136,12 +235,28 @@ class GitSandboxManager:
             raise ValueError("repository URL must not embed credentials, query, or fragment")
         return urllib.parse.urlunsplit(parsed)
 
-    def _run(self, arguments: list[str], *, check: bool = True) -> CommandResult:
+    def _run(
+        self,
+        arguments: list[str],
+        *,
+        check: bool = True,
+        isolate_git_config: bool = False,
+    ) -> CommandResult:
         environment = {
             "PATH": os.environ.get("PATH", ""),
             "HOME": os.environ.get("HOME", ""),
             "GIT_TERMINAL_PROMPT": "0",
         }
+        if isolate_git_config:
+            environment.update(
+                {
+                    "GIT_ATTR_NOSYSTEM": "1",
+                    "GIT_CONFIG_GLOBAL": os.devnull,
+                    "GIT_CONFIG_NOSYSTEM": "1",
+                    "GIT_CONFIG_SYSTEM": os.devnull,
+                    "GIT_OPTIONAL_LOCKS": "0",
+                }
+            )
         if os.environ.get("SSH_AUTH_SOCK"):
             environment["SSH_AUTH_SOCK"] = os.environ["SSH_AUTH_SOCK"]
         process = subprocess.run(

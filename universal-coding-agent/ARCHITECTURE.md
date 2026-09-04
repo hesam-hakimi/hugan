@@ -1062,9 +1062,9 @@ contexts do not prove causality for background threads, subprocesses, import-tim
 or unsupported runtimes. P3.4c-2b1 does not claim complete runtime or branch/path coverage, select or
 skip tests, claim a minimal safe test set, analyze additional-language dependencies, inject model
 context, add UI/HTTP behavior, grant arbitrary model shell access, publish source control, merge,
-deploy, or establish production readiness. Conservative selection and stronger privilege-separated
-collection remain separately approved future work. Before P3.4c-2b2 may use this history for a
-selection or skip decision, its separately approved contract must add and validate compatible
+deploy, or establish production readiness. Conservative selection is separately qualified, while
+stronger privilege-separated collection remains future work. P3.4c-2b2 may use this history for a
+selection or skip decision only because its separately approved contract adds and validates compatible
 execution-environment and coverage-collector/configuration identities; this foundation does not
 infer those identities from a Base or test-profile digest.
 
@@ -1108,7 +1108,7 @@ repository snapshot, dependency graph, static call graph, and dynamic-dispatch e
 requiring their former active pointers to remain active. The verifier rechecks their complete
 project, repository, Base, policy, reference/digest, and cross-artifact provenance, rederives the
 coverage symbol mappings, and reloads the chain before returning it. It does not make historical
-evidence current, infer compatibility with a later Base, or bypass the future selector's duty to
+evidence current, infer compatibility with a later Base, or bypass the downstream selector's duty to
 bind that history to the target snapshot's exact predecessor chain.
 
 P3.4c-2b2a does not select, omit, skip, or execute tests; change `TestProfile` argv; integrate with
@@ -1146,7 +1146,57 @@ This slice only returns selected test identities. It does not mutate `TestProfil
 skip a test, authorize execution, integrate with the Safe runner, claim minimality or complete
 runtime causality, call a model/provider, inject model context, expose UI or HTTP behavior, grant
 shell authority, publish source control, merge, deploy, or establish production readiness. Safe
-execution integration and broader change-language support remain separate future slices.
+execution integration is the separate boundary below; broader change-language support remains
+future work.
+
+## Approval-gated coverage-selected test execution
+
+P3.4c-2c consumes one verified P3.4c-2b2b selection artifact but keeps execution authority in a
+separate three-step host control-plane boundary. Preparation creates a fresh isolated clone at the
+selection's exact target Base, verifies every tracked snapshot path against the immutable Base tree
+entry, file mode, Git blob bytes, and snapshot digest, and records a canonical immutable execution
+plan. The plan binds repository, Base ref and SHA, source tree, target snapshot, selection, trusted
+test policy, per-profile command digests, execution policy, service limits, sandbox identity, exact
+test IDs or full-profile mode, and explicit fallback reasons. It fixes `authorizes_execution` to
+false and cannot start a process.
+
+Only an explicit host-provided confirmation of that exact plan digest creates the separate
+hash-bound human-approval receipt. Execution then atomically consumes the durable approval once.
+The states `PREPARED`, `APPROVED`, `RUNNING`, and `COMPLETED` prevent concurrent duplicate starts;
+an exact completed request replays its verified immutable result. A process interrupted after the
+`RUNNING` transition is not automatically retried because the service cannot prove whether the
+approved commands already ran. It remains blocked for a future separately designed explicit
+recovery protocol.
+
+Selected execution is available only for requested profiles that the operator-owned execution
+policy explicitly marks as accepting positional test IDs. Every selected ID is canonical, sorted,
+unique, repository-contained, Python-path-prefixed, bounded, and appended as one positional argv
+element to the unchanged trusted `TestProfile.argv`; command-option and response-file prefixes are
+rejected. The runner uses `shell=False`. A valid selector fallback, or any requested profile without
+this explicit capability, runs every requested trusted profile unchanged and in full. Policy,
+profile, selection, artifact, Base, or capability drift after planning fails closed instead of
+changing the approved mode.
+
+Before the first profile and after the last profile, the service repeats whole-snapshot verification
+against Base tree/blob bytes and rejects tracked index visibility flags such as `assume-unchanged`
+and `skip-worktree`; a shallow exact-HEAD/tree/tracked-status check also runs between profiles to
+stop immediately visible source mutations. Checkout-local Git inspection and reset suppress ambient
+system/global configuration, hooks, fsmonitor, external diff, credential helpers, replacement
+objects, and nonlocal protocols. The result is a bounded canonical receipt containing the plan and
+approval bindings, ordered per-profile results, typed outcome and failure codes, and before/after
+checkout evidence. Tracked source drift triggers a fixed-argv `git reset --hard` to the approved
+Base and another whole-snapshot verification. Rollback success is claimed only when that
+verification passes; rollback failure remains explicit. The original source repository is never a
+test working directory.
+
+This integration intentionally does not feed selected IDs into the existing edit-oriented Safe
+graph: the selector is bound to a clean committed target snapshot, while that graph tests an
+uncommitted edited worktree. It does not collect new coverage, prove test-set minimality, authenticate
+a compromised host runner, isolate repository code at an OS or container boundary, remove
+untracked test artifacts, support additional languages, add model/provider calls, inject model
+context, expose UI or HTTP behavior, grant arbitrary model shell access, publish source control,
+merge, deploy, or establish production readiness. Stronger worker isolation, explicit recovery for
+indeterminate `RUNNING` executions, and edited-source selection semantics remain separate work.
 
 ## Context management
 

@@ -20,6 +20,11 @@ def test_product_workspace_discovered_safe_shares_task_control(tmp_path):
             workspace.coverage_selection.dispatch_evidence
             is workspace.dispatch_evidence
         )
+        assert workspace.coverage_execution.artifacts is workspace.artifacts
+        assert (
+            workspace.coverage_execution.coverage_selection
+            is workspace.coverage_selection
+        )
     finally:
         workspace.close()
 
@@ -29,6 +34,7 @@ def test_product_public_exports_are_cycle_safe_after_safe_service_import():
         ProductWorkspace,
         RepositoryCoverageEvidenceService,
         RepositoryCoverageSelectionService,
+        RepositoryCoverageTestExecutionService,
         TaskControlService,
     )
     from universal_coding_agent.safe_service import SafeAgentService
@@ -40,5 +46,8 @@ def test_product_public_exports_are_cycle_safe_after_safe_service_import():
     )
     assert RepositoryCoverageSelectionService.__name__ == (
         "RepositoryCoverageSelectionService"
+    )
+    assert RepositoryCoverageTestExecutionService.__name__ == (
+        "RepositoryCoverageTestExecutionService"
     )
     assert TaskControlService.__name__ == "TaskControlService"

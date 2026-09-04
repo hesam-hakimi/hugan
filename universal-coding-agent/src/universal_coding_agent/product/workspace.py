@@ -9,6 +9,9 @@ from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentSe
 from universal_coding_agent.product.call_graphs import RepositoryCallGraphService
 from universal_coding_agent.product.context_documents import ContextDocumentService
 from universal_coding_agent.product.coverage_evidence import RepositoryCoverageEvidenceService
+from universal_coding_agent.product.coverage_execution import (
+    RepositoryCoverageTestExecutionService,
+)
 from universal_coding_agent.product.coverage_selection import (
     RepositoryCoverageSelectionService,
 )
@@ -37,6 +40,7 @@ from universal_coding_agent.providers.base import (
     ModelProvider,
     RemoteOperationLeaseAwareProvider,
 )
+from universal_coding_agent.sandbox.git import GitSandboxManager
 from universal_coding_agent.storage.artifacts import ArtifactStore
 
 
@@ -54,6 +58,7 @@ class ProductWorkspace:
     dispatch_evidence: RepositoryDispatchEvidenceService
     coverage_evidence: RepositoryCoverageEvidenceService
     coverage_selection: RepositoryCoverageSelectionService
+    coverage_execution: RepositoryCoverageTestExecutionService
     search: SearchService
     requirements: RequirementAlignmentService
     programs: ProgramOrchestrator
@@ -114,6 +119,12 @@ class ProductWorkspace:
             coverage_evidence,
             dispatch_evidence,
         )
+        coverage_execution = RepositoryCoverageTestExecutionService(
+            root / "coverage-test-executions.sqlite",
+            artifacts,
+            coverage_selection,
+            GitSandboxManager(root / "coverage-test-execution"),
+        )
         requirements = RequirementAlignmentService(artifacts, provider, search)
         programs = ProgramOrchestrator(
             root / "programs.sqlite",
@@ -135,6 +146,7 @@ class ProductWorkspace:
             dispatch_evidence=dispatch_evidence,
             coverage_evidence=coverage_evidence,
             coverage_selection=coverage_selection,
+            coverage_execution=coverage_execution,
             search=search,
             requirements=requirements,
             programs=programs,
@@ -144,6 +156,7 @@ class ProductWorkspace:
         )
 
     def close(self) -> None:
+        self.coverage_execution.close()
         self.programs.close()
         self.project_decisions.close()
         self.knowledge_packs.close()

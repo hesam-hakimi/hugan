@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
@@ -24,6 +25,50 @@ from universal_coding_agent.safety.sanitizer import sanitize_text
 
 TRUSTED_TEST_ADAPTER_PATH_ENV = "UCA_TRUSTED_TEST_ADAPTER_PATH"
 TRUSTED_TEST_PAUSABLE_FACTORY_ENV = "UCA_TRUSTED_TEST_PAUSABLE_FACTORY"
+
+
+def validate_selected_test_ids(test_ids: tuple[str, ...]) -> tuple[str, ...]:
+    """Return canonical positional test IDs or reject option/path injection."""
+
+    if not isinstance(test_ids, tuple) or not test_ids:
+        raise ValueError("selected test IDs must be a non-empty tuple")
+    if test_ids != tuple(sorted(set(test_ids))):
+        raise ValueError("selected test IDs must be unique and sorted")
+    for test_id in test_ids:
+        if (
+            not isinstance(test_id, str)
+            or not test_id
+            or test_id != test_id.strip()
+            or len(test_id.encode("utf-8")) > 8_192
+            or any(ord(character) < 32 for character in test_id)
+        ):
+            raise ValueError("selected test ID is invalid")
+        test_path = test_id.split("::", 1)[0]
+        if test_path.startswith(("-", "@")):
+            raise ValueError("selected test ID may not use command-option syntax")
+        try:
+            normalized_path = normalize_repository_path(test_path)
+        except ValueError as exc:
+            raise ValueError("selected test ID path is not contained") from exc
+        if normalized_path != test_path or not test_path.endswith(".py"):
+            raise ValueError("selected test ID must begin with a canonical Python test path")
+    return test_ids
+
+
+def _validated_profile_ids(profile_ids: tuple[str, ...]) -> tuple[str, ...]:
+    if not isinstance(profile_ids, tuple) or not profile_ids:
+        raise ValueError("at least one test profile is required")
+    if len(profile_ids) != len(set(profile_ids)):
+        raise ValueError("test profile IDs must be unique")
+    if any(
+        not isinstance(profile_id, str)
+        or not profile_id
+        or profile_id != profile_id.strip()
+        or any(ord(character) < 32 for character in profile_id)
+        for profile_id in profile_ids
+    ):
+        raise ValueError("test profile ID is invalid")
+    return profile_ids
 
 
 class _PausableTestHandle(Protocol):
@@ -93,10 +138,55 @@ class SafeTestRunner:
         *,
         cancellation: CancellationSignal | None = None,
     ) -> tuple[TestExecutionResult, ...]:
+        return self._run_profiles(
+            sandbox,
+            policy,
+            profile_ids,
+            selected_test_ids=None,
+            cancellation=cancellation,
+        )
+
+    def run_selected_profiles(
+        self,
+        sandbox: Path,
+        policy: SafeModePolicy,
+        profile_ids: tuple[str, ...],
+        selected_test_ids: Mapping[str, tuple[str, ...]],
+        *,
+        cancellation: CancellationSignal | None = None,
+    ) -> tuple[TestExecutionResult, ...]:
+        """Append only validated positional test IDs to trusted profile argv."""
+
+        requested = _validated_profile_ids(profile_ids)
+        if set(selected_test_ids) != set(requested):
+            raise ValueError(
+                "selected-test mapping must match the requested test profiles"
+            )
+        normalized = {
+            profile_id: validate_selected_test_ids(selected_test_ids[profile_id])
+            for profile_id in requested
+        }
+        return self._run_profiles(
+            sandbox,
+            policy,
+            requested,
+            selected_test_ids=normalized,
+            cancellation=cancellation,
+        )
+
+    def _run_profiles(
+        self,
+        sandbox: Path,
+        policy: SafeModePolicy,
+        profile_ids: tuple[str, ...],
+        *,
+        selected_test_ids: Mapping[str, tuple[str, ...]] | None,
+        cancellation: CancellationSignal | None,
+    ) -> tuple[TestExecutionResult, ...]:
         root = sandbox.resolve()
         profiles = policy.profile_map()
         results: list[TestExecutionResult] = []
-        for profile_id in profile_ids:
+        for profile_id in _validated_profile_ids(profile_ids):
             if cancellation is not None:
                 cancellation.raise_if_cancelled()
             profile = profiles.get(profile_id)
@@ -112,6 +202,10 @@ class SafeTestRunner:
             if not cwd.is_dir():
                 raise ValueError(f"test working directory does not exist: {profile.cwd}")
 
+            argv = tuple(profile.argv)
+            if selected_test_ids is not None:
+                argv += selected_test_ids[profile_id]
+
             environment = {
                 "PATH": os.environ.get("PATH", ""),
                 "HOME": os.environ.get("HOME", ""),
@@ -122,7 +216,7 @@ class SafeTestRunner:
             started = time.monotonic()
             start_profile = partial(
                 subprocess.Popen,
-                list(profile.argv),
+                list(argv),
                 cwd=cwd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -137,7 +231,7 @@ class SafeTestRunner:
                 start_pausable_test = partial(
                     _create_pausable_test_handle,
                     factory,
-                    argv=tuple(profile.argv),
+                    argv=argv,
                     cwd=str(cwd),
                     env=dict(environment),
                     timeout_seconds=profile.timeout_seconds,
