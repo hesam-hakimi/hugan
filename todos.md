@@ -1,168 +1,209 @@
-# ETL\-0904\-REVIEW02A — Independent Classification and Evidence Review
 
-Run this prompt in a fresh local VS Code Agent chat with a reviewer that did not implement `ETL-0904-IMPL04` and did not perform its same\-session self\-review\. Use a strong review model in the normal local engineering environment\. You are not the ETL Orchestrator\.
+TASK_ID: ETL-0904-DIAG08
+TYPE: READ-ONLY RECONCILIATION — WHAT IMPL04 ACTUALLY CHANGED
 
-## 1\. Task and authorization boundary
+Run this in a fresh, normal local VS Code Agent chat on Windows. Not the
+implementing Agent, and not the ETL Orchestrator.
 
-Perform an independent, read\-only source review of the already\-existing combined `ETL-0904-IMPL04` diff, limited to:
+Echo TASK_ID: ETL-0904-DIAG08 as the first line of your report.
 
-- `B3` — failure classification, accumulation, and precedence;
-- `M2` — post\-exit verification and evidence\-write failure behavior; and
-- `M3` — evidence\-path authorization timing and containment\.
+Do not edit any file. Do not use any patch, edit, or write tool. Do not
+accept, discard, Keep, Undo, or otherwise resolve any pending VS Code
+chat edit — several hold unresolved entries against a much older
+snapshot; leave every one exactly as it is. No type-check, compile,
+lint, emit, test execution, runner, Extension Host, npm install, stage,
+commit, stash, merge, rebase, checkout, restore, reset, or clean.
+Read-only commands only. Prefer git --no-optional-locks.
 
-This review authorizes only read\-only identity, status, source, diff, local\-history, and immutable\-artifact inspection needed to review those three requirements\.
+Report what you find. Fix nothing. Propose nothing.
 
-Do not:
+REPOSITORY
+Active worktree:
+  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Linked primary worktree:
+  C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+The first is a LINKED GIT WORKTREE of the second. It has no local .git
+directory; its index and index.lock live under the parent. Expect
+--git-dir and --git-common-dir to differ. Do not enter or modify the
+primary worktree; read-only inspection of its recorded state only.
 
-- edit, format, save, stage, reset, restore, checkout, commit, push, merge, or otherwise mutate any file or Git state;
-- press or invoke `Keep`, `Undo`, or any pending\-chat edit action;
-- run type\-check, compile, test, parser, runner, Extension Host, package, install, activation, or consumer\-workspace commands;
-- review or certify `B1`, `B2`, `B4`, `M1`, `M4`, `M5`, `C1`, `C2`, the 11\-path policy list, or release readiness;
-- treat the implementing Agent’s self\-review, screenshots, or report as independent evidence; or
-- repair anything you find\.
+DERIVE EVERYTHING YOURSELF
+Use the listed paths only for navigation and scope. Independently
+re-derive every repository identity, hash, count, timestamp, diffstat,
+and live line number.
 
-If you implemented or self\-reviewed `ETL-0904-IMPL04`, stop with:
+EPISTEMIC RULES FOR THIS TASK — these govern every answer below
 
-`ETL_0904_REVIEW02A_RESULT: BLOCKED_REVIEWER_NOT_INDEPENDENT`
+1. Absence of evidence is not evidence of absence. If VS Code local
+   history holds no entry for a file, the answer is UNKNOWN, never zero
+   and never "unchanged".
+2. This task can only attribute *currently dirty* state to a time
+   window. A file changed during the window and later reverted may leave
+   no trace. Where you cannot exclude that, say so explicitly rather
+   than reporting a clean result.
+3. An mtime is an observation, not proof of what produced it. Report
+   mtimes as observations; do not infer that a compile occurred.
+4. "The change is present" is not "the change is correct" and is not
+   "the change is qualified". Report presence only.
+5. `git diff --no-index` exits 1 when the two inputs differ. That is a
+   difference, not a command failure. Do not report it as an error and
+   do not stop on it.
 
-## 2\. Re\-derive identity before review
+BACKGROUND
+Task ETL-0904-IMPL04 was authorised to modify exactly three source
+files. Its report claimed a diffstat of +416/-113. An independent review
+could not reproduce that figure and derived +240/-35 — but only for the
+two files for which it had a baseline, while the claim covered three.
+The two figures are therefore not directly comparable, and neither is an
+authoritative IMPL04 diffstat until the third file's baseline is located.
 
-Independently confirm all of the following before inspecting conclusions:
+Separately, one of IMPL04's repairs — B1 — modified product code rather
+than test tooling. Its status is currently recorded as
+REPORTED_APPLIED_BUT_UNVERIFIED. Resolving that to a definite presence
+value is part of this task.
 
-- Active worktree: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
-- Linked primary worktree: `C:\repos\etl-extension\etl_framework_extension_hf1_v2`
-- Branch: `fix/workspace-write-completion-0.3.148`
-- HEAD: `45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19`
-- Manifest version: `0.3.147`
-- Extension identifier: `td-etl.databricks-etl-copilot`
+WHAT TO ESTABLISH
 
-The expected logical working\-tree inventory after the already\-executed combined task is:
+Q1 — THE CURRENT DIRTY INVENTORY
+Report `git status --porcelain=v1 --untracked-files=all` verbatim, and
+`git diff --numstat` for the whole worktree. Note explicitly that
+numstat covers tracked files only.
 
-```text
- M .github/templates/request.md
- M src/core/sttm/SttmUnderstandingReportRenderer.ts
- M src/extension.ts
- M src/test/runTest.ts
- M src/test/suite/index.ts
-?? src/test/suite/sttmRealHostStructuredResult.test.ts
-```
+For every dirty path — tracked or untracked — give SHA-256, byte size,
+line count, and line-ending counts. Report whether anything is staged.
 
-Re\-derive this inventory; do not accept it as proof\. Also confirm that the staging index is empty and that no `index.lock` or equivalent active mutation indicator exists\.
+Q2 — WHICH PATHS CHANGED DURING THE IMPL04 WINDOW
+The three authorised files were:
+  src/core/sttm/SttmUnderstandingReportRenderer.ts
+  src/test/runTest.ts
+  src/test/suite/sttmRealHostStructuredResult.test.ts
 
-If identity or inventory differs materially, stop with:
+First establish the window itself from local-history timestamps and the
+chat-request labels in entries.json. State it explicitly before using
+it, and report:
+  WINDOW_STATUS: ESTABLISHED | PARTIAL | UNKNOWN
 
-`ETL_0904_REVIEW02A_RESULT: BLOCKED_BASELINE_DRIFT`
+If PARTIAL or UNKNOWN, do not make definite attribution claims anywhere
+in this report. Report what the evidence supports and mark the rest
+UNKNOWN.
 
-Report the exact observed difference\. Do not repair it\.
+Then, for every dirty path — authorised or not — determine whether it
+was modified inside that window, using %APPDATA%\Code\User\History. For
+each report:
+  a. the history folder and the resource it maps to, or NO_HISTORY_FOUND;
+  b. every entry with timestamp and size, chronologically;
+  c. the last entry preceding the window and the first entry after it,
+     each identified by timestamp and chat-request label;
+  d. whether the on-disk file is byte-identical to the latest entry.
 
-## 3\. Recover the exact pre\-`IMPL04` baseline
+If no history folder exists for a path, report UNKNOWN for that path and
+say what would settle it. Do not treat it as unchanged.
 
-The review must compare the current `src/test/runTest.ts` against the exact state immediately before `ETL-0904-IMPL04`, not merely against `HEAD`\.
+Finally state either:
+  - no dirty path outside the three authorised files shows a
+    within-window modification, **and** name which paths this conclusion
+    could not cover and why;
+  - or name each unauthorised path that does.
 
-Recover that baseline from VS Code local history, a retained immutable snapshot, or another provenance\-bearing artifact that can be tied to the pre\-task state\. Record the artifact identity, timestamp/version, path, and cryptographic digest if available\.
+Q3 — REPRODUCE THE DIFFSTAT, OR SHOW IT CANNOT BE
+For each of the three authorised files, diff its last pre-window
+local-history entry against the current on-disk file.
 
-Do not assume `HEAD` is the baseline: `src/test/runTest.ts` was already dirty before `IMPL04`\.
+One of the three is untracked, so a diff against the index will not see
+it. Use `git --no-optional-locks diff --no-index` between history entry
+and working file for **all three**, so every file is measured the same
+way. Exit code 1 means the files differ; see epistemic rule 5.
 
-If the exact pre\-task baseline cannot be recovered, stop with:
+Report numstat per file and the total. Then recompute the total under
+each of: default, `-w`, `--ignore-cr-at-eol`, and
+`--diff-algorithm={minimal,patience,histogram}`.
 
-`ETL_0904_REVIEW02A_RESULT: BLOCKED_BASELINE_UNRECOVERABLE`
+State which combination, if any, yields +416/-113 and which yields
++240/-35. If a baseline is missing for any file, report that file's
+contribution as UNKNOWN and carry the UNKNOWN into the total rather than
+omitting the file.
 
-Do not infer the diff from screenshots or the implementing Agent’s narrative\.
+If neither figure is reproducible, answer exactly:
+DIFFSTAT_ORIGIN: CANNOT_DETERMINE_STATICALLY
 
-## 4\. Evidence discipline
+Do not assume the larger figure is wrong. Consider that one measurement
+may have covered a file the other could not.
 
-Treat the following as `REPORTED`, not verified facts:
+Q4 — THE PRESENCE, NOT THE CORRECTNESS, OF B1
+B1 required changing the Markdown mapping target in
+SttmUnderstandingReportRenderer.ts to the short human projection
+`tgt_customers.customer_name`, while the structured channel stays fully
+qualified as `target_db.tgt_customers.customer_name`.
 
-- the reported `+416/-113` across three files;
-- the implementing Agent’s eight self\-found defects and claimed corrections;
-- its claims of zero unauthorized edits, preserved hashes, empty staging, and clean whitespace;
-- its claim that `B3`, `M2`, and `M3` are closed; and
-- any screenshot text calling the same\-session review “independent\.”
+Report, from the file as it stands:
+  a. whether the file is dirty, and its full diff against HEAD;
+  b. the code producing the Markdown target today, quoted with live line
+     numbers;
+  c. the code producing the structured target today, quoted;
+  d. whether a `filter(Boolean).join('.')` or equivalent silent collapse
+     remains at the changed seam;
+  e. whether a missing component is distinguishable from a legitimate
+     absent component, and by what mechanism.
 
-For every finding, cite the current file path and exact line/symbol, plus the matching pre\-`IMPL04` baseline location\. Distinguish direct source evidence from Agent claims\.
+Then state one of:
+  B1_STATUS: APPLIED / NOT_APPLIED / PARTIALLY_APPLIED / CANNOT_DETERMINE
 
-## 5\. Review `B3` — classification, accumulation, and precedence
+**APPLIED means only that the change is present in source.** It does not
+mean correct, complete, or qualified. Do not assess product correctness;
+a separate independent review will do that.
 
-Establish whether the current implementation makes all of these properties explicit and falsifiable:
+Q5 — DID ANYTHING ELSE MOVE
+Report whether each of these is byte-identical to HEAD, and if not, the
+full diff:
+  src/extension.ts
+  src/test/suite/index.ts
+  .github/templates/request.md
+  package.json
+  tsconfig.json
+  tsconfig.test.json
 
-1. The formal qualification verdict and the observation/failure ledger are separate data\.
-2. Classification precedence is exactly `evidence-write` → `infrastructure` → `product`, with the formal run verdict rules applied consistently; explain any distinction between classification labels and verdict precedence\.
-3. A `product` failure can be promoted only after the product\-observation boundary has actually been reached\.
-4. Failures accumulate instead of being overwritten by later failures\.
-5. The same failure cannot be promoted in both an outer catch and finalization\.
-6. Process exit code and final verdict are derived from the same final state\.
-7. Exit code `1` by itself is not converted into a valid product `FAIL` without the required product evidence\.
-8. A retained product mismatch remains visible in the observation ledger even when a later infrastructure or evidence\-write condition makes the formal verdict `BLOCKED`\.
+For .tsbuildinfo.test, first report its state as one of
+TRACKED / UNTRACKED / IGNORED / ABSENT, with the deciding evidence. Only
+if TRACKED does "clean against HEAD" mean anything; report it only in
+that case.
 
-Look specifically for masking, duplicate entries, last\-write\-wins behavior, stage ambiguity, catch/finally races, and a path where a later failure consumes the original cause\.
+Report whether any file under out/ has an mtime later than the window
+start. **Label this an observation only.** A later mtime does not
+establish that a compile ran, and you must not infer one.
 
-## 6\. Review `M2` — post\-exit verification and evidence persistence
+Q6 — THE PROTECTED POLICY, AS IT NOW EXISTS IN SOURCE
+Locate the protected-path list in source as it stands. Report its exact
+contents in file order, its length, whether it is strictly sorted, where
+it is declared, and every site deriving a count from it. Report any
+remaining numeric literal used as a protected-set cardinality.
 
-Establish whether:
+The owner policy is already fixed: **every compiled artifact actually
+loaded by the focused Extension Host, plus package.json.** This task
+reports only the current source list. Whether that list is correctly
+derived from the policy remains unverified and belongs to
+R148-POLICY-00. Do not attempt that derivation here, and do not re-open
+the policy.
 
-1. Parent post\-exit verification is actually invoked on every relevant exit path rather than merely declared\.
-2. Pre\-run, host\-run, post\-exit, and evidence\-write failures have distinct stages\.
-3. The primary failure is preserved when full evidence cannot be written\.
-4. The reduced record is explicitly incomplete and cannot be mistaken for complete or passing evidence\.
-5. Reduced evidence is non\-overwriting and exclusive; it cannot overwrite a valid full record or another run’s evidence\.
-6. A secondary persistence failure never masks the primary failure\.
-7. Unrecoverable evidence\-destination loss produces explicit stderr, a nonzero exit, and an `evidence-write` classification when a record cannot be retained\.
-8. The reported “`evidence-write` tier is a no\-op in the full\-write path” cannot cause a full\-write failure to escape classification or produce a misleading verdict\.
-
-Do not accept the existence of declarations or schemas as proof that the post\-exit path executes\.
-
-## 7\. Review `M3` — authorization timing and containment
-
-Establish whether:
-
-1. The isolation root is proven safe before any evidence destination is authorized\.
-2. The evidence path is resolved and authorized immediately after the isolation root, early enough that every later gate can emit a reduced failure record\.
-3. Authorization is limited to the exact evidence destination and does not broaden write authority\.
-4. Every emitted stage accurately describes the point at which the failure occurred\.
-5. Repository, installed\-extension, profile, consumer\-workspace, QA workbook, and unrelated temporary paths remain outside the write boundary\.
-6. No fallback path silently relocates evidence into an unauthorized location\.
-
-## 8\. Adjacent\-code rule
-
-You may inspect adjacent code only when needed to prove or disprove `B3`, `M2`, or `M3`\. Do not certify adjacent requirements\. In particular:
-
-- do not decide whether the owner\-required target renderer is correct &#40;`B1`&#41;;
-- do not certify activation observations, PID parsing, tool\-list authority, parser wrapping, or channel projection &#40;`B2`, `B4`, `M1`, `M5`, `C1`, `C2`&#41;;
-- do not ratify the current 11\-path list; the owner policy is to derive the set from every compiled artifact actually loaded by the focused Host run, plus `package.json`; and
-- do not treat compile plausibility as a successful type\-check\.
-
-## 9\. Required report
-
-Return a compact but complete report with:
-
-1. reviewer independence statement;
-2. re\-derived identity and exact working\-tree inventory;
-3. pre\-`IMPL04` baseline provenance;
-4. a requirement matrix for `B3`, `M2`, and `M3`, each marked `ACCEPT`, `BLOCKER`, `MAJOR`, `MINOR`, or `UNKNOWN`;
-5. exact source citations for every finding;
-6. any interaction among the three reviewed requirements;
-7. a list of claims left outside scope and explicitly not certified; and
-8. one final verdict token\.
-
-Use exactly one of:
-
-```text
-ETL_0904_REVIEW02A_RESULT: ACCEPTABLE
-ETL_0904_REVIEW02A_RESULT: CHANGES_REQUIRED
-ETL_0904_REVIEW02A_RESULT: BLOCKED_BASELINE_UNRECOVERABLE
-ETL_0904_REVIEW02A_RESULT: BLOCKED_BASELINE_DRIFT
-ETL_0904_REVIEW02A_RESULT: BLOCKED_REVIEWER_NOT_INDEPENDENT
-```
-
-Then end with exactly:
-
-```text
-FILES_CHANGED_BY_REVIEW: 0
-TYPECHECK_COMPILE_OR_TEST_EXECUTED: NO
-PARSER_RUNNER_OR_HOST_EXECUTED: NO
-GIT_MUTATION_OR_PENDING_EDIT_ACTION: NO
-PRODUCT_OR_OTHER_TRANCHE_CERTIFIED: NO
-NEXT_GATE_IF_ACCEPTABLE: ETL-0904-REVIEW02B
-```
-
-Do not begin `REVIEW02B`, create a repair prompt, or perform any next action in this session\.
+REPORT
+1. TASK_ID line.
+2. WINDOW_STATUS and the window as you established it.
+3. Q1 to Q6 in order, with raw command output where relevant.
+4. Every command you ran, and confirmation all were read-only and that
+   HEAD was never moved in either worktree.
+5. Anything found that this prompt did not ask about — reported, not
+   changed.
+6. Close with exactly:
+     TASK_ID: ETL-0904-DIAG08
+     WINDOW_STATUS: <ESTABLISHED | PARTIAL | UNKNOWN>
+     DIRTY_PATHS: <n>
+     CURRENT_UNAUTHORISED_DIRTY_PATHS_ATTRIBUTED_TO_WINDOW: <n | UNKNOWN>
+     TRANSIENT_OR_REVERTED_UNAUTHORISED_CHANGES: <NONE_PROVEN | FOUND | UNKNOWN>
+     PATHS_WITH_NO_LOCAL_HISTORY: <n>
+     DIFFSTAT_REPRODUCED: <figure | CANNOT_DETERMINE_STATICALLY>
+     B1_STATUS: <APPLIED | NOT_APPLIED | PARTIALLY_APPLIED | CANNOT_DETERMINE>
+     PROTECTED_LIST_LENGTH: <n>
+     REMAINING_CARDINALITY_LITERALS: <n>
+     FILES_MODIFIED: NONE
+     PENDING_EDITOR_CHANGES_RESOLVED: NONE
+     COMPILE_OR_TEST_EXECUTED: NO
+7. Stop.
