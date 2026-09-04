@@ -821,6 +821,60 @@ class RepositoryCoverageEvidenceService:
             evidence=verified_evidence,
         )
 
+    def verify_exact_snapshot_source(
+        self,
+        *,
+        project_id: str,
+        root: Path,
+        expected_snapshot_ref: str,
+        expected_snapshot_sha256: str,
+    ) -> str:
+        """Verify every indexed source byte against one immutable snapshot and Base tree."""
+
+        self._validate_project_id(project_id)
+        try:
+            snapshot = self.repository_indexes.verified_snapshot(
+                expected_snapshot_ref,
+                expected_sha256=expected_snapshot_sha256,
+            )
+        except RepositoryIndexError as exc:
+            raise RepositoryCoverageEvidenceError(
+                "repository snapshot failed source verification"
+            ) from exc
+        if (
+            snapshot.project_id != project_id
+            or snapshot.namespace != self.repository_indexes.namespace(project_id)
+        ):
+            raise RepositoryCoverageEvidenceError(
+                "repository snapshot source scope does not match"
+            )
+        deadline = time.monotonic() + self.git_timeout_seconds
+        self._verify_clean_base(root, snapshot.base_sha, deadline=deadline)
+        source_tree_oid = self._source_tree_oid(
+            root,
+            snapshot.base_sha,
+            deadline=deadline,
+        )
+        self._verify_observed_source(
+            root,
+            snapshot.base_sha,
+            {item.path: item for item in snapshot.files},
+            [],
+            (),
+            (),
+            deadline,
+        )
+        self._verify_clean_base(root, snapshot.base_sha, deadline=deadline)
+        if self._source_tree_oid(
+            root,
+            snapshot.base_sha,
+            deadline=deadline,
+        ) != source_tree_oid:
+            raise RepositoryCoverageEvidenceError(
+                "repository source tree changed during snapshot verification"
+            )
+        return source_tree_oid
+
     def verified_active_evidence(
         self,
         *,

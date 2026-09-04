@@ -89,6 +89,10 @@
   reverse Python dependency impact; identity-qualified per-test coverage; fail-closed static-call
   and dynamic-dispatch uncertainty; hash-addressed selected-test or complete-profile-fallback
   artifacts; no execution authorization or minimality claim;
+- [x] P3.4c-2c approval-gated coverage-selected test execution: immutable exact-Base plans;
+  explicit hash-bound human approval; operator-opted-in positional test IDs or complete requested
+  profile fallback; isolated one-shot execution; bounded canonical receipts; exact source
+  verification, drift detection, and verified tracked rollback; durable replay and restart safety;
 - P3.4c-3 additional-language dependency analysis;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
