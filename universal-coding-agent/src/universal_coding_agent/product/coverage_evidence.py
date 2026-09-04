@@ -32,6 +32,10 @@ from universal_coding_agent.product.call_graphs import (
     PythonSymbol,
     RepositoryCallGraphError,
 )
+from universal_coding_agent.product.dependency_graphs import (
+    PythonDependencyGraph,
+    RepositoryDependencyError,
+)
 from universal_coding_agent.product.dispatch_evidence import (
     DISPATCH_EVIDENCE_POLICY_VERSION,
     PythonDispatchEvidence,
@@ -459,6 +463,18 @@ class RepositoryCoverageEvidenceResult(FrozenModel):
     replayed: bool = False
 
 
+@dataclass(frozen=True)
+class VerifiedHistoricalCoverageEvidence:
+    """One immutable coverage chain verified without trusting active pointers."""
+
+    evidence: RepositoryCoverageEvidence
+    run: TrustedCoverageRun
+    repository_snapshot: RepositoryIndexSnapshot
+    dependency_graph: PythonDependencyGraph
+    call_graph: PythonCallGraph
+    dispatch_evidence: PythonDispatchEvidence
+
+
 class RepositoryCoverageEvidenceService:
     """Record host-attested line contexts without executing or selecting tests."""
 
@@ -864,6 +880,206 @@ class RepositoryCoverageEvidenceService:
                 "coverage evidence does not match its trusted run and call graph"
             )
         return state, evidence
+
+    def verified_historical_evidence(
+        self,
+        *,
+        project_id: str,
+        trusted_test_policy: SafeModePolicy,
+        expected_evidence_ref: str,
+        expected_evidence_sha256: str,
+    ) -> VerifiedHistoricalCoverageEvidence:
+        """Verify an explicit immutable coverage chain after active upstreams advance."""
+
+        self._validate_project_id(project_id)
+        self._verify_trusted_policy_bounds(trusted_test_policy)
+
+        def load_chain() -> VerifiedHistoricalCoverageEvidence:
+            evidence = self._load(
+                expected_evidence_ref,
+                expected_evidence_sha256,
+            )
+            self._verify_compatibility(evidence, project_id, trusted_test_policy)
+            run = self._load_run(
+                evidence.trusted_run_ref,
+                evidence.trusted_run_sha256,
+            )
+            try:
+                snapshot = self.repository_indexes.verified_snapshot(
+                    evidence.repository_snapshot_ref,
+                    expected_sha256=evidence.repository_snapshot_sha256,
+                )
+                self.repository_indexes._verify_compatible_previous(
+                    snapshot,
+                    project_id=project_id,
+                    repository_url=evidence.repository_url,
+                    base_ref=evidence.base_ref,
+                    policy_sha256=self.repository_indexes._policy_sha256(),
+                )
+                dependency_graph = self.call_graphs.dependencies._load_graph(
+                    evidence.dependency_graph_ref,
+                    evidence.dependency_graph_sha256,
+                )
+                self.call_graphs.dependencies._verify_graph_compatibility(
+                    dependency_graph,
+                    project_id=project_id,
+                )
+                call_graph = self.call_graphs._load_graph(
+                    evidence.call_graph_ref,
+                    evidence.call_graph_sha256,
+                )
+                self.call_graphs._verify_graph_compatibility(
+                    call_graph,
+                    project_id=project_id,
+                )
+                dispatch_evidence = self.dispatch_evidence._load(
+                    evidence.dispatch_evidence_ref,
+                    evidence.dispatch_evidence_sha256,
+                )
+                self.dispatch_evidence._verify_compatibility(
+                    dispatch_evidence,
+                    project_id,
+                )
+            except (
+                RepositoryIndexError,
+                RepositoryDependencyError,
+                RepositoryCallGraphError,
+                RepositoryDispatchEvidenceError,
+            ) as exc:
+                raise RepositoryCoverageEvidenceError(
+                    "historical coverage upstream verification failed"
+                ) from exc
+            return VerifiedHistoricalCoverageEvidence(
+                evidence=evidence,
+                run=run,
+                repository_snapshot=snapshot,
+                dependency_graph=dependency_graph,
+                call_graph=call_graph,
+                dispatch_evidence=dispatch_evidence,
+            )
+
+        historical = load_chain()
+        evidence = historical.evidence
+        snapshot = historical.repository_snapshot
+        dependency_graph = historical.dependency_graph
+        call_graph = historical.call_graph
+        dispatch_evidence = historical.dispatch_evidence
+        common_provenance = (
+            evidence.project_id,
+            evidence.repository_url,
+            evidence.base_ref,
+            evidence.base_sha,
+        )
+        if (
+            snapshot.project_id,
+            snapshot.repository_url,
+            snapshot.base_ref,
+            snapshot.base_sha,
+        ) != common_provenance:
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage snapshot provenance does not match"
+            )
+        if (
+            dependency_graph.project_id,
+            dependency_graph.repository_url,
+            dependency_graph.base_ref,
+            dependency_graph.base_sha,
+            dependency_graph.repository_snapshot_ref,
+            dependency_graph.repository_snapshot_sha256,
+        ) != (
+            *common_provenance,
+            evidence.repository_snapshot_ref,
+            evidence.repository_snapshot_sha256,
+        ):
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage dependency provenance does not match"
+            )
+        if (
+            call_graph.project_id,
+            call_graph.repository_url,
+            call_graph.base_ref,
+            call_graph.base_sha,
+            call_graph.repository_snapshot_ref,
+            call_graph.repository_snapshot_sha256,
+            call_graph.dependency_graph_ref,
+            call_graph.dependency_graph_sha256,
+        ) != (
+            *common_provenance,
+            evidence.repository_snapshot_ref,
+            evidence.repository_snapshot_sha256,
+            evidence.dependency_graph_ref,
+            evidence.dependency_graph_sha256,
+        ):
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage call-graph provenance does not match"
+            )
+        if (
+            dispatch_evidence.project_id,
+            dispatch_evidence.repository_url,
+            dispatch_evidence.base_ref,
+            dispatch_evidence.base_sha,
+            dispatch_evidence.repository_snapshot_ref,
+            dispatch_evidence.repository_snapshot_sha256,
+            dispatch_evidence.dependency_graph_ref,
+            dispatch_evidence.dependency_graph_sha256,
+            dispatch_evidence.call_graph_ref,
+            dispatch_evidence.call_graph_sha256,
+        ) != (
+            *common_provenance,
+            evidence.repository_snapshot_ref,
+            evidence.repository_snapshot_sha256,
+            evidence.dependency_graph_ref,
+            evidence.dependency_graph_sha256,
+            evidence.call_graph_ref,
+            evidence.call_graph_sha256,
+        ):
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage dispatch provenance does not match"
+            )
+
+        dispatch_state = RepositoryDispatchEvidenceState(
+            namespace=dispatch_evidence.namespace,
+            project_id=dispatch_evidence.project_id,
+            repository_url=dispatch_evidence.repository_url,
+            base_ref=dispatch_evidence.base_ref,
+            base_sha=dispatch_evidence.base_sha,
+            repository_snapshot_ref=dispatch_evidence.repository_snapshot_ref,
+            repository_snapshot_sha256=dispatch_evidence.repository_snapshot_sha256,
+            dependency_graph_ref=dispatch_evidence.dependency_graph_ref,
+            dependency_graph_sha256=dispatch_evidence.dependency_graph_sha256,
+            call_graph_ref=dispatch_evidence.call_graph_ref,
+            call_graph_sha256=dispatch_evidence.call_graph_sha256,
+            evidence_ref=evidence.dispatch_evidence_ref,
+            evidence_sha256=evidence.dispatch_evidence_sha256,
+            policy_sha256=dispatch_evidence.policy_sha256,
+        )
+        self._validate_run(
+            historical.run,
+            project_id=project_id,
+            trusted_test_policy=trusted_test_policy,
+            dispatch_state=dispatch_state,
+            snapshot=snapshot,
+            source_tree_oid=evidence.source_tree_oid,
+            root=None,
+            git_deadline=None,
+        )
+        tests, unattributed = self._derive_mappings(historical.run, call_graph)
+        if (
+            evidence.test_run_id != historical.run.run_id
+            or evidence.profiles != historical.run.profiles
+            or evidence.coverage_scope != historical.run.coverage_scope
+            or evidence.tests != tests
+            or evidence.unattributed_files != unattributed
+        ):
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage evidence does not match its trusted run"
+            )
+        reloaded = load_chain()
+        if reloaded != historical:
+            raise RepositoryCoverageEvidenceError(
+                "historical coverage artifacts changed during verification"
+            )
+        return reloaded
 
     def _verified_dispatch(
         self, project_id: str, reference: str, sha256: str

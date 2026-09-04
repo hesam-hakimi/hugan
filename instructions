@@ -95,6 +95,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/call_graphs.py
 - universal-coding-agent/src/universal_coding_agent/product/dispatch_evidence.py
 - universal-coding-agent/src/universal_coding_agent/product/coverage_evidence.py
+- universal-coding-agent/src/universal_coding_agent/product/coverage_selection.py
 - universal-coding-agent/src/universal_coding_agent/repository/indexer.py
 - universal-coding-agent/src/universal_coding_agent/product/requirement_alignment.py
 - universal-coding-agent/src/universal_coding_agent/product/program_orchestrator.py
@@ -110,6 +111,7 @@
 - universal-coding-agent/tests/test_repository_call_graphs.py
 - universal-coding-agent/tests/test_repository_dispatch_evidence.py
 - universal-coding-agent/tests/test_repository_coverage_evidence.py
+- universal-coding-agent/tests/test_repository_coverage_selection.py
 - universal-coding-agent/tests/test_lifecycle_reservations.py
 - universal-coding-agent/tests/test_product_workspace_control.py
 - universal-coding-agent/tests/test_safe_control.py
@@ -216,6 +218,7 @@ for FILE in \
   src/universal_coding_agent/product/call_graphs.py \
   src/universal_coding_agent/product/dispatch_evidence.py \
   src/universal_coding_agent/product/coverage_evidence.py \
+  src/universal_coding_agent/product/coverage_selection.py \
   src/universal_coding_agent/product/requirement_alignment.py \
   src/universal_coding_agent/product/program_orchestrator.py \
   ARCHITECTURE.md \
@@ -230,6 +233,7 @@ for FILE in \
   tests/test_repository_call_graphs.py \
   tests/test_repository_dispatch_evidence.py \
   tests/test_repository_coverage_evidence.py \
+  tests/test_repository_coverage_selection.py \
   tests/test_lifecycle_reservations.py \
   tests/test_product_workspace_control.py \
   tests/test_safe_control.py \
@@ -247,7 +251,7 @@ done
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation, OwnedPausableOperation, PauseReport, PauseRequested, PauseResumeResult
 from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
-from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RepositoryCallGraphService, RepositoryCoverageEvidenceService, RepositoryDependencyService, RepositoryDispatchEvidenceService, RepositoryIndexService, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
+from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RepositoryCallGraphService, RepositoryCoverageEvidenceService, RepositoryCoverageSelectionService, RepositoryDependencyService, RepositoryDispatchEvidenceService, RepositoryIndexService, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.product.lifecycle_reservations import (
     LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
@@ -288,9 +292,11 @@ assert SearchService and RequirementAlignmentService and ProgramOrchestrator and
 assert RepositoryIndexService and RepositoryDependencyService and RepositoryCallGraphService
 assert RepositoryDispatchEvidenceService
 assert RepositoryCoverageEvidenceService
+assert RepositoryCoverageSelectionService
 assert "call_graphs" in ProductWorkspace.__annotations__
 assert "dispatch_evidence" in ProductWorkspace.__annotations__
 assert "coverage_evidence" in ProductWorkspace.__annotations__
+assert "coverage_selection" in ProductWorkspace.__annotations__
 assert DurableLifecycleReservationStore
 assert hasattr(DurableLifecycleReservationStore, "reserve_standalone_worker")
 assert hasattr(DurableLifecycleReservationStore, "reserve_program_worker")
@@ -359,6 +365,7 @@ print("INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_IMPORT_PREFLIGHT_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_FIELD_VALIDATION_IMPORT_PREFLIGHT_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_IMPORT_PREFLIGHT_PASS")
 print("PYTHON_STATIC_CALL_GRAPH_IMPORT_PREFLIGHT_PASS")
+print("IDENTITY_BOUND_COVERAGE_SELECTION_ELIGIBILITY_IMPORT_PREFLIGHT_PASS")
 PY
 ```
 
@@ -1186,3 +1193,42 @@ shell access, publish source control, merge, deploy, or establish production rea
 existing test profiles, source-preservation checks, live thresholds, or final aggregators when
 qualifying this slice. Any future coverage-backed selection must first add and validate explicit
 compatible execution-environment and coverage-collector/configuration identities.
+
+Cmd 34 — P3.4c-2b2a identity-bound coverage-selection eligibility
+
+```bash
+python -m compileall -q src tests
+python -m pytest -q \
+  tests/test_repository_coverage_selection.py \
+  tests/test_repository_coverage_evidence.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "IDENTITY_BOUND_COVERAGE_SELECTION_ELIGIBILITY_PASS"
+```
+
+The focused gate proves that the canonical P3.4c-2b1 v1 trusted-run and derived-evidence contract
+remains valid; the additive host-attested identity receipt is bounded, canonical, hash-addressed,
+and bound to exact historical coverage evidence; and every requested approved profile has an exact
+profile digest, execution-environment identity/digest, and coverage-collector identity, version,
+and configuration digest. It also proves deterministic exact-digest compatibility, bounded
+verification of the complete immutable historical snapshot/dependency/call/dispatch/coverage chain
+without trusting former active pointers, exact policy and project isolation, artifact-drift and
+oversize rejection, stable reason ordering, and replay after Product workspace restart.
+
+An intact exact match produces only advisory `ELIGIBLE`. Missing selection-identity evidence,
+P3.4c-2b1 evidence presented without its additive qualification receipt, or a valid
+current-versus-recorded identity mismatch produces advisory `FULL_PROFILE_FALLBACK` for exactly the
+requested approved profiles. Malformed, noncanonical, tampered, hash-mismatched, oversized,
+policy-incompatible, or provenance-incompatible artifacts must fail closed without an eligibility
+result. Neither outcome returns test IDs, mutates profile argv, runs tests, authorizes a skip, or
+claims coverage minimality.
+
+This command is deterministic and makes no model/provider or hosted source-control call.
+P3.4c-2b2a does not implement the P3.4c-2b2b selector, integrate with Safe test execution, infer
+identity from Base or profile digests, inject model context, expose UI or HTTP endpoints, grant
+arbitrary model shell access, publish source control, merge, deploy, or establish production
+readiness. Do not weaken existing test profiles, source-preservation checks, live thresholds, or
+final aggregators when qualifying this slice.

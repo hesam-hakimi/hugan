@@ -81,9 +81,13 @@
   per-test line evidence;
   conservative symbol-span projection; immutable run identity, hash-bound input, and
   content-addressed derived artifacts; atomic active state; exact replay; and restart recovery;
-- P3.4c-2b2 conservative coverage-backed test selection combining dependency, static-call,
-  dynamic-dispatch, and host-attested coverage evidence with explicit compatible execution-
-  environment and collector/configuration identity, without claiming minimality;
+- [x] P3.4c-2b2a identity-bound coverage-selection eligibility: additive host-attested
+  per-profile execution-environment and coverage-collector/configuration identities; exact
+  digest compatibility; bounded historical coverage-chain verification; advisory eligible or
+  complete-requested-profile fallback outcomes; and preserved P3.4c-2b1 v1 evidence;
+- P3.4c-2b2b conservative coverage-backed test selection combining dependency, static-call,
+  dynamic-dispatch, and identity-bound host-attested coverage evidence, without claiming
+  minimality;
 - P3.4c-3 additional-language dependency analysis;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
