@@ -1,214 +1,338 @@
-# ETL\-0904\-REVIEW01 — Independent Phase W Source Review
+ETL-0904-IMPL04 — Phase W Review Repairs and Markdown Projection Fix
 
-Run this prompt in a **fresh VS Code Agent chat with a reviewer that did not implement ****`ETL-0904-IMPL01`**** or ****`ETL-0904-IMPL03`**\. Prefer a strong review model such as Claude Opus 5\. This is the normal local engineering environment, not the ETL Orchestrator\.
+Paste this prompt into a fresh, high-reasoning local VS Code Agent chat on Windows. Use the normal local engineering Agent, not the ETL Orchestrator. This prompt supersedes ETL-0904-IMPL01, ETL-0904-IMPL02, and ETL-0904-IMPL03 for the work defined here. It does not authorize any execution beyond bounded read-only inspection and edits to the explicitly authorized files.
 
-## Authorization boundary
+1. Owner authorization and task boundary
 
-This task authorizes **read\-only independent source review only**\.
+The owner authorizes one source-only repair task: close all four BLOCKER and all five MAJOR findings from independent ETL-0904-REVIEW01, while preserving the owner-ratified channel contract below.
 
-Do not edit, create, delete, restore, format, compile, emit, type\-check, test, launch a runner or Extension Host, package, install, clean, commit, push, merge, bump a version, or release\. Do not click or use Undo to alter the implementation\. Do not use Bypass Permissions to expand scope\.
+You may:
 
-If the implementation is still presented as an unresolved `Keep`/`Undo` editor checkpoint, or if you are the same Agent/session that implemented it, stop with:
+• run read-only identity, status, hash, diff, file-search, and source-inspection commands needed for preflight and proof;
+• edit only the three authorized files listed in §4;
+• report newly discovered out-of-scope work as backlog candidates.
 
-`ETL_0904_REVIEW01_RESULT: BLOCKED_NOT_INDEPENDENT_OR_PENDING_CHECKPOINT`
+You may not:
 
-Do not treat the implementing Agent’s report, language\-service diagnostics, comments, screenshots, or stated invariants as proof\. Re\-derive every conclusion from the live files and complete diff\.
+• run type-check, compile, lint, unit/integration tests, the compiled runner, Extension Host, parser execution, package preparation, VSIX build/inspection, installation, activation, or any runtime command;
+• run Git commands that mutate index, worktree, refs, stash, branch, or history;
+• commit, push, merge, tag, publish, install, copy an extension, seed a profile, access real data, submit a job, or write to a consumer workspace;
+• edit out/**, build-info, evidence, QA, installed-extension, profile, consumer-workspace, or Library files;
+• accept, reject, Keep, Undo, discard, resolve, or otherwise manipulate pending VS Code chat edits;
+• normalize line endings, format whole files, or repair unrelated findings;
+• treat this implementation as qualification or certify your own work.
 
-## Expected live identity
+If a required fix needs another source file, stop before editing it and return BLOCKED_SCOPE_EXPANSION_REQUIRED with the exact path, symbol, reason, and minimum proposed change.
 
-- Active worktree: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
-- Linked primary worktree: `C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
-- Branch: `fix/workspace-write-completion-0.3.148`
-- HEAD: `45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19`
-- Manifest version: `0.3.147`
-- Extension identifier: `td-etl.databricks-etl-copilot`
-- Expected dirty paths:
-  - ` M .github/templates/request.md`
-  - ` M src/extension.ts`
-  - ` M src/test/runTest.ts`
-  - ` M src/test/suite/index.ts`
-  - `?? src/test/suite/sttmRealHostStructuredResult.test.ts`
+2. Required preflight — re-derive before editing
 
-Re\-derive all values read\-only before reviewing\. If identity, HEAD, or dirty\-path inventory differs, stop with:
+Verify all fields live. Do not infer them from this prompt.
 
-`ETL_0904_REVIEW01_RESULT: BLOCKED_BASELINE_DRIFT`
+```text
+Active worktree:
+  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-The branch name does not prove that `0.3.148` exists\. `0.3.147` remains immutable\.
+Linked primary worktree:
+  C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-## Required review scope
+Branch:
+  fix/workspace-write-completion-0.3.148
 
-Read completely:
+HEAD:
+  45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-- the full diff of every tracked dirty file;
-- the full untracked `src/test/suite/sttmRealHostStructuredResult.test.ts`;
-- the complete current contents of the three harness files;
-- every directly relevant imported helper, type, package script, and TypeScript configuration needed to validate the implementation;
-- existing compiled files only as stale identity/layout evidence—never execute them\.
+Manifest version:
+  0.3.147
 
-Do not sample only changed snippets\. `src/test/runTest.ts` contains a large change and must be reviewed end\-to\-end, including all success, throw, cleanup, and post\-exit branches\.
+Extension identifier:
+  td-etl.databricks-etl-copilot
+```
 
-Separate:
+Expected pre-task dirty inventory:
 
-- pre\-existing control\-plane edit: `.github/templates/request.md`;
-- pre\-existing product edit: `src/extension.ts`;
-- Phase W harness edits in the three test files\.
+```text
+ M .github/templates/request.md
+ M src/extension.ts
+ M src/test/runTest.ts
+ M src/test/suite/index.ts
+?? src/test/suite/sttmRealHostStructuredResult.test.ts
+```
 
-Verify that the harness changes neither absorb nor conceal unrelated product/control\-plane changes\.
+Also verify:
 
-## Independent review checklist
+• staging area is empty;
+• no index.lock exists in the linked-worktree Git metadata;
+• src/core/sttm/SttmUnderstandingReportRenderer.ts is clean before this task;
+• src/test/suite/index.ts still contains the exclusive focused loader implemented by ETL-0904-IMPL01 and is not edited here;
+• the canonical policy contains exactly the 11 repository-defined paths in §3, with entry 4 exactly out/test/harness/mochaResultGuard.js;
+• no type-check, compile, test, runner, or Host process is active;
+• capture immediate pre-edit SHA-256 values, byte counts, line-ending counts, and status for every dirty path plus the renderer. Historical document hashes are not baselines.
 
-### A\. Canonical protected\-set contract
+If identity, HEAD, manifest, extension identifier, dirty path set, status code, staging state, or authorized-file cleanliness differs, stop with BLOCKED_BASELINE_DRIFT. Do not “repair” the baseline.
 
-Verify that the policy is defined once and contains exactly these ordinally sorted repo\-relative paths:
+3. Contracts that govern this task
 
-1. `out/core/solution/FileSystemSttmDocumentReader.js`
-2. `out/core/sttm/SttmExcelWorkbookParser.js`
-3. `out/extension.js`
-4. `out/test/harness/mochaResultGuard.js`
-5. `out/test/runTest.js`
-6. `out/test/suite/index.js`
-7. `out/test/suite/sttmRealHostStructuredResult.test.js`
-8. `out/test/testPatterns.js`
-9. `out/tools/EtlReadOnlyToolService.js`
-10. `out/tools/index.js`
-11. `package.json`
+3.1 Owner-ratified source and target projections
 
-Confirm source/configuration mapping for every compiled path\. Verify exact membership, canonical containment, regular\-file/no\-symlink\-or\-reparse\-point checks, duplicate rejection, ordinal order, and derived cardinality\. Reject any hidden `8`, `11`, `39`, historical hash, or operator\-supplied count used as protected\-set truth\. Keep the separate focused\-suite 8\-test oracle conceptually distinct\.
+```text
+Structured source:  source_db.customers.cust_name
+Markdown source:    customers.cust_name
 
-Verify that manifest generation uses the approved repo\-defined policy and the compiled artifact that will actually be qualified, with no undocumented operator list or stale hash gate\.
+Structured target:  target_db.tgt_customers.customer_name
+Markdown target:    tgt_customers.customer_name
+```
 
-### B\. Manifest, digest, and evidence integrity
+The independent reviewer proposed making the Markdown target fully qualified. That proposal is explicitly rejected. The owner instruction above wins: the product Markdown renderer must emit the short human projection; the structured channel retains the full machine identity. Do not weaken or change the oracle to match the current renderer.
 
-Trace the complete lifecycle in order:
+Channel parity means identical mapping IDs, order, count, exclusions, and diagnostics. Display strings are related projections, not byte-identical strings. The test must assert the projection relation executably rather than store two unrelated literals. It must still derive the oracle independently of the product renderer/helper under test.
 
-- isolation\-root resolution and freshness;
-- manifest creation and exclusive write;
-- manifest self\-digest and canonical `path + sha256` files digest;
-- pre\-run file capture;
-- Host/child execution boundary;
-- post\-run capture;
-- evidence persistence;
-- parent post\-exit re\-read and independent recomputation\.
+3.2 Formal verdict contract
 
-Verify all three comparisons exist and are fail\-closed: manifest → pre\-run, pre\-run → post\-run, and post\-run → manifest\. Check that serialization/order rules allow the parent to reproduce every digest exactly\.
+• PASS: the intended public boundary is reached; exactly 8 focused tests are authored and evaluated; every required comparison passes; evidence is complete, valid, and durable; parent post-exit verification completes and passes; no infrastructure or evidence-write failure exists.
+• FAIL: the intended public boundary is reached and a valid, independently derived product oracle observes a product-value mismatch, with complete valid evidence and no higher-priority infrastructure/evidence failure.
+• BLOCKED: any pre-boundary, infrastructure, containment, provenance, incomplete-evidence, evidence-write, malformed-evidence, or post-exit-verification problem.
 
-Prove that an early failure at QA\-root resolution, manifest generation/validation, freshness, digest capture, Host launch, Mocha handling, or post\-exit verification still produces the strongest possible non\-overwriting evidence\. Identify any path where evidence disappears, overwrites prior evidence, masks the original error, or incorrectly exits zero\.
+Infrastructure and evidence failures outrank product mismatch. Preserve multiple failures. Exit code 1 alone never classifies a product defect.
 
-Check that evidence\-file creation is compatible with the isolation\-root freshness invariant and that no repository, QA workbook, profile, installed extension, consumer workspace, or control\-plane path is mutated\.
+3.3 Canonical protected policy
 
-### C\. Failure classification and formal verdicts
+The policy is one strictly ordinal-sorted repository-defined list:
 
-Verify machine\-readable separation of `product`, `infrastructure`, and `evidence-write` failures, including multiple simultaneous failures and precedence\.
+```text
+out/core/solution/FileSystemSttmDocumentReader.js
+out/core/sttm/SttmExcelWorkbookParser.js
+out/extension.js
+out/test/harness/mochaResultGuard.js
+out/test/runTest.js
+out/test/suite/index.js
+out/test/suite/sttmRealHostStructuredResult.test.js
+out/test/testPatterns.js
+out/tools/EtlReadOnlyToolService.js
+out/tools/index.js
+package.json
+```
 
-A product `FAIL` is valid only when the Host reached the intended product boundary, the oracle was valid, infrastructure completed, and retained evidence is complete\. Missing/incomplete evidence, manifest disagreement, Host/setup failure, or failed parent verification must remain `BLOCKED`, not `PASS` or product `FAIL`\.
+All protected counts derive from PROTECTED_POLICY_PATHS.length. No literal 8, 11, or 39 may independently define cardinality. The focused-suite expectation remains exactly 8 tests and is a separate invariant.
 
-Ensure a stale oracle cannot be reclassified as a product defect and Phase T’s historical run\-level `FAIL` marker is not reused as current truth\.
+4. Authorized files
 
-### D\. Executed parent post\-exit verification
+You may modify only:
 
-Confirm the parent verifier is actually invoked after every child/Host exit or throw—not merely declared in evidence\. It must independently re\-read retained evidence and live protected files, recompute digests, record completion/result/mismatches, and force nonzero exit on disagreement\.
+1. src/core/sttm/SttmUnderstandingReportRenderer.ts
+2. src/test/runTest.ts
+3. src/test/suite/sttmRealHostStructuredResult.test.ts
 
-Check exception precedence: the original product/infrastructure failure must remain observable even if parent verification or evidence writing also fails\.
+Read-only comparison is allowed elsewhere. In particular, do not modify:
 
-### E\. Exclusive focused\-suite loading
+• .github/templates/request.md
+• src/extension.ts
+• src/test/suite/index.ts
+• src/core/sttm/SttmMarkdownBundleParser.ts
+• package.json
+• tsconfig*.json
+• out/**
 
-Trace the focused\-suite variable from parent setup through child environment to the Mocha loader\. Confirm that focused mode resolves one exact regular file inside the compiled test root and calls `mocha.addFile` exactly once\.
+Preserve each authorized file’s existing line-ending style. Make surgical edits only; no whole-file formatting or mechanical rewrite.
 
-No other integration suite may be globbed, imported, registered, or execute top\-level side effects in focused mode\. `mocha.grep` alone is insufficient\. Missing, duplicate, ambiguous, outside\-root, symlink, and reparse\-point selections must fail closed\. Ordinary non\-focused discovery must remain unchanged\.
+5. Required repairs
 
-Confirm `loadedFiles`, `loadedFileCount`, `authoredSuiteTitles`, and `authoredTests` are independently derived and cannot merely echo expected constants\.
+Repair B1 — owner-required Markdown target projection
 
-### F\. Parser observer installation/restoration
+In SttmUnderstandingReportRenderer.ts, change the Markdown mapping target from the fully qualified machine identity to the owner-required short human projection:
 
-Verify that the wrapper patches the exact unbundled module instance used by the real product path\. Installation must occur immediately before the single real `vscode.lm.invokeTool` call; restoration must be the first unconditional action in `finally` and must verify restored identity\.
+```text
+tgt_customers.customer_name
+```
 
-Review all failure paths: unresolved module, wrong export, already wrapped export, installation not taking effect, invocation rejection, assertion failure, observation failure, and restoration failure\. None may leave the parser wrapped or hide the primary failure\.
+Requirements:
 
-Confirm that `vscode.lm.invokeTool` count and parser invocation cardinality are separate directly recorded observations\. Explain the Test\-mode unbundled assumption and why this does not qualify a later bundled/installed artifact\.
+• do not remove targetDb from the structured model or public structured result;
+• keep Structured target target_db.tgt_customers.customer_name;
+• make missing components explicit instead of silently collapsing via filter(Boolean).join('.') at the changed seam;
+• keep legitimate human-contract entity absence distinguishable from an accidental missing entity;
+• add no parser behavior in this task; if the renderer cannot satisfy the contract without a parser change, stop with BLOCKED_SCOPE_EXPANSION_REQUIRED naming src/core/sttm/SttmMarkdownBundleParser.ts and the precise missing input;
+• in the test, derive the short Markdown target from independently parsed expected components, not from the production renderer or a second unrelated string literal.
 
-### G\. Oracle correctness and assertion independence
+Repair B2 — activation and parser-observer timing
 
-Verify from executable contract/source—not prior prose—that:
+The current etlWasActiveAtParserObserverInstallation observation is sampled before activation and contradicts later runner comparisons.
 
-- the structured source uses the canonical structured source identity;
-- Markdown uses its intended display form;
-- structured and Markdown channels express the same semantic mapping;
-- the structured target includes `target_db.tgt_customers.customer_name`;
-- the Markdown short target is `tgt_customers.customer_name`;
-- source and target comparisons are recorded under distinct identities before aggregate failure;
-- a source mismatch cannot mask the target result;
-- the owner\-required target assertion is actually evaluated\.
+• retain a separately named pre-activation observation if useful;
+• sample “active at parser observer installation” immediately before installation, after the tool invocation path has made activation necessary;
+• make both fields semantically exact and machine-readable;
+• never reinterpret a pre-activation false as an installation-time observation.
 
-Reconcile the 8 authored/evaluated tests with the reported comparison cardinality &#40;currently 47&#41; without equating those two quantities\. Detect duplicate, missing, expected\-only, or dynamically unexecuted comparisons\.
+Repair B3 — failure precedence and classification
 
-### H\. Containment and environment boundaries
+Refactor classification so that:
 
-Verify Windows canonical\-path, case\-folding, junction, symlink, and reparse\-point behavior for repository root, isolation root, QA root, suite path, manifest, and evidence paths\.
+• infrastructure, containment, provenance, evidence-write, incomplete-evidence, and failed parent verification produce BLOCKED and outrank product mismatch;
+• product FAIL promotion occurs only after the boundary and only with a valid independent oracle plus complete evidence;
+• all failures are accumulated; the first product mismatch cannot mask target assertions or later infrastructure failures;
+• machine-readable failureClassification supports at least none | product | infrastructure | evidence-write and may add a more specific non-breaking blocked subtype;
+• runner exit status and recorded aggregate verdict are derived from the same final classification.
 
-Confirm repository ↔ isolation, QA ↔ isolation, and repository ↔ QA disjointness where required\. If repository ↔ QA disjointness remains unproved, classify its actual risk and whether it blocks the next no\-emit type\-check or only the future Host run\.
+Repair B4 — enable the intended Test-mode registration gate
 
-Confirm no consumer writes, no `.github/**` test writes, and no reliance on Bypass Permissions\.
+src/extension.ts reads ETL_TEST_READ_ONLY_TOOL_ONLY, but the runner did not set it.
 
-### I\. Maintainability and compile risk
+• set ETL_TEST_READ_ONLY_TOOL_ONLY: "1" only in the focused Test-mode extensionTestsEnv;
+• assert its exact value during the earliest evidence bootstrap that can still persist a failure;
+• prove from captured real API evidence that etl_interpret_sttm is the intended visible tool;
+• do not edit src/extension.ts or broaden production activation.
 
-Review the large `runTest.ts` delta for duplicated state, unreachable branches, inconsistent types, partial initialization, unsafe casts, incorrect async/finally behavior, non\-deterministic ordering, JSON/schema incompatibility, path normalization defects, accidental line\-ending churn, and error swallowing\.
+Repair M1 — non-vacuous Host PID observation
 
-Check every renamed/removed field against all in\-repository readers and writers\. Identify anything likely to fail TypeScript no\-emit checking, compilation, or runtime, but do not execute those checks\.
+The Host-start PID regex cannot match the retained real log spelling, so liveness can pass vacuously.
 
-State explicitly that source review does not prove type correctness, compiled output freshness, Test\-mode behavior, package contents, installed activation, or release readiness\. Note that a future compile will incorporate the current uncommitted product and harness source, so its exact scope must be authorized separately\.
+• derive the two actual log spellings from retained captured logs; do not invent a pattern;
+• encode them as separate anchored patterns with explicit capture groups;
+• fail closed if no valid Host-start PID is observed;
+• an empty PID list can never satisfy extensionHostsAliveAfterRunTests;
+• preserve raw matched log lines and parsed PID evidence;
+• report ambiguous/multiple identities as infrastructure-blocked unless the evidence contract explicitly permits and explains them.
 
-## Finding and verdict rules
+Do not attempt the broader EPERM/PID-reuse redesign here; report it under NEW_BACKLOG_CANDIDATES only if additional detail is found.
 
-Report findings first, ordered `BLOCKER`, `MAJOR`, then `MINOR`\. Every finding must include:
+Repair M2 — evidence assembly must not erase the original result
 
-- exact file and re\-derived line/symbol;
-- violated invariant;
-- concrete failure scenario;
-- smallest safe repair direction;
-- whether it blocks no\-emit type\-check, compile, Host qualification, packaging, or installed Runtime QA\.
+• establish evidence destination and authorization as early as safely possible;
+• run the parent post-exit verification before final evidence assembly is declared complete;
+• isolate capture, hashing, comparison assembly, and persistence failures;
+• if full assembly fails, write one reduced, non-overwriting, machine-readable evidence record that preserves the original failure and identifies the secondary evidence failure;
+• never let a later evidence exception erase or relabel the primary error;
+• never overwrite a prior evidence file.
 
-Use exactly one formal verdict:
+Repair M3 — evidence on every early focused-run failure
 
-- `ACCEPTABLE`: every checklist item was independently verified and no `BLOCKER` or `MAJOR` remains;
-- `CHANGES_REQUIRED`: source defects or missing invariants require implementation changes;
-- `BLOCKED`: independence, baseline, complete\-file access, or evidence needed for review was unavailable\.
+Move runnerEvidencePath establishment and focused evidence-write authorization immediately after the canonical evidenceRoot is known, before result-file, distinctness, preexistence, manifest, freshness, digest, and QA-root gates.
 
-Silence or missing evidence is never `ACCEPTABLE`\.
+Requirements:
 
-## Required output
+• every recoverable early failure after root establishment leaves evidence;
+• QA-root resolution failure leaves evidence;
+• an unrecoverable destination failure is explicit on stderr, uses nonzero exit, and is classified evidence-write/BLOCKED;
+• stage tracking identifies the last completed gate;
+• evidence uses exclusive creation and never falls back into repository, QA, consumer, or installed-extension locations.
 
-Return in this order:
+Repair M4 — compiled-artifact provenance and unbundled Test-mode proof
 
-1. reviewer independence and verified live identity/status;
-2. complete review scope and diff inventory;
-3. findings by severity;
-4. checklist A–I with `VERIFIED`, `REPORTED`, `STALE`, or `UNKNOWN` for each material claim;
-5. exact 11\-path policy verdict;
-6. Phase W objection\-to\-repair verdict;
-7. oracle/channel/target verdict;
-8. containment and future compile\-risk verdict;
-9. formal overall verdict and justification;
-10. if `CHANGES_REQUIRED`, a minimal bounded repair list only—do not edit;
-11. if `ACCEPTABLE`, state that the next gate is a separately authorized no\-emit TypeScript check, not compilation\.
+Add future-run preconditions/evidence that can prove, without trusting timestamps alone:
 
-End with exactly one of:
+• each protected out/** artifact corresponds to the reviewed source/configuration state;
+• no protected artifact predates its source counterpart;
+• the focused Host uses unbundled tsc output rather than a package-preparation bundle;
+• out/extension.js still resolves the parser as the external module instance wrapped by the observer;
+• package preparation would be detected as a different artifact shape;
+• the result is labelled Test-mode-only and never promoted to installed/packaged VSIX proof.
 
-`ETL_0904_REVIEW01_RESULT: ACCEPTABLE`
+Do not compile, bundle, or inspect a newly built artifact in this task. Implement only the fail-closed future checks and evidence schema.
 
-`ETL_0904_REVIEW01_RESULT: CHANGES_REQUIRED`
+Validate manifest provenance fields including canonical repositoryRoot, schema version, sort rule, generation time, manifest digest, exact path membership/order, and source/artifact relationship. A manifest supplied by an operator is not authoritative merely because its count matches.
 
-`ETL_0904_REVIEW01_RESULT: BLOCKED`
+Repair M5 — registration evidence comes from the API
 
-Then end with all of:
+• make etlToolsVisibleToRealApi the authoritative registration observation;
+• assert exact expected visibility for the focused Test mode;
+• keep Output-channel log matching advisory only;
+• a log line can corroborate, but can never replace, missing API evidence.
 
-`INDEPENDENT_REVIEWER: YES`
+Coupled repair C1 — total parser restoration and primary-error preservation
 
-`FILES_CHANGED: 0`
+Close the reviewer’s coupled wrapper findings while already editing the same seam:
 
-`TYPECHECK_COMPILE_OR_TEST_EXECUTED: NO`
+• enter the owning try before any statement that can throw after wrapper installation;
+• make restoration unconditional in finally for fulfillment, rejection, assertion failure, observation failure, and timeout cleanup paths under the suite’s control;
+• move/guard record() calls so none creates an uncovered leak window;
+• verify module/export identity on installation and restoration;
+• capture restorationError without masking the primary failure;
+• surface restoration failure as an additional infrastructure comparison and classification;
+• keep vscode.lm.invokeTool cardinality and parser invocation cardinality as separate direct observations.
 
-`RUNNER_OR_HOST_EXECUTED: NO`
+Coupled repair C2 — independently falsifiable channel assertions
 
-`COMMIT_OR_PUSH_EXECUTED: NO`
+• capture source and target values for both channels before assertions;
+• evaluate every source and target comparison independently so one mismatch cannot mask another;
+• derive expected structured and Markdown projections from independent fixture components;
+• assert the executable relation “Markdown = entity.field projection of Structured = db.entity.field” for source and target;
+• do not import or call the product renderer/helper to generate the expected value;
+• keep all comparison identities stable, unique, and machine-readable; update the expected comparison-ID list only when required and prove exact order/cardinality from source.
 
-Stop\. Do not repair, type\-check, compile, qualify, package, install, merge, version\-bump, or release\.
+6. Required non-changes and deferred items
+
+Do not fix these in this task:
+
+• LF/CRLF normalization;
+• generalized Host/runner path canonicalization;
+• repository ↔ QA-root disjointness implementation;
+• EPERM/PID-reuse hardening beyond the non-vacuous PID fix above;
+• .github/templates/request.md corruption/disposition;
+• pending chat-edit sessions;
+• tracked build-info policy;
+• vestigial compiler exclusions;
+• F1/F3 quarantine;
+• target-parser banner-row/heading repair in SttmMarkdownBundleParser.ts;
+• ten action tools’ lack of a structured channel;
+• package, installed-runtime, or /workflow qualification.
+
+List any new information about these under DEFERRED_BACKLOG_UPDATES; do not edit them.
+
+7. Static verification required before stopping
+
+Without running TypeScript, tests, parser, runner, or Host:
+
+1. re-read every changed hunk and its enclosing control flow;
+2. prove each of B1–B4, M1–M5, C1–C2 against source with exact file/symbol references;
+3. search for stale literals/fields that would contradict the new schema or precedence;
+4. confirm src/test/suite/index.ts was not modified and its focused-loader contract is still consumed correctly;
+5. confirm the 11 protected paths are strictly sorted and all protected cardinalities derive from the one list;
+6. confirm the focused 8-test expectation remains separate;
+7. compare immediate pre/post SHA-256 for every pre-existing dirty path and prove unauthorized paths are byte-identical;
+8. report exact final Git status and diffstat;
+9. run no formatter or command that writes generated output.
+
+If static reasoning cannot establish a requirement, report UNVERIFIED_UNTIL_AUTHORIZED_<TYPECHECK|COMPILE|HOST>; do not claim it passed.
+
+8. Required report
+
+Return a concise but complete report with:
+
+1. re-derived identity and exact pre-edit status;
+2. immediate pre-edit hashes/baseline identity;
+3. files and symbols changed;
+4. a B1–B4, M1–M5, C1–C2 closure table with source references;
+5. the exact structured/Markdown source and target contract as implemented;
+6. failure-precedence state diagram or equivalent ordered description;
+7. evidence-bootstrap, reduced-evidence, and parent-post-exit flow;
+8. proof of unconditional parser restoration;
+9. proof that API evidence, not logs, governs tool registration;
+10. proof of 11-path policy and separate 8-test cardinality;
+11. unresolved/static-only claims requiring future authorized execution;
+12. deferred backlog updates;
+13. exact final diffstat, status, and authorized/unauthorized path comparison.
+
+End with exactly one result token:
+
+```text
+ETL_0904_IMPL04_RESULT: IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW
+```
+
+or one precise blocker token:
+
+```text
+ETL_0904_IMPL04_RESULT: BLOCKED_<REASON>
+```
+
+Then include exactly:
+
+```text
+AUTHORIZED_FILES_CHANGED: <comma-separated paths or NONE>
+UNAUTHORIZED_FILES_CHANGED: <count>
+TYPECHECK_OR_COMPILE_EXECUTED: NO
+TEST_RUNNER_OR_HOST_EXECUTED: NO
+PACKAGE_INSTALL_OR_CONSUMER_WRITE_EXECUTED: NO
+COMMIT_PUSH_MERGE_OR_RELEASE_EXECUTED: NO
+NEXT_REQUIRED_GATE: INDEPENDENT_SOURCE_REVIEW
+```
+
+Do not propose or execute the review, type-check, compile, Host run, package, install, commit, merge, or release inside this task.
