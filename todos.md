@@ -1,110 +1,103 @@
-TASK_ID: ETL-0903-REV04
-TYPE: INDEPENDENT REVIEW — DOC COMMENT ACCURACY IN src/test/runTest.ts
+TASK_ID: ETL-0903-DIAG03
+TYPE: READ-ONLY INVESTIGATION — PROTECTED-HASH COUNT DEFECT IN src/test/runTest.ts
 
-Echo TASK_ID: ETL-0903-REV04 as the first line of your report.
+Echo TASK_ID: ETL-0903-DIAG03 as the first line of your report.
 
-You are reviewing, not implementing. Do not edit any file. Do not use any
-patch, edit, or write tool. Do not accept or discard any pending editor
-change — no Keep, no Undo, no equivalent command. No compile, no lint, no
-test execution, no runner, no Extension Host, no stage, no commit, no
-stash, no checkout, no restore, no reset. Read-only commands only.
+Do not edit any file. Do not use any patch, edit, or write tool. Do not
+accept, discard, or otherwise resolve any pending editor change — no
+Keep, no Undo, no equivalent command. Several chat-editing sessions hold
+unresolved pending entries for this file against a much older snapshot;
+leave every one of them exactly as it is. No compile, no lint, no test
+execution, no runner, no Extension Host, no stage, no commit, no stash,
+no checkout, no restore, no reset. Read-only commands only.
 
-If you find something wrong, report it. Do not fix it. Anything you find
-outside the scope defined below goes under "out of scope" and is changed
-by nobody.
+Report what you find. Fix nothing. Propose, do not apply.
 
 REPOSITORY
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 This is a LINKED GIT WORKTREE. Its index lives under the parent
 repository at
 etl_framework_extension_hf1_v2\.git\worktrees\recovery-extension-product-0.3.147\
-There is no local .git directory.
+There is no local .git directory. HEAD is not a usable baseline for
+src/test/runTest.ts — the committed blob is 79 lines and the working file
+is over 2,000.
 
-BASELINE — READ THIS BEFORE COMPARING ANYTHING
-HEAD is not a usable baseline for this file. HEAD:src/test/runTest.ts is
-79 lines; the working file is over 2,000. Roughly 96% of the file is
-uncommitted and there is no commit and no stash containing it.
+DERIVE EVERY LINE NUMBER YOURSELF
+Project documents cite this defect at three different lines and none is
+authoritative. Take no line number from this prompt or from any document.
+Locate everything by reading the file.
 
-The baseline is VS Code local history:
-  %APPDATA%\Code\User\History\7179216d
-Read its entries.json, confirm it maps to src/test/runTest.ts, and list
-all entries with timestamps in chronological order.
+BACKGROUND
+The runner reads a protected-hash manifest, captures hashes before a run
+and after it, and compares them. A count of protected entries is believed
+to be hard-coded as the literal 8 somewhere in this file, while the real
+manifest is believed to contain 39 paths. If so, the assertion cannot
+detect a manifest that has grown or shrunk, and may be asserting
+something no run could falsify. Establish whether that is true.
 
-The change under review is a doc-comment rewrite. Identify the latest
-entry whose timestamp precedes that rewrite and use that entry as the
-baseline. Do not use any hash supplied by any document — at least one
-document in this project carries a baseline hash that is a full day stale,
-and using it silently absorbs an entire intervening work session. State
-which entry you selected, its filename, timestamp and size, and why. If
-you cannot identify one unambiguously, say so and stop.
+WHAT TO ESTABLISH
 
-Note: several chat-editing sessions may hold unresolved pending entries
-for this file against a much older snapshot. Ignore them for baseline
-purposes and do not resolve any of them.
+Q1 — THE MANIFEST, AS IT ACTUALLY IS
+Locate the protected-hash manifest that this runner reads at runtime.
+Report its resolved path, whether it exists on disk, its SHA-256, its
+byte size, and the exact number of path entries it declares. Show how you
+counted. If the manifest is generated rather than stored, say so and
+report what generates it.
 
-SCOPE
-Exactly one doc comment: the one immediately preceding the function that
-resolves the disposable profile root. Nothing else in the file is under
-review.
+Q2 — EVERY HARD-CODED COUNT IN THIS FILE
+Scan the whole of src/test/runTest.ts for numeric literals used as an
+expected count, length, or size in a comparison, assertion, throw
+condition, or evidence field. For each, report file:line, the full
+statement, what it is counting, and what value it would have to be today
+for the assertion to be correct. Include the suspected 8. Do not restrict
+yourself to the protected-hash area.
 
-The comment was rewritten because its previous wording asserted that the
-function does not mutate the filesystem and that the caller must create
-the directory first. Both statements were unqualified and both were
-false. Your task is to determine whether the replacement wording is true.
+Q3 — THE PROTECTED-HASH PATH, END TO END
+Trace and report, with file:line for each step:
+  a. where the manifest is read;
+  b. where the "before" hashes are captured;
+  c. where the "after" hashes are captured;
+  d. every comparison performed between them, and between either of them
+     and the manifest;
+  e. every throw or failure condition on that path, quoted;
+  f. every evidence field this path emits, and whether each is computed
+     at runtime or written as a literal.
 
-WHAT TO DETERMINE
+Q4 — WHICH ASSERTIONS CANNOT FAIL
+For every assertion, comparison, and evidence field identified in Q3,
+state whether any possible run could make it false. Classify each as:
+  FALSIFIABLE — a real run could produce a failing value;
+  BLIND — structurally cannot fail as written; explain why;
+  CANNOT_DETERMINE_STATICALLY.
+For each BLIND item, state precisely what a reader would wrongly conclude
+from seeing it pass.
 
-1. Diff the baseline entry against the on-disk file. Report numstat, hunk
-   count, and every hunk header. State whether every hunk falls inside
-   the doc comment. If any hunk touches an executable line, a type, a
-   field, a parameter, or a call site, quote it in full.
+Q5 — WHAT CORRECT WOULD LOOK LIKE
+Describe, without writing or applying any edit, the smallest change that
+would make each BLIND item falsifiable. State for each whether it is a
+pure test-tooling change or whether it would alter what the extension
+does for a user. Flag anything in the second category loudly and
+separately — that is an owner decision, not yours.
 
-2. Quote the current comment verbatim with live line numbers.
-
-3. For EACH SENTENCE of the current comment, independently and in order:
-   - restate the proposition the sentence asserts;
-   - find the code that makes it true or false, and cite file:line;
-   - give a verdict of TRUE, FALSE, IMPRECISE, or
-     CANNOT_DETERMINE_STATICALLY.
-   Derive every line number yourself by reading the file. Do not accept
-   any line number from this prompt or from any document.
-   A sentence that is true only under an unstated condition is IMPRECISE,
-   not TRUE.
-
-4. Read the function body in full and answer directly, from the code:
-   - Under exactly which conditions does this function mutate the
-     filesystem?
-   - Under exactly which conditions does it not?
-   - Which call sites exist, and what does each pass?
-   Then state whether the comment's account matches yours. If it does
-   not, the comment is wrong regardless of how it is worded.
-
-5. State whether any true and material behaviour of the function is
-   absent from the comment. Omission that misleads counts against it.
-
-6. Confirm or refute, from the file itself, that the function's
-   signature and every call site are unchanged from the baseline entry.
-
-VERDICT
-End with exactly one of:
-  REVIEW_4_RESULT: ACCEPTABLE
-  REVIEW_4_RESULT: NOT_ACCEPTABLE
-followed by a numbered list of every blocking finding. A blocking finding
-is a false or misleading sentence in the comment, or any change outside
-the comment. Report non-blocking observations separately.
-
-Also report:
-  TASK_ID: ETL-0903-REV04
-  EDIT_WAS_COMMENT_ONLY: YES / NO
-  BASELINE_ENTRY_USED: <filename> <timestamp> <bytes>
-  COMPILE_OR_TEST_EXECUTED: NO
-  FILES_MODIFIED: NONE
-  PENDING_EDITOR_CHANGES_RESOLVED: NONE
+Q6 — BLAST RADIUS
+List every other file in the repository that reads, writes, generates, or
+asserts against this manifest, or that hard-codes a count derived from
+it. Report path and file:line. Do not open files outside the repository
+except VS Code local history if you need a baseline.
 
 REPORT
-1. TASK_ID line, then baseline selection and justification.
-2. Items 1 to 6 above, in order, with raw command output where relevant.
+1. TASK_ID line.
+2. Q1 to Q6 in order, with raw command output where relevant.
 3. Every command you ran, and confirmation all were read-only.
-4. Out-of-scope findings — reported, not changed.
-5. The verdict block.
+4. Anything you found that this prompt did not ask about — reported,
+   not changed.
+5. Close with exactly:
+     TASK_ID: ETL-0903-DIAG03
+     MANIFEST_ENTRY_COUNT: <number>
+     HARD_CODED_COUNTS_FOUND: <number>
+     BLIND_ASSERTIONS_FOUND: <number>
+     OWNER_DECISIONS_REQUIRED: <number>
+     FILES_MODIFIED: NONE
+     PENDING_EDITOR_CHANGES_RESOLVED: NONE
+     COMPILE_OR_TEST_EXECUTED: NO
 6. Stop.
