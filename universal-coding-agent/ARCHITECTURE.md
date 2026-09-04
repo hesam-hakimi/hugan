@@ -1068,6 +1068,57 @@ selection or skip decision, its separately approved contract must add and valida
 execution-environment and coverage-collector/configuration identities; this foundation does not
 infer those identities from a Base or test-profile digest.
 
+## Identity-bound coverage-selection eligibility
+
+P3.4c-2b2a adds an advisory eligibility boundary before any coverage-backed test selector. It
+preserves the canonical P3.4c-2b1 v1 trusted run and derived evidence without migration or changed
+replay semantics. A separate additive host-attested receipt records one entry for every requested
+approved test profile. Each entry binds the exact profile identity and digest, an explicit
+execution-environment identity and digest, and an explicit coverage-collector identity, version,
+and configuration digest. The receipt is canonical, bounded, hash-addressed, and bound to the exact
+historical coverage-evidence reference and digest. These identities are trusted host inputs: UCA
+does not infer them from repository Base, Git tree, policy, test-profile argv, or coverage bytes.
+The canonical `uca-trusted-coverage-qualification-v1` receipt uses the explicit `host-attested`
+attestation and binds project, repository, Base, source-tree, trusted-run, test-run, policy, and
+coverage-evidence provenance. Its sorted per-profile entries use
+`execution-environment-manifest-sha256-v1` for the host environment manifest identity and
+`coverage-collector-config-sha256-v1` for the collector binary and configuration identity.
+
+Eligibility compares the recorded identities with explicit current host-attested identities by
+exact digest equality. It never treats a compatible name, platform family, version range, or
+partially matching configuration as equivalent. Every requested profile must exist in the supplied
+operator-owned `SafeModePolicy`, retain its exact profile digest, and have exactly one recorded and
+one current identity. Duplicate or noncanonically ordered identities make the input malformed;
+missing identities for a requested profile conservatively disqualify selective use. Identities for
+other profiles cannot broaden the exact requested profile set.
+
+An intact receipt and coverage chain with all exact identities equal produces only an advisory
+`ELIGIBLE` result. Missing identity evidence, a P3.4c-2b1 v1 run without the additive receipt, or an
+otherwise valid identity mismatch produces an advisory `FULL_PROFILE_FALLBACK` for exactly the
+requested approved profiles. The fallback does not enumerate or synthesize test commands: it means
+the unchanged operator-owned profile commands must run in full. Malformed, noncanonical, tampered,
+hash-mismatched, oversized, policy-incompatible, or provenance-incompatible artifacts fail closed
+instead of being converted into an eligibility result. The content-addressed
+`coverage-identity-eligibility-v1` advisory records explicit bounded reason codes and fixes
+`selects_test_ids`, `authorizes_execution`, and `claims_minimality` to false.
+
+Historical verification accepts only an explicit coverage-evidence reference and SHA-256. It
+boundedly reloads and canonical-hash verifies the immutable coverage evidence, trusted run,
+repository snapshot, dependency graph, static call graph, and dynamic-dispatch evidence without
+requiring their former active pointers to remain active. The verifier rechecks their complete
+project, repository, Base, policy, reference/digest, and cross-artifact provenance, rederives the
+coverage symbol mappings, and reloads the chain before returning it. It does not make historical
+evidence current, infer compatibility with a later Base, or bypass the future selector's duty to
+bind that history to the target snapshot's exact predecessor chain.
+
+P3.4c-2b2a does not select, omit, skip, or execute tests; change `TestProfile` argv; integrate with
+the Safe test runner; claim coverage or runtime completeness; or claim a minimal safe test set. It
+adds no model/provider call, model context, UI or HTTP behavior, arbitrary shell authority,
+source-control publication, merge, deployment, or production-readiness claim. P3.4c-2b2b remains
+separately open to combine dependency, static-call, dynamic-dispatch, and eligible coverage evidence
+into a conservative test-selection artifact with its own explicit target-Base and predecessor
+contract.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

@@ -1356,6 +1356,128 @@ def test_policy_source_run_and_evidence_drift_fail_closed(tmp_path: Path) -> Non
         services.search.close()
 
 
+def test_verifies_historical_coverage_after_active_upstreams_advance(
+    tmp_path: Path,
+) -> None:
+    root, base_sha = _repository(tmp_path)
+    services = _services(tmp_path / "state")
+    policy = _policy()
+    try:
+        baseline_upstreams = _build_upstreams(root, base_sha, services)
+        run = _trusted_run(root, baseline_upstreams, policy)
+        run_ref, run_sha256 = _write_run(services.artifacts, run)
+        recorded = _record(
+            services,
+            root,
+            baseline_upstreams,
+            policy,
+            run_ref,
+            run_sha256,
+        )
+
+        _write(root, "notes.txt", "updated tracked non-Python evidence\n")
+        target_sha = _commit(root, "advance active coverage upstreams")
+        target_upstreams = _build_upstreams(
+            root,
+            target_sha,
+            services,
+            previous=baseline_upstreams,
+        )
+        services.search.clear_namespace(services.coverage.namespace(PROJECT_ID))
+
+        assert (
+            target_upstreams.index.snapshot.previous_snapshot_ref
+            == baseline_upstreams.index.snapshot_ref
+        )
+        assert (
+            target_upstreams.index.snapshot.previous_snapshot_sha256
+            == baseline_upstreams.index.snapshot_sha256
+        )
+        assert (
+            services.search.repository_coverage_evidence_state(
+                services.coverage.namespace(PROJECT_ID)
+            )
+            is None
+        )
+
+        historical = services.coverage.verified_historical_evidence(
+            project_id=PROJECT_ID,
+            trusted_test_policy=policy,
+            expected_evidence_ref=recorded.evidence_ref,
+            expected_evidence_sha256=recorded.evidence_sha256,
+        )
+
+        assert historical.evidence == recorded.evidence
+        assert historical.run == run
+        assert historical.repository_snapshot == baseline_upstreams.index.snapshot
+        assert historical.dependency_graph == baseline_upstreams.dependency.graph
+        assert historical.call_graph == baseline_upstreams.call.graph
+        assert historical.dispatch_evidence == baseline_upstreams.dispatch.evidence
+        assert target_upstreams.dispatch.evidence_sha256 != (
+            historical.dispatch_evidence.canonical_hash()
+        )
+    finally:
+        services.search.close()
+
+
+def test_historical_coverage_rejects_hash_mismatch_and_upstream_tamper(
+    tmp_path: Path,
+) -> None:
+    root, base_sha = _repository(tmp_path)
+    services = _services(tmp_path / "state")
+    policy = _policy()
+    try:
+        baseline_upstreams = _build_upstreams(root, base_sha, services)
+        run = _trusted_run(root, baseline_upstreams, policy)
+        run_ref, run_sha256 = _write_run(services.artifacts, run)
+        recorded = _record(
+            services,
+            root,
+            baseline_upstreams,
+            policy,
+            run_ref,
+            run_sha256,
+        )
+
+        _write(root, "notes.txt", "updated tracked non-Python evidence\n")
+        target_sha = _commit(root, "advance before historical tamper check")
+        _build_upstreams(
+            root,
+            target_sha,
+            services,
+            previous=baseline_upstreams,
+        )
+        services.search.clear_namespace(services.coverage.namespace(PROJECT_ID))
+
+        with pytest.raises(
+            RepositoryCoverageEvidenceError,
+            match="integrity verification",
+        ):
+            services.coverage.verified_historical_evidence(
+                project_id=PROJECT_ID,
+                trusted_test_policy=policy,
+                expected_evidence_ref=recorded.evidence_ref,
+                expected_evidence_sha256="f" * 64,
+            )
+
+        dependency_path = services.artifacts.root / (
+            recorded.evidence.dependency_graph_ref.removeprefix("artifact://")
+        )
+        dependency_path.write_text("{}", encoding="utf-8")
+        with pytest.raises(
+            RepositoryCoverageEvidenceError,
+            match="historical coverage upstream verification failed",
+        ):
+            services.coverage.verified_historical_evidence(
+                project_id=PROJECT_ID,
+                trusted_test_policy=policy,
+                expected_evidence_ref=recorded.evidence_ref,
+                expected_evidence_sha256=recorded.evidence_sha256,
+            )
+    finally:
+        services.search.close()
+
+
 def test_service_policy_drift_rejects_active_verification_and_exact_replay(
     tmp_path: Path,
 ) -> None:
