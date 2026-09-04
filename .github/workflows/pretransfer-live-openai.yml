@@ -1,0 +1,310 @@
+name: UCA Pre-Transfer Live OpenAI
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: OpenAI model for live qualification
+        required: false
+        default: gpt-5.6
+      runs:
+        description: Number of repeated live qualification runs
+        required: false
+        default: "1"
+  pull_request:
+    paths:
+      - "universal-coding-agent/**"
+      - ".github/workflows/pretransfer-live-openai.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-pretransfer:
+    runs-on: ubuntu-24.04
+    env:
+      OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+      UCA_OPENAI_MODEL: ${{ inputs.model || vars.UCA_OPENAI_MODEL || 'gpt-5.6' }}
+      UCA_LIVE_RUNS: ${{ inputs.runs || vars.UCA_LIVE_RUNS || '1' }}
+      UCA_LIVE_MIN_SUCCESS_RATE: "1.0"
+      UCA_HARD_LIVE_RUNS: "1"
+      UCA_HARD_LIVE_MIN_SUCCESS_RATE: "1.0"
+      UCA_LARGE_SOLUTION_RUNS: "1"
+      UCA_LARGE_SOLUTION_MIN_SUCCESS_RATE: "1.0"
+      UCA_OPENAI_BACKGROUND_CANCEL_TIMEOUT_SECONDS: "45"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: universal-coding-agent/pyproject.toml
+
+      - name: Install package and development dependencies
+        working-directory: universal-coding-agent
+        run: python -m pip install -e '.[dev]'
+
+      - name: Run deterministic pre-transfer qualification
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-deterministic"
+          bash scripts/pretransfer-test-lab.sh "$STATE_ROOT"
+
+      - name: Record missing live secret
+        if: env.OPENAI_API_KEY == ''
+        run: |
+          echo "PRETRANSFER_LIVE_OPENAI_SKIPPED_NO_SECRET"
+          echo "### Live OpenAI qualification skipped: AZURE_OPENAI_API_KEY secret is not configured." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run live OpenAI cancellation and restart reconciliation qualifications
+        id: cancellation
+        if: env.OPENAI_API_KEY != ''
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-openai-background-cancellation-live"
+          set +e
+          UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+            python -m universal_coding_agent.testlab.openai_background_cancellation_live \
+              --state-root "$STATE_ROOT"
+          CANCELLATION_RC=$?
+          RECONCILIATION_RC=97
+          if [[ "$CANCELLATION_RC" -eq 0 ]]; then
+            UCA_OPENAI_BACKGROUND_CANCELLATION=1 \
+              python -m universal_coding_agent.testlab.openai_background_reconciliation_live \
+                --state-root "$STATE_ROOT"
+            RECONCILIATION_RC=$?
+          fi
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/background-cancellation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/background-cancellation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -f "$STATE_ROOT/background-reconciliation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/background-reconciliation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ "$CANCELLATION_RC" -ne 0 ]]; then
+            exit "$CANCELLATION_RC"
+          fi
+          exit "$RECONCILIATION_RC"
+
+      - name: Upload OpenAI cancellation and reconciliation diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.cancellation.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-openai-background-cancellation-live-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/background-cancellation-live-summary.json
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/background-reconciliation-live-summary.json
+            ${{ runner.temp }}/uca-openai-background-cancellation-live/task-control.sqlite
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run live OpenAI pre-transfer qualification
+        id: live
+        if: env.OPENAI_API_KEY != ''
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-live"
+          set +e
+          bash scripts/pretransfer-live-openai.sh "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/live-summary.json" ]]; then
+            cat "$STATE_ROOT/live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload live qualification summary
+        if: env.OPENAI_API_KEY != '' && always() && steps.live.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-pretransfer-live-summary
+          path: ${{ runner.temp }}/uca-pretransfer-live/live-summary.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run product foundation live qualification
+        id: product
+        if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-product-foundation-live"
+          set +e
+          python -m universal_coding_agent.testlab.product_foundation_live \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/product-foundation-live-summary.json" ]]; then
+            cat "$STATE_ROOT/product-foundation-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload product foundation live diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.product.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-product-foundation-live-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-product-foundation-live/product-foundation-live-summary.json
+            ${{ runner.temp }}/uca-product-foundation-live/workspace/artifacts/requirements/**
+            ${{ runner.temp }}/uca-product-foundation-live/workspace/artifacts/programs/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Run live multi-phase Program execution qualification
+        id: program
+        if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-program-execution-live"
+          set +e
+          python -m universal_coding_agent.testlab.program_execution_live \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/program-execution-live-summary.json" ]]; then
+            cat "$STATE_ROOT/program-execution-live-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$RC"
+
+      - name: Upload live multi-phase Program execution diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.program.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-program-execution-live-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-program-execution-live/program-execution-live-summary.json
+            ${{ runner.temp }}/uca-program-execution-live/workspace/artifacts/programs/**
+            ${{ runner.temp }}/uca-program-execution-live/runtime/safe/artifacts/tasks/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Run hard CDC reasoning qualification
+        id: hard
+        if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-hard-cdc"
+          set +e
+          python -m universal_coding_agent.testlab.hard_reasoning \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/hard-summary.json" ]]; then
+            cat "$STATE_ROOT/hard-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "=== HARD CDC TEST RESULTS ==="
+          find "$STATE_ROOT" -type f -name test-results.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== HARD CDC REVIEW ==="
+          find "$STATE_ROOT" -type f -name safe-review.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== HARD CDC EDIT PROPOSALS ==="
+          find "$STATE_ROOT" -type f -name edit-proposal.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== HARD CDC PATCHES ==="
+          find "$STATE_ROOT" -type f -name proposed.patch -print \
+            -exec sed -n '1,400p' {} \; || true
+          exit "$RC"
+
+      - name: Upload hard CDC reasoning diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.hard.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-pretransfer-hard-cdc-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/hard-summary.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/test-results.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-review.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-reviewer-context.md
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-reviewer-model-validation.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/edit-proposal.json
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/proposed.patch
+            ${{ runner.temp }}/uca-pretransfer-hard-cdc/**/safe-final-report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Run production discovered Safe large solution qualification
+        id: large
+        if: ${{ always() && env.OPENAI_API_KEY != '' && steps.live.outcome == 'success' }}
+        continue-on-error: true
+        working-directory: universal-coding-agent
+        run: |
+          STATE_ROOT="$RUNNER_TEMP/uca-pretransfer-large-solution"
+          set +e
+          python -m universal_coding_agent.testlab.large_solution_production \
+            --state-root "$STATE_ROOT"
+          RC=$?
+          set -e
+          echo "state_root=$STATE_ROOT" >> "$GITHUB_OUTPUT"
+          if [[ -f "$STATE_ROOT/large-solution-summary.json" ]]; then
+            cat "$STATE_ROOT/large-solution-summary.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "=== PRODUCTION LARGE SOLUTION DISCOVERY PLAN ==="
+          find "$STATE_ROOT" -type f \( \
+              -name discovery-plan.json -o -name solution-impact-plan.json \
+            \) -print -exec python -m json.tool {} \; || true
+          echo "=== PRODUCTION LARGE SOLUTION PROVENANCE ==="
+          find "$STATE_ROOT" -type f -name solution-discovery-provenance.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== PRODUCTION LARGE SOLUTION TEST RESULTS ==="
+          find "$STATE_ROOT" -type f -name test-results.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== PRODUCTION LARGE SOLUTION REVIEW ==="
+          find "$STATE_ROOT" -type f -name safe-review.json -print \
+            -exec python -m json.tool {} \; || true
+          echo "=== PRODUCTION LARGE SOLUTION PATCHES ==="
+          find "$STATE_ROOT" -type f -name proposed.patch -print \
+            -exec sed -n '1,500p' {} \; || true
+          exit "$RC"
+
+      - name: Upload production large solution diagnostics
+        if: env.OPENAI_API_KEY != '' && always() && steps.large.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uca-pretransfer-production-large-solution-diagnostics
+          path: |
+            ${{ runner.temp }}/uca-pretransfer-large-solution/large-solution-summary.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-snapshot.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovery-plan.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-discovery-snapshot.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-impact-plan.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/solution-discovery-provenance.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/discovered-change-manifest.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/test-results.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-review.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-reviewer-context.md
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-reviewer-model-validation.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/edit-proposal.json
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/proposed.patch
+            ${{ runner.temp }}/uca-pretransfer-large-solution/**/safe-final-report.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce all live qualification outcomes
+        if: ${{ always() && env.OPENAI_API_KEY != '' }}
+        run: |
+          echo "CANCELLATION_OUTCOME=${{ steps.cancellation.outcome }}"
+          echo "LIVE_OUTCOME=${{ steps.live.outcome }}"
+          echo "PRODUCT_OUTCOME=${{ steps.product.outcome }}"
+          echo "PROGRAM_OUTCOME=${{ steps.program.outcome }}"
+          echo "HARD_OUTCOME=${{ steps.hard.outcome }}"
+          echo "PRODUCTION_LARGE_OUTCOME=${{ steps.large.outcome }}"
+          test "${{ steps.cancellation.outcome }}" = "success"
+          test "${{ steps.live.outcome }}" = "success"
+          test "${{ steps.product.outcome }}" = "success"
+          test "${{ steps.program.outcome }}" = "success"
+          test "${{ steps.hard.outcome }}" = "success"
+          test "${{ steps.large.outcome }}" = "success"
+          echo "PRETRANSFER_ALL_LIVE_QUALIFICATIONS_PASS"

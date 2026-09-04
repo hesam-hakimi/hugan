@@ -6,7 +6,7 @@ The project is designed for a central Linux service that accepts a Git repositor
 
 ## Current milestone
 
-**Phase 1: LangGraph Observe MVP**
+**Phase 2: Safe Mode and controlled publication**
 
 Implemented in this milestone:
 
@@ -24,13 +24,21 @@ Implemented in this milestone:
 - CLI run, resume, status, and provider probe commands;
 - provider-neutral model contract with a host-factory adapter;
 - deterministic fake provider for tests.
+- Safe Mode structured edits inside an isolated sandbox;
+- fixed policy-owned test profiles and independent Safe review;
+- exact-patch approval and rejection with durable SHA-256-bound evidence;
+- explicit post-approval local commit, feature-ref push, or Draft-PR adapter action;
+- retryable exact reconciliation and immutable completed publication receipts;
+- default-disabled GitHub Draft-PR integration with pinned repository/account identity, exact
+  Base/Head SHA checks, Draft-only semantics, idempotent lookup, and redacted bounded failures.
+- a fail-closed hosted GitHub qualification harness with an isolated fixture/ref, exact adapter and
+  restart replay checks, remote-ref isolation, source preservation, and credential-state scanning.
 
 Not yet included:
 
-- source modification;
-- patch application;
 - arbitrary command execution;
-- commit, push, pull-request creation, merge, or deployment;
+- a successful live hosted GitHub feature-ref/Draft-PR qualification run;
+- merge or deployment;
 - Windows workers;
 - multi-user web UI.
 
@@ -187,9 +195,13 @@ Each model role receives a fresh, bounded context compiled from project memory, 
 - denied files are not indexed or sent to a model;
 - subprocesses use explicit argument arrays with `shell=False`;
 - Observe mode performs no source writes;
+- Safe Mode writes only approved structured edits in an isolated sandbox, then verifies the
+  Git-generated canonical patch, fixed tests, and independent review;
 - repository and branch identity are pinned to an immutable base SHA;
 - local repository paths require an explicit `--allow-local-sources` opt-in and are intended for controlled smoke/testing scenarios;
 - resume is tied to the same task/thread and checkpoint store;
-- no commit, push, PR, merge, or deploy behavior exists in this milestone.
+- approval alone never performs source-control work; publication is a separate explicit action
+  through a trusted, default-disabled adapter;
+- publication grants no base-branch update, non-fast-forward rewrite, merge, or deploy authority.
 
 See [SECURITY.md](SECURITY.md) and [ARCHITECTURE.md](ARCHITECTURE.md).

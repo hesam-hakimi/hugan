@@ -5,7 +5,7 @@ import json
 import re
 from enum import StrEnum
 from pathlib import PurePosixPath
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -162,6 +162,24 @@ class SafeModePolicy(FrozenSafeModel):
         return {item.profile_id: item for item in self.profiles}
 
 
+class SafeContextEvidence(FrozenSafeModel):
+    """Bounded, integrity-checked, read-only context accepted by the control plane."""
+
+    context_type: Literal[
+        "accepted_phase_evidence", "accepted_phase_handoff"
+    ] = "accepted_phase_evidence"
+    source_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    content: str = Field(min_length=1, max_length=48_000)
+
+    @model_validator(mode="after")
+    def validate_content_hash(self) -> SafeContextEvidence:
+        digest = hashlib.sha256(self.content.encode("utf-8")).hexdigest()
+        if digest != self.sha256:
+            raise ValueError("safe context evidence content hash does not match sha256")
+        return self
+
+
 class SafeTaskRequest(FrozenSafeModel):
     task_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
     thread_id: str = Field(pattern=r"^[a-zA-Z0-9][a-zA-Z0-9._-]{2,127}$")
@@ -172,7 +190,9 @@ class SafeTaskRequest(FrozenSafeModel):
     policy: SafeModePolicy = Field(default_factory=SafeModePolicy)
     mode: TaskMode = TaskMode.SAFE
     require_scope_approval: bool = True
+    require_publish_approval: bool = False
     metadata: dict[str, str] = Field(default_factory=dict)
+    context_evidence: tuple[SafeContextEvidence, ...] = Field(default=(), max_length=8)
 
     @model_validator(mode="after")
     def validate_safe_task(self) -> SafeTaskRequest:
@@ -189,7 +209,90 @@ class SafeTaskRequest(FrozenSafeModel):
         return self
 
 
+class TextReplacement(FrozenSafeModel):
+    """One exact, deterministic text replacement inside an approved existing file."""
+
+    old_text: str = Field(min_length=1, max_length=500_000)
+    new_text: str = Field(max_length=500_000)
+
+    @model_validator(mode="after")
+    def validate_replacement(self) -> TextReplacement:
+        if "\x00" in self.old_text or "\x00" in self.new_text:
+            raise ValueError("text replacements may not contain NUL bytes")
+        if self.old_text == self.new_text:
+            raise ValueError("text replacement must change content")
+        return self
+
+
+class FileEdit(FrozenSafeModel):
+    """A file-level structured edit; the model never emits Git patch syntax."""
+
+    path: str = Field(min_length=1, max_length=1024)
+    operation: ChangeOperation
+    replacements: tuple[TextReplacement, ...] = Field(default=(), max_length=128)
+    content: str | None = Field(default=None, max_length=1_000_000)
+
+    @field_validator("path")
+    @classmethod
+    def validate_path(cls, value: str) -> str:
+        return normalize_repository_path(value)
+
+    @model_validator(mode="after")
+    def validate_operation_shape(self) -> FileEdit:
+        if self.content is not None and "\x00" in self.content:
+            raise ValueError("created text content may not contain NUL bytes")
+        if self.operation is ChangeOperation.MODIFY:
+            if self.content is not None:
+                raise ValueError("modify edits use replacements, not full-file content")
+            if not self.replacements:
+                raise ValueError("modify edits require at least one exact replacement")
+        elif self.operation is ChangeOperation.CREATE:
+            if self.replacements:
+                raise ValueError("create edits use content, not replacements")
+            if self.content is None:
+                raise ValueError("create edits require explicit text content")
+        return self
+
+
+class StructuredEditProposal(FrozenSafeModel):
+    """Model-authored semantic edits that are materialized deterministically by the tool."""
+
+    summary: str = Field(min_length=1, max_length=4000)
+    edits: tuple[FileEdit, ...] = Field(min_length=1, max_length=64)
+    requested_test_profiles: tuple[str, ...] = ()
+    assumptions: tuple[str, ...] = ()
+
+    @field_validator("requested_test_profiles")
+    @classmethod
+    def validate_requested_profiles(cls, values: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(item.strip() for item in values)
+        if any(not _ID.fullmatch(item) for item in normalized):
+            raise ValueError("requested test profile IDs contain unsupported characters")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("requested test profile IDs must be unique")
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_edits(self) -> StructuredEditProposal:
+        paths = [item.path for item in self.edits]
+        if len(paths) != len(set(paths)):
+            raise ValueError("structured edit paths must be unique")
+        return self
+
+    @property
+    def changed_paths(self) -> tuple[str, ...]:
+        return tuple(item.path for item in self.edits)
+
+
+class EditValidationResult(FrozenSafeModel):
+    valid: bool
+    changed_paths: tuple[str, ...] = ()
+    errors: tuple[str, ...] = ()
+
+
 class PatchProposal(FrozenSafeModel):
+    """Canonical Git patch generated by the tool after structured edits are materialized."""
+
     summary: str = Field(min_length=1, max_length=4000)
     unified_diff: str = Field(
         min_length=1,
