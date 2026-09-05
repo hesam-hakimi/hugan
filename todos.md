@@ -1,416 +1,500 @@
 
-ETL-0904-SNAPSHOT01 — Evidence Preservation Prompt
+# ETL\-0904\-SNAPSHOT02 — Supplemental Evidence Snapshot Prompt
 
 ```text
-TASK_ID: ETL-0904-SNAPSHOT01
-TYPE: AUTHORISED EVIDENCE SNAPSHOT — COPY ONLY, OUTSIDE BOTH WORKTREES
+TASK_ID: ETL-0904-SNAPSHOT02
+TYPE: SUPPLEMENTAL EVIDENCE SNAPSHOT — TWO IDENTIFIED HISTORY FOLDERS ONLY
 
 Run this in a fresh, normal local VS Code Agent chat on Windows. Do not
-use the Agent that implemented or self-reviewed IMPL04, and do not use the
-ETL Orchestrator.
+use the Agent that implemented or self-reviewed IMPL04, and do not use
+the ETL Orchestrator.
 
-Echo TASK_ID: ETL-0904-SNAPSHOT01 as the first line of your report.
+Echo TASK_ID: ETL-0904-SNAPSHOT02 as the first line of your report.
+
+=========================================================
+THIS IS A SUPPLEMENT, NOT A REPEAT
+=========================================================
+
+ETL-0904-SNAPSHOT01 captured the six dirty repository paths and their
+matched Local History. Do not modify, extend, copy, or re-verify its
+payload. This task performs only a read-only identity check of
+SNAPSHOT01's manifest, then captures two identified Local History
+folders that SNAPSHOT01 did not capture.
+
+The eleven unattributed Local History folders remain outside the payload
+by owner decision. This task records their current inventory only and
+does not claim that any orphan belongs to a repository file.
+
+=========================================================
+SNAPSHOT01 IDENTITY — MANIFEST CHECK ONLY
+=========================================================
+
+Expected values:
+
+  Snapshot root:
+    C:\Users\tag5916\ETL-SNAPSHOT-ETL-0904-SNAPSHOT01-20260904T210831Z
+
+  Manifest SHA-256:
+    78324A99A5D700053214B15F680E2DCBE3A2099A0801C43B6D02E512D43004DF
+
+Before any write:
+
+1. Confirm the exact snapshot root and manifest.json exist.
+2. Compute manifest.json's SHA-256 and compare it with the expected
+   digest above. Hexadecimal case is not significant; every byte is.
+3. Parse manifest.json as JSON.
+4. Inspect the actual JSON schema and locate the unique semantic values
+   for:
+     - task identity, which must equal ETL-0904-SNAPSHOT01;
+     - snapshot completion, which must equal COMPLETE;
+     - source-history unchanged, which must be true or YES.
+5. Report the exact JSON path, value, and value type used for each check.
+   Do not assume invented property names such as TASK_ID or
+   SOURCE_HISTORY_STATE_UNCHANGED if the manifest uses a different or
+   nested schema. If conflicting values exist, identity is not proven.
+6. Record the exact Local History folder identifiers SNAPSHOT01 reports
+   as captured.
+7. Record the orphan-folder identifiers stored in SNAPSHOT01, if the
+   manifest contains them. Do not inspect SNAPSHOT01's payload.
+
+If the root or manifest is absent, the digest differs, JSON parsing
+fails, any semantic value is missing or conflicting, or a required
+semantic value is not the expected value, stop and report:
+
+  BLOCKED_SNAPSHOT01_IDENTITY_MISMATCH: <specific reason>
+
+=========================================================
+TARGET FOLDER IDENTIFICATION
+=========================================================
+
+The only payload sources authorised by this task are:
+
+  Folder A:
+    History folder identifier: -3a438db7
+    Expected canonical resource path:
+      C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147\test.txt
+
+  Folder B:
+    History folder identifier: -545fead2
+    Expected canonical resource path:
+      C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147\.github\agents\test.agent.md
+
+For each folder, before any write:
+
+1. Locate the exact identifier beneath %APPDATA%\Code\User\History.
+2. Confirm it is a real directory and not a symlink, junction, or other
+   reparse point.
+3. Read entries.json. Its absence is not recoverable for either target.
+4. Decode the resource URI, normalise separators, and canonicalise the
+   resulting Windows path.
+5. Compare the complete canonical path with the expected path above
+   using Windows case-insensitive path semantics. A basename, suffix,
+   prefix, or textual-substring match is insufficient.
+6. Confirm the identifier is absent from SNAPSHOT01's captured-folder
+   list.
+
+If the folder or entries.json is absent, the folder is a reparse point,
+the decoded resource differs, identity is ambiguous, or the identifier
+was already captured by SNAPSHOT01, stop and report:
+
+  BLOCKED_TARGET_HISTORY_IDENTITY_LOST: <folder identifier>: <reason>
 
 =========================================================
 AUTHORISATION AND ITS EXACT LIMITS
 =========================================================
 
-The owner authorises exactly one bounded class of write:
+The owner authorises exactly:
 
-- create one new destination root outside both worktrees; and
-- create only the necessary child directories and new snapshot files
-  beneath that destination root.
+- read-only verification of SNAPSHOT01's manifest identity;
+- read-only identification and inventory of the two target folders;
+- read-only inventory of the orphan identifiers recorded by SNAPSHOT01;
+- read-only Git identity and state checks from the active worktree;
+- creation of one new destination root that is a sibling of SNAPSHOT01;
+- creation of necessary child directories beneath that destination;
+- byte-for-byte copying of the two target folders' regular files; and
+- creation of one manifest.json as the final destination file.
 
-Everything else remains forbidden:
+Everything else is forbidden:
 
-- Do not modify, move, rename, or delete anything inside either worktree
-  or anywhere under %APPDATA%\Code\User\History.
+- Do not modify, move, rename, delete, extend, or add anything beneath
+  SNAPSHOT01's root.
+- Do not modify, move, rename, or delete anything in either Git worktree
+  or anywhere beneath %APPDATA%\Code\User\History.
 - Do not accept, discard, Keep, Undo, or otherwise resolve any pending
   VS Code chat edit. Leave every pending edit exactly as it is.
 - No type-check, compile, lint, emit, test, parser execution, runner,
   Extension Host, package, install, activation, or consumer write.
-- No git command that mutates the index, worktree, refs, stash, branch,
-  tags, or history. No add, commit, stash, checkout, restore, reset,
-  clean, merge, rebase, cherry-pick, tag, or worktree add/remove.
-- Use read-only git commands with `git --no-optional-locks` wherever git
-  is needed.
-- Do not create a helper script, temporary file, transcript, archive, or
-  intermediate report anywhere. Keep the pre-write baseline in memory.
-- Do not compress, archive, encrypt, normalise, re-encode, or otherwise
-  transform payload files. Copy their bytes unchanged.
+- No Git command that mutates an index, worktree, ref, stash, branch,
+  tag, or history. Use git --no-optional-locks for every Git read.
+- Do not enter or modify the linked primary worktree. Its recorded
+  identity may be read from the active linked worktree.
+- Do not create helper scripts, temporary files, transcripts, archives,
+  intermediate reports, or scratch output anywhere, including beneath
+  the destination.
+- Do not compress, encrypt, normalise, re-encode, or otherwise transform
+  payload files. Copy bytes unchanged.
 - Every destination file write must use fail-if-exists / CreateNew
-  semantics. Do not use Copy-Item's default overwrite behaviour. For
-  payload copies use [System.IO.File]::Copy(source, destination, $false)
-  or an equivalent operation that cannot overwrite. For manifest.json,
-  use FileMode.CreateNew or an equivalent atomic fail-if-exists method.
+  semantics. Use [System.IO.File]::Copy(source, destination, $false) for
+  payload files and FileMode.CreateNew for manifest.json.
 
-If any destination file already exists or any write would overwrite a
-file, stop immediately. Do not delete or reuse the directory. Report:
+If any destination file already exists or any operation would overwrite
+a file, stop immediately and report:
 
   BLOCKED_DESTINATION_CONFLICT
 
-Report what you find and copy only what this prompt authorises. Fix,
-clean up, stage, or propose nothing.
-
 =========================================================
-WHY THIS EXISTS
+MANDATORY EXECUTION ORDER
 =========================================================
 
-Most of the current worktree state exists in no commit and no stash.
-VS Code Local History is a bounded evidence source; at least one relevant
-history folder has reached 50 entries, and one relevant file already has
-no surviving snapshot preceding a window that matters. Further editor
-writes can evict the remaining baselines.
+The first authorised write is step 6. No write may occur before step 6.
+Perform the task in exactly this order:
 
-This task preserves the current dirty working set and all surviving Local
-History associated with it. It is evidence insurance, not cleanup,
-qualification, acceptance, or a substitute for independent review.
+1. Verify SNAPSHOT01 manifest identity — Section 1, read-only.
+2. Identify both target folders — Section 2, read-only.
+3. Record the orphan inventory — Section 3, read-only.
+4. Capture the complete pre-write baseline in memory — Section 4,
+   read-only.
+5. Select and validate the destination and print it — Section 5,
+   read-only.
+6. Create the destination and copy payload files — Section 6, writes.
+7. Verify every destination payload file against Section 4 — Section 7,
+   read-only.
+8. Re-derive source and control state and compare with Section 4 —
+   Section 8, read-only.
+9. Only if Section 7 passes completely and every blocking Section 8
+   verdict is YES, write manifest.json as the final destination file —
+   Section 9.
+10. Read back, parse, validate, size, and hash manifest.json — read-only.
 
-=========================================================
-REPOSITORY
-=========================================================
+If a blocker occurs before step 6, create nothing and report:
 
-Active worktree:
-  C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+  SNAPSHOT_STATUS: BLOCKED
 
-Linked primary worktree:
-  C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+If any failure occurs after step 6, leave the partial destination exactly
+as it is. Do not delete, rename, repair, resume, or reuse it. Do not write
+manifest.json unless Sections 7 and 8 passed. Report:
 
-The active worktree is a linked Git worktree of the primary. Its Git
-administrative directory and common directory may differ. Do not enter
-or modify the primary worktree. Read-only inspection of Git-reported
-identity is permitted.
+  SNAPSHOT_STATUS: INCOMPLETE
 
-Use the listed paths only for navigation and scope. Independently
-re-derive every repository identity, path, hash, count, and timestamp.
-If the active worktree or linked-worktree identity does not match the
-live evidence, stop before writing and report:
-
-  BLOCKED_REPOSITORY_IDENTITY_MISMATCH
-
-=========================================================
-DESTINATION SELECTION AND SAFETY
-=========================================================
-
-Complete this preflight before any write:
-
-1. Resolve the canonical paths of the active worktree, the linked primary
-   worktree, their parent repository tree, %APPDATA%\Code\User\History,
-   known VS Code profile roots, installed-extension roots, QA roots, and
-   consumer-workspace roots. Resolve reparse points rather than comparing
-   unnormalised strings.
-2. Choose an existing, writable parent under %USERPROFILE% that is outside
-   every excluded root above. The snapshot destination itself must be a
-   new direct child of that safe parent. If disjointness cannot be proved,
-   stop and report BLOCKED_DESTINATION_SAFETY_UNKNOWN.
-3. Name the new destination root exactly in this form, using the actual
-   current UTC time and Windows-safe characters:
-
-     ETL-SNAPSHOT-ETL-0904-SNAPSHOT01-<UTC>
-
-   Example timestamp format only: 20260904T190000Z
-4. Canonicalise the existing parent and validate the planned full child
-   path before creation. Reject path traversal, reparse-point redirection,
-   or containment within any excluded root.
-5. Confirm the destination root does not exist. Print its exact absolute
-   path in the chat before the first write. If it exists, stop and report:
-
-     BLOCKED_DESTINATION_EXISTS
-
-Do not create the destination until S4 has been captured in memory.
+and identify the last completed step.
 
 =========================================================
-COMPLETION MODEL AND MANDATORY ORDER
+SECTION 1 — VERIFY SNAPSHOT01 MANIFEST IDENTITY
 =========================================================
 
-A valid manifest.json, written as the final destination file, is the only
-completion marker. A directory with no manifest.json, or with an invalid
-manifest.json, is not a complete snapshot.
+Perform only the manifest checks defined above. Retain in memory:
 
-Perform the work in exactly this order:
+- canonical SNAPSHOT01 root;
+- manifest SHA-256 and byte size;
+- the three semantic values and their actual JSON paths/types;
+- captured Local History folder identifiers; and
+- recorded orphan identifiers, if present.
 
-1. Complete all read-only identity, scope, and destination preflight.
-2. Perform S1 through S4 and hold the full S4 baseline in memory. No file
-   or directory may have been created yet.
-3. Create the new destination root and its necessary child directories.
-4. Copy the S1 and S2 payload files using fail-if-exists semantics.
-5. Perform S5 and verify every payload copy against its S4 source hash.
-6. Perform S6 immediately before manifest creation and compare all source
-   state against S4.
-7. Only if S5 passes completely and both S6 source-state verdicts are YES,
-   write manifest.json using CreateNew as the final destination write.
-8. After writing manifest.json, perform read-only parse validation, obtain
-   its byte size, and compute its SHA-256 for the report. Do not alter it.
-
-If any exception, mismatch, unsafe condition, source-state change, or
-incomplete verification occurs after destination creation:
-
-- stop;
-- leave the partial directory exactly as it is;
-- do not delete, rename, repair, resume, or reuse it;
-- do not write manifest.json; and
-- report SNAPSHOT_STATUS: INCOMPLETE and the last completed step.
-
-If blocked before destination creation, report SNAPSHOT_STATUS: BLOCKED.
+Do not enumerate, hash, or compare SNAPSHOT01 payload files.
 
 =========================================================
-WHAT TO CAPTURE
+SECTION 2 — IDENTIFY THE TWO TARGET FOLDERS
 =========================================================
 
-S1 — THE DIRTY WORKING SET
+Perform every check under TARGET FOLDER IDENTIFICATION. For each target,
+retain the folder identifier, canonical folder path, decoded resource URI,
+canonical resource path, and proof that SNAPSHOT01 did not capture it.
 
-Derive the complete current dirty set from:
+=========================================================
+SECTION 3 — ORPHAN INVENTORY, NO COPY
+=========================================================
 
-  git --no-optional-locks status --porcelain=v1 --untracked-files=all
+Use SNAPSHOT01's manifest as the authoritative prior orphan list. Do not
+infer attribution from extensions, contents, timestamps, or similarity.
 
-Do not assume a count or reuse a prior inventory. Preserve the raw output
-verbatim. Determine separately whether anything is staged.
+For every identifier in that prior list, report one of:
 
-Copy every dirty repository file, tracked or untracked, preserving its
-repository-relative path beneath:
+- PRESENT: current folder name, regular-file count, total bytes, earliest
+  file mtime UTC, and latest file mtime UTC; or
+- CURRENTLY_ABSENT.
 
-  payload/worktree/
+If SNAPSHOT01's manifest contains no machine-readable orphan list, report:
 
-Fail closed if a dirty item is missing, changes type during collection,
-or is a directory, symlink, junction, reparse point, or other non-regular
-file whose exact byte-copy semantics are not established. Report the item
-and do not improvise.
+  ORPHAN_INVENTORY_STATUS: NOT_AVAILABLE_IN_SNAPSHOT01_MANIFEST
 
-S2 — COMPLETE LOCAL HISTORY FOR EACH DIRTY PATH
+and continue. Do not scan all unrelated Local History folders to invent a
+replacement prior list.
 
-For each dirty repository path, locate its matching folder under:
+If the prior list exists but its size is not eleven, preserve the actual
+manifest value, report the discrepancy, and continue. A changed or absent
+orphan is not a blocker because orphan bytes are not payload in this task.
 
-  %APPDATA%\Code\User\History
+Record the observation time in UTC. Do not copy or hash orphan contents.
 
-Match by reading candidate entries.json files and comparing their decoded
-resource URIs to the canonical source path. Do not infer a match from a
-folder name or filename alone. If zero matches exist, record
-NO_HISTORY_FOUND. If more than one distinct folder claims the same resource,
-record every match and report the ambiguity; do not silently choose one.
+=========================================================
+SECTION 4 — PRE-WRITE BASELINE, MEMORY ONLY
+=========================================================
 
-For every matched history folder, copy without filtering:
+Before selecting or creating the destination, capture in memory:
 
-- the complete entries.json; and
-- every other regular file in that folder, including every snapshot.
+For each target Local History folder:
 
-Preserve each history folder as a distinct directory beneath:
+- canonical folder path and identifier;
+- decoded resource URI and canonical resource path;
+- complete ordinal inventory of every item;
+- for every regular file: filename, SHA-256, byte size, and mtime UTC;
+- entries.json SHA-256 and byte size specifically;
+- total entries.json entry count; and
+- earliest and latest entry timestamps and entry IDs.
+
+Fail before writing if either target contains a child directory, symlink,
+junction, reparse point, or non-regular item. Report:
+
+  BLOCKED_UNEXPECTED_HISTORY_ENTRY_TYPE: <path>
+
+For control-state evidence, derive from the active linked worktree without
+entering the primary worktree:
+
+- git-dir, git-common-dir, and show-toplevel;
+- branch and active HEAD;
+- complete `git --no-optional-locks worktree list --porcelain` output and
+  the primary worktree HEAD recorded there;
+- raw `git --no-optional-locks status --porcelain=v1
+  --untracked-files=all`; and
+- staged-path inventory.
+
+Also retain the current SNAPSHOT01 manifest SHA-256. Keep every Section 4
+value in memory. Do not create any file or directory.
+
+=========================================================
+SECTION 5 — DESTINATION SELECTION AND SAFETY
+=========================================================
+
+The new destination must be a sibling of SNAPSHOT01, never a child or
+parent of it:
+
+1. Resolve SNAPSHOT01's canonical parent directory and verify it is not a
+   reparse point.
+2. Use that exact canonical parent as the destination parent.
+3. Name the new root with the actual current UTC time in Windows-safe
+   format:
+
+     ETL-SNAPSHOT-ETL-0904-SNAPSHOT02-<YYYYMMDDTHHMMSSZ>
+
+   Example format only: 20260905T120000Z
+4. Canonicalise the planned path from its existing parent. Reject path
+   traversal or reparse-point redirection.
+5. Prove that the planned root is disjoint from and neither contains nor
+   is contained by:
+     - SNAPSHOT01;
+     - both worktrees and their parent repository tree;
+     - %APPDATA%\Code\User\History;
+     - VS Code profile roots;
+     - installed-extension roots;
+     - QA roots; and
+     - consumer-workspace roots.
+6. Confirm the destination does not exist.
+7. Print the exact planned absolute path in chat before the first write.
+
+If disjointness cannot be proved, report:
+
+  BLOCKED_DESTINATION_SAFETY_UNKNOWN
+
+If the planned destination exists, report:
+
+  BLOCKED_DESTINATION_EXISTS
+
+=========================================================
+SECTION 6 — CREATE DESTINATION AND COPY TARGET PAYLOAD
+=========================================================
+
+Create the destination root and the necessary child directories. Beneath:
 
   payload/local-history/
 
-Use a collision-proof destination name that includes the original history
-folder identifier. Record the source-to-destination mapping in the manifest.
+create one collision-proof directory per target whose name includes the
+exact original folder identifier.
 
-NO_HISTORY_FOUND is a finding, not a snapshot failure. Do not convert it to
-"unchanged", zero history, or proof that no prior modification occurred.
+Copy entries.json and every other regular file from each target folder.
+Use fail-if-exists semantics for every destination file. Do not copy any
+orphan folder or SNAPSHOT01 payload file.
 
-S3 — TASK-WINDOW ANNOTATION
+Record:
 
-From the chat-request labels and timestamps actually stored in each copied
-entries.json, identify entries associated with:
+- total payload file count;
+- total payload bytes; and
+- history snapshot count, defined as copied regular payload files other
+  than the two entries.json files.
 
-- IMPL03;
-- IMPL04; and
-- the implementing Agent's self-review after IMPL04.
+=========================================================
+SECTION 7 — VERIFY DESTINATION PAYLOAD
+=========================================================
 
-Record each supported mapping in the manifest with dirty repository path,
-history-folder identifier, entry ID, snapshot filename, timestamp, and exact
-chat-request label. If a mapping is absent or ambiguous, record
-NOT_IDENTIFIED or AMBIGUOUS with the evidence. Do not guess.
+Before manifest creation:
 
-These annotations do not select the payload: all history files are already
-captured by S2.
+1. Enumerate every destination payload file.
+2. Prove its relative-path inventory exactly equals the Section 4 planned
+   inventory.
+3. Recompute SHA-256 and byte size for every destination payload file.
+4. Compare each value with its corresponding Section 4 value, not with a
+   newly sampled source value.
+5. Report planned, present, compared, byte-identical, missing, extra, and
+   mismatching counts, plus every exceptional path.
 
-S4 — PRE-WRITE STATE BASELINE, HELD IN MEMORY ONLY
+Any missing, extra, or mismatching payload makes the snapshot incomplete.
+Do not write manifest.json.
 
-Before creating the destination or any child directory, capture in memory:
+=========================================================
+SECTION 8 — PROVE SOURCES AND CONTROL STATE UNCHANGED
+=========================================================
 
-Repository identity and state:
+Immediately before manifest creation, re-derive and compare with Section 4:
 
-- `git --no-optional-locks rev-parse --git-dir`;
-- `git --no-optional-locks rev-parse --git-common-dir`;
-- `git --no-optional-locks rev-parse --show-toplevel`;
-- branch;
-- HEAD;
-- raw porcelain status;
-- staged-path inventory; and
-- active and primary worktree records needed to prove linked identity.
+For each target Local History folder:
 
-For every dirty repository file:
-
-- canonical absolute source path;
-- repository-relative path;
-- SHA-256;
-- byte size;
-- source mtime in UTC;
-- line count; and
-- counts of CRLF, bare LF, and bare CR line endings, computed from bytes.
-
-For every matched Local History folder:
-
-- canonical folder path and folder identifier;
-- decoded resource URI;
-- a complete, ordinal filename inventory;
-- for every regular file, SHA-256, byte size, and source mtime in UTC;
-- SHA-256 and byte size of entries.json specifically;
+- complete ordinal item inventory;
+- SHA-256 and byte size of every regular file;
+- entries.json SHA-256 and byte size;
 - total entry count; and
-- earliest and latest entry timestamps and entry IDs as recorded in
-  entries.json.
+- earliest/latest entry timestamps and entry IDs.
 
-Also retain the S3 annotation mapping and every NO_HISTORY_FOUND or ambiguous
-history result. Do not write S4 to a temporary file.
+For repository control state:
 
-S5 — VERIFY EVERY PAYLOAD COPY
+- active branch and HEAD;
+- the active and primary worktree HEADs from `git --no-optional-locks
+  worktree list --porcelain`;
+- raw porcelain status; and
+- staged-path inventory.
 
-After all payload files have been copied and before manifest creation:
+For SNAPSHOT01:
 
-- enumerate every destination payload file;
-- prove that the destination relative-path inventory exactly matches the
-  planned S1/S2 payload inventory from S4;
-- recompute SHA-256 and byte size for every destination payload file; and
-- compare each destination value to the corresponding S4 source value.
+- recompute manifest.json SHA-256 only; do not inspect its payload.
 
-Report the exact comparison count and every missing, extra, or mismatching
-path. Compare against S4, not against a newly sampled source hash.
+Produce these blocking verdicts:
 
-If any payload file is missing, extra, or not byte-identical, S5 fails. Do
-not write manifest.json. Report SNAPSHOT_STATUS: INCOMPLETE.
+  FOLDER_A_STATE_UNCHANGED: YES / NO
+  FOLDER_B_STATE_UNCHANGED: YES / NO
+  ACTIVE_AND_PRIMARY_HEADS_UNCHANGED: YES / NO
+  WORKTREE_STATUS_UNCHANGED: YES / NO
+  SNAPSHOT01_MANIFEST_UNCHANGED: YES / NO
 
-S6 — PROVE THE SOURCES REMAIN UNCHANGED
+Report mtime-only changes separately as observations and do not infer their
+cause. Hash and inventory comparisons must not rely on mtime.
 
-After S5 passes and immediately before manifest.json is written, re-derive
-the source state and compare it to S4.
+Re-observe the Section 3 orphan identifiers and record any inventory delta
+as a non-blocking observation. Do not copy them. Orphan changes do not alter
+the five blocking verdicts above.
 
-For the repository, compare:
-
-- branch and HEAD;
-- raw porcelain status and staged-path inventory;
-- canonical dirty-path inventory; and
-- SHA-256 and byte size of every S4 dirty repository file.
-
-For every S4 Local History folder, compare:
-
-- complete ordinal filename inventory;
-- SHA-256 and byte size of every file;
-- SHA-256 and byte size of entries.json;
-- total entry count; and
-- earliest and latest entry timestamps and entry IDs.
-
-Report source mtime changes separately as observations; never infer their
-cause. Content and inventory comparisons must not rely on mtime alone.
-
-Produce two independent verdicts:
-
-  SOURCE_REPOSITORY_STATE_UNCHANGED: YES / NO
-  SOURCE_HISTORY_STATE_UNCHANGED: YES / NO
-
-If either verdict is NO, name every observed delta, do not attribute its
-cause without evidence, do not write manifest.json, and report
+If any blocking verdict is NO, name every delta, do not attribute cause
+without evidence, do not write manifest.json, and report
 SNAPSHOT_STATUS: INCOMPLETE.
 
-S7 — WRITE, READ BACK, AND REPORT THE MANIFEST
+=========================================================
+SECTION 9 — WRITE AND VALIDATE MANIFEST
+=========================================================
 
-Only after S5 passes and both S6 verdicts are YES, construct one
-machine-readable JSON object in memory and write it to:
-
-  manifest.json
-
-Use UTF-8 and FileMode.CreateNew or equivalent fail-if-exists semantics.
-This must be the final file created in the destination. Do not write a
-temporary manifest and do not rename or replace a file.
+Only after Section 7 passes completely and all five Section 8 verdicts are
+YES, construct one JSON object in memory and write it to manifest.json with
+UTF-8 and FileMode.CreateNew. It must be the final destination write. Do
+not write a temporary manifest and do not rename or replace a file.
 
 The manifest must contain at least:
 
-- `manifestSchemaVersion`;
-- task ID;
-- `snapshotStatus` equal to `COMPLETE`;
-- UTC generation time;
-- exact absolute destination path;
-- canonical excluded-root and destination-safety results;
-- Git identity: git-dir, git-common-dir, show-toplevel, linked-worktree
-  evidence, branch, HEAD, raw porcelain status, and staged inventory;
-- for every dirty repository file, all S4 metadata and its destination
-  relative path;
-- for every copied Local History file, source absolute path, destination
-  relative path, SHA-256, byte size, and source mtime in UTC;
-- for every history folder, resource URI, complete filename inventory,
-  total entry count, earliest/latest timestamps, and entry IDs;
-- all S3 annotations, including NOT_IDENTIFIED or AMBIGUOUS results;
-- all NO_HISTORY_FOUND paths;
-- S5 planned count, verified count, and mismatch/extra/missing arrays;
-- both S6 verdicts and their delta arrays; and
-- a declaration that manifest.json itself is not part of the payload-copy
-  verification count.
+- manifestSchemaVersion;
+- task ID and snapshotStatus equal to COMPLETE;
+- UTC generation time and absolute destination path;
+- SNAPSHOT01 root, verified manifest digest and byte size, plus the actual
+  JSON paths/types/values used for its three semantic checks;
+- initial and final SNAPSHOT01 manifest digests;
+- initial and final repository control-state records and verdicts;
+- each target's identifier, canonical folder path, resource URI and
+  canonical resource path;
+- each target's full Section 4 source inventory and Section 8 comparison;
+- every copied payload file's source path, destination relative path,
+  SHA-256, byte size, and source mtime UTC;
+- Section 3 prior/current orphan inventory, observation timestamps, status,
+  and any non-blocking deltas;
+- Section 7 counts and exceptional-path arrays;
+- all five Section 8 verdicts and delta arrays;
+- total payload file count and bytes;
+- history snapshot count, excluding entries.json; and
+- an explicit declaration that manifest.json is excluded from payload
+  verification counts.
 
-Do not place manifest.json's own SHA-256 inside manifest.json. A file cannot
-contain a stable digest of its final bytes without changing those bytes.
+Do not place manifest.json's own SHA-256 inside itself.
 
-After the CreateNew write completes, perform only read-only operations on
-manifest.json:
+After the CreateNew write completes, perform read-only operations only:
 
-1. read it back from disk;
+1. read manifest.json back from disk;
 2. parse it as JSON;
-3. verify required top-level fields and `snapshotStatus: COMPLETE`;
+3. verify its required fields and snapshotStatus;
 4. compute its byte size; and
-5. compute its SHA-256.
+5. compute its SHA-256 for the report.
 
-Report the manifest byte size and SHA-256 outside the manifest. If read-back
-or JSON validation fails, do not edit or delete it. Report
-SNAPSHOT_STATUS: INCOMPLETE and MANIFEST_JSON_VALID: NO.
+If read-back or validation fails, do not edit or delete the manifest or
+destination. Report SNAPSHOT_STATUS: INCOMPLETE and
+MANIFEST_JSON_VALID: NO.
 
 =========================================================
 EPISTEMIC RULES
 =========================================================
 
-1. Absence of Local History is not evidence of absence of change. Report
-   UNKNOWN where history cannot support a conclusion.
-2. A current clean or unchanged file cannot exclude a transient edit that
-   was later reverted. State that limitation where relevant.
-3. An mtime is an observation, not proof of the operation that produced it.
-4. A byte-identical snapshot preserves evidence; it does not establish that
-   the source is correct, reviewed, compiled, tested, or qualified.
-5. The snapshot does not approve the 11-path protected policy, B1, A2, or
-   any other implementation or test-oracle decision.
-6. If evidence is missing or ambiguous, preserve and report the ambiguity.
-   Do not resolve it by assumption.
+1. Missing entries.json for either target is a blocker, not a recoverable
+   absence.
+2. Do not use an orphan as a baseline or attribute it to a file.
+3. A changed orphan inventory is reportable but is not a payload failure.
+4. A byte-identical copy preserves evidence. It does not establish that
+   source code is correct, independently reviewed, compiled, tested, or
+   qualified.
+5. An mtime is an observation, not proof of the operation that produced it.
+6. A command log can prove what this task executed; it cannot exclude an
+   unrelated concurrent external action. Attribute cause only when evidence
+   supports it.
+7. This snapshot does not approve the 11-path protected policy, B1, A2, or
+   any implementation, oracle, review, qualification, version, merge, or
+   release decision.
 
 =========================================================
 REPORT
 =========================================================
 
 1. Begin with the required TASK_ID line.
-2. Report the proposed destination and all canonical-path safety checks
-   before reporting any write.
-3. Report S1 through S7 in order, with raw command output where requested.
-4. Report total payload files copied and total payload bytes. Keep payload
-   counts separate from manifest.json.
-5. If manifest.json was written, report its read-back validation, SHA-256,
-   and byte size separately.
-6. List every command executed in exact order. For each write command,
-   identify the newly created destination path. Confirm that every write
-   was confined beneath the new destination and used fail-if-exists
-   semantics.
-7. Confirm HEAD was never moved in either worktree and no Git mutation was
-   executed.
-8. Report anything material that this prompt did not ask about, but do not
-   change it or propose a repair.
-9. Replace every angle-bracket placeholder below with one permitted concrete
-   value. Do not print choice lists literally.
-10. Close with exactly these lines and then stop:
+2. Report Sections 1 through 9 in execution order.
+3. Include the SNAPSHOT01 semantic JSON paths/types/values actually used.
+4. Include target-folder identity evidence and exact canonical resources.
+5. Include destination safety results and the printed pre-write path.
+6. Include exact payload counts and bytes, excluding manifest.json.
+7. Include manifest read-back validation, SHA-256, and byte size.
+8. List every command executed in exact order. For every write, identify
+   the new destination path. Confirm each direct write was confined beneath
+   the destination and used fail-if-exists semantics.
+9. Report platform-generated cache artifacts separately from direct Agent
+   file-write commands; do not silently equate the two.
+10. Confirm no Git mutation command was executed. Report observed control
+    state using the Section 8 comparisons rather than claiming more than
+    the evidence proves.
+11. Report anything material not requested, but change and propose nothing.
+12. Replace every angle-bracket placeholder below with one permitted
+    concrete value. Do not print the alternatives literally.
+13. Close with exactly these lines and then stop:
 
-TASK_ID: ETL-0904-SNAPSHOT01
+TASK_ID: ETL-0904-SNAPSHOT02
 SNAPSHOT_STATUS: <COMPLETE | INCOMPLETE | BLOCKED>
 DESTINATION: <absolute path | NOT_CREATED>
-DIRTY_PATHS_CAPTURED: <n | NOT_COMPLETED>
-HISTORY_FOLDERS_CAPTURED: <n | NOT_COMPLETED>
+SNAPSHOT01_IDENTITY_VERIFIED: <YES | NO>
+SNAPSHOT01_MANIFEST_UNCHANGED: <YES | NO | NOT_COMPLETED>
+FOLDER_A_CAPTURED: <YES | PARTIAL | NOT_ATTEMPTED>
+FOLDER_B_CAPTURED: <YES | PARTIAL | NOT_ATTEMPTED>
+ORPHAN_INVENTORY_STATUS: <COMPLETE | PARTIAL | NOT_AVAILABLE_IN_SNAPSHOT01_MANIFEST | NOT_COMPLETED>
+ORPHAN_FOLDERS_INVENTORIED: <n | NOT_COMPLETED>
 HISTORY_SNAPSHOTS_CAPTURED: <n | NOT_COMPLETED>
-PATHS_WITH_NO_LOCAL_HISTORY: <n | NOT_COMPLETED>
-COPIED_PAYLOAD_FILES_VERIFIED_BYTE_IDENTICAL: <n of n | NOT_COMPLETED>
+PAYLOAD_FILES_CAPTURED: <n | NOT_COMPLETED>
+PAYLOAD_BYTES_CAPTURED: <n | NOT_COMPLETED>
+COPIED_FILES_VERIFIED_BYTE_IDENTICAL: <n of n | NOT_COMPLETED>
 MANIFEST_SHA256: <sha256 | NONE>
 MANIFEST_BYTES: <n | NONE>
 MANIFEST_JSON_VALID: <YES | NO | NOT_WRITTEN>
-SOURCE_REPOSITORY_STATE_UNCHANGED: <YES | NO | NOT_COMPLETED>
-SOURCE_HISTORY_STATE_UNCHANGED: <YES | NO | NOT_COMPLETED>
-FILES_CREATED_OUTSIDE_DESTINATION: NONE
+FOLDER_A_STATE_UNCHANGED: <YES | NO | NOT_COMPLETED>
+FOLDER_B_STATE_UNCHANGED: <YES | NO | NOT_COMPLETED>
+ACTIVE_AND_PRIMARY_HEADS_UNCHANGED: <YES | NO | NOT_COMPLETED>
+WORKTREE_STATUS_UNCHANGED: <YES | NO | NOT_COMPLETED>
+SNAPSHOT01_MODIFIED_BY_THIS_TASK: NO
+FILES_CREATED_OUTSIDE_DESTINATION_BY_AGENT_COMMANDS: NONE
 FILES_MODIFIED_IN_WORKTREES_BY_THIS_TASK: NONE
 LOCAL_HISTORY_MODIFIED_BY_THIS_TASK: NONE
 PENDING_EDITOR_CHANGES_RESOLVED: NONE
