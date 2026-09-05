@@ -1,158 +1,52 @@
-TASK\_ID: ETL\-0904\-IMPL05A1A2
-TYPE: SOURCE\-ONLY COUPLED REPAIR — M3 LAST\-COMPLETED\-STAGE SEMANTICS AND LIMITED B3 BOUNDARY DECOUPLING
+TASK\_ID: ETL\-0904\-REVIEW\-A1A2\-COUPLING
+TYPE: INDEPENDENT SOURCE REVIEW — M3 LAST\-COMPLETED\-STAGE SEMANTICS AND LIMITED B3 BOUNDARY DECOUPLING
 
 Run this in a fresh, normal local VS Code Agent chat on Windows\. Do not
-use the Agent that implemented IMPL05A2, reviewed REVIEW\-A2, implemented
-or self\-reviewed IMPL04, or the ETL Orchestrator\.
+use the Agent that implemented ETL\-0904\-IMPL05A1A2, implemented
+ETL\-0904\-IMPL05A2, performed ETL\-0904\-REVIEW\-A2, implemented or
+self\-reviewed IMPL04, or the ETL Orchestrator\.
 
-Echo TASK\_ID: ETL\-0904\-IMPL05A1A2 as the first line of your report\.
+Echo TASK\_ID: ETL\-0904\-REVIEW\-A1A2\-COUPLING as the first line of your
+report\.
 
-# ========================================================= OWNER SCOPE DECISION — FORMER A1/A2 SEAM
+You are reviewing, not implementing\. Report what the source proves and
+what it does not prove\. Do not fix anything and do not propose repairs\.
 
-Independent review ETL\-0904\-REVIEW\-A2 returned NOT\_ACCEPTABLE for one
-blocking reason only:
+# ========================================================= REVIEW\-ONLY AUTHORIZATION — ZERO WRITES ANYWHERE
 
-M3\_FINDING\_1: seven of eight non\-initial stage assignments occur before
-their gates execute, so a failure records the attempted gate rather
-than the last successfully completed gate\.
+The owner authorizes read\-only identity, status, hash, diff, file\-search,
+process\-inspection, and source\-inspection commands necessary for this
+review\.
 
-The same review concluded:
+You may NOT:
 
-M2\_REQUIREMENTS\_MET: YES
-M3\_REQUIREMENTS\_MET: PARTIAL
-STAGE\_TRACKING\_VERDICT: VIOLATES
-STAGE\_FIX\_REQUIRES\_A3\_SCOPE: NO
-SCOPE\_BOUNDARY\_CROSSED: NO
-B3\_LOGIC\_UNCHANGED: YES
-FINALIZATION\_SCHEMA\_UNCHANGED: YES
-POST\_EXIT\_FLOW\_UNCHANGED: YES
-NEXT\_REQUIRED\_GATE: OWNER\_SCOPE\_DECISION
+- edit, create, delete, move, rename, format, or normalize any file;
+- create a helper file, scratch file, temporary file, captured diff,
+  report file, or redirected command output anywhere, including
+  %TEMP%, either worktree, Snapshot01, or Local History;
+- accept, discard, Keep, Undo, or otherwise resolve any pending VS Code
+  chat edit;
+- run type\-check, compile, lint, emit, tests, the runner, Extension
+  Host, package, npm install, activation, or any runtime command;
+- launch a process bearing –extensionTestsPath,
+  –extensionDevelopmentPath, runTest, or @vscode/test\-electron flags;
+- run any git command that mutates the index, worktree, refs, stash,
+  branch, tags, or history;
+- stage, commit, push, merge, tag, stash, checkout, restore, reset,
+  clean, rebase, or cherry\-pick\.
 
-The owner now makes that decision\. This task authorizes one deliberately
-coupled repair across the former A1/A2 boundary:
+Use pipelines or in\-memory PowerShell values for comparisons\. Do not use
+output redirection to materialize a Git blob\. Prefer
+git –no\-optional\-locks for every Git read\.
 
-1. Correct M3 stage semantics so `stage` always represents the last
-   successfully completed gate, not the gate being attempted\.
-2. Decouple the existing B3 product\-boundary decision from the old
-   assign\-before\-gate interpretation of `stage`, preserving the existing
-   pre\-task B3 behavior at that seam\.
+A normal VS Code editor process is not a blocker\. Treat a test/development
+Host as active only when executable arguments show an actual invocation\.
+Exclude the current inspection shell and matches occurring only in the
+inspection command, prompt text, or an ordinary source\-file path\.
 
-This is a narrow coupling authorization, not permission to combine all
-of A1 and A2, and not permission to repair every B3 finding\. Do not claim
-that broader B3 is closed by this task\.
+# ========================================================= AUTHORITATIVE IDENTITIES AND EXPECTED CURRENT STATE
 
-# ========================================================= OWNER\-LOCKED SEMANTICS
-
-The following decisions are authoritative for this task:
-
-1. `stage` has exactly one meaning: the last gate that completed
-   successfully\.
-2. The initial value `startup` means no later named gate has yet completed\.
-3. A gate’s stage label may be assigned only after that gate succeeds\.
-   If the gate throws, rejects, returns an invalid result, or otherwise
-   fails, its label must not be assigned\.
-4. B3 must not infer an attempted gate or product\-boundary reachability
-   from `stage` after this repair\.
-5. If B3 needs product\-boundary state, use the smallest private local
-   state whose only meaning is whether the exact existing product boundary
-   has actually been reached\. Do not add it to an evidence schema, public
-   interface, manifest, or result contract\.
-6. Preserve the existing stage vocabulary and serialized field:
-  startup
-  evidence\-bootstrap
-  qa\-workspace\-resolution
-  protected\-manifest
-  protected\-pre\-run\-digests
-  executable\-resolution
-  host\-launch
-  mocha\-result\-handling
-  complete
-  Do not add, remove, rename, reorder, or reinterpret any serialized
-  stage value beyond changing assignment timing to last\-completed\-gate
-  semantics\.
-7. Preserve all accepted IMPL05A2 M2 behavior\. In particular, do not
-   modify the reduced filename derivation, canonical containment checks,
-   distinct\-path checks, `wx` writer, reduced\-record schema, or the
-   primary/reduced failure\-reporting contract\.
-8. Static reasoning is not runtime qualification\. Targeted tests remain
-   required later and are forbidden in this task\.
-
-# ========================================================= AUTHORIZATION AND EXACT LIMITS
-
-The owner authorizes:
-
-- read\-only identity, status, hash, diff, process\-inspection, and source\-
-  inspection commands required for preflight and static proof;
-- surgical edits only to `src/test/runTest.ts`;
-- moving existing pre\-finalization stage assignments to the exact point
-  after their corresponding gates complete successfully;
-- introducing or adjusting the minimum private local state necessary to
-  decouple the existing B3 product\-boundary seam from `stage`;
-- changing the exact B3 expression&#40;s&#41; whose behavior depends on
-  `stage === 'mocha-result-handling'`, but only to preserve the existing
-  product\-boundary behavior under the corrected stage semantics\.
-
-The owner does NOT authorize:
-
-- editing any file other than `src/test/runTest.ts`;
-- changing any B3 classification field name, enum value, failure
-  precedence, PASS/FAIL/BLOCKED promotion rule, or unrelated assignment;
-- implementing the broader REVIEW02A B3 repair in this task;
-- changing reduced\-record or full\-record schemas;
-- changing finalization\-stage schema, finalization flow, post\-exit
-  ordering, or post\-exit invocation behavior;
-- modifying M2 code or behavior;
-- touching B4, M1, M4, M5, C1, C2, B1, A3, package\.json, tsconfig\*\.json,
-  out/\*\*, `src/test/suite/index.ts`, `src/extension.ts`, or
-  `src/core/sttm/SttmUnderstandingReportRenderer.ts`;
-- whole\-file formatting or line\-ending normalization;
-- type\-check, compile, lint, emit, tests, runner, Extension Host, package,
-  install, activation, or consumer writes;
-- launching a process bearing `--extensionTestsPath`,
-  `--extensionDevelopmentPath`, `runTest`, or `@vscode/test-electron` as
-  an actual test/development Host invocation;
-- any Git command that mutates the index, worktree, refs, stash, branch,
-  tags, or history;
-- commit, push, merge, tag, stash, checkout, restore, reset, or clean;
-- accepting, discarding, Keeping, Undoing, or otherwise resolving any
-  pending VS Code chat edit;
-- creating helper scripts, temporary files, generated output, or
-  intermediate reports\.
-
-Use `git --no-optional-locks` for every Git read\. Treat an already\-running
-ordinary VS Code editor as non\-blocking\. When inspecting processes, exclude
-the inspection shell itself and matches caused only by the inspection
-command text, prompt text, or an ordinary source\-file path\.
-
-If a required correction needs another file, stop before editing and
-report:
-
-BLOCKED\_SCOPE\_EXPANSION\_REQUIRED: <path> <symbol> <reason>
-
-If it requires a reduced/full evidence schema change, finalization\-stage
-schema change, finalization\-flow change, or post\-exit change, stop before
-editing and report:
-
-BLOCKED\_A3\_COUPLING\_DETECTED: <symbol> <reason> <minimum expansion>
-
-If preserving or correcting the product\-boundary behavior requires broader
-B3 classification, precedence, enum, or promotion changes, stop before
-editing and report:
-
-BLOCKED\_B3\_BEHAVIOR\_DECISION\_REQUIRED: <symbol> <reason> <minimum expansion>
-
-If the exact product\-boundary event cannot be proved from the live source,
-stop before editing and report:
-
-BLOCKED\_PRODUCT\_BOUNDARY\_SEMANTICS\_UNPROVEN: <specific ambiguity>
-
-# ========================================================= MANDATORY PREFLIGHT — RE\-DERIVE BEFORE EDITING
-
-Verify every value live\. Do not infer identity from this prompt, prior
-screenshots, or a prior report\.
-
-Expected repository identity:
-
+Repository identity:
 Active worktree:
 C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
 Linked primary worktree:
@@ -162,8 +56,68 @@ fix/workspace\-write\-completion\-0\.3\.148
 HEAD:
 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-Expected dirty inventory — exactly these six paths and status codes:
+Snapshot01 identity:
+Root:
+C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z
+Manifest SHA\-256:
+78324A99A5D700053214B15F680E2DCBE3A2099A0801C43B6D02E512D43004DF
+Required manifest fields:
+“TASK\_ID”: “ETL\-0904\-SNAPSHOT01”
+“snapshotStatus”: “COMPLETE”
+“SOURCE\_HISTORY\_STATE\_UNCHANGED”: “YES”
+Snapshot01 runTest\.ts payload:
+payload\\worktree\\src\\test\\runTest\.ts
+Snapshot01 runTest\.ts SHA\-256:
+1709A3AADF16C5A41B7C343C9ADA72400C9031B7A05323D32D31D27D43E7CA7B
+Snapshot01 runTest\.ts bytes:
+117715
 
+The expected post\-IMPL05A1A2 live identity of src/test/runTest\.ts is:
+SHA\-256:
+2D1F7FFE4BADC2B46F95FA0B18F586FC3CBBE227F713CBFF385815980232D61D
+Bytes: 120820
+CRLF: 0
+bare LF: 2788
+bare CR: 0
+
+This live file is expected to differ from both HEAD and Snapshot01\. That
+difference is not baseline drift\.
+
+For reconciliation only, the immediately pre\-IMPL05A1A2, post\-IMPL05A2
+runTest\.ts identity reported by the bounded implementation preflight was:
+SHA\-256:
+CB30EF5D9AEF3CB6D7AE8590A25A85CDCEEB98ED296A2783C35E40AEFFF6BF64
+Bytes: 120549
+CRLF: 0
+bare LF: 2783
+bare CR: 0
+Snapshot01\-to\-that\-state numstat: \+94/\-37
+
+The five pre\-existing dirty out\-of\-scope paths must still have these
+exact live identities:
+
+\.github/templates/request\.md
+SHA\-256: 2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84
+Bytes: 555
+
+src/core/sttm/SttmUnderstandingReportRenderer\.ts
+SHA\-256: 49A4012D1E5216C7E7C9DCF6D55D4517885ECFBCE096F9A96FDD34807D4B32DF
+Bytes: 23461
+
+src/extension\.ts
+SHA\-256: 4872337F0F97BBB2A2109F21EE7F362CD4A35F5932B49533936DE8E48FBFC7BC
+Bytes: 18797
+
+src/test/suite/index\.ts
+SHA\-256: 488E7344F71D22CE8E439452115DF0EE66B30358BD04F274E400ACD55C61CEC0
+Bytes: 8397
+
+src/test/suite/sttmRealHostStructuredResult\.test\.ts
+SHA\-256: 561749C33A09B73D880917EE242A1CB550E26EACF8ABEEF34BA192406C8F6DB3
+Bytes: 41106
+
+Expected dirty set — exact path identities and status codes, order is not
+material:
 M \.github/templates/request\.md
 M src/core/sttm/SttmUnderstandingReportRenderer\.ts
 M src/extension\.ts
@@ -171,358 +125,380 @@ M src/test/runTest\.ts
 M src/test/suite/index\.ts
 ?? src/test/suite/sttmRealHostStructuredResult\.test\.ts
 
-Also prove:
+The staging area must be empty\. No additional dirty path may exist\.
 
-- staging area is empty;
-- no `index.lock` exists in the linked\-worktree Git metadata;
-- no actual test/development Host process is active under the process\-
-  inspection rule above;
-- the Snapshot01 root and manifest still exist;
-- `manifest.json` SHA\-256 is exactly:
-  78324A99A5D700053214B15F680E2DCBE3A2099A0801C43B6D02E512D43004DF
-- the manifest parses as JSON and contains these actual fields:
-  $\.taskId = ETL\-0904\-SNAPSHOT01
-  $\.snapshotStatus = COMPLETE
-  $\.s6SourceStateVerification\.sourceHistoryStateUnchanged = YES
+# ========================================================= MANDATORY PREFLIGHT — READ ONLY
 
-Snapshot01 root:
+1. Verify Snapshot01 before examining the implementation:
+  - root and manifest\.json exist;
+  - manifest hash matches exactly;
+  - manifest parses as JSON;
+  - all three required fields have the exact values above;
+  - the Snapshot01 payload runTest\.ts hash and byte size match above\.
+2. Re\-derive the active worktree, linked worktree list, branch, and HEAD\.
+3. Run and report:
+  - git –no\-optional\-locks status –porcelain=v1 –untracked\-files=all
+  - git –no\-optional\-locks diff –cached –name\-status
+  - read\-only resolution of worktree and common Git directories;
+  - checks for index\.lock in both resolved Git metadata locations;
+  - the narrowly filtered test/development Host process check described
+    above\.
+4. Compute SHA\-256, byte size, and CRLF/bare\-LF/bare\-CR counts for every
+   dirty path\. Compare all six against the expected values above\.
+5. Capture those same six identities in memory for a review\-end
+   no\-mutation comparison\. Do not persist the capture\.
 
-C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z
+Stop without further source assessment if Snapshot01 cannot be verified:
+REVIEW\_A1A2\_COUPLING\_RESULT: BLOCKED\_BASELINE\_NOT\_VERIFIED
 
-The authoritative immediate pre\-task state of `src/test/runTest.ts` is the
-post\-IMPL05A2 file independently reviewed by REVIEW\-A2:
+Stop if branch, HEAD, dirty/staged path identity, any expected current
+hash or byte size, or the current runTest\.ts line\-ending counts differ:
+REVIEW\_A1A2\_COUPLING\_RESULT: BLOCKED\_CURRENT\_STATE\_DRIFT
 
-SHA\-256:
-CB30EF5D9AEF3CB6D7AE8590A25A85CDCEEB98ED296A2783C35E40AEFFF6BF64
-Bytes: 120549
-CRLF: 0
-bare LF: 2783
-bare CR: 0
+For either blocked result, name every mismatch precisely\. Do not treat
+the expected runTest\.ts differences from Snapshot01 or HEAD as drift\.
 
-The five pre\-existing dirty out\-of\-scope files must still equal their
-Snapshot01 values exactly:
+# ========================================================= DIFFSTAT AND BASELINE RECONCILIATION — MANDATORY
 
-1. `.github/templates/request.md`
-   SHA\-256: 2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84
-   Bytes: 555
-2. `src/core/sttm/SttmUnderstandingReportRenderer.ts`
-   SHA\-256: 49A4012D1E5216C7E7C9DCF6D55D4517885ECFBCE096F9A96FDD34807D4B32DF
-   Bytes: 23461
-3. `src/extension.ts`
-   SHA\-256: 4872337F0F97BBB2A2109F21EE7F362CD4A35F5932B49533936DE8E48FBFC7BC
-   Bytes: 18797
-4. `src/test/suite/index.ts`
-   SHA\-256: 488E7344F71D22CE8E439452115DF0EE66B30358BD04F274E400ACD55C61CEC0
-   Bytes: 8397
-5. `src/test/suite/sttmRealHostStructuredResult.test.ts`
-   SHA\-256: 561749C33A09B73D880917EE242A1CB550E26EACF8ABEEF34BA192406C8F6DB3
-   Bytes: 41106
+Run these three commands directly; exit code 1 means differences were
+found and is not a task failure:
 
-Reproduce the pre\-task Snapshot01\-to\-live diffstat with this comparison:
+&#40;1&#41; git –no\-optional\-locks diff –no\-index –numstat – 
+“C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z\\payload\\worktree\\src\\test\\runTest\.ts” 
+“src\\test\\runTest\.ts”
 
-git –no\-optional\-locks diff –no\-index –numstat – “C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z\\payload\\worktree\\src\\test\\runTest\.ts” “src\\test\\runTest\.ts”
+&#40;2&#41; git –no\-optional\-locks diff –no\-index –numstat \-w – 
+“C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z\\payload\\worktree\\src\\test\\runTest\.ts” 
+“src\\test\\runTest\.ts”
 
-Expected: `94 37` with exit code 1, where exit code 1 means differences
-were found and is not a failure\.
+&#40;3&#41; git –no\-optional\-locks diff –no\-index –numstat 
+–ignore\-cr\-at\-eol – 
+“C:\\Users\\tag5916\\ETL\-SNAPSHOT\-ETL\-0904\-SNAPSHOT01\-20260904T210831Z\\payload\\worktree\\src\\test\\runTest\.ts” 
+“src\\test\\runTest\.ts”
 
-Capture immediate pre\-edit SHA\-256, byte size, and line\-ending counts for
-all six dirty paths\. Retain the pre\-edit `src/test/runTest.ts` text in
-memory only if needed for comparison; do not write a baseline or helper
-file anywhere\.
+The expected ordinary Snapshot01\-to\-live measurement is \+108/\-46\.
 
-If branch, HEAD, worktree identity, dirty\-path identity/count, staging
-state, Snapshot01 identity, any expected hash/size, runTest line endings,
-or the `94 37` diffstat differs, stop immediately without editing and
-report:
+Reconcile all of these figures explicitly:
 
-BLOCKED\_BASELINE\_DRIFT: <specific mismatch>
+- post\-IMPL05A2 Snapshot01\-to\-live: \+94/\-37;
+- IMPL05A1A2 task\-only report: \+14/\-9 across seven hunks;
+- expected current Snapshot01\-to\-live: \+108/\-46;
+- current VS Code panel display observed by the owner: \+249/\-27\.
 
-# ========================================================= REQUIRED SOURCE ANALYSIS BEFORE EDITING
+Do not assume the panel and CLI share a comparison baseline\. If no
+authorized read\-only command reproduces \+249/\-27, report that the panel’s
+comparison pair is unknown/non\-authoritative; do not manufacture a match\.
 
-Using live line numbers, re\-derive and report before editing:
+If an already\-existing file can be proved byte\-identical to the
+pre\-IMPL05A1A2 hash above, you may run an additional read\-only no\-index
+numstat from that exact file to live runTest\.ts and report whether it is
+\+14/\-9\. Attribution requires the exact SHA\-256; filename or mtime alone is
+insufficient\. Do not create or reconstruct such a file\. Its absence is
+not a blocker; report TASK\_ONLY\_DIFFSTAT: NOT\_DURABLY\_REPRODUCIBLE\.
 
-1. Every declaration and assignment of `stage` in `src/test/runTest.ts`\.
-2. The beginning and successful completion point of each corresponding
-   gate\.
-3. Every read of `stage`, separating:
-  - evidence/reporting use;
-  - failure\-localization use;
-  - classification or product\-boundary use;
-  - finalization or post\-exit use\.
-4. The exact B3 expression reported near the REVIEW\-A2 live line 2244
-   that depends on `stage === 'mocha-result-handling'`, plus every value
-   derived from that expression\.
-5. The exact event the current source treats as crossing the product
-   boundary\. Prove it from control flow; do not choose a new boundary\.
-6. The M2 implementation surfaces and reduced\-record literal so they can
-   be proved untouched after editing\.
-7. The finalization schema/flow and post\-exit surfaces so they can be
-   proved untouched after editing\.
+# ========================================================= SCOPE OF THIS INDEPENDENT REVIEW
 
-Before editing, state one of:
+Review the integrated source state for:
 
-COUPLING\_REPAIR\_FEASIBLE\_WITHIN\_AUTHORIZED\_SCOPE: YES
+1. M2 evidence persistence from IMPL05A2 — non\-regression only\.
+2. M3 evidence authorization ordering from IMPL05A2 — non\-regression\.
+3. M3 last\-successfully\-completed named\-stage semantics introduced by
+   IMPL05A1A2\.
+4. The single limited B3 decoupling seam introduced solely because B3
+   previously used the mutable stage label as a product\-boundary proxy\.
 
-or the applicable blocker token\. Do not edit after a blocker is found\.
+The represented stage values define the review granularity\. A helper call
+inside one represented stage does not create a new schema stage\. Determine
+whether each represented stage assignment occurs only after every
+potentially failing operation belonging to that named stage succeeds\.
+Do not demand a new stage enum or schema merely to represent internal
+sub\-operations\.
 
-# ========================================================= REQUIRED REPAIR R1 — LAST\-COMPLETED STAGE SEMANTICS
+Out of scope for substantive assessment:
 
-Surgically change assignment timing so that every stage label denotes the
-last gate that completed successfully\.
+- broader B3 classification correctness, new enum values, new
+  precedence policy, or redesign of PASS/FAIL/BLOCKED promotion;
+- B4, M1, M4, M5, C1, C2, and B1;
+- finalization\-stage schema, finalization flow, and post\-exit ordering;
+- reduced\-record schema completeness;
+- any file other than src/test/runTest\.ts\.
 
-For each gate:
+You must nevertheless prove that IMPL05A1A2 did not change those
+out\-of\-scope surfaces\. A pre\-existing defect is not a scope violation\.
+Report it under OUT\_OF\_SCOPE\_FINDINGS without assessing it or blocking
+acceptance unless the reviewed change caused a regression or crossed the
+authorized boundary\.
 
-- leave the prior successful stage value in place while the next gate is
-  executing;
-- assign the next stage value only after all operations that constitute
-  that gate have succeeded;
-- do not assign the next stage in a `finally` block or before a potentially
-  failing operation;
-- do not introduce a stage assignment on a failure path;
-- do not change the stage vocabulary or serialized schema\.
+# ========================================================= Q1 — AGGREGATE DIFF AND SCOPE CONFINEMENT
 
-At minimum, statically establish these failure semantics:
+Inspect the complete Snapshot01\-to\-live diff of src/test/runTest\.ts in
+memory\. Do not write it to a file\.
 
-- failure while resolving or proving the isolation root occurs before
-  authorization and leaves `stage` at `startup`;
-- QA\-root resolution failure after successful evidence bootstrap records
-  `evidence-bootstrap`;
-- protected\-manifest gate failure records `qa-workspace-resolution`;
-- protected pre\-run digest failure records `protected-manifest`;
-- executable resolution failure records `protected-pre-run-digests`;
-- Host\-launch gate failure records `executable-resolution`;
-- Mocha\-result\-handling gate failure records `host-launch`;
-- `complete` is assigned only after all preceding gates complete\.
+1. Enumerate every hunk with live line ranges and classify it as:
+  - M2 evidence\-persistence repair;
+  - M3 authorization\-ordering repair;
+  - M3 last\-completed\-stage repair; or
+  - limited B3 stage/oracle seam decoupling\.
+2. The IMPL05A1A2 task reported seven authored hunks within the local
+   runner control\-flow region and \+14/\-9 relative to the post\-A2 state\.
+   Determine whether the current aggregate diff contains any change outside
+   the four allowed categories above\.
+3. Identify every declaration, assignment, and read introduced for
+   mochaResultsOracle, with live line numbers\. Confirm it is local/private to
+   the runner flow and is not added to any evidence schema or API surface\.
 
-If the live source proves that a named gate has a more precise boundary
-than the shorthand above, use the live control\-flow boundary and explain
-the difference\. Never weaken the owner\-locked last\-completed semantics\.
+Any broader B3 change, A3 change, unrelated cleanup, or change to another
+file is a scope violation\.
 
-# ========================================================= REQUIRED REPAIR R2 — LIMITED B3 BOUNDARY DECOUPLING
+# ========================================================= Q2 — M3 LAST\-SUCCESSFULLY\-COMPLETED STAGE SEMANTICS
 
-The old B3 path uses the pre\-gate value
-`stage === 'mocha-result-handling'` as a proxy for product\-boundary
-reachability\. R1 invalidates that proxy by design\.
+Quote the relevant current source with live line numbers\. Do not rely on
+the implementing report’s line numbers\.
 
-Repair only this coupling seam:
-
-1. Derive the product\-boundary state from the exact existing control\-flow
-   event that establishes the boundary, not from `stage`\.
-2. Prefer the smallest private local boolean or equivalent local state\.
-3. Set it only when the product boundary has actually been reached\.
-4. Ensure failures before the boundary retain the existing infrastructure
-   treatment and failures after the boundary retain the existing product\-
-   path treatment\.
-5. Preserve the current classification field name, enum values,
-   precedence expressions, promotion rules, and result schema\.
-6. Do not use attempted\-stage state to populate evidence `stage`\.
-7. Do not add a second serialized stage/currentGate field\.
-
-Produce a static before/after behavior matrix for every B3 branch affected
-by the coupling seam\. The matrix must identify:
-
-- the triggering control\-flow condition;
-- whether the product boundary has actually been reached;
-- the pre\-task B3 result;
-- the post\-task B3 result;
-- whether behavior is preserved\.
-
-If any row cannot be proven behavior\-preserving without changing broader
-B3 logic, stop and report `BLOCKED_B3_BEHAVIOR_DECISION_REQUIRED`\. Do not
-guess and do not broaden the repair\.
-
-# ========================================================= REQUIRED INVARIANTS
-
-After the edit, prove all of the following statically:
-
-1. M2 remains intact:
-  - primary and reduced evidence paths remain distinct;
-  - canonical/lexical containment checks are unchanged;
-  - both writes retain `wx` fail\-if\-exists semantics;
-  - successful reduced evidence preserves the primary failure;
-  - dual write failure still reports both failures and exits nonzero;
-  - reduced\-record schema is unchanged\.
-2. M3 authorization ordering remains intact:
-  - freshness and dedication still precede evidence\-write authorization;
-  - post\-authorization recoverable failures still reach full/reduced
-    evidence persistence as before\.
-3. Finalization\-stage schema is unchanged\.
-4. Finalization flow is unchanged\.
-5. Post\-exit ordering and invocation are unchanged\.
-6. No broader B3 field, enum, precedence, or promotion logic changed\.
-7. No out\-of\-scope file changed and no new dirty/staged/generated path
-   appeared\.
-8. `src/test/runTest.ts` remains pure LF with no normalization\.
-
-The REVIEW\-A2 non\-blocking manifest/reduced\-path collision observation,
-duplicate QA\-root validation, root re\-canonicalization, Windows drive\-
-relative\-name hardening, redundant pre\-existence loop, and
-`retriesOrRelaunches: 0` observation remain backlog only\. Do not fix them\.
-
-# ========================================================= STATIC VERIFICATION — NO EXECUTION
-
-Without running TypeScript, tests, runner, or Host:
-
-1. Re\-read every changed hunk and enclosing control flow\.
-2. List every post\-edit stage assignment with live line number, its gate,
-   and the last potentially failing operation that precedes it\.
-3. Trace at least these concrete failure paths and report the recorded
+1. Enumerate every assignment to the stage variable from initialization
+   through complete\. The expected represented values are:
+  - startup
+  - evidence\-bootstrap
+  - qa\-workspace\-resolution
+  - protected\-manifest
+  - protected\-pre\-run\-digests
+  - executable\-resolution
+  - host\-launch
+  - mocha\-result\-handling
+  - complete
+2. For each assignment, identify the named gate’s first and last
+   potentially failing operation and state whether assignment occurs before,
+   during, or after successful completion of that entire gate\.
+3. Confirm no stage advances from a finally block, failure branch, or
+   before a still\-pending operation in the same named gate\.
+4. Trace at least these concrete failure families\. State the exact stage
+   recorded and whether it is the last successfully completed represented
    stage:
-  - isolation\-root freshness/dedication failure;
+  - isolation\-root freshness or dedication failure;
+  - evidence\-path distinctness or pre\-existence failure during bootstrap;
   - QA\-root resolution failure after authorization;
-  - protected\-manifest failure;
-  - executable\-resolution failure;
-  - Host\-launch failure;
-  - Mocha\-result\-handling failure\.
-4. Prove no failure path advances to the failing gate’s label\.
-5. Prove B3 no longer depends on `stage` as the product\-boundary proxy\.
-6. Provide the required B3 before/after behavior matrix\.
-7. Search for any remaining `stage` comparison that relies on attempted\-
-   gate semantics\. Report every match; do not silently dismiss one\.
-8. Compare pre/post hashes for all six dirty paths and prove only
-   `src/test/runTest.ts` changed\.
-9. Confirm staging remains empty and dirty\-path identity/count remains six\.
-10. Report:
-  - task\-only line additions/deletions from the Agent\-authored hunks;
-  - final Snapshot01\-to\-live `--numstat` for `runTest.ts`;
-  - exact final Git status\.
-11. Run no formatter and create no generated output\.
+  - protected\-manifest read/validation failure;
+  - protected pre\-run digest failure;
+  - executable, development\-path, or environment\-resolution failure;
+  - runTests/Host launch failure, including failure in its finally path;
+  - Mocha result assertion/handling failure\.
+5. Verify that mocha\-result\-handling is assigned only after its assertion
+   succeeds and that complete is reachable only after all represented gates
+   succeed\. If the two assignments are adjacent, assess whether any
+   potentially failing operation remains between them; adjacency alone is
+   neither success nor failure\.
 
-# ========================================================= RUNTIME LIMIT — MANDATORY DISCLOSURE
+M3 passes this question only if every reachable failure in the represented
+gate sequence records the last completed named stage, not the attempted or
+currently failing stage\.
 
-If implementation succeeds, include a section titled exactly:
+# ========================================================= Q3 — LIMITED B3 SEAM: ORACLE EQUIVALENCE
+
+The old B3 seam used stage === ‘mocha\-result\-handling’ to decide whether
+the Mocha result evidence could be read and whether the product boundary
+had been reached\. Moving stage assignments after successful gates required
+decoupling that proxy\. Review only the behavioral equivalence of this
+seam; do not redesign or assess broader B3 policy\.
+
+1. Quote with live line numbers:
+  - the mochaResultsOracle declaration and initial value;
+  - every assignment to it;
+  - every read of it;
+  - recordedResult, recordedFailures, reachedProductBoundary, and their
+    path into classifyFailure\.
+2. Prove or disprove that mochaResultsOracle becomes true at exactly the
+   old product\-boundary point: after the Host/runTests gate completes,
+   including its finally behavior, and immediately before Mocha result
+   assertion/handling begins\.
+3. Prove or disprove that no reachable path sets it true earlier, resets
+   it, bypasses it, or lets it diverge from the old predicate at catch\-entry\.
+4. Produce a behavior table for at least:
+  - failure before evidence authorization;
+  - recoverable failure after authorization but before Host launch;
+  - runTests or Host\-finally failure;
+  - failure while evaluating/calling the Mocha result assertion;
+  - successful Mocha assertion and normal completion\.
+
+For each row, compare:
+
+- old stage\-proxy truth value at the corresponding catch boundary;
+- new oracle truth value;
+- whether result evidence is read;
+- reachedProductBoundary;
+- classification branch selected\.
+
+5. Confirm the invocation set of readJsonEvidence&#40;resultFilePath&#41;, the
+   recordedFailures derivation, and classification precedence/promotion
+   expressions are otherwise byte\- or token\-identical to Snapshot01\.
+6. Confirm no B3 field name, enum member, classification assignment,
+   precedence expression, or promotion rule changed outside the exact
+   stage\-proxy\-to\-private\-oracle substitution\.
+
+If behavioral equivalence is not proved for every reachable catch path,
+the review is not acceptable even if the code appears plausible\.
+
+# ========================================================= Q4 — M2 AND M3 NON\-REGRESSION
+
+Verify statically that the earlier accepted M2/M3 implementation remains
+intact after the coupled repair\. Quote live lines for each conclusion\.
+
+M2:
+a\. Reduced evidence uses a deterministic filename distinct from the
+primary filename within the same authorized evidence root\.
+b\. Primary and reduced paths are lexically contained in that root and
+distinct\.
+c\. Both writes use fail\-if\-exists / CreateNew semantics\.
+d\. A successful reduced record preserves the original primary failure\.
+e\. If both writes fail, stderr identifies both failures and exit is
+nonzero\.
+f\. No same\-path collision or existsSync suppression blocks the reduced
+attempt, excluding a root\-wide storage failure\.
+
+M3 authorization ordering:
+a\. Freshness and dedication are proved before evidence\-write
+authorization is set\.
+b\. Every recoverable post\-authorization failure before full evidence
+assembly reaches the full\-or\-reduced persistence path when a safe
+authorized destination exists\.
+c\. QA\-root resolution failure follows that contract\.
+d\. No unsafe destination is invented merely to write failure evidence\.
+
+Confirm the coupled task changed no M2 helper, write call, reduced\-record
+literal/schema, or M3 authorization ordering\.
+
+# ========================================================= Q5 — AUTHORIZATION BOUNDARY CHECKS
+
+Prove each with live source and baseline comparisons:
+
+a\. All five pre\-existing dirty out\-of\-scope files retain the exact
+expected hashes and byte sizes; no seventh dirty or staged path exists\.
+b\. Broader B3 logic is unchanged except for the one approved oracle
+substitution at the coupling seam\.
+c\. Reduced\-record field names, types, and schema are unchanged\.
+d\. Finalization\-stage schema is unchanged\.
+e\. Finalization\-stage tracking and finalization flow are unchanged\.
+f\. Post\-exit invocation count and ordering are unchanged\.
+g\. No generated output or file anywhere was created by this review\.
+
+For Q5b\-Q5f, compare semantic tokens or exact source regions rather than
+assuming that shifted line numbers imply a change\.
+
+# ========================================================= Q6 — STATIC REVIEW / RUNTIME QUALIFICATION BOUNDARY
+
+No runtime claim is authorized\. Include a section titled exactly:
 
 UNVERIFIED\_UNTIL\_AUTHORIZED\_TARGETED\_TEST
 
-It must list at least these items, each with `STATIC_SOURCE_SUPPORT` and
-`RUNTIME_STATUS: UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST`:
+List all seven items below\. For each include:
+STATIC\_REVIEW\_ASSESSMENT: <what current source supports or fails to support>
+RUNTIME\_STATUS: UNVERIFIED\_UNTIL\_AUTHORIZED\_TARGETED\_TEST
 
-1. Every injected/reproduced gate failure records the last successfully
-   completed stage\.
-2. B3 classification behavior is unchanged on both sides of the product
-   boundary after decoupling it from `stage`\.
-3. A QA\-root failure after authorization persists evidence with stage
-   `evidence-bootstrap`\.
-4. Primary evidence\-write failure still permits the distinct reduced
-   write to succeed\.
-5. Primary and reduced write failures still report both identities and
-   produce a nonzero exit\.
-6. A pre\-existing primary or reduced evidence file is never overwritten\.
+Item 1: primary evidence write fails; reduced write succeeds at its
+distinct path\.
+Item 2: primary and reduced writes both fail; stderr identifies both
+failures and process exit is nonzero\.
+Item 3: pre\-existing primary or reduced evidence is never overwritten\.
+Item 4: QA\-root resolution failure with a safe authorized destination
+leaves full or reduced evidence as specified\.
+Item 5: freshness/dedication failure occurs before authorization and
+prevents evidence writing\.
+Item 6: fault injection in each represented stage records the last
+successfully completed stage, never the attempted stage\.
+Item 7: runTests/Host failure remains infrastructure\-side while a
+post\-Host Mocha\-result failure reaches exactly the same B3 product
+boundary as before the stage\-semantics repair\.
 
-Static source support must not be presented as runtime verification\.
-No item may be omitted\. No test may be run in this task\.
-
-For a blocked result, replace that section with the single line:
-
-UNVERIFIED\_UNTIL\_AUTHORIZED\_TARGETED\_TEST: NOT\_REACHED
+Static source support does not convert any RUNTIME\_STATUS to verified\.
+An ACCEPTABLE source\-review result still requires future separately
+authorized targeted runtime tests\.
 
 # ========================================================= REQUIRED REPORT
 
-Return a complete report containing:
+Return a complete report containing, in order:
 
-1. Re\-derived repository/Snapshot01 identity and exact pre\-edit status,
-   hashes, sizes, and line endings\.
-2. REVIEW\-A2 finding accepted as the repair input\.
-3. Pre\-edit stage assignment/read inventory and product\-boundary proof\.
-4. Feasibility decision before edit\.
-5. Every changed hunk with live before/after source lines\.
-6. R1 closure table covering every stage assignment and failure trace\.
-7. R2 closure table plus the B3 before/after behavior matrix\.
-8. Proof that M2 implementation and reduced\-record schema are unchanged\.
-9. Proof that broader B3 logic, finalization schema/flow, and post\-exit
-   behavior are unchanged\.
-10. Pre/post hashes proving all five dirty out\-of\-scope files are byte\-
-    identical and no additional dirty/staged/generated path appeared\.
-11. Task\-only additions/deletions, final Snapshot01\-to\-live diffstat, and
-    exact final Git status\.
-12. Mandatory runtime\-limit disclosure if implemented\.
-13. Deferred backlog candidates observed but not changed\.
-14. Every command executed in order, identifying all writes\. Confirm the
-    sole write target was `src/test/runTest.ts`\.
+1. TASK\_ID line\.
+2. Snapshot01 identity verification and current\-state preflight, including
+   exact raw porcelain and staged output\.
+3. A six\-path hash/byte/line\-ending table\.
+4. All three mandatory Snapshot01\-to\-live numstats and the complete
+   reconciliation of \+94/\-37, \+14/\-9, \+108/\-46, and panel \+249/\-27\.
+5. Q1 aggregate hunk classification and scope\-confinement result\.
+6. Q2 stage\-assignment table and all required failure traces\.
+7. Q3 oracle\-equivalence source excerpts and behavior table\.
+8. Q4 M2/M3 non\-regression assessment\.
+9. Q5 authorization\-boundary proofs\.
+10. The mandatory UNVERIFIED\_UNTIL\_AUTHORIZED\_TARGETED\_TEST section with
+    all seven items\.
+11. Every command executed, in order\. Confirm each was read\-only and that
+    no command wrote a file anywhere\.
+12. Review\-end hashes/bytes for all six dirty paths and exact final Git
+    status/staging state, proving this review changed nothing\.
+13. Blocking findings, non\-blocking observations, and out\-of\-scope
+    findings\. Do not include repair proposals\.
 
-Do not claim qualification, runtime verification, or completion beyond
-implementation awaiting independent review\.
+# ========================================================= VERDICT RULES
 
-# ========================================================= RESULT TOKEN AND FOOTER
+End with exactly one result token:
 
-End with exactly one result token and the corresponding footer\.
+REVIEW\_A1A2\_COUPLING\_RESULT: ACCEPTABLE
 
-If implemented without blocking:
+or:
 
-ETL\_0904\_IMPL05A1A2\_RESULT: IMPLEMENTED\_AWAITING\_INDEPENDENT\_REVIEW
-AUTHORIZED\_FILES\_CHANGED: src/test/runTest\.ts
-UNAUTHORIZED\_FILES\_CHANGED\_BY\_THIS\_TASK: 0
-M2\_IMPLEMENTATION\_TOUCHED: NO
-M3\_LAST\_COMPLETED\_STAGE\_SEMANTICS\_IMPLEMENTED: YES
-B3\_STAGE\_COUPLING\_SEAM\_TOUCHED: YES
-BROADER\_B3\_LOGIC\_TOUCHED: NO
-REDUCED\_RECORD\_SCHEMA\_TOUCHED: NO
-FINALIZATION\_STAGE\_SCHEMA\_TOUCHED: NO
-FINALIZATION\_FLOW\_TOUCHED: NO
-POST\_EXIT\_FLOW\_TOUCHED: NO
+REVIEW\_A1A2\_COUPLING\_RESULT: NOT\_ACCEPTABLE
+
+or, only for a preflight blocker:
+
+REVIEW\_A1A2\_COUPLING\_RESULT: BLOCKED\_<PRECISE\_REASON\>
+
+ACCEPTABLE requires all of the following:
+
+- M2 remains fully satisfied;
+- M3 authorization ordering remains fully satisfied;
+- every represented stage uses last\-successfully\-completed semantics;
+- the private oracle is behaviorally equivalent to the old B3 stage
+  proxy at every reachable catch boundary;
+- no broader B3 behavior or out\-of\-scope surface changed;
+- no scope boundary was crossed\.
+
+Runtime items remaining unverified do not by themselves block a source
+review, but they must be disclosed exactly as required\.
+
+For NOT\_ACCEPTABLE, list every blocking finding immediately before the
+result token using the applicable labels:
+M2\_REGRESSION\_<n>: <description>
+M3\_STAGE\_FINDING\_<n>: <description>
+B3\_COUPLING\_FINDING\_<n>: <description>
+SCOPE\_VIOLATION\_<n>: <description>
+
+Put non\-blocking observations under NON\_BLOCKING\_OBSERVATIONS and
+pre\-existing unrelated issues under OUT\_OF\_SCOPE\_FINDINGS\.
+
+Then include exactly:
+
+TASK\_ID: ETL\-0904\-REVIEW\-A1A2\-COUPLING
+SNAPSHOT01\_BASELINE\_VERIFIED: <YES \| NO\>
+POST\_IMPLEMENTATION\_STATE\_VERIFIED: <YES \| NO\>
+SNAPSHOT01\_TO\_LIVE\_DIFFSTAT: <\+n/\-n \| NOT\_COMPLETED\>
+TASK\_ONLY\_DIFFSTAT: <\+n/\-n \| NOT\_DURABLY\_REPRODUCIBLE \| NOT\_COMPLETED\>
+PANEL\_DIFFSTAT\_RECONCILED: <YES \| PARTIAL \| NO \| NOT\_COMPLETED\>
+M2\_REQUIREMENTS\_PRESERVED: <YES \| NO \| PARTIAL \| NOT\_REVIEWED\>
+M3\_AUTHORIZATION\_ORDERING\_PRESERVED: <YES \| NO \| PARTIAL \| NOT\_REVIEWED\>
+M3\_LAST\_COMPLETED\_STAGE\_SEMANTICS: <SATISFIES \| PARTIAL \| VIOLATES \| NOT\_REVIEWED\>
+B3\_ORACLE\_EQUIVALENCE: <PROVEN \| NOT\_PROVEN \| VIOLATES \| NOT\_REVIEWED\>
+BROADER\_B3\_LOGIC\_UNCHANGED: <YES \| NO \| NOT\_REVIEWED\>
+REDUCED\_RECORD\_SCHEMA\_UNCHANGED: <YES \| NO \| NOT\_REVIEWED\>
+FINALIZATION\_STAGE\_SCHEMA\_UNCHANGED: <YES \| NO \| NOT\_REVIEWED\>
+FINALIZATION\_FLOW\_UNCHANGED: <YES \| NO \| NOT\_REVIEWED\>
+POST\_EXIT\_FLOW\_UNCHANGED: <YES \| NO \| NOT\_REVIEWED\>
+SCOPE\_BOUNDARY\_CROSSED: <YES \| NO \| NOT\_REVIEWED\>
+FILES\_MODIFIED\_BY\_THIS\_REVIEW: NONE
+FILES\_CREATED\_ANYWHERE\_BY\_REVIEW\_COMMANDS: NONE
+PENDING\_EDITOR\_CHANGES\_RESOLVED: NONE
+GIT\_MUTATION\_EXECUTED: NO
 TYPECHECK\_OR\_COMPILE\_EXECUTED: NO
 TEST\_RUNNER\_OR\_HOST\_EXECUTED: NO
-COMMIT\_PUSH\_MERGE\_OR\_RELEASE\_EXECUTED: NO
-PENDING\_EDITOR\_CHANGES\_RESOLVED: NONE
-TARGETED\_TEST\_VERIFICATION\_REQUIRED: YES
-NEXT\_REQUIRED\_GATE: INDEPENDENT\_SOURCE\_REVIEW\_A1A2\_COUPLING
+RUNTIME\_BEHAVIOR\_VERIFIED: NO
+TARGETED\_TESTS\_STILL\_REQUIRED: YES
+NEXT\_REQUIRED\_GATE: <IMPL05A1\_B3\_REMAINDER if ACCEPTABLE \| IMPL05A1A2\_REPAIR if NOT\_ACCEPTABLE and correction remains within this coupled scope \| OWNER\_SCOPE\_DECISION if broader scope is required or the review is BLOCKED\>
 
-If blocked before any edit:
-
-ETL\_0904\_IMPL05A1A2\_RESULT: BLOCKED\_<REASON>
-AUTHORIZED\_FILES\_CHANGED: NONE
-UNAUTHORIZED\_FILES\_CHANGED\_BY\_THIS\_TASK: 0
-M2\_IMPLEMENTATION\_TOUCHED: NO
-M3\_LAST\_COMPLETED\_STAGE\_SEMANTICS\_IMPLEMENTED: NO
-B3\_STAGE\_COUPLING\_SEAM\_TOUCHED: NO
-BROADER\_B3\_LOGIC\_TOUCHED: NO
-REDUCED\_RECORD\_SCHEMA\_TOUCHED: NO
-FINALIZATION\_STAGE\_SCHEMA\_TOUCHED: NO
-FINALIZATION\_FLOW\_TOUCHED: NO
-POST\_EXIT\_FLOW\_TOUCHED: NO
-TYPECHECK\_OR\_COMPILE\_EXECUTED: NO
-TEST\_RUNNER\_OR\_HOST\_EXECUTED: NO
-COMMIT\_PUSH\_MERGE\_OR\_RELEASE\_EXECUTED: NO
-PENDING\_EDITOR\_CHANGES\_RESOLVED: NONE
-TARGETED\_TEST\_VERIFICATION\_REQUIRED: NOT\_REACHED
-NEXT\_REQUIRED\_GATE: OWNER\_SCOPE\_DECISION
-
-If blocked after an authorized edit was already made, report actual values
-rather than forcing a clean footer:
-
-ETL\_0904\_IMPL05A1A2\_RESULT: BLOCKED\_<REASON>
-AUTHORIZED\_FILES\_CHANGED: <actual>
-UNAUTHORIZED\_FILES\_CHANGED\_BY\_THIS\_TASK: <actual count>
-M2\_IMPLEMENTATION\_TOUCHED: <YES \| NO\>
-M3\_LAST\_COMPLETED\_STAGE\_SEMANTICS\_IMPLEMENTED: <YES \| NO \| PARTIAL\>
-B3\_STAGE\_COUPLING\_SEAM\_TOUCHED: <YES \| NO\>
-BROADER\_B3\_LOGIC\_TOUCHED: <YES \| NO\>
-REDUCED\_RECORD\_SCHEMA\_TOUCHED: <YES \| NO\>
-FINALIZATION\_STAGE\_SCHEMA\_TOUCHED: <YES \| NO\>
-FINALIZATION\_FLOW\_TOUCHED: <YES \| NO\>
-POST\_EXIT\_FLOW\_TOUCHED: <YES \| NO\>
-TYPECHECK\_OR\_COMPILE\_EXECUTED: NO
-TEST\_RUNNER\_OR\_HOST\_EXECUTED: NO
-COMMIT\_PUSH\_MERGE\_OR\_RELEASE\_EXECUTED: NO
-PENDING\_EDITOR\_CHANGES\_RESOLVED: NONE
-TARGETED\_TEST\_VERIFICATION\_REQUIRED: NOT\_REACHED
-NEXT\_REQUIRED\_GATE: OWNER\_SCOPE\_DECISION
-
-# ========================================================= OWNER DECISION RULES AFTER EXECUTION
-
-These rules are for the owner, not for this Agent:
-
-- If `M2_IMPLEMENTATION_TOUCHED`, `BROADER_B3_LOGIC_TOUCHED`,
-  `REDUCED_RECORD_SCHEMA_TOUCHED`, `FINALIZATION_STAGE_SCHEMA_TOUCHED`,
-  `FINALIZATION_FLOW_TOUCHED`, or `POST_EXIT_FLOW_TOUCHED` is YES, or an
-  unauthorized file count is greater than zero, the scope boundary was
-  breached\. The next gate is OWNER\_SCOPE\_DECISION, not review acceptance\.
-- If the success result omits any mandatory runtime\-unverified item or
-  reports targeted verification as unnecessary, reject the report as
-  overconfident\.
-- The only successful source\-only outcome is
-  `IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW`\.
-- Do not execute or propose the independent review, targeted tests,
-  compile, package, install, commit, merge, or release inside this task\.
-
-Stop\.
+Stop\. Do not implement, test, or propose the next task inside this revie
