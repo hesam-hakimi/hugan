@@ -1,0 +1,182 @@
+name: Universal Coding Agent CI
+
+on:
+  push:
+    branches:
+      - feature/universal-coding-agent-mvp
+    paths:
+      - "universal-coding-agent/**"
+      - ".github/workflows/universal-coding-agent-ci.yml"
+  pull_request:
+    paths:
+      - "universal-coding-agent/**"
+      - ".github/workflows/universal-coding-agent-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          path: repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: repository/universal-coding-agent/pyproject.toml
+
+      - name: Install package and development dependencies
+        working-directory: repository/universal-coding-agent
+        run: python -m pip install -e '.[dev]'
+
+      - name: Validate shell script syntax
+        working-directory: repository/universal-coding-agent
+        run: |
+          bash -n scripts/bootstrap-smoke.sh
+          bash -n scripts/qualify-host-provider.sh
+          bash -n scripts/observe-project.sh
+          bash -n scripts/safe-smoke.sh
+          bash -n scripts/qualify-safe-host-provider.sh
+          bash -n scripts/safe-approve-resume.sh
+          bash -n scripts/safe-workflow.sh
+          bash -n scripts/safe-patch-diagnose.sh
+          bash scripts/observe-project.sh --help >/dev/null
+          bash scripts/safe-smoke.sh --help >/dev/null
+          bash scripts/qualify-safe-host-provider.sh --help >/dev/null
+          bash scripts/safe-approve-resume.sh --help >/dev/null
+          bash scripts/safe-patch-diagnose.sh --help >/dev/null
+
+      - name: Compile Python sources
+        working-directory: repository/universal-coding-agent
+        run: python -m compileall -q src tests
+
+      - name: Run lint
+        working-directory: repository/universal-coding-agent
+        run: ruff check --output-format=github .
+
+      - name: Run tests
+        working-directory: repository/universal-coding-agent
+        run: pytest -q
+
+      - name: Run one-command Observe and resume smoke qualification
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: >-
+          bash scripts/bootstrap-smoke.sh
+          --skip-install
+          --skip-quality
+          --repository "https://github.com/${{ github.repository }}.git"
+          --ref "${{ github.sha }}"
+          --state-root "${{ runner.temp }}/uca-bootstrap-smoke"
+
+      - name: Run generic project Observe wrapper
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: >-
+          bash scripts/observe-project.sh
+          --provider-factory universal_coding_agent.providers.fake:create_provider
+          --repository "https://github.com/${{ github.repository }}.git"
+          --ref "${{ github.sha }}"
+          --phase-id "CI read-only qualification"
+          --focus "repository structure and test evidence"
+          --state-root "${{ runner.temp }}/uca-project-observe"
+
+      - name: Run Safe Mode approval, patch, test, review, and rollback foundation
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: >-
+          bash scripts/safe-smoke.sh
+          --state-root "${{ runner.temp }}/uca-safe-smoke"
+
+      - name: Run host-subprocess Safe Mode qualification
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        env:
+          PYTHON_BIN: python
+        run: |
+          export UCA_VENV_PATH="$(python -c 'import sys; print(sys.prefix)')"
+          bash scripts/qualify-safe-host-provider.sh \
+            --host-client "$PWD/tests/fixtures/host_safe_client.py" \
+            --host-python "$(command -v python)" \
+            --state-root "${{ runner.temp }}/uca-safe-host" \
+            --skip-install \
+            --skip-quality
+
+      - name: Run unified Safe Mode workflow start and approve
+        if: matrix.python-version == '3.11'
+        working-directory: repository/universal-coding-agent
+        run: |
+          set -Eeuo pipefail
+          export UCA_VENV_PATH="$(python -c 'import sys; print(sys.prefix)')"
+          ROOT="${{ runner.temp }}/uca-safe-workflow"
+          SOURCE="$ROOT/source"
+          STATE="$ROOT/state"
+          mkdir -p "$SOURCE" "$STATE"
+          git -C "$SOURCE" init -b main >/dev/null
+          git -C "$SOURCE" config user.email test@example.test
+          git -C "$SOURCE" config user.name Test
+          printf 'def answer():\n    return 42\n' > "$SOURCE/app.py"
+          git -C "$SOURCE" add app.py
+          git -C "$SOURCE" commit -m fixture >/dev/null
+          BASE_SHA="$(git -C "$SOURCE" rev-parse HEAD)"
+          cat > "$ROOT/task.md" <<'EOF'
+          Change the approved fixture answer from 42 to 43.
+          EOF
+          python - "$ROOT/scope.json" "$ROOT/policy.json" "$BASE_SHA" "$(command -v python)" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          scope = {
+              "manifest_version": "1",
+              "base_sha": sys.argv[3],
+              "plan_hash": "b" * 64,
+              "allowed_changes": [
+                  {"path": "app.py", "operation": "modify", "purpose": "Approved fixture change."}
+              ],
+              "test_profiles": ["python-check"],
+              "acceptance_criteria": ["app.py returns 43."],
+          }
+          policy = {
+              "policy_version": "1",
+              "profiles": [
+                  {
+                      "profile_id": "python-check",
+                      "argv": [sys.argv[4], "-c", "from pathlib import Path; assert 'return 43' in Path('app.py').read_text()"],
+                      "cwd": ".",
+                      "timeout_seconds": 60,
+                      "output_limit": 10000,
+                  }
+              ],
+          }
+          Path(sys.argv[1]).write_text(json.dumps(scope, indent=2), encoding="utf-8")
+          Path(sys.argv[2]).write_text(json.dumps(policy, indent=2), encoding="utf-8")
+          PY
+          bash scripts/safe-workflow.sh start \
+            --state-root "$STATE" \
+            --repository "$SOURCE" \
+            --ref main \
+            --task-file "$ROOT/task.md" \
+            --scope-file "$ROOT/scope.json" \
+            --policy-file "$ROOT/policy.json" \
+            --provider-factory universal_coding_agent.providers.fake:create_provider \
+            --title "Safe workflow CI"
+          bash scripts/safe-workflow.sh approve \
+            --context-file "$STATE/safe-workflow-context.json"
