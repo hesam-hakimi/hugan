@@ -10,6 +10,10 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 from universal_coding_agent.core.models import ProjectFile, ProjectManifest
+from universal_coding_agent.repository.ecmascript import (
+    ECMAScriptModuleEvidenceError,
+    extract_module_references,
+)
 
 DEFAULT_DENY_PATTERNS = (
     ".git/**",
@@ -24,7 +28,14 @@ DEFAULT_DENY_PATTERNS = (
     "**/token.json",
     "**/*shell_history*",
 )
-INDEX_POLICY_VERSION = "2"
+INDEX_POLICY_VERSION = "3"
+
+_ECMASCRIPT_LANGUAGES = frozenset({"javascript", "typescript"})
+_ECMASCRIPT_TEST_SUFFIXES = tuple(
+    f".{marker}.{suffix}"
+    for marker in ("test", "spec")
+    for suffix in ("ts", "tsx", "mts", "cts", "js", "jsx", "mjs", "cjs")
+)
 
 
 class RepositoryIndexingError(ValueError):
@@ -164,6 +175,11 @@ class RepositoryIndexer:
         imports: tuple[str, ...] = ()
         if language == "python":
             symbols, imports = self._python_metadata(data, relative)
+        elif language in _ECMASCRIPT_LANGUAGES:
+            try:
+                imports = extract_module_references(data, path=relative)
+            except ECMAScriptModuleEvidenceError as exc:
+                raise RepositoryIndexingError(str(exc)) from exc
         return ProjectFile(
             path=relative,
             size=len(data),
@@ -200,8 +216,12 @@ class RepositoryIndexer:
             ".py": "python",
             ".ts": "typescript",
             ".tsx": "typescript",
+            ".mts": "typescript",
+            ".cts": "typescript",
             ".js": "javascript",
             ".jsx": "javascript",
+            ".mjs": "javascript",
+            ".cjs": "javascript",
             ".java": "java",
             ".cs": "csharp",
             ".go": "go",
@@ -224,7 +244,7 @@ class RepositoryIndexer:
             "/test/" in f"/{lower}"
             or "/tests/" in f"/{lower}"
             or name.startswith("test_")
-            or name.endswith((".test.ts", ".spec.ts", ".test.js", ".spec.js"))
+            or name.endswith(_ECMASCRIPT_TEST_SUFFIXES)
         )
 
     @staticmethod

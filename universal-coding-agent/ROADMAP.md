@@ -93,7 +93,14 @@
   explicit hash-bound human approval; operator-opted-in positional test IDs or complete requested
   profile fallback; isolated one-shot execution; bounded canonical receipts; exact source
   verification, drift detection, and verified tracked rollback; durable replay and restart safety;
-- P3.4c-3 additional-language dependency analysis;
+- [x] P3.4c-3a bounded TypeScript/JavaScript static module-reference evidence: repository-index
+  policy v3; deterministic literal ESM import, export-from, and TypeScript import-equals evidence;
+  `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, and `.cjs` classification; canonical
+  kind-prefixed references; explicit lexical, token, count, and specifier bounds; fail-closed
+  malformed supported declarations; and unchanged Python dependency and execution behavior;
+- P3.4c-3b deterministic TypeScript/JavaScript module resolution, dependency graph, and impact
+  analysis;
+- P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;
 - context deduplication and model-budget policies.
