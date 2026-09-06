@@ -1,58 +1,42 @@
-TASK_ID: ETL-0906-PIN-DIAG01
-TYPE: READ-ONLY FILE IDENTITY REPORT — NO REPAIR
+TASK_ID: ETL-0906-B3-CURRENT-SOURCE-REVIEW01
+TYPE: READ-ONLY CURRENT-SOURCE ASSESSMENT — NO REPAIR OR TESTS
 
-Run in the existing local Windows VS Code Agent.
+Environment: normal local Windows VS Code Agent, independent of the author of the current B3 changes. Do not use the ETL Orchestrator.
 
-The owner authorizes only read-only measurements of these two files:
+Active worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-1. C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147\src\test\runTest.ts
-2. C:\docs\ETL_QUALIFICATION_GLOSSARY.md
+Purpose:
+ETL-0906-B3-REPAIR-TEST01 stopped before edits/tests because runTest.ts and the local glossary differed from their historical pins. Determine which B3 defects actually remain in the current source before another repair is designed.
 
-Purpose: obtain the complete actual hashes omitted from the screenshots of the blocked ETL-0906-B3-REPAIR-TEST01 attempt.
+Authorization:
+Read-only identity, hashing, source inspection and comparisons. Use git –no-optional-locks for Git reads. No file creation/modification, editor-change resolution, Git mutation, compilation, tests, runner/Host, package installation or release. Report in chat only.
 
-Use existing PowerShell with -NoProfile and .NET read-only byte inspection. Do not create scripts, temporary files, evidence directories, or reports on disk. Return the report in chat only.
+The known historical mismatch is the subject of this assessment, not a reason to rerun the old preflight. Do not replace its pins or resume that task.
 
-Do not edit, replace, normalize, restore, or move either file. Do not execute/import the runner, compile, test, launch Host, install anything, perform Git operations, or resolve editor changes. Do not resume the B3 repair.
+1. Verify and report the actual worktree, branch, HEAD and dirty/staged inventory. Measure the current source hashes before and after inspection. If inspected inputs change, report the assessment as unstable.
+2. Read the entire current src/test/runTest.ts, the producer src/test/suite/index.ts, its focused-suite constants, and the actual Mocha-result guard located by symbol search.
+3. Assess each requirement against actual call sites and producer contracts:
 
-Expected identities copied from Reference v2:
+F1: Every independent runner-comparison cause survives, including when another failure already exists.
 
-runTest.ts:
-SHA256:
-9F865D703AB8C0FEAB453D62C2E26491DC6639F95423F2470473722808740089
-Bytes: 126214
-CRLF: 0
-Bare LF: 2903
-Bare CR: 0
+F2: Product attribution requires focusedMode === true and the exact authorized focusedSuiteFile, suiteTitles and loadedFiles; reject missing, foreign, duplicate and additional identities.
 
-ETL_QUALIFICATION_GLOSSARY.md:
-SHA256:
-537F32326590454D1070CE6AB32315240ABCCE4CE8C604F0C8AEC65AD4AB749E
-Bytes: 25565
-CRLF: 0
-Bare LF: 587
-Bare CR: 0
+F3: Infrastructure > product > none; equivalent cause multisets produce identical primary classification, stage and message regardless of arrival order.
 
-For each exact path:
+F4: Validate producer-defined count and array relationships, not merely individual nonnegative integers.
 
-* If inaccessible or missing, report that path and the exact error. Do not search for or substitute another file.
-* Read the raw bytes without text conversion.
-* Calculate SHA-256, byte length, CRLF, bare-LF and bare-CR counts from the same byte buffer.
-* Re-read once and compare hashes to detect changes during measurement. If different, report UNSTABLE_DURING_READ; do not retry or select a preferred version.
-* Report MATCH or MISMATCH against the expected values. A mismatch is the diagnostic result, not permission to change the baseline.
+F5: Repeated observations of one cause collapse; distinct causes coexist. A mutable result cannot create contradictory repeated observations.
 
-Print a compact vertical report, without tables. Put each complete 64-character hash on its own line; never truncate it or use ellipses.
+Preserve PASS/FAIL/BLOCKED and verdict-derived exit consistency.
 
-Start with TASK_ID. For each file show:
-PATH
-EXPECTED_SHA256
-ACTUAL_SHA256
-EXPECTED / ACTUAL bytes and EOL counts
-STABLE_DURING_READ
-IDENTITY_MATCH
+4. Identify any current B3 interaction with M2 evidence persistence, M3 authorization/stage assignments, and A3 finalization/schema/post-exit behavior. Claim historical preservation only if exact reviewed source bytes are available and hash-verified. Otherwise mark it NOT_VERIFIED. Do not reconstruct missing source or search unrelated history.
 
-End with:
-FILES_CHANGED_BY_TASK: NONE
-COMPILER_TEST_RUNNER_OR_HOST_EXECUTED: NO
-B3_REPAIR_RESUMED: NO
+Return:
 
-Stop after reporting. Do not infer who changed a file or when from these measurements.
+* Full paths and machine-derived current hashes, without truncation.
+* A five-row F1–F5 table: PRESENT / APPEARS_RESOLVED_STATIC / UNCERTAIN, with symbols, line references and reasoning.
+* Preservation evidence and gaps.
+* The smallest remaining repair/test scope, without implementing it.
+
+This assessment does not establish test success, full B3 acceptance, or runtime qualification. Stop after the report.
