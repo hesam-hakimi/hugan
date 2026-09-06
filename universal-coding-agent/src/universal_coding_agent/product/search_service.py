@@ -291,7 +291,9 @@ class SearchService:
                    OR project_id IN (
                     SELECT project_id FROM repository_index_state WHERE namespace = ?
                     UNION
-                    SELECT project_id FROM repository_dependency_graph_state WHERE namespace = ?
+                    SELECT project_id FROM repository_dependency_graph_state
+                    WHERE namespace = ?
+                      AND namespace LIKE 'explicit:repository-dependency-graph:%'
                     UNION
                     SELECT project_id FROM repository_call_graph_state WHERE namespace = ?
                     UNION
@@ -307,7 +309,9 @@ class SearchService:
                    OR project_id IN (
                     SELECT project_id FROM repository_index_state WHERE namespace = ?
                     UNION
-                    SELECT project_id FROM repository_dependency_graph_state WHERE namespace = ?
+                    SELECT project_id FROM repository_dependency_graph_state
+                    WHERE namespace = ?
+                      AND namespace LIKE 'explicit:repository-dependency-graph:%'
                     UNION
                     SELECT project_id FROM repository_call_graph_state WHERE namespace = ?
                 )
@@ -321,7 +325,9 @@ class SearchService:
                    OR project_id IN (
                     SELECT project_id FROM repository_index_state WHERE namespace = ?
                     UNION
-                    SELECT project_id FROM repository_dependency_graph_state WHERE namespace = ?
+                    SELECT project_id FROM repository_dependency_graph_state
+                    WHERE namespace = ?
+                      AND namespace LIKE 'explicit:repository-dependency-graph:%'
                 )
                 """,
                 (namespace, namespace, namespace),
@@ -947,10 +953,11 @@ class SearchService:
         state: RepositoryDependencyGraphState,
         expected_previous_graph_sha256: str | None,
     ) -> None:
-        expected_namespace = (
-            f"explicit:repository-dependency-graph:{state.project_id}"
-        )
-        if state.namespace != expected_namespace:
+        expected_namespaces = {
+            f"explicit:repository-dependency-graph:{state.project_id}",
+            f"explicit:ecmascript-dependency-graph:{state.project_id}",
+        }
+        if state.namespace not in expected_namespaces:
             raise RepositoryDependencyGraphStateError(
                 "repository dependency graphs require an explicit project namespace"
             )

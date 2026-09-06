@@ -1227,6 +1227,48 @@ call a model/provider, expose UI or HTTP behavior, grant shell authority, publis
 merge, deploy, or establish production readiness. Deterministic resolution and impact analysis are
 the separate P3.4c-3b boundary.
 
+## TypeScript and JavaScript dependency and impact evidence
+
+P3.4c-3b consumes the exact verified repository snapshots and canonical static module references
+from P3.4c-3a. `RepositoryECMAScriptDependencyService` builds a separate project-scoped graph under
+`explicit:ecmascript-dependency-graph:<project_id>` so its active state cannot satisfy or invalidate
+the Python dependency, call, dispatch, or coverage chain. Repository-snapshot removal still
+invalidates both language graph states for the same project.
+
+The resolver is a conservative repository-local evidence contract, not a claim that it reproduces
+every compiler, bundler, or runtime. It records an edge only when one tracked ECMAScript path is the
+unique candidate. Relative references with an explicit supported suffix first admit the exact path;
+TypeScript source additionally admits the bounded `.js` to `.ts`/`.tsx`/`.d.ts`/`.js`/`.jsx`,
+`.mjs` to `.mts`/`.d.mts`/`.mjs`, and `.cjs` to `.cts`/`.d.cts`/`.cjs` substitution sets.
+Extensionless relative references admit bounded direct and `index` candidates for `.ts`, `.tsx`,
+`.d.ts`, `.js`, and `.jsx`; `.mts` and `.cts` are never inferred from an extensionless reference.
+Every edge preserves the reference kind, original module specifier, and resolution basis. Multiple
+matches remain typed `ambiguous_target` evidence rather than using an environment-dependent
+precedence. Bare or external specifiers, absolute paths and URLs, repository escapes, unsupported
+target types, missing candidates, and invalid references remain typed unresolved evidence.
+
+Nodes, edges, unresolved evidence, candidate-universe hashes, predecessor bindings, and incremental
+deltas are canonical and bounded. Resolution evidence is reused only when the complete ECMAScript
+path universe is unchanged and the source node is byte-identical. Otherwise the source is
+recomputed. The content-addressed immutable graph is bound to the exact Base SHA, repository
+snapshot reference and digest, policy digest, and optional predecessor graph; compare-and-swap
+advances active state atomically, and bounded verified reads support exact replay after restart.
+
+Impact analysis walks reverse dependency edges over both the current graph and, for deletions and
+renames, the exact verified direct-predecessor snapshot graph. Traversal is deterministic,
+cycle-safe, and bounded by depth, traversal count, result count, and artifact bytes. Each result
+preserves its changed path, dependency path chain, raw-reference chain, resolution-basis chain,
+current-snapshot presence, test classification, and derived confidence. Only currently tracked test
+nodes appear in `impacted_tests`; deleted historical paths may remain explicit source impacts.
+
+This slice does not read `tsconfig`, JavaScript configuration, `package.json`, package exports or
+imports, workspace mappings, path aliases, conditions, or package-manager state. It does not resolve
+bare packages, model Node or bundler mode, infer standalone CommonJS `require()` or dynamic-import
+edges, build a symbol or call graph, select or execute tests, connect this evidence to the Python
+coverage-selection chain, inject model context, expose UI or HTTP behavior, grant arbitrary model
+shell access, publish source control, merge, deploy, or establish production readiness. Those
+configuration-dependent and execution-integrated behaviors require separately bounded slices.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

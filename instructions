@@ -92,6 +92,7 @@
 - universal-coding-agent/src/universal_coding_agent/product/search_service.py
 - universal-coding-agent/src/universal_coding_agent/product/repository_indexes.py
 - universal-coding-agent/src/universal_coding_agent/product/dependency_graphs.py
+- universal-coding-agent/src/universal_coding_agent/product/ecmascript_dependencies.py
 - universal-coding-agent/src/universal_coding_agent/product/call_graphs.py
 - universal-coding-agent/src/universal_coding_agent/product/dispatch_evidence.py
 - universal-coding-agent/src/universal_coding_agent/product/coverage_evidence.py
@@ -110,6 +111,7 @@
 - universal-coding-agent/tests/test_product_foundation.py
 - universal-coding-agent/tests/test_incremental_repository_indexes.py
 - universal-coding-agent/tests/test_ecmascript_import_evidence.py
+- universal-coding-agent/tests/test_ecmascript_dependency_graphs.py
 - universal-coding-agent/tests/test_repository_dependency_graphs.py
 - universal-coding-agent/tests/test_repository_call_graphs.py
 - universal-coding-agent/tests/test_repository_dispatch_evidence.py
@@ -219,6 +221,7 @@ for FILE in \
   src/universal_coding_agent/product/search_service.py \
   src/universal_coding_agent/product/repository_indexes.py \
   src/universal_coding_agent/product/dependency_graphs.py \
+  src/universal_coding_agent/product/ecmascript_dependencies.py \
   src/universal_coding_agent/product/call_graphs.py \
   src/universal_coding_agent/product/dispatch_evidence.py \
   src/universal_coding_agent/product/coverage_evidence.py \
@@ -237,6 +240,7 @@ for FILE in \
   tests/test_product_foundation.py \
   tests/test_incremental_repository_indexes.py \
   tests/test_ecmascript_import_evidence.py \
+  tests/test_ecmascript_dependency_graphs.py \
   tests/test_repository_dependency_graphs.py \
   tests/test_repository_call_graphs.py \
   tests/test_repository_dispatch_evidence.py \
@@ -260,7 +264,7 @@ done
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.core.cancellation import CancellationCoordinator, CancellationReport, CancellationSignal, OwnedCancellableOperation, OwnedPausableOperation, PauseReport, PauseRequested, PauseResumeResult
 from universal_coding_agent.core.remote_operations import RemoteOperationAction, RemoteOperationDisposition, RemoteOperationDispositionOutcome, RemoteOperationLeaseRetirement, RemoteOperationLeaseRetirementEligibilityCode, RemoteOperationLeaseStore, RemoteOperationSnapshot, RemoteOperationState, RetainedRemoteOperationLeaseInventory, RetainedRemoteOperationLeaseInventoryItem
-from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RepositoryCallGraphService, RepositoryCoverageEvidenceService, RepositoryCoverageSelectionService, RepositoryCoverageTestExecutionService, RepositoryDependencyService, RepositoryDispatchEvidenceService, RepositoryIndexService, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
+from universal_coding_agent.product import ContextDocumentService, DurableLifecycleReservationStore, ProductWorkspace, ProgramOrchestrator, RepositoryCallGraphService, RepositoryCoverageEvidenceService, RepositoryCoverageSelectionService, RepositoryCoverageTestExecutionService, RepositoryDependencyService, RepositoryDispatchEvidenceService, RepositoryECMAScriptDependencyService, RepositoryIndexService, RequirementAlignmentService, SearchService, SqliteRemoteOperationLeaseStore, TaskControlService
 from universal_coding_agent.product.lifecycle_reservations import (
     LIFECYCLE_RECOVERY_RECEIPT_FIELD_VALIDATION_INDEX,
     LIFECYCLE_RECOVERY_RECEIPT_INDEX,
@@ -299,11 +303,13 @@ from universal_coding_agent.web.app import (
 assert DiscoveredSafeAgentService and ProductWorkspace and ContextDocumentService
 assert SearchService and RequirementAlignmentService and ProgramOrchestrator and TaskControlService
 assert RepositoryIndexService and RepositoryDependencyService and RepositoryCallGraphService
+assert RepositoryECMAScriptDependencyService
 assert RepositoryDispatchEvidenceService
 assert RepositoryCoverageEvidenceService
 assert RepositoryCoverageSelectionService
 assert RepositoryCoverageTestExecutionService
 assert "call_graphs" in ProductWorkspace.__annotations__
+assert "ecmascript_dependencies" in ProductWorkspace.__annotations__
 assert "dispatch_evidence" in ProductWorkspace.__annotations__
 assert "coverage_evidence" in ProductWorkspace.__annotations__
 assert "coverage_selection" in ProductWorkspace.__annotations__
@@ -376,6 +382,7 @@ print("INDEX_BACKED_LIFECYCLE_RECOVERY_CANDIDATE_IMPORT_PREFLIGHT_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_FIELD_VALIDATION_IMPORT_PREFLIGHT_PASS")
 print("INDEX_BACKED_LIFECYCLE_RECOVERY_RECEIPT_IMPORT_PREFLIGHT_PASS")
 print("PYTHON_STATIC_CALL_GRAPH_IMPORT_PREFLIGHT_PASS")
+print("ECMASCRIPT_DEPENDENCY_IMPACT_IMPORT_PREFLIGHT_PASS")
 print("IDENTITY_BOUND_COVERAGE_SELECTION_ELIGIBILITY_IMPORT_PREFLIGHT_PASS")
 print("APPROVAL_GATED_COVERAGE_SELECTED_TEST_EXECUTION_IMPORT_PREFLIGHT_PASS")
 PY
@@ -417,6 +424,8 @@ Cmd 3
   tests/test_remote_operation_reconciliation.py \
   tests/test_repository.py \
   tests/test_incremental_repository_indexes.py \
+  tests/test_ecmascript_import_evidence.py \
+  tests/test_ecmascript_dependency_graphs.py \
   tests/test_repository_dependency_graphs.py \
   tests/test_repository_call_graphs.py && \
 echo "PRODUCT_CONTROL_CENTER_BACKEND_PREFLIGHT_PASS" && \
@@ -1361,3 +1370,41 @@ inject model context, expose UI or HTTP endpoints, grant arbitrary model shell a
 source control, merge, deploy, or establish production readiness. Do not weaken existing test
 profiles, source-preservation checks, live thresholds, or final aggregators when qualifying this
 slice.
+
+Cmd 38 — P3.4c-3b deterministic TypeScript/JavaScript dependency and impact evidence
+
+```bash
+python -m compileall -q src tests
+python -m pytest -q \
+  tests/test_ecmascript_dependency_graphs.py \
+  tests/test_ecmascript_import_evidence.py \
+  tests/test_incremental_repository_indexes.py \
+  tests/test_repository_dependency_graphs.py \
+  tests/test_repository.py \
+  tests/test_product_foundation.py \
+  tests/test_product_workspace_control.py
+python -m pytest -q
+ruff check .
+git diff --check
+echo "DETERMINISTIC_ECMASCRIPT_DEPENDENCY_IMPACT_EVIDENCE_PASS"
+```
+
+The focused gate proves exact repository-snapshot, Base-SHA, graph-policy, predecessor, and active
+state binding; bounded unique relative resolution for explicit, TypeScript extension-substitution,
+extensionless, and directory-index candidates; typed external, absolute, escaping, unsupported,
+missing, ambiguous, and invalid references; unchanged JavaScript extension behavior; and no
+extensionless `.mts` or `.cts` inference. It proves canonical edge provenance, deterministic
+confidence-bearing impact chains, cycle safety, current and predecessor traversal for modification,
+deletion, and rename changes, bounded traversal and artifacts, candidate-universe-safe incremental
+reuse, exact replay, transaction rollback and retry, project and language-state isolation, cascade
+cleanup, Product workspace restart recovery, and exact source preservation.
+
+This command is deterministic and makes no model/provider or hosted source-control call. P3.4c-3b
+does not interpret `tsconfig`, JavaScript configuration, `package.json`, package exports or imports,
+workspace mappings, aliases, conditions, package-manager state, or environment-specific compiler,
+bundler, or runtime precedence. It does not resolve bare packages, add standalone CommonJS
+`require()` or dynamic-import edges, build a symbol or call graph, select or execute tests, integrate
+with the Python coverage-selection chain, inject model context, expose UI or HTTP endpoints, grant
+arbitrary model shell access, publish source control, merge, deploy, or establish production
+readiness. Do not weaken existing test profiles, source-preservation checks, live thresholds, or
+final aggregators when qualifying this slice.
