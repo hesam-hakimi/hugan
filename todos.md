@@ -1,324 +1,322 @@
-TASK_ID: ETL-0904-IMPL05A1-B3-REPAIR
-TYPE: SOURCE-ONLY REPAIR — FIVE BLOCKING B3 FINDINGS
+TASK_ID: ETL-0906-B3-REPAIR-TEST01
+TYPE: BOUNDED B3 REPAIR WITH LOCAL UNIT TESTS — NO RUNNER OR HOST
+STATUS: EXECUTION BRIEF; IMPLEMENTATION AND EXECUTION HAVE NOT STARTED
 
-Run this in a fresh, normal local VS Code Agent chat on Windows. Do not use an
-Agent that implemented or reviewed IMPL04, IMPL05A2, IMPL05A1A2,
-IMPL05A1-B3-REMAINDER, REVIEW-A2, REVIEW-A1A2-COUPLING, or
-REVIEW-B3-REMAINDER. Do not use the ETL Orchestrator.
+Run in a normal LOCAL VS Code Agent chat on Windows, in the active worktree
+below. Do not use the ETL Orchestrator. This is implementation, not independent
+review. The implementer may continue within this task; the eventual reviewer
+must be independent. Do not launch a second writer.
 
-Echo TASK_ID: ETL-0904-IMPL05A1-B3-REPAIR as the first report line.
+1. Owner-approved change to the working method
 
-========================================================= OWNER AUTHORIZATION AND HARD BOUNDARY
+The owner approved package 1: close the five independently reported B3 defects,
+with early local tests and, if needed, a small side-effect-free extraction.
+This brief supersedes the older SOURCE-ONLY / ONE-FILE / NO-TEMP-COPY rules
+ONLY for the operations explicitly allowed here. It does not authorize the
+other architectural proposals, global documentation updates, or later gates.
+Known differences in those older permissions are intentional, not a blocker.
+Unresolved differences in baseline identity or behavioral requirements ARE blockers.
 
-The owner authorizes one bounded source repair for the five blocking findings
-from ETL-0904-REVIEW-B3-REMAINDER.
+Required context: read this entire brief and the verified external glossary
+at C:\docs\ETL_QUALIFICATION_GLOSSARY.md. Use its stable definitions, not its
+superseded next-task/execution restrictions. The five findings and reviewed
+baseline below are carried forward from
+ETL_DELTA_2026-09-05_B3_REMAINDER_INDEPENDENT_REVIEW.md
+(review ETL-0904-REVIEW-B3-REMAINDER, NOT_ACCEPTABLE, 2026-09-05).
+Read the full report if locally available; its absence is not permission to
+invent details and need not force Library access from the local Agent.
+Do not require reconstruction of every historical handoff.
 
-You may run read-only identity/status/hash/diff/search/Local-History/source
-inspection commands and edit ONLY src/test/runTest.ts. Make surgical changes.
+Before editing, read the entire live runTest.ts, the actual result producer in
+src/test/suite/index.ts, its focused-suite constants, the Mocha guard located by
+symbol search, and the relevant existing local test/compiler configuration.
+Read producer/guard sources as evidence; do not modify them.
 
-You may NOT:
+2. Exact authorization
 
-• edit any other file;
-• alter M2 evidence-path behavior, M3 authorization ordering, or the eight
-accepted last-completed-stage assignments;
-• alter finalization-stage schema, finalization flow outside the B3
-classification seam, post-exit invocation count/order, or reduced-record
-non-B3 schema;
-• broaden into B4, M1, M4, M5, C1, C2, B1, parser/renderer behavior,
-protected-set policy, packaging, or release work;
-• type-check, compile, lint, emit, test, run the parser/runner/Extension Host,
-package, install, stage, commit, stash, checkout, restore, reset, clean,
-merge, push, tag, or release;
-• accept, discard, Keep, Undo, or resolve pending editor changes;
-• format the whole file or normalize line endings;
-• claim runtime verification or qualification.
+|Area            |Allowed                                                                                                                                                     |
+|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|Existing source |Surgical edits to src/test/runTest.ts, B3 seams only                                                                                                        |
+|Small extraction|Create src/test/b3OutcomePolicy.ts: only pure B3 functions/types consumed by runTest.ts                                                                     |
+|Tests           |Create src/test/b3OutcomePolicy.unit.test.ts: tests of those actual functions, not a copied implementation                                                  |
+|Diagnostics     |Read-only identity/status/hash/diff/process/source/configuration inspection                                                                                 |
+|Type analysis   |Direct use of the already-installed local compiler for no-emit integration checks, with all persistent caches/build-info writes disabled                    |
+|Test-only emit  |Compile only the pure helper, its test and necessary side-effect-free dependencies into the fresh external task root                                        |
+|Execution       |Run only that explicitly selected local unit-test entrypoint using already-installed tooling                                                                |
+|Evidence        |Create pre-edit copy, machine baseline, test configuration/fixtures, build output, per-attempt logs, diff and report ONLY under the fresh external task root|
 
-Do not launch a process whose executable arguments constitute an actual
---extensionTestsPath, --extensionDevelopmentPath, runTest, or
-@vscode/test-electron invocation. Exclude the inspection shell and matches
-occurring only in inspection text, prompt text, or an ordinary source path.
+Use the two exact new source paths above; verify they do not already exist,
+including ignored/untracked files. No package.json, lockfile, tsconfig, suite
+registration, barrel export, existing test, dependency or tool installation
+change is authorized. If the extraction cannot fit these boundaries, stop.
+Do not extract unrelated runner code or build a new testing framework.
+Preserve the existing encoding and line endings; no whole-file normalization.
 
-If another file is required, stop before editing:
-BLOCKED_SCOPE_EXPANSION_REQUIRED: <path> <symbol> <reason> <minimum change>.
+NEVER execute/import/evaluate runTest.ts or emitted runTest.js. Compiler
+analysis of that source is allowed; module execution is not. Inspect the test’s
+transitive runtime imports before execution: no vscode, Extension Host,
+@vscode/test-electron, extension activation, network, credentials or consumer
+data. Test/helper code must not launch child processes. Tool-managed unit-test
+workers may execute only the same selected pure test closure; record their
+entrypoint/arguments. No import trick, VM evaluation or text-extracted
+copy of the runner may substitute for a testable production-consumed helper.
 
-If a fix requires touching M2, M3 ordering/stages, finalization-stage schema,
-non-B3 finalization flow, post-exit ordering, or reduced-record non-B3 schema,
-stop before editing:
-BLOCKED_ADJACENT_SCOPE_COUPLING: <symbol> <reason> <minimum expansion>.
+No runner, Host, parser/product execution, VSIX build/package/install, lint,
+formatter, dependency download, npm/npx lifecycle script, Git mutation, commit,
+push, merge, release, permission bypass, or pending-editor-edit resolution.
+Use git –no-optional-locks for Git reads. Read-only Git configuration queries
+are permitted; never change configuration or hooks.
 
-========================================================= AUTHORITATIVE FINDINGS — ALL FIVE MUST CLOSE
+Preserve M2 paths/containment/CreateNew/write ordering/dual-error handling;
+M3 freshness/dedication/authorization and all eight accepted stage assignments;
+finalization-stage schema; non-B3 finalization flow; post-exit count/order;
+full/reduced non-B3 schema; B4/M1/M4/M5/C1/C2/B1 and protected-set policy.
+B3-only classifier, validator, ledger and verdict wiring inside the existing
+finalization seam may change. Do not reorder its non-B3 operations, fix R14/R16,
+or broaden output schemas. An internal immutable B3 observation may replace
+B3 re-evaluation; this does not authorize rewriting unrelated finalizer reads.
 
-1. B3_FINDING_1: runner comparison is currently gated by global ledger
-emptiness (runnerMismatchCount > 0 && classifiedFailures.length === 0), so
-a distinct cause can disappear when another row already exists.
-2. B3_FINDING_2: the focused-result oracle accepts focusedMode: false,
-ignores focusedSuiteFile, and does not prove expected suiteTitles and
-loadedFiles content.
-3. B3_FINDING_3: class precedence is correct, but the primary datum within the
-winning class is selected by insertion order.
-4. B3_FINDING_4: counts are individually validated but not checked for
-producer-implied cross-field consistency.
-5. B3_FINDING_5: some keys name observation sites/broad buckets rather than
-underlying causes; repeated reads of one mutable result can classify one
-event under two keys.
+3. Preflight and machine-anchored baseline
 
-Do not downgrade or defer any of these. Preserve B3-1, B3-6, B3-7, B3-8;
-infrastructure > product > none precedence; verdict-derived exit status;
-distinct-cause coexistence; same-cause exactly-once behavior; and the rule that
-nonzero exit status alone never creates product classification.
-
-========================================================= MANDATORY PREFLIGHT — RE-DERIVE BEFORE EDITING
-
-Expected:
 Active worktree:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 Linked primary:
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 Branch: fix/workspace-write-completion-0.3.148
-HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 
-Exact dirty inventory:
-M .github/templates/request.md
-M src/core/sttm/SttmUnderstandingReportRenderer.ts
-M src/extension.ts
-M src/test/runTest.ts
-M src/test/suite/index.ts
+Expected porcelain status (leading space means unstaged modification):
+
+```text
+ M .github/templates/request.md
+ M src/core/sttm/SttmUnderstandingReportRenderer.ts
+ M src/extension.ts
+ M src/test/runTest.ts
+ M src/test/suite/index.ts
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
+```
 
-Verify empty staging, no worktree/common index.lock, and no actual active
-test/development Host.
+The following pins were extracted from retained text records, not transcribed
+from screenshots. Verify live bytes; never replace expected values with live
+hashes merely to pass preflight.
 
-Verify Snapshot01 manifest: SHA-256
-78324A99A5D700053214B15F680E2DCBE3A2099A0801C43B6D02E512D43004DF,
-valid JSON, TASK_ID=ETL-0904-SNAPSHOT01, snapshotStatus=COMPLETE, and
-SOURCE_HISTORY_STATE_UNCHANGED=YES.
+```json
+{
+  "glossary_bare_cr": 0,
+  "glossary_bare_lf": 587,
+  "glossary_bytes": 25565,
+  "glossary_crlf": 0,
+  "glossary_sha256": "537F32326590454D1070CE6AB32315240ABCCE4CE8C604F0C8AEC65AD4AB749E",
+  "head": "45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19",
+  "reviewed_runTest_bare_cr": 0,
+  "reviewed_runTest_bare_lf": 2903,
+  "reviewed_runTest_bytes": 126214,
+  "reviewed_runTest_crlf": 0,
+  "reviewed_runTest_sha256": "9F865D703AB8C0FEAB453D62C2E26491DC6639F95423F2470473722808740089",
+  "snapshot01_manifest_sha256": "78324A99A5D700053214B15F680E2DCBE3A2099A0801C43B6D02E512D43004DF"
+}
+```
 
-Verify each out-of-scope dirty path:
-.github/templates/request.md
-2EA692C2178863551D7E40CF1C85DBE48286C370F0D1A392678EBF47751ECB84 / 555
-src/core/sttm/SttmUnderstandingReportRenderer.ts
-49A4012D1E5216C7E7C9DCF6D55D4517885ECFBCE096F9A96FDD34807D4B32DF / 23461
-src/extension.ts
-4872337F0F97BBB2A2109F21EE7F362CD4A35F5932B49533936DE8E48FBFC7BC / 18797
-src/test/suite/index.ts
-488E7344F71D22CE8E439452115DF0EE66B30358BD04F274E400ACD55C61CEC0 / 8397
-src/test/suite/sttmRealHostStructuredResult.test.ts
-561749C33A09B73D880917EE242A1CB550E26EACF8ABEEF34BA192406C8F6DB3 / 41106
+Snapshot01 root:
+C:\Users\tag5916\ETL-SNAPSHOT-ETL-0904-SNAPSHOT01-20260904T210831Z
+Manifest: manifest.json under that root.
+Cumulative baseline: payload\worktree\src\test\runTest.ts under that root.
 
-Immediate pre-repair src/test/runTest.ts must be:
-SHA-256 9F865D703AB8C0FEAB453D62C2E26491DC6639F95423F2470473722808740089
-bytes 126214; bare LF 2903; CRLF 0; bare CR 0.
-Snapshot01-to-pre-repair numstat must be +280/-103.
+Before any source/evidence write:
 
-Before editing, find and hash an immutable Local History copy exactly matching
-that pre-repair SHA and size. Record its full path; do not create a repository,
-Snapshot01, or evidence copy to manufacture a baseline. If absent, stop:
-BLOCKED_PRE_REPAIR_BASELINE_NOT_PRESERVABLE.
+• Verify active/linked worktree identity, branch, HEAD, exact six-path inventory,
+empty staging, and no index.lock in worktree/common Git metadata.
+• Verify no actual active test/development Host invocation. Exclude ordinary
+editors, inspection commands, prompt text and ordinary source-path matches.
+• Verify the manifest hash, valid JSON, task identity ETL-0904-SNAPSHOT01,
+COMPLETE status and unchanged source-history value YES. Read the actual
+property paths; do not require an uppercase display label to be a JSON key.
+• Verify the Snapshot01 payload hash/size against its manifest. Compare the
+five out-of-scope dirty files to their manifest hashes/sizes.
+• Verify current runTest.ts against the REVIEWED pin above, NOT Snapshot01.
+It is expected to differ from Snapshot01. The reported cumulative numstat
+is +280/-103; measure it and explain any discrepancy without changing bytes.
+• Verify the glossary pin and its canonical location outside both worktrees.
+• Capture SHA-256, bytes, CRLF/bare-LF/bare-CR for all six dirty files.
+Record hashes/inventory for package/config/lock files and existing configured
+build/test output roots, including out/**, for post-task comparison.
+• Verify both new source paths are absent. Inspect package scripts, compiler
+options, test discovery and runtime import closure before selecting commands.
 
-Capture pre-edit SHA-256, bytes, CRLF/LF/CR for all six dirty paths. Any identity,
-HEAD, dirty-set, staging, lock/process, manifest, hash, size, line-ending, or
-baseline mismatch requires immediate stop before editing:
-BLOCKED_BASELINE_DRIFT: <exact mismatch>.
+Stop on identity, staging, dirty-set or source-baseline mismatch:
+BLOCKED_BASELINE_DRIFT: <expected> <observed>
+Stop on absent/invalid baseline or glossary:
+BLOCKED_REFERENCE_NOT_VERIFIED: <path> <reason>
+Stop on actual Host/lock/concurrent source change:
+BLOCKED_ACTIVE_PROCESS_OR_CONCURRENT_CHANGE: <evidence>
+Do not repair/rebase a baseline, clear a lock, stop somebody else’s process,
+resolve an editor change, or infer permission from a matching diffstat.
 
-========================================================= REPAIR A — ACCUMULATE DISTINCT RUNNER CAUSES
+After all preflight checks pass, create ONE fresh unique task root:
+C:\docs\ETL-0906-B3-REPAIR-TEST01<UTC-timestamp>-<GUID>
+First prove its existing parent resolves outside both worktrees, Snapshot01,
+and consumer/protected roots. Reject redirected/unsafe destinations; do not
+choose another location silently. Create new task-owned directories only.
 
-• Classify a runner-comparison mismatch by its own cause identity even when the
-ledger already contains product or infrastructure rows.
-• Never use global ledger emptiness as a cause-eligibility condition.
-• Deduplicate only the same runner-comparison cause.
-• For product failure + independent runner mismatch, retain both in
-failure.all, select infrastructure primary, return BLOCKED, exit nonzero.
-• Keep deterministicComparisons, failure.all, primary, verdict, and exit
-mutually consistent.
+Create a byte-for-byte pre\runTest.ts copy with CreateNew semantics. Hash it
+and the live source again; both must match the reviewed pin. Write baseline.json
+with the verified paths, anchor provenance, six-file measurements and identity.
+This preserves a verified present baseline; it is NOT a replacement historical
+snapshot. Local History hunting is unnecessary. Keep all failed-attempt logs
+in separate new subdirectories; no overwrites or cleanup of previous evidence.
+Recheck baseline immediately before the first source edit.
 
-========================================================= REPAIR B — PROVE THE AUTHORIZED FOCUSED EXECUTION
+4. Five repairs and the preserved outcome contract
 
-Re-derive the contract from the actual producer in src/test/suite/index.ts,
-the consumer/guard, and expected focused-suite constants. Read those sources;
-do not infer from the failed evaluator.
+B3 is the canonical verdict, classification, precedence, accumulation,
+cause-based deduplication and verdict-to-exit policy. M2 is evidence persistence;
+M3 is authorization plus last-completed-stage behavior. A3 owns adjacent
+finalization/schema/post-exit work and is NOT authorized here.
 
-The product boundary requires all of the following:
+|Finding  |Required closure                                                                                                                                                                                                                                                                    |
+|---------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|F1 / B3-4|Remove global-ledger-emptiness eligibility. Product failure plus an independent runner mismatch retains both, gives infrastructure priority, BLOCKED and nonzero exit.                                                                                                              |
+|F2 / B3-3|Prove focusedMode === true, authorized focusedSuiteFile, exact expected suiteTitles and loadedFiles, rejecting missing/foreign/duplicate/additional identities under the producer’s actual normalization semantics. Expectations must not come from the untrusted result itself.    |
+|F3 / B3-2|Preserve class precedence and define a total deterministic primary-row order over immutable data. The same cause multiset gives identical primary class/stage/message for every arrival permutation. Resolve repeated observations deterministically too.                           |
+|F4 / B3-3|Derive count equations and array/count relationships from the actual producer. Reject incoherent counts; do not assume a generic Mocha formula when the producer’s behavior differs.                                                                                                |
+|F5 / B3-5|Retain one immutable B3 result observation, or prove equivalent observation identity and non-divergence. Keys must identify causes, not call sites, stage-only buckets or first-arrival order. Distinct same-stage causes coexist; repeated observations of one event collapse once.|
 
-• focusedMode === true;
-• focusedSuiteFile identifies the authorized focused suite using the
-producer’s real normalization semantics;
-• suiteTitles contains exactly the expected suite identity and no foreign
-suite;
-• loadedFiles identifies exactly the authorized focused file set;
-• every count is a nonnegative integer;
-• producer-implied cross-field equalities hold, including the tests/passes/
-failures/pending relation and every exposed array/count relation;
-• product failure derives only from the authoritative failure count after
-shape, identity, and consistency all succeed.
+Preserve infrastructure > product > none. Infrastructure implies BLOCKED;
+trustworthy product failure with no infrastructure implies FAIL; PASS requires
+the authorized, coherent focused result and no other failure. A nonzero Host
+or runner exit alone never creates product classification. Preserve verdict
+values and the existing verdict-derived exit mapping, full/reduced B3
+persistence, M2/M3 acceptance, and every distinct cause in failure.all.
 
-If producer and consumer disagree, or identity cannot be proven from
-runTest.ts without changing another file, stop with a precise coupling blocker.
+Implement the minimum pure policy boundary needed for these five findings.
+Tests must exercise the actual eligibility/validation/reduction decisions used
+by runTest.ts, not an unused helper that leaves old gates at the call sites.
+Do not add serialized fields just for sorting/deduplication. Do not invent
+producer fields, change the focused suite’s eight-test identity, or redesign
+all producer/consumer schemas. Stop if correct closure needs forbidden scope.
 
-Hostile static cases that must not establish product:
+5. Local feedback loop — explicitly limited execution
 
-1. focusedMode=false;
-2. wrong/null focusedSuiteFile;
-3. foreign/multiple suiteTitles;
-4. foreign/multiple/missing loadedFiles;
-5. tests=8, passes=8, pending=0, failures=3;
-6. any exposed array/count disagreement.
+After preflight, print a short non-blocking execution plan: exact edit paths,
+helper exports, selected compiler/test commands, input files and output paths.
+The owner has authorized this bounded lane; no additional approval round is
+needed if it fits. Permission failures or a need for wider access remain stops.
 
-A coherent, correctly identified result with zero failures must yield PASS
-absent another cause; the same with positive failures must yield product FAIL
-absent an infrastructure cause.
+Use existing local tooling directly, not package lifecycle scripts. Disable
+incremental/watch/cache writes; no emit into out/** or elsewhere in the repo.
+A task-specific compiler/test configuration may be CREATED inside the external
+task root only. Verify its input closure and output paths before invoking it.
+Compiler diagnostics for runTest.ts are not execution of the runner.
+Before source edits, retain baseline no-emit integration diagnostics under the
+task root. Use the same options after editing so pre-existing errors can be
+distinguished from regressions; do not treat an unavailable check as a pass.
 
-========================================================= REPAIR C — ORDER-INDEPENDENT PRIMARY EVIDENCE
+Prefer a behavior-preserving extraction first, then demonstrate the known
+failures with tests, then repair. Record genuine pre-fix red results when
+available; do not claim red/green if only post-fix tests ran. A negative fixture
+correctly rejected by a passing test is not a pre-fix red result.
 
-• Preserve infrastructure > product > none.
-• Within the winning class, select primary by a documented stable total order
-over immutable row data, never insertion order.
-• Every permutation of the same cause multiset must yield identical primary
-classification, stage, and message.
-• Do not make failure.all lossy or add a serialized field merely for sorting.
-• State and prove the exact tie-break tuple for every reachable row.
+Freeze expected outcomes from the producer and approved contract independently
+of the implementation. Do not generate expected results using the function
+under test. Add a deliberate invalid-result/control case that would expose a
+validator wired open. Never weaken expectations to obtain green.
 
-========================================================= REPAIR D — TRUE CAUSE-IDENTITY DEDUPLICATION
+Required local matrix (use parameterized cases, not a new framework):
 
-• Keys must identify underlying events, not observation sites, current stage,
-or broad buckets.
-• Distinct causes at one stage coexist; one cause observed twice appears once.
-• Do not classify one mutable Mocha result artifact twice from separate reads
-under different identities. Prefer one immutable observation, or prove shared
-identity and non-divergence under a between-read change.
-• Do not collapse unrelated pre-result aborts into one generic
-focused-mocha-result-unusable cause.
-• Enumerate every classifyFailure call and prove key equivalence.
+1. Valid authorized coherent zero/positive failures: PASS/zero and FAIL/nonzero
+respectively, absent infrastructure, according to producer semantics.
+2. Product + independent runner mismatch; product + supplied surviving-PID
+observation; parent-post-exit + host-evidence observations: retain causes
+and select BLOCKED/nonzero. These are policy fixtures, NOT real PID tests.
+3. Each hostile focused-mode/file/title/loaded-file case, including duplicates
+and extra entries: infrastructure; no manufactured product attribution.
+4. Negative/noninteger/missing counts and producer-specific cross-count/
+array-count contradictions, including tests=8, passes=8, failures=3,
+pending=0: reject. Include coherent pending/hook cases if producer permits.
+5. Multiple same-class causes in all permutations of a small fixed set:
+identical primary class/stage/message; no lossy accumulation.
+6. Same event observed twice: one cause; distinct events sharing stage AND
+message: both retained; duplicate observations with differing metadata:
+deterministic retained primary data.
+7. Mutation of the supplied source object or a simulated second observation
+cannot rewrite the retained B3 observation or create two cause identities.
+Prove actual runner wiring uses that retained observation statically.
+8. Empty, missing, foreign or invalid evidence cannot yield a manufactured
+product PASS/FAIL. Exit mapping agrees with each canonical policy verdict.
 
-Required cause traces:
+Report individual cases, commands, exit codes and logs. Iterate within scope,
+retaining each attempt. Missing local dependencies do not authorize installs.
+Run a no-emit integration check using the existing project configuration with
+persistent writes disabled. Compare pre/post diagnostics where unrelated
+baseline errors exist; do not fix them or report a failed check as passing.
+Unexplained new diagnostics or unresolved local test failures block success.
 
-• product row + surviving Host PID;
-• product row + runner mismatch;
-• parent-post-exit + host-evidence failure;
-• one result artifact observed twice;
-• result artifact changed between potential reads;
-• two distinct failures during the same last-completed stage.
+6. Preservation, attribution and stopping
 
-========================================================= PRESERVATION RULES
+Re-read each changed hunk and enclosing flow. Map all five findings to source
+AND executable local cases. Enumerate classification sites and demonstrate:
+no remaining global-empty-ledger gate, first-inserted primary, ambiguous cause
+bucket, untrusted identity expectation or unvalidated count relationship.
+Show that helper imports are actually wired into all relevant runner seams.
 
-Preserve:
+Compare M2/M3, all eight stage assignments, finalization/schema/post-exit and
+other preservation boundaries to pre\runTest.ts. Unchanged text does not by
+itself prove unchanged behavior through modified B3 inputs; trace the seams.
 
-• M2 reduced-path/containment/exclusive-write/dual-failure behavior;
-• M3 freshness/dedication-before-authorization ordering;
-• all eight accepted stage assignment values/order/gate positions;
-• finalization-stage interfaces/schema;
-• post-exit invocation count/order;
-• non-B3 reduced-record fields;
-• verdict values and verdict-to-exit mapping;
-• all five out-of-scope dirty files.
+Re-hash the five out-of-scope dirty paths and protected/configured output roots;
+prove they are unchanged. Final staging must be empty. Git status may contain
+only the original six paths plus the two explicitly authorized new files.
+Do not create generated repository files, even ignored ones.
 
-Do not fix pre-existing R14 (reduced-record completeness/type guard) or R16
-(unguarded finalization reads). List them as deferred only. They cannot excuse
-any of the five blocking findings.
+Use pre\runTest.ts for TASK-ONLY normal, -w and –ignore-cr-at-eol numstats.
+Report new helper/test additions separately, including untracked-file contents.
+Use Snapshot01 only for the separate cumulative runTest.ts comparison:
+git –no-optional-locks diff –no-index –numstat – “<Snapshot01 payload path>” “src\test\runTest.ts”
+Exit 1 means differences. Do not use HEAD or an editor panel as the task baseline.
+Store the full task diff with verified endpoints; do not repeat whole files
+in chat or investigate unrelated historical panel comparisons.
 
-========================================================= STATIC VERIFICATION — NO EXECUTION
+If forbidden scope is needed, stop before editing when foreseeable, otherwise
+stop when discovered without reverting prior authorized work:
+BLOCKED_SCOPE_COUPLING: <file> <symbol> <requirement> <minimum expansion>
+Tool/permission/output-containment failures also stop; no bypass or silent
+fallback. Do not disguise a blocker as success or delete evidence to hide it.
 
-1. Re-read every changed hunk and its enclosing branches.
-2. Map all five findings to exact hunks and live lines.
-3. Enumerate every classifyFailure site: event, class, stage source, cause key,
-duplicate sites, and possible coexistence.
-4. Produce a producer/guard/evaluator equivalence matrix for every oracle field
-and invariant.
-5. Trace all six hostile cases plus coherent zero/positive-failure cases.
-6. Prove count equations from producer source, not assumption.
-7. Show at least three permutations of one same-class cause multiset and prove
-identical primary class/stage/message.
-8. Trace product+runner mismatch and product+surviving PID through ledger,
-primary, verdict, persisted outcome, and exit.
-9. Trace same-cause-twice and distinct-same-stage cases.
-10. Search for any surviving global-empty-ledger gate, insertion-order primary,
-broad observation key, second mutable-result read, identity gap, or count
-coherence gap.
-11. Compare B3-1/B3-6 and all M2/M3/stage/finalization/post-exit protected
-regions to the exact pre-repair baseline.
-12. Re-hash all six paths; prove only src/test/runTest.ts changed, staging is
-empty, and no new dirty or generated path appeared.
-13. Run and report exit codes for task-only numstats against the exact Local
-History baseline: normal, -w, and --ignore-cr-at-eol.
-14. Report cumulative Snapshot01-to-live numstat. Never use HEAD as the task
-baseline.
+7. Handoff and evidence boundaries
 
-If a blocking case remains, do not report success. Repair it within scope and
-repeat static verification, or return the exact blocker.
+Save report.md, baseline.json, task diff and test/diagnostic logs under the
+external task root. report.md should contain a five-finding closure matrix,
+exact commands/results, producer equations and identity rules, primary tie-break,
+cause-identity mapping, preservation proof, final status and remaining risks.
+Chat handoff should be short and name the complete external report path.
 
-========================================================= UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST
+Keep evidence classes explicit:
 
-For an implemented result, list each item with STATIC_SOURCE_SUPPORT: and
-RUNTIME_STATUS: UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST:
+• Executed pure-policy tests: LOCAL_UNIT_TEST_VERIFIED, only for exercised cases.
+• Runner integration without execution: STATIC_SOURCE_SUPPORT.
+• Actual M2 filesystem success/failure, M3 gate fault injection, Host/PID/API,
+real evidence files/stderr/process exits, packaged provenance and consumer
+behavior: UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST.
 
-1. product failure + runner mismatch retains both and yields BLOCKED/nonzero;
-2. product failure + surviving PID retains both and yields BLOCKED/nonzero;
-3. every hostile focused-identity case fails closed as infrastructure;
-4. inconsistent counts fail closed as infrastructure;
-5. coherent valid focused zero failures yields PASS/zero absent another cause;
-6. coherent valid focused positive failures yields FAIL/nonzero absent infra;
-7. arrival-order permutations leave primary class/stage/message unchanged;
-8. same cause twice yields one row; distinct same-stage causes both persist;
-9. artifact mutation between potential reads cannot create two identities for
-one underlying event;
-10. M2 primary/reduced write behaviors remain unchanged;
-11. M3 ordering and accepted stage semantics survive gate fault injection;
-12. verdict, persisted outcome, stderr, and exit agree for PASS/FAIL/BLOCKED.
+A simulated write failure or exit-code mapping is not proof of a real write or
+process exit. Nothing here qualifies the Extension or closes R14/R16/A3.
 
-Static support is not runtime verification. Run none of these here. For any
-blocked result write only:
-UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST: NOT_REACHED.
+End report.md with factual values, never a prefilled claim:
 
-========================================================= REQUIRED REPORT
+```text
+ETL_B3_REPAIR_TEST01_RESULT: IMPLEMENTED_WITH_LOCAL_TESTS_AWAITING_INDEPENDENT_REVIEW | BLOCKED_<REASON>
+FILES_CHANGED_BY_TASK: <exact paths or NONE>
+UNAUTHORIZED_FILES_CHANGED_BY_TASK: <actual count>
+LOCAL_UNIT_TESTS: <passed/failed/not reached, case counts>
+PRE_FIX_RED_EVIDENCE: <observed/partial/not obtained, reasons>
+NO_EMIT_INTEGRATION_CHECK: <passed/pre-existing failures/new failures/not reached>
+PRESERVATION_BOUNDARIES: <each YES/NO/NOT_VERIFIED with evidence>
+RUNNER_OR_HOST_EXECUTED: <YES/NO; NO required>
+PACKAGE_INSTALL_GIT_MUTATION_OR_RELEASE_EXECUTED: <YES/NO; NO required>
+PENDING_EDITOR_CHANGES_RESOLVED: <actual; NONE required>
+HOST_AND_CONSUMER_QUALIFIED: NO
+NEXT_REQUIRED_GATE: <INDEPENDENT_REVIEW_B3_REPAIR_TEST01 if successful; OWNER_SCOPE_DECISION if blocked>
+```
 
-Include: preflight and exact hashes; retained baseline path; before/after hunks;
-five-finding closure table; oracle equivalence and hostile-case matrix; complete
-cause-key matrix; deterministic-primary permutation proof; preservation proof;
-pre/post six-path proof; task and cumulative diffstats; exact final status;
-runtime-unverified section if implemented; and deferred backlog candidates.
-
-========================================================= RESULT TOKEN AND FOOTER
-
-If implemented, end with exactly:
-
-ETL_0904_IMPL05A1_B3_REPAIR_RESULT: IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW
-AUTHORIZED_FILES_CHANGED: src/test/runTest.ts
-UNAUTHORIZED_FILES_CHANGED_BY_THIS_TASK: 0
-B3_FINDINGS_CLOSED_STATICALLY: B3_FINDING_1,B3_FINDING_2,B3_FINDING_3,B3_FINDING_4,B3_FINDING_5
-B3_1_CANONICAL_MODEL_PRESERVED: YES
-B3_6_VERDICT_EXIT_MAPPING_PRESERVED: YES
-M2_LOGIC_TOUCHED: NO
-M3_AUTHORIZATION_ORDERING_TOUCHED: NO
-M3_STAGE_ASSIGNMENTS_TOUCHED: NO
-FINALIZATION_STAGE_SCHEMA_TOUCHED: NO
-NON_B3_FINALIZATION_FLOW_TOUCHED: NO
-POST_EXIT_INVOCATION_ORDER_TOUCHED: NO
-REDUCED_RECORD_NON_B3_SCHEMA_TOUCHED: NO
-TYPECHECK_OR_COMPILE_EXECUTED: NO
-TEST_RUNNER_OR_HOST_EXECUTED: NO
-GIT_MUTATION_EXECUTED: NO
-COMMIT_PUSH_MERGE_OR_RELEASE_EXECUTED: NO
-PENDING_EDITOR_CHANGES_RESOLVED: NONE
-RUNTIME_BEHAVIOR_VERIFIED: NO
-TARGETED_TEST_VERIFICATION_REQUIRED: YES
-NEXT_REQUIRED_GATE: INDEPENDENT_SOURCE_REVIEW_B3_REPAIR
-
-If blocked before editing, end with:
-
-ETL_0904_IMPL05A1_B3_REPAIR_RESULT: BLOCKED_<REASON>
-AUTHORIZED_FILES_CHANGED: NONE
-UNAUTHORIZED_FILES_CHANGED_BY_THIS_TASK: 0
-TYPECHECK_OR_COMPILE_EXECUTED: NO
-TEST_RUNNER_OR_HOST_EXECUTED: NO
-GIT_MUTATION_EXECUTED: NO
-COMMIT_PUSH_MERGE_OR_RELEASE_EXECUTED: NO
-PENDING_EDITOR_CHANGES_RESOLVED: NONE
-TARGETED_TEST_VERIFICATION_REQUIRED: NOT_REACHED
-NEXT_REQUIRED_GATE: OWNER_SCOPE_DECISION
-
-If blocked after an authorized edit, use the same blocked token, report
-AUTHORIZED_FILES_CHANGED: src/test/runTest.ts, the actual unauthorized count,
-and YES/NO for every preservation boundary named in the implemented footer.
-
-The only successful outcome is IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW.
-Do not propose or execute review, compile, tests, Host, package, install,
-commit, merge, or release in this task.
+Choose ONE result value. Success requires all five closures, passing required
+local cases, no unexplained new diagnostics and preserved scope. Independent
+review remains mandatory and is not performed by this task. Stop after handoff.
