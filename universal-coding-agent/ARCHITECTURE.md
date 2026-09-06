@@ -1198,6 +1198,35 @@ context, expose UI or HTTP behavior, grant arbitrary model shell access, publish
 merge, deploy, or establish production readiness. Stronger worker isolation, explicit recovery for
 indeterminate `RUNNING` executions, and edited-source selection semantics remain separate work.
 
+## TypeScript and JavaScript static module-reference evidence
+
+P3.4c-3a advances the repository-index policy to version 3 and adds a bounded, deterministic
+module-reference evidence surface for tracked TypeScript and JavaScript source. The indexer
+recognizes `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, and `.cjs`; the corresponding
+`test` and `spec` suffixes are classified as tests. Without invoking Node, a compiler, a model, or
+another process, the host lexer records literal ESM import declarations, literal export-from
+declarations, and TypeScript import-equals `require` declarations. Canonical evidence uses the
+kind-prefixed forms `esm-import:`, `esm-export:`, and `ts-import-equals:` and remains embedded in the
+immutable repository snapshot and search metadata.
+
+The lexer removes comments and treats quoted strings, template literals including nested template
+expressions, and regular expressions as opaque before recognizing only top-level module
+declarations. Dynamic `import()`, `import.meta`, local exports, ordinary identifiers, and text in
+JSX or literals do not create references. Source is bounded by the existing per-file byte limit and
+independent 250,000-token, 10,000-reference, and 4,096-character module-specifier limits. Invalid
+UTF-8, unterminated lexical structures, unbalanced bracket structure, malformed declarations within
+the supported grammar, escaped module specifiers, control characters, or a breached bound fail the
+repository index closed. The policy hash prevents evidence produced under the prior extraction
+contract from being silently reused as version 3 evidence.
+
+This slice deliberately stops before module resolution. It does not interpret `tsconfig` or
+`package.json`, resolve extension or directory candidates, infer package exports or aliases, treat
+standalone CommonJS `require()` or dynamic imports as static edges, build a TypeScript/JavaScript
+dependency or call graph, analyze impact, select or execute tests, change the Python analysis chain,
+call a model/provider, expose UI or HTTP behavior, grant shell authority, publish source control,
+merge, deploy, or establish production readiness. Deterministic resolution and impact analysis are
+the separate P3.4c-3b boundary.
+
 ## Context management
 
 The context compiler uses progressive disclosure:

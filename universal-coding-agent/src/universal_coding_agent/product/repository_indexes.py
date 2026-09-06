@@ -19,6 +19,7 @@ from universal_coding_agent.product.search_service import (
     RepositorySearchIndexState,
     SearchService,
 )
+from universal_coding_agent.repository import ecmascript
 from universal_coding_agent.repository.indexer import (
     DEFAULT_DENY_PATTERNS,
     INDEX_POLICY_VERSION,
@@ -432,6 +433,16 @@ class RepositoryIndexService:
             {
                 "schema_version": "1",
                 "index_policy_version": INDEX_POLICY_VERSION,
+                "ecmascript_module_reference_policy_version": (
+                    ecmascript.ECMASCRIPT_MODULE_REFERENCE_POLICY_VERSION
+                ),
+                "ecmascript_max_tokens": ecmascript.MAX_ECMASCRIPT_TOKENS,
+                "ecmascript_max_module_references": (
+                    ecmascript.MAX_ECMASCRIPT_MODULE_REFERENCES
+                ),
+                "ecmascript_max_module_specifier_chars": (
+                    ecmascript.MAX_ECMASCRIPT_MODULE_SPECIFIER_CHARS
+                ),
                 "deny_patterns": list(DEFAULT_DENY_PATTERNS),
                 "max_file_bytes": self.indexer.max_file_bytes,
                 "chunk_chars": self.search.chunk_chars,
