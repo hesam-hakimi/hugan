@@ -2,9 +2,15 @@
 
 Task ID: UCA-20260907-P35C-EXPLICIT-SOURCE-AWARE-EXECUTION
 Status: parent integration task remains open. P3.5c-1 execution Base preparation
-and recovery is an implementation candidate, with its actual boundary recorded
-in P3_5C_EXECUTION_BASE_CONTRACT.md. Versioned source-aware dispatch and the actual
-42 -> 43 -> restart -> 44 acceptance have not been implemented or qualified.
+and explicit recovery is independently accepted and integrated through PR24 at
+b0daccdb16bd09898b06ed56bff787008a31a145, tree a21c01b85e766a6d0f427e4b46dbb1b5f2de1bfd.
+See P3_5C_EXECUTION_BASE_CONTRACT.md and the complete independent report
+../reviews/PR24_INDEPENDENT_REVIEW_2026-09-07.md. CI430 and Live181 attempt1
+qualified that exact tree. P3.5c-2 is instantiated in
+P3_5C2_VERSIONED_SOURCE_AWARE_DISPATCH_TASK_2026-09-07.md on
+feature/universal-coding-agent-source-aware-dispatch from this actual merge.
+Versioned source-aware dispatch and actual 42 -> 43 -> restart -> 44 remain
+unimplemented and unqualified; the historical PR23 starting point below is retained.
 This document grants no Product capability by itself.
 
 ## Actual starting source and inherited acceptance
