@@ -130,6 +130,12 @@ recorded separately. No gate or aggregator may be weakened to obtain a green res
 
 ## Next bounded integration and remaining gaps
 
+The explicit host adapter in [PROGRAM_SOURCE_ACCEPTANCE.md](PROGRAM_SOURCE_ACCEPTANCE.md)
+implements P3.5b-2 evidence admission and durable acceptance on the actual PR21
+P3.5b-1 merge. The pure service in this document still provides no provenance or
+persistence authority by itself. P3.5b-3 owned materialization and subsequent
+source-aware dispatch remain separate, unimplemented gates.
+
 P3.5b must attest the full Git tree/file/mode set, accepted task-owned patch, trusted tests,
 independent PASS review, actual current snapshot, and source scope before accepting a source
 transition. It must store the evidence and approval immutably, use compare-and-swap durable

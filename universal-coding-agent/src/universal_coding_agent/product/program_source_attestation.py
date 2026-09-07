@@ -11,11 +11,13 @@ import os
 import re
 import selectors
 import signal
+import stat
 import subprocess
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
+from universal_coding_agent.core.safe_models import ApprovedChangeManifest, StructuredEditProposal
 from universal_coding_agent.product.program_source_transitions import (
     ProgramSourceError,
     ProgramSourceFile,
@@ -26,6 +28,7 @@ from universal_coding_agent.product.program_source_transitions import (
     _canonical,
     _digest,
     _hash,
+    _path,
     _require,
 )
 
@@ -138,12 +141,43 @@ class ProgramGitSourceAttestationService:
         except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
             raise ProgramSourceError("Git-source attestation failed") from exc
 
-    def _attest(self, identity: ProgramSourceIdentity) -> ProgramGitSourceAttestation:
+    def attest_execution_base(
+        self, origin: ProgramSourceIdentity, commit_sha: str,
+    ) -> ProgramGitSourceAttestation:
+        """Attest a distinct execution commit; never replace the Program's origin.
+
+        The fixed tree lookup and complete object proof share one operation budget.
+        The returned identity names this execution Base; callers compare full files
+        separately while preserving their durable origin identity.
+        """
+        _require(type(origin) is ProgramSourceIdentity, "invalid source identity")
+        _require(origin.repository_sha256 == self.repository_sha256,
+                 "execution repository host binding differs")
+        _require(isinstance(commit_sha, str)
+                 and re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", commit_sha) is not None,
+                 "invalid immutable execution commit")
+        budget = _GitBudget(time.monotonic() + self.policy.operation_timeout_seconds,
+                            self.policy.max_git_output_bytes)
+        try:
+            tree = self._run(("rev-parse", "--verify", f"{commit_sha}^{{tree}}"), b"", budget)
+            _require(tree.endswith(b"\n") and tree.count(b"\n") == 1,
+                     "invalid execution tree response")
+            identity = replace(origin, origin_base_sha=commit_sha,
+                               origin_tree_sha=tree[:-1].decode("ascii"))
+            return self._attest(identity, budget=budget)
+        except ProgramSourceError:
+            raise
+        except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as exc:
+            raise ProgramSourceError("execution Git-source attestation failed") from exc
+
+    def _attest(self, identity: ProgramSourceIdentity,
+                *, budget: _GitBudget | None = None) -> ProgramGitSourceAttestation:
         _require(type(identity) is ProgramSourceIdentity, "invalid source identity")
         _require(identity.repository_sha256 == self.repository_sha256,
                  "source repository differs from trusted host binding")
-        budget = _GitBudget(time.monotonic() + self.policy.operation_timeout_seconds,
-                            self.policy.max_git_output_bytes)
+        if budget is None:
+            budget = _GitBudget(time.monotonic() + self.policy.operation_timeout_seconds,
+                                self.policy.max_git_output_bytes)
         anchor = self._anchor(budget)
         object_format = anchor[0]
         oid_bytes = 20 if object_format == "sha1" else 32
@@ -333,7 +367,99 @@ class ProgramGitSourceAttestationService:
     def _deadline(budget: _GitBudget) -> None:
         _require(time.monotonic() < budget.deadline, "Git-source operation deadline exceeded")
 
-    def _run(self, arguments: tuple[str, ...], request: bytes, budget: _GitBudget) -> bytes:
+    def verify_retained_patch(self, manifest: ApprovedChangeManifest,
+                              edits: StructuredEditProposal, patch: bytes) -> None:
+        """Read an already owned execution through the same bounded, no-transport runner."""
+        budget = _GitBudget(time.monotonic() + self.policy.operation_timeout_seconds,
+                            self.policy.max_git_output_bytes)
+        anchor = self._anchor(budget)
+        # Clean/process filters can execute even when external diff/textconv are disabled.
+        filters = self._run(("config", "--includes", "--name-only", "--get-regexp", r"^filter\."),
+                            b"", budget, expected_returncodes=(0, 1))
+        _require(not filters, "external Git filters are unsupported during source admission")
+        _require(self._run(("rev-parse", "HEAD"), b"", budget)
+                 == manifest.base_sha.encode() + b"\n", "retained Safe HEAD drifted")
+        status = self._run(("status", "--porcelain=v1", "-z", "-uall"), b"", budget)
+        entries = status.split(b"\0")
+        _require(entries[-1] == b"", "invalid retained source status")
+        paths = []
+        for entry in entries[:-1]:
+            _require(entry[:3] in (b" M ", b"?? "), "unsupported staged/renamed source change")
+            path = entry[3:].decode("ascii")
+            _path(path)
+            _require(path in manifest.allowed_path_map(),
+                     "retained source is outside approved scope")
+            paths.append(path)
+        _require(sorted(paths) == sorted(edits.changed_paths), "retained source path set differs")
+        chunks = []
+        for edit in manifest.allowed_changes:
+            if edit.path not in edits.changed_paths:
+                continue
+            _path(edit.path)
+            arguments = ("diff", "--no-ext-diff", "--no-textconv", "--no-color", "--full-index")
+            if edit.operation.value == "create":
+                chunk = self._run((*arguments, "--no-index", "--", "/dev/null", edit.path),
+                                  b"", budget, expected_returncodes=(1,))
+            else:
+                chunk = self._run((*arguments, "--", edit.path), b"", budget)
+            chunks.append(chunk)
+            _require(sum(map(len, chunks)) <= manifest.max_patch_bytes,
+                     "retained patch exceeds approved byte bound")
+        _require(b"".join(chunks) == patch, "retained Safe source drifted after qualification")
+        self._run(("-c", "core.whitespace=cr-at-eol", "diff", "--check"), b"", budget)
+        _require(self._anchor(budget) == anchor, "retained source directory changed")
+
+    def verify_retained_files(self, files: tuple[ProgramSourceFile, ...]) -> None:
+        """Check complete retained bytes despite index flags or checkout normalization.
+
+        Every parent and file is opened without following symlinks. This reads the
+        existing Safe checkout; it neither creates nor authorizes a new sandbox.
+        """
+        self.source._check_files(files)
+        deadline = time.monotonic() + self.policy.operation_timeout_seconds
+        directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        root_fd = os.open(self.root, directory_flags)
+        try:
+            root_stat = os.fstat(root_fd)
+            _require((root_stat.st_dev, root_stat.st_ino) == self.root_identity,
+                     "retained source root changed")
+            for expected in files:
+                _require(time.monotonic() < deadline, "retained source read deadline exceeded")
+                _path(expected.path)
+                parent = os.dup(root_fd)
+                try:
+                    parts = expected.path.split("/")
+                    for part in parts[:-1]:
+                        child = os.open(part, directory_flags, dir_fd=parent)
+                        os.close(parent)
+                        parent = child
+                    descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                         dir_fd=parent)
+                    with os.fdopen(descriptor, "rb") as handle:
+                        start = os.fstat(handle.fileno())
+                        mode = "100755" if start.st_mode & stat.S_IXUSR else "100644"
+                        _require(stat.S_ISREG(start.st_mode) and mode == expected.mode
+                                 and start.st_size == len(expected.content),
+                                 "retained source file type, mode or size differs")
+                        content = handle.read(len(expected.content) + 1)
+                        finish = os.fstat(handle.fileno())
+                        stable = ("st_dev", "st_ino", "st_mode", "st_size",
+                                  "st_mtime_ns", "st_ctime_ns")
+                        _require(content == expected.content and all(
+                            getattr(start, key) == getattr(finish, key) for key in stable),
+                                 "complete retained source bytes differ")
+                finally:
+                    os.close(parent)
+            _require(self._directory_identity(self.root) == self.root_identity
+                     and self.root.resolve(strict=True) == self.root,
+                     "retained source root changed")
+        except OSError as exc:
+            raise ProgramSourceError("complete retained source read failed") from exc
+        finally:
+            os.close(root_fd)
+
+    def _run(self, arguments: tuple[str, ...], request: bytes, budget: _GitBudget,
+             *, expected_returncodes: tuple[int, ...] = (0,)) -> bytes:
         """Fixed Git operations with concurrent bounded stdin/stdout/stderr and no shell."""
         self._deadline(budget)
         _require(budget.output_remaining > 0, "Git output budget exhausted")
@@ -396,7 +522,7 @@ class ProgramGitSourceAttestationService:
                 remaining = deadline - time.monotonic()
                 _require(remaining > 0, "Git command deadline exceeded")
                 process.wait(timeout=remaining)
-                _require(process.returncode == 0, "Git source read failed")
+                _require(process.returncode in expected_returncodes, "Git source read failed")
                 self._deadline(budget)
                 return bytes(stdout)
         finally:

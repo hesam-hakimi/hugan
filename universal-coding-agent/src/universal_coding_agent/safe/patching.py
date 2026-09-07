@@ -677,11 +677,14 @@ class SafePatchEngine:
             ],
             check=False,
             capture_output=True,
-            text=True,
+            text=False,
             timeout=self.timeout_seconds,
             shell=False,
             env=environment,
         )
+        # Preserve canonical diff hunk bytes instead of universal-newline conversion.
+        process.stdout = process.stdout.decode("utf-8")
+        process.stderr = process.stderr.decode("utf-8")
         if check and process.returncode != 0:
             raise RuntimeError("fixed git operation failed")
         return process
