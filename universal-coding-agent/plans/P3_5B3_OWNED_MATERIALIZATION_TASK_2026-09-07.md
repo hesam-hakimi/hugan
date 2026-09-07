@@ -1,7 +1,9 @@
 # P3.5b-3 — Owned source materialization and explicit recovery
 
 Task ID: UCA-20260907-P35B3-OWNED-MATERIALIZATION
-Status: instantiated bounded implementation task; no P3.5b-3 implementation or qualification is claimed.
+Status: owned source materialization and explicit recovery implementation candidate.
+Current-source hosted qualification and separate independent acceptance are pending.
+The implemented contract is recorded in P3_5B3_OWNED_MATERIALIZATION_CONTRACT.md.
 
 ## Verified starting source
 

@@ -92,6 +92,10 @@ def executed(tmp_path, monkeypatch, request):
     (source / "unchanged.bin").write_bytes(b"\0\xff\r\n")
     (source / "script.sh").write_bytes(b"#!/bin/sh\nexit 0\n")
     (source / "script.sh").chmod(0o755)
+    if options.get("materialization_files"):
+        (source / "nested" / "deeper").mkdir(parents=True)
+        (source / "nested" / "kept.txt").write_bytes(b"CRLF\r\nno-final-LF")
+        (source / "nested" / "deeper" / "empty.bin").write_bytes(b"")
     if options.get("multi"):
         (source / "notes.md").write_text("Status: old\n")
     _git(source, "add", ".")
