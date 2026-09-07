@@ -56,6 +56,10 @@ _EXPORTS = {
         "universal_coding_agent.product.program_source_transitions",
         "ProgramSourceTransitionService",
     ),
+    "ProgramGitSourceAttestationService": (
+        "universal_coding_agent.product.program_source_attestation",
+        "ProgramGitSourceAttestationService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",

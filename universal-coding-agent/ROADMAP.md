@@ -107,8 +107,16 @@
   serialization, and pure in-memory replay across process restart. See
   [Program source transitions](PROGRAM_SOURCE_TRANSITIONS.md). This is code present in this branch,
   not a claim that Program dispatch transfers patched source or that hosted qualification passed;
-- P3.5b trusted Git/sandbox attestation and persistent source acceptance with atomic state,
-  integrating cumulative source into Program dispatch without weakening evidence-only Base checks;
+- [x] P3.5b-1 complete read-only Git-source attestation: trusted host repository binding,
+  exact raw commit/tree/blob verification, full bounded file inventory and canonical snapshot,
+  source preservation and fresh-process replay. See
+  [Program Git-source attestation](PROGRAM_GIT_SOURCE_ATTESTATION.md). Code presence does not
+  establish hosted qualification, durable acceptance or source-aware Program dispatch;
+- P3.5b-2 verified Safe/test/review evidence and durable transition acceptance using lifecycle
+  ownership, compare-and-swap, exact approval and idempotent replay;
+- P3.5b-3 newly owned sandbox materialization and explicit recovery receipts across the
+  database/filesystem crash boundary; separately gated source-aware dispatch must preserve
+  evidence-only v1 same-Base behavior;
 - P3.5c phase DAG per-slice gates, explicit retry/replan, and resumable long-running programs;
 - P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript
   (deferred behind source continuity and resumability by the September 7 owner decision);
