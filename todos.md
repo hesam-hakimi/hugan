@@ -1,118 +1,63 @@
-TASK_ID: ETL-0907-BUILD-PROVENANCE-PIN01
-TYPE: BOUNDED BUILD, SOURCE-ARTIFACT PROVENANCE AND PINNED-HOST PREPARATION
+TASK_ID: ETL-0907-PINNED-HOST-MANIFEST-PREP01
+TYPE: EXACT-VERSION HOST ACQUISITION AND MANIFEST / FOCUSED-RUN PREPARATION
 
-Run this complete prompt in an ordinary LOCAL Windows VS Code Agent chat in
-the active recovery worktree below. Use one Agent and one writer. Do not use
-the ETL Orchestrator. Keep code, comments and engineering evidence in English.
-Echo TASK_ID as the first line of the final report.
+Run this complete prompt in a fresh, ordinary LOCAL Windows VS Code Agent
+chat on recovery-extension-product-0.3.147. Use one Agent and one writer.
+Do not use the ETL Orchestrator. Keep engineering artifacts in English.
+Echo TASK_ID as the first line of the report.
 
-1. Owner authorization and completion boundary
+1. Authorized outcome
 
-The owner has approved the next bounded step following the independent
-POLICY-COVERAGE review: build the reviewed source, establish the origin and
-integrity of the required compiled outputs/protected manifest, and inspect the
-locally available pinned VS Code 1.135.0 launcher/entrypoint contract.
+The owner approved this next preparation step after
+ETL-0907-BUILD-PROVENANCE-PIN01. Prepare an authenticated, separate Windows
+x64 VS Code 1.135.0 distribution and a concrete manifest-validation / launch
+plan for the existing focused test contract. Preserve the owner’s everyday
+VS Code 1.136.1 User Setup installation.
 
-This task explicitly authorizes compilation and the limited generated-output
-writes described below. The previous source-only tasks’ no-emit restrictions
-do not prohibit this newly authorized build. Their source-edit permissions
-are not carried forward.
+This task explicitly authorizes downloading the exact Microsoft ZIP
+distribution, verifying it, and extracting it under one fresh external task
+root. The previous build task’s download prohibition is superseded for this
+bounded acquisition only. Proceed through the authorized work without asking
+for the same permission again.
 
-Allowed work:
+Allowed:
 
-1. Read-only identity, source, configuration, dependency, process, path and
-evidence inspection; raw-byte copying/hashing and strict JSON parsing.
-2. Run the existing installed TypeScript compiler for a checked build. Use
-task-owned scripts and staging/evidence under one fresh external task root.
-3. Create or update only the necessary compiler-generated files under the
-active worktree’s out/ directory, through the recorded promotion set in
-section 5. Keep all source and repository configuration unchanged.
-4. Generate build-provenance evidence and a protected-manifest artifact using
-the bounded routes in section 7. Those routes do not authorize a test run.
-5. Inspect actual local VS Code 1.135.0 artifacts and launcher code read-only.
+• Read-only repository, build-evidence, installed-tool and process inspection.
+• Existing Node / PowerShell / .NET tools for file inspection, hashing,
+HTTPS acquisition, archive extraction, task-owned preparation helpers and
+evidence creation. Inspect downloaded program files as data.
+• Public HTTPS requests for the exact Microsoft distribution and its
+provenance, including Microsoft’s official download redirects and narrowly
+relevant official documentation or commit-specific source inspection.
+• New files only under TASK_ROOT: download receipts, archives, extracted
+distribution, inventories, manifest analysis and the future-run plan.
+• Execution of an already-existing canonical manifest-only route ONLY if
+section 7 establishes its entire execution boundary beforehand.
 
-Not authorized:
+This step does not authorize repository edits, another build/output promotion,
+unit tests, the normal runner, producer, launcher, Code.exe/CLI, Extension Host,
+extension activation, product workflows, package scripts, dependency installs,
+VSIX installation/packaging or release. No Git mutation, pin change, updater,
+registry/PATH change, global environment/settings change, profile migration,
+Keep/Undo, buffer save/revert or process termination is authorized.
 
-• Source, test, policy, dependency, configuration, package/lock-file or version
-edits; Git mutations; modifying earlier evidence or reference documents.
-• Saving/reverting/reloading pending editor buffers, Keep/Undo, changing
-autosave, restoring historical source, terminating processes or deleting locks.
-• Executing tests, the ordinary test runner, producer, launcher, Extension
-Host, extension activation, product parser/workflow or real consumer jobs.
-• npm/npx lifecycle scripts, installs, upgrades, downloads, VSIX packaging,
-extension installation, publication or release; network/credential access.
-• Deleting/cleaning out/, emitting into the linked primary, modifying build
-caches/build-info, copying arbitrary old JavaScript or patching emitted code.
+Preparation is a deliverable, not runtime qualification. The next focused
+Host run remains a separate task. Produce a usable plan rather than repeatedly
+attempting the known unsafe import of runTest.ts.
 
-Compilation may read project modules as compiler input. It must not import
-or execute their runtime code. The sole narrowly conditional project-code
-execution exception is an existing manifest-only entrypoint under section 7.
-
-Carry all authorized work through to measured results. A missing pinned Host
-does not prevent the independent compilation/provenance work. Preserve any
-partial result and identify remaining blockers; do not claim Host readiness
-or automatically launch the next phase.
-
-2. Exact workspace and governing evidence
+2. Exact workspace and intake evidence
 
 ACTIVE_WORKTREE:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-LINKED_PRIMARY (identity/read-only boundary):
+LINKED_PRIMARY (read-only boundary):
 C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
 Expected branch: fix/workspace-write-completion-0.3.148
 Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
 Expected staging: empty.
 
-POLICY_REPAIR_ROOT (one literal flat directory name):
-C:\docs\ETL-0907-POLICY-COVERAGE-REPAIR01-20260907T183624221Z-9f1d6a42-6614-4025-a029-2590da4a0b5f
-
-CONTRACT_REVIEW_ROOT:
-C:\docs\ETL-0907-F5-CONTRACT-INDEPENDENT-REVIEW01\20260907T175437Z-73509E6F-9589-44BB-8A8F-150986769864
-
-CONTRACT_REPAIR_ROOT:
-C:\docs\ETL-0907-F5-CONTRACT-REPAIR01\20260907T112539Z-559ABD3C-A873-4D54-8EF0-BC72D38F2403
-
-CURRENT_POLICY_REVIEW_TASK:
-ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01
-
-Resolve the actual completed policy-review root from the supplied review.md
-location. If no absolute location is supplied, bounded discovery of direct
-C:\docs children named ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01* is
-authorized, including one timestamp child if the named task container exists.
-Validate report contents, TASK_ID, reviewed POLICY_REPAIR_ROOT, final source
-identity, decision and correction/supersession links. Do not invent a GUID,
-select a directory merely by newest timestamp, or substitute the older
-CONTRACT review for the policy review. If matching reports disagree or the
-authoritative completed result cannot be established, report the exact gap.
-
-Read the complete current review.md, its decision, incident/recovery findings,
-identity and preservation records, and its machine-generated corrections.
-Read POLICY_REPAIR_ROOT/report.md, baseline/post-state, exact diff, relevant
-pre/post copies and policy-coverage records. The screenshot summary reports
-no blockers for the source-policy gate and verified incident recovery; verify
-that against the actual completed report before building.
-
-The reviewer disclosed corrupt manual transcriptions of FIVE hashes in its
-own first-pass evidence (late finding F-9). Resolve the TWO actual superseding
-machine-measured files from its report/index/correction links; do not guess
-their names. Preserve the first-pass files as history. Programmatically read
-the corrected full hashes and cross-check originals/live bytes. A new
-measurement by itself is not an authenticated expected baseline, and a later
-correction that merely repeats a claim is insufficient.
-
-Read applicable repository instructions and the complete governing glossary:
-C:\docs\ETL_QUALIFICATION_GLOSSARY.md
-Record actual paths and hashes. Read any supplied current navigation/state
-files; if unavailable, leave broader state completeness UNKNOWN. This brief
-supplies the bounded build authorization, not missing release acceptance.
-Do not search Local History, debug logs, unrelated folders or network storage.
-
-3. Preflight and immutable input capture
-
-Use git –no-optional-locks for reads. Verify worktree/common-Git identity,
-branch, HEAD, empty staging and this complete existing dirty inventory:
+Expected source dirty inventory:
 
 ```text
  M .github/templates/request.md
@@ -125,383 +70,390 @@ branch, HEAD, empty staging and this complete existing dirty inventory:
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 ```
 
-Inspect applicable locks and actual process arguments for a concurrent writer,
-compiler/watcher, test/development Host or launcher. Ordinary editor/language
-server processes alone are not prohibited Hosts. Do not stop or reconfigure
-anything. An actual concurrent writer or unexplained source drift blocks
-repository output promotion; do not normalize it away.
+Resolve BUILD_ROOT for TASK_ID ETL-0907-BUILD-PROVENANCE-PIN01 from the
+supplied report location. If its absolute path is unavailable, inspect only
+direct C:\docs children with that exact task prefix, and one timestamp child
+where a task container exists. Validate TASK_ID, workspace, HEAD, source
+identities, result and artifact cross-references. Do not select solely by
+modification time, guess a GUID, or turn a flat task root into a nested path.
+Ambiguous competing completed results require an explicit evidence finding.
 
-These are cross-check counts, not substitute hash pins:
+Read the complete build report, baseline/post-state, build-provenance,
+compiler read-set, emitted/promoted inventories and ordered promotion journal,
+manifest candidate plus its generator/schema mapping, and pinned-host
+inspection. Follow their actual artifact paths, not guessed filenames.
+Read applicable repository instructions and the governing glossary at
+C:\docs\ETL_QUALIFICATION_GLOSSARY.md. Read referenced current policy-review
+decision and corrected machine identity records as needed to authenticate
+the build. Reuse corroborated evidence; do not reopen the completed review.
 
-|Current source                       |Bytes |CRLF|Bare LF|Bare CR|
+The received build summary is an intake cross-check, not an expected-hash
+source:
+
+• Checked TypeScript 5.9.3 build using tsconfig.json: 506 root files,
+zero errors/warnings, emitSkipped=false, 2024 staged emitted files.
+• Promotion: 4 created, 10 replaced, 1090 identical skipped; zero deletions;
+out/ increased from 2016 to 2020 files.
+• Provenance: 1104 required outputs, zero reported gaps, 11 source-artifact
+relations checked against compiler-emitted source maps.
+• out/test/b3OutcomePolicy.js now exists.
+• protected-manifest.candidate.json is BUILD_CANDIDATE; canonical reader
+acceptance was NOT_EXECUTED. Policy membership is 12, relations 11.
+• No local pinned 1.135.0 was found in the prior bounded search. The owner’s
+About dialog shows the everyday editor as 1.136.1 User Setup / Windows x64.
+• runTest.ts has an unconditional main() call, reported at line 2970.
+• Without ETL_TEST_VSCODE_EXECUTABLE_PATH, the current runner calls
+downloadAndUnzipVSCode() without an explicit version.
+• No tests, normal runner, producer, launcher or Host were executed.
+
+Current source size/EOL cross-checks:
+
+|File                                 |Bytes |CRLF|Bare LF|Bare CR|
 |-------------------------------------|-----:|---:|------:|------:|
 |src/test/runTest.ts                  |131240|0   |2970   |0      |
 |src/test/b3OutcomePolicy.ts          |35970 |809 |0      |0      |
 |src/test/b3OutcomePolicy.unit.test.ts|36595 |758 |0      |0      |
 |src/test/suite/index.ts              |10408 |246 |0      |0      |
 
-Authenticate runTest.ts against the completed policy review, repaired
-post-state and independent baseline-plus-insertion proof where needed. The
-131123-byte source is the preceding baseline; 131713/136657-byte sources and
-Snapshot01 are not current build inputs. The unavailable 126214-byte reviewed
-source remains a historical limitation, not a prerequisite to reconstruct.
+Read expected full hashes programmatically from original completed build and
+corrected review records. Validate every SHA-256 as 64 hexadecimal characters.
+Never hand-transcribe hashes from screenshots, count a self-hash as an
+independent expected value, or substitute an older source/output snapshot.
 
-Validate every SHA-256 field as 64 hexadecimal characters before comparison.
-Extract expected values programmatically from original machine records/full
-saved tables. Do not type hash constants into helpers or transcribe photos.
-Record raw hash, size and parse status of consumed evidence. Preserve malformed
-older JSON; use the explicitly documented original source copies and complete
-identity tables as alternative anchors when corroborated. Never silently
-repair original evidence or attribute new drift to the old editor incident.
+The build recorded a corrected task-checker defect and a stale editor view
+of index.ts. Read current source and output bytes directly from disk, record
+their identities and compare them with the authenticated build. A stale editor
+view is not current source. Neither incident explains any new drift without
+fresh evidence. Preserve original failed records and their superseding links.
 
-After creating the external task root, capture and verify immutable copies of
-all first-party compiler inputs, resolved configuration, runtime assets needed
-by this build, and preservation inputs. Retain hashes for actual compiler/
-toolchain modules and external type/dependency inputs used by the build. A
-complete compiler read-set inventory is preferable to guessing dependencies.
+3. Preflight, task root and preservation baseline
 
-Record versions/paths from the installed tools; prior observations were Node
-20.19.5 and TypeScript 5.9.3. Establish their current identities from local
-artifacts and prior records; do not install a replacement. Unexpected changes
-must be reconciled before trusting the build.
+Use git –no-optional-locks for repository reads. Verify worktree/common-Git
+identity, branch, HEAD, empty staging, dirty inventory, applicable locks and
+actual process arguments. An ordinary editor/language server alone is not a
+test Host. Do not stop processes, delete locks, change autosave or resolve
+editor edits. Unexplained input/output drift or a concurrent relevant writer
+blocks a readiness conclusion.
 
-Capture a per-file raw-hash inventory of existing out/**, configured build
-outputs, build-info, relevant dependencies/configuration, all pre-existing
-dirty files and every prior evidence file consumed. The previous out inventory
-was 2016 files; the actual intake inventory governs this build after review
-anchor reconciliation. Record absent, empty and inaccessible paths distinctly.
+Validate C:\docs as an existing parent without unsafe redirection. Create
+one exclusive flat leaf, outside both worktrees, existing evidence, snapshots,
+profiles and consumer workspaces:
 
-Read source bytes from disk through a controlled compiler host, not editor
-buffers. Retain/hash the same input bytes actually supplied to the compiler;
-cache each captured input for consistent repeated reads and reject any
-observed conflicting version. Recheck source/configuration identities before
-promotion and at task end.
+C:\docs\ETL-0907-PINNED-HOST-MANIFEST-PREP01-<UTC>-<GUID>\
 
-4. Exclusive external task root
+Use fs.mkdirSync(absoluteLeaf, { recursive: false }) with the existing Node,
+then create creation-receipt.json using flag ‘wx’. Record the actual path,
+timestamp, mechanism, PID and tool completion. A prior existence check plus
+Directory.CreateDirectory does not establish exclusive creation. On collision
+or failed creation, report it; do not silently choose a replacement root.
 
-Validate C:\docs as an existing safe parent with no unsafe reparse/redirection.
-The fresh root must be outside both worktrees, all old evidence/snapshots,
-profiles and consumer/protected paths.
+Create task-owned evidence and archives exclusively. Keep failed attempts
+under their own names. New JSON is BOM-free UTF-8, serialized from measured
+objects and strictly re-parsed. Never modify prior evidence to make it parse.
 
-Create one flat leaf:
-C:\docs\ETL-0907-BUILD-PROVENANCE-PIN01-<UTC-timestamp>-<GUID>\
+Capture/hash the relevant current source/configuration/dependency read-set,
+the complete out/** per-file inventory, build-info and absence/presence of
+other build roots, all dirty files, and every prior evidence file consumed.
+Compare against the completed build’s POST state: the 2016-file PRE-build
+inventory is not today’s output baseline. Authenticate every required runtime
+artifact using the build provenance, not just its filename or existence.
 
-Use creation that fails if the leaf exists. A check followed by
-Directory.CreateDirectory is insufficient. After parent validation, the
-following installed-Node helper is authorized:
+Resolve the current ordinary editor’s installation from the prior inspection
+or bounded process-path evidence. Capture its Code.exe and package/product
+metadata read-only. Do not inventory changing user profiles or make unverifiable
+claims that every file maintained by a running everyday editor stayed fixed.
+Record this task’s lack of writes to that installation/profiles accurately.
 
-```js
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
-const taskId = 'ETL-0907-BUILD-PROVENANCE-PIN01';
-const utc = new Date().toISOString().replace(/[-:.]/g, '');
-const root = path.join('C:\\docs', `${taskId}-${utc}-${crypto.randomUUID()}`);
-fs.mkdirSync(root, { recursive: false });
-const receipt = {
-  taskId, root, createdAtUtc: new Date().toISOString(),
-  mechanism: 'fs.mkdirSync', recursive: false,
-  result: 'CREATED_BY_SUCCESSFUL_MKDIR', pid: process.pid
-};
-fs.writeFileSync(path.join(root, 'creation-receipt.json'),
-  JSON.stringify(receipt, null, 2) + '\n', { encoding: 'utf8', flag: 'wx' });
-process.stdout.write(JSON.stringify(receipt) + '\n');
-```
+4. Acquire exactly VS Code 1.135.0 for Windows x64
 
-Use literal shell input, such as a single-quoted PowerShell here-string to
-Node stdin. Preserve backticks/dollar signs without interpolation. Retain
-invocation, output and actual execution-tool completion status. On collision
-or failed receipt, preserve partial evidence and stop; do not choose another root.
+First inspect any exact candidate already named by current evidence or the
+owner. A candidate must have verifiable version, architecture, commit and
+distribution origin. Do not scan drives or reuse a version-looking folder
+solely because its name says 1.135.0. A valid existing candidate may be copied
+into the new task root with source/copy verification; do not mutate its origin.
 
-Use exclusive new-file/copy semantics for task evidence and staging. New JSON
-must be strict, BOM-free UTF-8. Keep failed/intermediate artifacts under their
-original names; write any correction separately with explicit supersession.
-Never hand-transcribe a measured hash or fabricate a successful process exit.
+If none is authenticated, acquire the official Windows x64 ZIP using this
+exact-version endpoint documented by Microsoft’s previous-release FAQ:
 
-5. Freeze the exact build and promotion plan
+https://update.code.visualstudio.com/1.135.0/win32-x64-archive/stable
 
-Before any compilation, read tsconfig.json and its complete resolved extends/
-references, package build scripts as text, the current canonical protected
-policy, source/artifact mapping, and runtime imports. Do not execute package
-scripts or infer build settings from a standalone tsc invocation on one file.
+The final ‘stable’ component identifies the channel; the explicit ‘1.135.0’
+component is the requested version. Do not replace it with ‘latest’, infer
+from engines.vscode, choose Insiders, download an installer, or substitute
+the installed 1.136.1. If the exact version is unavailable, record the actual
+response and continue independent manifest-plan work.
 
-Build from the repository’s established TypeScript configuration and installed
-compiler. Do not change target/module/resolution options, add custom transforms,
-suppress diagnostics, change the pin or weaken manifest checks to obtain success.
+Use the existing HTTPS client with certificate verification. Keep all body
+writes and extraction intermediates inside TASK_ROOT. Do not invoke the ETL
+runner or test-electron downloader for convenience: its cache/fallback and
+execution behavior are unnecessary for this explicit archive acquisition.
+No new downloader, dependency, browser automation or package manager is needed.
 
-Derive the runtime build set from:
+Capture requested URL, redirect chain, final official CDN location, UTC,
+HTTP statuses, relevant response headers, received byte count and archive
+SHA-256. Follow only HTTPS redirects attributable to Microsoft’s official
+download service. Use no unrelated credentials, account sign-in, third-party
+mirror, certificate bypass or user-setting changes. Record an access failure
+instead of working around an access control.
 
-• Every JavaScript artifact in the authenticated PROTECTED_POLICY_PATHS.
-• The runner, producer, focused suite and extension entrypoints used by the
-existing focused-run contract, including out/test/runTest.js,
-out/test/suite/index.js and out/extension.js.
-• Their necessary first-party runtime dependencies and the exact focused
-suite file selected by the existing constants, resolved from actual source.
+Retain any publisher checksum / source-commit metadata, such as x-sha256 and
+x-source-commit when supplied, and compare programmatically. Microsoft-owned
+download code documents these headers, but do not assume this response has
+them. A locally computed digest alone proves file identity, not publisher
+authentication. Record missing publisher metadata honestly; corroborate with
+the official delivery receipt and native Authenticode verification of Code.exe.
+Checksum, commit, signature or version contradictions block acceptance.
+If authentic origin cannot be established, retain the archive as unverified.
 
-Resolve imports and compiler-emitted runtime helpers without loading the
-modules. Distinguish type-only dependencies from runtime files. For computed
-loads, inspect the bounded focused selection and document its actual target;
-do not execute broad test discovery. If a necessary runtime dependency cannot
-be established, report it rather than silently declaring the closure complete.
+Allow at most two retries after a transient transport failure, with distinct
+attempt files and all actual outcomes retained. Do not retry a checksum or
+identity mismatch as though it were a transient download failure. Preserve
+partial files; do not overwrite them or silently fall back to another version.
 
-The new out/test/b3OutcomePolicy.js must be built together with the current
-runner and producer. Compiling only that helper while leaving stale runner or
-producer JavaScript does not complete this task.
+Before extraction, enumerate the ZIP and reject entries escaping the selected
+new destination, unsafe links/reparse entries, or paths that collide after
+Windows path normalization. Extract original bytes into a newly created host
+subdirectory using an existing archive facility, with no overwrite of existing
+files. Validate containment and record extraction completion/read-back results.
+If the tool cannot safely handle the archive, report the specific limitation.
 
-Freeze build-plan.json before emission and promotion-plan.json after staging
-but before repository writes. Record exact source paths and identities,
-resolved compiler options, logical destinations, required runtime assets,
-dependency reasons, and proposed output actions.
+Do not create a ‘data’ folder beside Code.exe or set VSCODE_PORTABLE. Microsoft’s
+portable-data mechanism overrides –user-data-dir and –extensions-dir, which
+would change the harness’s existing isolation contract. Use an unpacked ZIP
+distribution with explicit harness-managed runtime directories at the later
+run. Do not copy everyday settings, extensions, credentials or profile data.
+If an existing candidate contains portable data, preserve it and use a fresh
+clean official ZIP instead of deleting or normalizing that candidate.
 
-Permitted repository output set:
+5. Verify the actual downloaded distribution, without launching it
 
-• Compiler-emitted artifacts under ACTIVE_WORKTREE/out/ belonging to this
-proven runtime set, with their compiler-generated source maps and declaration
-companions when the unchanged configuration emits them.
-• Necessary first-party JSON/data files under out/ only when required by this
-runtime set and emitted/copied by the documented existing build contract;
-record their original source and exact-byte provenance.
+Find the actual Code.exe beneath the extracted root; do not assume an archive
+folder name. Record its absolute/canonical path, SHA-256, native PE architecture
+(x64), file metadata and Authenticode result with signer identity/status.
+Read resources/app/package.json and product.json as data. Verify version
+1.135.0 and the product/commit identity against the available official receipt.
+Keep archive identity, executable identity and application metadata separate.
+An About screenshot of 1.136.1 is not a binary anchor for 1.135.0.
 
-Compilation may stage the whole configured program under the external task
-root to obtain a correct checked emit. This does not authorize promoting all
-staged files. Other tests, unrelated outputs and packaging/resources outside
-out/ stay unchanged. The unit-test artifact is not a runtime dependency merely
-because its name starts with b3OutcomePolicy; do not promote it on that basis.
+Retain a per-file extracted distribution inventory and hashes of every file
+used for contract inspection. Record enough archive-entry/read-back evidence
+to bind the relevant application files to this acquisition. Do not execute
+Code.exe –version, code.cmd, a CLI helper, test-electron, extension code or
+any program inside the downloaded distribution in this task.
 
-package.json is an existing protected input, not a generated output to edit.
-The canonical protected membership is reported as 12 files and 11 derived
-TypeScript relations; derive the exact list from current source, not a typed
-replacement list. Do not expand/reduce that policy during the build.
+Read the installed @vscode/test-electron code used by this repository and the
+actual 1.135.0 packaged extension-test entrypoint/settlement code. Use source
+maps or exact-commit official source as corroboration when necessary; record
+how they correspond to packaged bytes. Current upstream main or installed
+1.136.1 code does not establish the pinned build’s behavior.
 
-No project-owned output outside out/, cache/build-info update or source/config
-change is authorized. If the existing build needs one, identify the exact
-coupling and smallest additional operation. Do not quietly substitute a
-different build pipeline or partially promote an incomplete required set.
+Determine, with exact file/symbol references:
 
-6. Checked staging build and bounded promotion
+• How the pinned Host consumes the existing producer’s supported run result
+and settles normal completion versus rejection/abnormal termination.
+• Whether the repaired producer’s completed, run-bound delivery can resolve
+normally despite counted failures, leaving the parent to derive FAIL.
+• How an actual launcher error remains an independent infrastructure cause.
+• How the existing runner supplies vscodeExecutablePath and how that bypasses
+the launcher’s automatic download branch in this installed implementation.
 
-Use the installed TypeScript Compiler API in a task-owned helper with the
-configuration resolved by TypeScript itself. Resolve the compiler by its
-absolute path inside ACTIVE_WORKTREE/node_modules; do not fall back to a global
-compiler or npx. Create a normal checked Program;
-collect configuration, syntactic, global, semantic and emit diagnostics. Do
-not substitute transpileModule for the checked runtime build.
+This is static compatibility evidence. Do not turn it into a claim that the
+producer, launcher, Host or product was exercised. If packaged code cannot be
+correlated or the contract remains unclear, report UNRESOLVED with the precise
+gap; do not generalize from another version or repair source here.
 
-Preserve the original logical rootDir/outDir and output paths. Redirect all
-physical compiler writes through an explicit writeFile callback into the new
-task staging tree. This retains the compiler’s logical source-map layout while
-preventing premature repository writes. Verify each emitted logical path is
-within the allowed configured output root and each staged physical path is
-inside TASK_ROOT. Handle writeByteOrderMark as the compiler requests; the
-BOM-free requirement applies to task JSON, not arbitrary alteration of compiler
-output. Preserve every emitted byte without post-processing.
+6. Bind the binary to the existing future-run isolation contract
 
-Use noEmitOnError=true. Disable incremental/build-info persistence in the
-task-owned invocation where compatible with the actual configuration; do not
-edit tsconfig.json. If composite/project references require a different build
-mechanism or persistent writes that this boundary cannot preserve, report
-the concrete coupling rather than changing semantics. Never fall back to
-default filesystem writes when a redirected write is rejected.
+Inspect the actual runner’s executable-resolution, focused-selection,
+freshness/authorization, launch options and extensionTestsEnv construction.
+Derive every required environment variable, path and argument from that code
+and governing instructions. Do not invent names or use a default because a
+required setting was not reconstructed.
 
-Retain compiler/helper identity, resolved options, actual input read-set,
-diagnostics, emitted-file inventory, stdout/stderr and real process status.
-Error diagnostics, emitSkipped, failed writes or missing required outputs
-prevent promotion. Empty logs alone are not proof of success. Preserve failed
-attempts; repair only task-owned build helpers when necessary, never repository
-source. No repeated successful build or extra test run is required.
+Create future-run-plan.json plus a concise future-run-plan.md as DATA ONLY.
+Include:
 
-Before promotion:
+• Verified external Code.exe path and archive/executable/commit identities.
+• Exact ACTIVE_WORKTREE, compiled runner, producer, extension entrypoint and
+focused-suite paths with their authenticated build identities.
+• ETL_TEST_VSCODE_EXECUTABLE_PATH mapped to the verified Code.exe path.
+• The exact focused-run selection, pinned-version check, required synthetic
+fixture and expected counts read from the existing contract.
+• Actual environment names and argument precedence for user data, extensions,
+logs, temporary files, isolation root, evidence, manifest and nonce handling.
+• The source reference establishing each value or future-run allocation rule.
+• Any compatibility/prerequisite that prevents this concrete plan from working.
 
-1. Verify the complete required staged set, its hashes and source associations.
-2. Parse/check source-map references against the unchanged logical destinations;
-do not relocate maps blindly or manually rewrite emitted code/maps.
-3. Inspect staged JavaScript as data to confirm both runner/producer imports
-resolve to the same required policy artifact and the compiled runner carries
-the current canonical membership. Do not require/import these modules.
-4. Recheck all build inputs against the captured compiler bytes, repository
-identity, locks/process arguments and planned destination pre-hashes.
-5. Record exact CREATE / REPLACE / IDENTICAL actions in promotion-plan.json.
+Use a new future RUN_ROOT, distinct from this preparation root and every old
+run/evidence/consumer directory. Describe the existing allocation and freshness
+checks; do not pre-create directories, manifests or authorization/completion
+markers that the real runner requires to be fresh. Values legitimately created
+at run start should be marked RUN_ALLOCATED with their creating code, rather
+than fabricated now. Distinguish them from unresolved inputs.
 
-Promote only the frozen necessary set, copying the unchanged staged bytes to
-their exact logical destinations under ACTIVE_WORKTREE/out/. For each replaced
-file preserve and verify its exact pre-copy first; for absent destinations use
-exclusive creation. Validate containment/redirection for destination parents.
-Skip writes for byte-identical destinations. Verify each write by raw read-back
-hash and retain an ordered promotion journal.
+The binary may remain in the verified preparation root. Determine whether the
+current runner permits an executable outside its per-run isolation root. If
+it requires a different placement, specify a later verified copy under the
+existing rule. Do not weaken containment to fit the proposed location.
 
-Do not clean stale files, regenerate unrelated output or use Git to restore
-anything. On source/destination drift, failed promotion or an unexpected write,
-stop further promotion and preserve the partial state with an exact journal.
-Do not label it complete or attempt an unrecorded cleanup/rollback.
+Audit relevant inherited environment switches as names/necessary nonsecret
+values only, including any portable/profile/IPC settings that the actual
+launcher consumes. Plan a child-specific environment at the later run, with
+explicit isolation and no accidental reuse of the everyday editor. Do not
+dump all environment variables, change persistent environment settings or
+export the future launch values into this Agent’s lasting shell session.
 
-7. Establish provenance and produce the protected manifest
+Keep the plan inert: do not invoke it, create a self-launching script, start
+a dry-run Host, register tasks, or rely on a hoped-for early exception.
 
-For every required runtime output and every canonical protected artifact,
-record its final raw hash/bytes, originating source hash, compiler/configuration
-identity, staged hash and promoted hash or demonstrated byte-identical status.
-Confirm all 11 TypeScript-to-artifact relations against actual compiler inputs
-and outputs. Hash package.json as the unchanged direct protected input.
+7. Establish the manifest path without an unsafe runner import
 
-Report source-to-output provenance separately from the protected-files digest:
-a digest over files that happen to exist does not prove those files were built
-from the reviewed source. Do not bless stale artifacts by simply hashing them.
-Include required runtime dependencies outside the protected policy in the
-build provenance without silently adding them to the canonical policy.
+The build already found that runTest.ts calls main() unconditionally. Treat
+direct import/require/evaluation of that module or out/test/runTest.js as
+ordinary runner execution, which is outside this task. Do not repeat it.
 
-Read the actual generateProtectedHashManifest, buildProtectedRecordsFromPolicy,
-buildSourceArtifactRelations, readProtectedHashManifest, digest routine and
-their call sites. Determine the real schema and whether a safe existing
-manifest-only entrypoint is available. Do not invent a command-line flag or
-environment variable based on a function name.
+Read as data the actual canonical policy, generation/digest/relation routines,
+readProtectedHashManifest and its callers in both authenticated source and
+compiled output. Resolve the candidate’s schema, source/built hashes, canonical
+membership/order, source-artifact relations and digest. Include package.json
+as the unchanged direct protected input. Derive the 12/11 counts from the
+actual policy; never patch the reader or invent a second protected policy.
 
-Route A — existing manifest-only entrypoint:
-Execution of that existing route is authorized only after static inspection
-establishes that all reachable top-level initialization/imports and the selected
-branch remain within this task’s read/write boundaries, that the route returns
-before the ordinary test/Host flow, and that it cannot launch/download a
-Host or write old/consumer evidence. Retain the exact branch and invocation
-proof before executing it. Direct its new manifest into TASK_ROOT using the
-existing supported mechanism. Do not patch the entrypoint, mock out launch,
-monkey-patch process/child_process, or rely on a hoped-for early error.
+Produce manifest-route.json with the actual input path mechanism, schema,
+run-bound fields, creation/freshness rules, reader invocation location, failure
+propagation and order relative to any launcher/Host call. Inspect error paths
+and relevant top-level imports as well as the nominal branch.
 
-Validate the result through an equally bounded existing reader if available.
-Check actual file hashes, current canonical membership/order, derived source
-relations, counts and the existing digest algorithm. Record precisely which
-canonical code executed. No other runner/producer/launcher execution is allowed.
+Use one of these outcomes:
 
-Route B — no proven safe manifest-only entrypoint:
-Complete build-provenance.json and generate protected-manifest.candidate.json
-under TASK_ROOT from the canonical declarations/schema read as data and the
-actual built-file hashes. A task-owned data-only serializer/checker may compute
-the exact documented digest and relations; retain its source and source-symbol
-mapping. Label this artifact BUILD_CANDIDATE, with canonical runtime-reader
-acceptance NOT_EXECUTED. Do not claim it is runner-generated or runtime-validated.
-If required run-bound fields cannot legitimately be established in a build
-task, leave the candidate explicitly incomplete instead of fabricating them.
+A. An independently loadable, already-existing canonical manifest-only route
+is actually found outside the known unsafe import path. It may be executed
+only after its complete reachable initialization/imports and selected branch
+are shown to stay within the allowed boundaries. Read-only checks and new
+task-root evidence are allowed; launcher/producer/Host invocation is not.
+Execute the real canonical reader with legitimate inputs, retaining its
+actual result and the exact code identity. Do not invent a CLI flag or
+convert a function name into a presumed public entrypoint.
 
-Route B is an authorized useful fallback, not a second repository policy
-implementation and not closure of canonical manifest integration. Record the
-smallest remaining manifest-validation requirement for the next task. Do not
-execute the whole runner merely to avoid this limitation.
+B. No safe standalone route exists, but the ordinary runner has a demonstrable
+canonical validation gate BEFORE launcher/Host execution. Prove that invalid
+input stops that path before launch and that the planned focused invocation
+reaches the real reader with the required manifest. Specify whether it
+legitimately consumes the build candidate, needs an exact payload derived
+from it, or generates a new run-bound manifest itself. Record the concrete
+future sequence and label CANONICAL_READER_ACCEPTANCE: NOT_EXECUTED.
+This pending execution check can be the first gate of the next authorized
+focused run; it does not require another speculative review task solely
+because no standalone entrypoint exists.
 
-Neither route grants a future run freshness/authorization. Preserve any
-existing per-run isolation, dedicated-directory, nonce and manifest rules.
-The later Host task must create its own fresh run evidence and regenerate or
-consume a manifest exactly as the established contract permits. Do not create
-fake test results, success rows, authorization markers or run completion data.
+C. Neither route can be established, or candidate/schema/ordering/containment
+is incompatible. Finish the independently authorized pinned acquisition
+and report the exact manifest blocker. If source repair is truly required,
+provide a minimal proposed diff under TASK_ROOT with its affected symbols,
+behavior and necessary validation. Do not apply it or rebuild anything.
 
-8. Inspect the pinned VS Code 1.135.0 contract
+For B, any preliminary candidate checks performed by a task-owned data checker
+are STATIC_DATA_CHECKS only. Reuse the authenticated candidate/generator facts;
+do not label a copied or reimplemented reader as canonical execution. Keep the
+original candidate immutable. Any necessary schema envelope/payload distinction
+must be documented exactly, with a separate derivative and transformation
+record only if all fields can be legitimately established in this phase.
+Never fabricate a per-run nonce, result, timestamp, count, success marker or
+evidence-write authorization to make a manifest appear acceptable.
 
-Read EXPECTED_VSCODE_VERSION, executable resolution and installed
-@vscode/test-electron launcher code, including the effective local path inputs.
-Inspect only the named environment values used by that resolution; do not
-dump the whole environment or access credentials.
+Do not strip main(), evaluate an extracted function in a VM, monkey-patch
+process/child_process, use module-loader mocks, or patch emitted JavaScript to
+obtain a claimed runtime acceptance. These would change the code being checked.
+Do not relax a digest/count/schema check or update the version pin to get green.
 
-Use bounded lookup of paths identified by the current code and retained
-evidence, plus the repository’s existing test-binary cache if present. Do not
-search all drives, download a distribution, install an extension or replace
-the user’s ordinary VS Code. An installed 1.136.1 build is not a substitute.
+8. Evidence, verification and stopping condition
 
-For an actual local 1.135.0 candidate, record its canonical path, platform/
-architecture, package/product metadata, executable and relevant entrypoint
-hashes, and available local distribution provenance. A version label alone
-does not establish binary origin. Do not execute Code.exe, code.cmd, its CLI,
-test-electron, a launcher or an Extension Host in this task.
+Before finishing, compare the repository source/configuration/dependency
+read-set, complete out/** inventory, build-info and consumed prior evidence
+against intake. HEAD, branch, empty staging and the exact eight-path source
+dirty inventory must remain unchanged. There are no permitted repository
+writes in this task. Record any actual discrepancy instead of printing NO.
 
-Inspect the actual pinned build’s extension-test entrypoint and installed
-launcher’s settlement/exit handling. Verify the relevant static contract:
+Keep a compact complete evidence set under TASK_ROOT:
 
-• Completed focused result delivery can settle normally even when counted
-test failures exist; the parent still derives FAIL from trustworthy evidence.
-• Launcher rejection/abnormal Host termination remains a distinct infrastructure
-cause; the producer result does not suppress it.
-• The future focused run can select the exact pinned executable without a
-fallback to another installation or an automatic download.
+• report.md, creation-receipt.json, baseline.json and post-state.json;
+• authenticated build/identity resolution and preservation checks;
+• download attempts/receipts, archive, extraction inventory and host identity;
+• pinned entrypoint/launcher static contract with exact artifact references;
+• manifest-route.json and any permitted canonical-reader result;
+• future-run-plan.json / .md with measured paths and legitimate run allocations;
+• actual helper sources and command stdout/stderr/completion results.
 
-Cite the exact local source/artifact and distinguish static inspection from
-runtime proof. Do not generalize the 1.136.1 implementation to the pinned build.
-If 1.135.0 is absent, inaccessible, uncorrelated or the contract cannot be
-verified, record that outcome and finish any independently completable build
-work. Do not change the version pin or relabel the result as ready for Host.
+Populate measured fields from the actual operations. Preserve failed attempts
+and create separately named corrections with explicit supersession. Do not
+rerun a successful build or unit suite merely to add evidence. If the pin is
+blocked, still complete independent manifest analysis; if manifest execution
+is pending, still complete a permitted pin acquisition.
 
-9. Final verification, evidence and result
-
-Verify all source/configuration/dependency inputs and prior evidence consumed
-remain unchanged. Compare the complete before/after out/ inventories: every
-change must appear in the promotion journal; every non-promoted file must be
-byte-identical; no deletions or unexplained files are allowed. Build-info and
-other output roots remain unchanged. HEAD, branch, staging and existing source
-dirty inventory must be preserved; report any actual unexpected difference.
-
-Keep a compact complete evidence set, with additional raw captures only as
-needed:
-
-• report.md, baseline.json, post-state.json, creation-receipt.json;
-• review-anchor-resolution.json and immutable measured input copies;
-• build-plan.json, compiler helper, resolved options and input read-set;
-• raw command/tool results, diagnostics, emitted-file inventory and staged bytes;
-• promotion-plan.json, pre-output copies and ordered promotion journal;
-• build-provenance.json, before/after per-file output inventories;
-• protected manifest or explicitly labeled candidate and validation evidence;
-• pinned-host-inspection.json and preservation checks.
-
-All measured hashes, counts and status fields must be populated from actual
-operations. Strictly parse new JSON after serialization. Preserve any failed
-artifact and write a separately named correction with machine-derived values.
-Do not manually transcribe hashes into summaries or hard-code process success.
-
-Use these report fields, with one actual result:
+Report one overall result and the independent statuses below:
 
 ```text
-TASK_ID: ETL-0907-BUILD-PROVENANCE-PIN01
-RESULT: BUILD_AND_PROVENANCE_COMPLETE_AWAITING_HOST_AUTHORIZATION |
-        BUILD_COMPLETE_WITH_REMAINING_GATE_BLOCKERS |
-        BLOCKED_<CONCRETE_REASON> | INCOMPLETE_PARTIAL_PROMOTION
-SOURCE_POLICY_REVIEW: <actual report path, decision and corrected anchors>
-SOURCE_IDENTITY: <machine-derived identities and stability>
-COMPILER_AND_CONFIGURATION: <actual versions, hashes and options>
-BUILD: <exit status, error/warning counts, emit result and raw logs>
-REQUIRED_RUNTIME_SET: <exact list and closure evidence>
-OUTPUT_PROMOTION: <created/replaced/identical counts and exact journal>
-SOURCE_ARTIFACT_PROVENANCE: <verified relations and unresolved gaps>
-PROTECTED_POLICY: <observed membership, relation count and actual digest>
-PROTECTED_MANIFEST: <path, route A/B, schema/completeness/validation status>
-PINNED_VSCODE_1_135_0: <actual path/identity or precise unavailable state>
-PINNED_ENTRYPOINT_CONTRACT: VERIFIED_STATICALLY | UNRESOLVED | UNAVAILABLE
-REPOSITORY_SOURCE_CONFIG_OR_DEPENDENCY_CHANGED: NO
-PRIOR_EVIDENCE_CHANGED: NO
-OUT_OF_PLAN_OUTPUT_CHANGED: NO
-ORDINARY_RUNNER_FLOW_PRODUCER_LAUNCHER_OR_HOST_EXECUTED: NO
-MANIFEST_ONLY_ENTRYPOINT_EXECUTED: <exact permitted route or NO>
+TASK_ID: ETL-0907-PINNED-HOST-MANIFEST-PREP01
+RESULT: PREPARATION_COMPLETE_AWAITING_FOCUSED_HOST_AUTHORIZATION |
+        PINNED_HOST_PREPARED_WITH_MANIFEST_BLOCKER |
+        PREPARATION_INCOMPLETE_<CONCRETE_REASON> |
+        BLOCKED_<CONCRETE_REASON>
+BUILD_ROOT: <authenticated absolute path>
+BUILD_INPUT_AND_OUTPUT_MATCH: <measured result>
+PINNED_HOST: VERIFIED_STATICALLY | UNAVAILABLE | UNVERIFIED | INCOMPATIBLE
+PINNED_HOST_PATH: <actual absolute Code.exe path, or NONE>
+PINNED_VERSION_ARCH_COMMIT: <measured values>
+ARCHIVE_AND_EXECUTABLE_IDENTITIES: <machine-derived full hashes / receipt paths>
+PINNED_ENTRYPOINT_CONTRACT: VERIFIED_STATICALLY | UNRESOLVED | INCOMPATIBLE
+MANIFEST_ROUTE: A_EXECUTED | B_PRELAUNCH_GATE_PROVEN_STATICALLY | C_BLOCKED
+CANONICAL_READER_ACCEPTANCE: <actual accepted/rejected result, or NOT_EXECUTED>
+FUTURE_RUN_PLAN: <absolute paths and completeness>
+DOWNLOAD: <actual source, bytes, attempts, or NOT_NEEDED / BLOCKED>
+EXTRACTION: <actual result, counts and inventory>
+REPOSITORY_OR_COMPILED_OUTPUT_WRITES_BY_TASK: <measured count; expected 0>
+PRIOR_EVIDENCE_WRITES_BY_TASK: <measured count; expected 0>
+EVERYDAY_EDITOR_INSTALLATION_OR_PROFILE_WRITES_BY_TASK: <actual; expected 0>
 TESTS_EXECUTED: 0
-GIT_MUTATION_INSTALL_DOWNLOAD_PACKAGE_OR_RELEASE_EXECUTED: NO
+CODE_CLI_RUNNER_PRODUCER_LAUNCHER_OR_HOST_EXECUTED: NO
+SOURCE_REPAIR_REBUILD_GIT_MUTATION_INSTALL_PACKAGE_OR_RELEASE_EXECUTED: NO
 HISTORICAL_REVIEWED_BASELINE_PRESERVATION: NOT_VERIFIED
-FULL_B3_OR_RUNTIME_QUALIFICATION_GRANTED: NO
-REMAINING_GATE_BLOCKERS: <specific unresolved items or NONE>
-NEXT_STEP_PROPOSED_ONLY: <minimum remaining preparation or focused Host task>
-REPORT_PATH: <absolute path under this task root>
+FULL_B3_RUNTIME_PRODUCT_OR_RELEASE_ACCEPTANCE_GRANTED: NO
+OPERATIONAL_BLOCKERS: <specific blockers, or NONE_FOR_PREPARATION>
+DEFERRED_RUNTIME_CHECKS: <including canonical acceptance for route B>
+REPORT_PATH: <absolute path>
 ```
 
-The first result requires a checked successful build, complete required-output
-provenance/promotion, canonical manifest generation/validation evidence, pinned
-local identity/static contract, and preserved boundaries. A candidate-only
-manifest or unavailable/unverified pin belongs in the second result when the
-build itself is complete. Never conflate build success with successful tests.
-If an unexpected action occurred, replace the corresponding NO with the truth.
+Preparation complete requires authenticated build inputs/outputs, an
+authenticated exact-version x64 distribution, a compatible static pinned
+contract, preserved boundaries, and a concrete future plan using route A
+(accepted) or B. Route B does not close canonical runtime acceptance; that
+remains an explicit fail-closed prerequisite at the next actual run. A merely
+syntactic candidate check without the demonstrated prelaunch gate is route C.
 
-Stop after delivering the result. The next separately authorized task must
-verify these records before its focused Host run; this prompt does not launch
-that run. Do not reopen accepted source repairs without a concrete new defect
-or add another round of successful unit tests merely to accumulate evidence.
+The unavailable historical 126214-byte review baseline remains a documented
+historical limitation. Do not reconstruct it or use it as an automatic reason
+to block this independently supported preparation task. None of this task’s
+results grants full B3, Host, product or release acceptance.
 
-Give a short chat summary with the exact report path, build outcome, promoted
-file counts, manifest status, pinned-version status and remaining blockers.
+Stop after a short chat summary: exact report path, pinned executable/version,
+download outcome, manifest route/acceptance status, and remaining operational
+blockers. If preparation is complete, propose the single controlled focused
+Host run with canonical validation first. Do not execute that run in this task.
 
-Technical references for the staging design
+Official references
 
-These references explain compiler capabilities; they are not permission to
-install anything or override the project’s actual local compiler/configuration.
+The following explain distribution and launcher behavior. Their generic
+examples do not override this repository’s local code, exact pin or task scope.
 
-• TypeScript Compiler API: Program, CompilerHost and redirected writeFile
-• TypeScript noEmitOnError
-• TypeScript sourceMap
+• Exact-version Windows ZIP endpoint format:
+https://code.visualstudio.com/docs/supporting/faq#_previous-release-versions
+• VS Code 1.135 release page:
+https://code.visualstudio.com/updates/v1_135
+• ZIP / portable-data behavior, including command-line directory overrides:
+https://code.visualstudio.com/docs/setup/portable
+• Microsoft test utility download receipts/checksum handling (upstream;
+inspect the installed version separately):
+https://github.com/microsoft/vscode-test/blob/main/lib/download.ts
+• Microsoft test utility explicit executable selection (upstream;
+inspect the installed version separately):
+https://github.com/microsoft/vscode-test/blob/main/lib/runTest.ts
