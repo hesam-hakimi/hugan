@@ -1,110 +1,118 @@
-TASK\_ID: ETL\-0907\-POLICY\-COVERAGE\-INDEPENDENT\-REVIEW01
-TYPE: INDEPENDENT SOURCE\-ONLY REVIEW OF POLICY COVERAGE, INCIDENT RECOVERY AND EVIDENCE
+TASK_ID: ETL-0907-BUILD-PROVENANCE-PIN01
+TYPE: BOUNDED BUILD, SOURCE-ARTIFACT PROVENANCE AND PINNED-HOST PREPARATION
 
-Run this complete prompt in a fresh ordinary LOCAL Windows VS Code Agent chat,
-with a reviewer independent of the Agent that implemented POLICY\-COVERAGE\-REPAIR01\.
-Use one reviewer and one evidence writer\. Do not use the ETL Orchestrator\.
-Keep engineering reports and evidence in English\. Echo TASK\_ID as the first
-line of the final report\.
+Run this complete prompt in an ordinary LOCAL Windows VS Code Agent chat in
+the active recovery worktree below. Use one Agent and one writer. Do not use
+the ETL Orchestrator. Keep code, comments and engineering evidence in English.
+Echo TASK_ID as the first line of the final report.
 
-## 1\. Authorization and review boundary
+1. Owner authorization and completion boundary
 
-The owner authorizes this independent review of the completed bounded repair\.
-Assess its current source correctness, immediate\-baseline preservation, the
-disclosed stale\-editor\-buffer incident and recovery, path reconciliation, and
-the reliability of the supporting evidence\. Produce a concrete acceptance or
-blocking decision for this source\-policy gate only\.
+The owner has approved the next bounded step following the independent
+POLICY-COVERAGE review: build the reviewed source, establish the origin and
+integrity of the required compiled outputs/protected manifest, and inspect the
+locally available pinned VS Code 1.135.0 launcher/entrypoint contract.
 
-No repository edit or repair is authorized\. All existing source, compiled
-output, configuration, prior evidence, editor buffers and Git state are
-read\-only\. The only permitted writes are new review evidence under the fresh
-exclusive review root specified in section 4\.
+This task explicitly authorizes compilation and the limited generated-output
+writes described below. The previous source-only tasks’ no-emit restrictions
+do not prohibit this newly authorized build. Their source-edit permissions
+are not carried forward.
 
-Allowed: read\-only source/status/process\-argument/path inspection, raw\-byte
-hashing and comparison, strict JSON parsing, and task\-owned data\-only analysis
-using the already installed PowerShell/Node tools\. Read TypeScript as text or
-data; do not import, evaluate or execute project modules to obtain policy data\.
+Allowed work:
 
-Not authorized: source fixes, evidence repairs, restoring any pre/post copy
-over live source, applying task\.diff, running the supplied recovery or capture
-scripts, Keep/Undo/save/revert/reload actions, resolving pending editor changes,
-changing autosave settings, process termination, lock deletion, Git mutation,
-type\-checking, compilation, transpilation, tests, runner/producer/launcher or
-Extension Host execution, lint/format/watch, package scripts, installations,
-downloads, packaging or release\. Do not perform a build or manifest generation\.
+1. Read-only identity, source, configuration, dependency, process, path and
+evidence inspection; raw-byte copying/hashing and strict JSON parsing.
+2. Run the existing installed TypeScript compiler for a checked build. Use
+task-owned scripts and staging/evidence under one fresh external task root.
+3. Create or update only the necessary compiler-generated files under the
+active worktree’s out/ directory, through the recorded promotion set in
+section 5. Keep all source and repository configuration unchanged.
+4. Generate build-provenance evidence and a protected-manifest artifact using
+the bounded routes in section 7. Those routes do not authorize a test run.
+5. Inspect actual local VS Code 1.135.0 artifacts and launcher code read-only.
 
-The repair brief is reproduced verbatim in Appendix A as the contract being
-reviewed\. Its old implementation permissions are historical, not permissions
-for this review\. Sections 1\-10 of this prompt govern current execution\.
+Not authorized:
 
-## 2\. Exact inputs and current claims
+• Source, test, policy, dependency, configuration, package/lock-file or version
+edits; Git mutations; modifying earlier evidence or reference documents.
+• Saving/reverting/reloading pending editor buffers, Keep/Undo, changing
+autosave, restoring historical source, terminating processes or deleting locks.
+• Executing tests, the ordinary test runner, producer, launcher, Extension
+Host, extension activation, product parser/workflow or real consumer jobs.
+• npm/npx lifecycle scripts, installs, upgrades, downloads, VSIX packaging,
+extension installation, publication or release; network/credential access.
+• Deleting/cleaning out/, emitting into the linked primary, modifying build
+caches/build-info, copying arbitrary old JavaScript or patching emitted code.
 
-Active worktree:
-C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
+Compilation may read project modules as compiler input. It must not import
+or execute their runtime code. The sole narrowly conditional project-code
+execution exception is an existing manifest-only entrypoint under section 7.
 
-Linked primary, identity only:
-C:\\repos\\etl\-extension\\etl\_fw2\\etl\_framework\_extension\_hf1\_v2
+Carry all authorized work through to measured results. A missing pinned Host
+does not prevent the independent compilation/provenance work. Preserve any
+partial result and identify remaining blockers; do not claim Host readiness
+or automatically launch the next phase.
 
-Expected branch: fix/workspace\-write\-completion\-0\.3\.148
+2. Exact workspace and governing evidence
+
+ACTIVE_WORKTREE:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+
+LINKED_PRIMARY (identity/read-only boundary):
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+
+Expected branch: fix/workspace-write-completion-0.3.148
 Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-Expected staging: empty\.
+Expected staging: empty.
 
-REPAIR\_ROOT &#40;one literal flat directory name&#41;:
-C:\\docs\\ETL\-0907\-POLICY\-COVERAGE\-REPAIR01\-20260907T183624221Z\-9f1d6a42\-6614\-4025\-a029\-2590da4a0b5f
+POLICY_REPAIR_ROOT (one literal flat directory name):
+C:\docs\ETL-0907-POLICY-COVERAGE-REPAIR01-20260907T183624221Z-9f1d6a42-6614-4025-a029-2590da4a0b5f
 
-PREVIOUS\_REVIEW\_ROOT:
-C:\\docs\\ETL\-0907\-F5\-CONTRACT\-INDEPENDENT\-REVIEW01\\20260907T175437Z\-73509E6F\-9589\-44BB\-8A8F\-150986769864
+CONTRACT_REVIEW_ROOT:
+C:\docs\ETL-0907-F5-CONTRACT-INDEPENDENT-REVIEW01\20260907T175437Z-73509E6F-9589-44BB-8A8F-150986769864
 
-CONTRACT\_REPAIR\_ROOT:
-C:\\docs\\ETL\-0907\-F5\-CONTRACT\-REPAIR01\\20260907T112539Z\-559ABD3C\-A873\-4D54\-8EF0\-BC72D38F2403
+CONTRACT_REPAIR_ROOT:
+C:\docs\ETL-0907-F5-CONTRACT-REPAIR01\20260907T112539Z-559ABD3C-A873-4D54-8EF0-BC72D38F2403
 
-EARLIER\_REVIEW\_ROOT:
-C:\\docs\\ETL\-0906\-F5\-INDEPENDENT\-REVIEW02\\20260907T101629Z\-0318A671\-32C9\-41EC\-AA32\-B4EF0BF16505
+CURRENT_POLICY_REVIEW_TASK:
+ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01
 
-OLDER\_IMPLEMENTATION\_ROOT &#40;one literal flat directory name&#41;:
-C:\\docs\\ETL\-0906\-F5\-REPAIR\-TEST02\-20260906T193742Z\-11E99B37\-E240\-4D33\-931A\-3793C1E97409
+Resolve the actual completed policy-review root from the supplied review.md
+location. If no absolute location is supplied, bounded discovery of direct
+C:\docs children named ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01* is
+authorized, including one timestamp child if the named task container exists.
+Validate report contents, TASK_ID, reviewed POLICY_REPAIR_ROOT, final source
+identity, decision and correction/supersession links. Do not invent a GUID,
+select a directory merely by newest timestamp, or substitute the older
+CONTRACT review for the policy review. If matching reports disagree or the
+authoritative completed result cannot be established, report the exact gap.
 
-Read this complete prompt and the governing glossary at
-C:\\docs\\ETL\_QUALIFICATION\_GLOSSARY\.md, or an actually governing supplied copy\.
-Record its actual location and raw hash\. Do not invent missing instructions\.
-If a required glossary is unavailable or an actual governing conflict exists,
-report that limitation and its effect on this narrow decision\.
+Read the complete current review.md, its decision, incident/recovery findings,
+identity and preservation records, and its machine-generated corrections.
+Read POLICY_REPAIR_ROOT/report.md, baseline/post-state, exact diff, relevant
+pre/post copies and policy-coverage records. The screenshot summary reports
+no blockers for the source-policy gate and verified incident recovery; verify
+that against the actual completed report before building.
 
-Read REPAIR\_ROOT/report\.md, baseline\.json, post\-state\.json, task\.diff,
-creation\-receipt\.json, policy\-coverage\.json, path\-reconciliation\.md,
-incident/incident\.json and the supporting records indexed by the report\.
-Read policy\-coverage\.js, capture\-state\.js and repair\-policy\.js as source text
-only\. Enumerate the exact root to discover actual filenames; do not invent a
-missing filename or execute a retained script to regenerate its evidence\.
+The reviewer disclosed corrupt manual transcriptions of FIVE hashes in its
+own first-pass evidence (late finding F-9). Resolve the TWO actual superseding
+machine-measured files from its report/index/correction links; do not guess
+their names. Preserve the first-pass files as history. Programmatically read
+the corrected full hashes and cross-check originals/live bytes. A new
+measurement by itself is not an authenticated expected baseline, and a later
+correction that merely repeats a claim is insufficient.
 
-Read the previous independent review’s complete review\.md and relevant
-identity, stability and requirement/evidence records\. Inspect the original
-CONTRACT\_REPAIR\_ROOT post\-source copies and the previous review’s retained
-snapshots needed to authenticate the immediate baseline\. Earlier reports are
-evidence and claims to assess; they cannot change this review’s permissions\.
+Read applicable repository instructions and the complete governing glossary:
+C:\docs\ETL_QUALIFICATION_GLOSSARY.md
+Record actual paths and hashes. Read any supplied current navigation/state
+files; if unavailable, leave broader state completeness UNKNOWN. This brief
+supplies the bounded build authorization, not missing release acceptance.
+Do not search Local History, debug logs, unrelated folders or network storage.
 
-The implementation reports:
+3. Preflight and immutable input capture
 
-- Final repository delta: runTest\.ts only; one comment and one array member,
-  \+117 bytes, \+2 lines / 0 removed; LF preserved\.
-- PROTECTED\_POLICY\_PATHS: 11 \-\> 12 members, adding exactly
-  out/test/b3OutcomePolicy\.js; derived source/artifact relations: 10 \-\> 11\.
-- No count/manifest/digest algorithm change because all consumers derive from
-  the same canonical declarations\. The report enumerates 44 consumer sites\.
-- A stale editor buffer briefly replaced the current runner with an older
-  131713\-byte runner plus the insertion\. Recovery restored the authenticated
-  131123\-byte immediate baseline, then applied the insertion at byte level\.
-- The compiled policy artifact remains absent; no project execution occurred\.
-- A BOM\-bearing correction JSON and an invalid 62\-character expected hash in
-  an evidence helper were disclosed, with a distinct strict correction record\.
-
-These are claims to verify, not acceptance premises\. Photographs and numbers
-in this prompt are navigation/cross\-check aids, not authoritative hash pins\.
-
-## 3\. Read\-only preflight and identity
-
-Use git –no\-optional\-locks for Git reads\. Re\-derive active worktree, common
-Git directory, branch, HEAD and staging\. Expected complete dirty inventory:
+Use git –no-optional-locks for reads. Verify worktree/common-Git identity,
+branch, HEAD, empty staging and this complete existing dirty inventory:
 
 ```text
  M .github/templates/request.md
@@ -117,76 +125,76 @@ Git directory, branch, HEAD and staging\. Expected complete dirty inventory:
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 ```
 
-Check applicable worktree/common index locks and actual process arguments for
-a concurrent writer, build/test process or development/test Host\. Ordinary
-editor/language\-server processes alone do not prove prohibited execution\.
-Do not terminate or reconfigure anything to make the check pass\.
+Inspect applicable locks and actual process arguments for a concurrent writer,
+compiler/watcher, test/development Host or launcher. Ordinary editor/language
+server processes alone are not prohibited Hosts. Do not stop or reconfigure
+anything. An actual concurrent writer or unexplained source drift blocks
+repository output promotion; do not normalize it away.
 
-If repository identity is wrong, stop substantive target review\. If a writer,
-lock, unexpected inventory or input drift prevents a stable assessment,
-preserve the observations and report the concrete blocker\. Do not repair it,
-switch worktrees, rebase expected identities or consume an arbitrary newer
-file as the intended review target\.
+These are cross-check counts, not substitute hash pins:
 
-Authenticate these separate versions explicitly:
+|Current source                       |Bytes |CRLF|Bare LF|Bare CR|
+|-------------------------------------|-----:|---:|------:|------:|
+|src/test/runTest.ts                  |131240|0   |2970   |0      |
+|src/test/b3OutcomePolicy.ts          |35970 |809 |0      |0      |
+|src/test/b3OutcomePolicy.unit.test.ts|36595 |758 |0      |0      |
+|src/test/suite/index.ts              |10408 |246 |0      |0      |
 
-|Role                         |File                                 |Reported bytes|CRLF|Bare LF|Bare CR|
-|-----------------------------|-------------------------------------|-------------:|---:|------:|------:|
-|Immediate pre-repair baseline|src/test/runTest.ts                  |131123        |0   |2968   |0      |
-|Intended final review target |src/test/runTest.ts                  |131240        |0   |2970   |0      |
-|Unchanged dependency         |src/test/b3OutcomePolicy.ts          |35970         |809 |0      |0      |
-|Unchanged unit tests         |src/test/b3OutcomePolicy.unit.test.ts|36595         |758 |0      |0      |
-|Unchanged producer           |src/test/suite/index.ts              |10408         |246 |0      |0      |
+Authenticate runTest.ts against the completed policy review, repaired
+post-state and independent baseline-plus-insertion proof where needed. The
+131123-byte source is the preceding baseline; 131713/136657-byte sources and
+Snapshot01 are not current build inputs. The unavailable 126214-byte reviewed
+source remains a historical limitation, not a prerequisite to reconstruct.
 
-Read full expected SHA\-256 values from the actual original saved records\.
-Validate hash syntax/length before comparison; never transcribe a hash from a
-photograph, truncate it, or silently substitute the newly measured live hash\.
+Validate every SHA-256 field as 64 hexadecimal characters before comparison.
+Extract expected values programmatically from original machine records/full
+saved tables. Do not type hash constants into helpers or transcribe photos.
+Record raw hash, size and parse status of consumed evidence. Preserve malformed
+older JSON; use the explicitly documented original source copies and complete
+identity tables as alternative anchors when corroborated. Never silently
+repair original evidence or attribute new drift to the old editor incident.
 
-Authenticate the 131123\-byte baseline against the previous review’s full
-explicit identity table, CONTRACT\_REPAIR\_ROOT/post\-source source bytes, the
-previous review’s snapshots/live and snapshots/post\-source copies, and this
-repair’s immutable pre copy\. Cross\-check all available independent anchors\.
-The old 131713\-byte source is an incident comparator, not this repair baseline\.
-HEAD, Snapshot01, the 136657\-byte predecessor and the unavailable 126214\-byte
-historical source are not substitutes\.
+After creating the external task root, capture and verify immutable copies of
+all first-party compiler inputs, resolved configuration, runtime assets needed
+by this build, and preservation inputs. Retain hashes for actual compiler/
+toolchain modules and external type/dependency inputs used by the build. A
+complete compiler read-set inventory is preferable to guessing dependencies.
 
-Establish the intended final identity from the repair’s retained post\-state
-and any actual post\-source copy, then verify live bytes\. Independently derive
-the expected final byte sequence in memory from the authenticated immediate
-baseline and the exact approved insertion\. Compare it to live and retained
-post bytes\. Do not write this reconstruction into the repository\.
+Record versions/paths from the installed tools; prior observations were Node
+20.19.5 and TypeScript 5.9.3. Establish their current identities from local
+artifacts and prior records; do not install a replacement. Unexpected changes
+must be reconciled before trusting the build.
 
-Capture target/input identities at review intake and again after the review\.
-Two matching observations establish observed stability at those checkpoints,
-not continuous monitoring or proof that a dirty editor buffer cannot later
-overwrite the file\. Inspect buffer identity/dirty state only if already
-exposed by a genuinely read\-only capability; otherwise record it UNKNOWN\.
-Do not use save/reload/Keep/Undo or open\-and\-save to obtain this information\.
+Capture a per-file raw-hash inventory of existing out/**, configured build
+outputs, build-info, relevant dependencies/configuration, all pre-existing
+dirty files and every prior evidence file consumed. The previous out inventory
+was 2016 files; the actual intake inventory governs this build after review
+anchor reconciliation. Record absent, empty and inaccessible paths distinctly.
 
-Any new hash drift is an unexplained observation until evidence establishes
-its cause\. The report’s instruction to treat every different future hash as
-a recurrence of the editor hazard is not an acceptable diagnostic rule\.
+Read source bytes from disk through a controlled compiler host, not editor
+buffers. Retain/hash the same input bytes actually supplied to the compiler;
+cache each captured input for consistent repeated reads and reject any
+observed conflicting version. Recheck source/configuration identities before
+promotion and at task end.
 
-## 4\. Exclusive review evidence destination
+4. Exclusive external task root
 
-Validate the existing C:\\docs parent, containment and reparse/redirection
-properties\. Keep the new root outside both worktrees, all prior evidence and
-snapshots, user profiles and consumer/protected paths\.
+Validate C:\docs as an existing safe parent with no unsafe reparse/redirection.
+The fresh root must be outside both worktrees, all old evidence/snapshots,
+profiles and consumer/protected paths.
 
-Create exactly one new flat leaf:
-C:\\docs\\ETL\-0907\-POLICY\-COVERAGE\-INDEPENDENT\-REVIEW01\-<UTC-timestamp>\-<GUID>\\
+Create one flat leaf:
+C:\docs\ETL-0907-BUILD-PROVENANCE-PIN01-<UTC-timestamp>-<GUID>\
 
-The final leaf must be created by an operation that fails if it already
-exists\. Do not replace this with check\-then\-Directory\.CreateDirectory, accept
-an existing empty leaf, or choose another destination after a failure\.
-
-After validating the parent, this task\-owned Node core helper is allowed:
+Use creation that fails if the leaf exists. A check followed by
+Directory.CreateDirectory is insufficient. After parent validation, the
+following installed-Node helper is authorized:
 
 ```js
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const taskId = 'ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01';
+const taskId = 'ETL-0907-BUILD-PROVENANCE-PIN01';
 const utc = new Date().toISOString().replace(/[-:.]/g, '');
 const root = path.join('C:\\docs', `${taskId}-${utc}-${crypto.randomUUID()}`);
 fs.mkdirSync(root, { recursive: false });
@@ -200,670 +208,300 @@ fs.writeFileSync(path.join(root, 'creation-receipt.json'),
 process.stdout.write(JSON.stringify(receipt) + '\n');
 ```
 
-Pass JavaScript literally, e\.g\. through a single\-quoted PowerShell here\-string
-to Node stdin\. Preserve backticks/dollar signs without shell interpolation\.
-Retain the exact invocation, output and actual execution\-tool completion
-status\. A later script’s hard\-coded success field is not the tool result\.
-If creation succeeds but the receipt fails, preserve the partial root and stop\.
+Use literal shell input, such as a single-quoted PowerShell here-string to
+Node stdin. Preserve backticks/dollar signs without interpolation. Retain
+invocation, output and actual execution-tool completion status. On collision
+or failed receipt, preserve partial evidence and stop; do not choose another root.
 
-Use exclusive new\-file/copy semantics for evidence\. Write each final artifact
-once; use distinct filenames for intermediate observations\. Serialize new
-JSON as BOM\-free UTF\-8, parse it strictly, and preserve any failed artifact
-with a separately named correction\. Do not rewrite old evidence or conceal a
-failed attempt\. This review’s receipt does not retroactively prove any older
-root was created exclusively\.
+Use exclusive new-file/copy semantics for task evidence and staging. New JSON
+must be strict, BOM-free UTF-8. Keep failed/intermediate artifacts under their
+original names; write any correction separately with explicit supersession.
+Never hand-transcribe a measured hash or fabricate a successful process exit.
 
-## 5\. Verify the exact source\-policy repair
+5. Freeze the exact build and promotion plan
 
-Read all of current runTest\.ts and the relevant dependency/producer imports,
-compiler\-layout declarations and policy consumers\. Produce an independent
-task\-only diff against the authenticated 131123\-byte pre copy\. Include normal,
-whitespace\-ignored and CR\-at\-EOL\-ignored numstats; a read\-only no\-index diff
-exit code indicating differences is not itself a command failure\.
+Before any compilation, read tsconfig.json and its complete resolved extends/
+references, package build scripts as text, the current canonical protected
+policy, source/artifact mapping, and runtime imports. Do not execute package
+scripts or infer build settings from a standalone tsc invocation on one file.
 
-Verify the claimed insertion is exactly the following two lines in the
-canonical PROTECTED\_POLICY\_PATHS array, with existing indentation and LF:
+Build from the repository’s established TypeScript configuration and installed
+compiler. Do not change target/module/resolution options, add custom transforms,
+suppress diagnostics, change the pin or weaken manifest checks to obtain success.
 
-```ts
-  // Loaded at runtime by both `out/test/runTest.js` and `out/test/suite/index.js`.
-  'out/test/b3OutcomePolicy.js',
-```
+Derive the runtime build set from:
 
-Check the actual source, not just task\.diff\. Verify the added member occurs
-once, no member was removed, all prior relative order is retained, and the
-canonical ordering requirement is satisfied\. The reported position is after
-out/extension\.js and before out/test/harness/mochaResultGuard\.js; derive the
-ordering rule from assertProtectedPolicyIsCanonical itself\.
+• Every JavaScript artifact in the authenticated PROTECTED_POLICY_PATHS.
+• The runner, producer, focused suite and extension entrypoints used by the
+existing focused-run contract, including out/test/runTest.js,
+out/test/suite/index.js and out/extension.js.
+• Their necessary first-party runtime dependencies and the exact focused
+suite file selected by the existing constants, resolved from actual source.
 
-Independently enumerate old/new membership and source/artifact relations from
-source literals and the existing rule\. Verify the compiled dependency binds
-to src/test/b3OutcomePolicy\.ts exactly once\. Preserve the representation’s
-actual orientation &#40;reported as artifact \-\> source in buildSourceArtifactRelations&#41;\.
-Do not demand a duplicate hand\-maintained relation if the existing rule
-already derives it, or an extra TypeScript membership entry that this model
-does not require\. The unit\-test artifact must not be added as a runtime member\.
+Resolve imports and compiler-emitted runtime helpers without loading the
+modules. Distinguish type-only dependencies from runtime files. For computed
+loads, inspect the bounded focused selection and document its actual target;
+do not execute broad test discovery. If a necessary runtime dependency cannot
+be established, report it rather than silently declaring the closure complete.
 
-Verify both imports against actual tsconfig rootDir/outDir layout:
+The new out/test/b3OutcomePolicy.js must be built together with the current
+runner and producer. Compiling only that helper while leaving stale runner or
+producer JavaScript does not complete this task.
 
-- src/test/runTest\.ts \-\> \./b3OutcomePolicy
-- src/test/suite/index\.ts \-\> \.\./b3OutcomePolicy
+Freeze build-plan.json before emission and promotion-plan.json after staging
+but before repository writes. Record exact source paths and identities,
+resolved compiler options, logical destinations, required runtime assets,
+dependency reasons, and proposed output actions.
 
-Trace canonical data into the existing manifest generation/validation,
-source/artifact relations, path/count checks, digest construction and runner
-evidence comparisons\. At minimum inspect PROTECTED\_POLICY\_PATHS,
-buildProtectedRecordsFromPolicy, generateProtectedHashManifest,
-readProtectedHashManifest, canonicalProtectedFilesDigest,
-buildSourceArtifactRelations and assertProtectedPolicyIsCanonical, plus their
-relevant count/evidence consumers\. Check the report’s 44\-site enumeration
-against source; site count alone is not proof of completeness\.
+Permitted repository output set:
 
-Show the exact member/relation deltas, preserved entries, counts and source
-locations\. Separate static declaration/derivation evidence from a generated
-runtime manifest\. Do not execute those functions or manufacture a compiled
-file hash when the artifact is absent\.
+• Compiler-emitted artifacts under ACTIVE_WORKTREE/out/ belonging to this
+proven runtime set, with their compiler-generated source maps and declaration
+companions when the unchanged configuration emits them.
+• Necessary first-party JSON/data files under out/ only when required by this
+runtime set and emitted/copied by the documented existing build contract;
+record their original source and exact-byte provenance.
 
-Confirm the final diff changes no focused\-result protocol/nonce/eligibility,
-observation, abort attribution, cause merge, verdict, exit, M2 writer/path,
-M3 authorization/stage, A3 schema/order, B4 environment handling or Host pin\.
-Use the exact diff plus unchanged input hashes to support preservation; do
-not reopen all prior F1\-F5 behavior reviews or rerun the 15 local cases\.
+Compilation may stage the whole configured program under the external task
+root to obtain a correct checked emit. This does not authorize promoting all
+staged files. Other tests, unrelated outputs and packaging/resources outside
+out/ stay unchanged. The unit-test artifact is not a runtime dependency merely
+because its name starts with b3OutcomePolicy; do not promote it on that basis.
 
-Read\-only check out/test/b3OutcomePolicy\.js\. Report presence, absence or access
-failure distinctly\. Its absence is an expected build/provenance blocker for
-a later gate, not grounds to delete the new member or reject a correct source
-declaration merely because this source\-only task prohibited emission\. Do not
-claim runtime qualification from this source review\.
+package.json is an existing protected input, not a generated output to edit.
+The canonical protected membership is reported as 12 files and 11 derived
+TypeScript relations; derive the exact list from current source, not a typed
+replacement list. Do not expand/reduce that policy during the build.
 
-## 6\. Independently assess the editor incident and recovery
+No project-owned output outside out/, cache/build-info update or source/config
+change is authorized. If the existing build needs one, identify the exact
+coupling and smallest additional operation. Do not quietly substitute a
+different build pipeline or partially promote an incomplete required set.
 
-Treat this as a material incident, even if the final source is correct\.
-Assess final correctness and implementation\-process compliance separately\.
-Neither disclosure alone nor the small final diff proves recovery, limited
-blast radius, or absence of intermediate effects\.
+6. Checked staging build and bounded promotion
 
-Inspect the retained incident blob, incident\.json, exact recovery helper,
-available step\-by\-step measurements and original invocation/tool records\.
-Read helpers as data; never execute a helper that restores or edits source\.
+Use the installed TypeScript Compiler API in a task-owned helper with the
+configuration resolved by TypeScript itself. Resolve the compiler by its
+absolute path inside ACTIVE_WORKTREE/node_modules; do not fall back to a global
+compiler or npx. Create a normal checked Program;
+collect configuration, syntactic, global, semantic and emit diagnostics. Do
+not substitute transpileModule for the checked runtime build.
 
-Build an evidence\-backed sequence for the reported transitions:
+Preserve the original logical rootDir/outDir and output paths. Redirect all
+physical compiler writes through an explicit writeFile callback into the new
+task staging tree. This retains the compiler’s logical source-map layout while
+preventing premature repository writes. Verify each emitted logical path is
+within the allowed configured output root and each staged physical path is
+inside TASK_ROOT. Handle writeByteOrderMark as the compiler requests; the
+BOM-free requirement applies to task JSON, not arbitrary alteration of compiler
+output. Preserve every emitted byte without post-processing.
 
-|State                           |Reported runTest.ts bytes|Meaning                                                         |
-|--------------------------------|------------------------:|----------------------------------------------------------------|
-|Authenticated immediate baseline|131123                   |Current contract repair before policy insertion                 |
-|Older comparator                |131713                   |CONTRACT_REPAIR_ROOT pre source, reportedly held by stale buffer|
-|Preserved damaged file          |131830                   |Older comparator plus the 117-byte insertion                    |
-|Intended final source           |131240                   |Authenticated immediate baseline plus the same insertion        |
+Use noEmitOnError=true. Disable incremental/build-info persistence in the
+task-owned invocation where compatible with the actual configuration; do not
+edit tsconfig.json. If composite/project references require a different build
+mechanism or persistent writes that this boundary cannot preserve, report
+the concrete coupling rather than changing semantics. Never fall back to
+default filesystem writes when a redirected write is rejected.
 
-1. Verify incident/runTest\.after\-buffer\-flush\.ts against the incident record\.
-   Remove only the exact insertion in memory and compare the remaining bytes
-   with the actual older CONTRACT\_REPAIR\_ROOT pre copy\. This establishes byte
-   correspondence; it does not by itself prove which editor/tool wrote them\.
-2. Inspect available original edit/save observations and tool results for the
-   claimed stale\-buffer mechanism and timing\. Distinguish direct observations,
-   retained records, implementer narrative and inference\. Do not reconstruct
-   unrecorded execution from a script merely because it could perform it\.
-3. Authenticate the recovery pre copy independently\. Verify the recovery
-   helper’s checks, exact insertion\-anchor cardinality and read\-back records\.
-   Confirm restoration did not use the older incident comparator or HEAD\.
-4. Verify the final source equals authenticated baseline plus the permitted
-   insertion and that earlier CONTRACT\_REPAIR01 changes are preserved\.
-5. Cross\-check preservation inputs at available incident/recovery checkpoints\.
-   State what supports the claimed one\-file blast radius and what is unknown\.
-   Endpoint equality alone does not prove a file was never temporarily changed\.
-6. Assess the evidence for no compiler/test/runner/Host execution during the
-   incident\. Do not promote absence of a later process to proof of an earlier
-   process history\. Lack of exhaustive historical telemetry is a stated limit,
-   not permission to invent either prohibited execution or its absence\.
-7. Assess the original brief’s narrow edit and pending\-editor\-state constraints
-   against actual actions, including whether task\-owned byte recovery is
-   evidenced and any workflow deviation remains\. Do not retroactively grant
-   permissions or describe the entire execution as mutation\-free\.
-8. Recheck live source at completion\. Record buffer state only to the extent
-   observable read\-only; do not resolve the editor condition in this review\.
+Retain compiler/helper identity, resolved options, actual input read-set,
+diagnostics, emitted-file inventory, stdout/stderr and real process status.
+Error diagnostics, emitSkipped, failed writes or missing required outputs
+prevent promotion. Empty logs alone are not proof of success. Preserve failed
+attempts; repair only task-owned build helpers when necessary, never repository
+source. No repeated successful build or extra test run is required.
 
-A verified final recovery can support source\-policy acceptance with a
-disclosed recovered incident\. It does not erase a process deviation or prove
-future editor safety\. If recovery, input identity, required preservation or
-observed stability is unresolved, explain the precise blocking gap\. Do not
-auto\-reject merely because a recovered incident occurred, and do not auto\-pass
-because report\.md says it was recovered\.
+Before promotion:
 
-## 7\. Evidence reliability and path reconciliation
+1. Verify the complete required staged set, its hashes and source associations.
+2. Parse/check source-map references against the unchanged logical destinations;
+do not relocate maps blindly or manually rewrite emitted code/maps.
+3. Inspect staged JavaScript as data to confirm both runner/producer imports
+resolve to the same required policy artifact and the compiled runner carries
+the current canonical membership. Do not require/import these modules.
+4. Recheck all build inputs against the captured compiler bytes, repository
+identity, locks/process arguments and planned destination pre-hashes.
+5. Record exact CREATE / REPLACE / IDENTICAL actions in promotion-plan.json.
 
-Verify the repair root’s creation mechanism using its actual receipt and
-retained invocation/output/tool status\. Separate evidence of a successful
-exclusive leaf creation from self\-authored success prose\. Assess the old
-nonexclusive\-root finding as historical; a new receipt cannot cure its method\.
+Promote only the frozen necessary set, copying the unchanged staged bytes to
+their exact logical destinations under ACTIVE_WORKTREE/out/. For each replaced
+file preserve and verify its exact pre-copy first; for absent destinations use
+exclusive creation. Validate containment/redirection for destination parents.
+Skip writes for byte-identical destinations. Verify each write by raw read-back
+hash and retain an ordered promotion journal.
 
-For every consumed original JSON record, record raw hash/bytes and strict
-parse status\. Keep BOMs, raw control characters and any invalid strings in
-the source file untouched\. The owner previously explained that literal
-newlines were temporarily inserted in some evidence for photographs\. Do not
-infer who caused a legacy parse failure or that it represents a source defect\.
+Do not clean stale files, regenerate unrelated output or use Git to restore
+anything. On source/destination drift, failed promotion or an unexpected write,
+stop further promotion and preserve the partial state with an exact journal.
+Do not label it complete or attempt an unrecorded cleanup/rollback.
 
-The same alternative identity anchors authorized by Appendix A remain allowed
-for this review: complete explicit hashes in the original saved review\.md,
-matching original post\-source bytes and corroborating retained source\-identity
-records/snapshots\. Record exactly which alternatives establish each identity\.
-Do not silently repair JSON, leniently parse it as though it were strict, or
-block solely on a legacy display edit when these anchors agree completely\.
+7. Establish provenance and produce the protected manifest
 
-Specifically verify the newly disclosed exceptions:
+For every required runtime output and every canonical protected artifact,
+record its final raw hash/bytes, originating source hash, compiler/configuration
+identity, staged hash and promoted hash or demonstrated byte-identical status.
+Confirm all 11 TypeScript-to-artifact relations against actual compiler inputs
+and outputs. Hash package.json as the unchanged direct protected input.
 
-- prior\-evidence\-integrity\.json reportedly flags unchanged:false for
-  requirement\-evidence\-matrix\.md because a helper used a 62\-character expected
-  hash\. Validate the invalid value, locate the earliest retained measured
-  identity and compare the actual matrix bytes/hash to that independent
-  observation and any original retained copy\. A matching value in a later
-  correction alone is circular and insufficient proof of preservation\.
-- Preserve and hash prior\-evidence\-integrity\-anchor\-correction\.json, the
-  reportedly BOM\-bearing original, and its separately named
-  prior\-evidence\-integrity\-anchor\-correction\.strict\.json\. Verify the latter
-  parses strictly and accurately describes the former comparison error\.
-  Report whether its claims are corroborated, contradicted or unresolved\.
-- Check for missing/broken artifact references by bounded enumeration\. A
-  differently named actual inventory may be used when its contents and identity
-  are verified; do not pretend that the report’s missing filename exists\.
+Report source-to-output provenance separately from the protected-files digest:
+a digest over files that happen to exist does not prove those files were built
+from the reviewed source. Do not bless stale artifacts by simply hashing them.
+Include required runtime dependencies outside the protected policy in the
+build provenance without silently adding them to the canonical policy.
 
-Recheck the exact path reconciliation without overwriting prior reports:
+Read the actual generateProtectedHashManifest, buildProtectedRecordsFromPolicy,
+buildSourceArtifactRelations, readProtectedHashManifest, digest routine and
+their call sites. Determine the real schema and whether a safe existing
+manifest-only entrypoint is available. Do not invent a command-line flag or
+environment variable based on a function name.
 
-- OLDER\_IMPLEMENTATION\_ROOT is the flat name containing
-  \-TEST02\-20260906…, not a TEST02 directory containing a timestamp child\.
-  It is reported present with 27 files\. Verify the corrected absence claim
-  using the saved original spelling and actual files\.
-- EARLIER\_REVIEW\_ROOT includes REVIEW02 and is reported present with six files\.
-  The previous review did not claim this root absent\. Verify those originals
-  against the six mapped retained copies; do not fabricate a second corrected
-  absence claim merely because a REVIEW\-without\-02 control path is absent\.
-- The earlier 126214\-byte reviewed source remains unavailable unless actual
-  authenticated matching bytes are supplied\. A recovered 136657\-byte pre copy
-  is not that source and cannot close historical preservation\.
+Route A — existing manifest-only entrypoint:
+Execution of that existing route is authorized only after static inspection
+establishes that all reachable top-level initialization/imports and the selected
+branch remain within this task’s read/write boundaries, that the route returns
+before the ordinary test/Host flow, and that it cannot launch/download a
+Host or write old/consumer evidence. Retain the exact branch and invocation
+proof before executing it. Direct its new manifest into TASK_ROOT using the
+existing supported mechanism. Do not patch the entrypoint, mock out launch,
+monkey-patch process/child_process, or rely on a hoped-for early error.
 
-Read bounded prior records relevant to these claims; do not search Local
-History, debug logs, unrelated locations or network storage\. Navigation files
-ETL\_LATEST\.md and ETL\_STATE\_REV3\.md remain UNKNOWN beyond their exact probed
-locations if unavailable\. Their absence does not expand this task or replace
-the explicit scope with guessed project state\.
+Validate the result through an equally bounded existing reader if available.
+Check actual file hashes, current canonical membership/order, derived source
+relations, counts and the existing digest algorithm. Record precisely which
+canonical code executed. No other runner/producer/launcher execution is allowed.
 
-## 8\. Preservation and review evidence
+Route B — no proven safe manifest-only entrypoint:
+Complete build-provenance.json and generate protected-manifest.candidate.json
+under TASK_ROOT from the canonical declarations/schema read as data and the
+actual built-file hashes. A task-owned data-only serializer/checker may compute
+the exact documented digest and relations; retain its source and source-symbol
+mapping. Label this artifact BUILD_CANDIDATE, with canonical runtime-reader
+acceptance NOT_EXECUTED. Do not claim it is runner-generated or runtime-validated.
+If required run-bound fields cannot legitimately be established in a build
+task, leave the candidate explicitly incomplete instead of fabricating them.
 
-Compare actual final source/output/configuration/preservation inputs with the
-repair’s independently authenticated pre records and originals\. Then capture
-review\-intake and completion identities for the relevant repository inputs
-and every prior evidence file consumed\. Use per\-file raw hashes for out/\*\*
-and existing configured build\-output/build\-info paths, not only aggregate
-file counts, total bytes or newest timestamps\. Preserve absent vs inaccessible\.
+Route B is an authorized useful fallback, not a second repository policy
+implementation and not closure of canonical manifest integration. Record the
+smallest remaining manifest-validation requirement for the next task. Do not
+execute the whole runner merely to avoid this limitation.
 
-An unchanged Git status alone cannot establish unchanged dirty or untracked
-file contents\. Verify the guard, discovery constants, focused suite, helper,
-helper tests, producer, other pre\-existing dirty files, configuration and old
-evidence\. Separate preservation across the implementation from preservation
-during this review\. Do not claim continuous no\-write history from equal hashes\.
+Neither route grants a future run freshness/authorization. Preserve any
+existing per-run isolation, dedicated-directory, nonce and manifest rules.
+The later Host task must create its own fresh run evidence and regenerate or
+consume a manifest exactly as the established contract permits. Do not create
+fake test results, success rows, authorization markers or run completion data.
 
-Write a compact, auditable new evidence set containing:
+8. Inspect the pinned VS Code 1.135.0 contract
 
-- creation\-receipt\.json and exact command/tool completion records;
-- review\-identities\.json with original expected anchors and measured identities;
-- review\-policy\-delta\.json and the independently derived task\-only diff;
-- review\-incident\.json with state correspondence, mechanism/recovery evidence,
-  scope assessment, buffer/stability observations and limitations;
-- review\-evidence\-assessment\.json covering parse/correction/creation/path claims;
-- review\-preservation\.json with per\-file comparisons and endpoint stability;
-- review\-result\.json and review\.md with findings, decision and next boundary\.
+Read EXPECTED_VSCODE_VERSION, executable resolution and installed
+@vscode/test-electron launcher code, including the effective local path inputs.
+Inspect only the named environment values used by that resolution; do not
+dump the whole environment or access credentials.
 
-Use additional immutable capture files only where needed for auditable raw
-observations\. Hash helpers and retained copies used in analysis\. Cite actual
-paths, symbols/locations and supporting evidence for conclusions\. Label a
-claim retained from the implementer distinctly from an independent observation\.
-Do not claim the entire historical evidence chain is authenticated merely
-because the files agree with their own embedded hashes\.
+Use bounded lookup of paths identified by the current code and retained
+evidence, plus the repository’s existing test-binary cache if present. Do not
+search all drives, download a distribution, install an extension or replace
+the user’s ordinary VS Code. An installed 1.136.1 build is not a substitute.
 
-## 9\. Decision and acceptance criteria
+For an actual local 1.135.0 candidate, record its canonical path, platform/
+architecture, package/product metadata, executable and relevant entrypoint
+hashes, and available local distribution provenance. A version label alone
+does not establish binary origin. Do not execute Code.exe, code.cmd, its CLI,
+test-electron, a launcher or an Extension Host in this task.
 
-Choose one actual overall result:
+Inspect the actual pinned build’s extension-test entrypoint and installed
+launcher’s settlement/exit handling. Verify the relevant static contract:
 
-- ACCEPTABLE\_FOR\_SOURCE\_POLICY\_GATE
-- ACCEPTABLE\_FOR\_SOURCE\_POLICY\_GATE\_WITH\_DISCLOSED\_RECOVERED\_INCIDENT
-- NOT\_ACCEPTABLE
-- BLOCKED\_<CONCRETE\_REASON\>
+• Completed focused result delivery can settle normally even when counted
+test failures exist; the parent still derives FAIL from trustworthy evidence.
+• Launcher rejection/abnormal Host termination remains a distinct infrastructure
+cause; the producer result does not suppress it.
+• The future focused run can select the exact pinned executable without a
+fallback to another installation or an automatic download.
 
-Source\-policy acceptance requires all of the following to be established:
-authenticated immediate baseline and intended target; exact authorized final
-policy/relation change; consistent canonical static consumption; preservation
-of adjacent source behavior and required inputs; verified recovery of the
-disclosed rollback; no unresolved live\-source drift; sufficiently reliable
-current evidence and supported path corrections\.
+Cite the exact local source/artifact and distinguish static inspection from
+runtime proof. Do not generalize the 1.136.1 implementation to the pinned build.
+If 1.135.0 is absent, inaccessible, uncorrelated or the contract cannot be
+verified, record that outcome and finish any independently completable build
+work. Do not change the version pin or relabel the result as ready for Host.
 
-Because an incident is reported, use the disclosed\-incident result if it is
-verified recovered and no blocking gap remains\. Keep process deviations and
-evidence defects visible even when they do not defeat final\-source correctness\.
-Do not assert clean process compliance when the evidence contradicts it\.
+9. Final verification, evidence and result
 
-For each finding state severity, exact evidence, practical consequence, whether
-it blocks THIS source\-policy gate or a later build/Host gate, and the smallest
-needed follow\-up\. Do not let a hypothetical later risk become an invented
-current defect\. Conversely, do not waive an unresolved incident or identity
-problem to advance the schedule\.
+Verify all source/configuration/dependency inputs and prior evidence consumed
+remain unchanged. Compare the complete before/after out/ inventories: every
+change must appear in the promotion journal; every non-promoted file must be
+byte-identical; no deletions or unexplained files are allowed. Build-info and
+other output roots remain unchanged. HEAD, branch, staging and existing source
+dirty inventory must be preserved; report any actual unexpected difference.
 
-Expected later limitations, without upgrades by this review:
+Keep a compact complete evidence set, with additional raw captures only as
+needed:
 
-- The compiled policy artifact is absent/unproven until an authorized build\.
-- The pinned VS Code 1\.135\.0 contract remains unverified; do not switch to
-  1\.136\.1 to bypass it\.
-- Historical reviewed\-baseline preservation remains NOT\_VERIFIED\.
-- This review does not rerun the earlier 15 unit cases or establish runner,
-  Host, product, full B3 acceptance or runtime qualification\.
+• report.md, baseline.json, post-state.json, creation-receipt.json;
+• review-anchor-resolution.json and immutable measured input copies;
+• build-plan.json, compiler helper, resolved options and input read-set;
+• raw command/tool results, diagnostics, emitted-file inventory and staged bytes;
+• promotion-plan.json, pre-output copies and ordered promotion journal;
+• build-provenance.json, before/after per-file output inventories;
+• protected manifest or explicitly labeled candidate and validation evidence;
+• pinned-host-inspection.json and preservation checks.
 
-## 10\. Final report and stop
+All measured hashes, counts and status fields must be populated from actual
+operations. Strictly parse new JSON after serialization. Preserve any failed
+artifact and write a separately named correction with machine-derived values.
+Do not manually transcribe hashes into summaries or hard-code process success.
 
-Include these fields with actual evidence\-based values:
+Use these report fields, with one actual result:
 
 ```text
-TASK_ID: ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01
-RESULT: <one result from section 9>
-REVIEWED_IMPLEMENTATION: ETL-0907-POLICY-COVERAGE-REPAIR01
-REVIEWED_ROOT: <literal repair root>
-IMMEDIATE_BASELINE_IDENTITY: <original anchors, raw SHA-256, bytes, EOL>
-FINAL_SOURCE_IDENTITY: <expected anchors and measured SHA-256, bytes, EOL>
-POLICY_DEPENDENCY_FINDING: CLOSED_STATICALLY | OPEN | UNRESOLVED
-CANONICAL_RELATION_AND_CONSUMERS: <independent static evidence>
-FINAL_TASK_ONLY_DIFF: <exact paths, bytes and numstats>
-INCIDENT_RECOVERY: VERIFIED | CONTRADICTED | UNRESOLVED
-INCIDENT_MECHANISM_EVIDENCE: <observed, retained, inferred and unknown>
-IMPLEMENTATION_PROCESS_COMPLIANCE: <specific assessment, including deviations>
-LIVE_SOURCE_STABILITY: <checkpoint results and limits>
-EDITOR_BUFFER_STATE: <read-only observation or UNKNOWN>
-EVIDENCE_CORRECTIONS: <independent assessment and remaining gaps>
-PATH_RECONCILIATION: <corroborated/corrected/unresolved claims>
-REPAIR_ROOT_EXCLUSIVITY: <supported/unsupported and evidence>
-REVIEW_ROOT_EXCLUSIVITY: <mechanism and actual tool completion evidence>
-IMPLEMENTATION_PRESERVATION: <verified scope and limitations>
-REPOSITORY_OR_PRIOR_EVIDENCE_CHANGED_BY_REVIEW: NO
-TYPECHECK_COMPILE_TEST_RUNNER_PRODUCER_OR_HOST_EXECUTED_BY_REVIEW: NO
-COMPILED_POLICY_ARTIFACT: <actual presence; provenance status>
-PINNED_VSCODE_1_135_0_CONTRACT: UNVERIFIED_IN_THIS_REVIEW
-HISTORICAL_REVIEWED_BASELINE_PRESERVATION: NOT_VERIFIED
-FULL_B3_OR_RUNTIME_QUALIFICATION_GRANTED: NO
-BLOCKING_FINDINGS_FOR_THIS_GATE: <exact IDs or NONE>
-LATER_GATE_BLOCKERS: <separately listed>
-NEXT_STEP_PROPOSED_ONLY: <minimum bounded next task; no execution permission>
-REPORT_PATH: <exact new review.md path>
-```
-
-If a prohibited action or unintended mutation actually occurs, report it
-truthfully instead of copying a NO field\. Preserve the observations and stop
-that operation; do not attempt a repository recovery in this read\-only task\.
-
-After completing the review, stop\. If accepted, describe the minimum next
-build/provenance and pinned\-Host preparation scope for separate authorization\.
-Do not build, execute the Host, repair findings, self\-authorize the next gate,
-or update any previous implementation/review/navigation document\.
-
-Give a short chat summary with the exact report path, decision, incident
-recovery assessment and remaining blockers\. No new test execution is expected
-or permitted in this source\-only review\.
-
----
-
-## Appendix A — Original repair contract, historical reference only
-
-The text below is the complete previously issued repair brief\. Review the
-implementation against it; do not execute its source\-editing instructions\.
-Current permissions are exclusively those in sections 1\-10 above\.
-
-<!-- BEGIN VERBATIM ORIGINAL REPAIR BRIEF -->
-
-TASK\_ID: ETL\-0907\-POLICY\-COVERAGE\-REPAIR01
-TYPE: BOUNDED SOURCE\-ONLY POLICY REPAIR AND EVIDENCE\-PATH RECONCILIATION
-
-Run this complete prompt in an ordinary LOCAL Windows VS Code Agent chat,
-in the active recovery worktree identified below\. Do not use the ETL
-Orchestrator\. Use one implementation Agent and one writer\. A later independent
-review must be performed by a different Agent\. Keep code, comments and all
-engineering evidence in English\.
-
-Echo the TASK\_ID as the first line of the final report\.
-
-## 1\. Owner authorization and intended result
-
-The owner authorizes this next bounded task:
-
-1. Correct the protected\-policy coverage of the b3OutcomePolicy runtime
-   dependency, including its canonical source/artifact relationship\.
-2. Reconcile the exact evidence paths that the last review reported absent\.
-3. Use a genuinely exclusive new evidence destination and retain its creation
-   result\. Preserve all previous reports and evidence unchanged\.
-
-The only repository file authorized for editing is:
-src/test/runTest\.ts
-
-Edits are limited to PROTECTED\_POLICY\_PATHS, the existing canonical
-source/artifact relation data and any directly associated declarative expected
-path/count data in that same file that must change for this one dependency\.
-Locate these declarations and all their consumers before editing\. Do not
-duplicate canonical declarations or introduce a second policy authority\.
-
-If the necessary canonical owner or a mandatory coupled change is outside
-src/test/runTest\.ts, report BLOCKED\_POLICY\_COUPLING with its exact path, symbol,
-reason and minimum proposed expansion\. Do not edit another file or leave an
-inconsistent partial policy change merely to satisfy the one\-file boundary\.
-
-The task may perform read\-only identity/status/hash/diff/source inspection and
-write new task evidence under the destination in section 4\. Existing local
-PowerShell/Node may be used for these operations and for small data\-only
-inspection scripts\. This does not authorize execution of project modules\.
-
-No type\-check, compiler, transpiler, test, runner, producer, launcher,
-Extension Host, parser, integration suite, formatter, linter, watcher,
-package script, install, download, packaging or release is authorized\.
-No repository build output, dependency/configuration change, new repository
-file, Git mutation command, process termination or lock deletion is authorized\.
-Do not use Keep/Undo/save/revert to resolve pre\-existing pending editor changes\.
-
-This is a source\-level policy repair\. Generating the actual compiled artifact,
-proving its build provenance and qualifying the pinned Host remain later gates\.
-The recommendation to regenerate a manifest/compiled artifact in the review
-does not grant those operations in this task\.
-
-## 2\. Governing inputs and exact locations
-
-Active worktree:
-C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
-
-Linked primary, identity only:
-C:\\repos\\etl\-extension\\etl\_fw2\\etl\_framework\_extension\_hf1\_v2
-
-Expected branch: fix/workspace\-write\-completion\-0\.3\.148
-Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-Expected staging: empty\.
-
-Read this brief completely, then the complete governing glossary at
-C:\\docs\\ETL\_QUALIFICATION\_GLOSSARY\.md or its actual governing repository copy
-docs/glossary/ETL\_QUALIFICATION\_GLOSSARY\.md\. Record the real path and raw hash\.
-Read the following original reports and relevant supporting files completely;
-screenshots are navigation aids, not source or hash substitutes\.
-
-LATEST\_REVIEW\_ROOT:
-C:\\docs\\ETL\-0907\-F5\-CONTRACT\-INDEPENDENT\-REVIEW01\\20260907T175437Z\-73509E6F\-9589\-44BB\-8A8F\-150986769864
-
-Read review\.md, review\-result\.json, review\-identities\.json,
-review\-input\-hashes\.json, source\-stability\.json and the requirement/evidence
-matrix, plus the authenticated diff and other records needed for this scope\.
-Use bounded enumeration inside the exact root to locate actual filenames\.
-
-CURRENT\_IMPLEMENTATION\_ROOT:
-C:\\docs\\ETL\-0907\-F5\-CONTRACT\-REPAIR01\\20260907T112539Z\-559ABD3C\-A873\-4D54\-8EF0\-BC72D38F2403
-
-Read report\.md, baseline\.json, post\-state\.json, task\.diff and relevant
-post\-source/pre copies and preservation inventories\. Read prior complete task
-briefs if retained/supplied to assess their claims; their former execution
-permissions do not apply to this task\.
-
-CORRECT\_EARLIER\_REVIEW\_ROOT:
-C:\\docs\\ETL\-0906\-F5\-INDEPENDENT\-REVIEW02\\20260907T101629Z\-0318A671\-32C9\-41EC\-AA32\-B4EF0BF16505
-
-CORRECT\_OLDER\_IMPLEMENTATION\_ROOT:
-C:\\docs\\ETL\-0906\-F5\-REPAIR\-TEST02\-20260906T193742Z\-11E99B37\-E240\-4D33\-931A\-3793C1E97409
-
-These are literal paths\. The older implementation root is one directory name
-containing ‘\-TEST02\-20260906…’; do not replace that hyphen with a directory
-separator\. The earlier review root ends in ‘INDEPENDENT\-REVIEW02’; do not drop
-‘02’\. Do not derive one evidence path by applying another task’s layout\.
-
-ETL\_LATEST\.md and ETL\_STATE\_REV3\.md were reported unavailable\. For this exact
-policy repair and path reconciliation, that reported absence is not a new
-permission to infer their contents or reconstruct project state\. Read them if
-supplied/found by bounded named\-file discovery; otherwise record broader
-state completeness UNKNOWN\. This explicit brief supplies the narrow new scope\.
-Stop and report any actual governing conflict beyond the authorized coverage
-expansion\. A missing complete glossary or ambiguous policy requirement must
-be reported rather than replaced with memory\.
-
-## 3\. Preflight, path reconciliation and immediate baseline
-
-Use git –no\-optional\-locks for reads\. Re\-derive worktree/common\-Git identity,
-branch, HEAD, empty staging and this exact complete dirty inventory:
-
-```text
- M .github/templates/request.md
- M src/core/sttm/SttmUnderstandingReportRenderer.ts
- M src/extension.ts
- M src/test/runTest.ts
- M src/test/suite/index.ts
-?? src/test/b3OutcomePolicy.ts
-?? src/test/b3OutcomePolicy.unit.test.ts
-?? src/test/suite/sttmRealHostStructuredResult.test.ts
-```
-
-Check applicable common/worktree index locks and actual process arguments for
-an active test/development Host or concurrent writer\. An ordinary editor and
-language server are not automatically prohibited Hosts\. Do not stop processes,
-remove locks or change pending editor state to make preflight pass\.
-
-Compare the literal correct evidence paths above with those actually retained
-in the last review\. Check both exact spellings where they differ; record the
-requested string, observed result and resolved path\. If a correct historical
-root exists, inspect the relevant original records there and explain exactly
-which earlier absence/preservation claims can now be corrected\. If it does
-not exist, report absence only at that exact path\. Do not search Local History,
-debug logs, unrelated directories or network storage for replacement evidence\.
-
-Do not overwrite the review’s files\. Prepare path\-reconciliation\.md in the
-new task root, retaining the earlier claims as history\. Finding an old folder
-does not by itself authenticate its contents or resolve the unavailable
-126214\-byte historical source\. Missing historical folders alone need not stop
-this repair if the immediate reviewed baseline is authenticated independently\.
-
-Read full expected source SHA\-256 values from the original latest review’s
-source records/full table, cross\-check the current implementation post\-state
-and post\-source copies, then compare live bytes\. These counts are cross\-checks:
-
-|File                                 |Bytes |CRLF|Bare LF|Bare CR|
-|-------------------------------------|-----:|---:|------:|------:|
-|src/test/runTest.ts                  |131123|0   |2968   |0      |
-|src/test/b3OutcomePolicy.ts          |35970 |809 |0      |0      |
-|src/test/b3OutcomePolicy.unit.test.ts|36595 |758 |0      |0      |
-|src/test/suite/index.ts              |10408 |246 |0      |0      |
-
-Authenticate preservation inputs too: the guard, discovery constants, focused
-suite, out\-of\-scope dirty files and configuration\. Do not transcribe hashes
-from photographs or promote newly observed hashes to expected pins\.
-
-If a previously photographed JSON file is malformed, record its parse failure
-and leave it untouched\. For this task, complete explicit hashes in the saved
-review\.md plus matching original post\-source bytes and another retained
-source\-identity record are allowed alternative anchors\. This permits a
-documented current baseline, not silent lenient parsing or retrospective
-repair of old evidence\. Stop if anchors disagree or exact identity is not
-established\. Do not stop solely because display edits made one old JSON
-unparseable when the required identities are established through this rule\.
-
-After section 4 establishes the fresh task root, and before any source edit,
-capture an exact immutable pre\\ copy of runTest\.ts and byte copies of
-preservation inputs, verify source/copy equality and retain full identities\.
-Recheck the target immediately before editing\. Use this
-131123\-byte reviewed source as the immediate baseline, not HEAD, Snapshot01,
-the earlier 131713/136657\-byte sources or the unavailable 126214\-byte source\.
-
-## 4\. Exclusive new evidence destination
-
-First validate C:\\docs and the planned destination against both worktrees,
-prior evidence/snapshots, profiles and consumer/protected paths\. Reject unsafe
-redirection/reparse points\. C:\\docs must already be a safe accessible parent\.
-
-Create exactly one fresh leaf with this literal layout:
-C:\\docs\\ETL\-0907\-POLICY\-COVERAGE\-REPAIR01\-<UTC-timestamp>\-<GUID>\\
-
-Use a create operation that fails if the leaf exists\. A preliminary existence
-check followed by Directory\.CreateDirectory is not sufficient\. Do not use
-recursive directory creation for the final leaf or accept an existing empty
-leaf\. On a conflict/failure, stop without choosing an alternate destination\.
-
-The following Node core operations are explicitly allowed after parent and
-containment validation\. Use the installed Node and invoke only a task\-owned
-inline helper; do not import or evaluate project code:
-
-```js
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
-const taskId = 'ETL-0907-POLICY-COVERAGE-REPAIR01';
-const utc = new Date().toISOString().replace(/[-:.]/g, '');
-const root = path.join('C:\\docs', `${taskId}-${utc}-${crypto.randomUUID()}`);
-fs.mkdirSync(root, { recursive: false }); // Existing leaf is an error.
-const receipt = {
-  taskId, root, createdAtUtc: new Date().toISOString(),
-  mechanism: 'fs.mkdirSync', recursive: false,
-  result: 'CREATED_BY_SUCCESSFUL_MKDIR', pid: process.pid
-};
-fs.writeFileSync(path.join(root, 'creation-receipt.json'),
-  JSON.stringify(receipt, null, 2) + '\n', { encoding: 'utf8', flag: 'wx' });
-process.stdout.write(JSON.stringify(receipt) + '\n');
-```
-
-Pass the JavaScript as literal input, for example through a single\-quoted
-PowerShell here\-string to Node stdin\. Preserve JavaScript backticks and dollar
-signs; do not embed it in an interpolating shell string\.
-
-Retain the exact invocation, returned output and actual execution\-tool status\.
-Do not hard\-code a successful tool exit into a later report\. If creation
-succeeds but receipt writing fails, preserve the partial directory and stop\.
-Use CreateNew / ‘wx’ semantics for all new evidence files and exclusive copy
-semantics for baseline copies\. Write final artifacts once; use distinct names
-for intermediate captures rather than overwriting them\.
-
-API reference: [Node\.js filesystem directory creation](https://nodejs.org/docs/latest-v20.x/api/fs.html#fsmkdirpath-options-callback)\.
-The helper illustrates leaf creation only; it does not replace the required
-parent, containment or redirection checks\.
-
-This fresh receipt proves only this task’s operation\. Do not relabel earlier
-nonexclusive creation as exclusive or claim that earlier evidence was corrupt
-merely because its exclusivity was unsupported\.
-
-## 5\. Exact repair requirements
-
-Read all of runTest\.ts, the policy module and producer, plus every canonical
-policy/relation declaration and relevant consumer\. Resolve both runtime import
-paths to the actual module using the existing compiler layout; do not copy a
-report’s shorthand import spelling into code\.
-
-The repaired canonical policy must cover:
-out/test/b3OutcomePolicy\.js
-
-Its source/artifact relationship must bind:
-src/test/b3OutcomePolicy\.ts \-\> out/test/b3OutcomePolicy\.js
-
-Use the existing representation and ownership model\. Add the compiled path
-exactly once\. Add or correct its relation exactly once\. If the established
-model also requires explicit protection of the matching TypeScript source,
-the corresponding src/test/b3OutcomePolicy\.ts entry is authorized within the
-same declarations\. Make no other membership expansion\.
-
-Preserve all existing protected entries and relations, their relative order
-and the canonical normalization convention\. Do not add a broad glob, protect
-an entire directory, remove another entry, add an exception, or weaken a
-missing\-file/hash check\. Do not protect the unit\-test artifact merely because
-it shares a basename prefix\.
-
-Trace how the protected manifest, counts, digest and final comparisons derive
-from the canonical policy\. Their future runtime values must include the new
-member consistently\. If values are derived, preserve that derivation\. If
-declarative expected membership/count data must change, change only the
-necessary data within runTest\.ts and explain the dependency\. Do not insert a
-fabricated hash, special\-case a comparison to pass, or rewrite algorithmic
-behavior to accommodate an absent artifact\.
-
-The compiled module is currently reported absent because repository emit was
-not authorized\. Verify that state read\-only\. Keep the policy entry even while
-it is absent: a later authorized build/provenance gate must establish the
-artifact before a qualified run\. Do not create a placeholder, compile just
-that file, copy previously emitted unit\-test JavaScript into out/, exclude it
-from the policy, or record missing as verified\.
-
-Do not change:
-
-- Focused delivery, protocol version/nonce, eligibility, retained observation,
-  abnormal\-exit attribution, cause keys/merge, verdict or exit logic\.
-- src/test/b3OutcomePolicy\.ts, its unit tests, src/test/suite/index\.ts,
-  the focused suite, guard or discovery patterns\.
-- M2 writers/destinations/reduced filename/dual\-error handling; M3 authorization
-  or stages; A3 schemas/post\-exit ordering; B4 environment handling\.
-- EXPECTED\_VSCODE\_VERSION, package/configuration/dependency files, build outputs,
-  historical evidence, navigation/reference documents or product code\.
-
-Preserve LF in runTest\.ts; no whole\-file formatting or line\-ending changes\.
-If the required policy correction cannot preserve these boundaries, stop with
-the concrete coupling rather than modifying adjacent accepted behavior\.
-
-## 6\. Static verification and evidence
-
-Perform data\-only/static checks appropriate to this declaration change:
-
-- Exact old/new membership set difference and duplicate check\.
-- Exact old/new source/artifact relation difference and coverage of both
-  runner and producer imports\.
-- Existing path/relation preservation and canonical path form\.
-- Every count/manifest/digest consumer’s source\-level dependency on the updated
-  canonical data, without executing that consumer\.
-- Task\-only diff against the new pre\\ copy, including normal,
-  whitespace\-ignored and CR\-at\-EOL\-ignored numstats\.
-
-Read TypeScript literals as data only; never evaluate runTest\.ts, its emitted
-JavaScript, the policy module or the producer to obtain the lists\. If a
-data\-only extraction cannot resolve an expression safely, inspect its source
-or report the limitation\. Do not introduce a test\-only policy implementation\.
-No new test is required for this declaration\-only task and none is authorized\.
-
-Capture per\-file hashes for out/\*\* and any existing configured output roots
-and build\-info before/after, along with configuration, preservation inputs
-and prior evidence actually read\. Prove that only runTest\.ts changed in the
-repository and that all old evidence consumed by this task stayed unchanged\.
-Record absent paths distinctly from empty directories and inaccessible paths\.
-
-Create policy\-coverage\.json containing observed before/after declaration data,
-the one dependency’s source/artifact mapping, the exact set/count deltas and
-source locations\. Label any planned manifest or count as STATIC\_DECLARATION\_DATA\.
-This artifact is not the runner’s generated runtime protected manifest\.
-Do not manufacture a file\-content digest when the compiled artifact is absent\.
-
-Save baseline\.json, post\-state\.json, task\.diff, path\-reconciliation\.md,
-policy\-coverage\.json, creation\-receipt\.json, supporting measurement records
-and report\.md under the new task root\. Serialize strict valid UTF\-8 JSON\.
-Use display wrapping for screenshots; do not insert literal newlines into
-JSON strings\. Preserve failed/partial evidence without cleanup or replacement\.
-
-## 7\. Completion and next gate
-
-Success requires authenticated immediate source identity, the exact policy and
-relation correction, consistent static consumption, preserved scope, reconciled
-path observations and retained exclusive\-creation evidence\. It does not require
-recovering missing historical folders, building the module or running tests\.
-
-Use the following final report fields, choosing one actual result:
-
-```text
-TASK_ID: ETL-0907-POLICY-COVERAGE-REPAIR01
-RESULT: IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW | BLOCKED_<REASON>
-FILES_CHANGED_BY_TASK: <exact repository paths>
-IMMEDIATE_BASELINE: <raw hash, bytes, EOL profile and original anchors>
-PROTECTED_POLICY_DELTA: <exact membership difference>
-SOURCE_ARTIFACT_RELATION: <exact mapping and canonical owner>
-COUNT_MANIFEST_DIGEST_CONSUMPTION: <static proof or coupling>
-COMPILED_POLICY_ARTIFACT: <observed presence; provenance remains unverified>
-CORRECT_EARLIER_REVIEW_PATH: <literal path and observed result>
-CORRECT_OLDER_IMPLEMENTATION_PATH: <literal path and observed result>
-PRIOR_REVIEW_PATH_CLAIMS: <corroborated/corrected/unknown with evidence>
-CURRENT_EVIDENCE_ROOT_CREATION: <mechanism and retained actual result>
+TASK_ID: ETL-0907-BUILD-PROVENANCE-PIN01
+RESULT: BUILD_AND_PROVENANCE_COMPLETE_AWAITING_HOST_AUTHORIZATION |
+        BUILD_COMPLETE_WITH_REMAINING_GATE_BLOCKERS |
+        BLOCKED_<CONCRETE_REASON> | INCOMPLETE_PARTIAL_PROMOTION
+SOURCE_POLICY_REVIEW: <actual report path, decision and corrected anchors>
+SOURCE_IDENTITY: <machine-derived identities and stability>
+COMPILER_AND_CONFIGURATION: <actual versions, hashes and options>
+BUILD: <exit status, error/warning counts, emit result and raw logs>
+REQUIRED_RUNTIME_SET: <exact list and closure evidence>
+OUTPUT_PROMOTION: <created/replaced/identical counts and exact journal>
+SOURCE_ARTIFACT_PROVENANCE: <verified relations and unresolved gaps>
+PROTECTED_POLICY: <observed membership, relation count and actual digest>
+PROTECTED_MANIFEST: <path, route A/B, schema/completeness/validation status>
+PINNED_VSCODE_1_135_0: <actual path/identity or precise unavailable state>
+PINNED_ENTRYPOINT_CONTRACT: VERIFIED_STATICALLY | UNRESOLVED | UNAVAILABLE
+REPOSITORY_SOURCE_CONFIG_OR_DEPENDENCY_CHANGED: NO
 PRIOR_EVIDENCE_CHANGED: NO
-PRESERVATION: <exact byte/static proofs and limitations>
-TYPECHECK_COMPILE_TEST_RUNNER_PRODUCER_OR_HOST_EXECUTED: NO
-REPOSITORY_COMPILED_OUTPUT_CHANGED: NO
-GIT_MUTATION_INSTALL_PACKAGE_OR_RELEASE_EXECUTED: NO
+OUT_OF_PLAN_OUTPUT_CHANGED: NO
+ORDINARY_RUNNER_FLOW_PRODUCER_LAUNCHER_OR_HOST_EXECUTED: NO
+MANIFEST_ONLY_ENTRYPOINT_EXECUTED: <exact permitted route or NO>
+TESTS_EXECUTED: 0
+GIT_MUTATION_INSTALL_DOWNLOAD_PACKAGE_OR_RELEASE_EXECUTED: NO
 HISTORICAL_REVIEWED_BASELINE_PRESERVATION: NOT_VERIFIED
-PINNED_VSCODE_1_135_0_CONTRACT: UNVERIFIED_IN_THIS_TASK
 FULL_B3_OR_RUNTIME_QUALIFICATION_GRANTED: NO
-NEXT_GATE: ETL-0907-POLICY-COVERAGE-INDEPENDENT-REVIEW01
-EVIDENCE_ROOT: <exact path or NOT_CREATED>
+REMAINING_GATE_BLOCKERS: <specific unresolved items or NONE>
+NEXT_STEP_PROPOSED_ONLY: <minimum remaining preparation or focused Host task>
+REPORT_PATH: <absolute path under this task root>
 ```
 
-The next independent reviewer must assess 
+The first result requires a checked successful build, complete required-output
+provenance/promotion, canonical manifest generation/validation evidence, pinned
+local identity/static contract, and preserved boundaries. A candidate-only
+manifest or unavailable/unverified pin belongs in the second result when the
+build itself is complete. Never conflate build success with successful tests.
+If an unexpected action occurred, replace the corresponding NO with the truth.
+
+Stop after delivering the result. The next separately authorized task must
+verify these records before its focused Host run; this prompt does not launch
+that run. Do not reopen accepted source repairs without a concrete new defect
+or add another round of successful unit tests merely to accumulate evidence.
+
+Give a short chat summary with the exact report path, build outcome, promoted
+file counts, manifest status, pinned-version status and remaining blockers.
+
+Technical references for the staging design
+
+These references explain compiler capabilities; they are not permission to
+install anything or override the project’s actual local compiler/configuration.
+
+• TypeScript Compiler API: Program, CompilerHost and redirected writeFile
+• TypeScript noEmitOnError
+• TypeScript sourceMap
