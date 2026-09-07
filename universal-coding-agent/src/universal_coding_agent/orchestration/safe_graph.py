@@ -67,6 +67,8 @@ class SafeGraphState(TypedDict, total=False):
     reviewer_validation_ref: str
     review_ref: str
     review_sha256: str
+    review_provenance_ref: str
+    review_provenance_sha256: str
     reviewer_verdict: str
     publish_approval_ref: str
     publish_approval_sha256: str
@@ -574,6 +576,7 @@ class SafeModeGraph:
     def run_tests(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
         try:
+            patch_sha256 = self._verified_evidence_patch(state, task)
             results = self.services.test_runner.run_profiles(
                 Path(state["sandbox_path"]),
                 task.policy,
@@ -584,6 +587,8 @@ class SafeModeGraph:
                 Path(state["sandbox_path"]),
                 tuple(item.path for item in task.manifest.allowed_changes),
             )
+            if self._verified_evidence_patch(state, task) != patch_sha256:
+                raise ValueError("trusted tests changed the canonical patch")
         except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
             return {
                 "status": TaskStatus.FAILED.value,
@@ -596,6 +601,10 @@ class SafeModeGraph:
                 "results": [item.model_dump(mode="json") for item in results],
                 "actual_changed_paths": list(actual_paths),
                 "scope_intact": in_scope,
+                "patch_sha256": patch_sha256,
+                "policy_sha256": hashlib.sha256(
+                    task.policy.model_dump_json().encode("utf-8")
+                ).hexdigest(),
             },
         )
         errors: list[str] = []
@@ -615,10 +624,23 @@ class SafeModeGraph:
 
     def review(self, state: SafeGraphState) -> dict[str, Any]:
         task = SafeTaskRequest.model_validate(state["task"])
+        try:
+            patch_sha256 = self._verified_evidence_patch(state, task)
+            tests_payload = self.services.artifacts.read_json_bounded_verified(
+                state["tests_ref"], expected_sha256=state["tests_sha256"],
+                max_bytes=16_000_000,
+            )
+            if tests_payload.get("patch_sha256") != patch_sha256:
+                raise ValueError("review input differs from tested patch")
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
+            return {"status": TaskStatus.BLOCKED.value,
+                    "safe_errors": ["reviewer:source_binding_failed"]}
         proposal = PatchProposal.model_validate(
             self.services.artifacts.read_json(state["patch_proposal_ref"])
         )
-        tests_payload = self.services.artifacts.read_json(state["tests_ref"])
+        if hashlib.sha256(proposal.unified_diff.encode("utf-8")).hexdigest() != patch_sha256:
+            return {"status": TaskStatus.BLOCKED.value,
+                    "safe_errors": ["reviewer:source_binding_failed"]}
         tests = tuple(
             TestExecutionResult.model_validate(item)
             for item in tests_payload.get("results", [])
@@ -670,6 +692,12 @@ class SafeModeGraph:
                 "events": [self._event("reviewer", f"failed safely: {exc.code}")],
             }
         review_result = structured.value
+        try:
+            if self._verified_evidence_patch(state, task) != patch_sha256:
+                raise ValueError("source changed during review")
+        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError):
+            return {"status": TaskStatus.BLOCKED.value,
+                    "safe_errors": ["reviewer:source_binding_failed"]}
         validation_ref = self.services.artifacts.write_json(
             f"tasks/{task.task_id}/safe-reviewer-model-validation.json",
             structured.diagnostics,
@@ -678,17 +706,63 @@ class SafeModeGraph:
             f"tasks/{task.task_id}/safe-review.json",
             review_result.model_dump(mode="json"),
         )
+        provenance = self.services.artifacts.write_json(
+            f"tasks/{task.task_id}/safe-review-provenance.json",
+            {
+                "schema_version": "1",
+                "task_id": task.task_id,
+                "thread_id": task.thread_id,
+                "base_sha": task.manifest.base_sha,
+                "scope_hash": task.manifest.canonical_hash(),
+                "patch_sha256": patch_sha256,
+                "tests_sha256": state["tests_sha256"],
+                "review_sha256": review_ref.sha256,
+                "reviewer_role": request.role,
+                "independent_context": request.role == "reviewer",
+                "reviewer_context_ref": context_ref.uri,
+                "reviewer_context_sha256": context_ref.sha256,
+                "reviewer_validation_ref": validation_ref.uri,
+                "reviewer_validation_sha256": validation_ref.sha256,
+            },
+        )
         return {
             "status": TaskStatus.REVIEWING.value,
             "reviewer_context_ref": context_ref.uri,
             "reviewer_validation_ref": validation_ref.uri,
             "review_ref": review_ref.uri,
             "review_sha256": review_ref.sha256,
+            "review_provenance_ref": provenance.uri,
+            "review_provenance_sha256": provenance.sha256,
             "reviewer_verdict": review_result.verdict.value,
             "events": [
                 self._event("reviewer", f"verdict {review_result.verdict.value}")
             ],
         }
+
+    def _verified_evidence_patch(self, state: SafeGraphState, task: SafeTaskRequest) -> str:
+        """Bind tests/review to exact retained bytes, including in-scope drift."""
+        proposal = PatchProposal.model_validate(
+            self.services.artifacts.read_json(state["patch_proposal_ref"])
+        )
+        edits = StructuredEditProposal.model_validate(
+            self.services.artifacts.read_json(state["edit_proposal_ref"])
+        )
+        observed = self.services.patch_engine.capture_worktree_proposal(
+            Path(state["sandbox_path"]), task.manifest, edits
+        )
+        # Canonical patches need exact UTF-8 bytes, including CRLF hunk content.
+        digest = hashlib.sha256(proposal.unified_diff.encode("utf-8")).hexdigest()
+        patch = self.services.artifacts.read_text_bounded_verified(
+            state["patch_ref"], expected_sha256=digest,
+            max_bytes=task.manifest.max_patch_bytes,
+        )
+        validation = self.services.patch_engine.validate_materialized(
+            Path(state["sandbox_path"]), task.manifest, observed
+        )
+        if (patch != proposal.unified_diff or observed.unified_diff != patch
+                or not validation.valid or validation.patch_sha256 != digest):
+            raise ValueError("canonical patch changed before evidence capture")
+        return digest
 
     def approve_publish(self, state: SafeGraphState) -> dict[str, Any]:
         """Bind an explicit operator decision to the exact retained Safe patch.
@@ -704,9 +778,12 @@ class SafeModeGraph:
         edit_proposal = StructuredEditProposal.model_validate(
             self.services.artifacts.read_json(state["edit_proposal_ref"])
         )
-        patch_text = self.services.artifacts.read_text(state["patch_ref"])
-        patch_sha256 = hashlib.sha256(patch_text.encode("utf-8")).hexdigest()
+        patch_sha256 = hashlib.sha256(proposal.unified_diff.encode("utf-8")).hexdigest()
         try:
+            patch_text = self.services.artifacts.read_text_bounded_verified(
+                state["patch_ref"], expected_sha256=self._verified_evidence_patch(state, task),
+                max_bytes=task.manifest.max_patch_bytes,
+            )
             materialized = self.services.patch_engine.capture_worktree_proposal(
                 Path(state["sandbox_path"]),
                 task.manifest,
@@ -937,6 +1014,8 @@ class SafeModeGraph:
             "reviewer_validation_ref": state.get("reviewer_validation_ref"),
             "review_ref": state.get("review_ref"),
             "review_sha256": state.get("review_sha256"),
+            "review_provenance_ref": state.get("review_provenance_ref"),
+            "review_provenance_sha256": state.get("review_provenance_sha256"),
             "reviewer_verdict": state.get("reviewer_verdict"),
             "publish_approval_required": task.require_publish_approval,
             "publish_approval_ref": state.get("publish_approval_ref"),

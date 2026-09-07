@@ -102,6 +102,52 @@ def _structured_payload(*, old_text: str, new_text: str) -> dict:
     }
 
 
+def test_safe_evidence_rejects_passing_test_that_changes_the_tested_patch(tmp_path):
+    source, base = _source(tmp_path)
+    task = _task(source, base, "safe-test-source-drift")
+    policy = SafeModePolicy(profiles=(TestProfile(
+        profile_id="python-check", argv=(sys.executable, "-c",
+            "from pathlib import Path; p = Path('app.py'); "
+            "assert '43' in p.read_text(); p.write_text(p.read_text().replace('43', '44'))")),))
+    task = task.model_copy(update={"policy": policy})
+    service = SafeAgentService.create(tmp_path / "state", FakeModelProvider(),
+                                       allow_local_sources=True)
+    try:
+        service.run(task)
+        result = service.resume(task.thread_id, True)
+        assert result["status"] == "blocked" and result["rolled_back"] is True
+        assert "tests:ValueError" in result["safe_errors"]
+        assert not result.get("review_provenance_ref")
+        assert (tmp_path / "state" / "sandboxes" / task.task_id / "repo" / "app.py").read_bytes() \
+            == (source / "app.py").read_bytes()
+    finally:
+        service.close()
+
+
+def test_safe_reviewer_checks_the_actual_test_bytes_before_model_invocation(tmp_path, monkeypatch):
+    source, base = _source(tmp_path)
+    task = _task(source, base, "safe-review-input-drift")
+    service = SafeAgentService.create(tmp_path / "state", FakeModelProvider(),
+                                       allow_local_sources=True)
+    original = service.artifacts.write_json
+
+    def tamper(name, payload):
+        reference = original(name, payload)
+        if name.endswith("/test-results.json"):
+            original(name, {**payload, "results": []})
+        return reference
+
+    monkeypatch.setattr(service.artifacts, "write_json", tamper)
+    try:
+        service.run(task)
+        result = service.resume(task.thread_id, True)
+        assert result["status"] == "blocked" and result["rolled_back"] is True
+        assert "reviewer:source_binding_failed" in result["safe_errors"]
+        assert not result.get("review_ref") and not result.get("review_provenance_ref")
+    finally:
+        service.close()
+
+
 def test_safe_graph_requires_approval_and_retains_only_passing_change(tmp_path: Path) -> None:
     source, base_sha = _source(tmp_path)
     state_root = tmp_path / "state"

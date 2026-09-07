@@ -4,6 +4,10 @@ from importlib import import_module
 from typing import Any
 
 _EXPORTS = {
+    "ProgramSourceAcceptanceService": (
+        "universal_coding_agent.product.program_source_acceptance",
+        "ProgramSourceAcceptanceService",
+    ),
     "RepositoryCallGraphService": (
         "universal_coding_agent.product.call_graphs",
         "RepositoryCallGraphService",
