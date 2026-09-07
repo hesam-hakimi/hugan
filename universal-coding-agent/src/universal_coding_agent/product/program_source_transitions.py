@@ -28,9 +28,9 @@ def _digest(value: object) -> None:
              "invalid SHA-256 identity")
 
 
-def _identifier(value: object) -> None:
-    _require(isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{1,127}",
-                                                  value) is not None,
+def _identifier(value: object, *, minimum: int = 3, maximum: int = 128) -> None:
+    _require(isinstance(value, str) and minimum <= len(value) <= maximum
+             and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value) is not None,
              "invalid execution identity")
 
 
@@ -168,10 +168,11 @@ class ProgramSourceTransition:
     def __post_init__(self) -> None:
         for value in (self.before_sha256, self.after_sha256, self.policy_sha256):
             _digest(value)
-        for value in (self.phase_id, self.task_id):
-            _identifier(value)
+        _identifier(self.phase_id, minimum=2, maximum=64)
+        _identifier(self.task_id)
         if self.slice_id is not None:
-            _identifier(self.slice_id)
+            _require(isinstance(self.slice_id, str) and 1 <= len(self.slice_id) <= 64,
+                     "invalid slice identity")
         _ordered(self.allowed_paths)
         for path in self.allowed_paths:
             _path(path)

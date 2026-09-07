@@ -30,6 +30,12 @@ those side effects or attestations is invented by this foundation.
 
 `ProgramSourceIdentity` binds the program ID, an opaque repository identity SHA-256,
 requirement and Program-plan SHA-256 values, and the original immutable Git Base and tree.
+Program/task IDs preserve the existing 3–128 character identifier contract; Product phase
+IDs preserve its 2–64 character contract. Optional slice IDs remain opaque strings of 1–64
+characters, matching `SlicePlan` and `ProgramExecutionBinding`, not filesystem paths.
+Constructor and serialized-load boundary tests are paired with complete-checkout comparisons
+against the actual Product binding model to catch future contract drift.
+
 The trusted host supplies and verifies these identities. This service does not contact Git
 or prove that supplied initial bytes match a live repository. Original Git anchors remain
 unchanged when the cumulative file table advances.

@@ -373,3 +373,83 @@ def test_product_lazy_export_exposes_the_same_pure_service():
     from universal_coding_agent.product import ProgramSourceTransitionService as PublicService
 
     assert PublicService is ProgramSourceTransitionService
+
+
+_IDENTIFIER_CASES = [
+    ("program_id", "ab", False), ("program_id", "abc", True),
+    ("program_id", "a" * 128, True), ("program_id", "a" * 129, False),
+    ("program_id", "-abc", False), ("program_id", "A_b.c-7", True),
+    ("task_id", "ab", False), ("task_id", "abc", True),
+    ("task_id", "a" * 128, True), ("task_id", "a" * 129, False),
+    ("task_id", "-abc", False), ("task_id", "A_b.c-7", True),
+    ("phase_id", "a", False), ("phase_id", "ab", True),
+    ("phase_id", "a" * 64, True), ("phase_id", "a" * 65, False),
+    ("phase_id", "-abc", False), ("phase_id", "A_b.c-7", True),
+    ("slice_id", None, True), ("slice_id", "", False),
+    ("slice_id", "a", True), ("slice_id", "a" * 64, True),
+    ("slice_id", "a" * 65, False), ("slice_id", "opaque label", True),
+    ("slice_id", "\u03b1", True), ("slice_id", "-x", True),
+]
+
+
+def _source_accepts_identifier(field, value):
+    service = ProgramSourceTransitionService()
+    before = _snapshot()
+    plan = _prepare(service, before)
+    try:
+        if field == "program_id":
+            changed = replace(before, identity=replace(before.identity, program_id=value))
+            loaded = service.load_snapshot(service.snapshot_bytes(changed),
+                                           expected_sha256=service.snapshot_hash(changed))
+        else:
+            changed = replace(plan, **{field: value})
+            loaded = service.load_transition(service.transition_bytes(changed),
+                                             expected_sha256=service.transition_hash(changed))
+    except ProgramSourceError:
+        return False
+    assert loaded == changed
+    return True
+
+
+@pytest.mark.parametrize("field,value,accepted", _IDENTIFIER_CASES)
+def test_role_specific_identifiers_match_boundary_contract(field, value, accepted):
+    assert _source_accepts_identifier(field, value) is accepted
+
+
+@pytest.mark.parametrize("field,value,accepted", _IDENTIFIER_CASES)
+def test_serialized_identifier_bounds_cannot_bypass_constructors(field, value, accepted):
+    service = ProgramSourceTransitionService()
+    before = _snapshot()
+    if field == "program_id":
+        data = json.loads(service.snapshot_bytes(before))
+        data["identity"][field] = value
+        loader = service.load_snapshot
+    else:
+        data = json.loads(service.transition_bytes(_prepare(service, before)))
+        data[field] = value
+        loader = service.load_transition
+    payload = _encoded(data)
+    digest = hashlib.sha256(payload).hexdigest()
+    if accepted:
+        loader(payload, expected_sha256=digest)
+    else:
+        with pytest.raises(ProgramSourceError):
+            loader(payload, expected_sha256=digest)
+
+
+@pytest.mark.parametrize("field,value,accepted", _IDENTIFIER_CASES)
+def test_existing_program_binding_identifier_compatibility(field, value, accepted):
+    # This contract test must run against the actual complete-checkout Product model.
+    from universal_coding_agent.product.models import ProgramExecutionBinding
+
+    payload = dict(program_id="program-alpha", task_id="task-alpha", phase_id="phase-alpha",
+                   slice_id=None, thread_id="thread-alpha", requirement_hash="a" * 64,
+                   status="starting")
+    payload[field] = value
+    try:
+        ProgramExecutionBinding(**payload)
+        existing_accepted = True
+    except ValueError:
+        existing_accepted = False
+    assert existing_accepted is accepted
+    assert _source_accepts_identifier(field, value) is existing_accepted
