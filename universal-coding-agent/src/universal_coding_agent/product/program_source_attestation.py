@@ -343,10 +343,11 @@ class ProgramGitSourceAttestationService:
             "GIT_TERMINAL_PROMPT": "0", "GIT_CONFIG_NOSYSTEM": "1",
             "GIT_CONFIG_SYSTEM": os.devnull, "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_NO_REPLACE_OBJECTS": "1", "GIT_NO_LAZY_FETCH": "1",
-            "GIT_OPTIONAL_LOCKS": "0",
+            "GIT_OPTIONAL_LOCKS": "0", "GIT_ALLOW_PROTOCOL": "",
         }
         command = [
-            "git", "--no-replace-objects", "-c", f"core.hooksPath={os.devnull}",
+            "git", "--no-replace-objects", "--no-lazy-fetch",
+            "-c", f"core.hooksPath={os.devnull}",
             "-c", "credential.helper=", "-c", "credential.interactive=never",
             "-c", "protocol.allow=never", "-c", "protocol.ext.allow=never",
             "-c", "core.fsmonitor=false", "-c", "diff.external=",

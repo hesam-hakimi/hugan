@@ -60,6 +60,13 @@ disables replacement objects, lazy fetching, optional locks, prompting, hooks,
 credentials, external protocols, fsmonitor and external diff behavior for its
 fixed operations. It does not invoke repository text as shell code.
 
+Every command requires the global `--no-lazy-fetch` capability; an unsupported
+Git fails on its first command before source traversal. The environment variable
+alone is insufficient on older Git versions. `GIT_ALLOW_PROTOCOL=''` rejects
+all transports even when repository `protocol.<name>.allow` overrides the
+default `protocol.allow=never`. Both boundaries are required for partial clones
+with missing promisor objects.
+
 Git LFS pointers are unsupported. Current and legacy pointer candidates, plus
 conservative malformed/BOM/whitespace variants, are rejected from a bounded
 4,096-byte prefix. A `version` candidate naming git-lfs, hawser or git-media,
@@ -140,3 +147,22 @@ independent acceptance. Exact Base/head/tree, changed-file evidence, current
 CI/Live outcomes and review dispositions are recorded in the publishing PR
 and maintained continuation references. Overlapping suite counts are not
 added together as unique coverage.
+
+Initial CI423 exposed a race in the new descendant-termination fixture: Python
+3.11 observed `/proc` state `R` immediately after the adapter sent SIGKILL.
+Signal generation is not synchronous process reaping. The fixture now requires
+actual termination within a fixed observation interval through the EOF of an
+exclusively child-held liveness pipe, and includes a mutation control suppressing
+group signaling, which must observe the still-live child. This also avoids
+false success when the host's `/proc` mount uses a different PID namespace.
+It also cleans up that deliberately surviving owned fixture. No production
+deadline, termination action, workflow or acceptance assertion was weakened.
+The failed initial head remains historical evidence; a source repair requires
+normal qualification of its new head rather than retrying until green.
+
+The independent reviewer also identified a blocking initial lazy-fetch gap:
+older Git versions ignore the environment-only lazy-fetch switch, and per-
+protocol repository configuration can override a default protocol policy. The
+explicit capability and deny-all transport environment above repair that gap.
+The qualification suite must prove missing-promisor rejection without source
+or transport side effects and unsupported-capability rejection before reads.

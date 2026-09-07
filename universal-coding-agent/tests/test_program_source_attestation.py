@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import selectors
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -434,25 +436,130 @@ if sys.argv[-1] == '--batch-check':
         service(root).attest(identity)
 
 
+def wait_for_fixture_exit(liveness_reader: int, timeout: float) -> bool:
+    # The fixture's child exclusively holds this pipe open for its entire sleep.
+    # EOF observes exit without assuming synchronous signals or a matching /proc namespace.
+    with selectors.DefaultSelector() as selector:
+        selector.register(liveness_reader, selectors.EVENT_READ)
+        if not selector.select(timeout):
+            return False
+        assert os.read(liveness_reader, 1) == b""
+        return True
+
+
+@pytest.mark.parametrize("suppress_group_signal", [False, True])
 def test_deadline_terminates_an_owned_descendant_after_its_parent_exits(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, suppress_group_signal: bool,
 ) -> None:
     root = repository(tmp_path / "repo")
     identity = simple(root)
     marker = tmp_path / "descendant-pid"
+    liveness = tmp_path / "liveness"
+    os.mkfifo(liveness, 0o600)
+    reader = os.open(liveness, os.O_RDONLY | os.O_NONBLOCK)
     wrapper(tmp_path, monkeypatch, f"""
 pid = os.fork()
 if pid:
     sys.exit(0)
+writer = open({str(liveness)!r}, 'wb', buffering=0)
 with open({str(marker)!r}, 'w') as output:
     output.write(str(os.getpid()))
 time.sleep(30)
 """)
-    with pytest.raises(ProgramSourceError, match="deadline"):
-        service(root, git_policy=ProgramGitSourcePolicy(git_timeout_seconds=1)).attest(identity)
+    with monkeypatch.context() as control:
+        if suppress_group_signal:
+            control.setattr(attestation_module.os, "killpg", lambda _pid, _sig: None)
+        with pytest.raises(ProgramSourceError, match="deadline"):
+            service(root, git_policy=ProgramGitSourcePolicy(git_timeout_seconds=1)).attest(identity)
     pid = int(marker.read_text())
-    # A killed orphan can remain a zombie until the host init process reaps it.
-    # Either absence or zombie state proves that it cannot continue executing.
-    status = Path(f"/proc/{pid}/stat")
-    if status.exists():
-        assert status.read_text().split()[2] == "Z"
+    # Signal delivery and orphan reaping are asynchronous. Keep the termination
+    # assertion, allowing only a bounded observation interval after the deadline.
+    # The mutation control proves that a still-running child is never accepted.
+    terminated = wait_for_fixture_exit(reader, 0.05 if suppress_group_signal else 1)
+    try:
+        assert terminated is not suppress_group_signal
+    finally:
+        if not terminated:
+            os.kill(pid, signal.SIGKILL)
+            assert wait_for_fixture_exit(reader, 1)
+        os.close(reader)
+
+
+@pytest.mark.parametrize("transport", ["file", "ssh-command"])
+def test_missing_promisor_blob_cannot_fetch_execute_transport_or_change_source(
+    tmp_path: Path, transport: str,
+) -> None:
+    origin = repository(tmp_path / "origin")
+    identity = simple(origin, b"canonical payload missing from the partial clone")
+    missing = blob(origin, b"canonical payload missing from the partial clone")
+    root = tmp_path / "partial"
+    git(origin, "clone", "--no-checkout", "--no-hardlinks", str(origin), str(root))
+    git(root, "config", "remote.origin.promisor", "true")
+    git(root, "config", "remote.origin.partialclonefilter", "blob:none")
+    git(root, "config", "protocol.file.allow", "always")
+    git(root, "config", "protocol.ssh.allow", "always")
+    transport_marker = tmp_path / "transport-executed"
+    if transport == "ssh-command":
+        command = tmp_path / "fixture-ssh"
+        command.write_text(f"#!{sys.executable}\nfrom pathlib import Path\n"
+                           f"Path({str(transport_marker)!r}).write_text('executed')\n"
+                           "raise SystemExit(97)\n")
+        command.chmod(0o755)
+        git(root, "config", "core.sshCommand", str(command))
+        git(root, "remote", "set-url", "origin", "ssh://fixture.invalid/source")
+    missing_path = root / ".git/objects" / missing[:2] / missing[2:]
+    assert missing_path.is_file()
+    missing_path.unlink()
+    before = source_state(root), source_state(origin)
+    with pytest.raises(ProgramSourceError, match="missing or wrong-type"):
+        service(root).attest(identity)
+    assert not missing_path.exists()
+    assert not transport_marker.exists()
+    assert (source_state(root), source_state(origin)) == before
+
+
+def test_unsupported_no_lazy_fetch_capability_rejects_on_first_command(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = repository(tmp_path / "repo")
+    identity = simple(root)
+    commands = tmp_path / "commands"
+    wrapper(tmp_path, monkeypatch, f"""
+with open({str(commands)!r}, 'a') as output:
+    output.write(repr(sys.argv[1:]) + '\\n')
+if '--no-lazy-fetch' in sys.argv:
+    sys.stderr.write('unknown option: --no-lazy-fetch\\n')
+    sys.exit(129)
+""")
+    before = source_state(root)
+    with pytest.raises(ProgramSourceError, match="Git source read failed"):
+        service(root).attest(identity)
+    observed = commands.read_text().splitlines()
+    assert len(observed) == 1
+    assert "--no-lazy-fetch" in observed[0] and "cat-file" not in observed[0]
+    assert source_state(root) == before
+
+
+def test_transport_allowlist_overrides_repository_protocol_allow_configuration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = repository(tmp_path / "repo")
+    identity = simple(root)
+    origin = repository(tmp_path / "origin")
+    simple(origin)
+    git(root, "config", "protocol.file.allow", "always")
+    proof = tmp_path / "transport-denied"
+    # The fixture explicitly attempts a read-only local transport in the adapter's
+    # actual child environment; per-protocol allow=always must still be denied.
+    wrapper(tmp_path, monkeypatch, f"""
+assert os.environ.get('GIT_ALLOW_PROTOCOL') == ''
+attempt = subprocess.run([{REAL_GIT!r}, '-C', {str(root)!r}, 'ls-remote', {str(origin)!r}],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+assert attempt.returncode != 0 and b'transport' in attempt.stderr
+with open({str(proof)!r}, 'w') as output:
+    output.write('denied')
+""")
+    before = source_state(root), source_state(origin)
+    assert service(root).attest(identity).snapshot.files[0].content == b"value = 42\r\n"
+    assert proof.read_text() == "denied"
+    assert (source_state(root), source_state(origin)) == before
