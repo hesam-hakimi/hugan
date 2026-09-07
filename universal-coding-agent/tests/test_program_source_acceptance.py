@@ -85,7 +85,7 @@ def executed(tmp_path, monkeypatch, request):
     monkeypatch.setenv("UCA_SAFE_EDIT_PROTOCOL", options.get("protocol", "v1"))
     source = tmp_path / "source"
     source.mkdir()
-    _git(source, "init", "-b", "fixture")
+    _git(source, "init", "-b", "fixture", "--object-format=" + options.get("object_format", "sha1"))
     _git(source, "config", "user.email", "fixture@example.test")
     _git(source, "config", "user.name", "Fixture")
     (source / "app.py").write_bytes(options.get("source", b"def answer():\n    return 42\n"))

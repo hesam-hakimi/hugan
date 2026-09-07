@@ -1,8 +1,10 @@
 # P3.5b-3 owned source materialization contract
 
-Implementation candidate based on actual PR22 merge
-`cd08bf64832dd4cc8c66bd267cb6abf245a325e9`. Qualification and independent acceptance
-must be recorded against the final published source, not inferred from PR22.
+Implemented on actual PR22 merge `cd08bf64832dd4cc8c66bd267cb6abf245a325e9`.
+PR23 integrated this contract at `2da3d9f8a9376233c968ec539fc7fee260a1d8b2`,
+tree `325f8160cf85b7ceafcc23dc8a17d47a57202986`, on 2026-09-07T17:32:18Z.
+CI428 / Live179 attempt1 and the separate independent correctness/security PASS
+qualified that exact tree. See ../reviews/PR23_INDEPENDENT_REVIEW_2026-09-07.md.
 
 ## Authority and API
 
@@ -131,5 +133,12 @@ completion update before commit and completion commit. Fresh processes read only
 before explicit owner-bound reconciliation. Negative fixtures cover authority,
 root/parent/link substitutions, byte/mode/inode drift, missing/extra entries,
 write/ENOSPC/fsync/database failures, concurrent SQLite connections and resource
-bounds. Hosted current-source qualification and a separate independent report
-remain required before integration.
+bounds. Current-source CI428 passed 1147 tests on each Python 3.11/3.13 and all
+five Py3.11 smoke groups; five duplicate Py3.13 groups were intentionally skipped.
+Live179 passed 201 deterministic tests and all six actual outcomes plus final
+enforcement. These counts overlap. All jobs checked out preview
+`11eedb7d095a957e0e913dceaa8e4cc1a8dadb4e`, with the exact integrated tree and
+ordered parents target then head. The preview is not the actual merge or head.
+The separate agent report completed PASS at 2026-09-07T17:26:09Z; it is not a
+human GitHub APPROVE. The six Live179 artifact ZIPs were not independently
+downloaded or rehashed. Source-aware Program dispatch remains unimplemented.

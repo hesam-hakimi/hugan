@@ -1,8 +1,12 @@
 # P3.5b-3 — Owned source materialization and explicit recovery
 
 Task ID: UCA-20260907-P35B3-OWNED-MATERIALIZATION
-Status: owned source materialization and explicit recovery implementation candidate.
-Current-source hosted qualification and separate independent acceptance are pending.
+Status: implemented, independently accepted and integrated through PR23.
+Actual merge: 2da3d9f8a9376233c968ec539fc7fee260a1d8b2 at 2026-09-07T17:32:18Z.
+CI428 / Live179 attempt1 qualified tree 325f8160cf85b7ceafcc23dc8a17d47a57202986.
+The exact independent PASS report is ../reviews/PR23_INDEPENDENT_REVIEW_2026-09-07.md.
+The requirements below preserve the original task; the later contract freezes
+the actual state names, no-deletion abandonment and source-directory boundary.
 The implemented contract is recorded in P3_5B3_OWNED_MATERIALIZATION_CONTRACT.md.
 
 ## Verified starting source

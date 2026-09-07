@@ -50,6 +50,8 @@ def _stamp(info):
 
 
 class OwnedSourceTree:
+    content_directory = "source"
+
     def __init__(self, root: Path, policy: OwnedSourcePolicy):
         _require(os.name == "posix" and hasattr(os, "O_NOFOLLOW")
                  and hasattr(os, "O_DIRECTORY") and os.open in os.supports_dir_fd
@@ -184,8 +186,8 @@ class OwnedSourceTree:
         os.mkdir(name, 0o700, dir_fd=root_fd)
         with self.directory(root_fd, name) as operation:
             self._write_new(operation, ".uca-owner.json", marker, 0o600, deadline)
-            os.mkdir("source", 0o700, dir_fd=operation)
-            with self.directory(operation, "source") as source:
+            os.mkdir(self.content_directory, 0o700, dir_fd=operation)
+            with self.directory(operation, self.content_directory) as source:
                 os.fsync(source)
                 allocation = {"operation": _identity(os.fstat(operation)),
                               "source": _identity(os.fstat(source))}
@@ -247,16 +249,16 @@ class OwnedSourceTree:
     def inspect(self, root_fd, name, marker, allocation, tree, deadline, *, fill=False):
         """No existing bytes are overwritten, including during explicit recovery."""
         with self.directory(root_fd, name, allocation["operation"]) as operation:
-            self._names(operation, {".uca-owner.json", "source"}, complete=True)
+            self._names(operation, {".uca-owner.json", self.content_directory}, complete=True)
             owner = self._read_exact(operation, ".uca-owner.json", marker, 0o600, deadline)
-            with self.directory(operation, "source", allocation["source"]) as source:
+            with self.directory(operation, self.content_directory, allocation["source"]) as source:
                 if fill:
                     self._walk(source, tree, deadline, fill=True)
                     os.fsync(source)
                     os.fsync(operation)
                     os.fsync(root_fd)
                 proof = self._proof(source, tree, deadline)
-            self._names(operation, {".uca-owner.json", "source"}, complete=True)
+            self._names(operation, {".uca-owner.json", self.content_directory}, complete=True)
             _require(owner == self._read_exact(operation, ".uca-owner.json", marker,
                                                0o600, deadline), "ownership marker changed")
             raw = _canonical({"owner": owner, "entries": proof,
