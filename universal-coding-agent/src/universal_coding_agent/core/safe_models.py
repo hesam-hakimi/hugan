@@ -166,7 +166,7 @@ class SafeContextEvidence(FrozenSafeModel):
     """Bounded, integrity-checked, read-only context accepted by the control plane."""
 
     context_type: Literal[
-        "accepted_phase_evidence", "accepted_phase_handoff"
+        "accepted_phase_evidence", "accepted_phase_handoff", "accepted_source_lineage_v2"
     ] = "accepted_phase_evidence"
     source_ref: str = Field(pattern=r"^artifact://[a-zA-Z0-9._/-]+$")
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")

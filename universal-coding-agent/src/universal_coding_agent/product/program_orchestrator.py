@@ -453,6 +453,14 @@ class ProgramOrchestrator:
         """Resume one bound Safe thread after an explicit human scope decision."""
 
         with self._lock:
+            table = self.connection.execute(
+                "SELECT 1 FROM sqlite_schema WHERE type = 'table' "
+                "AND name = 'program_source_dispatches'"
+            ).fetchone()
+            if table is not None and self.connection.execute(
+                "SELECT 1 FROM program_source_dispatches WHERE task_id = ?", (task_id,)
+            ).fetchone():
+                raise ProgramExecutionError("source-aware execution requires the explicit v2 API")
             self._require_execution_ready(program_id, current_requirement_hash)
             binding = self.execution_binding(task_id)
             if binding.program_id != program_id:

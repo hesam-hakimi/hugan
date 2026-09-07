@@ -128,6 +128,9 @@ class TaskControlService:
             )
             """
         )
+        self.connection.execute("""CREATE TABLE IF NOT EXISTS uca_source_dispatch_tasks (
+            task_id TEXT PRIMARY KEY, thread_id TEXT NOT NULL UNIQUE,
+            admission_sha256 TEXT NOT NULL, host_sha256 TEXT NOT NULL)""")
         self._ensure_cancellation_report_columns()
         self.connection.commit()
 

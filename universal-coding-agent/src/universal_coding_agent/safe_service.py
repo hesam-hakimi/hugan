@@ -47,6 +47,7 @@ class SafeAgentService:
     remote_operations: SqliteRemoteOperationLeaseStore
     owns_control: bool = False
     owns_remote_operations: bool = False
+    execution_adapter: Any = None
 
     @classmethod
     def create(
@@ -58,6 +59,7 @@ class SafeAgentService:
         control: TaskControlService | None = None,
         remote_operations: SqliteRemoteOperationLeaseStore | None = None,
         test_runner: SafeTestRunner | None = None,
+        execution_adapter: Any = None,
     ) -> SafeAgentService:
         state_root = state_root.resolve()
         os.environ.setdefault("LANGGRAPH_STRICT_MSGPACK", "true")
@@ -105,6 +107,11 @@ class SafeAgentService:
             test_runner=selected_test_runner,
             cancellation=control_service.cancellation,
         )
+        if execution_adapter is not None:
+            from universal_coding_agent.product.program_source_dispatch import AdmittedSafeExecution
+            if type(execution_adapter) is not AdmittedSafeExecution:
+                raise ValueError("Safe execution requires a stored v2 admission adapter")
+            services = execution_adapter.bind_services(services, state_root, protocol)
         connection = sqlite3.connect(
             state_root / "safe-checkpoints.sqlite",
             check_same_thread=False,
@@ -120,6 +127,7 @@ class SafeAgentService:
             remote_operations=remote_operation_store,
             owns_control=owns_control,
             owns_remote_operations=owns_remote_operations,
+            execution_adapter=execution_adapter,
         )
 
     def close(self) -> None:
@@ -130,11 +138,22 @@ class SafeAgentService:
             self.remote_operations.close()
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
+        self._execution_gate(task.thread_id, task.task_id)
         self.control.ensure_task(task.task_id)
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
+    def _execution_gate(self, thread_id: str, task_id: str | None = None) -> None:
+        with self.control._lock:
+            row = self.control.connection.execute("""SELECT task_id FROM uca_source_dispatch_tasks
+                WHERE thread_id = ? OR task_id = ?""", (thread_id, task_id or "")).fetchone()
+        if row is not None or self.execution_adapter is not None:
+            if self.execution_adapter is None:
+                raise ValueError("source-aware task requires explicit v2 execution API")
+            self.execution_adapter.entry(thread_id, task_id)
+
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
+        self._execution_gate(thread_id)
         config = {"configurable": {"thread_id": thread_id}}
         return self.graph.invoke(Command(resume={"approved": approved}), config=config)
 
@@ -152,6 +171,7 @@ class SafeAgentService:
         if snapshot["next"] != ["publish_approval"]:
             raise RuntimeError("task is not awaiting publish approval")
         config = {"configurable": {"thread_id": thread_id}}
+        self._execution_gate(thread_id)
         return self.graph.invoke(
             Command(
                 resume={
@@ -179,6 +199,7 @@ class SafeAgentService:
         if normalized not in {"resume", "cancel"}:
             raise ValueError("control action must be resume or cancel")
         config = {"configurable": {"thread_id": thread_id}}
+        self._execution_gate(thread_id)
         return self.graph.invoke(Command(resume={"action": normalized}), config=config)
 
     def state(self, thread_id: str) -> dict[str, Any]:

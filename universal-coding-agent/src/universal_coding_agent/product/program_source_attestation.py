@@ -477,6 +477,7 @@ class ProgramGitSourceAttestationService:
             "-c", "credential.helper=", "-c", "credential.interactive=never",
             "-c", "protocol.allow=never", "-c", "protocol.ext.allow=never",
             "-c", "core.fsmonitor=false", "-c", "diff.external=",
+            "-c", "diff.autoRefreshIndex=false",
             "-C", str(self.root), *arguments,
         ]
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,

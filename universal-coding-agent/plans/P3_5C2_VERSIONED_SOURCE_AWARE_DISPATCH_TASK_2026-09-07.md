@@ -2,8 +2,10 @@
 
 Task ID: `UCA-20260907-P35C2-VERSIONED-SOURCE-AWARE-DISPATCH`
 
-Status: instantiated implementation task only. No v2 dispatch code or actual
-cumulative 42 -> 43 -> restart -> 44 qualification is supplied by this document.
+Status at implementation submission: bounded v2 code and deterministic actual
+42 -> 43 -> fresh-process restart -> 44 qualification are implemented. Independent
+review and this candidate's own CI/Live/platform gates remain required. No integration
+or automatic Program loop is claimed here. See `P3_5C2_ADMISSION_AND_RECOVERY_CONTRACT.md`.
 
 ## Starting point
 

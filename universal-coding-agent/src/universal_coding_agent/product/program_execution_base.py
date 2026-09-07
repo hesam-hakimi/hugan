@@ -226,54 +226,59 @@ class ProgramExecutionBaseService:
         return actual
 
     def _finish(self, operation_id, owner_token, deadline, *, allow_fill):
+        with self.acceptance._transaction():
+            return self._finish_locked(operation_id, owner_token, deadline, allow_fill=allow_fill)
+
+    def _finish_locked(self, operation_id, owner_token, deadline, *, allow_fill):
+        """Same preparation verification inside a caller-owned admission transaction."""
         store = self.acceptance
-        with store._transaction():
-            row, intent, snapshot = self._load(operation_id, owner_token)
-            _require(row["state"] == "complete" or allow_fill and row["state"] == "allocated",
-                     "execution Base is not complete or recoverable")
-            layout = self.filesystem.execution_layout(snapshot, store.source)
-            allocation = strict_json(store._get(row["allocation_sha256"]))
-            with self.filesystem.root_handle(intent["root_chain"]) as (root, _):
-                args = (root, "execution-" + operation_id, self._marker(row), allocation,
-                        layout.tree, deadline)
-                proof = self.filesystem.inspect(*args, fill=row["state"] == "allocated")
-                if row["state"] == "complete":
-                    receipt = strict_json(store._get(row["completion_sha256"]))
-                    _require(proof == store._get(receipt["filesystem_sha256"]),
-                             "completed execution Base filesystem changed")
-                actual = self._verify_git(operation_id, snapshot, layout, deadline)
-                self._load(operation_id, owner_token)
-                _require(proof == self.filesystem.inspect(*args),
-                         "execution Base changed during Git verification")
-                self.filesystem.anchor(intent["root_chain"])
-                self.filesystem.check_time(deadline)
-                expected = {"schema": "uca-program-execution-base-receipt-1",
-                            "operation_id": operation_id, "host_sha256": self.host_sha256,
-                            "intent_sha256": row["intent_sha256"],
-                            "allocation_sha256": row["allocation_sha256"],
-                            **intent["binding"],
-                            "origin_repository_url": store.repository_url,
-                            "origin_repository_sha256": snapshot.identity.repository_sha256,
-                            "origin_base_sha": snapshot.identity.origin_base_sha,
-                            "origin_tree_sha": snapshot.identity.origin_tree_sha,
-                            "derived_git_commit_sha": layout.commit_sha,
-                            "derived_git_tree_sha": layout.tree_sha,
-                            "derived_git_parents": [], "object_format": layout.object_format,
-                            "git_attestation_sha256": store._put(actual.receipt_bytes()),
-                            "filesystem_sha256": store._put(proof),
-                            "execution_base_complete": True, "dispatch_authorized": False,
-                            "cross_phase_source_handoff": False, "automatic_execution": False}
-                if row["state"] == "complete":
-                    _require(receipt == expected, "completed execution Base receipt differs")
-                else:
-                    sha = store._put(_canonical(expected))
-                    changed = store.connection.execute("""UPDATE program_execution_bases
-                        SET state = 'complete', completion_sha256 = ?
-                        WHERE operation_id = ? AND state = 'allocated'
-                        AND allocation_sha256 = ?""",
-                        (sha, operation_id, row["allocation_sha256"])).rowcount
-                    _require(changed == 1, "execution Base completion CAS changed")
-                return expected
+        _require(store.connection.in_transaction, "execution Base requires a transaction")
+        row, intent, snapshot = self._load(operation_id, owner_token)
+        _require(row["state"] == "complete" or allow_fill and row["state"] == "allocated",
+                 "execution Base is not complete or recoverable")
+        layout = self.filesystem.execution_layout(snapshot, store.source)
+        allocation = strict_json(store._get(row["allocation_sha256"]))
+        with self.filesystem.root_handle(intent["root_chain"]) as (root, _):
+            args = (root, "execution-" + operation_id, self._marker(row), allocation,
+                    layout.tree, deadline)
+            proof = self.filesystem.inspect(*args, fill=row["state"] == "allocated")
+            if row["state"] == "complete":
+                receipt = strict_json(store._get(row["completion_sha256"]))
+                _require(proof == store._get(receipt["filesystem_sha256"]),
+                         "completed execution Base filesystem changed")
+            actual = self._verify_git(operation_id, snapshot, layout, deadline)
+            self._load(operation_id, owner_token)
+            _require(proof == self.filesystem.inspect(*args),
+                     "execution Base changed during Git verification")
+            self.filesystem.anchor(intent["root_chain"])
+            self.filesystem.check_time(deadline)
+            expected = {"schema": "uca-program-execution-base-receipt-1",
+                        "operation_id": operation_id, "host_sha256": self.host_sha256,
+                        "intent_sha256": row["intent_sha256"],
+                        "allocation_sha256": row["allocation_sha256"],
+                        **intent["binding"],
+                        "origin_repository_url": store.repository_url,
+                        "origin_repository_sha256": snapshot.identity.repository_sha256,
+                        "origin_base_sha": snapshot.identity.origin_base_sha,
+                        "origin_tree_sha": snapshot.identity.origin_tree_sha,
+                        "derived_git_commit_sha": layout.commit_sha,
+                        "derived_git_tree_sha": layout.tree_sha,
+                        "derived_git_parents": [], "object_format": layout.object_format,
+                        "git_attestation_sha256": store._put(actual.receipt_bytes()),
+                        "filesystem_sha256": store._put(proof),
+                        "execution_base_complete": True, "dispatch_authorized": False,
+                        "cross_phase_source_handoff": False, "automatic_execution": False}
+            if row["state"] == "complete":
+                _require(receipt == expected, "completed execution Base receipt differs")
+            else:
+                sha = store._put(_canonical(expected))
+                changed = store.connection.execute("""UPDATE program_execution_bases
+                    SET state = 'complete', completion_sha256 = ?
+                    WHERE operation_id = ? AND state = 'allocated'
+                    AND allocation_sha256 = ?""",
+                    (sha, operation_id, row["allocation_sha256"])).rowcount
+                _require(changed == 1, "execution Base completion CAS changed")
+            return expected
 
     def abandon(self, operation_id: str, *, owner_token: str, reason: str) -> dict:
         _require(isinstance(reason, str) and 0 < len(reason) <= 2000,

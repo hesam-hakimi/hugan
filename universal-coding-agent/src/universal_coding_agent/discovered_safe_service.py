@@ -67,7 +67,18 @@ class DiscoveredSafeAgentService:
             remote_operations=remote_operations,
         )
 
-    def start(
+    def start(self, **request) -> dict[str, Any]:
+        if "_execution" in request:
+            raise ValueError("source-aware discovery requires start_admitted")
+        return self._start(**request)
+
+    def start_admitted(self, execution) -> dict[str, Any]:
+        from universal_coding_agent.product.program_source_dispatch import AdmittedSafeExecution
+        if type(execution) is not AdmittedSafeExecution:
+            raise ValueError("discovery requires a stored v2 execution admission")
+        return self._start(**execution.discovery_request(self), _execution=execution)
+
+    def _start(
         self,
         *,
         task_id: str,
@@ -81,6 +92,7 @@ class DiscoveredSafeAgentService:
         accepted_evidence: tuple[SafeContextEvidence, ...] = (),
         expected_base_sha: str = "",
         require_publish_approval: bool = False,
+        _execution=None,
     ) -> dict[str, Any]:
         requested_profiles = self._validate_test_profiles(policy, test_profiles)
         criteria = acceptance_criteria or (objective,)
@@ -90,7 +102,9 @@ class DiscoveredSafeAgentService:
             self.state_root,
             allow_local_sources=self.allow_local_sources,
         )
-        discovery_sandbox_id = f"{task_id}-discovery"
+        if _execution is not None:
+            sandbox_manager = _execution
+        discovery_sandbox_id = task_id if _execution is not None else f"{task_id}-discovery"
         task_root = f"tasks/{task_id}"
         try:
             sandbox = sandbox_manager.prepare(discovery_sandbox_id, repository)
@@ -117,7 +131,9 @@ class DiscoveredSafeAgentService:
             )
 
         try:
-            discovery = SolutionDiscoveryService(self.provider).discover(
+            discovery = SolutionDiscoveryService(
+                self.provider, indexer=_execution.discovery_indexer() if _execution else None
+            ).discover(
                 Path(sandbox.path),
                 repository,
                 base_sha=sandbox.base_sha,
@@ -223,7 +239,10 @@ class DiscoveredSafeAgentService:
                 "solution_discovery_provenance_ref": provenance_ref.uri,
             },
         )
-        safe = self._safe_service()
+        if _execution is not None:
+            _execution.discovery_completed(task)
+            _execution.start_safe()
+        safe = self._safe_service(execution=_execution)
         try:
             state = safe.run(task)
         finally:
@@ -294,13 +313,14 @@ class DiscoveredSafeAgentService:
         finally:
             safe.close()
 
-    def _safe_service(self) -> SafeAgentService:
+    def _safe_service(self, *, execution=None) -> SafeAgentService:
         return SafeAgentService.create(
             self.state_root,
             self.provider,
             allow_local_sources=self.allow_local_sources,
             control=self.control,
             remote_operations=self.remote_operations,
+            execution_adapter=execution,
         )
 
     @staticmethod
