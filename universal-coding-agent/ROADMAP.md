@@ -98,8 +98,10 @@
   `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, and `.cjs` classification; canonical
   kind-prefixed references; explicit lexical, token, count, and specifier bounds; fail-closed
   malformed supported declarations; and unchanged Python dependency and execution behavior;
-- P3.4c-3b deterministic TypeScript/JavaScript module resolution, dependency graph, and impact
-  analysis;
+- [x] P3.4c-3b deterministic TypeScript/JavaScript module resolution, dependency graph, and impact
+  analysis: unique bounded repository-relative candidates, typed unresolved and ambiguous evidence,
+  exact snapshot and policy binding, safe incremental reuse, predecessor-aware delete and rename
+  impact, immutable bounded artifacts, atomic active state, source preservation, and restart replay;
 - P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript;
 - phase DAG execution with per-slice gates;
 - resumable long-running programs;

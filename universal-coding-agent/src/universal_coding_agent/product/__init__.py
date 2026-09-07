@@ -48,6 +48,10 @@ _EXPORTS = {
         "universal_coding_agent.product.dependency_graphs",
         "RepositoryDependencyService",
     ),
+    "RepositoryECMAScriptDependencyService": (
+        "universal_coding_agent.product.ecmascript_dependencies",
+        "RepositoryECMAScriptDependencyService",
+    ),
     "ProgramOrchestrator": (
         "universal_coding_agent.product.program_orchestrator",
         "ProgramOrchestrator",

@@ -17,6 +17,9 @@ from universal_coding_agent.product.coverage_selection import (
 )
 from universal_coding_agent.product.dependency_graphs import RepositoryDependencyService
 from universal_coding_agent.product.dispatch_evidence import RepositoryDispatchEvidenceService
+from universal_coding_agent.product.ecmascript_dependencies import (
+    RepositoryECMAScriptDependencyService,
+)
 from universal_coding_agent.product.knowledge_packs import ProjectKnowledgePackService
 from universal_coding_agent.product.lifecycle_reservations import (
     DurableLifecycleReservationStore,
@@ -54,6 +57,7 @@ class ProductWorkspace:
     project_decisions: ProjectDecisionService
     repository_indexes: RepositoryIndexService
     dependency_graphs: RepositoryDependencyService
+    ecmascript_dependencies: RepositoryECMAScriptDependencyService
     call_graphs: RepositoryCallGraphService
     dispatch_evidence: RepositoryDispatchEvidenceService
     coverage_evidence: RepositoryCoverageEvidenceService
@@ -95,6 +99,11 @@ class ProductWorkspace:
         )
         repository_indexes = RepositoryIndexService(artifacts, search)
         dependency_graphs = RepositoryDependencyService(
+            artifacts,
+            search,
+            repository_indexes,
+        )
+        ecmascript_dependencies = RepositoryECMAScriptDependencyService(
             artifacts,
             search,
             repository_indexes,
@@ -142,6 +151,7 @@ class ProductWorkspace:
             project_decisions=project_decisions,
             repository_indexes=repository_indexes,
             dependency_graphs=dependency_graphs,
+            ecmascript_dependencies=ecmascript_dependencies,
             call_graphs=call_graphs,
             dispatch_evidence=dispatch_evidence,
             coverage_evidence=coverage_evidence,
