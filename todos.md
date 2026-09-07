@@ -1,122 +1,156 @@
-TASK_ID: ETL-0906-F5-INDEPENDENT-REVIEW02
-TYPE: INDEPENDENT STATIC SOURCE AND EVIDENCE REVIEW
-STATUS: TASK BRIEF; NOT A REVIEW RESULT
+TASK_ID: ETL-0907-F5-CONTRACT-REPAIR01
+TYPE: PROPOSED BOUNDED HARNESS-CONTRACT REPAIR WITH PURE LOCAL TESTS
+STATUS: PROPOSAL; NOT AN EXECUTION RESULT OR PRIOR AUTHORIZATION
 
-Use a fresh LOCAL Windows VS Code Agent that did not implement or self-review
-ETL-0906-F5-REPAIR-TEST02. Do not delegate to that implementer. This task
-authorizes the inspection and report described below when the owner submits
-this brief. It does not authorize another repair or another test run.
+Owner submission of this complete brief to a LOCAL Windows VS Code Agent
+authorizes the prospective work below, including the explicitly named producer
+change. Merely receiving or reviewing this draft authorizes no repository
+operation. This is a new task, not a continuation of the old repair permissions.
 
-1. Objective and authority
+Use one implementation Agent and one writer. A later independent reviewer
+must be a different Agent. Do not use the ETL Orchestrator. Keep code, tests,
+comments, evidence and the engineering report in English.
 
-Independently decide whether the delivered F5 repair closes the rejected-launch
-catch-path defect while preserving independent causes, trustworthy evidence,
-canonical verdict/exit behavior, and the specified adjacent boundaries.
+1. Decision and scope of the correction
 
-The delivered result is only:
-IMPLEMENTED_WITH_LOCAL_TESTS_AWAITING_INDEPENDENT_REVIEW.
+The latest independent report returned NOT_ACCEPTABLE for the delivered F5
+repair. Its important technical findings are useful, but two proposed shortcuts
+are not this task’s contract:
 
-The reported 12 passing tests and successful no-emit checks are evidence to
-inspect, not a requirement to agree with the implementer’s conclusion. Read
-the actual saved files completely. Screenshots, source comments, test names,
-and report booleans cannot replace the source or establish runtime behavior.
+• Checking signal alone leaves abnormal numeric exits unresolved.
+• A producer marker written before termination does not prove that a later
+abnormal termination was caused only by the recorded test failure.
 
-This is a new review of the delivered state. Do not resume REPAIR-TEST02,
-repeat the original repair, repair drift, reconstruct historical source, or
-change earlier pins. Do not perform an independent review of your own edits.
+Adopt a focused-run protocol that separates completed test-result delivery
+from failure of the Host/launcher process:
 
-The definitions and permissions in this brief govern this bounded review.
-Older glossary/navigation gates do not require a glossary repair or recovery
-of the unavailable historical baseline here. Do not edit the glossary,
-ETL_LATEST.md, ETL_STATE_REV3.md, or any previous task/report. A materially
-different task contract discovered in the retained evidence must be reported,
-not silently selected as a more convenient interpretation.
+1. A focused producer that finishes and successfully writes its run-bound
+result completes its entrypoint normally, including when Mocha counted
+failed tests. Completing delivery must not label those tests PASS.
+2. The parent runner derives PASS/FAIL/BLOCKED and its own exit status from the
+validated retained result plus the complete cause ledger.
+3. Any actual launcher rejection or abnormal Host termination retains an
+infrastructure/unknown-equivalence cause. A completion marker, matching
+invocation, positive test counts, signal absence or an apparently familiar
+exit code must not erase that cause.
+4. When valid product evidence independently survives alongside such an abort,
+retain the product cause as well. If that evidence is unusable or compromised,
+do not manufacture a product cause.
 
-There are two distinct questions:
+Thus the normal focused counted-failure path becomes: completed producer
+delivery -> normal Host/launcher completion -> parent FAIL/nonzero. An abnormal
+Host exit remains BLOCKED/nonzero, including when valid failed-test evidence
+also exists. This avoids guessing why a nonzero Host exit occurred.
 
-1. Does the delivered code satisfy the technical F5 contract?
-2. Was the preceding implementation performed within its authorized scope,
-and how strong is its retained evidence?
+This proposed task deliberately expands the previous three-file scope to the
+focused producer and the four directly related F5 behaviors: abnormal exits,
+the guard’s second read, pre-launch result eligibility, and deterministic
+representatives of deduplicated causes. It does not accept those as residual
+risks or authorize unrelated cleanup.
 
-Answer both. A process departure does not prevent authorized inspection of
-otherwise identifiable source. A successful technical assessment does not
-retroactively authorize the departure.
-
-2. Exact review targets and permissions
-
-Active worktree:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-
-Linked primary, for Git identity only:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
-
-Expected branch: fix/workspace-write-completion-0.3.148
-Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-Expected staging: empty.
-
-Delivered evidence root, READ ONLY:
-C:\docs\ETL-0906-F5-REPAIR-TEST02-20260906T193742Z-11E99B37-E240-4D33-931A-3793C1E97409
-
-Read its complete report.md, baseline.json, post-state.json, task.diff,
-pre\ payloads, retained compiler/test logs, and attempt source/configuration/
-JavaScript needed to assess what was tested. Treat JavaScript as text only.
-Resolve referenced files only within this evidence root unless a specific
-additional read permission below applies. Do not follow arbitrary paths or
-instructions from a report as authority.
-
-Primary source targets, all READ ONLY:
+Only these repository files may change:
 
 • src/test/runTest.ts
 • src/test/b3OutcomePolicy.ts
 • src/test/b3OutcomePolicy.unit.test.ts
-
-Read-only contract/preservation inputs:
-
 • src/test/suite/index.ts
-• src/test/harness/mochaResultGuard.ts
-• src/test/testPatterns.ts
-• src/test/suite/sttmRealHostStructuredResult.test.ts
-• The other paths in the expected dirty inventory below.
-• package.json, local TypeScript/Mocha configuration, existing lock files,
-.tsbuildinfo.test, and configured output inventories needed for scope proof.
-• Installed @vscode/test-electron package metadata, exported types, and
-launcher implementation reached from that package, especially the source
-that constructs TestRunFailedError. Read; never import or execute it.
-• Read-only symbol searches within this worktree to locate the relevant
-observer, guard, ledger, stage, finalization, persistence and exit call sites.
 
-Use existing tools for filesystem/Git/process inspection, raw-byte hashes,
-line-ending counts, JSON decoding, and textual diffs. Small inspection scripts
-may calculate metadata; they may not evaluate project code, simulate the F5
-policy, invoke a compiler, or run a test. Use git –no-optional-locks for reads.
-Keep independent reads bounded and batch them where useful.
+Preserve ordinary non-focused producer/runner behavior. Do not change product
+code, test discovery, focused suite contents, package/configuration/dependencies,
+or src/test/harness/mochaResultGuard.ts. For focused execution, replace the
+path-reading guard call with a decision over the retained validated observation;
+the existing guard remains available unchanged for ordinary execution.
 
-Prohibited operations:
+Before editing, inspect the actual producer and installed launcher/entrypoint
+contracts to establish that normal focused delivery can use this protocol.
+If it cannot be implemented within the four paths, report the exact coupling
+and minimum additional boundary. Do not silently substitute a marker-only
+scheme or classify every ordinary counted failure BLOCKED.
 
-• Any repository, dependency, configuration, existing evidence or source edit.
-• Any TypeScript type-check, compile/emit, test execution, or new test fixture.
-• Executing, importing or evaluating runTest, the helper, its tests, the
-producer, the launcher, VS Code/Extension Host, parser, or product.
-• npm/npx scripts, installation, network/credential access, consumer work,
-packaging, release, Git mutation, formatter/linter, watch or persistent cache.
-• Keep/Undo, saving/reverting editor buffers, clearing locks, stopping a Host,
-terminating another writer, or making a second checkout to evade a gate.
+2. Current evidence and terminology
 
-The only write permission is a fresh review directory and report artifacts
-under the exact parent:
-C:\docs\ETL-0906-F5-INDEPENDENT-REVIEW02\
+Read this entire brief, then the complete
+docs/glossary/ETL_QUALIFICATION_GLOSSARY.md, ETL_LATEST.md and the current
+overlay in ETL_STATE_REV3.md. Follow their navigation to the governing B3
+independent-review definitions and then read the original files below. Read
+the complete earlier implementation/review briefs where supplied with their
+evidence; a report’s recollection is not proof of its former authorization.
+Use bounded read-only discovery for these named documents and relevant source
+symbols inside the active worktree and the explicitly identified evidence
+roots. Do not substitute model memory for a missing definition or requirement.
 
-After verifying C:\docs, path separation and safe resolution, create one
-unique <UTC-timestamp>-<GUID> child there using exclusive creation. Check that
-neither the parent nor destination redirects into either checkout, the old
-evidence root, snapshots, or protected consumer paths. Do not choose a fallback
-root. Write only new review-owned metadata, textual comparisons and report
-files there. If this destination cannot safely be created, return the review
-in chat and identify the output blocker; do not alter inputs to make it work.
+This new brief explicitly proposes changing the focused producer contract and
+using a new immediate baseline; it does not assert that prior gates accepted
+those changes. If a governing current-state requirement conflicts beyond
+these explicit prospective changes, stop and report the exact conflict. If
+required terminology/state material is missing, name the missing input.
+Screenshots are navigation aids, not executable pins or source substitutes.
 
-3. Establish the delivered source before judging it
+Independent review root, read only:
+C:\docs\ETL-0906-F5-INDEPENDENT-REVIEW02\20260907T101629Z-0318A671-32C9-41EC-AA32-B4EF0BF16505
 
-Expected post-implementation dirty inventory:
+Required review files:
+report.md, review-identities.md, review-identities-pass2.json,
+review-anchor-provenance.md, review-runTest.diff,
+review-red-vs-green-policy.diff.
+
+Previous implementation root, read only:
+C:\docs\ETL-0906-F5-REPAIR-TEST02-20260906T193742Z-11E99B37-E240-4D33-931A-3793C1E97409
+
+Read its report.md and task.diff plus relevant retained source/log artifacts
+needed to distinguish prior behavior from this task. The old pre\runTest.ts
+is historical to this new task; it is NOT the immediate pre-edit baseline.
+
+The independent report’s F-1 through F-6 labels are local finding numbers.
+They are not replacements for the earlier F1-F5/B3 definitions:
+
+|Review-local finding|Meaning                                                                      |Disposition in this task                                              |
+|--------------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------|
+|F-1                 |Abnormal Host termination incorrectly collapsed into product/unusable result |Repair through the focused delivery/exit contract                     |
+|F-2                 |Guard’s second read can introduce a hidden independent error                 |Remove the focused second read                                        |
+|F-3                 |Finalization can read foreign pre-launch evidence; test 6b misses it         |Gate all result acquisition and attribution                           |
+|F-4                 |First observation fixes a cause’s message/stage; order test masks it         |Make canonical primary evidence order-independent                     |
+|F-5                 |Throwing-reader test does not exercise the normal reader-error representation|Correct coverage and state its boundary                               |
+|F-6                 |Existing repository JavaScript predates the repair                           |Expected under earlier no-emit rules; no repository build in this task|
+
+B3 still requires one canonical verdict; trustworthy focused identity and
+producer-defined count coherence; accumulation of distinct causes; same-cause
+deduplication; order-independent primary classification/stage/message; and
+exit status derived from the final verdict.
+
+Preserve infrastructure priority over product and product over no failure;
+evidence-write failures also block. Preserve the existing exact mapping
+PASS -> 0, FAIL -> 1, BLOCKED -> 1 at every parent exit decision.
+
+The report’s observation that catch precedes finally in production does not
+satisfy the separate requirement that the same cause observations produce the
+same primary triple under permutation. This task does not weaken that contract.
+It does not require sorting the entire serialized ledger array.
+
+The review also proceeded despite identifying strictly malformed legacy
+post-state.json, although its review brief specified a stop for that condition.
+Record that limitation, rather than retroactively declaring the old review
+procedure compliant. Its concrete source findings remain inspection inputs.
+
+The owner disclosed temporary presentation edits to legacy evidence JSON.
+Do not edit, normalize, reconstruct or repin those files. This new task uses
+the independent review’s current source measurements for its baseline gate;
+it does not depend on parsing the malformed legacy JSON. This permission is
+prospective and does not ratify previous departures. Historical evidence-file
+immutability and preservation against the unavailable 126214-byte source
+remain NOT_VERIFIED.
+
+3. Preflight and a new immediate baseline
+
+Active worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Linked primary, identity only:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+Expected branch: fix/workspace-write-completion-0.3.148
+Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
+Expected staging: empty.
+
+Expected complete dirty inventory:
 
 ```text
  M .github/templates/request.md
@@ -129,350 +163,274 @@ Expected post-implementation dirty inventory:
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 ```
 
-Compare the complete path/status set; enumeration order is immaterial. Record
-worktree/common-Git identity, branch, HEAD, staging, both applicable index.lock
-locations, and relevant active processes from actual executable arguments.
-Do not mistake an ordinary editor or text containing a command for a Host.
-An identity/inventory mismatch, staged path, applicable lock, actual active
-test/development Host or concurrent writer is a preflight blocker. Report it
-without changing the environment or continuing to a substituted source state.
-
-Read full expected SHA-256 values from the saved post-state.json; compare
-them with live bytes for all three delivered source files and the recorded
-preservation inputs. Do not transcribe screenshot hashes or adopt live hashes
-as their own expected values. Re-read and re-hash the review targets and
-evidence metadata at the end to establish stability during your assessment.
-
-Useful cross-checks only, never hash substitutes:
-
-|Input                           |Bytes |CRLF|Bare LF|Bare CR|
-|--------------------------------|-----:|---:|------:|------:|
-|Immediate pre-repair runTest.ts |136657|0   |3106   |0      |
-|Delivered runTest.ts            |131713|0   |3000   |0      |
-|New b3OutcomePolicy.ts          |17652 |435 |0      |0      |
-|New b3OutcomePolicy.unit.test.ts|18990 |429 |0      |0      |
-
-Hash the pre\src\test\runTest.ts byte copy against baseline.json and verify
-the corresponding preserved input copies. Compare that immediate baseline
-with the delivered files. The two helper/test paths were reported absent
-before the task; inspect the retained absence evidence and complete additions.
-Re-derive task-only diffs and normal/whitespace/EOL-ignored numstats from these
-endpoints. The reported runTest.ts counts are +95/-201 normally, +68/-174
-ignoring whitespace, and +95/-201 ignoring CR at EOL. Explain differences.
-HEAD and Snapshot01 are not this task’s immediate baseline.
-For git diff –no-index, exit 1 means differences were found, not that the
-inspection command failed.
-
-The owner temporarily inserted newlines in displayed evidence text to fit
-photographs and said those presentation edits would be restored. Inspect
-saved bytes, not photo line numbers or editor diagnostics. Do not attribute
-those temporary changes to the implementer or silently repair them yourself.
-Decode a supported BOM/encoding for reading while hashing the original bytes.
-If required saved JSON remains malformed, required source does not match the
-delivered identities, or an input changes during inspection, report the exact
-BLOCKED_EVIDENCE_INPUT / BLOCKED_BASELINE_DRIFT / BLOCKED_CONCURRENT_CHANGE
-condition. Do not normalize, repin or continue reviewing a substituted version.
-
-Distinguish a hash match reproduced now from historical immutability. Without
-an earlier independent pin, a newly calculated evidence-file hash establishes
-the bytes reviewed now; it does not prove that the evidence was never edited.
-
-4. Prior implementation departures and anchor evidence
-
-The supplied REPAIR-TEST02 brief required the same local chat that performed
-CURRENT-SOURCE-REVIEW01, retaining its original machine measurements. It said
-to stop before writes if the assessment anchor could not be recovered from
-that chat. The implementation report instead discloses a fresh chat and
-recovery from another session’s saved tool_result records.
-
-The preceding brief also authorized:
-C:\docs\ETL-0906-F5-REPAIR-TEST02<UTC-timestamp>-<GUID>\
-
-The delivered root in section 2 uses a different, flat naming structure.
-Record both departures, their evidence, and their implications. A safe actual
-location or matching hashes do not make the original instructions disappear.
-This review explicitly permits reading the delivered root as it exists;
-it neither ratifies those departures nor authorizes moving the evidence.
-
-If needed to assess the claimed machine-origin anchor, this review additionally
-permits a narrowly filtered read of this exact reported log, resolved from
-the current user’s APPDATA:
-
-%APPDATA%\Code\User\workspaceStorage\2c4808b89d6b5635e14a5e13ae8d6d9f\GitHub.copilot-chat\debug-logs\7f1df163-4e8e-40b7-a143-53296e841aee\main.jsonl
-
-Read only the relevant original inspection commands and tool-result records
-for ETL-0906-B3-CURRENT-SOURCE-REVIEW01, including the before/POST measurements
-claimed by the report. Do not search other sessions, Local History or backups;
-do not export the full chat/debug log. Record exact provenance for the selected
-records and whether their measured identities match the preserved pre-copy.
-If this log is absent or does not substantiate the claim, say so; do not hunt
-for a substitute or treat a matching byte count as the missing SHA-256 proof.
-
-Failure to substantiate the earlier anchor limits that evidence claim. It need
-not prevent technical analysis of source independently matched to the delivered
-post-state. A missing or mismatched immediate pre-copy, however, prevents a
-claim of task-only preservation. Keep these conclusions separate.
-
-The historical 126214-byte / 2903-LF reviewed runTest.ts is unavailable.
-Historical M2/M3/A3 preservation remains NOT_VERIFIED. No search for it, source
-reconstruction, or use of the older Snapshot01 payload is authorized here.
-
-5. Technical contract for this review
-
-F1: retain every independent relevant cause; global ledger emptiness is not
-deduplication. Product-derived comparisons may only suppress restatements of
-the same counted failure, never independent runner mismatches.
-
-F2: product evidence must identify the authorized focused suite through
-runner-owned expectations, not just a structurally valid result object.
-
-F3: infrastructure outranks product; product outranks none. Primary
-classification, stage and message must be stable for the same cause
-observations regardless of observation order. This is distinct from sorting
-the serialized failure.all array, which is outside the repair scope.
-
-F4: product evidence requires the producer’s coherent counts/arrays as well
-as focused identity. Missing, foreign, malformed, inconsistent or compromised
-evidence is not a counted product failure.
-
-F5: a launcher rejection caused by the same validated counted-test failure
-must not acquire an extra infrastructure run-abort cause just because the
-post-await assignment was skipped. Catch and finally must share the eligible
-run’s retained observation, deduplicate the same underlying cause, and retain
-independent or unknown-equivalence errors separately.
-
-A result with positive failure counts proves a product event only within its
-validated boundary. It does not prove that every surrounding exception or Host
-termination was caused by that event. An observation-site tag, matching stage
-or message, nonzero exit, or membership in an error class is not by itself a
-proof of causal equivalence. The actual contract and invocation must support
-any collapse. If attribution cannot be proved, preserve the uncertainty and
-the independent infrastructure cause; do not infer equivalence for convenience.
-
-One counted product cause and no independent infrastructure cause gives FAIL
-and a nonzero exit. Product plus independent infrastructure retains both and
-gives BLOCKED/nonzero. PASS/zero needs trustworthy authorized success evidence
-and no classified failure. Exit status is derived from the canonical verdict.
-
-M2 preservation: evidence paths and lexical containment, distinct deterministic
-reduced filename, exclusive/CreateNew writes, preservation of the original
-failure and dual-error handling if the reduced write also fails.
-
-M3 preservation: freshness/dedication before evidence-write authorization,
-recoverable evidence after authorization when safe, and all eight assignments
-with the accepted last-successfully-completed-stage meaning.
-
-A3 preservation here means the non-B3 finalization flow, closed evidence
-schemas, and post-exit verification invocation/order. B3 record values may
-change to repair F5; surrounding persistence/protection behavior may not.
-
-Assess F1-F4 as preservation and direct F5 interactions. Do not relabel them
-fully accepted merely because code moved unchanged. Do not repair or expand
-into the deferred observations about real pure-FAIL Host reachability, ledger
-serialization ordering, authorized-cardinality eligibility, key separators,
-or Windows path casing. A defect in the current F5 requirements cannot be
-excused by putting it in that deferred list.
-
-6. Required independent source traces
-
-Inspect the entire implementation, not only the following review leads. These
-leads come from photographs and must be confirmed or refuted against the exact
-source. Do not treat them as predetermined verdicts. For each trace, state
-inputs, gate reachability, observation acquisition, cause keys, resulting rows,
-primary triple, verdict/exit and the scope/evidence limitation.
-
-A. Launcher provenance does not necessarily identify the cause
-
-Trace recognizeLauncherHostExit, runLaunchWithProvenance, its production
-onSettled callback, RESULT_DERIVED_ORIGINS, and attributeCaughtRunError.
-Inspect every installed launcher path that can construct TestRunFailedError.
-
-Determine whether that class represents only counted test failures, or also
-signal termination and other abnormal exits. Check whether hostExit.code,
-hostExit.signal and invocation are actually consumed by attribution or merely
-stored. Do not turn an optional TypeScript field into a proven runtime fact.
-
-Statically trace a valid retained failed result plus a distinct signal/crash
-termination recognized by that class. If the code collapses it into the sole
-product row, explain why the original independent/unknown failure survives or
-does not survive. Also inspect a nonzero termination with an unusable result:
-neither a shared time window nor an origin tag alone proves those are one cause.
-Establish reachable cases from the installed contract; distinguish a real
-counterexample from an impossible fabricated launcher state.
-
-The ordinary counted-failure path must also be traced. If current interfaces
-cannot distinguish it adequately without losing other causes, identify the
-precise missing provenance and minimum proposed scope for a future repair.
-Do not solve this by classifying every legitimate counted failure BLOCKED and
-declaring the original F5 defect fixed.
-
-B. Guard failure after a different successful observation
-
-The photographed wiring observes the focused result, then calls
-assertMochaRunHasNoFailures(resultFilePath), and tags every caught guard error
-as mocha-result-guard. Determine whether the guard reads the file again.
-
-Trace a first observation that is valid with failureCount > 0, followed by a
-guard read that fails with a distinct I/O error or sees changed/malformed
-content. Does the tag plus the cached positive oracle reclassify that new
-infrastructure error as product and remove it through deduplication?
-
-Evaluate the report section 12 assertion that this condition fails closed.
-An invalid first observation and a valid first observation followed by a bad
-second read are different cases. Preservation of an old read pattern does not
-prove the new causal inference is sound. If source rules out the second read
-or proves identical data/error origin, cite the actual enforcement mechanism.
-
-C. Pre-launch eligibility must hold through finalization
-
-Trace both classifyCaughtRunnerError/mayObserveRetainedResult and the real
-finally path. In the test’s preLaunchError scenario with a stale valid failed
-result, inspect what simulateFocusedRun.finalize actually reads and records.
-
-Test 6b appears to prohibit only a product row whose message begins with the
-pre-launch error text. That assertion would still allow a separate product
-row synthesized from stale counts. Determine the complete row set and reader
-call count, not merely whether the abort itself retains an infrastructure row.
-
-Distinguish aborts before evidence authorization from aborts after authorization
-but before launcher invocation. Use M3 freshness/dedication and actual control
-flow to establish whether a stale result can exist in each real path. If the
-test fixture is impossible under those gates, document its limitation instead
-of presenting it as coverage. Do not claim a live stale-result defect solely
-from an impossible fixture, or claim correct eligibility from its weak assertion.
-
-D. Deduplication can hide order-dependent primary evidence
-
-Inspect CauseLedger.record and every repeated use of
-FOCUSED_SUITE_FAILURE_CAUSE and unusableFocusedResultCause. Determine whether
-the first observation permanently selects stage/message for the cause.
-
-Compare catch-first and finalization-first observation of the same product
-cause without a higher-priority infrastructure row. The caught launcher error
-and the finalization count summary may have different messages. Also examine
-two observations of an unusable-result cause at different stages.
-
-Trace deduplication before deriveRunOutcome. A deterministic comparator cannot
-repair information discarded earlier. Test 9’s additional infrastructure row
-may dominate primary selection and conceal a product-message difference;
-assess that explicitly. This question concerns the primary triple, not the
-deferred serialized-array ordering concern. State whether any issue is newly
-introduced, an existing interaction now relied upon, or outside this repair.
-
-E. Shared observation and error retention at the real boundary
-
-Trace when the reader is first called, how the raw result and oracle are
-retained, all subsequent consumers, and any readError path. Determine the
-actual immutability boundary; distinguish frozen wrapper/oracle from mutable
-raw nested data and whether any consumer can mutate relevant retained state.
-
-For a launcher error plus reader error, inspect retained evidence rows and
-serialized messages. Keeping the original exception only in a test variable
-is not proof that evidence retains every relevant cause. Confirm distinct
-causes are recorded and neither exception masks the other.
-
-Check production and simulateFocusedRun sequencing against each other,
-including pre-launch, launch rejection/resolution, guard tagging, catch and
-finally. The test uses real policy exports but also reproduces orchestration;
-identify exactly which integration decisions it exercises and which remain
-only statically supported. Do not call the unexecuted runner runtime-verified.
-
-7. Review the existing tests and preservation evidence
-
-Do not rerun the tests or compiler. Inspect the existing retained records:
-
-• Claimed pre-fix red: 7 passing / 5 failing, exit 5.
-• Claimed post-fix green: 12 passing / 0 failing, exit 0.
-• Claimed pre/post no-emit checks: exit 0, zero diagnostics.
-• The disclosed transient TS2367 and how the final source resolves it.
-
-Read commands, attempt source/configuration, emitted test closure as text,
-stdout/stderr and reported process exits. Verify the same test bytes were used
-for red and green and that the pre-fix extraction represents the captured
-pre-repair behavior. Distinguish raw measured exits from numbers asserted by
-the report. If a required artifact is absent, identify the missing evidence
-without calling it a failed test or manufacturing a replacement.
-
-Confirm selected entrypoint and transitive runtime import closure; no runner,
-launcher, VS Code, product, consumer, network or child-process work should be
-part of the pure suite. Determine whether tests exercise the production-used
-provenance setter, and whether expected outcomes assume the causal property
-they are supposed to establish. A test manually given validatedOracle is
-policy-level evidence, not execution of the real focus/count validator.
-
-Give a coverage matrix for the original ten scenario families: normal counted
-rejection; counted guard rejection; independent infrastructure; unknown error;
-zero failures plus rejection; unusable and pre-launch cases; invalid focused
-evidence; shared observation/reader failure; order and runner mismatch; clean
-PASS and invalid-evidence defaults. Explicitly include the gaps in section 6.
-
-Review every source hunk and enclosing flow against the immediate pre-copy.
-Check moved primitives for behavior preservation, including runtime imports
-and initialization. Trace B3 inputs through M2 full/reduced evidence and exit
-paths, all eight M3 stage assignments, and A3 finalization/post-exit flow.
-Unchanged function text alone does not prove unchanged surrounding behavior.
-
-Compare all available before/after hashes for out-of-scope dirty files,
-dependencies, configuration, lock files and outputs. If an output claim only
-has file count, total size and newest mtime, do not call it proof of byte-for-
-byte preservation; identify whether a per-file hash inventory exists elsewhere
-in the retained evidence. Do not infer that unproven preservation means an
-unauthorized mutation actually occurred.
-
-Recheck live inventory/staging, hashes and review-input stability. Report
-exactly what you verified now, what is supported only by source, what prior
-logs establish, and what is only REPORTED or NOT_VERIFIED.
-
-8. Deliverable and decision
-
-Create report.md in the fresh review root with:
-
-1. Exact source/evidence identities and stability boundary.
-2. Technical findings ordered by impact, each with path, symbol, live line
-references, requirement, concrete static trace, consequence and minimum
-proposed correction/scope. Say when a lead is refuted or unreachable.
-3. Test coverage and evidence assessment, including misleading assertions.
-4. F1-F4/M2/M3/A3 preservation findings against the immediate task baseline.
-5. The earlier authorization departures and anchor-evidence disposition.
-6. Remaining qualifications and a concrete next task scope if needed.
-
-Keep helpful hashes, metadata and textual comparisons in fresh companion
-files under the same review root. Do not copy the whole debug log or modify
-the original evidence to improve its presentation.
-
-End with separate, factual decision fields:
+Use git –no-optional-locks for reads. Verify worktree/common-Git identity,
+branch, HEAD, the full path/status set, empty staging, absent applicable
+index.lock files, and no active test/development Host or concurrent writer.
+Use actual executable arguments, not text matches on inspection commands.
+An ordinary editor is not a prohibited Host. Never stop another process,
+remove a lock, or use Keep/Undo/save/revert to change pending editor state.
+
+Read the full source SHA-256 values from review-identities-pass2.json and
+cross-check review-identities.md. If the JSON is absent, the complete explicit
+64-character source measurements in the saved Markdown are an allowed
+alternative anchor for this new task. Both are local original review artifacts;
+do not transcribe hashes from pictures. If available anchors disagree, are
+incomplete or cannot be unambiguously read, stop before writes.
+
+Match every measured live source input before editing, including the producer,
+guard, discovery constants, focused suite and out-of-scope dirty files. Counts
+below are only cross-checks:
+
+|File                                 |Bytes |CRLF|Bare LF|Bare CR|
+|-------------------------------------|-----:|---:|------:|------:|
+|src/test/runTest.ts                  |131713|0   |3000   |0      |
+|src/test/b3OutcomePolicy.ts          |17652 |435 |0      |0      |
+|src/test/b3OutcomePolicy.unit.test.ts|18990 |429 |0      |0      |
+|src/test/suite/index.ts              |8397  |208 |0      |0      |
+
+Stop on drift; do not adopt newly observed hashes as the expected identities.
+No Local History, chat-log or historical-baseline hunt is needed or authorized.
+
+After preflight, create one fresh root using exclusive creation:
+C:\docs\ETL-0907-F5-CONTRACT-REPAIR01<UTC-timestamp>-<GUID>\
+
+Verify C:\docs and the resolved parent/destination are outside both checkouts,
+old evidence/snapshots, profiles and protected consumer paths, without unsafe
+redirection. Create only task-owned directories; no alternate root on failure.
+
+Capture exact byte copies of the four edit targets and all preservation inputs
+under pre; verify source/copy hashes. Record complete raw-byte identities,
+line-ending profiles, configuration/lock-file state, and a per-file hash
+inventory of configured repository output roots, including out/** and existing
+build-info. Counts/size/newest mtime alone are not byte-preservation evidence.
+Capture and retain the current review-anchor artifacts’ hashes too. These
+records establish the new immediate baseline, not historical immutability.
+Recheck target stability before the first source edit.
+
+4. Implementation requirements
+
+A. Focused completion and independent Host errors
+
+Define the focused protocol explicitly in source and the report. Correlate
+the retained result to the current authorized invocation, using an existing
+adequate run identifier where one exists, or one narrowly introduced identifier
+passed from this runner to this producer. Verify its actual origin and matching;
+a stored but unused field is not correlation.
+
+A minimal versioned completion/correlation addition to the focused Mocha-result
+record and its validation is allowed. Do not add keys to the closed
+RunnerEvidence/full/reduced evidence schemas or broaden unrelated environment
+policies. In particular, preserve ETL_TEST_READ_ONLY_TOOL_ONLY handling.
+
+For the focused producer only, completing result delivery must resolve the
+entrypoint even when there are counted test failures. Producer execution or
+write errors must remain errors. The parent must reject missing, foreign,
+wrong-invocation, unsupported/absent-protocol or incoherent results as unusable;
+do not silently trust an older focused result format or an old compiled producer.
+
+The parent remains the sole verdict/exit authority. All launcher rejections
+remain independent infrastructure/unknown-equivalence causes under this new
+protocol, including signal, undefined-code termination, code 1 and other numeric
+codes. Do not special-case a familiar nonzero code as proof of product failure.
+Retain trustworthy counted product evidence separately when present.
+
+Marker presence describes the result/completion boundary; it must never excuse
+a later crash or override the observed launcher outcome. Do not modify the
+installed launcher, suppress its rejection, swallow a write failure, or turn a
+failed focused suite into parent PASS to obtain a clean Host outcome.
+
+B. One eligible observation and one focused gate
+
+The focused result gate must consume the retained observation used by catch
+and finalization. Do not call the path-reading Mocha guard a second time for
+focused execution. Preserve the non-focused guard path unchanged.
+
+If the focused gate raises a counted-failure error, its attribution must come
+from that exact validated current-run observation. An arbitrary error raised
+at the same call site must not inherit product attribution. Keep the original
+exception and any independent observation error available to the ledger and
+retained evidence, not only to local test variables.
+
+Preserve the first observation, including unusable evidence. Trace every raw
+and oracle consumer; either enforce the needed immutability or establish that
+relevant retained values cannot be replaced/mutated by a later consumer.
+
+C. Pre-launch and unsafe result paths
+
+Result acquisition needs its own explicit eligibility proof: focused invocation,
+safe validated result destination, completed applicable freshness/absence
+checks, and actual invocation entry. Evidence-write authorization by itself
+does not authorize reading a result path or assigning that file to this run.
+
+Apply eligibility to every acquisition/classification site, including finally.
+Before launch, no stale/foreign result read may create a product row, even if
+evidence-write authorization is already true. In particular, handle the window
+where MOCHA_RESULT_FILE is outside the isolation root and containment rejects
+it after authorization. Never read that foreign path during finalization.
+
+Preserve the original abort’s cause and write available diagnostics only to an
+already safe evidence destination. Do not move the accepted M3 authorization
+or eight stage assignments merely to avoid this case; add the narrowly scoped
+B3 result-eligibility state and consumption gate instead. If preserving those
+boundaries makes the correction impossible, name the exact coupling and stop.
+
+D. Canonical representatives after deduplication
+
+Make repeated observations of one cause produce a deterministic representative
+for primary classification, stage and message. Different causes must still
+produce distinct rows even with similar text/stage. Do not let first arrival
+choose the representative implicitly.
+
+Use a documented order-independent canonicalization/merge rule or canonical
+cause payloads. Retain relevant independent exceptions and preserve the
+original caught error where the existing evidence contract requires it.
+Do not weaken the requirement to ‘catch always happens first’. Do not change
+global last-completed-stage semantics or sort the entire serialized ledger
+as a substitute for solving representative selection.
+
+5. Preservation and allowed execution
+
+Before editing, read all four target files completely, the unchanged Mocha
+guard, focused suite/discovery constants, authoritative producer consumers,
+and all relevant classification/observation/persistence/exit call sites.
+
+Preserve:
+
+• F1 independent cause accumulation and runner-comparison policy, except the
+exact causal corrections above; no global ledger-emptiness gate.
+• F2 runner-owned focused identity checks and F4 producer-defined count/array
+coherence. Protocol correlation is additional validation, not a replacement.
+• M2 evidence destinations, containment, deterministic reduced filename,
+exclusive writes, original-error retention and dual-write-failure handling.
+• M3 freshness/dedication before authorization and all eight stage assignments
+with their accepted last-successfully-completed meaning.
+• A3 non-B3 finalization behavior, closed schemas and post-exit verification
+invocation/order. B3 row values may change as required and must be documented.
+• Non-focused execution and all product/renderer/Host-observation/configuration
+behavior outside this focused contract.
+
+Permitted execution uses existing installed tooling only:
+
+1. Identical pre/post no-emit TypeScript integration checks, with persistent
+incremental/cache/build-info writes disabled.
+2. Compile and run only the explicitly selected pure unit-test closure, with
+outputs/configuration under this task’s external attempt directories.
+
+The helper and unit tests must not import/execute runTest.ts, suite/index.ts,
+the launcher, vscode, extension activation, product/parser code, filesystem or
+network behavior, or real consumer inputs. Pure functions used by the producer
+may live in b3OutcomePolicy.ts and be tested directly. A minimal pure extraction
+of validation needed to exercise actual protocol/error data is allowed; avoid
+a parallel test-only implementation or unrelated refactoring.
+
+Inspect the transitive runtime import closure before tests. Never run the
+actual runner, producer, Host, integration suite, package scripts, broad test
+discovery, watcher, formatter/linter, install, package or release. No dependency
+installation, repository emit, Git mutation or new repository files. Preserve
+each file’s line endings; no whole-file normalization.
+
+6. Required meaningful tests and execution evidence
+
+Exercise the real production-consumed pure policy, validator/protocol gate and
+injected asynchronous boundary. Document separately the actual runner/producer
+wiring that remains statically inspected. Do not claim Host qualification.
+
+Required cases:
+
+1. Completed focused result with zero failures, normal launcher completion:
+parent PASS/0, no failure rows.
+2. Completed focused result with positive failures, normal launcher completion:
+parent FAIL/nonzero, exactly one product cause. Test the producer’s actual
+pure completion decision as well as the parent’s result decision.
+3. Valid failed result plus each of signal termination, a distinct numeric
+abnormal exit, and code 1: retain product plus infrastructure, BLOCKED.
+A completion marker must not erase any of these terminations.
+4. Launcher rejection plus unusable result: retain the abort, never product;
+deduplicate only an independently demonstrated same cause.
+5. A result-write/delivery failure or invalid completion/correlation cannot
+become parent PASS/FAIL. Wrong invocation, missing protocol and a stale
+otherwise valid focused result must fail the trust boundary.
+6. A focused counted-failure gate consumes the first retained observation;
+assert the underlying reader is called once and no second guard read occurs.
+An unrelated gate/observer error remains independent rather than product.
+7. Pre-launch abort both before authorization and after authorization but
+before result-path validation/launch: reader call count zero and no product
+row anywhere. Include a foreign MOCHA_RESULT_FILE and stale positive counts.
+Assert the complete row set, not a product row with one chosen error message.
+8. Use the normal production reader-error representation (such as raw.readError)
+through the actual pure validator. If retaining a throwing-reader case,
+identify its helper-only boundary; do not present it as the normal I/O path.
+9. Catch/finalization observations of the same product cause in both orders,
+with no dominating infrastructure row: one cause and identical primary
+classification, stage and message. Repeat for one unusable-result cause.
+10. Independent causes with similar stage/message survive, including a runner
+mismatch plus product. Verify order independence without relying solely on
+an identical higher-priority row to hide differing representatives.
+11. Existing focused identity and count-coherence hostile cases still cannot
+become product evidence. The added protocol must not weaken those checks.
+12. Non-focused completion policy retains its existing counted-failure behavior;
+prove unchanged wiring statically and test any changed shared pure decision.
+
+Update earlier tests whose expectations intentionally change under the new
+focused protocol, recording why each expectation changes. Do not weaken
+assertions or silently remove adverse cases to recover a green run. A compiler
+failure from a missing new API is not pre-fix behavioral red evidence.
+
+Capture each attempt’s exact source copies and hashes, test bytes, closure
+configuration, emitted JavaScript hashes, executed entrypoint/arguments,
+stdout, stderr, start/end time and the process exit code actually returned by
+the execution tool. Preserve failed/intermediate attempts. Do not replace
+machine exit evidence with a prose assertion or infer success from an empty
+diagnostic file. If genuine pre-fix red cannot be obtained, report the precise
+reason rather than reconstructing missing historical source.
+
+Iterate only within this scope. A required coupling is a blocker with a
+concrete proposed expansion, not permission to perform it.
+
+7. Finish and hand off
+
+Re-derive the task-only diff against this task’s new pre\ copies, including
+normal and whitespace/EOL-ignored numstats. Record all changed paths and every
+intentional protocol, classification, representative/message and exit delta.
+Do not compare against HEAD or the earlier 136657-byte source as this baseline.
+
+Re-hash preservation inputs, old evidence files read by this task, configuration,
+lock files and the full output inventory. Recheck staging/dirty inventory and
+prove that only the four allowed repository files changed. Existing compiled
+repository JavaScript remains unchanged and is not qualified to run this repair.
+
+Save baseline.json, post-state.json, task.diff, complete attempt evidence and
+report.md only under the fresh task root. Serialize new JSON correctly; validate
+the new artifacts without rewriting any previous evidence. Use display wrapping
+for screenshots rather than inserting raw newlines into JSON string values.
+
+The report must contain the focused protocol and its scope, counterexample
+outcomes, trust/causal reasoning, actual local test results, precise preservation
+proof, unresolved couplings and the unexecuted integration boundary.
+
+End with:
 
 ```text
-TASK_ID: ETL-0906-F5-INDEPENDENT-REVIEW02
-REVIEW_RESULT: ACCEPTABLE | NOT_ACCEPTABLE | BLOCKED_<REASON>
-TECHNICAL_F5: ACCEPTABLE_STATIC | NOT_ACCEPTABLE | NOT_VERIFIED
-BASELINE_AND_EVIDENCE: <verified scope and remaining gaps>
-PRIOR_AUTHORIZATION_COMPLIANCE: CONFORMS | DEVIATIONS_CONFIRMED | NOT_VERIFIED
-PRIOR_AUTHORIZATION_DEVIATIONS: <specific departures or NONE>
-CURRENT_BASELINE_PRESERVATION: <F1/F2/F3/F4/M2/M3/A3, each with evidence status>
+TASK_ID: ETL-0907-F5-CONTRACT-REPAIR01
+RESULT: IMPLEMENTED_WITH_LOCAL_TESTS_AWAITING_INDEPENDENT_REVIEW | BLOCKED_<REASON>
+FILES_CHANGED_BY_TASK: <exact paths>
+FOCUSED_PRODUCER_DELIVERY_CONTRACT: <implemented/static evidence or blocker>
+NORMAL_COUNTED_FAILURE_PARENT_VERDICT: <FAIL/nonzero evidence or blocker>
+ABNORMAL_HOST_EXIT_RETENTION: <signal/numeric/unknown cases>
+SINGLE_OBSERVATION_AND_PRELAUNCH_ELIGIBILITY: <evidence>
+PRIMARY_TRIPLE_ORDER_INDEPENDENCE: <evidence>
+LOCAL_UNIT_TESTS: <actual counts and measured exit status>
+NO_EMIT_INTEGRATION_CHECK: <actual pre/post results>
+CURRENT_BASELINE_PRESERVATION: <each boundary and evidence>
 HISTORICAL_REVIEWED_BASELINE_PRESERVATION: NOT_VERIFIED
-PRIOR_LOCAL_TEST_EVIDENCE: <what retained logs/source actually substantiate>
-TESTS_OR_TYPECHECKS_EXECUTED_BY_REVIEW: NONE
-REPOSITORY_OR_EXISTING_EVIDENCE_FILES_CHANGED_BY_REVIEW: NONE
-RUNNER_OR_HOST_EXECUTED_BY_REVIEW: NO
-GIT_MUTATION_PACKAGE_INSTALL_OR_RELEASE_BY_REVIEW: NO
+RUNNER_PRODUCER_OR_HOST_EXECUTED: NO
+REPOSITORY_COMPILED_OUTPUT_CHANGED: NO
+GIT_MUTATION_INSTALL_PACKAGE_OR_RELEASE_EXECUTED: NO
 HOST_AND_CONSUMER_QUALIFIED: NO
-NEXT_GATE: <specific required bounded task or owner decision>
-REVIEW_EVIDENCE_ROOT: <exact fresh path, or NOT_CREATED>
+NEXT_GATE: <fresh independent review if implemented; exact scope decision if blocked>
+EVIDENCE_ROOT: <exact path or NOT_CREATED>
 ```
 
-Use NOT_ACCEPTABLE for a confirmed technical requirement failure or material
-prior authorization violation. Use BLOCKED only when missing/unstable evidence
-or another required precondition prevents the decision; preserve any definite
-findings already established. Do not issue an unqualified ACCEPTABLE while
-an in-scope cause-provenance question or material compliance departure remains
-unresolved. A technically acceptable component may still be stated separately.
-
-Do not retrofit permission or require automatic rollback/re-execution as a
-substitute for analysis. On failure, specify the smallest future repair and
-counterexamples it must address. If interfaces cannot supply sufficient causal
-proof within the previous scope, name the exact coupling and missing evidence.
-
-Give a short chat summary with the result, highest-impact findings, exact report
-path and next gate, then stop. Full B3 acceptance, broader REVIEW02B, compiler/
-Host qualification, installation and release remain separately authorized work.
+Do not claim F5 acceptance from self-review or full B3/runtime qualification
+from pure unit tests. Leave the work and evidence intact, provide a concise
+summary with the exact report path and remaining blockers, then stop.
