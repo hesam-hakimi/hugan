@@ -102,10 +102,26 @@
   analysis: unique bounded repository-relative candidates, typed unresolved and ambiguous evidence,
   exact snapshot and policy binding, safe incremental reuse, predecessor-aware delete and rename
   impact, immutable bounded artifacts, atomic active state, source preservation, and restart replay;
-- P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript;
-- phase DAG execution with per-slice gates;
-- resumable long-running programs;
+- [x] P3.5a cumulative source-transition foundation: immutable content-bearing source snapshots,
+  exact preimages and path scope, separate hash-bound materialization approval, canonical bounded
+  serialization, and pure in-memory replay across process restart. See
+  [Program source transitions](PROGRAM_SOURCE_TRANSITIONS.md). This is code present in this branch,
+  not a claim that Program dispatch transfers patched source or that hosted qualification passed;
+- P3.5b trusted Git/sandbox attestation and persistent source acceptance with atomic state,
+  integrating cumulative source into Program dispatch without weakening evidence-only Base checks;
+- P3.5c phase DAG per-slice gates, explicit retry/replan, and resumable long-running programs;
+- P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript
+  (deferred behind source continuity and resumability by the September 7 owner decision);
 - context deduplication and model-budget policies.
+
+### Accepted September 7 priority
+
+After PR #19 integration, prioritize source continuity and gated Program resumability before
+additional-language expansion. Start with the bounded P3.5a contract, then trusted integration,
+then a read-only AskTD onboarding pilot and one separately bounded change. The owner approved
+advancing this route autonomously within existing quality gates. This does not waive independent
+review, exact evidence/approval binding, source preservation, or environment-specific acceptance.
+The pure source-transition service does not itself establish a completed autonomous Program loop.
 
 ## Milestone 4 — Worker backends
 

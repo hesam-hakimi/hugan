@@ -102,6 +102,7 @@ class RequirementAlignmentService:
             alignment_id=alignment_id,
             version=version,
             draft=structured.value,
+            user_objective=objective,
             answers=answers,
             previous=previous,
         )
@@ -170,6 +171,7 @@ class RequirementAlignmentService:
         alignment_id: str,
         version: int,
         draft: RequirementDraft,
+        user_objective: str,
         answers: dict[str, str],
         previous: RequirementContract | None,
     ) -> RequirementContract:
@@ -230,7 +232,8 @@ class RequirementAlignmentService:
             alignment_id=alignment_id,
             version=version,
             title=draft.title,
-            objective=draft.objective,
+            # Model summaries must not erase explicit caller delivery constraints.
+            objective=user_objective,
             requirements=requirements,
             acceptance_criteria=tuple(acceptance),
             constraints=draft.constraints,
@@ -308,6 +311,9 @@ class RequirementAlignmentService:
             "",
             f"Requirement hash: `{requirement_hash}`",
             f"Version: {contract.version}",
+            "",
+            "## User objective",
+            contract.objective,
             "",
             "## Requirements",
         ]
