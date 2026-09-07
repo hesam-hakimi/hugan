@@ -363,6 +363,8 @@ class ProgramSourceTransitionService:
         _require(hmac.compare_digest(_hash(content), expected), "source artifact hash mismatch")
         try:
             data = json.loads(content, object_pairs_hook=_unique_object)
+        except ProgramSourceError:
+            raise
         except (ValueError, UnicodeError, RecursionError) as exc:
             raise ProgramSourceError("invalid source artifact JSON") from exc
         data = self._object(data, keys | {"schema"})
