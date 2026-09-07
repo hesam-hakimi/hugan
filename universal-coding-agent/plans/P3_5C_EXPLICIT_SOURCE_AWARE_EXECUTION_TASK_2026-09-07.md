@@ -1,8 +1,11 @@
 # P3.5c — Explicit source-aware Program execution
 
 Task ID: UCA-20260907-P35C-EXPLICIT-SOURCE-AWARE-EXECUTION
-Status: instantiated bounded engineering task; implementation and qualification
-have not started. This document grants no Product capability by itself.
+Status: parent integration task remains open. P3.5c-1 execution Base preparation
+and recovery is an implementation candidate, with its actual boundary recorded
+in P3_5C_EXECUTION_BASE_CONTRACT.md. Versioned source-aware dispatch and the actual
+42 -> 43 -> restart -> 44 acceptance have not been implemented or qualified.
+This document grants no Product capability by itself.
 
 ## Actual starting source and inherited acceptance
 
