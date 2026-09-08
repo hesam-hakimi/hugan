@@ -415,6 +415,8 @@ class ProgramGitSourceAttestationService:
         Every parent and file is opened without following symlinks. This reads the
         existing Safe checkout; it neither creates nor authorizes a new sandbox.
         """
+        from universal_coding_agent.product.program_source_capture_budget import charge
+
         self.source._check_files(files)
         deadline = time.monotonic() + self.policy.operation_timeout_seconds
         directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
@@ -441,6 +443,7 @@ class ProgramGitSourceAttestationService:
                         _require(stat.S_ISREG(start.st_mode) and mode == expected.mode
                                  and start.st_size == len(expected.content),
                                  "retained source file type, mode or size differs")
+                        charge(len(expected.content) + 1)
                         content = handle.read(len(expected.content) + 1)
                         finish = os.fstat(handle.fileno())
                         stable = ("st_dev", "st_ino", "st_mode", "st_size",
@@ -467,6 +470,9 @@ class ProgramGitSourceAttestationService:
     def _run_result(self, arguments: tuple[str, ...], request: bytes, budget: _GitBudget,
                     *, expected_returncodes: tuple[int, ...] = (0,)):
         """Fixed Git operations with concurrent bounded stdin/stdout/stderr and no shell."""
+        from universal_coding_agent.product.program_source_capture_budget import current, read
+
+        capture = current()
         self._deadline(budget)
         _require(budget.output_remaining > 0, "Git output budget exhausted")
         deadline = min(budget.deadline, time.monotonic() + self.policy.git_timeout_seconds)
@@ -489,6 +495,8 @@ class ProgramGitSourceAttestationService:
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, shell=False, start_new_session=True,
                                    env=environment)
+        if capture is not None:
+            capture.children.add(process.pid)
         stdout = bytearray()
         streams = (process.stdin, process.stdout, process.stderr)
         try:
@@ -515,7 +523,7 @@ class ProgramGitSourceAttestationService:
                                     selector.unregister(key.fileobj)
                                     key.fileobj.close()
                             else:
-                                chunk = os.read(key.fd, 65_536)
+                                chunk = read(key.fd, 65_536)
                                 if not chunk:
                                     selector.unregister(key.fileobj)
                                     continue
@@ -540,3 +548,5 @@ class ProgramGitSourceAttestationService:
             for stream in streams:
                 stream.close()
             process.wait(timeout=1)
+            if capture is not None:
+                capture.children.remove(process.pid)

@@ -132,6 +132,8 @@ class OwnedSourceTree:
 
     def _read_exact(self, parent, name, content, mode, deadline, expected_identity=None,
                     *, sync=False):
+        from universal_coding_agent.product.program_source_capture_budget import read
+
         self.check_time(deadline)
         fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK,
                      dir_fd=parent)
@@ -146,11 +148,11 @@ class OwnedSourceTree:
             offset = 0
             while offset < len(content):
                 self.check_time(deadline)
-                chunk = os.read(fd, min(65_536, len(content) - offset))
+                chunk = read(fd, min(65_536, len(content) - offset))
                 _require(bool(chunk) and chunk == content[offset:offset + len(chunk)],
                          "source bytes differ")
                 offset += len(chunk)
-            _require(os.read(fd, 1) == b"", "source file grew")
+            _require(read(fd, 1) == b"", "source file grew")
             if sync:
                 # A crash may leave exact cached bytes before their first fsync.
                 os.fsync(fd)
