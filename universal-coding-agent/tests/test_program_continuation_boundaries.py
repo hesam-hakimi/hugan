@@ -484,7 +484,7 @@ def test_v08_missing_checkpoint_root_and_control_binding_never_fall_through(admi
     if marker == "table-and-row":
         f.safe.control.connection.execute("DELETE FROM uca_source_dispatch_tasks_v3")
         f.safe.control.connection.commit()
-    with pytest.raises(ValueError, match="guard|root"):
+    with pytest.raises(ValueError, match="guard|root|source-aware"):
         f.safe.resume(task.thread_id, True)
     assert owners(f) == 0
 
@@ -670,12 +670,187 @@ def test_v08_root_locator_damage_blocks_raw_and_explicit_claim(admitted, damage)
 def test_v08_copied_v3_task_metadata_cannot_enter_raw_safe_with_fresh_ids(admitted):
     f = admitted
     fixture.dispatch(f, f.operation, f.admitted)
-    task = f.v3._live[f.operation].task().model_copy(update={
-        "task_id": "copied-v3-task", "thread_id": "copied-v3-thread"})
+    task = (
+        f.v3._live[f.operation]
+        .task()
+        .model_copy(update={"task_id": "copied-v3-task", "thread_id": "copied-v3-thread"})
+    )
     calls = (f.root / "calls.jsonl").read_bytes()
-    with pytest.raises(ValueError, match="explicit v3"):
+    with pytest.raises(ValueError, match="explicit versioned"):
         f.safe.run(task)
     assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == 0
+
+
+@pytest.mark.parametrize(
+    "damage",
+    [
+        "unknown",
+        "missing",
+        "null",
+        "claimed-v2",
+        "metadata-removed",
+        "lineage-unknown",
+        "extension",
+    ],
+)
+def test_v08_unknown_or_missing_version_never_erases_surviving_source_affinity(admitted, damage):
+    from universal_coding_agent.product.program_source_routing import LOCATOR
+
+    f = admitted
+    fixture.dispatch(f, f.operation, f.admitted)
+    row = f.v3._row(f.operation)
+    db = f.safe.connection
+    cp, encoding, raw = db.execute(
+        "SELECT checkpoint_id,type,checkpoint FROM checkpoints WHERE thread_id=? "
+        "ORDER BY checkpoint_id DESC LIMIT 1",
+        (row["thread_id"],),
+    ).fetchone()
+    serde = f.safe.graph.checkpointer.serde
+    value = serde.loads_typed((encoding, raw))
+    task = value["channel_values"]["task"]
+    if damage in {"metadata-removed", "lineage-unknown"}:
+        task["metadata"] = {}
+        if damage == "lineage-unknown":
+            task["context_evidence"][0]["context_type"] = "accepted_source_lineage_99"
+    elif damage == "missing":
+        del task["metadata"]["execution_schema"]
+    elif damage == "extension":
+        import ormsgpack
+
+        task["metadata"]["execution_schema"] = ormsgpack.Ext(99, b"uca-program-source-dispatch-3")
+    else:
+        task["metadata"]["execution_schema"] = {
+            "unknown": "uca-program-source-dispatch-99",
+            "null": None,
+            "claimed-v2": "uca-program-source-dispatch-2",
+        }[damage]
+    if damage == "extension":
+        encoding, raw = "msgpack", ormsgpack.packb(value)
+    else:
+        encoding, raw = serde.dumps_typed(value)
+    db.execute(
+        "UPDATE checkpoints SET type=?,checkpoint=? WHERE thread_id=? AND checkpoint_id=?",
+        (encoding, raw, row["thread_id"], cp),
+    )
+    db.execute("DROP TABLE uca_source_dispatch_tasks_v3_guard")
+    db.commit()
+    f.safe.control.connection.execute("DROP TABLE uca_source_dispatch_tasks_v3")
+    f.safe.control.connection.commit()
+    (f.safe.artifacts.root.parent / LOCATOR).unlink()
+    calls = (f.root / "calls.jsonl").read_bytes()
+    # Each raw route uses a genuinely new host process with no live v3 capability.
+    # The discovery attempt also uses fresh ids but retained source evidence.
+    code = """
+import sys
+from pathlib import Path
+from test_program_source_dispatch import runtime,close
+from universal_coding_agent.core.safe_models import SafeTaskRequest
+from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
+f=runtime(Path(sys.argv[1]),43)
+try:
+    routes=[lambda:f.safe.resume(sys.argv[2],True),
+            lambda:f.safe.resume_publish(sys.argv[2],approved=True,patch_sha256="a"*64),
+            lambda:f.safe.resume_control(sys.argv[2])]
+    for route in routes:
+        try:route()
+        except (ValueError,RuntimeError):pass
+        else:raise AssertionError('raw checkpoint route executed')
+    # Obtain the immutable original task as plain JSON, without decoding the
+    # deliberately corrupted live checkpoint.
+    import json
+    raw=f.store.connection.execute('SELECT a.content FROM program_source_artifacts a '
+        'JOIN program_source_continuation_heads_v3 h ON a.sha256=h.task_sha256 '
+        'WHERE h.operation_id=?',(sys.argv[3],)).fetchone()[0]
+    task=SafeTaskRequest.model_validate(json.loads(raw))
+    task=task.model_copy(update={'task_id':'copied-source-task','thread_id':'copied-source-thread'})
+    port=DiscoveredSafeAgentService.create(Path(sys.argv[1])/'safe',f.provider,
+        allow_local_sources=True,control=f.safe.control,remote_operations=f.safe.remote_operations)
+    routes=[lambda:f.safe.run(task),lambda:port.start(task_id=task.task_id,thread_id=task.thread_id,
+        title=task.title,objective=task.objective,repository=task.repository,policy=task.policy,
+        test_profiles=task.manifest.test_profiles,accepted_evidence=task.context_evidence)]
+    for route in routes:
+        try:route()
+        except (ValueError,RuntimeError):pass
+        else:raise AssertionError('copied source metadata executed')
+    print('five routes denied')
+finally:close(f)
+"""
+    child = subprocess.run(
+        [sys.executable, "-B", "-c", code, str(f.root), row["thread_id"], f.operation],
+        capture_output=True,
+        text=True,
+        timeout=20,
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                (str(Path(__file__).parents[1] / "src"), str(Path(__file__).parent))
+            ),
+        },
+    )
+    assert child.returncode == 0, child.stderr
+    assert child.stdout.strip() == "five routes denied"
+    assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == 0
+    assert f.v3._row(f.operation)["state"] == "parked_scope"
+
+
+def test_v10_actual_wal_growth_between_route_header_and_retrieval_never_decodes(
+    admitted, monkeypatch
+):
+    import ormsgpack
+
+    from universal_coding_agent.product.program_source_routing import checkpoint_has_source_marker
+
+    f = admitted
+    fixture.dispatch(f, f.operation, f.admitted)
+    thread = f.v3._row(f.operation)["thread_id"]
+    checkpoint = f.safe.connection.execute(
+        "SELECT checkpoint_id FROM checkpoints WHERE thread_id=? "
+        "ORDER BY checkpoint_id DESC LIMIT 1",
+        (thread,),
+    ).fetchone()[0]
+    writes, decoded = [], []
+    unpack = ormsgpack.unpackb
+
+    def observe(raw, *args, **kwargs):
+        decoded.append(len(raw))
+        return unpack(raw, *args, **kwargs)
+
+    def race(sql):
+        if sql.startswith("SELECT substr(checkpoint,1,16000001)") and not writes:
+            code = """
+import sqlite3,sys
+with sqlite3.connect(sys.argv[1],timeout=0.3) as db:
+    db.execute('UPDATE checkpoints SET checkpoint=zeroblob(16000001) '
+               'WHERE thread_id=? AND checkpoint_id=?',(sys.argv[2],sys.argv[3]))
+print('committed')
+"""
+            writes.append(
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "-B",
+                        "-c",
+                        code,
+                        f.v3.db.identities[4][0],
+                        thread,
+                        checkpoint,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+            )
+
+    monkeypatch.setattr(ormsgpack, "unpackb", observe)
+    f.safe.connection.set_trace_callback(race)
+    try:
+        with pytest.raises(ValueError, match="changed"):
+            checkpoint_has_source_marker(f.safe, thread)
+    finally:
+        f.safe.connection.set_trace_callback(None)
+    assert len(writes) == 1 and writes[0].returncode == 0, writes
+    assert writes[0].stdout.strip() == "committed" and decoded == []
+    assert f.v3._row(f.operation)["state"] == "parked_scope" and owners(f) == 0
 
 
 def test_v02_new_invocation_wait_is_bounded_under_a_real_unrelated_factory(admitted):

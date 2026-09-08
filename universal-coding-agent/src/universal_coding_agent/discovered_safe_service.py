@@ -111,7 +111,9 @@ class DiscoveredSafeAgentService:
             # artifact writes are effects, and could overwrite a v2 task's frozen evidence.
             safe = self._safe_service()
             try:
-                safe._execution_gate(thread_id, task_id)
+                safe._execution_gate(thread_id, task_id, source_task={
+                    "context_evidence": [item.model_dump(mode="json") for item in accepted_evidence]
+                })
             finally:
                 safe.close()
         requested_profiles = self._validate_test_profiles(policy, test_profiles)

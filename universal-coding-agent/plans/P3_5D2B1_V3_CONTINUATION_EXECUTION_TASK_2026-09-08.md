@@ -7,6 +7,32 @@ was published at `7f2286f3395658b28ad4d7a3e2921116bbdd51ac`; runtime work begins
 that exact definition. Independent acceptance and current-tree platform qualification
 remain separate submission gates. D2a is accepted and complete.
 
+## First correction remains blocked; second correction scope
+
+First correction `55636c067479abdd856bdd349e7d18d224d5e168`, tree
+`2c0a8f767f88b701206021dae33d8e2d6bb4d875`, resolves the original four reproductions
+but remains independently BLOCKED: an unknown checkpoint execution version can
+hide surviving source affinity after all three routing markers are lost, and a
+separate WAL writer can grow checkpoint bytes between the raw routing reader's
+preflight and retrieval. Its author 165 v3 + 532 compatibility passing cases remain
+scoped to that tree. Live193 attempt 1 failed its hard CDC group: the generated fixture documentation
+used `operation` instead of the required `op`, so review returned
+`PASS_WITH_CONDITIONS`; source was preserved and the patch rolled back. CI442
+attempt 1 passed 1636 tests per Python leg on preview
+`bbdfd827017b43fae5d792998cfe88aa8246baea`. All first-correction observations
+remain separate history, never final qualification.
+
+The second correction treats reserved execution/admission metadata and retained
+accepted-source lineage as denial evidence regardless of version value, including
+missing/unknown/rewritten versions. It denies unsupported checkpoint extensions
+and shapes, passes copied source evidence to the raw discovery gate before provider
+work, and preserves the existing exact c2 adapter/registry route. Raw checkpoint
+retrieval binds the selected id, encoding and byte length in SQL, caps the actual
+returned bytes, and validates them before decode. None of these metadata markers
+grants execution. A separate second-correction review and normal current-tree
+platform results are required before Ready or integration; reports retain both
+prior BLOCKED verdicts.
+
 ## Initial blocked candidate and correction scope
 
 Initial implementation `de99db9fdff64745d76f07ff6061044534851642`, tree

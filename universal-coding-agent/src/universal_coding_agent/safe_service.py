@@ -142,23 +142,30 @@ class SafeAgentService:
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
         self._execution_gate(task.thread_id, task.task_id, action="run",
-                             execution_schema=task.metadata.get("execution_schema"))
+                             source_task=task.model_dump(mode="json"))
         self.control.ensure_task(task.task_id)
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
     def _execution_gate(self, thread_id: str, task_id: str | None = None, *, action="run",
-                        execution_schema=None) -> None:
+                        source_task=None) -> None:
         self.verify_source_dispatch_control()
         from universal_coding_agent.product.program_continuation_execution_adapter import (
             ContinuationSafeExecution,
         )
-        from universal_coding_agent.product.program_source_routing import safe_v3_route
+        from universal_coding_agent.product.program_source_routing import (
+            checkpoint_has_source_marker,
+            safe_v3_route,
+            task_has_source_marker,
+        )
         with self.control._lock:
             row = self.control.connection.execute("""SELECT task_id FROM uca_source_dispatch_tasks
                 WHERE thread_id = ? OR task_id = ?""", (thread_id, task_id or "")).fetchone()
+            marked = checkpoint_has_source_marker(self, thread_id)
+            marked |= task_has_source_marker(source_task)
+            if marked and self.execution_adapter is None and row is None:
+                raise ValueError("source-aware task requires an explicit versioned execution API")
             v3 = safe_v3_route(self, thread_id, task_id)
-            v3 |= execution_schema == "uca-program-source-dispatch-3"
         if v3 or type(self.execution_adapter) is ContinuationSafeExecution:
             if (
                 not v3 or row is not None

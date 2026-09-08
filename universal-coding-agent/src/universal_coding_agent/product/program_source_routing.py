@@ -55,43 +55,73 @@ def read_root_locator(safe):
     return parse_record(raw, "uca-program-source-dispatch-root-3")
 
 
-def checkpoint_has_v3(safe, thread_id):
-    """A plain-data version marker is denial evidence even after namespace loss."""
+def task_has_source_marker(task):
+    """Recognize source affinity without interpreting a version as authority."""
+    if task is None:
+        return False
+    if type(task) is not dict:
+        raise ValueError("invalid checkpoint routing task")
+    metadata, evidence = task.get("metadata", {}), task.get("context_evidence", [])
+    if type(metadata) is not dict or type(evidence) is not list:
+        raise ValueError("invalid checkpoint routing metadata")
+    # These are reserved admission markers. Unknown, absent-value or rewritten
+    # versions remain denial evidence; equality with the known version is not
+    # required. C2's actual adapter/registry checks still decide its own entry.
+    marked = bool({"execution_schema", "admission_sha256"} & metadata.keys())
+    for item in evidence:
+        if type(item) is not dict or type(item.get("context_type")) is not str:
+            raise ValueError("invalid checkpoint routing evidence")
+        marked |= item["context_type"].startswith("accepted_source_lineage_")
+    return marked
+
+
+def checkpoint_has_source_marker(safe, thread_id):
+    """Bounded plain-data denial evidence, including corrupt version metadata."""
     if not table(safe.connection, "checkpoints"):
         return False
     args = (thread_id,)
     where = " WHERE thread_id=? AND checkpoint_ns='' ORDER BY checkpoint_id DESC LIMIT 1"
-    size = safe.connection.execute(
-        "SELECT length(checkpoint),typeof(checkpoint),length(type),typeof(type) "
+    header = safe.connection.execute(
+        "SELECT substr(checkpoint_id,1,129),length(checkpoint),typeof(checkpoint),"
+        "substr(type,1,129),length(type),length(checkpoint_id) "
         "FROM checkpoints" + where,
         args,
     ).fetchone()
-    if size is None:
+    if header is None:
         return False
+    checkpoint_id, size, kind, encoding, type_size, id_size = header
     if (
-        size[1] != "blob"
-        or not 0 < size[0] <= 16_000_000
-        or size[3] != "text"
-        or not 0 < size[2] <= 128
+        kind != "blob"
+        or not 0 < size <= 16_000_000
+        or type(encoding) is not str
+        or not 0 < type_size <= 128
+        or type(checkpoint_id) is not str
+        or not 0 < id_size <= 128
     ):
         raise ValueError("checkpoint routing byte bound exceeded")
-    raw, encoding = safe.connection.execute(
-        "SELECT checkpoint,type FROM checkpoints" + where, args
+    row = safe.connection.execute(
+        "SELECT substr(checkpoint,1,16000001) FROM checkpoints WHERE thread_id=? "
+        "AND checkpoint_ns='' AND checkpoint_id=? AND type=? "
+        "AND typeof(checkpoint)='blob' AND length(checkpoint)=?",
+        (thread_id, checkpoint_id, encoding, size),
     ).fetchone()
+    if row is None or type(row[0]) is not bytes or len(row[0]) != size:
+        raise ValueError("checkpoint routing changed or exceeded its byte bound")
+    raw = row[0]
     if encoding == "msgpack":
         import ormsgpack
 
-        value = ormsgpack.unpackb(raw, ext_hook=lambda _code, _data: None)
+        def unsupported_extension(_code, _data):
+            raise ValueError("unsupported checkpoint routing extension")
+
+        value = ormsgpack.unpackb(raw, ext_hook=unsupported_extension)
     elif encoding == "json":
         value = json.loads(raw)
     else:
         raise ValueError("unsupported checkpoint routing encoding")
-    task = value.get("channel_values", {}).get("task", {}) if type(value) is dict else {}
-    metadata = task.get("metadata", {}) if type(task) is dict else {}
-    return (
-        type(metadata) is dict
-        and metadata.get("execution_schema") == "uca-program-source-dispatch-3"
-    )
+    if type(value) is not dict or type(value.get("channel_values")) is not dict:
+        raise ValueError("invalid checkpoint routing channels")
+    return task_has_source_marker(value["channel_values"].get("task"))
 
 
 def table(connection, name, alias="main"):
@@ -210,7 +240,6 @@ def safe_v3_route(safe, thread_id, task_id=None):
     Missing root marker in an initialized namespace fails closed for the root.
     """
     guarded = registry_has_task(safe.control.connection, thread_id, task_id)
-    guarded |= checkpoint_has_v3(safe, thread_id)
     locator = read_root_locator(safe)
     if not table(safe.connection, GUARD_TABLE):
         if guarded or locator is not None or table(safe.control.connection, REGISTRY):
