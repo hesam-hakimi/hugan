@@ -1,14 +1,59 @@
 # P3.5d-2 — Validation, delivery and product decisions
 
-Status: d2a implementation candidate. The matrix below retains the complete required
-or planned evidence, including later slices. The focused foundation tests now exist;
-independent review and ordinary current-tree platform qualification remain gates.
-The accepted baseline remains PR26 until normal integration is actually verified.
+Status: d2a accepted and integrated through actual corrected PR27
+`fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
+`f1e78ac88cdb58c166e4fd51f672c54f9625f210`. D2b-1 has a bounded implementation
+candidate under author verification; independent and current-tree platform gates
+remain pending. Later slices remain
+planned. The initial d2a BLOCKED tree and corrected PASS/CI439/Live190 tree retain
+separate evidence. Do not repeat already completed PR26/PR27 gates.
 
 References: [parent design](P3_5D2_PRODUCT_CONTINUATION_DESIGN_2026-09-08.md) and
 [first task](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md).
 
-## Candidate test mapping
+## First correction remains blocked; second correction scope
+
+First correction `55636c067479abdd856bdd349e7d18d224d5e168`, tree
+`2c0a8f767f88b701206021dae33d8e2d6bb4d875`, resolves the original four reproductions
+but remains independently BLOCKED: an unknown checkpoint execution version can
+hide surviving source affinity after all three routing markers are lost, and a
+separate WAL writer can grow checkpoint bytes between the raw routing reader's
+preflight and retrieval. Its author 165 v3 + 532 compatibility passing cases remain
+scoped to that tree. Live193 attempt 1 failed its hard CDC group: the generated fixture documentation
+used `operation` instead of the required `op`, so review returned
+`PASS_WITH_CONDITIONS`; source was preserved and the patch rolled back. CI442
+attempt 1 passed 1636 tests per Python leg on preview
+`bbdfd827017b43fae5d792998cfe88aa8246baea`. All first-correction observations
+remain separate history, never final qualification.
+
+The second correction treats reserved execution/admission metadata and retained
+accepted-source lineage as denial evidence regardless of version value, including
+missing/unknown/rewritten versions. It denies unsupported checkpoint extensions
+and shapes, passes copied source evidence to the raw discovery gate before provider
+work, and preserves the existing exact c2 adapter/registry route. Raw checkpoint
+retrieval binds the selected id, encoding and byte length in SQL, caps the actual
+returned bytes, and validates them before decode. None of these metadata markers
+grants execution. A separate second-correction review and normal current-tree
+platform results are required before Ready or integration; reports retain both
+prior BLOCKED verdicts.
+
+## Initial blocked candidate and correction scope
+
+Initial implementation `de99db9fdff64745d76f07ff6061044534851642`, tree
+`c15863e8e05f5f662560da0fe5a3144b59bc93af`, was independently BLOCKED for raw
+Safe routing after guard namespace loss, incomplete closed d2a history,
+unbounded v3 registration lock waits, and mutating-PRAGMA authorizer gaps.
+The correction adds an immutable independent root locator and plain checkpoint
+version denial, complete bounded inert predecessor validation, bounded new v3
+registry waits with monotonic revocation, and read-only PRAGMA allowlists. CI441
+attempt 1 failed both Python legs (1612 passed, one child-import harness failure
+per leg); that harness now supplies its fixture import path explicitly. Live192
+attempt 1 passed on the initial preview `cc9bee057af186f74c66e5aebfe7a92495118e3a`.
+These observations remain initial-tree history. Corrected-tree independent review
+and platform outcomes are recorded separately in PR28 and external evidence;
+no initial result substitutes for those gates. Standard Live Program remains v1.
+
+## Accepted d2a test mapping
 
 `tests/test_program_continuation_handoff.py` uses actual on-disk Program/control/
 lifecycle stores, actual Program execution bindings and a real SQLite checkpoint
@@ -30,6 +75,35 @@ The published review/qualification evidence records exact head/tree, commands,
 counts, failures and platform attempts. The tests above do not qualify C06-C13's
 later provider, checkpoint, acceptance or Product API/UI consumers. Standard Live
 Program remains v1 even if the ordinary workflow passes on this candidate.
+
+## D2b-1 candidate evidence and outstanding acceptance gates
+
+The [d2b-1 task](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) and
+[consumer contract](P3_5D2B1_V3_ADMISSION_AND_QUIESCENCE_CONTRACT.md) own V01-V12.
+They make C06-C09 and the v3 portions of C03-C05/C14 concrete. Definition delivery
+completed at `7f2286f3395658b28ad4d7a3e2921116bbdd51ac` with unchanged runtime.
+The subsequent implementation adds actual deterministic host evidence in
+`test_program_continuation_dispatch.py` and `test_program_continuation_boundaries.py`.
+Exact final run counts and candidate identities are recorded with submission;
+author tests do not substitute for independent probes or current-tree CI/Live.
+
+| Parent requirements | D2b-1 decisive cases | Boundary |
+| --- | --- | --- |
+| C06 / C14 | V08 / V12 | Exact v3 adapter/registries and durable deny guards; all legacy effect paths blocked, including missing metadata; c1/c2/d2a preserved |
+| C07 / C09 | V01 / V07 | Real accepted 43 -> actual discovery/scope stop -> fresh-process exact decision -> tested/reviewed terminal-unaccepted 44 |
+| C01 / C02 / C04 / C08 | V02-V05 / V11 | Live outer invocation settlement, all owned work absent, registration barrier, actual SQLite writers excluded through atomic release/claim |
+| C03 / C08 | V05 / V06 | Ambiguous invocation cannot replay; completed response carries no capability; crash before settlement may remain blocked |
+| C05 / C14 | V10 / V12 | Bounded standalone v3 host reads and fail-closed legacy route denial; no public Product v3 projection yet |
+| Source preservation / failure | V07 / V09 / V12 | Immutable accepted source/preparation, exact rollback and failed/rejected outcomes; no source advancement |
+
+Only the real scope interrupt is resumable in d2b-1. The broader fault/journey rows
+below retain later-slice ownership: discovery-only parking, post-drift refresh,
+remote-lease recovery, source previews/acceptance and Product actions are not
+implicitly included. A checkpoint by itself cannot authorize reconciliation after
+process loss: d2b-1 requires the still-live invocation's actual return/revocation
+proof, or an already committed park/close. Exact administrative row removal grants
+no continuation capability. Successful 44 stays terminal-unaccepted at generation
+1/accepted 43; C10/C11's accepted generation 2 remains d2b-2.
 
 ## Requirements and evidence ownership
 

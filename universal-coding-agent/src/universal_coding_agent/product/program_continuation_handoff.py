@@ -973,6 +973,8 @@ class ProgramContinuationHandoffStore:
             replay = self._replay(reader, program_id, request_id, request_sha256)
             if replay is not None:
                 return replay
+            from universal_coding_agent.product.program_source_routing import require_no_v3
+            require_no_v3(reader.connection, program_id=program_id, active_only=True)
             head = self._head(reader, program_id, complete_chain=True)
             if action == "create":
                 _require(head is None, "handoff already exists; explicit diagnosis required")

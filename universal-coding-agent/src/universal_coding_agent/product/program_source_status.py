@@ -129,6 +129,8 @@ class _SourceReader:
         return value
 
     def snapshot(self, program_id):
+        from universal_coding_agent.product.program_source_routing import require_no_v3
+        require_no_v3(self.connection, program_id=program_id)
         programs = self.rows(
             "programs", ("requirement_hash", "plan_hash", "status"),
             "program_id=?", (program_id,), limit=1,

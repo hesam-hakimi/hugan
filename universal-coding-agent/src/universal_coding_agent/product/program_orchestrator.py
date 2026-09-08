@@ -375,6 +375,10 @@ class ProgramOrchestrator:
 
         requested_profiles = self._validate_execution_profiles(policy, test_profiles)
         with self._lock:
+            from universal_coding_agent.product.program_source_status import (
+                require_legacy_program_route,
+            )
+            require_legacy_program_route(self.database_path, program_id)
             self._require_execution_ready(program_id, current_requirement_hash)
             active = self._active_execution(program_id)
             if active is not None:
@@ -461,6 +465,10 @@ class ProgramOrchestrator:
                 "SELECT 1 FROM program_source_dispatches WHERE task_id = ?", (task_id,)
             ).fetchone():
                 raise ProgramExecutionError("source-aware execution requires the explicit v2 API")
+            from universal_coding_agent.product.program_source_status import (
+                require_legacy_program_route,
+            )
+            require_legacy_program_route(self.database_path, program_id, task_id)
             self._require_execution_ready(program_id, current_requirement_hash)
             binding = self.execution_binding(task_id)
             if binding.program_id != program_id:

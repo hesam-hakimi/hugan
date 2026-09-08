@@ -268,6 +268,7 @@ class ProgramSourceAcceptanceService:
         return strict_json(receipt)
 
     def _dispatch_for(self, task_id):
+        self._deny_v3(task_id)
         row = self.connection.execute(
             "SELECT 1 FROM control.uca_source_dispatch_tasks WHERE task_id = ?", (task_id,)
         ).fetchone()
@@ -277,7 +278,19 @@ class ProgramSourceAcceptanceService:
         _require(dispatch is not None, "v2 source capture requires its explicit dispatch service")
         return dispatch
 
+    def _deny_v3(self, task_id):
+        from universal_coding_agent.product.program_source_routing import (
+            require_no_v3,
+            safe_v3_route,
+        )
+        require_no_v3(self.connection, task_id=task_id)
+        row = self.connection.execute("SELECT thread_id FROM program_executions WHERE task_id=?",
+                                      (task_id,)).fetchone()
+        if row is not None and safe_v3_route(self.safe, row[0], task_id):
+            raise ValueError("v3 source acceptance is not implemented in this slice")
+
     def _capture(self, before: ProgramSourceSnapshot, task_id: str, owner_token: str):
+        self._deny_v3(task_id)
         with self._transaction():
             binding = self._binding(before.identity, owner_token, task_id)
             checkpoint = self._checkpoint(binding["execution"]["thread_id"])
@@ -373,6 +386,7 @@ class ProgramSourceAcceptanceService:
 
     def prepare(self, program_id: str, task_id: str, *, owner_token: str,
                 expected_source_sha256: str, expected_generation: int) -> dict:
+        self._deny_v3(task_id)
         with self._transaction():
             self._expect_head(program_id, expected_source_sha256, expected_generation)
             before = self.current(program_id)
@@ -416,6 +430,7 @@ class ProgramSourceAcceptanceService:
         _digest(approved_transition_sha256)
         with self._transaction():
             candidate = strict_json(self._get(candidate_sha256))
+            self._deny_v3(candidate["task_id"])
             _require(candidate.get("schema") == "uca-source-candidate-1"
                      and candidate["host_sha256"] == self.host_sha256
                      and candidate["transition_sha256"] == approved_transition_sha256,
