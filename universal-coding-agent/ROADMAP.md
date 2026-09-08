@@ -125,9 +125,9 @@
   explicit worker episodes, versioned continuation/acceptance and later API/UI delivery;
   d2a inert handoff accepted and integrated through corrected PR27 on 2026-09-08,
   with no execution capability or production caller;
-  [d2b-1](plans/P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) now defined
+  [d2b-1](plans/P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) now implemented as a candidate
   from actual accepted PR27 for explicit v3 admission, actual scope quiescence and
-  fresh-worker continuation to terminal-unaccepted results; no runtime yet;
+  fresh-worker continuation to terminal-unaccepted results; independent/current-tree gates pending;
   d2b-2 source acceptance and d2c-1/API, d2c-2/UI remain planned;
 - P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript
   (deferred behind source continuity and resumability by the September 7 owner decision);

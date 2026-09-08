@@ -1,6 +1,7 @@
 # P3.5d-2b-1 — V3 admission, settlement and quiescent continuation contract
 
-Status: selected definition, not implemented or qualified. This contract is owned
+Status: implemented by a bounded candidate under verification, not yet independently
+accepted or platform-qualified. This contract is owned
 by the [d2b-1 task](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md), from actual
 accepted PR27 `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
 `f1e78ac88cdb58c166e4fd51f672c54f9625f210`. It resolves the parent's d2b-1 schema,
@@ -57,6 +58,19 @@ are not signatures, evidence by assertion or authorization. Public records may s
 `source_acceptance_authorized=false`. An action's eligibility is advisory; only
 the current private live adapter can cross an execution boundary.
 
+The candidate's exact field allowlists are `FIELDS` in
+`product/program_continuation_execution_store.py`. Intent and guard/root records
+are separately tagged `uca-program-source-dispatch-intent-3`,
+`uca-program-source-dispatch-guard-3` and `uca-program-source-dispatch-root-3`;
+response/outcome are `uca-program-continuation-response-3` and
+`uca-program-continuation-outcome-3`. A receipt references the proposal **consumed**
+by its action (null at initial park). The newly issued proposal binds the parked
+receipt, then the immutable response binds both. This acyclic ordering preserves
+exact-byte replay without a self-referential content hash or a GET-minted proposal.
+The three completed actions have sequences 1/2/3 and epochs 0/0/1. Missing earlier
+requests, responses or receipt indexes block the chain, even when its latest
+receipt still exists.
+
 Use additive Program tables `program_source_dispatches_v3`,
 `program_source_continuation_heads_v3`, `program_source_continuation_receipts_v3`
 and `program_source_continuation_requests_v3`. Content-addressed records may use
@@ -72,6 +86,15 @@ The separate control table is `uca_source_dispatch_tasks_v3` with exactly
 be unique. Keep c2's original four-column table and whole-row checks unchanged.
 Registry, admission, head, execution and checkpoint guard must agree on version
 and identities. A digest match alone does not replace proof of their contents.
+
+The Safe guard table contains a permanent `root` record plus unique task/thread
+records keyed by operation. The root pins the Program and control database paths,
+devices and inodes, so raw Safe can inspect surviving Program markers without
+constructing a consumer. An initialized namespace with a missing root is denied.
+The separate root/task write uses `BEGIN IMMEDIATE`, durable Safe synchronization,
+exact schema checks and an INSERT-only allowlist for these guards and the accepted
+control-root pin. An orphan guard confers no admission. Only the exact original
+pending preparation/owner may finish its explicit admission after that write.
 
 ## Durable route exclusion before admission
 

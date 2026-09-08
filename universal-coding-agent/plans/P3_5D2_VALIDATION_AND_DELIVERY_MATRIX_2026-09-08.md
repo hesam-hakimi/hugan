@@ -2,8 +2,9 @@
 
 Status: d2a accepted and integrated through actual corrected PR27
 `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
-`f1e78ac88cdb58c166e4fd51f672c54f9625f210`. D2b-1 is defined only; no successor
-implementation, PR, test result or platform run is claimed. Later slices remain
+`f1e78ac88cdb58c166e4fd51f672c54f9625f210`. D2b-1 has a bounded implementation
+candidate under author verification; independent and current-tree platform gates
+remain pending. Later slices remain
 planned. The initial d2a BLOCKED tree and corrected PASS/CI439/Live190 tree retain
 separate evidence. Do not repeat already completed PR26/PR27 gates.
 
@@ -33,13 +34,16 @@ counts, failures and platform attempts. The tests above do not qualify C06-C13's
 later provider, checkpoint, acceptance or Product API/UI consumers. Standard Live
 Program remains v1 even if the ordinary workflow passes on this candidate.
 
-## Defined d2b-1 evidence plan — not yet run
+## D2b-1 candidate evidence and outstanding acceptance gates
 
 The [d2b-1 task](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) and
 [consumer contract](P3_5D2B1_V3_ADMISSION_AND_QUIESCENCE_CONTRACT.md) own V01-V12.
 They make C06-C09 and the v3 portions of C03-C05/C14 concrete. Definition delivery
-checks only documentation, source identity and unchanged runtime/test/workflow bytes.
-There is no documentation-only PR or new paid Live run.
+completed at `7f2286f3395658b28ad4d7a3e2921116bbdd51ac` with unchanged runtime.
+The subsequent implementation adds actual deterministic host evidence in
+`test_program_continuation_dispatch.py` and `test_program_continuation_boundaries.py`.
+Exact final run counts and candidate identities are recorded with submission;
+author tests do not substitute for independent probes or current-tree CI/Live.
 
 | Parent requirements | D2b-1 decisive cases | Boundary |
 | --- | --- | --- |

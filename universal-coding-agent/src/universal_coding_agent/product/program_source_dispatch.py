@@ -171,6 +171,7 @@ class ProgramSourceDispatchService:
         return binding, before
 
     def _load(self, operation_id, owner_token, *, after_finalize=False, accepted_replay=False):
+        self._deny_v3(operation_id)
         self._durability()
         row = self._row(operation_id)
         admission = self._json(row["admission_sha256"])
@@ -349,6 +350,7 @@ class ProgramSourceDispatchService:
         _digest(preparation_receipt_sha256)
         store, base = self.store, self.preparation
         with store._transaction():
+            self._deny_v3(operation_id)
             self._durability()
             existing = store.connection.execute(
                 """SELECT 1 FROM program_source_dispatches
@@ -472,6 +474,19 @@ class ProgramSourceDispatchService:
                 ),
             )
             return self.status(operation_id)
+
+    def _deny_v3(self, operation_id):
+        from universal_coding_agent.product.program_source_routing import (
+            GUARD_TABLE,
+            require_no_v3,
+            table,
+        )
+        db = self.store.connection
+        require_no_v3(db, operation_id=operation_id)
+        if table(db, GUARD_TABLE, "safe") and db.execute(
+            f"SELECT 1 FROM safe.{GUARD_TABLE} WHERE guard_key=?", (operation_id,)
+        ).fetchone():
+            raise ValueError("v3 guarded preparation cannot enter v2")
 
     def _verify_files(self, row, admission, *, retained=None, mutable=()):
         """Verify immutable material and complete private worktree including .git and inodes."""

@@ -2,8 +2,10 @@
 
 Task ID: `UCA-20260908-P35D2B1-V3-CONTINUATION-EXECUTION`
 
-Status: definition only. No runtime implementation, new PR, independent acceptance
-or platform qualification is claimed by this document. D2a is accepted and complete.
+Status: bounded implementation candidate under author verification. The definition
+was published at `7f2286f3395658b28ad4d7a3e2921116bbdd51ac`; runtime work begins from
+that exact definition. Independent acceptance and current-tree platform qualification
+remain separate submission gates. D2a is accepted and complete.
 
 ## Accepted starting point and authority
 
@@ -17,8 +19,8 @@ integration `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
 
 Definition branch: `feature/universal-coding-agent-continuation-dispatch`.
 Bounded engineering authority continues without routine owner reconfirmation.
-The present instruction authorizes defining only this slice before implementation;
-it does not instruct execution of the newly defined task in the same step.
+The preceding definition-only phase completed without runtime changes. The current
+engineering phase implements this task under the continuing bounded authority.
 
 Read the full current checkpoint/state/master/status and observed sync receipt,
 both PR27 reports, the [d2a task](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md),
@@ -145,6 +147,17 @@ This host fixture is not live-model cumulative v3 or a Product HTTP/UI journey.
 | V12 | Existing c1/c2, Program v1 evidence, PR26 F1/F2, d2a corrected WAL control and lifecycle/recovery/pagination regressions; frozen old schemas and adapter behavior |
 
 ## Definition delivery and later submission gates
+
+The candidate implements the four new modules and narrow legacy entry guards in
+the scope table. `tests/test_program_continuation_dispatch.py` and
+`tests/test_program_continuation_boundaries.py` contain the real consumer evidence,
+including process exits, competing processes, live registration barriers, faulted
+checkpoints, immutable history bounds, source preservation and copied-proof parity.
+Their deterministic provider fixture uses real Git, discovery, Safe checkpoints,
+subprocess tests and reviewer outcomes. These tests do not qualify a live-model v3
+or Product HTTP/UI journey. Final exact candidate identities, commands/counts and
+independent/platform outcomes belong to the submission evidence; an author run
+alone cannot complete this task's acceptance gates.
 
 For this definition: check every referenced path, review the complete documentation
 diff, verify runtime/tests/workflows are identical to accepted PR27, publish only

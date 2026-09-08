@@ -108,9 +108,12 @@ class SafeAgentService:
             cancellation=control_service.cancellation,
         )
         if execution_adapter is not None:
+            from universal_coding_agent.product.program_continuation_execution_adapter import (
+                ContinuationSafeExecution,
+            )
             from universal_coding_agent.product.program_source_dispatch import AdmittedSafeExecution
-            if type(execution_adapter) is not AdmittedSafeExecution:
-                raise ValueError("Safe execution requires a stored v2 admission adapter")
+            if type(execution_adapter) not in {AdmittedSafeExecution, ContinuationSafeExecution}:
+                raise ValueError("Safe execution requires an exact stored admission adapter")
             services = execution_adapter.bind_services(services, state_root, protocol)
         connection = sqlite3.connect(
             state_root / "safe-checkpoints.sqlite",
@@ -138,16 +141,29 @@ class SafeAgentService:
             self.remote_operations.close()
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
-        self._execution_gate(task.thread_id, task.task_id)
+        self._execution_gate(task.thread_id, task.task_id, action="run")
         self.control.ensure_task(task.task_id)
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
-    def _execution_gate(self, thread_id: str, task_id: str | None = None) -> None:
+    def _execution_gate(self, thread_id: str, task_id: str | None = None, *, action="run") -> None:
         self.verify_source_dispatch_control()
+        from universal_coding_agent.product.program_continuation_execution_adapter import (
+            ContinuationSafeExecution,
+        )
+        from universal_coding_agent.product.program_source_routing import safe_v3_route
         with self.control._lock:
             row = self.control.connection.execute("""SELECT task_id FROM uca_source_dispatch_tasks
                 WHERE thread_id = ? OR task_id = ?""", (thread_id, task_id or "")).fetchone()
+            v3 = safe_v3_route(self, thread_id, task_id)
+        if v3 or type(self.execution_adapter) is ContinuationSafeExecution:
+            if (
+                not v3 or row is not None
+                or type(self.execution_adapter) is not ContinuationSafeExecution
+            ):
+                raise ValueError("source-aware task requires explicit v3 continuation API")
+            self.execution_adapter.entry(thread_id, task_id, action)
+            return
         if row is not None or self.execution_adapter is not None:
             if self.execution_adapter is None:
                 raise ValueError("source-aware task requires explicit v2 execution API")
@@ -196,7 +212,7 @@ class SafeAgentService:
             raise ValueError("source-aware checkpoint root requires its bound control database")
 
     def resume(self, thread_id: str, approved: bool) -> dict[str, Any]:
-        self._execution_gate(thread_id)
+        self._execution_gate(thread_id, action="resume")
         config = {"configurable": {"thread_id": thread_id}}
         return self.graph.invoke(Command(resume={"approved": approved}), config=config)
 
@@ -207,6 +223,7 @@ class SafeAgentService:
         approved: bool,
         patch_sha256: str,
     ) -> dict[str, Any]:
+        self._execution_gate(thread_id, action="publish")
         normalized_hash = patch_sha256.strip().lower()
         if re.fullmatch(r"[0-9a-f]{64}", normalized_hash) is None:
             raise ValueError("publish approval requires an exact SHA-256 patch hash")
@@ -214,7 +231,6 @@ class SafeAgentService:
         if snapshot["next"] != ["publish_approval"]:
             raise RuntimeError("task is not awaiting publish approval")
         config = {"configurable": {"thread_id": thread_id}}
-        self._execution_gate(thread_id)
         return self.graph.invoke(
             Command(
                 resume={
@@ -244,7 +260,7 @@ class SafeAgentService:
         if normalized not in {"resume", "cancel"}:
             raise ValueError("control action must be resume or cancel")
         config = {"configurable": {"thread_id": thread_id}}
-        self._execution_gate(thread_id)
+        self._execution_gate(thread_id, action="control")
         return self.graph.invoke(Command(resume={"action": normalized}), config=config)
 
     def state(self, thread_id: str) -> dict[str, Any]:

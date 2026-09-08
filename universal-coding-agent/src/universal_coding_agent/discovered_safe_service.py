@@ -73,9 +73,12 @@ class DiscoveredSafeAgentService:
         return self._start(**request)
 
     def start_admitted(self, execution) -> dict[str, Any]:
+        from universal_coding_agent.product.program_continuation_execution_adapter import (
+            ContinuationSafeExecution,
+        )
         from universal_coding_agent.product.program_source_dispatch import AdmittedSafeExecution
-        if type(execution) is not AdmittedSafeExecution:
-            raise ValueError("discovery requires a stored v2 execution admission")
+        if type(execution) not in {AdmittedSafeExecution, ContinuationSafeExecution}:
+            raise ValueError("discovery requires an exact stored execution admission")
         return self._start(**execution.discovery_request(self), _execution=execution)
 
     def _start(
@@ -94,6 +97,15 @@ class DiscoveredSafeAgentService:
         require_publish_approval: bool = False,
         _execution=None,
     ) -> dict[str, Any]:
+        if _execution is not None:
+            from universal_coding_agent.product.program_continuation_execution_adapter import (
+                ContinuationSafeExecution,
+            )
+            from universal_coding_agent.product.program_source_execution_adapter import (
+                AdmittedSafeExecution,
+            )
+            if type(_execution) not in {AdmittedSafeExecution, ContinuationSafeExecution}:
+                raise ValueError("discovery requires an exact stored execution admission")
         if _execution is None:
             # Admission checks must precede even read-only discovery: its provider call and
             # artifact writes are effects, and could overwrite a v2 task's frozen evidence.
@@ -248,7 +260,9 @@ class DiscoveredSafeAgentService:
             },
         )
         if _execution is not None:
-            _execution.discovery_completed(task)
+            completed = _execution.discovery_completed(task)
+            if type(_execution) is ContinuationSafeExecution:
+                task = completed
             _execution.start_safe()
         safe = self._safe_service(execution=_execution)
         try:

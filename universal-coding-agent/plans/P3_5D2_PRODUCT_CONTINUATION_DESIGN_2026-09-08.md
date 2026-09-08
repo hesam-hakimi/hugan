@@ -3,9 +3,10 @@
 Status: d2a is independently accepted, platform-qualified and integrated through
 actual PR27 `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
 `f1e78ac88cdb58c166e4fd51f672c54f9625f210`. Only
-[d2b-1](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) is now defined;
+[d2b-1](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) has a bounded implementation candidate;
 its [consumer contract](P3_5D2B1_V3_ADMISSION_AND_QUIESCENCE_CONTRACT.md) is normative
-for that bounded slice. No d2b-1 runtime or qualification exists yet. D2b-2/d2c-1/
+for that bounded slice. Independent acceptance and platform qualification remain
+pending for this candidate. D2b-2/d2c-1/
 d2c-2 remain planned. The original PR26-based rationale below is retained; its
 future-tense d2a obligations are now completed, not open submission gates.
 

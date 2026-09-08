@@ -135,6 +135,7 @@ class CancellationSignal:
     def __init__(self, coordinator: CancellationCoordinator, task_id: str) -> None:
         self._coordinator = coordinator
         self.task_id = task_id
+        self._registration_context = coordinator._registration_context.get()
         self._operation_stack: ContextVar[tuple[_OwnedOperation, ...]] = ContextVar(
             f"uca_owned_operation_stack_{id(self)}",
             default=(),
@@ -154,7 +155,9 @@ class CancellationSignal:
 
     @contextmanager
     def operation(self, kind: OwnedOperationKind) -> Iterator[None]:
-        owned = self._coordinator._begin_operation(self.task_id, kind)
+        owned = self._coordinator._begin_operation(
+            self.task_id, kind, registration_context=self._registration_context
+        )
         stack_token = self._operation_stack.set(
             (*self._operation_stack.get(), owned)
         )
@@ -172,7 +175,9 @@ class CancellationSignal:
         kind: OwnedOperationKind,
         factory: Callable[[], subprocess.Popen[str]],
     ) -> Iterator[subprocess.Popen[str]]:
-        owned = self._coordinator._start_process(self.task_id, kind, factory)
+        owned = self._coordinator._start_process(
+            self.task_id, kind, factory, registration_context=self._registration_context
+        )
         try:
             yield owned.process
             self.raise_if_cancelled()
@@ -187,7 +192,9 @@ class CancellationSignal:
     ) -> Iterator[OwnedCancellableOperation]:
         """Register one explicitly owned in-process or remote operation handle."""
 
-        owned = self._coordinator._start_cancellable(self.task_id, kind, factory)
+        owned = self._coordinator._start_cancellable(
+            self.task_id, kind, factory, registration_context=self._registration_context
+        )
         try:
             yield owned.operation
             self.raise_if_cancelled()
@@ -215,6 +222,7 @@ class CancellationSignal:
             kind,
             operation_stack[-1],
             factory,
+            registration_context=self._registration_context,
         )
         try:
             yield owned.operation
@@ -252,6 +260,70 @@ class CancellationCoordinator:
         self._paused_pausables: dict[str, tuple[_OwnedPausable, ...]] = {}
         self._pause_ack_timeout_seconds = pause_ack_timeout_seconds
         self._control_poll_interval_seconds = control_poll_interval_seconds
+        self._registration_context: ContextVar[object | None] = ContextVar(
+            f"uca_registration_context_{id(self)}", default=None
+        )
+        self._invocations: dict[str, _RegistrationContext] = {}
+
+    def _new_invocation(self, task_id):
+        """Create a private registration epoch; this grants no graph authority."""
+        with self._lock:
+            prior = self._invocations.get(task_id)
+            if prior is not None and not prior.revoked:
+                raise RuntimeError("task already has a live registration context")
+            if any(self._registration_snapshot(task_id).values()):
+                raise RuntimeError("task has outstanding owned registrations")
+            context = _RegistrationContext(self, task_id)
+            self._invocations[task_id] = context
+            return context
+
+    @contextmanager
+    def _invocation_context(self, context):
+        with self._lock:
+            self._check_registration(context.task_id, context)
+        token = self._registration_context.set(context)
+        try:
+            yield
+        finally:
+            self._registration_context.reset(token)
+
+    def _check_registration(self, task_id, context):
+        current = self._invocations.get(task_id)
+        if context is not None and (
+            context.coordinator is not self or context.task_id != task_id or context.revoked
+        ):
+            raise RuntimeError("revoked or mismatched v3 registration context")
+        if current is not None and (current is not context or current.revoked):
+            raise RuntimeError("v3 task requires its live registration context")
+
+    def _registration_snapshot(self, task_id):
+        # Count registrations, including handles that merely report done/paused.
+        return {name: len(getattr(self, name).get(task_id, ())) for name in (
+            "_operations", "_processes", "_cancellables", "_pausables", "_paused_pausables"
+        )}
+
+    def _revoke_invocation(self, context):
+        with self._lock:
+            if (
+                context.coordinator is not self
+                or self._invocations.get(context.task_id) is not context
+            ):
+                raise RuntimeError("registration context differs")
+            context._revoke()
+
+    @contextmanager
+    def _settlement_barrier(self, context):
+        if not self._lock.acquire(timeout=2):
+            raise RuntimeError("owned registration barrier is busy")
+        try:
+            if (context.coordinator is not self or not context.revoked
+                    or self._invocations.get(context.task_id) is not context):
+                raise RuntimeError("settlement requires the original revoked context")
+            if any(self._registration_snapshot(context.task_id).values()):
+                raise RuntimeError("settlement has outstanding owned registrations")
+            yield
+        finally:
+            self._lock.release()
 
     def signal(self, task_id: str) -> CancellationSignal:
         with self._lock:
@@ -556,8 +628,10 @@ class CancellationCoordinator:
         self,
         task_id: str,
         kind: OwnedOperationKind,
+        *, registration_context=None,
     ) -> _OwnedOperation:
         with self._lock:
+            self._check_registration(task_id, registration_context)
             event = self._events.setdefault(task_id, Event())
             if event.is_set():
                 raise CancellationRequested("task cancellation requested")
@@ -580,8 +654,10 @@ class CancellationCoordinator:
         task_id: str,
         kind: OwnedOperationKind,
         factory: Callable[[], subprocess.Popen[str]],
+        *, registration_context=None,
     ) -> _OwnedProcess:
         with self._lock:
+            self._check_registration(task_id, registration_context)
             event = self._events.setdefault(task_id, Event())
             if event.is_set():
                 raise CancellationRequested("task cancellation requested")
@@ -604,8 +680,10 @@ class CancellationCoordinator:
         task_id: str,
         kind: OwnedOperationKind,
         factory: Callable[[], OwnedCancellableOperation],
+        *, registration_context=None,
     ) -> _OwnedCancellable:
         with self._lock:
+            self._check_registration(task_id, registration_context)
             event = self._events.setdefault(task_id, Event())
             if event.is_set():
                 raise CancellationRequested("task cancellation requested")
@@ -621,8 +699,10 @@ class CancellationCoordinator:
         kind: OwnedOperationKind,
         owner: _OwnedOperation,
         factory: Callable[[], OwnedPausableOperation],
+        *, registration_context=None,
     ) -> _OwnedPausable:
         with self._lock:
+            self._check_registration(task_id, registration_context)
             cancel_event = self._events.setdefault(task_id, Event())
             if cancel_event.is_set():
                 raise CancellationRequested("task cancellation requested")
@@ -668,6 +748,28 @@ class CancellationCoordinator:
                 cancellables.remove(owned)
             if not cancellables:
                 self._cancellables.pop(task_id, None)
+
+
+class _RegistrationContext:
+    __slots__ = ("_coordinator", "_task_id", "_revoked")
+
+    def __init__(self, coordinator, task_id):
+        self._coordinator, self._task_id, self._revoked = coordinator, task_id, False
+
+    @property
+    def coordinator(self):
+        return self._coordinator
+
+    @property
+    def task_id(self):
+        return self._task_id
+
+    @property
+    def revoked(self):
+        return self._revoked
+
+    def _revoke(self):
+        self._revoked = True
 
 
 def _signal_process(process: subprocess.Popen[str], requested: signal.Signals) -> None:
