@@ -1,14 +1,16 @@
 # P3.5d-2 — Validation, delivery and product decisions
 
-Status: d2a implementation candidate. The matrix below retains the complete required
-or planned evidence, including later slices. The focused foundation tests now exist;
-independent review and ordinary current-tree platform qualification remain gates.
-The accepted baseline remains PR26 until normal integration is actually verified.
+Status: d2a accepted and integrated through actual corrected PR27
+`fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
+`f1e78ac88cdb58c166e4fd51f672c54f9625f210`. D2b-1 is defined only; no successor
+implementation, PR, test result or platform run is claimed. Later slices remain
+planned. The initial d2a BLOCKED tree and corrected PASS/CI439/Live190 tree retain
+separate evidence. Do not repeat already completed PR26/PR27 gates.
 
 References: [parent design](P3_5D2_PRODUCT_CONTINUATION_DESIGN_2026-09-08.md) and
 [first task](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md).
 
-## Candidate test mapping
+## Accepted d2a test mapping
 
 `tests/test_program_continuation_handoff.py` uses actual on-disk Program/control/
 lifecycle stores, actual Program execution bindings and a real SQLite checkpoint
@@ -30,6 +32,32 @@ The published review/qualification evidence records exact head/tree, commands,
 counts, failures and platform attempts. The tests above do not qualify C06-C13's
 later provider, checkpoint, acceptance or Product API/UI consumers. Standard Live
 Program remains v1 even if the ordinary workflow passes on this candidate.
+
+## Defined d2b-1 evidence plan — not yet run
+
+The [d2b-1 task](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) and
+[consumer contract](P3_5D2B1_V3_ADMISSION_AND_QUIESCENCE_CONTRACT.md) own V01-V12.
+They make C06-C09 and the v3 portions of C03-C05/C14 concrete. Definition delivery
+checks only documentation, source identity and unchanged runtime/test/workflow bytes.
+There is no documentation-only PR or new paid Live run.
+
+| Parent requirements | D2b-1 decisive cases | Boundary |
+| --- | --- | --- |
+| C06 / C14 | V08 / V12 | Exact v3 adapter/registries and durable deny guards; all legacy effect paths blocked, including missing metadata; c1/c2/d2a preserved |
+| C07 / C09 | V01 / V07 | Real accepted 43 -> actual discovery/scope stop -> fresh-process exact decision -> tested/reviewed terminal-unaccepted 44 |
+| C01 / C02 / C04 / C08 | V02-V05 / V11 | Live outer invocation settlement, all owned work absent, registration barrier, actual SQLite writers excluded through atomic release/claim |
+| C03 / C08 | V05 / V06 | Ambiguous invocation cannot replay; completed response carries no capability; crash before settlement may remain blocked |
+| C05 / C14 | V10 / V12 | Bounded standalone v3 host reads and fail-closed legacy route denial; no public Product v3 projection yet |
+| Source preservation / failure | V07 / V09 / V12 | Immutable accepted source/preparation, exact rollback and failed/rejected outcomes; no source advancement |
+
+Only the real scope interrupt is resumable in d2b-1. The broader fault/journey rows
+below retain later-slice ownership: discovery-only parking, post-drift refresh,
+remote-lease recovery, source previews/acceptance and Product actions are not
+implicitly included. A checkpoint by itself cannot authorize reconciliation after
+process loss: d2b-1 requires the still-live invocation's actual return/revocation
+proof, or an already committed park/close. Exact administrative row removal grants
+no continuation capability. Successful 44 stays terminal-unaccepted at generation
+1/accepted 43; C10/C11's accepted generation 2 remains d2b-2.
 
 ## Requirements and evidence ownership
 

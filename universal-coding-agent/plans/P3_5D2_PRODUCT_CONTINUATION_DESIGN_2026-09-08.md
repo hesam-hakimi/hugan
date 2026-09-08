@@ -1,12 +1,17 @@
 # P3.5d-2 — Product continuation across explicit worker episodes
 
-Status: design selected under the owner's bounded engineering mandate; only the
-accompanying d2a foundation now has an implementation candidate. Independent and
-platform acceptance remain pending. The later execution/API/UI slices are planned.
+Status: d2a is independently accepted, platform-qualified and integrated through
+actual PR27 `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
+`f1e78ac88cdb58c166e4fd51f672c54f9625f210`. Only
+[d2b-1](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) is now defined;
+its [consumer contract](P3_5D2B1_V3_ADMISSION_AND_QUIESCENCE_CONTRACT.md) is normative
+for that bounded slice. No d2b-1 runtime or qualification exists yet. D2b-2/d2c-1/
+d2c-2 remain planned. The original PR26-based rationale below is retained; its
+future-tense d2a obligations are now completed, not open submission gates.
 
 ## Accepted baseline and outcome
 
-Start from actual PR26 integration `132f1410661e9c3a9034c9d6cd9400eebeda65f9`,
+The original d2a design started from actual PR26 integration `132f1410661e9c3a9034c9d6cd9400eebeda65f9`,
 tree `884a94d8722e614d72b48892e77aa59ca015d622`. Ordered parents are accepted
 PR25 `5d1bb45c28689131b9b538e798d3b8e7aa25742c`, then reviewed corrected
 PR26 `ffc1616be54f9c735a7ba3c35f6dc8e5fd197a55`. Both independent PR26 reports,
@@ -83,8 +88,12 @@ scope approval; automatically approving the next generation after a terminal res
 
 ## Durable authority model
 
-The foundation uses additive, versioned records in the existing Program database.
-Names are reserved by d2a and may only be changed with an explicit contract update.
+The accepted foundation uses additive, versioned records in the existing Program
+database. Its names and false authority flags remain frozen. The table below is
+d2a historical metadata only. Its fixed semantic witness cannot follow real
+execution changes. D2b-1 uses disjoint v3 records, real settlement proof and the
+accepted connection-scoped lifecycle primitives, as specified in its contract;
+it does not use this metadata chain to grant execution or quiescence.
 
 | Record | Required bound content |
 | --- | --- |
@@ -186,23 +195,35 @@ never authorize editing or source acceptance.
 
 ## Delivery and design readiness
 
-Only [d2a](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md) is ready to enter
-bounded qualification. It targets the authority-record/worker transaction boundary,
-not actual source-aware execution. D2b and d2c below are planned dependencies and
-must receive their own concrete task definitions from the then-accepted source.
+[D2a](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md) is accepted and
+complete through corrected PR27. The initial WAL-control BLOCKED report and the
+separate correction PASS remain distinct. Actual merge ordered parents are
+`132f1410661e9c3a9034c9d6cd9400eebeda65f9`, then
+`dc60201f618c67e9afbdf263c75360df823ef783`; preview `cf33eb7` is separate.
+CI439/Live190 attempt 1 qualify that corrected tree only; standard Live Program
+remains v1. Do not repeat completed PR26/PR27 gates.
+
+Only d2b-1 has a new definition from accepted PR27. Its scope is host-only v3
+admission, actual scope quiescence, fresh-worker continuation and terminal-unaccepted
+result recording. It excludes discovery-only/pause/publish handoffs, remote leases,
+post-drift proposal refresh and source acceptance. The broader parent states and
+journey below remain eventual outcomes with separate owning-slice gates.
 
 | Slice | Deliverable | Required evidence before integration |
 | --- | --- | --- |
-| d2a | Provider-free handoff records and exact atomic worker transition primitives | Real Program/control/lifecycle databases, crash/CAS/bounds/legacy regressions; independent technical review and applicable normal platform gates |
-| d2b-1 | Explicit v3 admission, adapter and quiescent continuation consumer | Actual Git/Safe/discovery across fresh workers and process restart; no duplicate provider/apply invocation; preserved c1/c2 guards |
+| d2a — accepted PR27 | Provider-free handoff records and exact atomic worker transition primitives | Real Program/control/lifecycle databases, crash/CAS/bounds/legacy regressions; independent technical review and applicable normal platform gates |
+| d2b-1 — defined only | Explicit v3 admission, adapter and scope-quiescent continuation consumer; terminal source remains unaccepted | Actual Git/Safe/discovery across fresh workers and process restart; no duplicate provider/apply invocation; preserved c1/c2 guards |
 | d2b-2 | Versioned transition preview/approval/acceptance and host orchestration | Separate exact source acceptance across owner changes; actual 42/43/44 lineage; failed/rejected paths preserved |
 | d2c-1 | Typed local Product commands, durable request replay and status | Actual HTTP routing, host-owned project bindings, duplicate/conflict/restart, zero authority on GET |
 | d2c-2 | Program controls and evidence review in UI | Actual API-backed first-phase/source-acceptance/next-phase/restart/44 journey; source identities and approval stages distinguished |
 
 The validation and rollout details are in
 [P3.5d-2 validation matrix](P3_5D2_VALIDATION_AND_DELIVERY_MATRIX_2026-09-08.md).
-No interface/deployment choice or external credential is needed to start d2a.
-Open before d2b: precise new consumer schemas, shared verified helper extraction,
-and full current-state proposal refresh after lifecycle changes. Open before d2c:
-route names, response status codes and host project-binding configuration format.
-These are explicitly later slice gates, not implementation-ready claims for them.
+D2b-1's consumer contract selects exact v3 record/registry/deny-guard namespaces,
+retains separate c2 authority code without shared-helper extraction, and rejects
+post-drift proposal reuse without adding refresh/recovery. It requires full current
+proof for an unchanged parked proposal and a positive live-invocation settlement
+before atomic release. These resolve the d2b-1 design gates. Source acceptance
+schemas/consumer details remain d2b-2. Route names, response codes and host
+project-binding configuration remain d2c-1; UI choices remain d2c-2. No external
+credential or routine owner reconfirmation is needed for this definition.

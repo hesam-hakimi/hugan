@@ -1,7 +1,19 @@
 # P3.5d-2a — Bounded Program continuation handoff foundation
 
 Task ID: `UCA-20260908-P35D2A-CONTINUATION-HANDOFF`
-Status: bounded implementation candidate; independent and platform acceptance pending.
+Status: accepted and complete through corrected PR27 on 2026-09-08. Actual merge
+`fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
+`f1e78ac88cdb58c166e4fd51f672c54f9625f210`, ordered parents
+`132f1410661e9c3a9034c9d6cd9400eebeda65f9`, then
+`dc60201f618c67e9afbdf263c75360df823ef783`. Initial BLOCKED and separate correction
+PASS reports are both retained. The correction fixed actual control writer exclusion
+through commit including WAL. CI439/Live190 attempt 1 qualify the corrected tree.
+
+The original task/candidate wording below is historical; do not repeat its completed
+submission gates. D2a remains provider-free and inert, with no production consumer
+or quiescence authority. Only the separate
+[d2b-1 task](P3_5D2B1_V3_CONTINUATION_EXECUTION_TASK_2026-09-08.md) is now defined;
+no successor runtime is implemented by this documentation update.
 
 ## Baseline and authority
 
