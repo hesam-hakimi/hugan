@@ -120,6 +120,14 @@ class ArtifactStore:
         if max_bytes < 1:
             raise ValueError("artifact read limit must be positive")
         uri = reference.uri if isinstance(reference, ArtifactReference) else reference
+        from universal_coding_agent.product.program_source_capture_budget import current
+
+        budget = current()
+        if budget is not None:
+            if not uri.startswith("artifact://"):
+                raise ValueError("invalid artifact URI")
+            return budget.read_artifact(
+                self.root, self._validate_name(uri.removeprefix("artifact://")), max_bytes)
         path = self._path_for(uri)
         with path.open("rb") as handle:
             data = handle.read(max_bytes + 1)

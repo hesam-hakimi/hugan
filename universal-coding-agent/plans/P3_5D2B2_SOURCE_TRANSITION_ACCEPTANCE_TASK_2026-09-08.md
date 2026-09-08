@@ -1,5 +1,43 @@
 # P3.5d-2b-2 — Separate source transition preview and acceptance
 
+## Current implementation candidate
+
+Runtime implementation is present from verified definition commit
+`62f988ed85c219715a7d74bbfc75f03c54f3d7a0`. Candidate-2 and receipt-2 have separate
+immutable metadata and an acceptance-only transaction policy. The private fresh
+worker is committed with its pending request; the final source-head CAS, receipt,
+shared/versioned ledger, response and exact release commit together. Interrupted
+requests remain ambiguous. No existing live v3 owner is substituted or resumed.
+
+Author qualification and separate independent/platform/integration observations
+must bind the exact candidate tree. This candidate's source documentation does
+not itself claim those later gates passed. The definition status below records
+the prior phase and is superseded by this implementation-candidate block.
+
+Submitted evidence is in `tests/test_program_source_acceptance_v2.py` and
+`tests/test_program_source_acceptance_v2_boundaries.py` (paths relative to this
+project). The executable map is:
+
+| Family | Submitted cases |
+|---|---|
+| A01 | Real complete journey in both Git formats; separate OS invocations at park/terminal/preview/accept; explicit host composition |
+| A02 | Different current-owner witness hashes; no public token; full worker exclusion and private claim binding |
+| A03 | Every exact decision argument; request collisions, completed replay and final rejection |
+| A04 | Missing v3 requests/receipts/settlement/authority/registry/guards/root/c1 history; complete closed d2a chain |
+| A05 | Recaptured actual tests/review/provenance/scope/patch/validation/Program artifacts and retained/origin bytes |
+| A06 | Source/control/checkpoint/plan/policy/recovery/owner/inode drift; WAL writers blocked through release and commit; late filesystem drift rolls back |
+| A07 | Two OS processes competing for preview, accept/accept, accept/reject and accept/legacy; shared one-task barrier |
+| A08 | External SIGKILL across claim, capture, source-head, response, release and commit; new-process exact replay or retained ambiguous owner |
+| A09 | Actual rejected scope, failed tests, FAIL/conditional review and rollback; pending writes, workers, handles and remote retention |
+| A10 | Independent read-only process, no effectful imports or new stores, unchanged database bytes, historical response after filesystem drift |
+| A11 | Actual selected checkpoint bounds before graph decode; metadata depth/duplicates/canonicality/aggregate/history; schema and index attestations; no-follow inventory; lock, Git and cumulative capture limits; authorizer negatives |
+| A12 | Old-route denial of candidate-2/receipt-2, inert d2a and preserved existing v1/v2/c1/c2/v3 regression suites |
+
+The shared-read budget exceptions are recorded at the end of this task. They do
+not change v3 execution/settlement schemas or expand its write authorizer.
+
+---
+
 Task ID: `UCA-20260908-P35D2B2-SOURCE-TRANSITION-ACCEPTANCE`
 
 Status: instantiated documentation-only definition; runtime implementation has
@@ -154,3 +192,22 @@ phase progression, remote-lease retention, post-drift proposal refresh, old
 candidate migration, new recovery policy, credentials, main, PR6, root todos.md,
 AskTD/ETL/customer work, deployment, history rewriting and generated-source
 publication are excluded. Root September1 remains unverified and ignored.
+# Implementation scope decision — cumulative capture accounting
+
+The definition's 256,000,000-byte cumulative capture limit requires accounting
+at the existing shared read boundaries. The author records this concrete scope
+exception before changing those boundaries: an opt-in, context-local read budget
+in a new acceptance companion may be charged by `storage/artifacts.py`,
+`sandbox/owned_source.py`, `product/program_source_attestation.py`, the immutable
+artifact getter in `product/program_source_acceptance.py`, and bounded v3 readers.
+The counter is inactive outside an explicit new acceptance capture. It grants
+no owner, changes no execution/settlement schema, performs no write, and expands
+no legacy acceptance or v3 transaction authorizer. Existing per-read bounds remain.
+Budget exhaustion is a denial, including repeated reads. This is an implementation
+scope decision, not implementation acceptance or completion of A01–A12.
+
+The existing local Git clone fixture leaves shared immutable loose Git objects
+in the origin's `.git/objects` directory. Origin inspection records their complete
+bytes and exact link counts; it does not require an initial count of one for
+those existing Git objects. All later link-count/identity changes deny capture.
+Artifact and source files still require one link, and symlinks are never followed.

@@ -1,3 +1,29 @@
+# Current checkpoint — P3.5d-2b-2 implementation candidate
+
+The bounded implementation now exists on the source-transition definition
+branch, descending from verified definition commit
+`62f988ed85c219715a7d74bbfc75f03c54f3d7a0`. It adds immutable candidate-2 evidence
+cores, distinct temporary capture witnesses, separate fresh preview/decision
+workers, an atomic receipt-2/source-head/request/release transaction, an explicit
+one-action host companion, and a standalone recorded mixed-version reader.
+The final two-phase result can be explicitly accepted at generation 2 / 44 in
+the deterministic real Program/Safe/Git fixture. Original 42 and accepted material
+43 remain unchanged. Receipt-2 enables no materialization or third phase.
+
+The canonical task maps A01–A12 to submitted executable evidence and records the
+limited shared-read accounting scope decision. Author development runs are not
+independent acceptance. Exact candidate-tree author, separate independent,
+current-tree CI/Live, normal Ready and expected-head integration gates remain
+required; their observations must identify their own source trees. This source
+checkpoint claims no completed platform/integration gate or cumulative live-model
+v3/Product journey. PR28 remains accepted; its gates are not rerun for credit.
+D2a remains inert and d2c-1/d2c-2 remain planned and uninstantiated.
+
+This block supersedes operative status below. Earlier definition and failed
+candidate records remain history with their original source identities.
+
+---
+
 # Current checkpoint — P3.5d-2b-2 defined from accepted PR28
 
 P3.5d-2b-1 is accepted and complete. Only P3.5d-2b-2 is newly instantiated as a

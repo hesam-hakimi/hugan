@@ -348,7 +348,10 @@ class Reader:
         self.connection, self.total, self.cache = connection, 0, {}
 
     def budget(self, n, maximum=MAX_RECORD):
+        from universal_coding_agent.product.program_source_capture_budget import charge
+
         require(type(n) is int and 0 <= n <= maximum, "v3 read byte bound exceeded")
+        charge(n)
         self.total += n
         require(self.total <= MAX_TOTAL, "v3 aggregate read bound exceeded")
 

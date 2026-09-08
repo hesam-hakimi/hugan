@@ -1,5 +1,20 @@
 # P3.5d-2b-2 — Evidence core and atomic source acceptance contract
 
+Current implementation status: a bounded runtime candidate now implements this
+contract. The new service/store/terminal-proof/budget/recorded-reader/host modules
+are explicit Python host surfaces; no Product/API/UI/CLI route was connected.
+Required executable evidence is mapped in the canonical task. Separate exact-tree
+author, independent, platform and integration observations remain delivery gates.
+The documentation-only status below is the preserved definition-phase record.
+
+The task's explicit accounting scope decision allows opt-in shared read charging
+and no-follow artifact observations without changing existing owner semantics.
+Origin Git objects created by the existing local-clone fixture may already have
+multiple hard links: capture pins their bytes and complete link counts and rejects
+subsequent changes. Source/artifact files require one link; symlinks are denied.
+
+---
+
 Status: documentation-only definition from actual accepted PR28. This is the
 binding contract for [the bounded task](P3_5D2B2_SOURCE_TRANSITION_ACCEPTANCE_TASK_2026-09-08.md); no runtime implementation
 or evidence family is complete for this new slice. It specializes the parent

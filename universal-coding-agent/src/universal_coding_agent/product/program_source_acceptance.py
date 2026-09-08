@@ -118,15 +118,22 @@ class ProgramSourceAcceptanceService:
         return sha
 
     def _get(self, sha: str) -> bytes:
+        from universal_coding_agent.product.program_source_capture_budget import charge
+
         _digest(sha)
         row = self.connection.execute(
             "SELECT length(content) FROM program_source_artifacts WHERE sha256 = ?", (sha,)
         ).fetchone()
         _require(row is not None and row[0] <= self.source.policy.max_artifact_bytes,
                  "missing or oversized immutable source artifact")
-        raw = self.connection.execute(
-            "SELECT content FROM program_source_artifacts WHERE sha256 = ?", (sha,)
-        ).fetchone()[0]
+        charge(row[0])
+        selected = self.connection.execute(
+            "SELECT CASE WHEN typeof(content)='blob' AND length(content)=? "
+            "THEN substr(content,1,?) END FROM program_source_artifacts WHERE sha256 = ?",
+            (row[0], row[0], sha),
+        ).fetchone()
+        _require(selected is not None, "immutable source artifact disappeared")
+        raw = selected[0]
         _require(type(raw) is bytes and _hash(raw) == sha, "immutable source artifact corrupted")
         return raw
 
