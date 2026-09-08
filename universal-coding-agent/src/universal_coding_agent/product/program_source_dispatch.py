@@ -42,11 +42,12 @@ def _protocol():
 class ProgramSourceDispatchService:
     def __init__(self, preparation: ProgramExecutionBaseService, provider):
         self.preparation, self.store, self.provider = preparation, preparation.acceptance, provider
+        self.store.safe.bind_source_dispatch_control()
         self.host_sha256 = _hash(
             _canonical(
                 {
                     "schema": "uca-program-source-dispatch-host-2",
-                    "atomic_store_policy": "rollback-full-control-registry-1",
+                    "atomic_store_policy": "rollback-full-bound-root-once-handoff-2",
                     "preparation_host_sha256": preparation.host_sha256,
                     "edit_protocol": _protocol(),
                 }
@@ -59,10 +60,12 @@ class ProgramSourceDispatchService:
                 state TEXT NOT NULL, authority_sha256 TEXT NOT NULL,
                 filesystem_sha256 TEXT NOT NULL, retained_sha256 TEXT NOT NULL,
                 task_sha256 TEXT, discovery_sha256 TEXT, approval_sha256 TEXT,
-                checkpoint_sha256 TEXT, result_sha256 TEXT)""")
+                checkpoint_sha256 TEXT, result_sha256 TEXT,
+                invocation_sha256 TEXT, invocation_kind TEXT, invocation_state TEXT)""")
         self.store.source_dispatch = self
 
     def _durability(self):
+        self.store.safe.verify_source_dispatch_control(required=True)
         # Only these two databases are written by admission/result transactions.
         # The attached WAL checkpoint database is held against writers and READ ONLY.
         for alias in ("main", "control"):
@@ -75,6 +78,13 @@ class ProgramSourceDispatchService:
 
     def _json(self, digest):
         return strict_json(self.store._get(digest))
+
+    @staticmethod
+    def _result_prefix(program, phase, task, state):
+        return (
+            f"programs/{program}/phases/{phase}/executions/{task}/"
+            f"source-results/{_hash(_canonical(state))}"
+        )
 
     def _row(self, operation_id):
         _require(
@@ -272,6 +282,14 @@ class ProgramSourceDispatchService:
                 f"artifact://{prefix}/phase-result.json",
                 f"artifact://{prefix}/phase-summary.md",
             ]
+            if frozen["schema"] == "uca-program-safe-source-evidence-2":
+                saved_state = strict_json(base64.b64decode(frozen["program_result_base64"]))
+                prefix = self._result_prefix(plan.program_id, phase.phase_id, task, saved_state)
+                refs = [
+                    f"artifact://{prefix}/{name}"
+                    for name in ("safe-result.json", "phase-execution-report.json",
+                                 "phase-result.json", "phase-summary.md")
+                ]
             raw = [
                 self.store.programs.artifacts._read_bytes_bounded(ref, max_bytes=2_000_000)
                 for ref in refs
@@ -534,6 +552,7 @@ class ProgramSourceDispatchService:
         return AdmittedSafeExecution(self, operation_id, owner_token)
 
     def dispatch(self, operation_id, *, owner_token):
+        adapter = self._adapter(operation_id, owner_token)
         with self.store._transaction():
             row, admission, _ = self._load(operation_id, owner_token)
             _require(
@@ -544,7 +563,7 @@ class ProgramSourceDispatchService:
             fresh = row["state"] == "admitted"
             if fresh:
                 self._state(operation_id, "admitted", "discovery_started")
-        adapter = self._adapter(operation_id, owner_token)
+            adapter._authorize("discovery" if fresh else "safe_prepare")
         if fresh:
             self._discovery().start_admitted(adapter)
         else:
@@ -574,6 +593,7 @@ class ProgramSourceDispatchService:
         _digest(scope_sha256)
         _identifier(approval_id)
         _require(type(approved) is bool, "explicit scope decision is required")
+        adapter = self._adapter(operation_id, owner_token)
         with self.store._transaction():
             row, admission, _ = self._load(operation_id, owner_token)
             _require(row["state"] == "awaiting_scope_approval", "scope decision is not pending")
@@ -600,7 +620,7 @@ class ProgramSourceDispatchService:
                 "resume_started",
                 approval_sha256=self.store._put(_canonical(approval)),
             )
-        adapter = self._adapter(operation_id, owner_token)
+            adapter._authorize("resume")
         with adapter.safe_service() as safe:
             safe.resume(admission["thread_id"], approved)
         return self.reconcile(operation_id, owner_token=owner_token)
@@ -760,9 +780,11 @@ class ProgramSourceDispatchService:
             admission["phase_id"],
             admission["task_id"],
         )
-        prefix = f"programs/{program}/phases/{phase}"
+        # Each proven checkpoint has immutable result artifacts. A crash after a file write
+        # but before the DB commit must leave the prior committed report intact.
+        prefix = self._result_prefix(program, phase, task, state)
         result_ref = store.programs.artifacts.write_json(
-            f"{prefix}/executions/{task}/safe-result-{state['status']}.json", state
+            f"{prefix}/safe-result.json", state
         )
         store.connection.execute(
             """UPDATE program_executions SET status = ?, safe_status = ?,

@@ -322,6 +322,12 @@ class ProgramSourceAcceptanceService:
         prefix = f"programs/{before.identity.program_id}/phases/{execution['phase_id']}"
         result_uri = f"artifact://{prefix}/executions/{task_id}/safe-result-completed.json"
         report_uri = f"artifact://{prefix}/phase-execution-report.json"
+        if dispatch is not None:
+            prefix = dispatch._result_prefix(
+                before.identity.program_id, execution["phase_id"], task_id, state
+            )
+            result_uri = f"artifact://{prefix}/safe-result.json"
+            report_uri = f"artifact://{prefix}/phase-execution-report.json"
         _require(execution["result_ref"] == result_uri
                  and execution["phase_report_ref"] == report_uri,
                  "Program evidence is not owned by the execution")

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
+import secrets
 import time
 from dataclasses import replace
 from pathlib import Path
-from types import SimpleNamespace
 
 from universal_coding_agent.core.models import RepositorySpec, SandboxInfo
 from universal_coding_agent.core.safe_models import (
@@ -19,8 +19,9 @@ from universal_coding_agent.product.program_source_attestation import (
     _GitBudget,
 )
 from universal_coding_agent.product.program_source_patch import verified_patch_edits
-from universal_coding_agent.product.program_source_transitions import _canonical, _require
+from universal_coding_agent.product.program_source_transitions import _canonical, _hash, _require
 from universal_coding_agent.safe_service import SafeAgentService
+from universal_coding_agent.sandbox.owned_source import _stamp
 
 
 class AdmittedSafeExecution:
@@ -30,6 +31,51 @@ class AdmittedSafeExecution:
         self.dispatch, self.operation_id, self.owner_token = dispatch, operation_id, owner_token
         self.store = dispatch.store
         self.services = None
+        self._ticket = None
+        self._active_kind = None
+        self._applying_paths = None
+
+    def _authorize(self, kind):
+        """Called only by the explicit transition while its authority transaction is held.
+
+        Persist only a digest. A reconstructed adapter cannot recover this process-local
+        capability, even if the durable intent has not reached its invocation claim yet.
+        """
+        _require(self.store.connection.in_transaction, "handoff requires its authority transaction")
+        self._ticket = secrets.token_bytes(32)
+        self._active_kind = None
+        self.store.connection.execute(
+            """UPDATE program_source_dispatches SET invocation_sha256 = ?,
+            invocation_kind = ?, invocation_state = 'armed' WHERE operation_id = ?""",
+            (_hash(self._ticket), kind, self.operation_id),
+        )
+
+    def _claim(self, row, kind):
+        _require(
+            self._ticket is not None
+            and row["invocation_sha256"] == _hash(self._ticket)
+            and row["invocation_kind"] == kind
+            and row["invocation_state"] == "armed"
+            and self._active_kind is None,
+            "explicit invocation capability is missing or already consumed",
+        )
+        changed = self.store.connection.execute(
+            """UPDATE program_source_dispatches SET invocation_state = 'claimed'
+            WHERE operation_id = ? AND invocation_sha256 = ? AND invocation_state = 'armed'""",
+            (self.operation_id, _hash(self._ticket)),
+        ).rowcount
+        _require(changed == 1, "explicit invocation claim CAS changed")
+        self._active_kind = kind
+
+    def _active(self, row, kind):
+        _require(
+            self._ticket is not None
+            and self._active_kind == kind
+            and row["invocation_kind"] == kind
+            and row["invocation_state"] == "claimed"
+            and row["invocation_sha256"] == _hash(self._ticket),
+            "operation has no live consumed invocation capability",
+        )
 
     def _load(self, **kwargs):
         return self.dispatch._load(self.operation_id, self.owner_token, **kwargs)
@@ -57,6 +103,7 @@ class AdmittedSafeExecution:
                 "discovery service host or handoff differs",
             )
             self.dispatch._verify_files(row, admission)
+            self._claim(row, "discovery")
             phase = self.store._plan(before.identity).phases[before.generation]
             context = self.store._get(admission["dependency_sha256"]).decode()
             _require(
@@ -117,6 +164,7 @@ class AdmittedSafeExecution:
     def discovery_completed(self, task):
         with self.store._transaction():
             row, admission, before = self._load()
+            self._active(row, "discovery")
             _require(row["state"] == "discovery_started", "discovery completion CAS changed")
             self.dispatch._verify_files(row, admission)
             phase = self.store._plan(before.identity).phases[before.generation]
@@ -160,6 +208,10 @@ class AdmittedSafeExecution:
         with self.store._transaction():
             row, admission, _ = self._load()
             _require(row["state"] == "discovered", "Safe initialization was already started")
+            if self._active_kind == "discovery":
+                self._active(row, "discovery")
+            else:
+                self._claim(row, "safe_prepare")
             self.dispatch._verify_files(row, admission)
             _require(
                 not self.store.connection.execute(
@@ -169,6 +221,7 @@ class AdmittedSafeExecution:
                 "Safe thread already exists before handoff",
             )
             self.dispatch._state(self.operation_id, "discovered", "safe_started")
+            self._authorize("safe")
 
     def entry(self, thread_id, task_id):
         with self.store._transaction():
@@ -180,6 +233,7 @@ class AdmittedSafeExecution:
                 "Safe invocation is not the admitted explicit handoff",
             )
             self.dispatch._verify_files(row, admission)
+            self._claim(row, "safe" if task_id else "resume")
 
     def safe_service(self):
         from contextlib import contextmanager
@@ -211,10 +265,25 @@ class AdmittedSafeExecution:
                 time.monotonic() + attestor.policy.operation_timeout_seconds,
                 attestor.policy.max_git_output_bytes,
             )
-            output = attestor._run(tuple(arguments), b"", budget)
-            return SimpleNamespace(stdout=output.decode("utf-8"), stderr="", returncode=0)
+            result = attestor._run_result(
+                tuple(arguments), b"", budget,
+                expected_returncodes=(0,) if check else tuple(range(256)),
+            )
+            result.stdout = result.stdout.decode("utf-8")
+            result.stderr = result.stderr.decode("utf-8")
+            return result
+
+        apply = services.edit_engine.apply
+
+        def apply_owned(sandbox, manifest, proposal):
+            self._applying_paths = tuple(proposal.changed_paths)
+            try:
+                return apply(sandbox, manifest, proposal)
+            finally:
+                self._applying_paths = None
 
         services.edit_engine._git = git
+        services.edit_engine.apply = apply_owned
         services.edit_engine.restore = self._restore
         services.patch_engine._git = git
         services.indexer._git = lambda root, *args: git(root, args).stdout.encode("utf-8")
@@ -227,8 +296,13 @@ class AdmittedSafeExecution:
 
         with self.store._transaction():
             row, admission, before = self._load()
+            self._active(row, "safe" if row["state"] == "safe_started" else "resume")
+            destination = (
+                self.dispatch.preparation.filesystem.root
+                / ("execution-" + self.operation_id) / "repo"
+            )
             _require(
-                Path(sandbox) == self._path()
+                Path(sandbox) == destination
                 and manifest == self.task().manifest
                 and set(changed_paths).issubset(manifest.allowed_path_map()),
                 "rollback must target this admitted execution scope",
@@ -244,6 +318,61 @@ class AdmittedSafeExecution:
                     fs.directory(root, "execution-" + self.operation_id, allocation["operation"])
                 )
                 repo = stack.enter_context(fs.directory(operation, "repo", allocation["source"]))
+                if self._applying_paths is not None:
+                    _require(
+                        tuple(changed_paths) == self._applying_paths,
+                        "in-flight rollback differs from the live edit attempt",
+                    )
+                    # Only a live edit failure can inspect these potentially partial bytes.
+                    # Every other byte, Git entry and filesystem identity is still verified
+                    # against the retained proof before any restoration writes occur.
+                    observed = dict(files)
+                    for path in changed_paths:
+                        with ExitStack() as parents:
+                            parent = repo
+                            parts = path.split("/")
+                            for part in parts[:-1]:
+                                parent = parents.enter_context(fs.directory(parent, part))
+                            fd = os.open(
+                                parts[-1], os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                                dir_fd=parent,
+                            )
+                            try:
+                                info = os.fstat(fd)
+                                expected = self.dispatch._json(row["filesystem_sha256"])[
+                                    "entries"
+                                ][path]
+                                _require(
+                                    _stamp(info)[:5] == expected[:5] and info.st_nlink == 1,
+                                    "in-flight rollback file identity changed",
+                                )
+                                chunks, size = [], 0
+                                while True:
+                                    fs.check_time(deadline)
+                                    chunk = os.read(fd, 65_536)
+                                    if not chunk:
+                                        break
+                                    size += len(chunk)
+                                    _require(
+                                        size <= self.store.source.policy.max_file_bytes,
+                                        "in-flight rollback source exceeds file bound",
+                                    )
+                                    chunks.append(chunk)
+                                _require(
+                                    _stamp(info) == _stamp(os.fstat(fd)) == _stamp(
+                                        os.stat(parts[-1], dir_fd=parent, follow_symlinks=False)
+                                    ),
+                                    "in-flight rollback source changed during read",
+                                )
+                                observed[path] = replace(files[path], content=b"".join(chunks))
+                            finally:
+                                os.close(fd)
+                    current = replace(before, files=tuple(observed[p] for p in sorted(observed)))
+                    self.dispatch._verify_files(
+                        row, admission, retained=current, mutable=tuple(changed_paths)
+                    )
+                else:
+                    self.dispatch._verify_files(row, admission)
                 for path in changed_paths:
                     _require(path in files, "rollback Base file is missing")
                     with ExitStack() as parents:
@@ -258,7 +387,7 @@ class AdmittedSafeExecution:
                             ]
                             info = os.fstat(fd)
                             _require(
-                                [info.st_dev, info.st_ino, info.st_uid] == expected[:3]
+                                _stamp(info)[:5] == expected[:5]
                                 and info.st_nlink == 1,
                                 "rollback destination changed",
                             )
@@ -274,6 +403,15 @@ class AdmittedSafeExecution:
                         finally:
                             os.close(fd)
                 fs.anchor(intent["root_chain"])
+            proof = self.dispatch._verify_files(
+                row, admission, retained=before, mutable=tuple(changed_paths)
+            )
+            self.store.connection.execute(
+                """UPDATE program_source_dispatches SET filesystem_sha256 = ?,
+                retained_sha256 = ? WHERE operation_id = ?""",
+                (self.store._put(proof), self.store._put(self.store.source.snapshot_bytes(before)),
+                 self.operation_id),
+            )
             return True
 
     def discovery_indexer(self):
@@ -309,6 +447,7 @@ class AdmittedSafeExecution:
 
         with self.store._transaction():
             row, admission, before = self._load()
+            self._active(row, "safe" if row["state"] == "safe_started" else "resume")
             _require(
                 state.get("task") == self.dispatch._json(row["task_sha256"]),
                 "Safe node task is not the stored discovered task",

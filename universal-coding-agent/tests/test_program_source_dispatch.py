@@ -13,7 +13,7 @@ import pytest
 from test_program_source_acceptance import _git, _service
 
 from universal_coding_agent.core.models import RepositorySpec
-from universal_coding_agent.core.safe_models import SafeModePolicy, TestProfile
+from universal_coding_agent.core.safe_models import SafeModePolicy, SafeTaskRequest, TestProfile
 from universal_coding_agent.discovered_safe_service import DiscoveredSafeAgentService
 from universal_coding_agent.product.models import (
     AcceptanceCriterion,
@@ -445,6 +445,180 @@ def test_v1_paths_and_copied_task_cannot_consume_v2_authority(admitted):
     assert not f.safe.state(task["thread_id"])["values"].get("patch_applied")
 
 
+@pytest.mark.parametrize("control_kind", ["omitted", "unrelated"])
+def test_checkpoint_root_blocks_legacy_safe_with_wrong_control(admitted, control_kind):
+    from universal_coding_agent.product.task_control import TaskControlService
+
+    f = admitted
+    started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    task = SafeTaskRequest.model_validate(f.dispatch._json(started["task_sha256"]))
+    calls = (f.root / "calls.jsonl").read_bytes()
+    other = TaskControlService(f.root / "unrelated.sqlite") if control_kind == "unrelated" else None
+    rogue = SafeAgentService.create(
+        f.root / "safe", f.provider, allow_local_sources=True, control=other
+    )
+    try:
+        for action in (
+            lambda: rogue.run(task),
+            lambda: rogue.resume(task.thread_id, True),
+            lambda: rogue.resume_control(task.thread_id),
+            lambda: rogue.pause(task.thread_id),
+            lambda: rogue.cancel(task.thread_id),
+        ):
+            with pytest.raises(ValueError, match="bound control database"):
+                action()
+    finally:
+        rogue.close()
+        if other is not None:
+            other.close()
+    assert (f.root / "calls.jsonl").read_bytes() == calls
+    assert f.dispatch.status(f.operation)["approval_sha256"] is None
+    assert f.store.current(f.identity.program_id).generation == 1
+    f.dispatch.approve_scope(
+        f.operation, owner_token=f.owner, scope_sha256=task.manifest.canonical_hash(),
+        approved=True, approval_id="after-wrong-control-rejection",
+    )
+
+
+@pytest.mark.parametrize("shared_control", [False, True])
+def test_legacy_discovery_gate_precedes_provider_sandbox_and_artifact_work(
+    admitted, shared_control
+):
+    f = admitted
+    started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    task = SafeTaskRequest.model_validate(f.dispatch._json(started["task_sha256"]))
+    calls = (f.root / "calls.jsonl").read_bytes()
+    artifacts = {p: p.read_bytes() for p in f.safe.artifacts.root.rglob("*") if p.is_file()}
+    port = DiscoveredSafeAgentService.create(
+        f.root / "safe", f.provider, allow_local_sources=True,
+        control=f.workspace.control if shared_control else None,
+        remote_operations=f.workspace.remote_operations,
+    )
+    with pytest.raises(ValueError, match="explicit v2|bound control database"):
+        port.start(
+            task_id=task.task_id, thread_id=task.thread_id, title=task.title,
+            objective=task.objective, repository=task.repository, policy=task.policy,
+            test_profiles=tuple(task.policy.profile_map()),
+        )
+    assert (f.root / "calls.jsonl").read_bytes() == calls
+    assert {p: p.read_bytes() for p in f.safe.artifacts.root.rglob("*") if p.is_file()} == artifacts
+    assert not (f.root / "safe" / "sandboxes" / (task.task_id + "-discovery")).exists()
+    f.dispatch.approve_scope(
+        f.operation, owner_token=f.owner, scope_sha256=task.manifest.canonical_hash(),
+        approved=True, approval_id="after-legacy-discovery-rejection",
+    )
+
+
+@pytest.mark.parametrize("protocol", ["v1", "v2-line-addressed"])
+def test_live_invalid_whitespace_edit_restores_exact_owned_base(tmp_path, protocol):
+    f = runtime(tmp_path, 42, create=True, protocol=protocol)
+    operation = first_phase(f)
+    close(f)
+    f = runtime(tmp_path, 43, protocol=protocol)
+    try:
+        started = f.dispatch.dispatch(operation, owner_token=f.owner)
+        original = f.provider._handlers["implementer"]
+
+        def whitespace(request):
+            response = original(request)
+            response["edits"][0]["replacements"][0]["new_text"] = (
+                "return 44 " if protocol == "v1" else "    return 44 \n"
+            )
+            return response
+
+        f.provider._handlers["implementer"] = whitespace
+        final = f.dispatch.approve_scope(
+            operation, owner_token=f.owner, scope_sha256=started["scope_sha256"],
+            approved=True, approval_id="invalid-whitespace",
+        )
+        assert final["state"] == "terminal"
+        state = f.safe.state(started["thread_id"])
+        assert state["values"]["status"] == "blocked" and not state["next"]
+        assert state["values"]["safe_errors"]
+        repo = f.base.filesystem.root / ("execution-" + operation) / "repo"
+        assert (repo / "app.py").read_bytes() == b"def answer():\n    return 43\n"
+        assert f.store.current(f.identity.program_id).generation == 1
+        assert f.workspace.programs.status(f.identity.program_id).value == "blocked"
+        observed = [json.loads(line) for line in (f.root / "calls.jsonl").read_text().splitlines()]
+        assert len([x for x in observed if x["expected"] == 43 and x["role"] == "reviewer"]) == 0
+    finally:
+        close(f)
+
+
+def test_known_partial_write_failure_restores_owned_base(admitted, monkeypatch):
+    f = admitted
+    started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    repo = f.base.filesystem.root / ("execution-" + f.operation) / "repo"
+    write_bytes = Path.write_bytes
+
+    def partial(path, data):
+        if path == repo / "app.py" and b"return 44" in data:
+            write_bytes(path, data[:12])
+            raise OSError("Injected partial local write")
+        return write_bytes(path, data)
+
+    monkeypatch.setattr(Path, "write_bytes", partial)
+    final = f.dispatch.approve_scope(
+        f.operation, owner_token=f.owner, scope_sha256=started["scope_sha256"],
+        approved=True, approval_id="partial-write",
+    )
+    assert final["state"] == "terminal"
+    assert (repo / "app.py").read_bytes() == b"def answer():\n    return 43\n"
+    assert f.store.current(f.identity.program_id).generation == 1
+    assert f.workspace.programs.status(f.identity.program_id).value == "blocked"
+
+
+@pytest.mark.parametrize("drift", ["control", "extra", "symlink"])
+def test_inflight_rollback_does_not_repair_changed_authority_or_inventory(
+    admitted, monkeypatch, drift
+):
+    from universal_coding_agent.product.program_source_attestation import (
+        ProgramGitSourceAttestationService,
+    )
+
+    f = admitted
+    started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    repo = f.base.filesystem.root / ("execution-" + f.operation) / "repo"
+    implement = f.provider._handlers["implementer"]
+
+    def whitespace(request):
+        response = implement(request)
+        response["edits"][0]["replacements"][0]["new_text"] = "return 44 "
+        return response
+
+    f.provider._handlers["implementer"] = whitespace
+    run = ProgramGitSourceAttestationService._run_result
+
+    def change_after_rejected_diff(attestor, arguments, *args, **kwargs):
+        result = run(attestor, arguments, *args, **kwargs)
+        if "--check" in arguments and result.returncode:
+            if drift == "control":
+                f.workspace.programs.pause(f.identity.program_id)
+            elif drift == "extra":
+                (repo / "extra.txt").write_bytes(b"must not be removed")
+            else:
+                (repo / "app.py").unlink()
+                (repo / "app.py").symlink_to(f.source / "app.py")
+        return result
+
+    monkeypatch.setattr(
+        ProgramGitSourceAttestationService, "_run_result", change_after_rejected_diff
+    )
+    with pytest.raises((ProgramSourceError, ValueError)):
+        f.dispatch.approve_scope(
+            f.operation, owner_token=f.owner, scope_sha256=started["scope_sha256"],
+            approved=True, approval_id="changed-inflight-authority",
+        )
+    assert f.store.current(f.identity.program_id).generation == 1
+    assert (f.source / "app.py").read_bytes() == b"def answer():\n    return 42\n"
+    if drift == "symlink":
+        assert (repo / "app.py").is_symlink()
+    else:
+        assert (repo / "app.py").read_bytes().endswith(b"return 44 \n")
+    if drift == "extra":
+        assert (repo / "extra.txt").read_bytes() == b"must not be removed"
+
+
 _PROCESS = r"""
 import json, os, sys
 from pathlib import Path
@@ -507,12 +681,14 @@ else:
         AdmittedSafeExecution.node=node
     elif crash=='tests':
         SafeTestRunner.run_profiles=die
-    if crash in ('scope-update','record-update','accept-update'):
+    if crash in ('scope-update','record-update','report-update','accept-update'):
         f.store.connection.create_function('die',0,die)
         trigger={
           'scope-update':("AFTER UPDATE ON program_source_dispatches "
                           "WHEN NEW.state='resume_started'"),
           'record-update':"AFTER UPDATE ON program_executions WHEN NEW.safe_status='completed'",
+          'report-update':("AFTER UPDATE OF phase_report_ref ON program_executions "
+                           "WHEN NEW.safe_status='completed'"),
           'accept-update':"AFTER UPDATE ON program_source_heads WHEN NEW.generation=2",
         }[crash]
         f.store.connection.execute('CREATE TEMP TRIGGER crash '+trigger+' BEGIN SELECT die(); END')
@@ -523,6 +699,14 @@ else:
         f.base.filesystem.root_handle=f.base.materialization.filesystem.root_handle=forbidden
         result=f.dispatch.status(operation)
     elif action=='dispatch':result=f.dispatch.dispatch(operation,owner_token=f.owner)
+    elif action.startswith('adapter-'):
+        adapter=AdmittedSafeExecution(f.dispatch,operation,f.owner)
+        if action=='adapter-discovery':result=f.dispatch._discovery().start_admitted(adapter)
+        elif action=='adapter-prepare':result=adapter.start_safe()
+        else:
+            with adapter.safe_service() as safe:
+                if action=='adapter-safe':result=safe.run(adapter.task())
+                else:result=safe.resume(adapter.task().thread_id,True)
     elif action=='reconcile':
         f.provider.invoke=die
         result=f.dispatch.reconcile(operation,owner_token=f.owner)
@@ -619,6 +803,34 @@ def test_process_death_during_discovery_and_safe_handoff(admitted, crash, state,
 
 
 @pytest.mark.parametrize(
+    "crash,action,replay",
+    [
+        ("discovery", "dispatch", "adapter-discovery"),
+        ("discovery-result", "dispatch", "adapter-prepare"),
+        ("safe-intent", "dispatch", "adapter-safe"),
+        ("scope-intent", "approve", "adapter-resume"),
+        ("implementer", "approve", "adapter-resume"),
+    ],
+)
+def test_reconstructed_adapter_cannot_replay_an_interrupted_invocation(
+    admitted, crash, action, replay
+):
+    f = admitted
+    (f.root / "operation.txt").write_text(f.operation)
+    if action == "approve":
+        process(f.root, "dispatch")
+    process(f.root, action, crash, expected=73)
+    calls = (f.root / "calls.jsonl").read_bytes()
+    status = f.dispatch.status(f.operation)
+    result = process(f.root, replay, expected=None)
+    assert result.returncode != 0
+    assert "invocation capability" in result.stderr
+    assert (f.root / "calls.jsonl").read_bytes() == calls
+    assert f.dispatch.status(f.operation) == status
+    assert f.store.current(f.identity.program_id).generation == 1
+
+
+@pytest.mark.parametrize(
     "crash,recoverable",
     [
         ("scope-update", True),
@@ -630,13 +842,17 @@ def test_process_death_during_discovery_and_safe_handoff(admitted, crash, state,
         ("review-result", False),
         ("terminal-checkpoint", True),
         ("record-update", True),
+        ("report-update", True),
     ],
 )
 def test_process_death_after_scope_never_repeats_ambiguous_work(admitted, crash, recoverable):
     f = admitted
     (f.root / "operation.txt").write_text(f.operation)
     process(f.root, "dispatch")
+    committed = f.workspace.programs.execution_binding(f.dispatch.status(f.operation)["task_id"])
+    report_before = f.workspace.artifacts.read_text(committed.phase_report_ref)
     process(f.root, "approve", crash, expected=73)
+    assert f.workspace.artifacts.read_text(committed.phase_report_ref) == report_before
     calls = (f.root / "calls.jsonl").read_bytes()
     status = json.loads(process(f.root, "status").stdout)
     assert (f.root / "calls.jsonl").read_bytes() == calls
@@ -651,6 +867,9 @@ def test_process_death_after_scope_never_repeats_ambiguous_work(admitted, crash,
             assert result.returncode != 0
         assert (f.root / "calls.jsonl").read_bytes() == calls
     assert f.store.current(f.identity.program_id).generation == 1
+    if crash == "report-update":
+        process(f.root, "prepare")
+        assert json.loads(process(f.root, "accept").stdout)["generation"] == 2
 
 
 @pytest.mark.parametrize("crash", ["candidate-commit", "accept-update", "accept-commit"])

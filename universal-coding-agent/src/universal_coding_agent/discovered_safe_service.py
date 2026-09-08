@@ -94,6 +94,14 @@ class DiscoveredSafeAgentService:
         require_publish_approval: bool = False,
         _execution=None,
     ) -> dict[str, Any]:
+        if _execution is None:
+            # Admission checks must precede even read-only discovery: its provider call and
+            # artifact writes are effects, and could overwrite a v2 task's frozen evidence.
+            safe = self._safe_service()
+            try:
+                safe._execution_gate(thread_id, task_id)
+            finally:
+                safe.close()
         requested_profiles = self._validate_test_profiles(policy, test_profiles)
         criteria = acceptance_criteria or (objective,)
         self.state_root.mkdir(parents=True, exist_ok=True)

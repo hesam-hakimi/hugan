@@ -7,6 +7,12 @@ Status at implementation submission: bounded v2 code and deterministic actual
 review and this candidate's own CI/Live/platform gates remain required. No integration
 or automatic Program loop is claimed here. See `P3_5C2_ADMISSION_AND_RECOVERY_CONTRACT.md`.
 
+2026-09-08 correction submission: independent review blocked initial PR25 head
+`fb033d6e57b580bd609a6796fef7984b880cbbcb` on five reproduced boundary/recovery
+defects despite its passing CI432/Live183. Those failures are retained; the corrected
+entrypoints, invocation claims, immutable reports and owned rollback require their
+own fixed-head independent review and platform qualification before integration.
+
 ## Starting point
 
 - Repository: `hesam-hakimi/hugan`.

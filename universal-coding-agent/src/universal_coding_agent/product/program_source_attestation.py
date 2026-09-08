@@ -460,6 +460,12 @@ class ProgramGitSourceAttestationService:
 
     def _run(self, arguments: tuple[str, ...], request: bytes, budget: _GitBudget,
              *, expected_returncodes: tuple[int, ...] = (0,)) -> bytes:
+        return self._run_result(
+            arguments, request, budget, expected_returncodes=expected_returncodes
+        ).stdout
+
+    def _run_result(self, arguments: tuple[str, ...], request: bytes, budget: _GitBudget,
+                    *, expected_returncodes: tuple[int, ...] = (0,)):
         """Fixed Git operations with concurrent bounded stdin/stdout/stderr and no shell."""
         self._deadline(budget)
         _require(budget.output_remaining > 0, "Git output budget exhausted")
@@ -525,7 +531,7 @@ class ProgramGitSourceAttestationService:
                 process.wait(timeout=remaining)
                 _require(process.returncode in expected_returncodes, "Git source read failed")
                 self._deadline(budget)
-                return bytes(stdout)
+                return subprocess.CompletedProcess(command, process.returncode, bytes(stdout), b"")
         finally:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
