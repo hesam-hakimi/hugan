@@ -1,3 +1,32 @@
+# Current checkpoint — P3.5d-2b-2 defined from accepted PR28
+
+P3.5d-2b-1 is accepted and complete. Only P3.5d-2b-2 is newly instantiated as a
+documentation-only task and branch; runtime implementation has not started.
+Actual accepted PR28 integration is `95096565d85640ea471182fc0b421e124667b73b`,
+tree `26611a055acd80a254cd40c519726e4cad0a85d1`, merged 2026-09-08T15:57:46Z.
+Ordered parents: `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, then
+`1675c2ad1ffa2d324982e4604043bd14e0f27a27`. Preview
+`7b86cd520a44c59e8b611f7f29eddb2bf75189d6` is a separate commit with the same tree.
+The second correction received separate bounded technical PASS; CI443 and Live194
+attempt 1 qualify that exact corrected tree. CI passed 1644 tests per Python leg.
+Author 173 v3 + 532 compatibility cases and independent 173 + 291 cases have
+different scopes and overlap; do not add them as unique tests. Standard Live
+Program remains v1; no cumulative live-model v3 or Product journey is qualified.
+Technical PASS is not human GitHub APPROVE or a repository audit.
+
+Canonical new [source-acceptance task](P3_5D2B2_SOURCE_TRANSITION_ACCEPTANCE_TASK_2026-09-08.md) and
+[evidence-core/acceptance contract](P3_5D2B2_EVIDENCE_CORE_AND_ACCEPTANCE_CONTRACT.md) select a separate candidate-2
+preview and exact decision under fresh workers, ending at accepted generation 2 /
+44. First-phase 43 retains existing same-owner acceptance. Receipt-2 does not
+enable later materialization or dispatch in this slice. D2c-1/d2c-2 remain planned
+and uninstantiated. No new PR, tests, CI/Live/Web or implementation acceptance is
+claimed for this definition. Do not repeat PR26/PR27/PR28 gates.
+
+This current block supersedes operative status/next-action wording below; the
+exact prior text remains historical, including both PR28 blocked candidates.
+
+---
+
 # P3.5d-2 — Validation, delivery and product decisions
 
 Status: d2a accepted and integrated through actual corrected PR27
