@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import select
 import sqlite3
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -255,10 +257,16 @@ finally:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                env={
+                    **os.environ,
+                    "PYTHONPATH": os.pathsep.join(
+                        (str(Path(__file__).parents[1] / "src"), str(Path(__file__).parent))
+                    ),
+                },
             )
             children.append(child)
             assert select.select([child.stdout], [], [], 5)[0]
-            assert child.stdout.readline().strip() == "ready"
+            assert child.stdout.readline().strip() == "ready", child.stderr.read()
         for child in children:
             child.stdin.write(json.dumps(parked) + "\n")
             child.stdin.flush()
@@ -537,3 +545,248 @@ def test_v02_discovery_callback_return_is_not_outer_settlement(admitted):
     f.v3.db.boundary = boundary
     assert fixture.dispatch(f, f.operation, f.admitted)["state"] == "parked_scope"
     assert observed == ["after_discovery"]
+
+
+@pytest.mark.parametrize("damage", ["request", "receipt", "orphan", "oversized", "head"])
+def test_v08_closed_d2a_requires_complete_bounded_history(tmp_path, damage):
+    operation, receipt = fixture.prepare(tmp_path, foundation="closed")
+    f = fixture.consumer(tmp_path)
+    try:
+        db = f.workspace.programs.connection
+        if damage == "request":
+            db.execute(
+                "DELETE FROM program_continuation_requests WHERE request_id='foundation-create'"
+            )
+        elif damage == "receipt":
+            db.execute("DELETE FROM program_continuation_receipts WHERE sequence=1")
+        elif damage == "oversized":
+            db.execute(
+                "UPDATE program_continuation_receipts SET content=zeroblob(65537) WHERE sequence=1"
+            )
+        elif damage == "head":
+            db.execute("DELETE FROM program_continuation_heads")
+        else:
+            db.execute(
+                "INSERT INTO program_continuation_requests SELECT host_sha256,program_id,"
+                "'orphan-request',request_sha256,action,epoch,status,receipt_sha256 "
+                "FROM program_continuation_requests LIMIT 1"
+            )
+        db.commit()
+        calls = (tmp_path / "calls.jsonl").read_bytes()
+        with pytest.raises(ValueError):
+            fixture.admit(f, operation, receipt)
+        assert (tmp_path / "calls.jsonl").read_bytes() == calls and owners(f) == 1
+        assert not db.execute("SELECT 1 FROM program_source_dispatches_v3").fetchall()
+    finally:
+        fixture.close(f)
+
+
+@pytest.mark.parametrize(
+    "stage,remove_locator", [("admitted", False), ("parked", False), ("parked", True)]
+)
+def test_v08_fresh_raw_safe_denies_surviving_v3_after_both_namespaces_lost(
+    admitted,
+    stage,
+    remove_locator,
+):
+    from universal_coding_agent.product.program_source_routing import LOCATOR
+
+    f = admitted
+    if stage == "parked":
+        fixture.dispatch(f, f.operation, f.admitted)
+    row = f.v3._row(f.operation)
+    f.safe.connection.execute("DROP TABLE uca_source_dispatch_tasks_v3_guard")
+    f.safe.connection.commit()
+    f.safe.control.connection.execute("DROP TABLE uca_source_dispatch_tasks_v3")
+    f.safe.control.connection.commit()
+    if remove_locator:
+        (f.safe.artifacts.root.parent / LOCATOR).unlink()
+    calls = (f.root / "calls.jsonl").read_bytes()
+    expected_owners = owners(f)
+    code = """
+import sys
+from pathlib import Path
+from test_program_source_dispatch import runtime,close
+f=runtime(Path(sys.argv[1]),43)
+try:
+    try:
+        f.safe.resume(sys.argv[2],True)
+    except ValueError:
+        print('denied')
+    else:
+        raise AssertionError('raw Safe invoked a v3 checkpoint')
+finally:
+    close(f)
+"""
+    child = subprocess.run(
+        [sys.executable, "-B", "-c", code, str(f.root), row["thread_id"]],
+        capture_output=True,
+        text=True,
+        timeout=20,
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                (str(Path(__file__).parents[1] / "src"), str(Path(__file__).parent))
+            ),
+        },
+    )
+    assert child.returncode == 0, child.stderr
+    assert child.stdout.strip() == "denied"
+    assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == expected_owners
+    assert f.v3._row(f.operation)["state"] == ("parked_scope" if stage == "parked" else "admitted")
+
+
+@pytest.mark.parametrize("damage", ["missing", "partial", "oversized", "symlink", "drift"])
+def test_v08_root_locator_damage_blocks_raw_and_explicit_claim(admitted, damage):
+    from universal_coding_agent.product.program_source_routing import LOCATOR
+
+    f = admitted
+    parked = fixture.dispatch(f, f.operation, f.admitted)
+    path = f.safe.artifacts.root.parent / LOCATOR
+    original = path.read_bytes()
+    if damage == "missing":
+        path.unlink()
+    elif damage == "partial":
+        path.write_bytes(original[:20])
+    elif damage == "oversized":
+        path.write_bytes(b" " * 65537)
+    elif damage == "symlink":
+        replacement = path.with_suffix(".probe")
+        replacement.write_bytes(original)
+        path.unlink()
+        path.symlink_to(replacement)
+    else:
+        record = json.loads(original)
+        record["host_sha256"] = "a" * 64
+        path.write_bytes(canonical(record))
+    calls = (f.root / "calls.jsonl").read_bytes()
+    with pytest.raises((ValueError, OSError)):
+        f.safe.resume(f.v3._row(f.operation)["thread_id"], True)
+    with pytest.raises((ValueError, OSError)):
+        fixture.approve(f, f.operation, parked)
+    assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == 0
+
+
+def test_v08_copied_v3_task_metadata_cannot_enter_raw_safe_with_fresh_ids(admitted):
+    f = admitted
+    fixture.dispatch(f, f.operation, f.admitted)
+    task = f.v3._live[f.operation].task().model_copy(update={
+        "task_id": "copied-v3-task", "thread_id": "copied-v3-thread"})
+    calls = (f.root / "calls.jsonl").read_bytes()
+    with pytest.raises(ValueError, match="explicit v3"):
+        f.safe.run(task)
+    assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == 0
+
+
+def test_v02_new_invocation_wait_is_bounded_under_a_real_unrelated_factory(admitted):
+    from universal_coding_agent.core.cancellation import OwnedOperationKind
+
+    f = admitted
+    entered, release = threading.Event(), threading.Event()
+
+    class Handle:
+        def done(self):
+            return True
+
+        def cancel(self):
+            pass
+
+    def factory():
+        entered.set()
+        assert release.wait(15)
+        return Handle()
+
+    def hold():
+        signal = f.safe.control.cancellation.signal("unrelated-owned-task")
+        with signal.owned_cancellable_operation(OwnedOperationKind.PROVIDER, factory):
+            pass
+
+    holder = threading.Thread(target=hold)
+    holder.start()
+    try:
+        assert entered.wait(3)
+        calls = (f.root / "calls.jsonl").read_bytes()
+        started = time.monotonic()
+        with pytest.raises(RuntimeError, match="context is busy"):
+            fixture.dispatch(f, f.operation, f.admitted)
+        assert time.monotonic() - started < 4
+        assert calls == (f.root / "calls.jsonl").read_bytes() and owners(f) == 1
+        assert f.v3._row(f.operation)["state"] == "admitted"
+        with sqlite3.connect(f.v3.db.identities[1][0], timeout=0.1) as db:
+            db.execute("BEGIN IMMEDIATE")
+            db.rollback()
+    finally:
+        release.set()
+        holder.join(3)
+    assert not holder.is_alive()
+    assert fixture.dispatch(f, f.operation, f.admitted)["state"] == "parked_scope"
+
+
+def test_v02_revocation_precedes_a_bounded_contended_registry_wait(admitted):
+    f = admitted
+    coordinator = f.safe.control.cancellation
+    context = coordinator._new_invocation("revoke-probe-task")
+    entered, release = threading.Event(), threading.Event()
+
+    def hold():
+        with coordinator._lock:
+            entered.set()
+            assert release.wait(10)
+
+    holder = threading.Thread(target=hold)
+    holder.start()
+    try:
+        assert entered.wait(3)
+        started = time.monotonic()
+        with pytest.raises(RuntimeError, match="context is busy"):
+            coordinator._revoke_invocation(context)
+        assert time.monotonic() - started < 4 and context.revoked
+    finally:
+        release.set()
+        holder.join(3)
+    with pytest.raises(RuntimeError, match="revoked"):
+        with coordinator._invocation_context(context):
+            pytest.fail("revoked context was reactivated")
+    with coordinator._settlement_barrier(context):
+        assert not any(coordinator._registration_snapshot(context.task_id).values())
+
+
+@pytest.mark.parametrize("mode", ["delete", "wal"])
+@pytest.mark.parametrize("target", ["safe", "remote", "guard"])
+def test_v11_scoped_authorizers_deny_mutating_pragmas_and_keep_read_introspection(
+    admitted,
+    mode,
+    target,
+):
+    f = admitted
+    alias = "safe" if target == "guard" else target
+    db = f.store.connection
+    original = f.safe.connection if alias == "safe" else f.safe.remote_operations.connection
+    if alias == "safe":
+        db.execute("DETACH DATABASE safe")
+        original.execute(f"PRAGMA journal_mode={mode}")
+        db.execute("ATTACH DATABASE ? AS safe", (f.v3.db.identities[4][0],))
+    else:
+        original.execute(f"PRAGMA journal_mode={mode}")
+    db.execute(f"PRAGMA {alias}.journal_mode={mode}")
+    original.execute("PRAGMA synchronous=FULL")
+    db.execute(f"PRAGMA {alias}.synchronous=FULL")
+    before = original.execute("PRAGMA user_version").fetchone()[0]
+    transaction = f.v3.db.guard_transaction if target == "guard" else f.v3.db.transaction
+    connection = original if target == "guard" else db
+    prefix = "main" if target == "guard" else alias
+    with transaction():
+        assert connection.execute(f"PRAGMA {prefix}.user_version").fetchone()[0] == before
+        assert connection.execute(f"PRAGMA {prefix}.table_info(sqlite_master)").fetchall()
+        for pragma in (
+            "user_version=73",
+            "application_id=73",
+            "schema_version=73",
+            "writable_schema=ON",
+            "wal_checkpoint(TRUNCATE)",
+            "optimize",
+        ):
+            with pytest.raises(sqlite3.DatabaseError, match="authorized"):
+                connection.execute(f"PRAGMA {prefix}.{pragma}")
+    assert original.execute("PRAGMA user_version").fetchone()[0] == before
+    assert owners(f) == 1

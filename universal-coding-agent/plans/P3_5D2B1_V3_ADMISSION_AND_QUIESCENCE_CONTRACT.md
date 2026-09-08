@@ -8,6 +8,22 @@ accepted PR27 `fdb97d3d10c8a843eae0ab71c255c3ebd0e6ac4a`, tree
 helper-sharing and proposal-drift gates. API routes and source acceptance remain
 with d2c-1 and d2b-2 respectively.
 
+## Initial blocked candidate and correction scope
+
+Initial implementation `de99db9fdff64745d76f07ff6061044534851642`, tree
+`c15863e8e05f5f662560da0fe5a3144b59bc93af`, was independently BLOCKED for raw
+Safe routing after guard namespace loss, incomplete closed d2a history,
+unbounded v3 registration lock waits, and mutating-PRAGMA authorizer gaps.
+The correction adds an immutable independent root locator and plain checkpoint
+version denial, complete bounded inert predecessor validation, bounded new v3
+registry waits with monotonic revocation, and read-only PRAGMA allowlists. CI441
+attempt 1 failed both Python legs (1612 passed, one child-import harness failure
+per leg); that harness now supplies its fixture import path explicitly. Live192
+attempt 1 passed on the initial preview `cc9bee057af186f74c66e5aebfe7a92495118e3a`.
+These observations remain initial-tree history. Corrected-tree independent review
+and platform outcomes are recorded separately in PR28 and external evidence;
+no initial result substitutes for those gates. Standard Live Program remains v1.
+
 ## Evidence from actual consumers and selected boundary
 
 | Accepted code | Consequence for v3 |
@@ -96,6 +112,19 @@ exact schema checks and an INSERT-only allowlist for these guards and the accept
 control-root pin. An orphan guard confers no admission. Only the exact original
 pending preparation/owner may finish its explicit admission after that write.
 
+Correction scope after the initial candidate's independent blockers: retain a
+separately fsynced, immutable `source-dispatch-v3-root.json` locator in the Safe
+state directory before guard/admission commit. It contains only the same root
+binding, never an execution capability. This independent copy preserves denial
+when both SQLite guard/registry namespaces disappear, including before the first
+checkpoint. The latest bounded plain checkpoint task metadata is also a deny-only
+version marker; reading it constructs no serialized objects. A surviving locator,
+checkpoint marker or namespace with missing companion records blocks raw effects.
+Validate the complete bounded predecessor/request chain of a closed d2a head
+before coexistence. New v3 coordinator lock acquisitions use the same two-second
+bound; revocation is monotonic before a potentially contended coordinator wait.
+These repairs change no c1/c2 schema, lifecycle algorithm or public wiring.
+
 ## Durable route exclusion before admission
 
 Before atomic admission, persist an immutable task/thread/version/host/admission-
@@ -169,6 +198,12 @@ exclusion from a read snapshot. Deny unrelated Program/control/lifecycle writes,
 trigger side effects and schema changes during effects. Source-head/candidate/
 acceptance tables are never writable by v3 dispatch. Dedicated initialization and
 the separate deny-guard write have explicit smaller allowlists.
+
+Both scoped authorizers reject all PRAGMAs except an explicit bounded read-only
+introspection allowlist. In particular user/application/schema header setters,
+checkpoint/optimize operations and writable-schema toggles cannot turn Safe or
+remote attachments into modified transaction participants, including WAL. Guard
+publication likewise permits no unrelated checkpoint database header writes.
 
 Define a consistent in-process lock order around the shared store/control and
 invocation registry, with bounded acquisition and cleanup on every exception.

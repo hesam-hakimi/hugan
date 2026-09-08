@@ -7,6 +7,22 @@ was published at `7f2286f3395658b28ad4d7a3e2921116bbdd51ac`; runtime work begins
 that exact definition. Independent acceptance and current-tree platform qualification
 remain separate submission gates. D2a is accepted and complete.
 
+## Initial blocked candidate and correction scope
+
+Initial implementation `de99db9fdff64745d76f07ff6061044534851642`, tree
+`c15863e8e05f5f662560da0fe5a3144b59bc93af`, was independently BLOCKED for raw
+Safe routing after guard namespace loss, incomplete closed d2a history,
+unbounded v3 registration lock waits, and mutating-PRAGMA authorizer gaps.
+The correction adds an immutable independent root locator and plain checkpoint
+version denial, complete bounded inert predecessor validation, bounded new v3
+registry waits with monotonic revocation, and read-only PRAGMA allowlists. CI441
+attempt 1 failed both Python legs (1612 passed, one child-import harness failure
+per leg); that harness now supplies its fixture import path explicitly. Live192
+attempt 1 passed on the initial preview `cc9bee057af186f74c66e5aebfe7a92495118e3a`.
+These observations remain initial-tree history. Corrected-tree independent review
+and platform outcomes are recorded separately in PR28 and external evidence;
+no initial result substitutes for those gates. Standard Live Program remains v1.
+
 ## Accepted starting point and authority
 
 Repository: `hesam-hakimi/hugan`. Integration target:

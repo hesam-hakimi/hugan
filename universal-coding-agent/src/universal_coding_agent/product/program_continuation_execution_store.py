@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import sqlite3
 import time
@@ -452,6 +453,184 @@ class Reader:
         return first
 
 
+def closed_foundation(connection, program_id):
+    """Validate all inert d2a predecessors without constructing its owner service."""
+    from universal_coding_agent.product.program_continuation_handoff import (
+        _RECEIPT_FIELDS,
+        SCHEMA,
+        _descriptor,
+        _digest,
+        _identifier,
+        _integer,
+        _strict_json,
+    )
+
+    reader = Reader(connection)
+    heads = reader.rows(
+        "program_continuation_heads",
+        ("program_id", "schema", "host_sha256", "epoch", "state", "receipt_sha256"),
+        "program_id=?",
+        (program_id,),
+        limit=1,
+    )
+    indexes = reader.rows(
+        "program_continuation_receipts",
+        ("receipt_sha256", "program_id", "sequence"),
+        "program_id=?",
+        (program_id,),
+        order="sequence DESC",
+    )
+    requests = reader.rows(
+        "program_continuation_requests",
+        (
+            "host_sha256",
+            "program_id",
+            "request_id",
+            "request_sha256",
+            "action",
+            "epoch",
+            "status",
+            "receipt_sha256",
+        ),
+        "program_id=?",
+        (program_id,),
+    )
+    if not heads:
+        require(not indexes and not requests, "partial d2a history blocks v3")
+        return
+    head = heads[0]
+    require(
+        head["schema"] == SCHEMA and head["state"] == "closed", "active or parked d2a blocks v3"
+    )
+    _digest(head["host_sha256"])
+    _digest(head["receipt_sha256"])
+    _integer(head["epoch"])
+    require(
+        indexes and indexes[0]["receipt_sha256"] == head["receipt_sha256"],
+        "closed d2a head differs",
+    )
+    by_digest = {row["receipt_sha256"]: row for row in indexes}
+    by_request = {row["request_id"]: row for row in requests}
+    require(
+        len(by_digest) == len(indexes) == len(by_request) == len(requests),
+        "closed d2a history is incomplete",
+    )
+    current_digest, later, seen, seen_requests = head["receipt_sha256"], None, set(), set()
+    while current_digest:
+        require(
+            current_digest in by_digest and current_digest not in seen,
+            "closed d2a predecessor is missing or cyclic",
+        )
+        index = by_digest[current_digest]
+        size = connection.execute(
+            "SELECT length(content),typeof(content) FROM program_continuation_receipts "
+            "WHERE receipt_sha256=?",
+            (current_digest,),
+        ).fetchone()
+        require(size is not None and size[1] == "blob", "closed d2a receipt is missing")
+        reader.budget(size[0])
+        raw = connection.execute(
+            "SELECT content FROM program_continuation_receipts WHERE receipt_sha256=?",
+            (current_digest,),
+        ).fetchone()[0]
+        require(sha(raw) == current_digest, "closed d2a receipt digest differs")
+        record = _strict_json(raw)
+        require(record.keys() == _RECEIPT_FIELDS, "closed d2a receipt fields differ")
+        require(
+            record["schema"] == SCHEMA
+            and record["program_id"] == program_id
+            and record["host_sha256"] == head["host_sha256"]
+            and record["sequence"] == index["sequence"]
+            and record["execution_authorized"] is False
+            and record["consumer_bound"] is False,
+            "closed d2a receipt binding differs",
+        )
+        _descriptor(record["descriptor"])
+        require(
+            record["descriptor"]["program_id"] == program_id,
+            "closed d2a descriptor Program differs",
+        )
+        _integer(record["sequence"])
+        _integer(record["epoch"])
+        _identifier(record["request_id"])
+        for key in (
+            "request_sha256",
+            "witness_sha256",
+            "predecessor_sha256",
+            "owner_sha256",
+            "released_owner_sha256",
+        ):
+            _digest(
+                record[key],
+                empty=key in {"predecessor_sha256", "owner_sha256", "released_owner_sha256"},
+            )
+        action = record["action"]
+        require(
+            type(action) is str
+            and action in {"create", "park", "claim", "close"}
+            and record["state"]
+            == {"create": "owned", "claim": "owned", "park": "parked", "close": "closed"}[action],
+            "closed d2a transition differs",
+        )
+        require(
+            bool(record["owner_sha256"]) == (record["state"] == "owned")
+            and bool(record["released_owner_sha256"]) == (record["state"] != "owned"),
+            "closed d2a owner witness differs",
+        )
+        request = by_request.get(record["request_id"])
+        require(
+            request is not None
+            and request["request_id"] not in seen_requests
+            and request["status"] == "completed"
+            and request["receipt_sha256"] == current_digest
+            and all(
+                request[key] == record[key]
+                for key in ("host_sha256", "program_id", "request_sha256", "action", "epoch")
+            ),
+            "closed d2a predecessor request differs",
+        )
+        if later is None:
+            require(
+                record["action"] == "close" and record["epoch"] == head["epoch"],
+                "d2a history is not an inert closure",
+            )
+        else:
+            require(
+                later["sequence"] == record["sequence"] + 1
+                and later["epoch"] == record["epoch"] + (later["action"] == "claim")
+                and later["descriptor"] == record["descriptor"]
+                and later["witness_sha256"] == record["witness_sha256"]
+                and record["state"] == ("parked" if later["action"] == "claim" else "owned"),
+                "closed d2a predecessor transition differs",
+            )
+            if later["action"] == "claim":
+                require(
+                    later["owner_sha256"] != record["released_owner_sha256"],
+                    "closed d2a claim reused ownership",
+                )
+            else:
+                require(
+                    later["released_owner_sha256"] == record["owner_sha256"],
+                    "closed d2a released owner differs",
+                )
+        if action == "create":
+            require(
+                record["sequence"] == 1
+                and record["epoch"] == 0
+                and not record["predecessor_sha256"],
+                "invalid initial d2a receipt",
+            )
+        else:
+            require(bool(record["predecessor_sha256"]), "closed d2a predecessor is missing")
+        seen.add(current_digest)
+        seen_requests.add(record["request_id"])
+        current_digest, later = record["predecessor_sha256"], record
+    require(
+        seen == by_digest.keys() and seen_requests == by_request.keys(),
+        "closed d2a history contains unlinked records",
+    )
+
+
 @contextmanager
 def locked(lock):
     require(lock.acquire(timeout=2), "v3 host lock contention; explicit diagnosis required")
@@ -474,6 +653,26 @@ def durable(connection, aliases, *, rollback):
         sync = connection.execute(f"PRAGMA {alias}.synchronous").fetchone()[0]
         allowed = {"delete", "truncate", "persist"} | (set() if rollback else {"wal"})
         require(mode in allowed and sync in {2, 3}, "v3 requires durable journal synchronization")
+
+
+def read_only_pragma(name, argument):
+    if name in {
+        "database_list",
+        "journal_mode",
+        "synchronous",
+        "query_only",
+        "trusted_schema",
+        "foreign_keys",
+        "user_version",
+        "application_id",
+        "schema_version",
+        "page_count",
+        "freelist_count",
+    }:
+        return argument is None
+    return name in {"table_info", "table_xinfo", "index_list", "index_info", "index_xinfo"} and (
+        type(argument) is str and len(argument) <= 128
+    )
 
 
 DDL = (
@@ -648,6 +847,10 @@ class ContinuationExecutionStore:
             def authorizer(action, name, column, database, trigger):
                 if trigger:
                     return sqlite3.SQLITE_DENY
+                if action == sqlite3.SQLITE_PRAGMA:
+                    return (
+                        sqlite3.SQLITE_OK if read_only_pragma(name, column) else sqlite3.SQLITE_DENY
+                    )
                 if action in {sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE, sqlite3.SQLITE_DELETE}:
                     if (
                         not initialize
@@ -719,6 +922,38 @@ class ContinuationExecutionStore:
     def boundary(self, name):
         """No-op fault seam for deterministic process-death observations."""
 
+    def persist_locator(self, root):
+        from universal_coding_agent.product.program_source_routing import LOCATOR, read_root_locator
+
+        safe = self.acceptance.safe
+        path = safe.artifacts.root.parent / LOCATOR
+        raw = canonical(root)
+        parse_record(raw, root["schema"])
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        except FileExistsError:
+            require(read_root_locator(safe) == root, "immutable v3 root locator differs")
+            fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            writing = False
+        else:
+            writing = True
+        try:
+            if writing:
+                offset = 0
+                while offset < len(raw):
+                    size = os.write(fd, raw[offset:])
+                    require(size > 0, "v3 root locator write made no progress")
+                    offset += size
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+        parent = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(parent)
+        finally:
+            os.close(parent)
+        require(read_root_locator(safe) == root, "v3 root locator changed during publication")
+
     @contextmanager
     def guard_transaction(self):
         """The only v3 write on Safe: immutable root/control and task denial pins."""
@@ -739,6 +974,8 @@ class ContinuationExecutionStore:
         def authorizer(action, name, column, database, trigger):
             if trigger:
                 return sqlite3.SQLITE_DENY
+            if action == sqlite3.SQLITE_PRAGMA:
+                return sqlite3.SQLITE_OK if read_only_pragma(name, column) else sqlite3.SQLITE_DENY
             if action in {sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE, sqlite3.SQLITE_DELETE}:
                 permitted = database == "main" and (
                     name in statements

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import os
 import sqlite3
+import stat
 from contextlib import closing
 from pathlib import Path
 
@@ -14,6 +17,81 @@ V3_TABLES = (
 )
 GUARD_TABLE = "uca_source_dispatch_tasks_v3_guard"
 REGISTRY = "uca_source_dispatch_tasks_v3"
+LOCATOR = "source-dispatch-v3-root.json"
+
+
+def read_root_locator(safe):
+    """Read one bounded immutable routing hint, never construct an execution object."""
+    path = safe.artifacts.root.parent / LOCATOR
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    except FileNotFoundError:
+        return None
+    try:
+        before = os.fstat(fd)
+        if (
+            not stat.S_ISREG(before.st_mode)
+            or before.st_nlink != 1
+            or not 0 < before.st_size <= 65536
+        ):
+            raise ValueError("invalid v3 root locator")
+        raw = os.read(fd, 65537)
+        after = os.fstat(fd)
+        current = path.stat(follow_symlinks=False)
+
+        def stamp(s):
+            return s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns
+
+        if (
+            len(raw) != before.st_size
+            or stamp(before) != stamp(after)
+            or stamp(after) != stamp(current)
+        ):
+            raise ValueError("v3 root locator changed during read")
+    finally:
+        os.close(fd)
+    from universal_coding_agent.product.program_continuation_execution_store import parse_record
+
+    return parse_record(raw, "uca-program-source-dispatch-root-3")
+
+
+def checkpoint_has_v3(safe, thread_id):
+    """A plain-data version marker is denial evidence even after namespace loss."""
+    if not table(safe.connection, "checkpoints"):
+        return False
+    args = (thread_id,)
+    where = " WHERE thread_id=? AND checkpoint_ns='' ORDER BY checkpoint_id DESC LIMIT 1"
+    size = safe.connection.execute(
+        "SELECT length(checkpoint),typeof(checkpoint),length(type),typeof(type) "
+        "FROM checkpoints" + where,
+        args,
+    ).fetchone()
+    if size is None:
+        return False
+    if (
+        size[1] != "blob"
+        or not 0 < size[0] <= 16_000_000
+        or size[3] != "text"
+        or not 0 < size[2] <= 128
+    ):
+        raise ValueError("checkpoint routing byte bound exceeded")
+    raw, encoding = safe.connection.execute(
+        "SELECT checkpoint,type FROM checkpoints" + where, args
+    ).fetchone()
+    if encoding == "msgpack":
+        import ormsgpack
+
+        value = ormsgpack.unpackb(raw, ext_hook=lambda _code, _data: None)
+    elif encoding == "json":
+        value = json.loads(raw)
+    else:
+        raise ValueError("unsupported checkpoint routing encoding")
+    task = value.get("channel_values", {}).get("task", {}) if type(value) is dict else {}
+    metadata = task.get("metadata", {}) if type(task) is dict else {}
+    return (
+        type(metadata) is dict
+        and metadata.get("execution_schema") == "uca-program-source-dispatch-3"
+    )
 
 
 def table(connection, name, alias="main"):
@@ -132,8 +210,10 @@ def safe_v3_route(safe, thread_id, task_id=None):
     Missing root marker in an initialized namespace fails closed for the root.
     """
     guarded = registry_has_task(safe.control.connection, thread_id, task_id)
+    guarded |= checkpoint_has_v3(safe, thread_id)
+    locator = read_root_locator(safe)
     if not table(safe.connection, GUARD_TABLE):
-        if guarded or table(safe.control.connection, REGISTRY):
+        if guarded or locator is not None or table(safe.control.connection, REGISTRY):
             raise ValueError("v3 checkpoint guard is missing")
         return False
     row = safe.connection.execute(
@@ -148,6 +228,8 @@ def safe_v3_route(safe, thread_id, task_id=None):
     from universal_coding_agent.product.program_continuation_execution_store import parse_record
 
     root = parse_record(raw, "uca-program-source-dispatch-root-3")
+    if root != locator:
+        raise ValueError("v3 root locator is missing or differs")
     safe.verify_source_dispatch_control(required=True)
     path, device, inode = root["program_store"]
     path = Path(path)

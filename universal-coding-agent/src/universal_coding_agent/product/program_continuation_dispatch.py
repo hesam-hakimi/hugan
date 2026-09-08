@@ -24,6 +24,7 @@ from universal_coding_agent.product.program_continuation_execution_store import 
     _request,
     bounded_json,
     canonical,
+    closed_foundation,
     digest,
     durable,
     identifier,
@@ -267,39 +268,7 @@ class ProgramContinuationDispatchService:
         ]
         require(not any(present) or all(present), "partial d2a history blocks v3")
         if all(present):
-            head = db.execute(
-                "SELECT state,receipt_sha256 FROM program_continuation_heads WHERE program_id=?",
-                (intent["program_id"],),
-            ).fetchone()
-            history = db.execute(
-                "SELECT 1 FROM program_continuation_requests WHERE program_id=?",
-                (intent["program_id"],),
-            ).fetchone()
-            require(head is not None or history is None, "partial d2a history blocks v3")
-            require(head is None or head[0] == "closed", "active or parked d2a blocks v3")
-            if head:
-                size = db.execute(
-                    "SELECT length(content) FROM program_continuation_receipts "
-                    "WHERE receipt_sha256=? AND program_id=?",
-                    (head[1], intent["program_id"]),
-                ).fetchone()
-                require(
-                    size is not None and 0 < size[0] <= 65_536, "closed d2a history is incomplete"
-                )
-                raw = db.execute(
-                    "SELECT content FROM program_continuation_receipts WHERE receipt_sha256=?",
-                    (head[1],),
-                ).fetchone()[0]
-                record = bounded_json(raw)
-                require(
-                    sha(raw) == head[1]
-                    and record["schema"] == "uca-program-continuation-handoff-1"
-                    and record["state"] == "closed"
-                    and record["action"] == "close"
-                    and record["execution_authorized"] is False
-                    and record["consumer_bound"] is False,
-                    "d2a history is not an inert closure",
-                )
+            closed_foundation(db, intent["program_id"])
 
     def _witness(self, admission, owner_token):
         """Full current semantic witness; owner is checked separately by the accepted CAS API."""
@@ -695,6 +664,8 @@ class ProgramContinuationDispatchService:
             }
             guard = self._guard(intent)
             self.db.boundary("before_guard")
+            self.db.persist_locator(root)
+            self.db.boundary("after_root_locator")
             with self.db.guard_transaction():
                 # This separate immutable root write is not an admission. Keep
                 # the accepted c2 binding bytes, without calling its committing API.
@@ -721,6 +692,11 @@ class ProgramContinuationDispatchService:
             return sha(canonical(guard))
 
     def _verify_guard(self, intent, expected):
+        from universal_coding_agent.product.program_source_routing import read_root_locator
+        require(read_root_locator(self.store.safe) == {
+            "schema": "uca-program-source-dispatch-root-3", "host_sha256": self.host_sha256,
+            "program_store": self.db.identities[0], "control_store": self.db.identities[1]},
+            "v3 immutable root locator differs")
         self.store.safe.verify_source_dispatch_control(required=True)
         for key, record in (
             (

@@ -565,6 +565,7 @@ def test_v11_authorizer_denies_unrelated_tables_and_read_only_attachments(admitt
     "stage,boundary,expected",
     [
         ("admit", "before_guard", "absent"),
+        ("admit", "after_root_locator", "absent"),
         ("admit", "after_guard", "absent"),
         ("admit", "after_admission", "absent"),
         ("admit", "after_receipt", "absent"),

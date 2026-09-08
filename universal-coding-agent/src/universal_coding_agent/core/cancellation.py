@@ -265,9 +265,18 @@ class CancellationCoordinator:
         )
         self._invocations: dict[str, _RegistrationContext] = {}
 
+    @contextmanager
+    def _invocation_lock(self):
+        if not self._lock.acquire(timeout=2):
+            raise RuntimeError("v3 registration context is busy")
+        try:
+            yield
+        finally:
+            self._lock.release()
+
     def _new_invocation(self, task_id):
         """Create a private registration epoch; this grants no graph authority."""
-        with self._lock:
+        with self._invocation_lock():
             prior = self._invocations.get(task_id)
             if prior is not None and not prior.revoked:
                 raise RuntimeError("task already has a live registration context")
@@ -279,7 +288,7 @@ class CancellationCoordinator:
 
     @contextmanager
     def _invocation_context(self, context):
-        with self._lock:
+        with self._invocation_lock():
             self._check_registration(context.task_id, context)
         token = self._registration_context.set(context)
         try:
@@ -303,13 +312,17 @@ class CancellationCoordinator:
         )}
 
     def _revoke_invocation(self, context):
-        with self._lock:
+        if type(context) is not _RegistrationContext or context.coordinator is not self:
+            raise RuntimeError("registration context differs")
+        # Revoke monotonically even if an unrelated legacy factory holds the
+        # coordinator lock. A timed-out cleanup must not retain callback authority.
+        context._revoke()
+        with self._invocation_lock():
             if (
                 context.coordinator is not self
                 or self._invocations.get(context.task_id) is not context
             ):
                 raise RuntimeError("registration context differs")
-            context._revoke()
 
     @contextmanager
     def _settlement_barrier(self, context):

@@ -141,12 +141,14 @@ class SafeAgentService:
             self.remote_operations.close()
 
     def run(self, task: SafeTaskRequest) -> dict[str, Any]:
-        self._execution_gate(task.thread_id, task.task_id, action="run")
+        self._execution_gate(task.thread_id, task.task_id, action="run",
+                             execution_schema=task.metadata.get("execution_schema"))
         self.control.ensure_task(task.task_id)
         config = {"configurable": {"thread_id": task.thread_id}}
         return self.graph.invoke({"task": task.model_dump(mode="json")}, config=config)
 
-    def _execution_gate(self, thread_id: str, task_id: str | None = None, *, action="run") -> None:
+    def _execution_gate(self, thread_id: str, task_id: str | None = None, *, action="run",
+                        execution_schema=None) -> None:
         self.verify_source_dispatch_control()
         from universal_coding_agent.product.program_continuation_execution_adapter import (
             ContinuationSafeExecution,
@@ -156,6 +158,7 @@ class SafeAgentService:
             row = self.control.connection.execute("""SELECT task_id FROM uca_source_dispatch_tasks
                 WHERE thread_id = ? OR task_id = ?""", (thread_id, task_id or "")).fetchone()
             v3 = safe_v3_route(self, thread_id, task_id)
+            v3 |= execution_schema == "uca-program-source-dispatch-3"
         if v3 or type(self.execution_adapter) is ContinuationSafeExecution:
             if (
                 not v3 or row is not None

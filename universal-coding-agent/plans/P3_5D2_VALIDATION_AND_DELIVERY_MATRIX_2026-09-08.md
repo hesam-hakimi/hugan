@@ -11,6 +11,22 @@ separate evidence. Do not repeat already completed PR26/PR27 gates.
 References: [parent design](P3_5D2_PRODUCT_CONTINUATION_DESIGN_2026-09-08.md) and
 [first task](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md).
 
+## Initial blocked candidate and correction scope
+
+Initial implementation `de99db9fdff64745d76f07ff6061044534851642`, tree
+`c15863e8e05f5f662560da0fe5a3144b59bc93af`, was independently BLOCKED for raw
+Safe routing after guard namespace loss, incomplete closed d2a history,
+unbounded v3 registration lock waits, and mutating-PRAGMA authorizer gaps.
+The correction adds an immutable independent root locator and plain checkpoint
+version denial, complete bounded inert predecessor validation, bounded new v3
+registry waits with monotonic revocation, and read-only PRAGMA allowlists. CI441
+attempt 1 failed both Python legs (1612 passed, one child-import harness failure
+per leg); that harness now supplies its fixture import path explicitly. Live192
+attempt 1 passed on the initial preview `cc9bee057af186f74c66e5aebfe7a92495118e3a`.
+These observations remain initial-tree history. Corrected-tree independent review
+and platform outcomes are recorded separately in PR28 and external evidence;
+no initial result substitutes for those gates. Standard Live Program remains v1.
+
 ## Accepted d2a test mapping
 
 `tests/test_program_continuation_handoff.py` uses actual on-disk Program/control/
