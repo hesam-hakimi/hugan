@@ -9,7 +9,7 @@ import sys
 
 import pytest
 from fastapi.testclient import TestClient
-from test_program_source_dispatch import accept, close, first_phase, runtime
+from test_program_source_dispatch import accept, close, first_phase, process, runtime
 from test_program_source_dispatch import admitted as admitted
 from test_web_api import (
     RecordingProgramExecutor,
@@ -20,6 +20,10 @@ from test_web_api import (
 )
 
 from universal_coding_agent.core.models import RepositorySpec
+from universal_coding_agent.core.remote_operations import (
+    RemoteOperationDispositionOutcome,
+    RemoteOperationState,
+)
 from universal_coding_agent.product import program_source_status as status_module
 from universal_coding_agent.product.program_source_status import (
     ProgramSourceStatusError,
@@ -143,6 +147,7 @@ def test_prepared_source_blocks_legacy_start_without_granting_dispatch(tmp_path)
     "admission-task", "admission-phase", "admission-host", "admission-source",
     "admission-receipt", "admission-operation", "admission-boolean", "rows", "budget",
     "missing-dispatch-table", "missing-dispatch-row", "missing-execution", "missing-base",
+    "missing-dispatch-and-base", "missing-both-tables",
 ])
 def test_corrupt_or_excessive_metadata_never_falls_back_to_legacy(admitted, monkeypatch, case):
     f, con = admitted, admitted.store.connection
@@ -175,6 +180,12 @@ def test_corrupt_or_excessive_metadata_never_falls_back_to_legacy(admitted, monk
             con.execute("DELETE FROM program_executions WHERE phase_id='phase-2'")
         elif case == "missing-base":
             con.execute("DELETE FROM program_execution_bases")
+        elif case == "missing-dispatch-and-base":
+            con.execute("DELETE FROM program_source_dispatches")
+            con.execute("DELETE FROM program_execution_bases")
+        elif case == "missing-both-tables":
+            con.execute("DROP TABLE program_source_dispatches")
+            con.execute("DROP TABLE program_execution_bases")
         elif case == "execution-base":
             con.execute("UPDATE program_executions SET expected_base_sha=?", ("f" * 40,))
         elif case.startswith("admission-"):
@@ -214,18 +225,29 @@ def test_missing_database_is_not_created(tmp_path):
     assert not missing.exists()
 
 
-def test_actual_http_reads_and_rejects_v2_routes_without_touching_ownership(admitted):
+@pytest.mark.parametrize("metadata", ["valid", "terminal-pending", "missing-both"])
+def test_actual_http_reads_and_rejects_v2_routes_without_touching_ownership(admitted, metadata):
     f = admitted
     started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    with f.store.connection as con:
+        if metadata == "terminal-pending":
+            con.execute("UPDATE program_source_dispatches SET state='terminal'")
+        elif metadata == "missing-both":
+            con.execute("DELETE FROM program_source_dispatches")
+            con.execute("DELETE FROM program_execution_bases")
     web = ProductWebRuntime(f.workspace, f.root / "web")
     client = TestClient(create_product_app(web))
     prefix = f"/api/programs/{f.identity.program_id}/executions"
     before = fingerprint(f.root)
     try:
         response = client.get(prefix)
-        assert response.status_code == 200
-        assert response.headers["cache-control"] == "no-store"
-        assert response.json()["source"]["dispatches"][0]["state"] == "awaiting_scope_approval"
+        if metadata == "valid":
+            assert response.status_code == 200
+            assert response.headers["cache-control"] == "no-store"
+            assert response.json()["source"]["dispatches"][0]["state"] == "awaiting_scope_approval"
+        else:
+            assert response.status_code == 400
+            assert response.json()["detail"] == "recorded Program source metadata is unavailable"
         for route, payload in (
             ("/start-next", _program_execution_request(f.identity.requirement_sha256)),
             (f"/{started['task_id']}/continue",
@@ -233,12 +255,93 @@ def test_actual_http_reads_and_rejects_v2_routes_without_touching_ownership(admi
         ):
             rejected = client.post(prefix + route, json=payload)
             assert rejected.status_code == 400
-            assert "host service" in rejected.json()["detail"]
+            assert ("host service" if metadata == "valid" else "metadata is unavailable") in (
+                rejected.json()["detail"]
+            )
         assert web._program_worker_tokens == {}
         assert fingerprint(f.root) == before
     finally:
         client.close()
         web.executor.shutdown()
+
+
+@pytest.mark.parametrize("state,status,safe", [
+    ("terminal", "starting", ""),
+    ("terminal", "failed", "awaiting_scope_approval"),
+    ("terminal", "completed", "blocked"),
+    ("admitted", "completed", "completed"),
+    ("awaiting_scope_approval", "starting", ""),
+    ("resume_started", "failed", "awaiting_scope_approval"),
+])
+def test_recognized_but_inconsistent_dispatch_execution_states_reject(
+    admitted, state, status, safe,
+):
+    f = admitted
+    with f.store.connection as con:
+        con.execute("UPDATE program_source_dispatches SET state=?", (state,))
+        con.execute(
+            "UPDATE program_executions SET status=?, safe_status=? WHERE phase_id='phase-2'",
+            (status, safe),
+        )
+    before = fingerprint(f.root)
+    with pytest.raises(ProgramSourceStatusError):
+        program_source_status(f.workspace.programs.database_path, f.identity.program_id)
+    assert fingerprint(f.root) == before
+
+
+@pytest.mark.parametrize("crash,state", [
+    ("discovery", "discovery_started"), ("discovery-result", "discovered"),
+    ("scope-checkpoint", "safe_started"), ("terminal-checkpoint", "resume_started"),
+])
+def test_actual_inflight_dispatch_keeps_prior_program_result_readable(admitted, crash, state):
+    f = admitted
+    (f.root / "operation.txt").write_text(f.operation)
+    action = "dispatch"
+    if state == "resume_started":
+        process(f.root, "dispatch")
+        action = "approve"
+    process(f.root, action, crash, expected=73)
+    assert read(f, fresh=True)["dispatches"][0]["state"] == state
+
+
+@pytest.mark.parametrize("outcome", [
+    "cancel", "remote-cancelled", "remote-failed", "scope-rejected",
+])
+def test_actual_stopped_execution_remains_readable_without_advancing_dispatch(admitted, outcome):
+    f = admitted
+    started = f.dispatch.dispatch(f.operation, owner_token=f.owner)
+    if outcome == "cancel":
+        f.workspace.programs.cancel(f.identity.program_id)
+    elif outcome.startswith("remote-"):
+        status = outcome.removeprefix("remote-")
+        f.workspace.remote_operations.register(
+            task_id=started["task_id"], thread_id=started["thread_id"],
+            transport="openai_responses", transport_scope=f"sha256:{'a' * 64}",
+            operation_id="visibility-disposition", base_sha="b" * 40,
+            status=status, state=RemoteOperationState.TERMINAL,
+        )
+        snapshot = f.workspace.remote_operations.public_snapshot(started["task_id"])
+        disposition = f.workspace.control.record_remote_operation_disposition(
+            snapshot, RemoteOperationDispositionOutcome(status),
+            reason="Recorded terminal provider result", confirmed=True,
+            program_id=f.identity.program_id, phase_id="phase-2", slice_id="",
+        )
+        f.workspace.programs.record_remote_operation_disposition(disposition)
+    else:
+        task = f.dispatch._json(started["task_sha256"])
+        scope = f.safe.state(task["thread_id"])["values"]["scope_hash"]
+        f.dispatch.approve_scope(f.operation, owner_token=f.owner, scope_sha256=scope,
+                                 approved=False, approval_id="visibility-rejected")
+    status = read(f, fresh=True)
+    assert status["dispatches"][0]["state"] == (
+        "terminal" if outcome == "scope-rejected" else "awaiting_scope_approval"
+    )
+    assert status["dispatches"][0]["source_accepted"] is False
+    # The original root execution is still classifiable as v1 after source advancement.
+    root_task = status["lineage"][1]["task_id"]
+    require_legacy_program_route(
+        f.workspace.programs.database_path, f.identity.program_id, root_task,
+    )
 
 
 @pytest.mark.parametrize("action", ["start-next", "continue"])

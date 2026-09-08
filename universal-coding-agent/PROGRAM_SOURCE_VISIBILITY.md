@@ -2,7 +2,8 @@
 
 The existing `GET /api/programs/{program_id}/executions` response adds `source`,
 schema `uca-program-source-status-1`, and a `Cache-Control: no-store` header.
-The Program view reads it on explicit load/refresh. There is no polling, dispatch,
+The Program view reads it on explicit load/refresh and through its existing busy
+Program polling. No new polling loop is added. There is no dispatch,
 approval, reconciliation, provider invocation or new effectful HTTP/CLI entrypoint.
 
 `status: uninitialized` means this Program has no recorded source initialization.
@@ -36,6 +37,19 @@ among initialization, acceptance, candidate/approval, preparation, dispatch and
 execution records. An inconsistent, missing or excessive required record produces
 the stable error `recorded Program source metadata is unavailable`; it never
 returns an apparently complete partial lineage or silently selects v1.
+
+The reader also checks dispatch state against persisted Program execution/Safe
+status. Terminal reconciliation is an atomic Program transaction; a terminal
+dispatch with pending execution is invalid. In-flight states retain their prior
+Program result until explicit reconciliation. Existing cancellation and recorded
+remote dispositions may stop an active binding without advancing dispatch; only
+their bounded recorded scalar/reference relationship is inspected, not the
+disposition artifact or present authority.
+
+Every initialized Program execution must be accounted for. An unmatched v1 root
+has empty predecessor evidence and expected Base; a dependent v1 binding has a
+valid evidence hash and the recorded original Base. A derived or unresolved
+binding missing both preparation and admission fails closed before v1 routing.
 
 Bounds are 100 rows per queried record set, 128 bytes per selected scalar field,
 64 KiB per metadata document, and 1 MiB aggregate metadata retrieval. SQL length
@@ -86,3 +100,21 @@ This document records implementation evidence, not independent acceptance.
 Required CI/Live and independent review remain separate gates. PR25's accepted
 tree and bounded correction-review limits are retained by the successor task and
 the two exact historical reports in `reviews/`.
+
+## PR26 bounded correction submission
+
+Independent review of `cc391fb3da9bd914a7425e028877e53d57db30ec` was BLOCKED
+on two P2 findings. The exact initial report is retained in
+`reviews/PR26_INDEPENDENT_INITIAL_REVIEW_2026-09-08.md`, SHA-256
+`9cdd0ab615ad07814558055ef9383d218c31b946486fc7345898d4e48905d5ff`.
+Its passing 166 existing tests and CI435/Web61/Live186 remain historical evidence.
+
+The correction validates recorded execution/Safe status and accounts for unmatched
+legacy bindings before projecting dispatch history. It adds both reproduced cases
+at the actual HTTP boundary, combined missing-table/row cases, impossible recognized
+state pairs, real process-interruption reads and real cancellation/remote disposition/
+rejected-scope results. Local focused validation passed 65 tests (49 source-status
+and 16 existing web API cases), one known AnyIO warning, in 34.03 seconds; Ruff and
+diff checks passed after formatting-only line wraps. No c2/preparation/v1/lifecycle
+implementation or workflow changed. Corrected exact-source independent review and
+normal platform qualification are still required; no acceptance is predicted here.

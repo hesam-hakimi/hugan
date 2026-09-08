@@ -111,3 +111,24 @@ nonblocking follow-ups, including the separate legacy Git helper audit.
 
 Exclude main, PR6, root todos.md, AskTD/ETL/customer work, credentials, deployment,
 history rewriting and generated-source publication. No background work is claimed.
+
+## Bounded correction after initial independent BLOCKED review
+
+The owner authorized correction and independent follow-up. Preserve the exact
+initial report `../reviews/PR26_INDEPENDENT_INITIAL_REVIEW_2026-09-08.md` and its
+separately retained reproduction/evidence archive. Correct only F1 (recorded
+execution/dispatch-state coherence) and F2 (missing combined preparation/admission
+must not classify a surviving derived execution as v1), plus focused regressions
+and the nonblocking existing-polling wording clarification. Do not reopen c2.
+
+Independent follow-up must use its own exact corrected checkout and inspect the
+complete parent-to-correction delta with relevant consumers. Recheck both original
+observations within the same bounded metadata-reader scope and run relevant existing
+regressions. Preserve original failures even if corrected. A separate report must
+state the exact inspected head/tree, commands/results, findings and limits; no
+whole-repository audit or unperformed test is implied. Source and external state
+remain read-only for the reviewer; any tool rejection must be honored.
+
+Normal current-tree CI/Web/Live, independent acceptance, normal Ready and expected-
+head-locked integration remain gates. Verify actual integration tree, ordered
+parents and target ref before closing this phase. No manual paid Live retry.

@@ -29,6 +29,10 @@ DISPATCH_STATES = frozenset({
     "admitted", "discovery_started", "discovered", "safe_started",
     "awaiting_scope_approval", "resume_started", "terminal",
 })
+REMOTE_DISPOSITION_MATCH = (
+    "remote_disposition_ref = 'artifact://programs/' || program_id || '/phases/'"
+    " || phase_id || '/executions/' || task_id || '/remote-operation-disposition.json'"
+)
 
 
 class ProgramSourceStatusError(ValueError):
@@ -126,7 +130,8 @@ class _SourceReader:
 
     def snapshot(self, program_id):
         programs = self.rows(
-            "programs", ("requirement_hash", "plan_hash"), "program_id=?", (program_id,), limit=1,
+            "programs", ("requirement_hash", "plan_hash", "status"),
+            "program_id=?", (program_id,), limit=1,
         )
         _expect(len(programs) == 1)
         program = programs[0]
@@ -159,7 +164,8 @@ class _SourceReader:
         )
         executions = self.rows(
             "program_executions",
-            ("phase_id", "task_id", "thread_id", "requirement_hash", "expected_base_sha"),
+            ("phase_id", "task_id", "thread_id", "requirement_hash", "expected_base_sha",
+             "accepted_evidence_hash", "status", "safe_status", REMOTE_DISPOSITION_MATCH),
             "program_id=?", (program_id,),
         )
         bases = self.rows(
@@ -222,7 +228,11 @@ class _SourceReader:
                 _expect(entry["predecessor_sha256"] == history[i - 1]["source_sha256"])
         _expect(history[-1]["source_sha256"] == head["source_sha256"])
         _expect(history[-1]["receipt_sha256"] == head["receipt_sha256"])
-        projected = [self.dispatch(row, execution, identity, history, bases)
+        dispatched_tasks = {row["task_id"] for row, _ in dispatches}
+        for execution in executions:
+            if execution["task_id"] not in dispatched_tasks:
+                self.legacy_execution(execution, identity)
+        projected = [self.dispatch(row, execution, identity, history, bases, program["status"])
                      for row, execution in dispatches]
         projected.sort(key=lambda item: (item["generation"], item["operation_id"]))
         result.update(
@@ -235,6 +245,19 @@ class _SourceReader:
                                   and identity.plan_sha256 == program["plan_hash"]),
         )
         return result
+
+    def legacy_execution(self, execution, identity):
+        # V1 roots have no predecessor evidence or expected Base. Dependent v1
+        # units pin their evidence to the original Base. A surviving derived or
+        # otherwise unresolved binding cannot become v1 when both c1/c2 rows vanish.
+        _expect(execution["requirement_hash"] == identity.requirement_sha256)
+        for key in ("task_id", "thread_id", "phase_id"):
+            _identifier(execution[key], minimum=2)
+        if execution["expected_base_sha"] == "":
+            _expect(execution["accepted_evidence_hash"] == "")
+        else:
+            _expect(execution["expected_base_sha"] == identity.origin_base_sha)
+            _digest(execution["accepted_evidence_hash"])
 
     def acceptance(self, row, head, identity, executions):
         receipt = self.metadata(row["receipt_sha256"])
@@ -278,7 +301,7 @@ class _SourceReader:
                 "predecessor_sha256": receipt["predecessor_sha256"], "task_id": row["task_id"],
                 "receipt_sha256": row["receipt_sha256"]}
 
-    def dispatch(self, row, execution, identity, history, bases):
+    def dispatch(self, row, execution, identity, history, bases, program_status):
         admission = self.metadata(row["admission_sha256"])
         _expect(admission["schema"] == "uca-program-source-dispatch-2")
         _expect(admission["program_id"] == identity.program_id)
@@ -319,8 +342,10 @@ class _SourceReader:
                     and all(c in "0123456789abcdef" for c in value))
         _expect(execution["expected_base_sha"] == admission["derived_git_commit_sha"])
         _expect(row["state"] in DISPATCH_STATES)
+        self.dispatch_execution_state(row["state"], execution, program_status)
         accepted = any(item["task_id"] == row["task_id"] for item in history)
-        _expect(not accepted or row["state"] == "terminal")
+        _expect(not accepted or (row["state"] == "terminal"
+                                and execution["status"] == "completed"))
         return {
             "operation_id": row["operation_id"], "task_id": row["task_id"],
             "phase_id": admission["phase_id"], "generation": generation,
@@ -330,6 +355,26 @@ class _SourceReader:
             "derived_git_tree_sha": admission["derived_git_tree_sha"],
             "source_accepted": accepted,
         }
+
+    def dispatch_execution_state(self, state, execution, program_status):
+        status, safe = execution["status"], execution["safe_status"]
+        if state == "terminal":
+            # Reconcile commits the dispatch and Program result in one transaction.
+            # Explicit cancellation/disposition only replaces an active binding.
+            _expect((status, safe) in {
+                ("completed", "completed"), ("failed", "failed"), ("failed", "blocked"),
+            })
+            return
+        expected = ("awaiting_scope_approval" if state in {
+            "awaiting_scope_approval", "resume_started",
+        } else "")
+        _expect(safe == expected)
+        if status == "cancelled":
+            _expect(program_status == "cancelled" or execution[REMOTE_DISPOSITION_MATCH] == 1)
+        elif status == "failed":
+            _expect(execution[REMOTE_DISPOSITION_MATCH] == 1)
+        else:
+            _expect(status == ("awaiting_scope_approval" if expected else "starting"))
 
 
 def require_legacy_program_route(database_path: Path, program_id: str, task_id=None) -> None:
