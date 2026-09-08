@@ -118,6 +118,9 @@
   database/filesystem crash boundary; separately gated source-aware dispatch must preserve
   evidence-only v1 same-Base behavior;
 - P3.5c phase DAG per-slice gates, explicit retry/replan, and resumable long-running programs;
+- P3.5d-1 [recorded Program source visibility](PROGRAM_SOURCE_VISIBILITY.md): bounded
+  read-only origin/accepted lineage/v2 dispatch display and legacy-route guards;
+  implementation submitted separately from independent/platform acceptance;
 - P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript
   (deferred behind source continuity and resumability by the September 7 owner decision);
 - context deduplication and model-budget policies.

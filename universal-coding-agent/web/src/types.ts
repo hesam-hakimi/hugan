@@ -317,9 +317,56 @@ export type ProgramExecutionBinding = {
   remote_operation_lease_retirement?: RemoteOperationLeaseRetirement;
 };
 
+export type ProgramSourceGeneration = {
+  generation: number;
+  source_sha256: string;
+  predecessor_sha256: string | null;
+  task_id: string | null;
+  receipt_sha256: string;
+};
+
+export type ProgramSourceDispatch = {
+  operation_id: string;
+  task_id: string;
+  phase_id: string;
+  generation: number;
+  source_sha256: string;
+  state: "admitted" | "discovery_started" | "discovered" | "safe_started"
+    | "awaiting_scope_approval" | "resume_started" | "terminal";
+  execution_schema: "uca-program-source-dispatch-2";
+  admission_sha256: string;
+  derived_git_commit_sha: string;
+  derived_git_tree_sha: string;
+  source_accepted: boolean;
+};
+
+export type ProgramSourceStatus = {
+  schema: "uca-program-source-status-1";
+  program_id: string;
+  automatic_execution: false;
+  filesystem_verified: false;
+  current_authority_verified: false;
+  source_bytes_verified: false;
+} & ({
+  status: "uninitialized";
+  origin: null;
+  accepted: null;
+  lineage: [];
+  dispatches: [];
+  matches_current_plan: null;
+} | {
+  status: "recorded";
+  origin: { repository_sha256: string; git_commit_sha: string; git_tree_sha: string };
+  accepted: ProgramSourceGeneration;
+  lineage: ProgramSourceGeneration[];
+  dispatches: ProgramSourceDispatch[];
+  matches_current_plan: boolean;
+});
+
 export type ProgramExecutionSnapshot = {
   program_id: string;
   program_status: string;
+  source?: ProgramSourceStatus;
   runtime: {
     busy: boolean;
     action: string;
