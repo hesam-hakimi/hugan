@@ -1,11 +1,34 @@
 # P3.5d-2 — Validation, delivery and product decisions
 
-Status: preimplementation plan. Every case below is required or planned evidence,
-not an executed test result. The accepted baseline remains PR26; no implementation
-candidate or post-PR26 platform qualification exists at this definition checkpoint.
+Status: d2a implementation candidate. The matrix below retains the complete required
+or planned evidence, including later slices. The focused foundation tests now exist;
+independent review and ordinary current-tree platform qualification remain gates.
+The accepted baseline remains PR26 until normal integration is actually verified.
 
 References: [parent design](P3_5D2_PRODUCT_CONTINUATION_DESIGN_2026-09-08.md) and
 [first task](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md).
+
+## Candidate test mapping
+
+`tests/test_program_continuation_handoff.py` uses actual on-disk Program/control/
+lifecycle stores, actual Program execution bindings and a real SQLite checkpoint
+store for preservation checks. Deterministic fixture planning precedes handoff;
+handoff never calls a provider. Source-head fixture hashes are metadata references,
+not a claim of source-byte or real acceptance qualification.
+
+| Cases | Concrete candidate coverage |
+| --- | --- |
+| C01/C02 | Fresh-process park/claim/close, concurrent process claims, 23 real process-death cases at receipt/worker/request/head and both sides of commit |
+| C03 | Exact create/park/claim/close replay after lost responses, no token restoration, conflicting IDs, unknown/in-progress diagnosis |
+| C04 | Exact owner/epoch/proposal, actual pause/cancel/realign/control revisions, source/head changes, lifecycle remote/control/task conflicts, host and file replacement, explicit administrative recovery |
+| C05 | Read-only byte/logical preservation, effectful-module import probe, strict JSON/schema/field/row/aggregate budgets, keyset pages, current and older receipt tampering |
+| C02/C04 | Both writer journal/sync settings rejected without alteration; SQL triggers cannot modify unrelated Program rows |
+| C14 compatibility | Existing `test_program_source_status.py`, `test_program_source_dispatch.py`, `test_program_execution.py` and all lifecycle reservation/recovery/index/pagination tests retained |
+
+The published review/qualification evidence records exact head/tree, commands,
+counts, failures and platform attempts. The tests above do not qualify C06-C13's
+later provider, checkpoint, acceptance or Product API/UI consumers. Standard Live
+Program remains v1 even if the ordinary workflow passes on this candidate.
 
 ## Requirements and evidence ownership
 

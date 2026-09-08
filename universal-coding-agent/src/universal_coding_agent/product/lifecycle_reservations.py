@@ -387,6 +387,125 @@ class DurableLifecycleReservationStore:
         with self._lock:
             self.connection.close()
 
+    def check_program_worker_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        program_id: str,
+        *,
+        task_ids: tuple[str, ...],
+        owner_token: str | None,
+    ) -> tuple[str, ...] | None:
+        """Check an attached caller transaction; never begin, commit or recover.
+
+        The handoff caller holds Program/control/lifecycle in one IMMEDIATE
+        transaction and supplies the complete, bounded Program Task set. Existing
+        public lifecycle methods retain their own connection/transaction behavior.
+        """
+        self._validate_identity(program_id, "program_id")
+        if len(task_ids) > 100 or len(set(task_ids)) != len(task_ids):
+            raise ValueError("invalid bounded Program Task set")
+        for task_id in task_ids:
+            self._validate_identity(task_id, "task_id")
+        if owner_token is not None and (
+            type(owner_token) is not str or not _OWNER_TOKEN.fullmatch(owner_token)
+        ):
+            raise ValueError("invalid private worker ownership")
+        databases = {row[1]: row[2] for row in connection.execute("PRAGMA database_list")}
+        if (
+            not connection.in_transaction
+            or connection is self.connection
+            or not databases.get("main")
+            or not databases.get("lifecycle")
+            or Path(databases["lifecycle"]).resolve(strict=True) != self.database_path
+            or os.path.samefile(databases["main"], databases["lifecycle"])
+        ):
+            raise ValueError("Program worker requires an existing attached transaction")
+        for alias in ("main", "lifecycle"):
+            mode = connection.execute(f"PRAGMA {alias}.journal_mode").fetchone()[0]
+            sync = connection.execute(f"PRAGMA {alias}.synchronous").fetchone()[0]
+            if mode not in {"delete", "truncate", "persist"} or sync not in {2, 3}:
+                raise ValueError("Program worker requires durable rollback journals")
+        where = "program_id = ?"
+        parameters = [program_id]
+        if task_ids:
+            where += " OR task_id IN (" + ",".join("?" for _ in task_ids) + ")"
+            parameters.extend(task_ids)
+        found = []
+        for table, kind, validate in (
+            ("lifecycle_reservations", "reservation_kind", self._validate_rows),
+            ("lifecycle_worker_ownership", "worker_kind", self._validate_worker_rows),
+        ):
+            fields = (kind, "scope_id", "task_id", "program_id", "owner_token", "created_at")
+            invalid = " OR ".join(
+                f"typeof({field}) != 'text' OR length(CAST({field} AS BLOB)) > 128"
+                for field in fields
+            )
+            if connection.execute(
+                f"SELECT 1 FROM lifecycle.{table} WHERE ({where}) AND ({invalid}) LIMIT 1",
+                parameters,
+            ).fetchone():
+                raise ValueError("invalid bounded lifecycle ownership fields")
+            rows = connection.execute(
+                f"SELECT {','.join(fields)} FROM lifecycle.{table} WHERE {where} LIMIT 101",
+                parameters,
+            ).fetchall()
+            if len(rows) > 100:
+                raise ValueError("Program lifecycle conflict set exceeds its bound")
+            validate(rows)
+            found.append([tuple(row) for row in rows])
+        reservations, workers = found
+        if reservations:
+            raise ValueError("Program lifecycle action is active")
+        if owner_token is None:
+            if workers:
+                raise ValueError("local worker is active")
+            return None
+        if (
+            len(workers) != 1
+            or workers[0][:4] != ("program_execution", program_id, "", program_id)
+            or workers[0][4] != owner_token
+        ):
+            raise ValueError("exact Program worker ownership differs")
+        return workers[0]
+
+    def reserve_program_worker_in_transaction(
+        self, connection: sqlite3.Connection, program_id: str, *, task_ids: tuple[str, ...]
+    ) -> str:
+        """Reserve only inside the caller's attached transaction; token is private."""
+        self.check_program_worker_in_transaction(
+            connection, program_id, task_ids=task_ids, owner_token=None
+        )
+        owner_token = uuid.uuid4().hex
+        connection.execute(
+            """INSERT INTO lifecycle.lifecycle_worker_ownership
+            (worker_kind, scope_id, task_id, program_id, owner_token, created_at)
+            VALUES ('program_execution', ?, '', ?, ?, ?)""",
+            (program_id, program_id, owner_token, _utc_now()),
+        )
+        return owner_token
+
+    def release_program_worker_in_transaction(
+        self,
+        connection: sqlite3.Connection,
+        program_id: str,
+        *,
+        task_ids: tuple[str, ...],
+        owner_token: str,
+    ) -> None:
+        """Delete the complete exact owner row, without committing either store."""
+        row = self.check_program_worker_in_transaction(
+            connection, program_id, task_ids=task_ids, owner_token=owner_token
+        )
+        assert row is not None
+        count = connection.execute(
+            """DELETE FROM lifecycle.lifecycle_worker_ownership
+            WHERE worker_kind = ? AND scope_id = ? AND task_id = ? AND program_id = ?
+            AND owner_token = ? AND created_at = ?""",
+            row,
+        ).rowcount
+        if count != 1:
+            raise ValueError("exact Program worker release failed")
+
     def reserve_remote_operation(self, task_id: str, *, program_id: str = "") -> str:
         self._validate_identity(task_id, "task_id")
         if program_id:

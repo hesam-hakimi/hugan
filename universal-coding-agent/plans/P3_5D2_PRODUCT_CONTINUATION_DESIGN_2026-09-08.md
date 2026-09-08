@@ -1,8 +1,8 @@
 # P3.5d-2 — Product continuation across explicit worker episodes
 
-Status: preimplementation design selected under the owner's bounded engineering
-mandate. No implementation, independent design acceptance or new platform
-qualification is claimed. Only d2a is instantiated by the accompanying task.
+Status: design selected under the owner's bounded engineering mandate; only the
+accompanying d2a foundation now has an implementation candidate. Independent and
+platform acceptance remain pending. The later execution/API/UI slices are planned.
 
 ## Accepted baseline and outcome
 
@@ -187,7 +187,7 @@ never authorize editing or source acceptance.
 ## Delivery and design readiness
 
 Only [d2a](P3_5D2A_PROGRAM_CONTINUATION_HANDOFF_TASK_2026-09-08.md) is ready to enter
-bounded implementation. It proves the authority-record/worker transaction boundary,
+bounded qualification. It targets the authority-record/worker transaction boundary,
 not actual source-aware execution. D2b and d2c below are planned dependencies and
 must receive their own concrete task definitions from the then-accepted source.
 

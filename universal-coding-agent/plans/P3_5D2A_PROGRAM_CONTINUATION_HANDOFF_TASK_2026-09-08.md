@@ -1,7 +1,7 @@
 # P3.5d-2a — Bounded Program continuation handoff foundation
 
 Task ID: `UCA-20260908-P35D2A-CONTINUATION-HANDOFF`
-Status: defined before implementation; runtime implementation not started.
+Status: bounded implementation candidate; independent and platform acceptance pending.
 
 ## Baseline and authority
 
@@ -11,9 +11,10 @@ Repository `hesam-hakimi/hugan`; target
 `884a94d8722e614d72b48892e77aa59ca015d622`.
 
 The owner authorized all necessary preimplementation planning and preparation.
-Existing bounded engineering authority persists, but this checkpoint deliberately
-contains documentation only. No current implementation, independent acceptance,
-platform rerun, Ready transition, integration or product execution is claimed.
+Existing bounded engineering authority persists and now covers this instantiated
+foundation implementation. The published definition was documentation only at
+`2052562787923a098c9567d02baa515836c854cd`. This candidate does not claim independent
+acceptance, platform qualification, Ready, integration or product execution.
 
 Read the complete current canonical checkpoint/state/master/status/receipt, both
 PR26 reports, this task and the parent design/matrix, both P3.5c contracts, and the
@@ -139,3 +140,49 @@ its implementation; no other successor branch/task is instantiated now.
 Exclude main, PR6, root todos.md, AskTD/ETL/customer work, credentials, deployment,
 history rewriting and generated-source publication. Preserve the legacy Git helper
 and other nonblocking follow-ups. No autonomous scheduling or background monitoring.
+
+## Implemented foundation contract (candidate)
+
+`ProgramContinuationHandoffStore(programs, lifecycle, host_id=...)` uses the actual
+Program's control store. It pins all three existing paths and device/inode identities;
+the host binding includes those identities. It opens an operation-scoped connection,
+attaches lifecycle and read-only control, and writes only the three additive handoff
+tables and the exact lifecycle worker row. It never constructs a Product workspace.
+Mutations require durable rollback journals/FULL-or-EXTRA on both original writer
+connections and both attached writers. Existing public lifecycle methods are unchanged.
+
+`create` accepts canonical descriptor bytes and the private current worker token.
+The descriptor requires the foundation schema, Program/phase and optional existing
+Task/thread, approved requirement/plan hashes, current source generation/head receipt
+(or explicit absent-source values), and admission/checkpoint/result/approval-core
+hash references. References are data only. `next_action` is exactly `foundation_only`;
+both authorization flags are false. Existing registered/recorded c2 executions are
+not adopted. The complete database Program/phase/execution/control/source witness is
+hashed; private control and owner rows are never included in public records.
+
+`park` and `close` require exact expected epoch/receipt and the current private owner.
+`claim` additionally requires the exact descriptor/proposal digests and `confirmed=True`.
+All operations use immutable predecessor receipts and host/Program/request digest
+binding. Park/close release inside the receipt transaction. Claim reserves a new
+worker and advances the epoch inside that transaction. A first claim returns its
+private token through a local `HandoffResult` envelope; serialize only `result.public`.
+Completed replay returns that same public outcome and no token. Unknown/in-progress
+requests require diagnosis, and administrative owner removal leaves a visible blocker.
+
+The descriptor and semantic witness remain fixed throughout this inert lifecycle.
+Changed Program/control/source rows reject; there is no proposal refresh or consumer
+reconciliation in d2a. Database hashes are compared to the caller's exact approved
+hashes; this foundation does not read/attest plan artifacts, source bytes or checkpoints.
+Those proofs and any consumer-specific witness transition belong to d2b.
+
+Metadata parsing is bounded before materialization: 128-byte ASCII identifiers,
+64 KiB JSON records, eight nesting levels, 64 object fields, 4 KiB database scalar
+fields, 1 MiB aggregate reads and bounded SQLite work/time. Program phase/execution
+sets are capped at 100. Status uses receipt-sequence keyset pages of at most 100 and
+validates each returned receipt plus its immediate predecessor. Mutations validate
+the complete predecessor chain within the same aggregate/work budget and reject
+oversized history. No automatic pruning, migration, recovery or effect retry exists.
+
+`status` and `request_result` use existing read-only connections and bounded snapshots.
+Status is recorded metadata, not provider authority or a full historical audit. No
+production caller, v3 adapter, source acceptance resolver, HTTP route or UI is added.
