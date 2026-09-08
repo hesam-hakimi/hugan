@@ -1,61 +1,53 @@
-TASK_ID: ETL-0907-PINNED-HOST-MANIFEST-PREP01
-TYPE: EXACT-VERSION HOST ACQUISITION AND MANIFEST / FOCUSED-RUN PREPARATION
+TASK\_ID: ETL\-0908\-FOCUSED\-HOST\-RUN01
+TYPE: ONE CONTROLLED FOCUSED EXTENSION\-HOST RUN WITH CANONICAL VALIDATION FIRST
 
-Run this complete prompt in a fresh, ordinary LOCAL Windows VS Code Agent
-chat on recovery-extension-product-0.3.147. Use one Agent and one writer.
-Do not use the ETL Orchestrator. Keep engineering artifacts in English.
-Echo TASK_ID as the first line of the report.
+Run this complete prompt in a fresh ordinary LOCAL Windows VS Code Agent chat
+on recovery\-extension\-product\-0\.3\.147\. Use one Agent and one writer, not the
+ETL Orchestrator\. Keep engineering artifacts in English\. Echo TASK\_ID as the
+first line of the report\.
 
-1. Authorized outcome
+## 1\. Owner authorization
 
-The owner approved this next preparation step after
-ETL-0907-BUILD-PROVENANCE-PIN01. Prepare an authenticated, separate Windows
-x64 VS Code 1.135.0 distribution and a concrete manifest-validation / launch
-plan for the existing focused test contract. Preserve the owner’s everyday
-VS Code 1.136.1 User Setup installation.
+The owner approves the next controlled focused Host run after
+ETL\-0907\-PINNED\-HOST\-MANIFEST\-PREP01\. This task authorizes one invocation of
+the existing compiled runner, its canonical manifest validation, the verified
+VS Code 1\.135\.0 Windows x64 Host, the existing producer and exactly the
+established focused suite\. Product parsing/activation is authorized only as
+required by that suite against its authenticated synthetic fixture in an
+isolated test workspace\.
 
-This task explicitly authorizes downloading the exact Microsoft ZIP
-distribution, verifying it, and extracting it under one fresh external task
-root. The previous build task’s download prohibition is superseded for this
-bounded acquisition only. Proceed through the authorized work without asking
-for the same permission again.
+The preparation task’s no\-run restriction is superseded for this invocation\.
+Do not request that same approval again after preflight succeeds\. Continue
+autonomously through fixture resolution, preparation, the single run and
+evidence analysis\. A concrete failed prerequisite stops launch, not the
+independent preparation/reporting work\.
 
-Allowed:
+Authorized writes are task evidence, verified copies of existing synthetic
+inputs, and the runtime state/output of this one isolated run, all within the
+fresh external TASK\_ROOT / RUN\_ROOT arrangement described below\. The existing
+runner’s intended writes and rewrites inside its new run directories are
+allowed under its established evidence/freshness rules\.
 
-• Read-only repository, build-evidence, installed-tool and process inspection.
-• Existing Node / PowerShell / .NET tools for file inspection, hashing,
-HTTPS acquisition, archive extraction, task-owned preparation helpers and
-evidence creation. Inspect downloaded program files as data.
-• Public HTTPS requests for the exact Microsoft distribution and its
-provenance, including Microsoft’s official download redirects and narrowly
-relevant official documentation or commit-specific source inspection.
-• New files only under TASK_ROOT: download receipts, archives, extracted
-distribution, inventories, manifest analysis and the future-run plan.
-• Execution of an already-existing canonical manifest-only route ONLY if
-section 7 establishes its entire execution boundary beforehand.
+No source/configuration/dependency edits, rebuilding, output promotion, Git
+mutation, pin change, download, installation, packaging, release, ordinary
+consumer workflow, real\-data access, broad test discovery or additional suite
+is authorized\. Do not resolve editor buffers with Keep/Undo/save/revert, edit
+earlier reports, or use installed VS Code 1\.136\.1 as a substitute\.
 
-This step does not authorize repository edits, another build/output promotion,
-unit tests, the normal runner, producer, launcher, Code.exe/CLI, Extension Host,
-extension activation, product workflows, package scripts, dependency installs,
-VSIX installation/packaging or release. No Git mutation, pin change, updater,
-registry/PATH change, global environment/settings change, profile migration,
-Keep/Undo, buffer save/revert or process termination is authorized.
+This is one measured run, not an automatic fix\-and\-rerun loop\. Its success does
+not grant release acceptance or prove every B3 failure branch at runtime\.
 
-Preparation is a deliverable, not runtime qualification. The next focused
-Host run remains a separate task. Produce a usable plan rather than repeatedly
-attempting the known unsafe import of runTest.ts.
+## 2\. Repository and completed preparation
 
-2. Exact workspace and intake evidence
+ACTIVE\_WORKTREE:
+C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
 
-ACTIVE_WORKTREE:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+LINKED\_PRIMARY &#40;read\-only&#41;:
+C:\\repos\\etl\-extension\\etl\_fw2\\etl\_framework\_extension\_hf1\_v2
 
-LINKED_PRIMARY (read-only boundary):
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
-
-Expected branch: fix/workspace-write-completion-0.3.148
+Expected branch: fix/workspace\-write\-completion\-0\.3\.148
 Expected HEAD: 45c945b4a7d2866fa79e67f0bcf3ac3ae32b9c19
-Expected staging: empty.
+Expected staging: empty\.
 
 Expected source dirty inventory:
 
@@ -70,390 +62,335 @@ Expected source dirty inventory:
 ?? src/test/suite/sttmRealHostStructuredResult.test.ts
 ```
 
-Resolve BUILD_ROOT for TASK_ID ETL-0907-BUILD-PROVENANCE-PIN01 from the
-supplied report location. If its absolute path is unavailable, inspect only
-direct C:\docs children with that exact task prefix, and one timestamp child
-where a task container exists. Validate TASK_ID, workspace, HEAD, source
-identities, result and artifact cross-references. Do not select solely by
-modification time, guess a GUID, or turn a flat task root into a nested path.
-Ambiguous competing completed results require an explicit evidence finding.
+PREP\_ROOT locator from the received report &#40;authenticate against disk&#41;:
+C:\\docs\\ETL\-0907\-PINNED\-HOST\-MANIFEST\-PREP01\-20260908T020044626Z\-57663a80\-64c5\-4b80\-8e4a\-02509b2fe2c2
 
-Read the complete build report, baseline/post-state, build-provenance,
-compiler read-set, emitted/promoted inventories and ordered promotion journal,
-manifest candidate plus its generator/schema mapping, and pinned-host
-inspection. Follow their actual artifact paths, not guessed filenames.
-Read applicable repository instructions and the governing glossary at
-C:\docs\ETL_QUALIFICATION_GLOSSARY.md. Read referenced current policy-review
-decision and corrected machine identity records as needed to authenticate
-the build. Reuse corroborated evidence; do not reopen the completed review.
+Read its complete report\.md, baseline/post\-state, future\-run\-plan\.json and
+future\-run\-plan\.md, manifest\-route record, host identity, download/extraction
+receipts, static entrypoint contract and preservation results\. Resolve actual
+filenames through the report/index when they differ from these descriptions\.
+Use the executable path in the measured plan, not a path reconstructed from
+the screenshot’s wrapped lines\.
 
-The received build summary is an intake cross-check, not an expected-hash
-source:
+Resolve BUILD\_ROOT from those authenticated records and read the completed
+build report, source/output identities, required runtime provenance and
+protected\-manifest candidate/schema mapping used by this planned invocation\.
+Read applicable repository instructions and C:\\docs\\ETL\_QUALIFICATION\_GLOSSARY\.md\.
+Follow referenced corrected machine identities as needed\. Do not repeat all
+older reviews or require recovery of the unavailable historical baseline\.
 
-• Checked TypeScript 5.9.3 build using tsconfig.json: 506 root files,
-zero errors/warnings, emitSkipped=false, 2024 staged emitted files.
-• Promotion: 4 created, 10 replaced, 1090 identical skipped; zero deletions;
-out/ increased from 2016 to 2020 files.
-• Provenance: 1104 required outputs, zero reported gaps, 11 source-artifact
-relations checked against compiler-emitted source maps.
-• out/test/b3OutcomePolicy.js now exists.
-• protected-manifest.candidate.json is BUILD_CANDIDATE; canonical reader
-acceptance was NOT_EXECUTED. Policy membership is 12, relations 11.
-• No local pinned 1.135.0 was found in the prior bounded search. The owner’s
-About dialog shows the everyday editor as 1.136.1 User Setup / Windows x64.
-• runTest.ts has an unconditional main() call, reported at line 2970.
-• Without ETL_TEST_VSCODE_EXECUTABLE_PATH, the current runner calls
-downloadAndUnzipVSCode() without an explicit version.
-• No tests, normal runner, producer, launcher or Host were executed.
+If the literal PREP\_ROOT locator is wrong or absent, bounded discovery of
+direct C:\\docs children with the exact preparation task prefix is allowed,
+including one timestamp child where necessary\. Select by TASK\_ID, content,
+build references and identities, not merely newest timestamp\. Do not search
+debug logs, Local History, drives or unrelated profiles for replacement anchors\.
 
-Current source size/EOL cross-checks:
+Received report cross\-checks, not independently measured pins:
 
-|File                                 |Bytes |CRLF|Bare LF|Bare CR|
-|-------------------------------------|-----:|---:|------:|------:|
-|src/test/runTest.ts                  |131240|0   |2970   |0      |
-|src/test/b3OutcomePolicy.ts          |35970 |809 |0      |0      |
-|src/test/b3OutcomePolicy.unit.test.ts|36595 |758 |0      |0      |
-|src/test/suite/index.ts              |10408 |246 |0      |0      |
+- Result: PREPARATION\_COMPLETE\_AWAITING\_FOCUSED\_HOST\_AUTHORIZATION\.
+- VS Code 1\.135\.0 / Windows x64; valid Microsoft Authenticode signature\.
+- Official archive downloaded on attempt 2, 335078002 bytes\.
+- 2441 archive file entries matched 2441 extracted files by reported entry/size
+  checks\. Do not describe size matching alone as per\-file cryptographic proof\.
+- Pinned entrypoint contract VERIFIED\_STATICALLY\.
+- Manifest route B\_PRELAUNCH\_GATE\_PROVEN\_STATICALLY; canonical acceptance
+  NOT\_EXECUTED\.
+- Build/source identity matches reported; current out/\*\* has 2020 files\.
+- Preparation made zero repository writes and ran no Host/tests\.
+- Missing run input: an absolute ETL\_F5\_QA\_WORKSPACE\_ROOT containing
+  sttm/synthetic\_workbook\.xlsx, expected size 13201 bytes and an expected SHA\-256\.
 
-Read expected full hashes programmatically from original completed build and
-corrected review records. Validate every SHA-256 as 64 hexadecimal characters.
-Never hand-transcribe hashes from screenshots, count a self-hash as an
-independent expected value, or substitute an older source/output snapshot.
+Read full expected hashes, commit, fixture identity and paths programmatically
+from original machine evidence and the current authenticated contract\. Never
+type hashes from photos into scripts\. Reject malformed hash fields, and
+distinguish an authenticated expected value from a new self\-measurement\.
 
-The build recorded a corrected task-checker defect and a stale editor view
-of index.ts. Read current source and output bytes directly from disk, record
-their identities and compare them with the authenticated build. A stale editor
-view is not current source. Neither incident explains any new drift without
-fresh evidence. Preserve original failed records and their superseding links.
+## 3\. Read\-only preflight and preservation baseline
 
-3. Preflight, task root and preservation baseline
+Create the fresh evidence root using section 5 before persisting baseline
+records or fixture copies\. The sections specify dependencies, not permission
+to write to an uncreated or pre\-existing task directory\.
 
-Use git –no-optional-locks for repository reads. Verify worktree/common-Git
-identity, branch, HEAD, empty staging, dirty inventory, applicable locks and
-actual process arguments. An ordinary editor/language server alone is not a
-test Host. Do not stop processes, delete locks, change autosave or resolve
-editor edits. Unexplained input/output drift or a concurrent relevant writer
-blocks a readiness conclusion.
+Use git –no\-optional\-locks for reads\. Verify exact repository/common\-Git
+identity, branch, HEAD, staging and dirty inventory\. Inspect relevant locks
+and process arguments for another writer, watcher, compiler, test Host or
+launcher\. Do not terminate unrelated processes or remove locks\. An ordinary
+editor/language server is not by itself a prohibited Host\.
 
-Validate C:\docs as an existing parent without unsafe redirection. Create
-one exclusive flat leaf, outside both worktrees, existing evidence, snapshots,
-profiles and consumer workspaces:
+Read disk bytes, not potentially stale editor views\. Reconcile source and
+compiled runtime dependencies with the authenticated build and preparation
+POST states\. Current source cross\-checks are runTest\.ts 131240 bytes / 2970
+bare LF; b3OutcomePolicy\.ts 35970 bytes / 809 CRLF; its unit test 36595 bytes /
+758 CRLF; suite/index\.ts 10408 bytes / 246 CRLF\. Full hashes govern acceptance\.
 
-C:\docs\ETL-0907-PINNED-HOST-MANIFEST-PREP01-<UTC>-<GUID>\
+Authenticate the exact prepared Code\.exe, product/package version and commit,
+and the application files relevant to the pinned contract using retained
+inventories\. Confirm archive identity and provenance receipts\. If the prior
+inventory supplies only sizes for relevant files, establish their correspondence
+to entries in the retained authenticated archive without replacing the host
+distribution\. Do not download or re\-extract a new distribution for this run\.
 
-Use fs.mkdirSync(absoluteLeaf, { recursive: false }) with the existing Node,
-then create creation-receipt.json using flag ‘wx’. Record the actual path,
-timestamp, mechanism, PID and tool completion. A prior existence check plus
-Directory.CreateDirectory does not establish exclusive creation. On collision
-or failed creation, report it; do not silently choose a replacement root.
+Capture before\-run hashes for the complete out/\*\* inventory, source/policy,
+configuration/dependencies used by the run, build\-info, consumed prior evidence,
+fixture source and prepared Host application files\. Compare against the
+completed 2020\-file output state, not the older 2016\-file baseline\. Do not
+rebuild stale artifacts or bless changed ones with a fresh manifest\.
 
-Create task-owned evidence and archives exclusively. Keep failed attempts
-under their own names. New JSON is BOM-free UTF-8, serialized from measured
-objects and strictly re-parsed. Never modify prior evidence to make it parse.
+Unexplained drift, missing protected/runtime artifacts, pin mismatch or an
+actual concurrent relevant writer prevents invocation\. Preserve a precise
+finding and complete the report rather than normalizing the discrepancy\.
 
-Capture/hash the relevant current source/configuration/dependency read-set,
-the complete out/** per-file inventory, build-info and absence/presence of
-other build roots, all dirty files, and every prior evidence file consumed.
-Compare against the completed build’s POST state: the 2016-file PRE-build
-inventory is not today’s output baseline. Authenticate every required runtime
-artifact using the build provenance, not just its filename or existence.
+## 4\. Resolve the existing synthetic fixture without fabrication
 
-Resolve the current ordinary editor’s installation from the prior inspection
-or bounded process-path evidence. Capture its Code.exe and package/product
-metadata read-only. Do not inventory changing user profiles or make unverifiable
-claims that every file maintained by a running everyday editor stayed fixed.
-Record this task’s lack of writes to that installation/profiles accurately.
+Read ETL\_F5\_QA\_WORKSPACE\_ROOT handling and fixture checks in the existing
+runner/focused suite, plus the preparation plan\. Recover the expected full
+workbook hash and any required companion files from authenticated records/code\.
+The workbook must be the existing exact 13201\-byte fixture, not a newly authored
+spreadsheet that merely looks equivalent\.
 
-4. Acquire exactly VS Code 1.135.0 for Windows x64
+Bounded lookup is authorized in this order:
 
-First inspect any exact candidate already named by current evidence or the
-owner. A candidate must have verifiable version, architecture, commit and
-distribution origin. Do not scan drives or reuse a version-looking folder
-solely because its name says 1.135.0. A valid existing candidate may be copied
-into the new task root with source/copy verification; do not mutate its origin.
+1. Any absolute QA workspace supplied by the owner or the saved plan/evidence\.
+2. The current value of the specifically named ETL\_F5\_QA\_WORKSPACE\_ROOT, if set\.
+3. Repository fixture locations and named QA/evidence roots referenced by the
+   existing suite, runner, governing instructions or prior reports\. Filename
+   searches for synthetic\_workbook\.xlsx inside those identified roots are allowed\.
 
-If none is authenticated, acquire the official Windows x64 ZIP using this
-exact-version endpoint documented by Microsoft’s previous-release FAQ:
+Do not scan all drives, arbitrary consumer workspaces or user documents\.
+Distinguish missing, inaccessible and wrong\-hash candidates\. Read original
+fixture bytes as data and record each candidate’s absolute path, size/hash and
+comparison\. Do not open/resave it in Excel, regenerate it, change expected
+hashes, or download a replacement\.
 
-https://update.code.visualstudio.com/1.135.0/win32-x64-archive/stable
+Once authenticated, create an isolated QA workspace under TASK\_ROOT using
+exact verified copies of that fixture and only the existing synthetic companion
+files the focused contract requires\. Preserve original source paths read\-only\.
+Use the actual required relative path sttm/synthetic\_workbook\.xlsx\. Record
+source/copy hashes and any required workspace/template identity\. Do not invent
+an ETL workspace layout, fabricate a consumer configuration, or copy profiles,
+credentials, real datasets or unrelated repositories\.
 
-The final ‘stable’ component identifies the channel; the explicit ‘1.135.0’
-component is the requested version. Do not replace it with ‘latest’, infer
-from engines.vscode, choose Insiders, download an installer, or substitute
-the installed 1.136.1. If the exact version is unavailable, record the actual
-response and continue independent manifest-plan work.
+Set ETL\_F5\_QA\_WORKSPACE\_ROOT for the future child to this actual absolute isolated
+workspace path, provided the contract permits a verified copy there\. If the
+contract requires a different test\-only placement, resolve it within the fresh
+task scope before launch; do not bypass a path/root check\.
 
-Use the existing HTTPS client with certificate verification. Keep all body
-writes and extraction intermediates inside TASK_ROOT. Do not invoke the ETL
-runner or test-electron downloader for convenience: its cache/fallback and
-execution behavior are unnecessary for this explicit archive acquisition.
-No new downloader, dependency, browser automation or package manager is needed.
+If no exact fixture is found, finish all independent preparation and report
+BLOCKED\_FIXTURE\_UNRESOLVED with searched roots and mismatches\. Ask only for the
+absolute location of the existing authenticated QA workspace/workbook\. Do not
+launch the runner to discover that the fixture is missing\.
 
-Capture requested URL, redirect chain, final official CDN location, UTC,
-HTTP statuses, relevant response headers, received byte count and archive
-SHA-256. Follow only HTTPS redirects attributable to Microsoft’s official
-download service. Use no unrelated credentials, account sign-in, third-party
-mirror, certificate bypass or user-setting changes. Record an access failure
-instead of working around an access control.
+## 5\. Fresh task/run directories and concrete invocation plan
 
-Retain any publisher checksum / source-commit metadata, such as x-sha256 and
-x-source-commit when supplied, and compare programmatically. Microsoft-owned
-download code documents these headers, but do not assume this response has
-them. A locally computed digest alone proves file identity, not publisher
-authentication. Record missing publisher metadata honestly; corroborate with
-the official delivery receipt and native Authenticode verification of Code.exe.
-Checksum, commit, signature or version contradictions block acceptance.
-If authentic origin cannot be established, retain the archive as unverified.
+Validate the existing C:\\docs parent and containment outside both worktrees,
+old evidence/snapshots, everyday profiles and consumer workspaces\. Create one
+exclusive new flat task leaf:
 
-Allow at most two retries after a transient transport failure, with distinct
-attempt files and all actual outcomes retained. Do not retry a checksum or
-identity mismatch as though it were a transient download failure. Preserve
-partial files; do not overwrite them or silently fall back to another version.
+C:\\docs\\ETL\-0908\-FOCUSED\-HOST\-RUN01\-<UTC>\-<GUID>\\
 
-Before extraction, enumerate the ZIP and reject entries escaping the selected
-new destination, unsafe links/reparse entries, or paths that collide after
-Windows path normalization. Extract original bytes into a newly created host
-subdirectory using an existing archive facility, with no overwrite of existing
-files. Validate containment and record extraction completion/read-back results.
-If the tool cannot safely handle the archive, report the specific limitation.
+Use fs\.mkdirSync&#40;leaf, \{ recursive: false \}&#41; and a creation receipt written with
+exclusive new\-file semantics\. Record actual completion; check\-then\-create alone
+does not prove exclusive creation\. Do not reuse the preparation root or a
+directory merely named in an earlier plan\.
 
-Do not create a ‘data’ folder beside Code.exe or set VSCODE_PORTABLE. Microsoft’s
-portable-data mechanism overrides –user-data-dir and –extensions-dir, which
-would change the harness’s existing isolation contract. Use an unpacked ZIP
-distribution with explicit harness-managed runtime directories at the later
-run. Do not copy everyday settings, extensions, credentials or profile data.
-If an existing candidate contains portable data, preserve it and use a fresh
-clean official ZIP instead of deleting or normalizing that candidate.
+Allocate runtime paths according to the real freshness contract\. TASK\_ROOT holds
+supervisory evidence and fixture copies; RUN\_ROOT is a separate, initially
+absent child reserved for the runner when the runner requires exclusive creation\.
+Do not populate its required\-empty directories, completion markers or per\-run
+authorization flags beforehand\. If the contract requires sibling roots instead,
+document their safe common new parent and exact creation ownership before use\.
 
-5. Verify the actual downloaded distribution, without launching it
+Before invocation, freeze execution\-plan\.json from the saved future plan and
+current code\. Record the actual executable/Node paths, working directory,
+compiled runner, producer and single focused\-suite entrypoints, environment,
+arguments, fixture hashes, manifest input strategy, expected test count and
+all permitted runtime write roots\.
 
-Find the actual Code.exe beneath the extracted root; do not assume an archive
-folder name. Record its absolute/canonical path, SHA-256, native PE architecture
-(x64), file metadata and Authenticode result with signer identity/status.
-Read resources/app/package.json and product.json as data. Verify version
-1.135.0 and the product/commit identity against the available official receipt.
-Keep archive identity, executable identity and application metadata separate.
-An About screenshot of 1.136.1 is not a binary anchor for 1.135.0.
+Required properties:
 
-Retain a per-file extracted distribution inventory and hashes of every file
-used for contract inspection. Record enough archive-entry/read-back evidence
-to bind the relevant application files to this acquisition. Do not execute
-Code.exe –version, code.cmd, a CLI helper, test-electron, extension code or
-any program inside the downloaded distribution in this task.
+- ETL\_TEST\_VSCODE\_EXECUTABLE\_PATH resolves to the authenticated 1\.135\.0 Code\.exe;
+  show the actual code path bypassing automatic download\. Do not change the pin\.
+- Use the existing compiled runner’s supported focused selector; no standalone
+  Mocha substitute, direct producer call, glob expansion or broad discovery\.
+- Derive all other environment names and selectors from the current code/plan\.
+  Do not guess them\. Record how they reach the Host/producer\.
+- Isolated user\-data, extensions, logs, caches, TEMP/TMP, QA and evidence paths
+  are supplied through the established contract and child\-specific environment\.
+  Do not persist global environment/settings or copy everyday editor state\.
+- No portable data\-folder or inherited profile/IPC setting may redirect the
+  test into the everyday editor/profile\. Apply only established compatible
+  child\-local isolation controls; do not change security/trust policy to force a run\.
+- Product access is limited to this synthetic suite\. No Databricks, SQL Server,
+  consumer jobs, credentials or deliberate network calls are part of this run\.
+- Use existing supported update/telemetry/network suppression and document
+  effective settings\. Do not claim an OS network sandbox merely from flags\.
+  If the suite requires external services or real data, stop before launching\.
+- Establish a finite timeout from the saved plan/current test contract and a
+  documented small shutdown allowance\. Record the numeric deadline before run;
+  do not extend it simply because the run is stuck\.
 
-Read the installed @vscode/test-electron code used by this repository and the
-actual 1.135.0 packaged extension-test entrypoint/settlement code. Use source
-maps or exact-commit official source as corroboration when necessary; record
-how they correspond to packaged bytes. Current upstream main or installed
-1.136.1 code does not establish the pinned build’s behavior.
+Inspect planned writes in the runner, producer and selected test before launch\.
+Read the complete selected suite and inspect its runtime dependency closure
+for top\-level effects, fixture access and writes, not only its test names\.
+Harness\-owned creation/modification of synthetic test outputs and runtime
+profiles inside the new roots is authorized\. Source, out/, the prepared Host
+application and old evidence remain immutable\. If the current code requires
+writes outside this boundary, identify the actual coupling before invocation\.
 
-Determine, with exact file/symbol references:
+## 6\. Canonical validation is the first real gate of the single run
 
-• How the pinned Host consumes the existing producer’s supported run result
-and settles normal completion versus rejection/abnormal termination.
-• Whether the repaired producer’s completed, run-bound delivery can resolve
-normally despite counted failures, leaving the parent to derive FAIL.
-• How an actual launcher error remains an independent infrastructure cause.
-• How the existing runner supplies vscodeExecutablePath and how that bypasses
-the launcher’s automatic download branch in this installed implementation.
+Read the proven route B from manifest\-route and the actual compiled call path\.
+Reconfirm that the existing readProtectedHashManifest validation completes
+successfully before any launcher/Host invocation, and that its failure stops
+that path\. This must be true for the selected focused invocation, including
+error branches and top\-level initialization\.
 
-This is static compatibility evidence. Do not turn it into a claim that the
-producer, launcher, Host or product was exercised. If packaged code cannot be
-correlated or the contract remains unclear, report UNRESOLVED with the precise
-gap; do not generalize from another version or repair source here.
+Use exactly the manifest mechanism documented by that route: supply the
+authenticated candidate if accepted by the real schema, derive a documented
+payload if needed, or let the existing runner create its legitimate run\-bound
+manifest\. Keep prior candidates immutable\. Derive policy membership/order,
+source\-artifact relations and digests from the established canonical policy\.
+The reported 12 members / 11 relations are cross\-checks, not replacement lists\.
 
-6. Bind the binary to the existing future-run isolation contract
+Do not manufacture successful validation, run authorization, result delivery,
+freshness timestamps or completion markers\. Let the real run generate its own
+nonce and other run\-bound values using the supported mechanism\.
 
-Inspect the actual runner’s executable-resolution, focused-selection,
-freshness/authorization, launch options and extensionTestsEnv construction.
-Derive every required environment variable, path and argument from that code
-and governing instructions. Do not invent names or use a default because a
-required setting was not reconstructed.
+Identify BEFORE invocation which existing evidence/control\-flow observations
+can establish that the canonical reader executed and accepted the input\. Use
+actual emitted evidence and authenticated control flow; do not require adding
+new logs merely to obtain a particular wording\. If acceptance is inferred from
+a downstream observation that is reachable only after validation, label it
+INFERRED\_FROM\_AUTHENTICATED\_CONTROL\_FLOW and retain that proof\. Do not equate
+a data\-only checker, source inspection or a generic exit 0 with reader execution\.
 
-Create future-run-plan.json plus a concise future-run-plan.md as DATA ONLY.
-Include:
+Do not import the runner for exploratory checks: its unconditional main&#40;&#41; is
+the execution\. Do not strip main&#40;&#41;, monkey\-patch launch/process APIs, evaluate
+an extracted reader or execute a modified copy\. If the actual prelaunch gate
+cannot be established, report BLOCKED\_CANONICAL\_PRELAUNCH\_GATE and do not launch\.
 
-• Verified external Code.exe path and archive/executable/commit identities.
-• Exact ACTIVE_WORKTREE, compiled runner, producer, extension entrypoint and
-focused-suite paths with their authenticated build identities.
-• ETL_TEST_VSCODE_EXECUTABLE_PATH mapped to the verified Code.exe path.
-• The exact focused-run selection, pinned-version check, required synthetic
-fixture and expected counts read from the existing contract.
-• Actual environment names and argument precedence for user data, extensions,
-logs, temporary files, isolation root, evidence, manifest and nonce handling.
-• The source reference establishing each value or future-run allocation rule.
-• Any compatibility/prerequisite that prevents this concrete plan from working.
+Canonical validation and the permitted Host are parts of the SAME single
+runner invocation\. A separate runner ‘probe’ would consume the one invocation\.
+If canonical validation rejects, preserve the failure and report Host NOT\_RUN;
+do not patch the manifest/policy and try again in this task\.
 
-Use a new future RUN_ROOT, distinct from this preparation root and every old
-run/evidence/consumer directory. Describe the existing allocation and freshness
-checks; do not pre-create directories, manifests or authorization/completion
-markers that the real runner requires to be fresh. Values legitimately created
-at run start should be marked RUN_ALLOCATED with their creating code, rather
-than fabricated now. Distinguish them from unresolved inputs.
+## 7\. Execute once, supervise and preserve the real outcome
 
-The binary may remain in the verified preparation root. Determine whether the
-current runner permits an executable outside its per-run isolation root. If
-it requires a different placement, specify a later verified copy under the
-existing rule. Do not weaken containment to fit the proposed location.
+After all prerequisites pass, launch the existing compiled runner once using
+the frozen plan\. No extra approval is needed\. Capture the exact command/argument
+array, necessary nonsecret child environment, working directory, UTC start/end,
+stdout/stderr, actual tool/process completion, parent/child PIDs and exit status\.
+Use the existing installed Node; no npm/npx scripts, compiler or package install\.
 
-Audit relevant inherited environment switches as names/necessary nonsecret
-values only, including any portable/profile/IPC settings that the actual
-launcher consumes. Plan a child-specific environment at the later run, with
-explicit isolation and no accidental reuse of the everyday editor. Do not
-dump all environment variables, change persistent environment settings or
-export the future launch values into this Agent’s lasting shell session.
+The single invocation may start its one supported focused Host and producer\.
+Do not perform separate smoke launches, Code –version probes, unit reruns or
+an extra attempt after a failed run\. Preparation helpers may be corrected before
+invocation with separate retained artifacts, without changing repository code\.
 
-Keep the plan inert: do not invoke it, create a self-launching script, start
-a dry-run Host, register tasks, or rely on a hoped-for early exception.
+Supervise the finite deadline\. A task\-owned supervisor may stop only the runner
+and descendant Host processes created by this invocation on timeout or a
+detected boundary breach\. Establish process ownership/start identity before
+termination; never kill all node\.exe/Code\.exe processes or target the everyday
+editor by name\. Record the reason, actual PIDs and termination results\. A timeout
+is a measured incomplete/blocked outcome, never a passing test\. Preserve logs
+and partial runtime directories; do not clean up or restore files automatically\.
+Keep the owner informed during the run with a brief update at least once per
+minute; poll the actual running process rather than starting another invocation\.
 
-7. Establish the manifest path without an unsafe runner import
+Record whether the intended Host actually started and its observed version,
+whether the focused producer ran, whether a result was delivered, and whether
+finalization/post\-exit verification completed\. Do not assume that runner start
+means Host execution or that a Host process alone means the suite completed\.
 
-The build already found that runTest.ts calls main() unconditionally. Treat
-direct import/require/evaluation of that module or out/test/runTest.js as
-ordinary runner execution, which is outside this task. Do not repeat it.
+After a failure, read\-only diagnosis from this attempt is authorized\. Source
+repair, assertion weakening, expectation changes and a second invocation are
+not\. Provide a bounded next repair proposal if the evidence identifies a defect\.
 
-Read as data the actual canonical policy, generation/digest/relation routines,
-readProtectedHashManifest and its callers in both authenticated source and
-compiled output. Resolve the candidate’s schema, source/built hashes, canonical
-membership/order, source-artifact relations and digest. Include package.json
-as the unchanged direct protected input. Derive the 12/11 counts from the
-actual policy; never patch the reader or invent a second protected policy.
+## 8\. Interpret the current result and verify preservation
 
-Produce manifest-route.json with the actual input path mechanism, schema,
-run-bound fields, creation/freshness rules, reader invocation location, failure
-propagation and order relative to any launcher/Host call. Inspect error paths
-and relevant top-level imports as well as the nominal branch.
+Read the real current\-run ledger, producer result, runner evidence and final
+verdict using their actual schema\. Verify, as applicable:
 
-Use one of these outcomes:
+- Run identity/nonce, focused\-suite identity, delivery protocol and completion
+  correlate to this invocation and its fixture; no stale result is accepted\.
+- Expected test count and tests/passes/failures/pending consistency follow the
+  existing validator\. Zero executed tests is not a successful focused run\.
+- Counted product failures with trustworthy completed delivery remain FAIL
+  when no independent infrastructure cause exists\.
+- Independent launcher/Host/infrastructure failures remain retained and affect
+  the verdict according to the current policy; do not relabel them as product
+  failures merely because a result file also contains failures\.
+- Missing/foreign/unusable evidence cannot establish PASS or product FAIL\.
+- Evidence writes, reduced\-evidence fallback, finalization and post\-exit checks
+  are reported exactly as observed, including any paired failures\.
 
-A. An independently loadable, already-existing canonical manifest-only route
-is actually found outside the known unsafe import path. It may be executed
-only after its complete reachable initialization/imports and selected branch
-are shown to stay within the allowed boundaries. Read-only checks and new
-task-root evidence are allowed; launcher/producer/Host invocation is not.
-Execute the real canonical reader with legitimate inputs, retaining its
-actual result and the exact code identity. Do not invent a CLI flag or
-convert a function name into a presumed public entrypoint.
+Do not inject failures or run negative cases in this task\. Report unexercised
+branches as NOT\_EXERCISED, even if earlier isolated unit tests covered them\.
+Keep runner verdict/exit status separate from your assessment of whether this
+attempt supplied trustworthy evidence\. Exit 0 alone is not sufficient, and a
+trustworthy FAIL can be a valid executed test result without being a passing gate\.
 
-B. No safe standalone route exists, but the ordinary runner has a demonstrable
-canonical validation gate BEFORE launcher/Host execution. Prove that invalid
-input stops that path before launch and that the planned focused invocation
-reaches the real reader with the required manifest. Specify whether it
-legitimately consumes the build candidate, needs an exact payload derived
-from it, or generates a new run-bound manifest itself. Record the concrete
-future sequence and label CANONICAL_READER_ACCEPTANCE: NOT_EXECUTED.
-This pending execution check can be the first gate of the next authorized
-focused run; it does not require another speculative review task solely
-because no standalone entrypoint exists.
+Compare after\-state against the intake inventories: source, out/\*\*, configuration,
+dependencies, build\-info, prepared Host application, original fixture and prior
+evidence consumed\. Report exact differences\. Expected task writes are confined
+to the declared new test/runtime/evidence roots\. Do not claim that unrelated
+background OS/editor activity was exhaustively observed or caused by this task\.
+Verify HEAD, branch, empty staging and source dirty inventory remain unchanged\.
+Record remaining owned processes and whether the intended shutdown completed\.
 
-C. Neither route can be established, or candidate/schema/ordering/containment
-is incompatible. Finish the independently authorized pinned acquisition
-and report the exact manifest blocker. If source repair is truly required,
-provide a minimal proposed diff under TASK_ROOT with its affected symbols,
-behavior and necessary validation. Do not apply it or rebuild anything.
+Any unexplained protected/source/output change invalidates a clean acceptance
+claim even if the tests printed success\. Preserve the changed bytes/evidence
+without repairing or reverting them\. Classify only what the evidence supports\.
 
-For B, any preliminary candidate checks performed by a task-owned data checker
-are STATIC_DATA_CHECKS only. Reuse the authenticated candidate/generator facts;
-do not label a copied or reimplemented reader as canonical execution. Keep the
-original candidate immutable. Any necessary schema envelope/payload distinction
-must be documented exactly, with a separate derivative and transformation
-record only if all fields can be legitimately established in this phase.
-Never fabricate a per-run nonce, result, timestamp, count, success marker or
-evidence-write authorization to make a manifest appear acceptable.
+## 9\. Deliverables and final result
 
-Do not strip main(), evaluate an extracted function in a VM, monkey-patch
-process/child_process, use module-loader mocks, or patch emitted JavaScript to
-obtain a claimed runtime acceptance. These would change the code being checked.
-Do not relax a digest/count/schema check or update the version pin to get green.
+Keep under TASK\_ROOT: report\.md; creation receipt; baseline/post\-state;
+fixture\-resolution and source/copy identity records; frozen execution plan;
+supervisor/helper source; raw command logs/status; references to untouched
+runner/Host evidence; canonical\-validation proof; result assessment; and
+preservation/process checks\. Serialize new JSON from measured objects and
+strictly re\-parse it\. Retain failed/intermediate artifacts and explicitly link
+separately named corrections\. Do not hand\-transcribe measured hashes\.
 
-8. Evidence, verification and stopping condition
-
-Before finishing, compare the repository source/configuration/dependency
-read-set, complete out/** inventory, build-info and consumed prior evidence
-against intake. HEAD, branch, empty staging and the exact eight-path source
-dirty inventory must remain unchanged. There are no permitted repository
-writes in this task. Record any actual discrepancy instead of printing NO.
-
-Keep a compact complete evidence set under TASK_ROOT:
-
-• report.md, creation-receipt.json, baseline.json and post-state.json;
-• authenticated build/identity resolution and preservation checks;
-• download attempts/receipts, archive, extraction inventory and host identity;
-• pinned entrypoint/launcher static contract with exact artifact references;
-• manifest-route.json and any permitted canonical-reader result;
-• future-run-plan.json / .md with measured paths and legitimate run allocations;
-• actual helper sources and command stdout/stderr/completion results.
-
-Populate measured fields from the actual operations. Preserve failed attempts
-and create separately named corrections with explicit supersession. Do not
-rerun a successful build or unit suite merely to add evidence. If the pin is
-blocked, still complete independent manifest analysis; if manifest execution
-is pending, still complete a permitted pin acquisition.
-
-Report one overall result and the independent statuses below:
+Choose one result:
 
 ```text
-TASK_ID: ETL-0907-PINNED-HOST-MANIFEST-PREP01
-RESULT: PREPARATION_COMPLETE_AWAITING_FOCUSED_HOST_AUTHORIZATION |
-        PINNED_HOST_PREPARED_WITH_MANIFEST_BLOCKER |
-        PREPARATION_INCOMPLETE_<CONCRETE_REASON> |
-        BLOCKED_<CONCRETE_REASON>
-BUILD_ROOT: <authenticated absolute path>
-BUILD_INPUT_AND_OUTPUT_MATCH: <measured result>
-PINNED_HOST: VERIFIED_STATICALLY | UNAVAILABLE | UNVERIFIED | INCOMPATIBLE
-PINNED_HOST_PATH: <actual absolute Code.exe path, or NONE>
-PINNED_VERSION_ARCH_COMMIT: <measured values>
-ARCHIVE_AND_EXECUTABLE_IDENTITIES: <machine-derived full hashes / receipt paths>
-PINNED_ENTRYPOINT_CONTRACT: VERIFIED_STATICALLY | UNRESOLVED | INCOMPATIBLE
-MANIFEST_ROUTE: A_EXECUTED | B_PRELAUNCH_GATE_PROVEN_STATICALLY | C_BLOCKED
-CANONICAL_READER_ACCEPTANCE: <actual accepted/rejected result, or NOT_EXECUTED>
-FUTURE_RUN_PLAN: <absolute paths and completeness>
-DOWNLOAD: <actual source, bytes, attempts, or NOT_NEEDED / BLOCKED>
-EXTRACTION: <actual result, counts and inventory>
-REPOSITORY_OR_COMPILED_OUTPUT_WRITES_BY_TASK: <measured count; expected 0>
-PRIOR_EVIDENCE_WRITES_BY_TASK: <measured count; expected 0>
-EVERYDAY_EDITOR_INSTALLATION_OR_PROFILE_WRITES_BY_TASK: <actual; expected 0>
-TESTS_EXECUTED: 0
-CODE_CLI_RUNNER_PRODUCER_LAUNCHER_OR_HOST_EXECUTED: NO
-SOURCE_REPAIR_REBUILD_GIT_MUTATION_INSTALL_PACKAGE_OR_RELEASE_EXECUTED: NO
+TASK_ID: ETL-0908-FOCUSED-HOST-RUN01
+RESULT: FOCUSED_RUN_PASSED_AWAITING_INDEPENDENT_REVIEW |
+        FOCUSED_RUN_COMPLETED_WITH_PRODUCT_FAILURES |
+        FOCUSED_RUN_BLOCKED_OR_INCOMPLETE |
+        BLOCKED_BEFORE_INVOCATION_<REASON> |
+        INVALIDATED_BY_BOUNDARY_OR_PRESERVATION_FAILURE
+PREP_ROOT: <authenticated path>
+BUILD_ROOT: <authenticated path>
+QA_WORKSPACE_AND_FIXTURE: <absolute paths, measured/expected identities>
+PINNED_HOST: <actual executable path, version, architecture, commit and hash>
+CANONICAL_READER: ACCEPTED | REJECTED | NOT_REACHED | UNPROVEN
+CANONICAL_READER_PROOF: <direct evidence or explicitly identified inference>
+RUNNER_INVOCATIONS: <0 or 1; report any actual deviation>
+HOST_EXECUTION_AND_VERSION: <actual observation or NOT_RUN>
+RUN_IDENTITY_AND_RESULT_CORRELATION: <actual result>
+TESTS_PASSES_FAILURES_PENDING: <measured counts, or NOT_AVAILABLE>
+RUNNER_VERDICT_AND_EXIT: <actual values, or NOT_AVAILABLE>
+INDEPENDENT_CAUSES_RETAINED: <observed evidence; unexercised cases identified>
+FINALIZATION_AND_POST_EXIT: <actual outcome>
+PRESERVATION: <measured result and discrepancies>
+TIMEOUT_OR_OWNED_PROCESS_TERMINATION: <actual outcome>
 HISTORICAL_REVIEWED_BASELINE_PRESERVATION: NOT_VERIFIED
-FULL_B3_RUNTIME_PRODUCT_OR_RELEASE_ACCEPTANCE_GRANTED: NO
-OPERATIONAL_BLOCKERS: <specific blockers, or NONE_FOR_PREPARATION>
-DEFERRED_RUNTIME_CHECKS: <including canonical acceptance for route B>
-REPORT_PATH: <absolute path>
+FULL_B3_OR_RELEASE_ACCEPTANCE_GRANTED: NO
+REPORT_PATH: <exact absolute path>
+REMAINING_BLOCKERS: <specific findings or NONE_FOR_THIS_RUN>
 ```
 
-Preparation complete requires authenticated build inputs/outputs, an
-authenticated exact-version x64 distribution, a compatible static pinned
-contract, preserved boundaries, and a concrete future plan using route A
-(accepted) or B. Route B does not close canonical runtime acceptance; that
-remains an explicit fail-closed prerequisite at the next actual run. A merely
-syntactic candidate check without the demonstrated prelaunch gate is route C.
+The passing result requires accepted canonical validation, the correct pinned
+Host and authenticated fixture, the intended completed focused suite with
+passing results under its existing count rules, consistent run\-bound evidence,
+completed required finalization, correct verdict/exit and preserved boundaries\.
+It does not establish independent acceptance or qualification of unexercised
+failure branches\. Keep the historical baseline limitation separate from the
+current\-run evidence; do not silently claim it was closed\.
 
-The unavailable historical 126214-byte review baseline remains a documented
-historical limitation. Do not reconstruct it or use it as an automatic reason
-to block this independently supported preparation task. None of this task’s
-results grants full B3, Host, product or release acceptance.
-
-Stop after a short chat summary: exact report path, pinned executable/version,
-download outcome, manifest route/acceptance status, and remaining operational
-blockers. If preparation is complete, propose the single controlled focused
-Host run with canonical validation first. Do not execute that run in this task.
-
-Official references
-
-The following explain distribution and launcher behavior. Their generic
-examples do not override this repository’s local code, exact pin or task scope.
-
-• Exact-version Windows ZIP endpoint format:
-https://code.visualstudio.com/docs/supporting/faq#_previous-release-versions
-• VS Code 1.135 release page:
-https://code.visualstudio.com/updates/v1_135
-• ZIP / portable-data behavior, including command-line directory overrides:
-https://code.visualstudio.com/docs/setup/portable
-• Microsoft test utility download receipts/checksum handling (upstream;
-inspect the installed version separately):
-https://github.com/microsoft/vscode-test/blob/main/lib/download.ts
-• Microsoft test utility explicit executable selection (upstream;
-inspect the installed version separately):
-https://github.com/microsoft/vscode-test/blob/main/lib/runTest.ts
+Finish with a short chat summary containing the exact report path, whether the
+Host ran, actual test counts/verdict/exit, manifest acceptance, preservation
+result and remaining blockers\. Stop\. Do not self\-perform the independent review,
+repair/rebuild/rerun, expand the suite or package/release the extension\.
