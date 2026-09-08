@@ -349,6 +349,17 @@ def terminal_history(reader, program, operation):
         and initial["attestation"]["snapshot_sha256"] == initial["source_sha256"],
         "original source initialization lineage differs",
     )
+    # Receipt-1 remains historical same-owner acceptance. Every immutable
+    # predecessor link must still exist with its exact bytes; no old owner is
+    # reconstructed and no checkpoint decoder is used by recorded readers.
+    for key in (
+        "before_sha256",
+        "after_sha256",
+        "transition_sha256",
+        "evidence_sha256",
+        "checkpoint_sha256",
+    ):
+        reader.artifact(candidate[key])
     present = [
         reader.connection.execute("SELECT type FROM sqlite_master WHERE name=?", (name,)).fetchone()
         for name in (

@@ -204,6 +204,23 @@ existing read-only stores and never construct effectful services/setup tables.
 It reports `source_bytes_verified=false`, `filesystem_verified=false`,
 `current_authority_verified=false` and no live execution capability.
 
+Every referenced preview or decision completion must exist; a missing request
+is never a successful optional lookup when traversing an existing candidate,
+decision or receipt. Decisions and their historical replay validate the exact
+committed preview payload, response and witness. Both live recaptures repeat
+that validation. Rejection history has the same complete-request requirement.
+The original receipt-1's before/after snapshots, transition, evidence and
+checkpoint, and the candidate-2 core's stored artifacts, must all retain their
+bounded exact bytes. Recorded readers hash these opaque database artifacts in
+65,536-byte chunks without decoding source or checkpoints. Each artifact is at
+most 24,000,000 bytes and a logical read hashes at most 256,000,000 bytes; small
+canonical metadata retains its separate 65,536-byte/1-MiB budget. Runtime reads
+also charge the complete capture budget and obey stricter configured source
+limits. These checks establish stored lineage only: they do not verify current
+filesystem source, execute a checkpoint, or restore authority. Live capture
+additionally reconstructs the original approved 42-to-43 transition with the
+pinned pure source policy and requires exact generation-1 snapshot equality.
+
 ## 6. Completed replay, crashes and invalidation
 
 Key requests by new host, Program and request ID. Canonical request digest binds

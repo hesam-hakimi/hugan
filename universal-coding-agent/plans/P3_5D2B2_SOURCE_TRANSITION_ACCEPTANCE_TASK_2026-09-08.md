@@ -14,8 +14,9 @@ must bind the exact candidate tree. This candidate's source documentation does
 not itself claim those later gates passed. The definition status below records
 the prior phase and is superseded by this implementation-candidate block.
 
-Submitted evidence is in `tests/test_program_source_acceptance_v2.py` and
-`tests/test_program_source_acceptance_v2_boundaries.py` (paths relative to this
+Submitted evidence is in `tests/test_program_source_acceptance_v2.py`,
+`tests/test_program_source_acceptance_v2_boundaries.py` and
+`tests/test_program_source_acceptance_v2_lineage.py` (paths relative to this
 project). The executable map is:
 
 | Family | Submitted cases |
@@ -35,6 +36,26 @@ project). The executable map is:
 
 The shared-read budget exceptions are recorded at the end of this task. They do
 not change v3 execution/settlement schemas or expand its write authorizer.
+
+### Initial independent findings and separate correction
+
+Initial candidate `8d72ad67bfa9dc9ebabb656cc298b1b09fa16894` is blocked by
+independent observations: a missing completed preview request or response did
+not block a fresh decision, and missing receipt-1 transition/checkpoint/original
+snapshot artifacts did not block new preview or acceptance. Passing submitted
+tests and initial-tree platform runs cannot override these findings.
+
+The correction requires the exact completed preview request, response and
+witness before decision claim and at each recapture. Historical decision replay
+and recorded status require the same complete preparation; status also requires
+every referenced decision request, including rejection. All original receipt-1
+artifact links and candidate-2 evidence-core artifacts receive bounded stored-byte
+hash checks. Live capture reconstructs the original approved 42-to-43 transition
+under the pinned source policy. No historical owner or current capability is
+restored. Forty additional submitted cases cover deleted or corrupted links,
+pending/owner mismatch, post-capture deletion, accepted/rejected replay and
+separate metadata/opaque-artifact read budgets. The initial BLOCKED report remains
+separate; correction acceptance and platform gates must name their exact tree.
 
 ---
 

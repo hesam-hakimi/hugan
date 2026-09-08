@@ -6,6 +6,7 @@ not reused or enlarged. Only the Program and lifecycle stores can be mutated.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import time
@@ -168,6 +169,51 @@ def record(raw, schema):
 
 
 class Reader(V3Reader):
+    def __init__(self, connection):
+        super().__init__(connection)
+        self.artifact_total, self.artifact_sizes = 0, {}
+
+    def artifact(self, value, *, maximum=24_000_000):
+        """Hash stored opaque bytes in bounded chunks, without decoding source/evidence.
+
+        This separate budget never relaxes the small canonical metadata budget.
+        The caller's transaction pins the rows for the complete logical read.
+        """
+        from universal_coding_agent.product.program_source_capture_budget import charge
+
+        digest(value)
+        require(0 < maximum <= 24_000_000, "invalid stored artifact bound")
+        if value in self.artifact_sizes:
+            require(self.artifact_sizes[value] <= maximum, "stored artifact exceeds bound")
+            return
+        header = self.connection.execute(
+            "SELECT length(content),typeof(content) FROM program_source_artifacts WHERE sha256=?",
+            (value,),
+        ).fetchone()
+        require(
+            header is not None and header[1] == "blob" and 0 < header[0] <= maximum,
+            "missing or oversized source lineage artifact",
+        )
+        size = header[0]
+        require(self.artifact_total + size <= 256_000_000, "stored lineage aggregate bound")
+        self.artifact_total += size
+        hasher = hashlib.sha256()
+        for offset in range(0, size, 65_536):
+            length = min(65_536, size - offset)
+            charge(length)
+            selected = self.connection.execute(
+                "SELECT CASE WHEN typeof(content)='blob' AND length(content)=? "
+                "THEN substr(content,?,?) END FROM program_source_artifacts WHERE sha256=?",
+                (size, offset + 1, length, value),
+            ).fetchone()
+            require(
+                selected is not None and type(selected[0]) is bytes and len(selected[0]) == length,
+                "stored source lineage artifact changed",
+            )
+            hasher.update(selected[0])
+        require(hasher.hexdigest() == value, "stored source lineage artifact hash differs")
+        self.artifact_sizes[value] = size
+
     def raw(self, value, *, maximum=MAX_RECORD):
         digest(value)
         if value in self.cache:

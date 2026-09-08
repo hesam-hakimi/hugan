@@ -72,7 +72,35 @@ def candidate_links(reader, candidate_sha):
         ),
         "candidate preview request differs",
     )
+    for key in (
+        "before_sha256",
+        "after_sha256",
+        "transition_sha256",
+        "evidence_sha256",
+        "program_evidence_sha256",
+        "checkpoint_sha256",
+        "filesystem_sha256",
+        "origin_sha256",
+        "inventory_sha256",
+    ):
+        reader.artifact(core[key])
     return candidate, core, proposals[0]
+
+
+def completed_preview(reader, candidate_sha):
+    """Require the exact committed preparation, including its released-owner witness."""
+    candidate, _, proposal = candidate_links(reader, candidate_sha)
+    payload = reader.record(proposal["request_sha256"], "uca-source-request-2")
+    result = completed_request(
+        reader, payload["host_sha256"], payload["program_id"], payload["request_id"], payload
+    )
+    require(
+        result is not None
+        and result["action"] == "preview"
+        and result["candidate_sha256"] == candidate_sha,
+        "candidate has no exact completed preview request",
+    )
+    return candidate
 
 
 def completed_request(reader, host, program, request_id, expected=None):
@@ -190,6 +218,9 @@ def completed_request(reader, host, program, request_id, expected=None):
             "preview response differs",
         )
     else:
+        # The preview branch above terminates this bounded history traversal.
+        # A candidate/payload alone cannot stand in for committed preparation.
+        completed_preview(reader, response["candidate_sha256"])
         require(
             response["status"] == ("accepted" if payload["approved"] else "rejected")
             and response["candidate_sha256"] == payload["candidate_sha256"]
@@ -373,8 +404,12 @@ def source_transition_status(database_path, program_id):
                     "unknown source receipt version",
                 )
                 approval = reader.record(row["approval_sha256"], "uca-source-approval-2")
-                completed_request(
+                response = completed_request(
                     reader, approval["host_sha256"], program_id, approval["request_id"]
+                )
+                require(
+                    response is not None and response["receipt_sha256"] == row["receipt_sha256"],
+                    "accepted source has no exact completed decision request",
                 )
             history.append({**receipt, "receipt_sha256": row["receipt_sha256"]})
         history.sort(key=lambda r: r["generation"])
@@ -422,8 +457,25 @@ def source_transition_status(database_path, program_id):
         candidates = []
         for proposal in proposals:
             candidate, core, _ = candidate_links(reader, proposal["candidate_sha256"])
-            request = reader.record(proposal["request_sha256"], "uca-source-request-2")
-            completed_request(reader, request["host_sha256"], program_id, request["request_id"])
+            completed_preview(reader, proposal["candidate_sha256"])
+            decisions = reader.rows(
+                DECISIONS,
+                ("request_sha256",),
+                "candidate_sha256=?",
+                (proposal["candidate_sha256"],),
+                limit=1,
+            )
+            for decision in decisions:
+                payload = reader.record(decision["request_sha256"], "uca-source-request-2")
+                response = completed_request(
+                    reader, payload["host_sha256"], program_id, payload["request_id"], payload
+                )
+                require(
+                    response is not None
+                    and response["action"] == "decide"
+                    and response["candidate_sha256"] == proposal["candidate_sha256"],
+                    "recorded decision has no exact completed request",
+                )
             require(
                 core["admission_sha256"] == terminal["admission_sha256"]
                 and core["terminal_receipt_sha256"] == terminal["receipt_sha256"],
@@ -457,7 +509,13 @@ def source_transition_status(database_path, program_id):
             reader.metadata(request["baseline_sha256"])
             digest(request["owner_sha256"])
             if request["status"] == "completed":
-                completed_request(reader, request["host_sha256"], program_id, request["request_id"])
+                require(
+                    completed_request(
+                        reader, request["host_sha256"], program_id, request["request_id"]
+                    )
+                    is not None,
+                    "completed request disappeared",
+                )
             else:
                 require(
                     request["status"] == "pending" and request["response_sha256"] is None,

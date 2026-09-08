@@ -353,6 +353,12 @@ class ProgramSourceAcceptanceV2Service:
         )
 
     def _capture(self, reader, payload, owner, budget):
+        if payload["action"] == "decide":
+            from universal_coding_agent.product.program_source_acceptance_v2_status import (
+                completed_preview,
+            )
+
+            completed_preview(reader, payload["candidate_sha256"])
         row, admission, baseline, completed, owner_sha, tasks = self._baseline(
             reader, payload["program_id"], payload["operation_id"], owner
         )
@@ -364,6 +370,29 @@ class ProgramSourceAcceptanceV2Service:
         )
         before = self.store.source.load_snapshot(
             self.store._get(admission["source_sha256"]), expected_sha256=admission["source_sha256"]
+        )
+        first = reader.metadata(admission["acceptance_receipt_sha256"])
+        original = self.store.source.load_snapshot(
+            self.store._get(first["predecessor_sha256"]),
+            expected_sha256=first["predecessor_sha256"],
+        )
+        first_candidate = reader.metadata(first["candidate_sha256"])
+        first_transition = self.store.source.load_transition(
+            self.store._get(first["transition_sha256"]), expected_sha256=first["transition_sha256"]
+        )
+        require(
+            original.generation == 0
+            and original.identity == before.identity
+            and first_transition.task_id == first["task_id"]
+            and first_transition.phase_id == first_candidate["binding"]["execution"]["phase_id"]
+            and first_transition.slice_id is None
+            and set(first_transition.evidence_sha256)
+            == {first_candidate["evidence_sha256"], first_candidate["checkpoint_sha256"]}
+            and self.store.source.materialize(
+                original, first_transition, approved_transition_sha256=first["transition_sha256"]
+            )
+            == before,
+            "original accepted source transition lineage differs",
         )
         plan = self.store._plan(before.identity)
         require(
@@ -608,6 +637,7 @@ class ProgramSourceAcceptanceV2Service:
             payload[k] for k in ("program_id", "operation_id", "request_id")
         )
         from universal_coding_agent.product.program_source_acceptance_v2_status import (
+            completed_preview,
             completed_request,
         )
 
@@ -643,7 +673,7 @@ class ProgramSourceAcceptanceV2Service:
                         proposals == [{"candidate_sha256": payload["candidate_sha256"]}],
                         "candidate was not prepared by this host",
                     )
-                    candidate = reader.record(payload["candidate_sha256"], "uca-source-candidate-2")
+                    candidate = completed_preview(reader, payload["candidate_sha256"])
                     require(
                         all(
                             payload[k] == candidate[k]
