@@ -267,6 +267,16 @@ class ProgramSourceAcceptanceService:
                                      receipt_sha, receipt_sha))
         return strict_json(receipt)
 
+    def _dispatch_for(self, task_id):
+        row = self.connection.execute(
+            "SELECT 1 FROM control.uca_source_dispatch_tasks WHERE task_id = ?", (task_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        dispatch = getattr(self, "source_dispatch", None)
+        _require(dispatch is not None, "v2 source capture requires its explicit dispatch service")
+        return dispatch
+
     def _capture(self, before: ProgramSourceSnapshot, task_id: str, owner_token: str):
         with self._transaction():
             binding = self._binding(before.identity, owner_token, task_id)
@@ -301,12 +311,23 @@ class ProgramSourceAcceptanceService:
         _require(not execution["expected_base_sha"]
                  or execution["expected_base_sha"] == task.manifest.base_sha,
                  "v1 accepted evidence Base guard differs")
-        evidence = capture_safe_source_evidence(
-            state=state, before=before, artifacts=self.safe.artifacts,
-            repository_url=self.repository_url, policy=self.trusted_policy, attestor=self.attestor)
+        dispatch = self._dispatch_for(task_id)
+        if dispatch is None:
+            evidence = capture_safe_source_evidence(
+                state=state, before=before, artifacts=self.safe.artifacts,
+                repository_url=self.repository_url, policy=self.trusted_policy,
+                attestor=self.attestor)
+        else:
+            evidence = dispatch.capture(task_id, owner_token, state)
         prefix = f"programs/{before.identity.program_id}/phases/{execution['phase_id']}"
         result_uri = f"artifact://{prefix}/executions/{task_id}/safe-result-completed.json"
         report_uri = f"artifact://{prefix}/phase-execution-report.json"
+        if dispatch is not None:
+            prefix = dispatch._result_prefix(
+                before.identity.program_id, execution["phase_id"], task_id, state
+            )
+            result_uri = f"artifact://{prefix}/safe-result.json"
+            report_uri = f"artifact://{prefix}/phase-execution-report.json"
         _require(execution["result_ref"] == result_uri
                  and execution["phase_report_ref"] == report_uri,
                  "Program evidence is not owned by the execution")
@@ -333,7 +354,8 @@ class ProgramSourceAcceptanceService:
             for key in ("program_id", "phase_id", "task_id", "thread_id", "requirement_hash",
                         "status", "safe_status", "result_ref", "error_ref")),
                  "Program phase report has no exact completed execution")
-        payload = _canonical({"schema": "uca-program-safe-source-evidence-1",
+        payload = _canonical({"schema": ("uca-program-safe-source-evidence-2" if dispatch
+                                          else "uca-program-safe-source-evidence-1"),
                               "safe": strict_json(evidence.payload),
                               "program_result_base64": base64.b64encode(result_raw).decode(),
                               "phase_report_base64": base64.b64encode(report_raw).decode()})
@@ -378,6 +400,9 @@ class ProgramSourceAcceptanceService:
             _require(self._binding(before.identity, owner_token, task_id) == binding
                      and self._checkpoint(execution["thread_id"]) == checkpoint,
                      "execution changed during evidence capture")
+            dispatch = self._dispatch_for(task_id)
+            if dispatch is not None:
+                dispatch.acceptance_gate(task_id, owner_token)
             for blob in (self.source.snapshot_bytes(after), transition_raw, evidence.payload,
                          checkpoint, raw):
                 self._put(blob)
@@ -407,6 +432,10 @@ class ProgramSourceAcceptanceService:
                                    "approved_transition_sha256": approved_transition_sha256})
             prior = self.connection.execute("""SELECT * FROM program_source_acceptances
                 WHERE candidate_sha256 = ?""", (candidate_sha256,)).fetchone()
+            dispatch = self._dispatch_for(candidate["task_id"])
+            if dispatch is not None:
+                dispatch.acceptance_gate(candidate["task_id"], owner_token,
+                                         replay=prior is not None)
             if prior is not None:
                 _require(prior["approval_sha256"] == _hash(approval), "accepted approval differs")
                 return self.receipt(candidate_sha256)
@@ -421,6 +450,10 @@ class ProgramSourceAcceptanceService:
             self._binding(before.identity, owner_token)
             prior = self.connection.execute("""SELECT * FROM program_source_acceptances
                 WHERE candidate_sha256 = ?""", (candidate_sha256,)).fetchone()
+            dispatch = self._dispatch_for(candidate["task_id"])
+            if dispatch is not None:
+                dispatch.acceptance_gate(candidate["task_id"], owner_token,
+                                         replay=prior is not None)
             if prior is not None:
                 _require(prior["approval_sha256"] == _hash(approval), "accepted approval differs")
                 return self.receipt(candidate_sha256)

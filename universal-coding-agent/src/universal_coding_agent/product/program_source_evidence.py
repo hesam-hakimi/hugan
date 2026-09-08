@@ -78,6 +78,30 @@ def capture_safe_source_evidence(
     sandbox = artifacts.root.parent / "sandboxes" / task.task_id / "repo"
     _require(Path(state["sandbox_path"]) == sandbox and sandbox.resolve() == sandbox,
              "Safe sandbox is not the exact host-owned task directory")
+    return _capture_at_owned_destination(
+        state=state, before=before, artifacts=artifacts, repository_url=repository_url,
+        policy=policy, attestor=attestor, sandbox=sandbox)
+
+
+def _capture_at_owned_destination(
+    *, state, before, artifacts, repository_url, policy, attestor, sandbox,
+):
+    """Private common evidence verifier; callers must prove destination authority."""
+    task = SafeTaskRequest.model_validate(state["task"])
+    _require(task.repository.url == repository_url and task.policy == policy,
+             "Safe request repository or trusted policy differs")
+    _require(bool(policy.profiles)
+             and set(task.manifest.test_profiles) == set(policy.profile_map()),
+             "source acceptance requires every host policy profile")
+    _require(state.get("status") == "completed" and not state.get("safe_errors")
+             and state.get("rolled_back") is False and not state.get("rollback_ref")
+             and state.get("scope_approved") is True and state.get("patch_applied") is True
+             and state.get("reviewer_verdict") == "PASS", "Safe checkpoint is not qualified")
+    _require(not task.require_publish_approval or state.get("publish_approved") is True,
+             "required publication decision is missing or rejected")
+    _require(state.get("base_sha") == task.manifest.base_sha
+             and state.get("scope_hash") == task.manifest.canonical_hash()
+             and state.get("sandbox_id") == task.task_id, "Safe source binding differs")
     captured: list[dict] = []
     size = 0
 

@@ -92,6 +92,7 @@ class SafeGraphServices:
     patch_engine: SafePatchEngine
     test_runner: SafeTestRunner
     cancellation: CancellationCoordinator
+    execution_boundary: Any = None
 
 
 class SafeModeGraph:
@@ -102,17 +103,26 @@ class SafeModeGraph:
 
     def build(self, *, checkpointer: object):
         builder = StateGraph(SafeGraphState)
-        builder.add_node("validate", self.validate)
-        builder.add_node("sandbox", self.prepare_sandbox)
-        builder.add_node("index", self.index_repository)
-        builder.add_node("scope_approval", self.approve_scope)
-        builder.add_node("implement", self.implement)
-        builder.add_node("apply_edits", self.apply_edits)
-        builder.add_node("validate_patch", self.validate_patch)
-        builder.add_node("tests", self.run_tests)
-        builder.add_node("review", self.review)
-        builder.add_node("publish_approval", self.approve_publish)
-        builder.add_node("finalize", self.finalize)
+        def add(name, action):
+            boundary = self.services.execution_boundary
+            if boundary is None:
+                builder.add_node(name, action)
+            else:
+                def guarded(state):
+                    return boundary.node(name, state, action)
+                builder.add_node(name, guarded)
+
+        add("validate", self.validate)
+        add("sandbox", self.prepare_sandbox)
+        add("index", self.index_repository)
+        add("scope_approval", self.approve_scope)
+        add("implement", self.implement)
+        add("apply_edits", self.apply_edits)
+        add("validate_patch", self.validate_patch)
+        add("tests", self.run_tests)
+        add("review", self.review)
+        add("publish_approval", self.approve_publish)
+        add("finalize", self.finalize)
 
         builder.add_edge(START, "validate")
         builder.add_edge("validate", "sandbox")

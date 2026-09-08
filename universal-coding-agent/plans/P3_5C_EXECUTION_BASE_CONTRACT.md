@@ -1,3 +1,19 @@
+# Current acceptance — P3.5c-1 integrated through PR24
+
+Independent correctness/security verdict: PASS for reviewed head `9d88070d2c3d5d34f42e593fddc5fcfc3643ee0f`,
+tree `a21c01b85e766a6d0f427e4b46dbb1b5f2de1bfd`. Actual normal merge `b0daccdb16bd09898b06ed56bff787008a31a145` has the exact ordered parents `2da3d9f8a9376233c968ec539fc7fee260a1d8b2`,
+then `9d88070d2c3d5d34f42e593fddc5fcfc3643ee0f`; its tree and target ref were verified after integration.
+CI430/run34158584618 and Live181/run34158584705 attempt1 qualified this tree.
+The complete independent report is `../reviews/PR24_INDEPENDENT_REVIEW_2026-09-07.md`.
+It is a separate technical report, not human GitHub APPROVE.
+
+This accepts owned execution Base preparation and explicit recovery only.
+Dispatch and actual `42 -> 43 -> restart -> 44` remain open in
+`P3_5C2_VERSIONED_SOURCE_AWARE_DISPATCH_TASK_2026-09-07.md`. The original contract
+below is retained; its candidate wording records the original implementation stage.
+
+---
+
 # P3.5c-1 — Owned execution Base admission and recovery
 
 Implementation candidate on `feature/universal-coding-agent-source-aware-execution`,
