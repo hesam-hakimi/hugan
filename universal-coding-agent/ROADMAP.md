@@ -120,7 +120,10 @@
 - P3.5c phase DAG per-slice gates, explicit retry/replan, and resumable long-running programs;
 - P3.5d-1 [recorded Program source visibility](PROGRAM_SOURCE_VISIBILITY.md): bounded
   read-only origin/accepted lineage/v2 dispatch display and legacy-route guards;
-  implementation submitted separately from independent/platform acceptance;
+  independently accepted and integrated through PR26 on 2026-09-08;
+- P3.5d-2 [Product continuation design](plans/P3_5D2_PRODUCT_CONTINUATION_DESIGN_2026-09-08.md):
+  explicit worker episodes, versioned continuation/acceptance and later API/UI delivery;
+  d2a handoff foundation defined before implementation, with no new execution capability;
 - P3.4c-3c additional-language dependency analysis beyond Python and TypeScript/JavaScript
   (deferred behind source continuity and resumability by the September 7 owner decision);
 - context deduplication and model-budget policies.
