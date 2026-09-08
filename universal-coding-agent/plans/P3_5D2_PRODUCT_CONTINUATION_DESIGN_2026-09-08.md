@@ -1,3 +1,48 @@
+# Current checkpoint — PR29 accepted; bounded D2c-1 defined
+
+P3.5d-2b-2 is independently accepted, platform qualified and integrated through
+actual PR29 `f27c2693babcdf20145676328012b2d7576c5aa3`, tree
+`29b763ff5af8a50348f7e987b341db65fac33bfa`, merged 2026-09-08T18:46:55Z.
+Ordered parents are `95096565d85640ea471182fc0b421e124667b73b`, then
+`b0e1a9dd590ba33a65d42868553bcada15c432ee`. Separate preview
+`9f816b01cae2d60e8241b32c4a7b43d61d6afabe` has the same tree and parents.
+The initial independent BLOCKED report and separate corrected-source PASS remain
+unchanged. CI446/Live197 attempt 1 qualify the corrected preview; CI passed 1812
+cases per Python leg. Earlier candidates/results keep their original scope.
+No accepted PR26/PR27/PR28/PR29 gate remains to be repeated for credit.
+
+Only D2c-1 is now instantiated as a documentation-only definition on
+`feature/universal-coding-agent-continuation-api`, directly from actual PR29.
+Runtime implementation, a new PR and new test/review/CI/Live/Web qualification
+have not started. The canonical [local API task](P3_5D2C1_LOCAL_CONTINUATION_API_TASK_2026-09-08.md)
+and [command/status contract](P3_5D2C1_HTTP_COMMAND_AND_STATUS_CONTRACT.md)
+select an explicit HTTP continuation from actual v1 accepted generation 1 (43)
+through real v3 scope stop, process restart, exact scope decision and terminal 44,
+then separate fresh-worker preview and acceptance at generation 2.
+
+This is an explicit narrowing of the parent's grouped Product/API target.
+First-phase Python host acceptance retains the original v1 worker across its
+calls; it cannot be wired into separate human/browser requests by retaining or
+rebinding that worker. First-phase HTTP scope/preview/accept needs a separate
+bounded design and remains uninstantiated. A real host-created accepted 43 is the
+entry precondition for this API; no fabricated receipt or hidden setup-as-HTTP
+claim is allowed. The full Product/browser 42-to-44 journey remains open.
+D2c-2 remains planned and uninstantiated, and its eventual definition must retain
+this gap. No cumulative live-model v3/Product journey is newly qualified.
+
+The new transport journal must complete with the actual lower receipt/response
+and exact worker release in one transaction. GET and completed exact replay stay
+bounded and recorded-only; they confer no current execution, acceptance or
+materialization authority. Receipt-2 enables no third phase or later materialization.
+Execution, scope decision and source acceptance remain separate.
+
+After exact definition publication is verified, implement only that bounded task
+from its verified head. Keep normal candidate review/platform/Ready/integration
+gates. This block supersedes all earlier operative status/next-action wording;
+every byte of the prior document follows unchanged as historical evidence.
+
+---
+
 # Current checkpoint — P3.5d-2b-2 implementation candidate
 
 The bounded implementation now exists on the source-transition definition
