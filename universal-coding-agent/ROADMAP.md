@@ -1,3 +1,43 @@
+# Current checkpoint — d2c-1 local Product command definition
+
+P3.5d-2c-1 is defined as `UCA-20260908-P35D2C1-LOCAL-PRODUCT-COMMANDS`
+on `feature/universal-coding-agent-local-product-commands`, from milestone
+`a04dd89ae3dd9f9db50755f8a4e7dda0248c952f`. The [task](plans/P3_5D2C1_LOCAL_PRODUCT_COMMANDS_TASK_2026-09-08.md),
+[API and host-binding contract](plans/P3_5D2C1_API_AND_HOST_BINDING_CONTRACT.md) and
+[author definition review](plans/P3_5D2C1_AUTHOR_DEFINITION_REVIEW_2026-09-08.md) are canonical.
+The next bounded action is implementation of that exact published definition,
+including its first-phase ownership bridge and H01–H15 evidence obligations.
+Definition publication alone creates no runtime capability or implementation gate.
+
+Accepted runtime remains actual PR29 `f27c2693babcdf20145676328012b2d7576c5aa3`,
+tree `29b763ff5af8a50348f7e987b341db65fac33bfa`. D2a/d2b-1/d2b-2 remain accepted.
+The older parallel API definition at `8799f39cbc97af179cebf5310521222879e9c5d1`
+is preserved and explicitly superseded; its failed shared sync is retained.
+The new branch preserves the complete milestone documents and reconciles the
+first-phase HTTP gap without reusing prior workers or weakening v1 acceptance.
+
+| Delivery criterion | Current d2c-1 ownership and status |
+| --- | --- |
+| LP01 | Host configuration, explicit local opt-in and reopening API defined; implementation/operator delivery evidence pending |
+| LP02 | Initialization, first execution/scope/source review, continuation/scope/final acceptance and exact outcome path defined; H01 actual HTTP journey pending |
+| LP05 | API durability, denial, bounded inert status and safe evidence projection defined; complete Product/UI closure remains later |
+| LP03 | D2c-2/UI remains planned and uninstantiated |
+| LP04 / LP06 | Later full Product qualification and handoff remain planned and uninstantiated |
+
+`UCA-M-LOCAL-PILOT-1` remains owner-approved/planned, not delivered.
+`ready_for_supervised_pilot=false` and `real_project_pilot_validated=false`.
+RP01 read-only onboarding then RP02 one separately approved bounded change remain
+future direction; private project mapping stays in handoff references. No full
+live-model v3 Product journey is qualified; standard Live Program remains v1.
+PR29 initial BLOCKED/correction PASS and all PR26–PR28 failed/correction reports
+retain their exact scope. No runtime, tests, UI, workflows, paid runs, new PR,
+Ready, merge or pilot work occurs in this definition. No later task is instantiated.
+
+This block overrides operative status/next-action wording in the complete prior
+text below. Earlier exact text remains historical; canonical plans stay in Git.
+
+---
+
 # Current delivery decision — local Product for a supervised pilot
 
 The owner approved delivery milestone `UCA-M-LOCAL-PILOT-1` on 2026-09-08:
