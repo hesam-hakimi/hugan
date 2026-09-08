@@ -146,10 +146,17 @@ and other nonblocking follow-ups. No autonomous scheduling or background monitor
 `ProgramContinuationHandoffStore(programs, lifecycle, host_id=...)` uses the actual
 Program's control store. It pins all three existing paths and device/inode identities;
 the host binding includes those identities. It opens an operation-scoped connection,
-attaches lifecycle and read-only control, and writes only the three additive handoff
+attaches lifecycle and logically read-only control, and writes only the additive handoff
 tables and the exact lifecycle worker row. It never constructs a Product workspace.
 Mutations require durable rollback journals/FULL-or-EXTRA on both original writer
 connections and both attached writers. Existing public lifecycle methods are unchanged.
+Mutation connections open the control attachment with `mode=rw` solely so
+`BEGIN IMMEDIATE` excludes concurrent control writers, including WAL. The SQLite
+authorizer rejects every control write, so control remains an unmodified attachment.
+Using a `mode=ro` WAL control snapshot would allow stale-control claim commit; the
+initial independent review reproduced that defect and the correction adds real
+separate-process public pause attempts at every foundation commit boundary.
+Historical status/request reads retain `mode=ro` and `query_only` on all stores.
 
 `create` accepts canonical descriptor bytes and the private current worker token.
 The descriptor requires the foundation schema, Program/phase and optional existing

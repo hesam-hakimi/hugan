@@ -18,11 +18,12 @@ not a claim of source-byte or real acceptance qualification.
 
 | Cases | Concrete candidate coverage |
 | --- | --- |
-| C01/C02 | Fresh-process park/claim/close, concurrent process claims, 23 real process-death cases at receipt/worker/request/head and both sides of commit |
+| C01/C02 | Fresh-process park/claim/close, concurrent process claims, 46 real process-death cases at receipt/worker/request/head and both sides of commit with DELETE/WAL unmodified control |
 | C03 | Exact create/park/claim/close replay after lost responses, no token restoration, conflicting IDs, unknown/in-progress diagnosis |
 | C04 | Exact owner/epoch/proposal, actual pause/cancel/realign/control revisions, source/head changes, lifecycle remote/control/task conflicts, host and file replacement, explicit administrative recovery |
 | C05 | Read-only byte/logical preservation, effectful-module import probe, strict JSON/schema/field/row/aggregate budgets, keyset pages, current and older receipt tampering |
 | C02/C04 | Both writer journal/sync settings rejected without alteration; SQL triggers cannot modify unrelated Program rows |
+| C02/C04 correction | Preconstructed separate TaskControlService processes attempt real pause commits at create/park/claim/close commit boundaries under both DELETE and WAL; control stays unmodified and subsequent explicit pause succeeds |
 | C14 compatibility | Existing `test_program_source_status.py`, `test_program_source_dispatch.py`, `test_program_execution.py` and all lifecycle reservation/recovery/index/pagination tests retained |
 
 The published review/qualification evidence records exact head/tree, commands,

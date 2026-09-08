@@ -379,7 +379,7 @@ class ProgramContinuationHandoffStore:
                     timeout=2,
                 )
                 connection.execute(
-                    "ATTACH DATABASE ? AS control", (self.paths[1].as_uri() + "?mode=ro",)
+                    "ATTACH DATABASE ? AS control", (self.paths[1].as_uri() + "?mode=" + mode,)
                 )
                 connection.execute(
                     "ATTACH DATABASE ? AS lifecycle", (self.paths[2].as_uri() + "?mode=" + mode,)
@@ -414,6 +414,10 @@ class ProgramContinuationHandoffStore:
 
                 connection.set_progress_handler(progress, 1000)
                 connection.set_authorizer(authorize)
+                # A read-only URI cannot exclude a concurrent WAL control writer.
+                # IMMEDIATE must reserve all three stores through commit. Control
+                # remains logically read-only: the authorizer forbids every write
+                # and it never becomes a modified commit participant.
                 connection.execute("BEGIN IMMEDIATE" if write else "BEGIN")
                 # Establish all three read snapshots before projecting any rows.
                 for alias in ("main", "control", "lifecycle"):

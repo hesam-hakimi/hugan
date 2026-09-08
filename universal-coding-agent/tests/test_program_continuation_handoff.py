@@ -317,7 +317,9 @@ CRASH_CASES = [
 
 
 @pytest.mark.parametrize(("action", "boundary"), CRASH_CASES)
-def test_process_death_at_real_transaction_boundaries(runtime, action, boundary):
+@pytest.mark.parametrize("control_mode", ["DELETE", "WAL"])
+def test_process_death_at_real_transaction_boundaries(runtime, action, boundary, control_mode):
+    runtime.programs.control.connection.execute("PRAGMA journal_mode=" + control_mode)
     if action == "create":
         token = runtime.lifecycle.reserve_program_worker(PROGRAM)
         arguments = {
@@ -809,6 +811,83 @@ def test_mutation_validates_older_chain_and_triggers_cannot_change_program_rows(
     with pytest.raises(ValueError, match="explicit diagnosis"):
         runtime.claim(PROGRAM, **claim_arguments(stopped, "request-claim-again"))
     assert protected(runtime) == before and not owners(runtime)
+
+
+CONTROL_WRITER = r"""
+import json, sqlite3, sys
+from pathlib import Path
+from universal_coding_agent.product.models import ControlEntityType
+from universal_coding_agent.product.task_control import TaskControlService
+control = TaskControlService(Path(sys.argv[1]))
+control.connection.execute("PRAGMA busy_timeout=150")
+print("ready", flush=True)
+sys.stdin.readline()
+try:
+    control.request_pause(ControlEntityType.PROGRAM, "program-execution", reason="concurrent pause")
+    print(json.dumps({"committed": True}), flush=True)
+except sqlite3.OperationalError as error:
+    print(json.dumps({"committed": False, "error": str(error)}), flush=True)
+finally:
+    control.close()
+"""
+
+
+@pytest.mark.parametrize("mode", ["DELETE", "WAL"])
+@pytest.mark.parametrize("action", ["create", "park", "claim", "close"])
+def test_every_handoff_commit_excludes_real_concurrent_control_writers(runtime, mode, action):
+    from universal_coding_agent.product.models import ControlEntityType
+
+    control = runtime.programs.control
+    control.connection.execute("PRAGMA journal_mode=" + mode)
+    if action == "create":
+        token = runtime.lifecycle.reserve_program_worker(PROGRAM)
+        arguments = {
+            "request_id": "request-create",
+            "owner_token": token,
+            "descriptor": canonical(descriptor(runtime)),
+        }
+    else:
+        initial, token = create(runtime)
+        if action == "claim":
+            stopped = park(runtime, initial, token)
+            arguments = claim_arguments(stopped)
+        else:
+            arguments = {**expected(initial, "request-" + action), "owner_token": token}
+    # Construct the competing actual service BEFORE the handoff starts, so a
+    # constructor/schema lock cannot accidentally stand in for the control CAS.
+    child = subprocess.Popen(
+        [sys.executable, "-c", CONTROL_WRITER, str(runtime.paths[1])],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert child.stdout.readline().strip() == "ready"
+    observations = []
+
+    def boundary(name):
+        if name == "before_commit":
+            stdout, stderr = child.communicate("pause\n", timeout=10)
+            assert child.returncode == 0, stderr
+            observations.append(json.loads(stdout))
+
+    runtime._boundary = boundary
+    before = protected(runtime)
+    try:
+        result = getattr(runtime, action)(PROGRAM, **arguments)
+    finally:
+        if child.poll() is None:
+            child.kill()
+            child.communicate()
+        runtime._boundary = lambda _name: None
+    assert observations == [{"committed": False, "error": "database is locked"}]
+    assert protected(runtime) == before
+    assert runtime.status(PROGRAM)["blockers"] == []
+    assert control.connection.execute("PRAGMA journal_mode").fetchone()[0] == mode.lower()
+    # Lock exclusion ends at the commit boundary, not by disabling Program control.
+    control.request_pause(ControlEntityType.PROGRAM, PROGRAM, reason="explicit later pause")
+    assert "semantic_inputs_changed" in runtime.status(PROGRAM)["blockers"]
+    assert runtime.request_result(PROGRAM, "request-" + action) == result.public
 
 
 def test_import_has_no_effectful_modules_and_control_checkpoint_bytes_are_unchanged(
