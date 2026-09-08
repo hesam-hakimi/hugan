@@ -370,6 +370,7 @@ export function canStartProgramExecution(
       program.program_id === execution.program_id &&
       program.status === "running" &&
       !execution.runtime.busy &&
+      !programSourceRequiresHost(execution) &&
       !execution.runtime.requires_explicit_action &&
       !activeProgramExecutionBinding(execution),
   );
@@ -387,9 +388,21 @@ export function canContinueProgramExecution(
       program.program_id === execution.program_id &&
       program.status === "running" &&
       !execution.runtime.busy &&
+      !programSourceRequiresHost(execution, binding.task_id) &&
       execution.runtime.requires_explicit_action &&
       !["pause_requested", "paused", "cancel_requested", "cancelled"].includes(
         binding.control?.state ?? "",
       ),
   );
+}
+
+export function programSourceRequiresHost(
+  execution?: ProgramExecutionSnapshot,
+  taskId?: string,
+): boolean {
+  const source = execution?.source;
+  if (!source || source.status === "uninitialized") return false;
+  return !source.matches_current_plan || (taskId === undefined
+    ? source.accepted.generation > 0
+    : source.dispatches.some((dispatch) => dispatch.task_id === taskId));
 }

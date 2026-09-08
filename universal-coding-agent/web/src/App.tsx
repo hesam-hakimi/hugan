@@ -8,6 +8,7 @@ import type {
   LifecycleRecoverySnapshot,
   ProgramExecutionSnapshot,
   ProgramSnapshot,
+  ProgramSourceStatus,
   RemoteOperationDisposition,
   RemoteOperationLeaseRetirement,
   RemoteOperationSnapshot,
@@ -28,6 +29,7 @@ import {
   canStartProgramExecution,
   cancellationEvidencePresentation,
   phaseProgress,
+  programSourceRequiresHost,
   remoteOperationDispositionPresentation,
   remoteOperationLeaseRetirementPresentation,
   remoteOperationPresentation,
@@ -1224,6 +1226,7 @@ export default function App() {
               )}
               {programExecution && (
                 <>
+                  <ProgramSourcePanel source={programExecution.source} />
                   <div className="executionFacts">
                     <div>
                       <span>Loaded program</span>
@@ -1339,9 +1342,9 @@ export default function App() {
                     activeProgramExecution &&
                     !programExecutionCanContinue && (
                       <div className="notice error">
-                        This binding requires explicit action, but the Program or task control
-                        state currently prevents continuation. Resume or refresh the Program
-                        before deciding.
+                        {programSourceRequiresHost(programExecution, activeProgramExecution.task_id)
+                          ? "This recorded source execution requires the host service. Web continuation is unavailable."
+                          : "This binding requires explicit action, but the Program or task control state currently prevents continuation. Resume or refresh the Program before deciding."}
                       </div>
                     )}
 
@@ -1598,6 +1601,78 @@ export default function App() {
         )}
       </main>
     </div>
+  );
+}
+
+export function ProgramSourcePanel({ source }: { source?: ProgramSourceStatus }) {
+  if (!source) return <Empty text="Source history was not supplied by this server." />;
+  if (source.status === "uninitialized") {
+    return <Empty text="No cumulative source history has been recorded for this Program." />;
+  }
+  return (
+    <section aria-label="Recorded source history">
+      <h3>Recorded source history</h3>
+      <p className="muted">
+        Refresh reads recorded evidence. It does not verify current source files or run work.
+      </p>
+      {!source.matches_current_plan && (
+        <p className="notice error">
+          This history belongs to an earlier requirement or plan. Web execution is unavailable.
+        </p>
+      )}
+      {source.accepted.generation > 0 && (
+        <p className="approvalBox">
+          Later source generations require the host service. Web start and continuation
+          for cumulative executions are unavailable.
+        </p>
+      )}
+      <div className="executionFacts">
+        <div><span>Accepted generation</span><strong>{source.accepted.generation}</strong></div>
+        <div><span>Recorded versions</span><strong>{source.lineage.length}</strong></div>
+      </div>
+      <div className="hashBox">Accepted source SHA-256: {source.accepted.source_sha256}</div>
+      <details>
+        <summary>Origin Git and accepted lineage</summary>
+        <div className="hashBox">
+          Origin Git commit: {source.origin.git_commit_sha}<br />
+          Origin Git tree: {source.origin.git_tree_sha}<br />
+          Repository identity SHA-256: {source.origin.repository_sha256}
+        </div>
+        <ol>
+          {source.lineage.map((entry) => (
+            <li key={entry.generation}>
+              <strong>Generation {entry.generation}</strong>
+              <div className="hashBox">
+                Source SHA-256: {entry.source_sha256}<br />
+                Predecessor SHA-256: {entry.predecessor_sha256 ?? "none (origin)"}<br />
+                Acceptance task: {entry.task_id ?? "initialization"}<br />
+                Receipt SHA-256: {entry.receipt_sha256}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </details>
+      {source.dispatches.map((dispatch) => (
+        <div className="executionRow" key={dispatch.operation_id}>
+          <strong>{dispatch.phase_id} · input generation {dispatch.generation}</strong>
+          <p>
+            {dispatch.state === "terminal" ? "Execution terminal" : dispatch.state.replaceAll("_", " ")}
+            {" · "}{dispatch.source_accepted ? "Source accepted" : "Source not accepted"}
+          </p>
+          <details>
+            <summary>Recorded execution evidence</summary>
+            <div className="hashBox">
+              Task: {dispatch.task_id}<br />
+              Input source SHA-256: {dispatch.source_sha256}<br />
+              Derived execution Git commit: {dispatch.derived_git_commit_sha}<br />
+              Derived execution Git tree: {dispatch.derived_git_tree_sha}<br />
+              Execution schema: {dispatch.execution_schema}<br />
+              Admission SHA-256: {dispatch.admission_sha256}
+            </div>
+          </details>
+        </div>
+      ))}
+    </section>
   );
 }
 

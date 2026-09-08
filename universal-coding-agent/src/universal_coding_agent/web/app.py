@@ -40,6 +40,10 @@ from universal_coding_agent.product.models import (
     ProgramStatus,
     RequirementContract,
 )
+from universal_coding_agent.product.program_source_status import (
+    program_source_status,
+    require_legacy_program_route,
+)
 from universal_coding_agent.product.remote_operations import (
     RetainedRemoteOperationLeaseEvidence,
     retained_lease_matches_disposition,
@@ -1135,6 +1139,7 @@ class ProductWebRuntime:
         return {
             "program_id": program_id,
             "program_status": program_status.value,
+            "source": program_source_status(self.workspace.programs.database_path, program_id),
             "runtime": {
                 "busy": bool(runtime_record.get("busy", False)),
                 "action": str(runtime_record.get("action", "")),
@@ -1160,6 +1165,7 @@ class ProductWebRuntime:
         request: ProgramExecutionStartRequest,
     ) -> dict[str, Any]:
         self.workspace.programs.plan(program_id)
+        require_legacy_program_route(self.workspace.programs.database_path, program_id)
         bindings = self.workspace.programs.execution_bindings(program_id)
         with self._lock:
             if any(
@@ -1202,6 +1208,7 @@ class ProductWebRuntime:
         task_id: str,
         request: ProgramExecutionContinueRequest,
     ) -> dict[str, Any]:
+        require_legacy_program_route(self.workspace.programs.database_path, program_id, task_id)
         with self._lock:
             binding = self.workspace.programs.execution_binding(task_id)
             if binding.program_id != program_id:
@@ -1340,6 +1347,7 @@ class ProductWebRuntime:
         request: ProgramExecutionStartRequest,
     ) -> None:
         try:
+            require_legacy_program_route(self.workspace.programs.database_path, program_id)
             binding = self.workspace.start_next_program_execution(
                 program_id=program_id,
                 current_requirement_hash=request.current_requirement_hash,
@@ -1378,6 +1386,7 @@ class ProductWebRuntime:
         request: ProgramExecutionContinueRequest,
     ) -> None:
         try:
+            require_legacy_program_route(self.workspace.programs.database_path, program_id, task_id)
             binding = self.workspace.continue_program_execution(
                 program_id=program_id,
                 task_id=task_id,
@@ -1738,7 +1747,8 @@ def create_product_app(
         return _program_snapshot(runtime.workspace, program_id)
 
     @app.get("/api/programs/{program_id}/executions")
-    def program_execution_status(program_id: str) -> dict[str, Any]:
+    def program_execution_status(program_id: str, response: Response) -> dict[str, Any]:
+        response.headers["Cache-Control"] = "no-store"
         return runtime.program_execution_status(program_id)
 
     @app.post("/api/programs/{program_id}/executions/start-next", status_code=202)
