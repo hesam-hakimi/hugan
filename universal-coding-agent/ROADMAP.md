@@ -1,3 +1,37 @@
+# Current delivery decision — local Product for a supervised pilot
+
+The owner approved delivery milestone `UCA-M-LOCAL-PILOT-1` on 2026-09-08:
+a locally runnable UCA Product for supervised real-project testing at the end of
+P3.5d-2. The [canonical delivery milestone](plans/P3_5D2_LOCAL_PRODUCT_PILOT_DELIVERY_MILESTONE_2026-09-08.md) defines LP01-LP06 for local
+readiness and separate RP01/RP02 for read-only onboarding followed by one bounded
+change. Status is **approved and planned; not delivered or pilot-validated**.
+
+Accepted runtime remains actual PR29 merge
+`f27c2693babcdf20145676328012b2d7576c5aa3`, tree
+`29b763ff5af8a50348f7e987b341db65fac33bfa`. Ordered parents are accepted PR28
+`95096565d85640ea471182fc0b421e124667b73b`, then corrected candidate
+`b0e1a9dd590ba33a65d42868553bcada15c432ee`. Separate preview
+`9f816b01cae2d60e8241b32c4a7b43d61d6afabe` is not the actual merge.
+PR29's initial F1/F2 BLOCKED and separate correction PASS reports remain unchanged;
+CI446/Live197 attempt 1 qualify the correction, while CI445/Live196 retain initial
+scope. Standard Live Program remains v1; no cumulative live-model v3 Product
+journey or customer-project pilot has been qualified. Do not repeat accepted gates.
+
+D2a, d2b-1 and d2b-2 are accepted and complete. D2c-1/API and d2c-2/UI remain
+planned and uninstantiated. The next engineering action is **d2c-1 definition**:
+typed local commands, host-owned project bindings, durable request outcomes and
+inert status. The later UI and actual real-model Product journey each require
+their own evidence before delivery readiness. This documentation update starts
+no implementation, model execution, customer access, qualification run or PR gate.
+Existing bounded authority and runtime approvals remain distinct; no routine owner
+reconfirmation is needed to prepare the next definition.
+
+This block supersedes earlier operative status and next-action wording below.
+Earlier exact text and source-specific observations remain history. Canonical
+plans stay in Git; project-specific pilot mapping stays in the private handoff.
+
+---
+
 # Current checkpoint — P3.5d-2b-2 implementation candidate
 
 The bounded implementation now exists on the source-transition definition
