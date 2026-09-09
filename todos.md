@@ -1,327 +1,269 @@
-TASK_ID: ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01
-TYPE: CHECKED BUILD, MINIMAL PROMOTION, AND ONE FOCUSED HOST RUN
+TASK_ID: ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01
+TYPE: BOUNDED INDEPENDENT REVIEW OF RETAINED BUILD AND RUNTIME EVIDENCE
 
 ENVIRONMENT AND LANGUAGE
-Use one ordinary LOCAL Windows VS Code Agent on the recovery worktree.
-Use English for all conversation, comments, reports, and artifacts.
-Do not use the consumer ETL Orchestrator.
+Use a fresh independent LOCAL Windows VS Code Agent reviewer.
+Use English for all conversation and artifacts.
 
-PURPOSE
-Establish the first focused runtime evidence for the accepted protocol-3
-source set through the actual runner and prepared Extension Host.
+OBJECTIVE
+Review ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01 and determine whether its
+source -> checked build -> promotion -> canonical manifest -> actual run
+relationship supports acceptance of the nominal protocol-3 focused scenario.
 
-The owner-supplied review:
-  ETL-0909-R3R4-COMPOSITION-INDEPENDENT-REVIEW03
-returned ACCEPTED_WITH_LIMITATIONS for:
-  ETL-0909-R3R4-COMPOSITION-TEST04
+Reported outcome:
+- RUNTIME_EVIDENCE_OBTAINED
+- No source changes
+- 11 compiler outputs promoted within the four-source boundary
+- One runner invocation, one Host launch, no retries
+- Eight focused tests passed
+- Host exit 0, parent PASS/0, empty cause ledger
+- No consumer product writes
 
-F-1 composition coverage, F-2 comment-only correction, F-3 addendum,
-F-4 preservation, and regression evidence were accepted.
-The reviewer independently obtained 35/35 local unit passes.
+These are claims to authenticate, not predetermined review conclusions.
 
-Reuse that acceptance. Do not rerun those units or reopen unchanged
-TEST03/TEST04 corrections.
+AUTHORITY
+This prompt authorizes read-only repository/evidence inspection and new
+review-only measurements and reports in an exclusive external directory.
 
-This task exercises the existing STTM read-only focused scenario.
-It does not investigate or qualify the guarded consumer file-write defect.
+Do not compile, run tests, import/execute project modules, launch the runner,
+producer or Host, promote outputs, modify Git, or edit existing evidence.
 
-NEW BOUNDED AUTHORITY
-Owner submission of this prompt authorizes:
+Read-only analysis helpers may parse files, compare bytes, compute identities,
+and assess retained records. Inspect reused helpers before use; never run a
+helper that writes to a prior evidence directory.
 
-- Read-only prerequisite verification.
-- Checked compilation into a new external staging directory.
-- Minimal promotion of compiler outputs for the four runtime sources below.
-- A fresh authenticated synthetic QA copy.
-- Fresh canonical manifest generation/acceptance through the real runner.
-- At most ONE runner invocation and ONE focused Host launch.
-- External evidence collection and one documentation addendum for L-1.
+Do not repeat accepted TEST03/TEST04 source or unit reviews.
+Do not implement fixes during this review.
 
-No repository source edits are authorized.
-
-Do not launch if this task or another writer/runner is already active.
-An ordinary editor or language server alone is not a conflicting writer.
-
-BASELINE AND INPUT RESOLUTION
-Expected active worktree:
+RESOLVE THE ACTUAL EVIDENCE
+Expected repository:
   C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Resolve the latest accepted review through bounded direct-child enumeration:
-  C:\docs\ETL-0909-R3R4-COMPOSITION-INDEPENDENT-REVIEW03-*
+Resolve the reviewed bundle through bounded direct-child discovery:
+  C:\docs\ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01-*
 
-Select by task identity and reviewed-task relationships, not recency.
-Read its complete report.md, result.json, and relevant identity/end-state
-records. Follow its exact cross-references to TEST04 and REVIEW02.
+Select by result.json task identity and evidence relationships, not timestamp.
 
-Read current 01_CURRENT_STATE.json, the agile repair contract, and applicable
-08_DECISIONS_AND_CHANGELOG.md entries where accessible. The returned REVIEW03
-supersedes older TEST03-result-not-received pointers.
+Read the complete RUNTIME01 brief, report.md, result.json, and the following
+records, resolving their actual paths through the report:
 
-Read the current runner, policy, suite loader, focused test, and actual build
-configuration before relying on their behavior.
+- measurements/p3-preflight.json
+- measurements/p3-process-scan.json
+- attempts/b1-checked/build-result.json
+- attempts/b1-checked/build-diagnostics.json
+- Compiler read-set and source/output association records
+- promotion-plan.json and promotion-journal.json
+- Destination pre-copies and staged/promoted outputs
+- measurements/p3-qa-materialization.json
+- run-root-creation-receipt.json and execution-plan.json
+- pre-launch-recheck.json
+- run-status.json, run-stdout.txt, run-stderr.txt, supervisor.log
+- Original manifest/result artifacts and their preserved copies
+- measurements/p3-run-assessment.json
+- measurements/p3-run-assessment-correction.json
+- measurements/p3-end-state.json
+- measurements/p3-buildinfo-resolution.json
+- addendum/l1-superseded-claim-reference.md
 
-Resolve the accepted C1 build/run plan and prepared Host/QA identities through:
-  ETL-0908-C1-INDEPENDENT-REVIEW01
-  ETL-0908-C1-PATH-IDENTITY-REPAIR-TEST01
+Follow exact cross-references to REVIEW03 and the accepted C1 build/run
+records only where needed to authenticate baseline, outputs, Host or fixture.
 
-Use their recorded build, fixture, manifest, isolation, and supervision
-contracts as evidence. Do not execute an archived task or repeat its edits.
+Do not recursively scan C:\docs or unrelated workspaces.
+Do not request credentials, profile dumps, or consumer data.
 
-Follow exact referenced paths. No recursive C:\docs scan, broad history search,
-or unrelated consumer-workspace access.
+Read expected hashes from machine records. Never transcribe them from images
+or use a fresh measurement as its own expected baseline.
 
-All expected hashes must come from original machine records.
-Fresh measurements and screenshot transcription cannot replace expected pins.
+RUNTIME01 reported that 01_CURRENT_STATE.json and
+08_DECISIONS_AND_CHANGELOG.md were inaccessible after bounded probes.
+Assess this against its “where accessible” instruction. Do not claim they
+were read or create a new blocker solely from their optional absence when
+the governing brief and necessary original evidence are available.
 
 PREFLIGHT
-Before any promotion or runtime execution:
+Confirm no conflicting writer/runner/Host is active.
+An ordinary editor or language server alone is not a blocker.
+Do not remove locks or terminate processes.
 
-1. Verify worktree/common-Git identity, branch, HEAD, empty staging, and the
-   ten-path dirty set against REVIEW03's recorded end-state.
-   Use git --no-optional-locks for reads.
+Authenticate:
+- Repository/common-Git identity, branch, HEAD, staging and dirty-path set.
+- All five accepted reviewed source identities.
+- Live promoted outputs against RUNTIME01's recorded post-state.
+- Required retained evidence and copy/original relationships.
 
-2. Authenticate all five reviewed source files against REVIEW03 and its
-   referenced accepted endpoints. Preserve all repository source bytes.
+Use git --no-optional-locks for read-only Git checks.
 
-3. Authenticate existing out/ against the retained output records.
-   Its reported count of 2020 is a cross-check, not an identity proof.
-   Existing protocol-1 outputs do not qualify protocol-3 source.
+Current drift must be reported separately from the historical run's evidence.
+Do not repair drift or silently replace the reviewed baseline.
 
-4. Check relevant locks and actual concurrent process arguments.
-   Do not remove locks, resolve Keep/Undo, or terminate unrelated processes.
+Create a new exclusive external review directory:
+  C:\docs\ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01-<UTC>-<GUID>
 
-5. Authenticate the prepared Windows x64 VS Code 1.135.0 distribution and
-   required existing dependencies using its preparation and accepted run
-   records. Do not substitute the everyday editor, download, extract,
-   reinstall, or run a separate Code --version probe.
+BUILD AND PROMOTION REVIEW
+Verify from retained compiler records and inspected build-helper source:
 
-6. Verify applicable quarantine remains valid. The recorded F1/F3 quarantine
-   expires inclusively on 2026-09-13 UTC; unrenewed reliance is blocked from
-   2026-09-14T00:00:00Z. Do not extend it automatically.
+- A checked Program using the actual configuration and installed compiler.
+- Configuration, options, global, syntactic, semantic, declaration and emit
+  diagnostics were captured.
+- noEmitOnError=true, successful emit, zero reported errors/warnings.
+- Physical writes were redirected to external staging.
+- Incremental/build-info persistence was prevented.
+- Source identities came from actual compiler reads.
+- Source/output associations are supported by compiler and source-map data,
+  rather than guessed filenames.
 
-On unexplained drift, missing critical evidence, or an out-of-scope required
-change, stop the dependent action and report the exact blocker.
+Reconcile the reported 2028 emissions against 2020 existing outputs:
+2009 identical, 11 different, eight staged-only unit companions.
 
-EXTERNAL OUTPUTS
-Create one exclusive task directory:
-  C:\docs\ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01-<UTC>-<GUID>
+Authenticate that:
+- The promotion plan preceded destination writes.
+- All 11 changes belong to compiler companions of:
+    src/test/runTest.ts
+    src/test/b3OutcomePolicy.ts
+    src/test/suite/index.ts
+    src/test/suite/sttmRealHostStructuredResult.test.ts
+- Five identical companions were skipped.
+- Eight staged-only unit companions were not promoted.
+- Every replacement has a valid preimage, journal entry and read-back identity.
+- No required runtime dependency mismatch was omitted.
+- No output outside the frozen plan changed.
 
-Validate containment and reparse-point boundaries.
-Keep staging, pre-output copies, plans, journals, QA copy, and reports here.
-Preserve failed attempts and partial states.
+Do not rebuild merely to reproduce already-retained evidence.
+If provenance is insufficient, identify the exact unsupported relationship.
 
-CHECKED BUILD AND MINIMAL PROMOTION
-Use the existing local TypeScript compiler and actual tsconfig chain.
-Inspect scripts as data; do not run npm/npx/package lifecycle scripts,
-watchers, formatters, dependency installation, or scripts that delete out/.
+THREE MEASUREMENT CORRECTIONS
+Independently assess these corrections without overwriting their originals:
 
-Perform one normal checked Program build with configuration, syntactic,
-global, semantic, and emit diagnostics and noEmitOnError=true.
-Intercept physical writes into external staging while preserving logical
-output and source-map layout. Prevent build-info persistence.
+1. Output-path keys:
+   The original C1 inventory was out/-relative while the promotion journal
+   was repository-relative. Confirm the normalization maps both to the same
+   files without collisions, omissions, or hidden content mismatches.
 
-Record compiler/configuration/input identities, diagnostics, emitted files,
-and actual source-to-output associations. transpileModule is insufficient.
+2. Declared coverage:
+   The initial assessment confused the focused suite's 49 comparisons with
+   the runner's derived Host-evidence prefix.
+   Recompute from actual source and retained runtime data:
+     49 focused-suite comparison records
+     124 derived Host-evidence rows
+     40 runner-owned measurements
+     164 total runner comparisons
+   Verify the correction supersedes only the affected fields and preserves
+   the original record. Do not infer declaredCoverage from a count alone.
 
-Only actual compiler companions associated with these sources may be
-promoted into their established out/ destinations:
+3. BUILD_INFO_CHANGED:
+   Check the claimed null-versus-omitted-field representation difference
+   against file existence and byte identities at the recorded stages.
+   Determine whether it is a helper-record discrepancy or actual drift.
+   A successful final verdict alone cannot settle this question.
 
-  src/test/runTest.ts
-  src/test/b3OutcomePolicy.ts
-  src/test/suite/index.ts
-  src/test/suite/sttmRealHostStructuredResult.test.ts
+MANIFEST, HOST, FIXTURE AND RUN REVIEW
+Verify:
+- Prepared VS Code 1.135.0 and dependency identities from prior records and
+  RUNTIME01 measurements.
+- The quarantine was valid at the recorded execution time; do not renew it.
+- The authenticated 23-file QA seed/copy relationship and unchanged workbook.
+- RUN_ROOT was exclusively created, empty at launch, disjoint from QA and
+  TASK_ROOT, and compatible with the real runner's containment contract.
+- Supported child settings and ordered development/dependency paths.
+- No pre-seeded nonce, delivery or acceptance fields.
+- The protected set was derived from current policy, with all four promoted
+  runtime JavaScript modules covered.
+- Fresh manifest generation and canonical acceptance occurred in the same
+  authorized runner invocation.
+- Manifest entries match the promoted bytes; digest differences from C1 are
+  explained by authorized promotion.
+- Exactly one runner and one Host executed, with no retries or hidden probes.
+- Host/parent exits, timing, process ownership, cleanup and post-exit checks
+  are supported by original logs and records.
 
-Allow only their emitted .js/.js.map/.d.ts/.d.ts.map companions where applicable.
-Do not hand-edit generated JavaScript.
-Do not promote unit-test artifacts, unrelated outputs, or the whole out/ tree.
+Do not equate a matching post-run digest with proof of prelaunch acceptance.
+Identify the evidence supporting each phase separately.
 
-Freeze promotion-plan.json before writing any destination.
-Skip identical outputs. Authenticate destination preimages and retain copies.
-Record ordered writes and verify promoted bytes by read-back.
+NOMINAL RUNTIME RESULT
+Independently verify:
+- Protocol version 3 was produced and accepted in the focused result path.
+- Nonce, suite identity, loaded-file identity, delivery completion and QA
+  correlation agree across the original artifacts.
+- Eight unchanged authored tests ran and passed, with zero pending/failures.
+- Host comparisons and runner comparisons passed under their actual schemas.
+- Parser cardinality was one, outcome fulfilled, wrapper restoration succeeded,
+  and the recorded tool invocation count was one.
+- Structured and Markdown mapping identities and projections match their
+  existing authenticated expectations.
+- The parent result is PASS/0 with an empty ledger.
+- Both evidence artifacts reached their primary destinations.
+- Protected post-exit checks passed and no task-owned processes remained.
 
-Reconcile required runtime dependencies with the staged build and accepted
-existing outputs. If a required mismatch falls outside the four-source
-promotion boundary, stop before promotion/launch and identify it.
+For the bind -> integrity handling -> exemption -> attribution sequence,
+distinguish directly recorded runtime facts from conclusions inferred through
+the authenticated executed source path.
 
-On partial promotion failure, retain the partial state, stop, and do not
-launch or automatically roll back.
+Zero integrity failures means the failure-handling loop body was not exercised.
+With all comparisons passing, no actual waiver or failing attribution
+disposition was demonstrated. Do not describe those branches as runtime-proven.
 
-Correct task-owned staging/helper mistakes within this scope before launch.
-Do not repeat a successful build when unchanged outputs remain sufficient.
+LIMITATIONS AND PRESERVATION
+Verify the L-1 addendum identifies the missing TEST02 section 5.2 reference
+without changing the original brief, classification, or prior evidence.
 
-QA, MANIFEST, AND EXECUTION PLAN
-This prompt prospectively authorizes a fresh read-only-use copy of the
-authenticated synthetic fixture used by the accepted C1 run.
+Carry forward:
+- The retained F-2 duplicate-cause limitation.
+- The known F-4 historical artifact limitation.
+- The eleven explicitly unexercised runtime categories.
+- The distinction between STTM read-only validation and guarded product writes.
 
-Resolve its seed and exact inventory through original machine records.
-The recorded fixture has 23 files, including sttm/synthetic_workbook.xlsx.
-Verify identities; do not modify the workbook, selectors, or expectations.
+Review R5 disclosures against actual stderr/logs. Report the observed inherited
+MCP identity and unauthenticated GitHub probes accurately. Do not claim absolute
+offline isolation, initiate network probes, or expand this into a new investigation.
 
-Create and verify TASK_ROOT\qa-workspace. Preserve both seed and copy.
-The earlier B1 QA-loss exception remains historical and is not a waiver
-for any new loss or modification.
+Verify source, output, QA, consumed evidence and relevant Host preservation.
+Report unexpected changes precisely; do not normalize them away.
 
-Derive current protected membership and source/artifact relationships from
-the actual runner contract. Verify coverage of the required runtime artifacts.
-Do not hardcode a historical member count or change policy membership.
+DECISION AND DELIVERABLES
+Return ACCEPTED, ACCEPTED_WITH_LIMITATIONS, CHANGES_REQUIRED, or BLOCKED.
 
-This task authorizes a NEW run-bound manifest reflecting the newly promoted
-outputs. Do not edit an old manifest or manually patch a digest.
+Acceptance applies only to the authenticated build/promotion/manifest relationship
+and the nominal protocol-3 focused runtime scenario. It grants no acceptance of
+unexecuted failure branches, full B3, consumer writes, installed .148, or release.
 
-Freeze execution-plan.json from the accepted C1 plan and current source:
-exact executables, argument arrays, cwd, nonsecret child settings, fixture,
-selector, manifest/result locations, process ownership, and timeout.
+For each finding state:
+- Concrete requirement and evidence location.
+- Whether it affects acceptance.
+- Smallest necessary correction or missing record.
+Do not create new requirements solely to remove a disclosed non-material limit.
 
-Resolve and use the current supported forms of:
+Write report.md, result.json, and only necessary review measurements.
+Separate independently measured facts, authenticated retained evidence,
+inherited acceptance, and remaining uncertainty.
 
-  ETL_TEST_VSCODE_EXECUTABLE_PATH
-  ETL_TEST_VSCODE_ISOLATION_ROOT
-  ETL_TEST_PROTECTED_HASH_MANIFEST
-  MOCHA_RESULT_FILE
-  MOCHA_GREP
-  ETL_F5_QA_WORKSPACE_ROOT
-  ETL_TEST_ENABLE_ISOLATED_DEPENDENCIES
-  ETL_TEST_COPILOT_EXTENSION_PATH
-
-Do not blindly replay old paths or values.
-Clear conflicting inherited test values in the child only.
-
-Create one exclusive empty RUN_ROOT under the child's actual os.tmpdir(),
-disjoint from TASK_ROOT and QA, following allowRootCreation=false.
-Store the creation receipt outside the required-empty root.
-Do not redirect TEMP/TMP to bypass containment.
-
-Use the existing isolated profile/extensions/log locations and authenticated
-development/dependency paths. Preserve supported child-local controls and
-known R5 limitations. No deliberate external-service or credential access.
-
-The same ONE runner invocation must perform canonical fresh manifest
-generation and acceptance before launching the Host.
-No standalone producer, manifest-only runner probe, direct Mocha substitute,
-or separate Host smoke test is authorized.
-
-Do not import runTest for inspection: its main() is unconditional.
-Let the runner own nonce, delivery, suite correlation, and authorization fields.
-Do not pre-seed markers or repair a rejected manifest.
-
-ONE FOCUSED EXECUTION
-After all prerequisites pass, invoke the actual compiled runner once.
-
-Budget:
-  runner invocations: maximum 1
-  focused Host launches: maximum 1
-  retries: 0
-
-A prelaunch canonical rejection consumes the runner allowance.
-
-Use the established 600-second deadline plus at most 30 seconds shutdown,
-after checking compatibility with the current contract.
-Capture UTC times, stdout/stderr, owned process tree, and Host and parent
-exits separately. Provide progress at least once per minute.
-
-Terminate only this task's positively identified process tree on timeout
-or a concrete boundary breach.
-
-After invocation, perform evidence analysis and preservation only.
-Do not repair source, rebuild, promote again, or retry.
-
-RUNTIME ASSESSMENT
-Assess actual new evidence for:
-
-- The accepted compiled runner, policy, loader, and focused test identities.
-- Protocol-3 production and validation in the actual focused result path.
-- Fresh canonical manifest acceptance and run/fixture/nonce correlation.
-- The unchanged eight focused tests and original assertions.
-- Parser observation cardinality, outcome, and wrapper restoration.
-- Binding/exemption/attribution behavior supported by the executed path.
-- Host comparisons, runner comparisons, causes, and final verdict.
-- Host exit, parent exit, finalization, and post-exit preservation.
-
-The nominal focused expectation is eight passes with no failures or pending
-tests. Report actual counts if different; never adjust assertions to fit.
-
-Preserve the authenticated mapping identity:
-  FM_F01417B0_00002
-
-Expected projections:
-  Structured source: source_db.customers.cust_name
-  Markdown source: customers.cust_name
-  Structured target: target_db.tgt_customers.customer_name
-  Markdown target: tgt_customers.customer_name
-
-Derive comparison counts and field semantics from actual records.
-Do not prescribe historical totals or recursively double-count evidence.
-
-Distinguish direct runtime observations from source-based inference.
-A successful nominal run does not exercise every integrity-failure,
-missing-evidence, abnormal-termination, or M2/M3 fault branch.
-List those unexercised branches; do not claim full R3/R4 or B3 qualification.
-
-L-1 DOCUMENTATION ADDENDUM
-In this new task's evidence, add the missing superseded-claim reference to:
-  ETL_0909_R3R4_CORRECTION_TEST02.md, section 5.2
-  row: observedMarkdownMapping ID
-
-Read the original row locally and identify its disproved independence rationale.
-Reference TEST04's correction and REVIEW03's L-1 finding.
-
-Keep the deliberately retained classification and duplicate-cause limitation
-unchanged. Do not edit the old brief or previous evidence package.
-This documentation-only addition requires no new unit-test or separate review task.
-
-L-2 remains a stated boundary: pure units do not execute the runner itself.
-This run supplies actual-path evidence only for branches it enters.
-
-PRESERVATION AND REPORT
-Recheck source/Git state, promoted and untouched outputs, QA seed/copy,
-consumed evidence, and relevant Host inputs.
-Keep original run artifacts unchanged and retain authenticated copies of the
-required manifest/result records and relevant logs.
-
-Return concise report.md and result.json with:
-
-TASK_ID: ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01
-RESULT:
-BASELINE_AUTHENTICATED:
-SOURCE_CHANGES: NONE
-CHECKED_BUILD_RESULT:
-PROMOTED_OUTPUTS:
-CANONICAL_MANIFEST_ACCEPTANCE:
-RUNNER_INVOCATIONS:
-HOST_LAUNCHES:
-PROTOCOL3_RUNTIME_EVIDENCE:
-FOCUSED_TEST_RESULT:
-PARSER_OBSERVATION_AND_RESTORATION:
-B1_PROJECTIONS:
-HOST_EXIT:
-PARENT_VERDICT_AND_EXIT:
-FINALIZATION_AND_POST_EXIT:
-UNEXERCISED_RUNTIME_BRANCHES:
-L1_ADDENDUM:
-PRESERVATION_RESULT:
-CONSUMER_PRODUCT_WRITES_PERFORMED: NO
+End with:
+TASK_ID: ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01
+REVIEWED_TASK: ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01
+REVIEW_RESULT:
+BUILD_AND_PROMOTION_ACCEPTED:
+CANONICAL_MANIFEST_AND_RUN_CORRELATION_ACCEPTED:
+NOMINAL_PROTOCOL3_RUNTIME_ACCEPTED:
+MEASUREMENT_CORRECTIONS_ACCEPTED:
+PRESERVATION_ACCEPTED:
+MATERIAL_FINDINGS:
+RETAINED_LIMITATIONS:
+REPOSITORY_CHANGED_BY_REVIEWER: NONE
+PROJECT_COMPILER_TEST_RUNNER_OR_HOST_EXECUTED_BY_REVIEWER: NO
 ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
-INDEPENDENT_RUNTIME_ACCEPTANCE: NOT_GRANTED_BY_EXECUTOR
 FULL_B3_INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
-EVIDENCE_ROOT:
+REVIEW_ROOT:
 REPORT_PATH:
 RESULT_PATH:
 NEXT_CONDITIONAL_GATE:
 
-FORBIDDEN
-No source/configuration/dependency edits, assertion changes, fault injection,
-broad suite discovery, consumer writes, A3 expansion, package installation,
-VSIX packaging, normal installation, release, Git mutation, reference-state
-update, old-evidence modification, or duplicate writer.
-
 NEXT GATE
-If valid runtime evidence is obtained, return it for bounded independent
-review of the build/promotion/manifest/run relationship. No automatic rerun.
+If accepted, identify the smallest next required gate from the dependency
+roadmap and the minimum error/reproduction evidence needed for the original
+product-write scenario. Distinguish actual blockers from deferred follow-ups;
+do not automatically turn all eleven unexercised categories into separate tasks.
 
-If blocked or failing, identify the precise phase, evidence, and smallest
-required next action. Preserve completed useful work.
-
-The original product-write scenario still requires its actual error,
-reproducible input, intended preview/write set, and explicit guarded-write
-approval. Do not invent them or declare that defect fixed.
+If changes are required or evidence is blocked, propose only the specific
+correction or missing evidence needed. No automatic rebuild, rerun, repair,
+state update, installation or release follows this review.
 
 Stop after delivering the report.
