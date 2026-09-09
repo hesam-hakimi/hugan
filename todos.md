@@ -1,179 +1,162 @@
-TASK_ID: ETL-0909-PREVIEW-CONTAINMENT-REPAIR01
-TYPE: BOUNDED PREVIEW/APPROVAL BOUNDARY REPAIR
-LANGUAGE: English only for Agent conversation, code and artifacts.
+TASK_ID: ETL-0909-PREVIEW-CONTAINMENT-INDEPENDENT-REVIEW01
+TYPE: INDEPENDENT REVIEW OF THE COMPLETED REPAIR DELTA
+LANGUAGE: English only for conversation, code and artifacts.
 
-OWNER-CONFIRMED OBJECTIVE
-Generated files must target the explicitly selected consumer project
-at the correct relative paths. Extension/reference roots and destinations
-escaping the consumer root must never become approved write targets.
+REVIEWED_TASK:
+ETL-0909-PREVIEW-CONTAINMENT-REPAIR01
 
-The historical wrong-root scenario is already confirmed by the owner.
-Do not ask for scenario confirmation again.
+OBJECTIVE
+Independently assess whether the completed repair prevents escaping
+destinations from becoming approvable preview entries while preserving
+the existing write-time guard and valid consumer destinations.
 
-CURRENT EVIDENCE
-ETL-0909-PRODUCT-WRITE-REPRO01 reports:
-- PREWRITE_ROUTING_CONFIRMED using compiled product modules and the real
-  tool route with SIMULATED_WORKSPACE_ADAPTER.
-- No Extension Host invocation and no actual product file writes.
-- The historical selection defect did not reproduce at that boundary.
-- Finding F-1: an escaping destination enters the trusted preview as an
-  approvable CREATE, although the independent write-time guard rejects it.
-- Historical artifact bytes fail current pre-routing validation; the
-  successful routing input is explicitly a derived fixture.
+Review the actual implementation and evidence. Do not implement fixes.
+Do not reopen unrelated accepted work.
 
-Preserve these distinctions. Do not claim installed behavior, actual
-writing, or historical-version runtime reproduction.
+1. INPUTS AND IDENTITY
 
-TASK
-Fix F-1 so preview/approval excludes destinations that the existing
-containment guard rejects. Keep the write-time containment check intact.
-
-Submitting this prompt authorizes the bounded source correction,
-targeted local tests and necessary local compiler checks described below.
-It does not authorize a Host, product output writes or release.
-
-1. RESOLVE ACTUAL INPUTS
-
-Worktree:
+Active worktree:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
 Expected branch:
 fix/workspace-write-completion-0.3.148
 
-Resolve the completed REPRO01 evidence directory through bounded
-direct-child task-prefix discovery under C:\docs.
-Authenticate its task identity and read:
-- report.md and result.json;
-- measurements/d1-routing-preview.json;
-- measurements/d6-converged-full-route-preview.json;
-- the diagnostic driver and fixture records needed for F-1.
+Resolve the reviewed task's evidence directory through bounded direct-child
+task-prefix discovery under C:\docs. Authenticate its task identity using
+machine records, not directory recency or screenshot-transcribed hashes.
 
-Follow actual machine references for expected identities.
-Do not transcribe hashes, preview IDs or temporary-root names from photos.
+Read the complete issued repair brief, report.md, result.json, task.diff,
+pre-edit records and relevant original compiler/test logs.
+Follow the explicit REPRO01 references only where needed to establish F-1.
 
-Verify current baseline against the applicable machine records, including
-branch, HEAD, staging, dirty paths and affected source identities.
-Do not repair unexplained drift or duplicate a running writer.
+Verify the exact diff endpoints against authenticated pre-edit bytes
+and the live reviewed post-state, including both new files.
 
-Reuse existing reference context and accepted evidence.
-Read complete relevant source files and applicable local instructions.
-Do not reconstruct absent reference documents or reread unrelated archives.
+Reported mutation set:
+- src/core/trusted/WriteAuthorization.ts
+- src/writers/RepoWriter.ts
+- src/tools/EtlActionToolService.ts
+- src/chat/WriteCoordinator.ts
+- src/chat/DeployCoordinator.ts
+- src/test/suite/workspaceWriteCollision.test.ts
+- src/test/testPatterns.ts
+- src/core/utils/ArtifactWriteContainment.ts [new]
+- src/test/suite/previewDestinationContainment.test.ts [new]
 
-2. BOUNDED IMPLEMENTATION
+Reported baseline transition:
+10 pre-existing dirty paths to 19; original ten unchanged.
+HEAD, branch and staging unchanged; repository out/ unchanged.
 
-Start with:
-src/core/trusted/WriteAuthorization.ts
-src/core/artifacts/ArtifactDestinationInventory.ts
+Confirm these against actual records. Do not restore or repair drift.
+Check for concurrent writers before reviewing.
 
-Trace their direct callers and the existing containment implementation,
-including RepoWriter.resolveContainedWorkspacePath and its consumers.
+2. REQUIRED REVIEW
 
-Permitted changes:
-- Manifest destination validation.
-- Direct caller changes strictly needed to propagate its blocked result.
-- Minimal reuse/export or pure shared extraction of the existing
-  containment routine, if necessary.
-- The nearest relevant regression tests, or one dedicated test file.
+Read complete affected implementations and their immediate consumers.
 
-Record the exact selected file list and purpose before editing.
-Keep the change within this semantic boundary.
+A. Manifest boundary
+Verify buildWriteManifestFiles requires the actual selected consumer root
+at every caller, without a default-root or empty-root bypass.
+Check that invalid write destinations are rejected before preview storage,
+approvable rendering or approval eligibility.
+Check mixed valid/invalid sets and unchanged valid destination contents.
 
-Do not change root-selection policy, approval semantics, file content
-generation, write-time validation, STTM behavior, outcome classification,
-extension activation or test-mode registration.
+B. Shared containment
+Compare the extracted routine with the original RepoWriter implementation.
+Verify lexical and physical containment checks, their ordering, errors,
+and protected-path policy remain equivalent.
+Confirm the writer still independently checks immediately before each
+write; preview approval must not cache away that protection.
+Inspect junction/symlink handling and uncertainty/failure behavior.
 
-Do not duplicate a weaker path-validation algorithm.
-Do not use a string-prefix check as proof of containment.
+C. Write versus reference destinations
+Verify every destination classified as "reference"/UNCHANGED is genuinely
+non-mutating throughout its consumers.
+Do not accept the exclusion merely because the report calls it intentional.
+Check that a write cannot be misclassified to bypass validation.
+Keep unrelated input-read policy outside this repair's scope.
 
-Required behavior:
-- Validate destinations against the selected canonical consumer root
-  before they can enter an approvable manifest.
-- Reject traversal, disallowed rooted destinations and link/junction
-  escapes using the existing containment policy.
-- If containment cannot be established, fail closed with the existing
-  structured blocker mechanism.
-- An invalid destination must not be stored or displayed as an approvable
-  CREATE/MODIFY or become eligible for an approval token.
-- Valid in-root destinations retain their intended relative paths,
-  content and existing preview behavior.
-- Preserve independent containment validation immediately before writing.
-  Preview validation does not replace that protection.
+D. Error propagation — explicit acceptance question
+The repair reports throwing Error from writeToWorkspace instead of
+returning a structured "Write Blocked" response.
 
-Use the smallest compatible correction. Do not introduce a new approval
-protocol or redesign the manifest architecture.
+Trace actual handling through EtlActionToolService, WriteCoordinator
+and DeployCoordinator, and compare it with the issued repair requirement
+for the existing structured blocker mechanism.
 
-3. TARGETED VERIFICATION
+Determine whether this is contract-compatible failure handling or a
+material unmet requirement. Check for false success, lost blockers,
+partial authorization, uncaught failures or unintended continuation.
 
-Use existing installed compiler/test tooling.
-Emit only the required test/dependency output into this task's external
-evidence directory. Do not promote into repository out/ or hand-edit
-compiled product JavaScript.
+Similarity to a pre-existing conflict error is not, by itself, proof of
+acceptance. Do not automatically classify this issue as a limitation.
 
-Use the real manifest/authorization implementation in the regression.
-Label any simulated VS Code adapter explicitly.
+E. Tests and evidence
+Verify the identical final regression was used against authentic
+pre-edit and post-edit product code, and both trees compiled successfully.
 
-Required cases:
-A. Reproduce F-1 on authenticated pre-edit code: the escaping destination
-   is incorrectly offered for approval.
-B. The identical regression passes after correction because that
-   destination is blocked before becoming approvable.
-C. Both valid consumer destinations from REPRO01 still preview correctly.
-D. Disallowed rooted destinations and a Windows junction escape are
-   rejected at the preview boundary.
-E. A mixed valid/invalid set cannot authorize the invalid member.
-F. No approval prompt or product write is invoked during these checks.
+Reported targeted results:
+pre-edit: 1 passing / 5 failing;
+post-edit: 6 passing / 0 failing.
 
-Create filesystem fixtures only inside fresh task-owned temporary roots.
-Preserve original evidence and historical consumer artifacts.
+Inspect the retained first-attempt assertion correction:
+distinguish direct writer behavior, which may handle valid members
+individually, from the preview route, which must not authorize the invalid
+member. Confirm the correction did not weaken the required preview check.
 
-A compiler/import failure is not behavioral red.
-Retain genuine failed attempts and their corrections.
-Resolve routine in-scope implementation or test defects in this task;
-do not stop merely because the first attempt fails.
+Verify test adapter instrumentation supports the claimed absence of write
+attempts. A no-op filesystem adapter cannot establish successful writing.
 
-Reuse accepted unchanged checks. Do not rerun the protocol-3/STTM Host
-suite or generate another full qualification bundle for this correction.
+Check the reported unchanged adjacent failures and timeout explanation
+from original logs. Do not describe the whole test set as passing.
 
-4. AUTHORITY LIMITS
+3. PROPORTIONATE VERIFICATION AUTHORITY
 
-No Extension Host, installed-extension smoke, actual product write,
-approval token creation, dependency installation, output promotion,
-packaging, cloud operation, publishing or Git mutation.
+Source and existing evidence are read-only.
+Create only a fresh exclusive review evidence directory and task-owned
+temporary fixtures.
 
-Do not resolve pending editor changes.
-Do not modify canonical references, prior reports or evidence bundles.
-Do not investigate incidental historical files unrelated to F-1.
+You may use existing installed compiler/test tooling to independently
+execute the six-test containment regression against verified source,
+with necessary output directed outside the repository.
 
-The REPRO01 preview ID is stale. This repair grants no approval to reuse
-it or to write into its retained temporary workspace.
+Use additional targeted checks only to resolve a concrete review risk.
+Reuse authenticated adjacent-suite evidence rather than automatically
+rerunning all eleven suites or the protocol-3/STTM campaign.
 
-5. HANDOFF
+No source edits, repository out/ promotion, Host, actual product writes,
+approval tokens, package installation, Git mutation, packaging, cloud
+operations, reference updates or pending-editor resolution.
 
-Return:
-- report.md: concise behavior change, affected files, measured checks,
-  remaining limitations and next gate.
-- result.json: machine baseline/post-state identities, actual commands,
-  exits/results, evidence references and mutation boundaries.
-- task.diff, recoverable pre-edit bytes or authenticated immutable
-  references, and relevant original test output.
+Never use a stale REPRO01 preview ID or treat its temporary workspace
+as approved for writing.
 
-Distinguish:
-PREVIEW_CONTAINMENT_LOCAL_RESULT
-INDEPENDENT_BOUNDARY_REVIEW
-REAL_VSCODE_FILESYSTEM_WRITE_VERIFIED
-ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED
+4. REVIEW RESULT
 
-After successful local checks, use:
-STATUS: LOCAL_CHECKED_AWAITING_INDEPENDENT_BOUNDARY_REVIEW
+Return report.md and result.json containing:
+- Authenticated reviewed source/diff identities.
+- Acceptance decision and its exact scope.
+- Findings with code/evidence locations and practical impact.
+- Error-propagation contract decision.
+- Shared-containment and write/reference-boundary decisions.
+- Actual independent checks and retained limitations.
+- Source, output and evidence preservation results.
+- The smallest conditional next gate.
+
+Use ACCEPTED, ACCEPTED_WITH_LIMITATIONS, or CHANGES_REQUIRED.
+Do not hide unmet requirements in a limitations section.
+
 REAL_VSCODE_FILESYSTEM_WRITE_VERIFIED: NO
 ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
+INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 
-Next gate is an independent review of this exact delta and affected
-interfaces. Successful review then permits planning a separately bounded
-guarded-write smoke with a fresh preview, an exact temporary consumer
-root/write set, and a genuine filesystem route.
+If accepted, identify the remaining prerequisites for a separately bounded
+real-filesystem guarded-write smoke. The current test-mode registration
+gap and simulated filesystem are not resolved by this source review.
+Accepted earlier runtime remains evidence for its original candidate;
+it does not automatically qualify these newly changed sources.
 
-Do not solve the test-mode activation limitation by silently enabling
-write tools or replacing a no-op stub and calling that installed evidence.
+If changes are required, return the smallest coherent correction scope.
+Do not implement it or launch another task.
 
-Stop after delivering the reviewable result.
+Stop after delivering the review.
