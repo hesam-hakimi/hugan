@@ -1,276 +1,259 @@
-TASK_ID: ETL-0909-R3R4-COMPOSITION-TEST04
-TYPE: BOUNDED LOCAL TEST REPAIR AND EVIDENCE ADDENDUM
+TASK_ID: ETL-0909-R3R4-COMPOSITION-INDEPENDENT-REVIEW03
+TYPE: BOUNDED INDEPENDENT REVIEW — TEST04 DELTA ONLY
 
 LANGUAGE
-Use English for all development-environment conversation, code comments,
-reports, status messages, and artifacts.
+Use English for all development-environment conversation, reports, status
+messages, and engineering artifacts.
 
 OBJECTIVE
-Close the material F-1 coverage gap identified by the continuation of
-ETL-0909-R3R4-INDEPENDENT-REVIEW02 reviewing
-ETL-0909-R3R4-CORRECTION-TEST03.
+Independently review ETL-0909-R3R4-COMPOSITION-TEST04.
 
-Preserve the five accepted technical corrections:
-B-1, C-2, C-1, C.3, and B-2.
+Determine whether its narrow two-file delta genuinely closes the material F-1
+composed-unit-coverage gap while preserving the previously accepted B-1, C-2,
+C-1, C.3, and B-2 source behavior.
 
-Also correct the F-2 rationale and add the missing F-3 evidence reference.
-Do not reopen unchanged accepted work or claim that this task fixes or
-runtime-qualifies the original product file-write defect.
+Also verify the bounded F-2 comment correction, F-3 evidence addendum, and F-4
+historical-preservation claim.
 
-OWNER DISPOSITION PROPOSED BY THIS PROMPT
-Submission of this prompt authorizes this bounded task.
+This is not a full re-review of ETL-0909-R3R4-CORRECTION-TEST03 and does not
+authorize product, runner, producer, Extension Host, packaging, installation,
+release, Git mutation, source repair, or reference-state mutation.
 
-For F-2, retain the existing conservative independent classification of
-"observedMarkdownMapping ID". Correct the inaccurate explanation of its
-independence. Record the possible duplicate-cause limitation explicitly.
+REVIEWER INDEPENDENCE
+Act only as an independent reviewer.
 
-This is a prospective choice to preserve existing behavior, not permission
-to rewrite historical evidence, waive other cause-identity requirements,
-or grant runtime/product acceptance.
+Do not edit repository source, TEST04 evidence, earlier evidence packages,
+glossaries, reference files, or Git state.
 
-AUTHORITATIVE INPUTS
-Use the existing local references and machine evidence.
+If a defect is found, report it precisely and propose the smallest correction.
+Do not implement it in this task.
 
-Reference folder:
-  /ETL Copilot Reference v2
-Local mirror, only if accessible:
-  C:\docs\ETL_Copilot_Reference_v2
+If this review task is already running on the same worktree, wait for it.
+Do not start a duplicate reviewer while another writer or reviewer is active.
 
-Existing TEST03 input location, if present:
-  C:\docs\ETL_0909_R3R4_TEST03_INPUTS
-
-Expected working repository, subject to evidence verification:
+SOURCE AND EVIDENCE RESOLUTION
+Expected repository:
   C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Read:
-1. Current state, changelog, and the adopted agile repair contract.
-2. The complete governing TEST03 brief and its incorporated TEST02
-   requirements.
-3. The complete REVIEW02 continuation report and its machine result.
-4. The relevant referenced machine records and actual source.
+Locate the TEST04 evidence root through bounded direct-child discovery:
+  C:\docs\ETL-0909-R3R4-COMPOSITION-TEST04-*
 
-Apply current owner decisions over older documentary state. Do not treat
-the reference state as live source verification.
+Select it by its machine-readable task identity, not by newest timestamp.
 
-Resolve REVIEW02 by bounded direct-child discovery under:
-  C:\docs\ETL-0909-R3R4-INDEPENDENT-REVIEW02-*
+Resolve the governing REVIEW02 continuation and its reviewed TEST03 root through
+the cross-references recorded in TEST04. Do not recursively scan C:\docs or
+unrelated workspaces.
 
-Identify the continuation through its task identity and reviewed TEST03
-evidence references. Do not select an arbitrary newest folder.
+Read completely:
 
-Follow exact recorded paths to TEST03 and other necessary evidence.
-Do not recursively scan C:\docs, unrelated repositories, user profiles,
-chat history, or consumer workspaces.
+1. TEST04 report.md and result.json.
+2. TEST04 post/task.diff.
+3. TEST04 pre-edit copies of the two authorized files.
+4. TEST04 attempt records for the regression-red and unit-final runs.
+5. TEST04 F-2 and F-3 addenda.
+6. The relevant REVIEW02 continuation findings defining F-1 through F-4.
+7. The current versions of:
+   - src/test/b3OutcomePolicy.unit.test.ts
+   - src/test/runTest.ts
+   - src/test/b3OutcomePolicy.ts
+8. Only the relevant actual runner and focused-test regions needed to establish
+   the production sequence and F-2 datum relationship.
 
-The original blocked REVIEW02 result is historical. Its preserved BLOCKED
-status does not override the continuation result.
-
-Use machine records for hashes, byte counts, paths, and source identities.
-Never transcribe a hash from a screenshot or reconstruct missing bytes.
+Use machine records for paths, hashes, byte counts, commands, and results.
+Do not transcribe identities from screenshots.
 
 PREFLIGHT
-Before source mutation:
+Perform read-only checks establishing:
 
-- Confirm no writer, runner, or Extension Host is using this worktree.
-  If one is active, stop and report WAITING; do not terminate it.
-- Authenticate the reviewed TEST03 post-state against all five live
-  reviewed source files using the continuation's machine evidence.
-- Confirm repository, branch, HEAD, staging, and dirty-path set against
-  the accepted end-state records.
-- Resolve any required glossary identity through the governing machine
-  manifest. Do not replace, normalize, or re-pin the glossary.
-- Create a new exclusive external evidence directory for this task.
-- Preserve exact pre-edit copies of the two authorized files.
+- No active writer, runner, compiler, or Extension Host is using the worktree.
+- Repository path, branch, HEAD, staging, and dirty-path set match the TEST04
+  end-state record.
+- Both current authorized files match TEST04 post-state identities.
+- The other three previously reviewed source files still match the accepted
+  REVIEW02 continuation endpoints.
+- TEST04 evidence was created outside the repository.
+- No unaccounted repository path was modified by TEST04.
 
-If a required baseline or authority record is missing or mismatched,
-report the precise blocker before mutation. Do not repair the baseline.
+If the current live state has drifted, stop and report the exact mismatch.
+Do not repair or reinterpret the baseline.
 
-ALLOWED REPOSITORY CHANGES
-Only:
-1. src/test/b3OutcomePolicy.unit.test.ts
-   Harness composition, necessary fixture metadata, and meaningful tests.
-
-2. src/test/runTest.ts
-   Comment-only correction for F-2. No executable-token changes.
-
-Do not modify b3OutcomePolicy.ts, suite/index.ts, the focused Host test,
-product implementation, configuration, dependencies, or generated out/.
-
-If closing F-1 actually requires production behavior changes, stop with
-the exact reason and proposed scope. Do not expand this task automatically.
-
-F-1: REPAIR THE COMPOSED UNIT HARNESS
-Inspect the actual runner sequence and the current
-simulateFocusedRun -> finalize() implementation.
-
-The harness currently attributes fixture comparisons directly, omitting
-the real binding, integrity-failure recording, and exemption stages.
-
-Make the harness exercise the same sequence as the actual runner:
+INDEPENDENT F-1 REVIEW
+Verify from actual source—not only from TEST04 prose—that
+simulateFocusedRun.finalize() now executes the same relevant order as runTest:
 
 1. bindComparisonProvenance
-2. Record each returned integrity failure as the corresponding independent
-   infrastructure cause, using the actual runner's identity/stage mapping.
-3. applyCountSettlementExemptions with the actual retained run observation
-   and the same relevant arguments used by the runner.
+2. record every integrity failure as its own infrastructure cause
+3. applyCountSettlementExemptions using the retained oracle
 4. attributeComparisonMismatches
 
-Call the actual exported pure policy functions.
-Do not copy their decision logic, hardcode their expected decisions,
-or import/execute the runner or extension to obtain them.
+Confirm:
 
-Provide explicit fixture provenance and declared coverage where required.
-Preserve deliberately malformed metadata in negative cases; do not
-silently replace it with a valid default.
+- The harness calls actual exported pure policy functions.
+- It does not copy production decision logic.
+- It does not import or execute the runner or extension.
+- Fixture provenance and declared coverage are explicit.
+- Deliberately malformed fixture metadata reaches binding unrepaired.
+- Raw comparison results and expected values are not rewritten.
+- RunResult exposes sufficient intermediate decisions to test composition,
+  rather than asserting only the final verdict.
 
-Keep comparison measurements and expectations intact. Test handling of
-their provenance and attribution rather than rewriting raw outcomes.
+Review every new or changed assertion and independently map it to:
 
-REQUIRED EXECUTED COVERAGE
-Add or strengthen focused cases proving:
+- correct composition;
+- actual runTestsOutcome exemption;
+- absence of the exempted comparison cause;
+- independent preservation of the abnormal-termination cause and BLOCKED result;
+- integrity-failure ledger identity;
+- reordered/malformed provenance remaining fail-safe;
+- unchanged product, infrastructure, mixed, and partial-attribution behavior.
 
-- Correctly bound comparisons pass through the complete sequence.
-- The case-31 abnormal-termination scenario genuinely receives the
-  intended runTestsOutcome exemption.
-- That exempted comparison does not itself produce the comparison cause
-  that would accidentally make the test pass.
-- The abnormal-termination infrastructure cause remains independently
-  recorded and preserves the required BLOCKED result.
-- Binding integrity failures actually enter the ledger with the expected
-  identity; checking only the final verdict is insufficient.
-- Shifted/reordered or malformed provenance cannot suppress an unrelated
-  failing comparison.
-- Relevant product, infrastructure, and partial-attribution outcomes
-  remain consistent when passed through this composed path.
+Confirm that accepted case-30 surplus-provenance semantics were not reversed.
 
-Preserve the existing 33 test obligations. Do not target an invented final
-test count. Explain any changed fixture expectations individually.
+REGRESSION AUTHENTICITY
+Authenticate the regression-red construction.
 
-Do not reverse the already accepted case-30 surplus-provenance finding:
-a surplus entry outside declared coverage is not read as a binding for
-another row; valid existing bindings may remain usable while the length
-integrity failure remains an independent infrastructure cause.
+Verify that it consists of:
 
-Show at least one meaningful regression failing with the prior harness
-composition and passing with the repaired composition. Use an authenticated
-pre-edit copy in the external evidence directory, preserving the same
-regression assertion. Do not manufacture a red result with a syntax error,
-missing import, or unrelated protocol change.
+- the exact authenticated pre-edit unit harness;
+- the same regression assertion used to test the repaired composition;
+- the corresponding policy source identical to the live reviewed policy;
+- no syntax error, missing import, protocol alteration, or artificial failure.
 
-If a genuine before/after regression cannot be demonstrated within this
-scope, report the limitation explicitly; never label another failure as
-the required regression.
+Confirm independently:
 
-F-2: COMMENT CORRECTION ONLY
-Inspect the actual focused comparison and observer assignment underlying:
-  observedMarkdownMapping ID
-  Markdown mapping:Active Mappings first ID
+- both variants compile successfully;
+- the old composition fails specifically for the intended behavioral reason;
+- the repaired composition passes;
+- the final local unit result is genuinely 35 tests, 35 passes, 0 failures,
+  0 pending, exit 0;
+- all previous 33 obligations remain represented and exactly two meaningful
+  tests were added.
 
-Correct the runTest.ts comment so it does not falsely describe these as
-independent data when the source shows the same rendered identifier and
-expectation.
+F-2 REVIEW
+Verify that the runTest.ts executable token stream is identical before and after
+TEST04 and that only comments changed.
 
-State that the independent classification is intentionally retained under
-the governing conservative contract choice. Record its possible duplicate
-cause as a limitation.
+Check the underlying source expressions for observedMarkdownMapping.mappingId
+and "Markdown mapping:Active Mappings first ID".
 
-Keep classification, protocol, linking behavior, comparison values, and
-expectations unchanged. Demonstrate that the runTest.ts diff is comment-only.
+Determine whether the revised comment accurately states:
 
-Do not edit the old static-trace-and-maps.md. Correct its explanation in
-a new evidence addendum with an exact reference to the superseded claim.
+- the comparison and observation derive from the same underlying datum and
+  expectation;
+- the independent classification was deliberately retained under the explicit
+  conservative owner disposition;
+- a duplicate-cause limitation remains recorded;
+- no claim of full B3-5 semantic resolution is made.
 
-F-3 AND F-4: PRESERVE HISTORY
-F-3:
-Authenticate the retained TEST03 a7-unit-final attempt using its existing
-command, output, source provenance, and inventory records.
+Confirm that the old static-trace-and-maps.md was preserved and that the new
+addendum identifies and corrects its superseded statement without rewriting
+history.
 
-Add a new evidence addendum explaining that TEST03 result.json omitted
-this attempt even though the report and retained evidence include it.
-Record actual machine values. Do not rerun TEST03 merely to recreate an
-index entry, and do not overwrite its result.json.
+F-3 AND F-4 REVIEW
+For F-3, authenticate the retained TEST03 a7-unit-final attempt from its existing
+machine records. Confirm that the new addendum records the omission without
+overwriting TEST03 result.json or falsely claiming a rerun.
 
-F-4:
-Preserve the known original REVIEW02 result.json formatting discrepancy
-and the continuation's stated evidentiary limitation.
-Do not reconstruct original bytes, assign an unproven actor, or claim
-complete semantic equivalence. Do not reopen this historical issue unless
-new evidence materially affects the present baseline.
+For F-4, confirm the prior REVIEW02 report and result were not changed by
+TEST04. Preserve the limitation that original result.json bytes are
+unrecoverable and actor attribution is unknown.
 
-VALIDATION AUTHORITY
-Allowed:
-- Read-only inspection and bounded machine measurements.
-- Existing installed compiler/test tooling used directly.
-- Compilation of only the pure policy/unit-test closure.
-- Execution of only those local unit tests.
-- Temporary regression variants and emitted JavaScript inside this task's
-  external evidence directory.
+Do not require reconstruction of missing historical bytes.
 
-Use the existing targeted procedure, with all emission outside the
-repository. Disable incremental/build-info, declarations, and source maps
-unless strictly necessary and already authorized by the governing brief.
+BOUNDED INDEPENDENT EXECUTION
+You may independently compile and run only the pure local policy/unit-test closure
+needed to verify the TEST04 delta, using already-installed tools.
 
-Do not run package scripts that expand into other suites or runtime work.
-Do not install dependencies or use a command that may download tooling.
+All emitted or temporary files must be placed in a new exclusive external review
+directory.
 
-No project-wide rebuild is needed for a unit-harness change and a
-comment-only runner change. Reuse unchanged accepted evidence and label
-it as inherited rather than newly measured.
+Do not:
 
-Within this scope, resolve ordinary compile/test failures in the same
-task, preserving meaningful failed attempts. Do not create a new task
-for every iteration. Stop when the stated coverage is sufficiently verified.
+- run the project-wide compiler;
+- run package scripts;
+- run the focused Host test;
+- run the runner, producer, extension, or product;
+- install or download dependencies;
+- emit files into the repository;
+- alter Git state.
 
-PROHIBITED
-No project runner, producer, Extension Host, product execution, A3,
-consumer workspace writes, package installation, packaging, release,
-Git mutation, pending-editor-change resolution, glossary replacement,
-or reference-state/changelog update.
+One independent final compile and unit-test execution is sufficient if the
+retained regression evidence is authenticated. Do not repeat unchanged accepted
+TEST03 tests merely to recreate evidence.
 
-Do not launch another writer or delegate work on the same worktree.
-Do not broaden this into investigation of the original product-write
-failure.
+REVIEW DECISION
+Return one of:
 
-The original error/reproduction evidence remains a separate prerequisite
-for its later product scenario; its absence does not block this F-1 repair.
+ACCEPTED
+  The F-1 delta is independently supported at the pure source/unit boundary,
+  F-2 is comment-only and accurately bounded, F-3/F-4 are preserved, and no
+  material defect is found.
+
+ACCEPTED_WITH_LIMITATIONS
+  The delta is technically acceptable, but a non-material limitation remains.
+  Name it and state its exact downstream effect.
+
+CHANGES_REQUIRED
+  A material technical, test-validity, preservation, or evidence defect exists.
+  Identify the precise requirement, source location, and smallest correction.
+
+BLOCKED
+  Required baseline or evidence cannot be authenticated. Identify the exact
+  missing or mismatched record.
+
+Do not grant runtime, Host, product-write, packaging, installation, or release
+acceptance under any outcome.
 
 DELIVERABLES
-Return a concise English report and machine-readable result containing:
+Create a new exclusive evidence directory outside the repository containing:
 
-- Task status and exact evidence directory.
-- Baseline identities and their machine-record provenance.
-- Exact task-only diff and pre/post identities for changed files.
-- Proof that runTest.ts changes are comment-only.
-- Commands, exit codes, final test counts, and genuine regression evidence.
-- A requirement-to-executed-test mapping for F-1.
-- Separate dispositions for F-2, F-3, and retained F-4 limitations.
-- Newly measured versus inherited checks.
-- Any remaining blocker or coverage gap.
+- report.md
+- result.json
+- independent source/diff identity measurements
+- independent test execution record, if executed
+- end-state preservation measurement
 
-Preserve all previous reports and evidence packages.
+The report must distinguish:
 
-End with these fields using actual results:
-TASK_ID:
-STATUS:
-F1_COMPOSED_COVERAGE:
-F2_RATIONALE_AND_RETAINED_LIMITATION:
-F3_A7_EVIDENCE_ADDENDUM:
-F4_HISTORICAL_LIMITATION:
-CHANGED_REPOSITORY_PATHS:
-LOCAL_TEST_RESULT:
-EVIDENCE_ROOT:
+- independently measured facts;
+- facts authenticated from retained evidence;
+- inherited earlier acceptance;
+- limitations not tested by this review.
+
+End with:
+
+TASK_ID: ETL-0909-R3R4-COMPOSITION-INDEPENDENT-REVIEW03
+REVIEWED_TASK: ETL-0909-R3R4-COMPOSITION-TEST04
+REVIEW_RESULT:
+F1_COMPOSED_COVERAGE_ACCEPTED:
+F2_COMMENT_ONLY_AND_LIMITATION_ACCEPTED:
+F3_ADDENDUM_ACCEPTED:
+F4_HISTORY_PRESERVED:
+REGRESSION_EVIDENCE_ACCEPTED:
+LOCAL_UNIT_RESULT:
+CHANGED_BY_REVIEWER: NONE
+HOST_OR_PRODUCT_EXECUTED_BY_REVIEWER: NO
+ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
+RUNTIME_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
+REVIEW_ROOT:
 REPORT_PATH:
 RESULT_PATH:
-HOST_OR_PRODUCT_EXECUTED: NO
-ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
-INDEPENDENT_ACCEPTANCE_OF_THIS_DELTA: NOT_GRANTED
+NEXT_CONDITIONAL_GATE:
 
-NEXT GATE
-Return this small delta and its evidence for bounded independent review.
-Do not repeat the complete review of unchanged accepted corrections.
+NEXT CONDITIONAL GATE
+If ACCEPTED or ACCEPTED_WITH_LIMITATIONS:
+recommend a separately authorized protocol-3 build/provenance and focused
+runtime task. Do not launch it automatically.
 
-After that acceptance, follow the dependency roadmap for separately
-authorized protocol-3 build/provenance and focused runtime work.
-Neither this task nor its unit-test result grants Host or release authority.
+That later runtime task must still distinguish STTM read-only validation from
+the guarded product file-write scenario. The original product-write defect
+cannot be declared fixed until its exact error and reproducible consumer input
+are available and a separately authorized guarded write test succeeds.
 
-Stop after returning the report.
+If CHANGES_REQUIRED:
+recommend only the smallest bounded correction over the TEST04 delta.
+
+If BLOCKED:
+report the exact evidence or baseline blocker without repairing it.
+
+Stop after returning the review report.
