@@ -485,6 +485,16 @@ def hard_test_script() -> str:
         )
         assert [row["key"] for row in fresh_delete] == ["A", "D"]
 
+        for operation in ("delete", "upsert"):
+            older_winner = {
+                "key": "B",
+                "event_ts": "2026-08-19T10:20:00Z",
+                "ingest_seq": 99,
+                "op": operation,
+                "payload": {"balance": -1},
+            }
+            assert run_incremental(existing, [older_winner], start, end) == existing
+
         try:
             run_incremental(
                 [],
@@ -698,7 +708,10 @@ def hard_test_script() -> str:
             "payload",
         ):
             assert token in doc, token
-        assert "stale" in doc or "less than or equal" in doc
+        assert any(
+            phrase in doc
+            for phrase in ("stale", "less than or equal", "equal or older")
+        )
         '''
     ).strip()
 
