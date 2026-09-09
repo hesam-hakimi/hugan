@@ -24,19 +24,19 @@ class _Completions:
         if "bounded code implementer" in system_prompt:
             payload: dict[str, Any] = {
                 "summary": "Change the approved fixture constant from 42 to 43.",
-                "unified_diff": (
-                    "diff --git a/app.py b/app.py\n"
-                    "--- a/app.py\n"
-                    "+++ b/app.py\n"
-                    "@@ -1,5 +1,5 @@\n"
-                    "-RETURN_VALUE = 42\n"
-                    "+RETURN_VALUE = 43\n"
-                    " \n"
-                    " \n"
-                    " def answer() -> int:\n"
-                    "     return RETURN_VALUE\n"
-                ),
-                "changed_paths": ["app.py"],
+                "edits": [
+                    {
+                        "path": "app.py",
+                        "operation": "modify",
+                        "replacements": [
+                            {
+                                "old_text": "RETURN_VALUE = 42",
+                                "new_text": "RETURN_VALUE = 43",
+                            }
+                        ],
+                        "content": None,
+                    }
+                ],
                 "requested_test_profiles": ["python-check"],
                 "assumptions": [],
             }

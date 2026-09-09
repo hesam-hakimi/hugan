@@ -47,8 +47,14 @@ def test_sandbox_clones_local_fixture_without_touching_source(tmp_path: Path) ->
         "task-123",
         repository=RepositorySpec(url=str(source), base_ref="main"),
     )
+    reused = manager.prepare(
+        "task-456",
+        repository=RepositorySpec(url=str(source), base_ref="main"),
+    )
     assert info.clean
+    assert reused.clean
     assert Path(info.path).is_dir()
+    assert Path(reused.path).is_dir()
     assert (
         subprocess.run(
             ["git", "status", "--porcelain"],

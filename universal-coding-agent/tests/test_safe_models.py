@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import pytest
 from pydantic import ValidationError
 
@@ -8,10 +10,14 @@ from universal_coding_agent.core.safe_models import (
     ApprovedChangeManifest,
     ChangeOperation,
     ChangeScopeEntry,
+    FileEdit,
     PatchProposal,
+    SafeContextEvidence,
     SafeModePolicy,
     SafeTaskRequest,
+    StructuredEditProposal,
     TestProfile,
+    TextReplacement,
 )
 
 
@@ -94,6 +100,92 @@ def test_safe_task_requires_human_approval_and_known_profiles() -> None:
             ),
             manifest=_manifest(),
             policy=SafeModePolicy(),
+        )
+
+
+def test_safe_context_evidence_requires_exact_content_hash() -> None:
+    content = '{"phase_id":"phase-1","reviewer_verdict":"PASS"}'
+    evidence = SafeContextEvidence(
+        source_ref="artifact://programs/example/accepted-evidence.json",
+        sha256=hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        content=content,
+    )
+    assert evidence.content == content
+
+    with pytest.raises(ValidationError, match="content hash"):
+        SafeContextEvidence(
+            source_ref="artifact://programs/example/accepted-evidence.json",
+            sha256="f" * 64,
+            content=content,
+        )
+
+
+def test_structured_edit_proposal_requires_operation_specific_shape() -> None:
+    proposal = StructuredEditProposal(
+        summary="Change one exact approved anchor.",
+        edits=(
+            FileEdit(
+                path="src/app.py",
+                operation=ChangeOperation.MODIFY,
+                replacements=(
+                    TextReplacement(old_text="VALUE = 1", new_text="VALUE = 2"),
+                ),
+            ),
+        ),
+        requested_test_profiles=("python-check",),
+    )
+    assert proposal.changed_paths == ("src/app.py",)
+
+    with pytest.raises(ValidationError, match="at least one exact replacement"):
+        FileEdit(path="src/app.py", operation=ChangeOperation.MODIFY)
+
+    with pytest.raises(ValidationError, match="create edits use content"):
+        FileEdit(
+            path="src/new.py",
+            operation=ChangeOperation.CREATE,
+            content="VALUE = 1\n",
+            replacements=(TextReplacement(old_text="x", new_text="y"),),
+        )
+
+    created = FileEdit(
+        path="src/new.py",
+        operation=ChangeOperation.CREATE,
+        content="",
+    )
+    assert created.content == ""
+
+
+def test_structured_edit_proposal_rejects_duplicate_paths_and_noop_replacement() -> None:
+    replacement = TextReplacement(old_text="VALUE = 1", new_text="VALUE = 2")
+    with pytest.raises(ValidationError, match="structured edit paths must be unique"):
+        StructuredEditProposal(
+            summary="Duplicate path should fail.",
+            edits=(
+                FileEdit(
+                    path="src/app.py",
+                    operation=ChangeOperation.MODIFY,
+                    replacements=(replacement,),
+                ),
+                FileEdit(
+                    path="src/app.py",
+                    operation=ChangeOperation.MODIFY,
+                    replacements=(replacement,),
+                ),
+            ),
+        )
+
+    with pytest.raises(ValidationError, match="must change content"):
+        TextReplacement(old_text="same", new_text="same")
+
+
+def test_structured_edit_models_reject_nul_content() -> None:
+    with pytest.raises(ValidationError, match="NUL"):
+        TextReplacement(old_text="a", new_text="b\x00c")
+    with pytest.raises(ValidationError, match="NUL"):
+        FileEdit(
+            path="src/new.py",
+            operation=ChangeOperation.CREATE,
+            content="secret\x00payload",
         )
 
 

@@ -27,9 +27,11 @@ Options:
   -h, --help           Show this help.
 
 The qualification uses a disposable local Git fixture. It proves that the real
-host model can generate a bounded patch, pause for human scope approval, resume,
-pass deterministic patch validation, run an operator-owned test profile, receive
-an independent PASS review, and retain the patch only inside the sandbox.
+host model can produce bounded structured edits, pause for human scope approval,
+resume, materialize exact edits only in the sandbox, let Git generate the
+canonical patch, pass deterministic validation, run an operator-owned test
+profile, receive an independent PASS review, and retain the change only inside
+the sandbox.
 
 No stage, commit, push, pull request, merge, deploy, or source-checkout mutation
 is performed.
@@ -190,7 +192,7 @@ PY
 cat > "$SOURCE/README.md" <<'EOF'
 # Disposable Safe Mode Qualification Fixture
 
-This repository exists only to qualify bounded patch generation and review.
+This repository exists only to qualify bounded structured edits and review.
 EOF
 git -C "$SOURCE" add app.py README.md
 git -C "$SOURCE" commit -q -m "fixture"
@@ -212,11 +214,11 @@ exact assignment `RETURN_VALUE = 42` to `RETURN_VALUE = 43`.
 - `app.py` is the only changed file.
 - The operation is a text-only modification, not a create, delete, rename, copy,
   binary, or symlink change.
-- `answer()` returns 43 after the patch.
+- `answer()` returns 43 after deterministic edit materialization.
 - The approved fixed test profile passes.
 - No additional documentation, refactoring, cleanup, or test is required for this
   disposable qualification task.
-- If the scope, one-line patch, and test evidence match exactly, the independent
+- If the scope, one-line change, and test evidence match exactly, the independent
   reviewer should return `PASS` with no required action.
 
 # Safety constraints
@@ -225,6 +227,7 @@ exact assignment `RETURN_VALUE = 42` to `RETURN_VALUE = 43`.
 - Do not modify the source fixture.
 - Do not run arbitrary commands.
 - Do not stage, commit, push, create or edit a pull request, merge, or deploy.
+- Return structured edits, not Git patch syntax.
 EOF
 
 "$PYTHON" - "$SCOPE_FILE" "$POLICY_FILE" "$BASE_SHA" "$PYTHON" <<'PY'
@@ -238,7 +241,7 @@ policy_path = Path(sys.argv[2])
 base_sha = sys.argv[3]
 python = sys.argv[4]
 plan_hash = hashlib.sha256(
-    b"real-host-safe-mode-disposable-fixture-v1"
+    b"real-host-safe-mode-disposable-fixture-structured-edits-v1"
 ).hexdigest()
 
 scope = {
@@ -375,10 +378,12 @@ if not report_path.is_file():
 report = json.loads(report_path.read_text(encoding="utf-8"))
 
 artifact_names = {
+    "edit_proposal": "edit-proposal.json",
+    "edit_validation": "edit-validation.json",
+    "edit_apply": "edit-apply.json",
     "proposal": "patch-proposal.json",
     "patch": "proposed.patch",
     "validation": "patch-validation.json",
-    "apply": "patch-apply.json",
     "tests": "test-results.json",
     "implementer_validation": "implementer-model-validation.json",
     "review": "safe-review.json",
@@ -402,6 +407,9 @@ for name, path in artifacts.items():
     if not path.is_file():
         raise SystemExit(f"UCA_REAL_SAFE_ARTIFACT_MISSING:{name}:{path}")
 
+edit_proposal = json.loads(artifacts["edit_proposal"].read_text(encoding="utf-8"))
+edit_validation = json.loads(artifacts["edit_validation"].read_text(encoding="utf-8"))
+edit_apply = json.loads(artifacts["edit_apply"].read_text(encoding="utf-8"))
 proposal = json.loads(artifacts["proposal"].read_text(encoding="utf-8"))
 validation = json.loads(artifacts["validation"].read_text(encoding="utf-8"))
 test_payload = json.loads(artifacts["tests"].read_text(encoding="utf-8"))
@@ -412,6 +420,7 @@ implementer_validation = json.loads(
 reviewer_validation = json.loads(
     artifacts["reviewer_validation"].read_text(encoding="utf-8")
 )
+patch_text = artifacts["patch"].read_text(encoding="utf-8")
 
 assert report["scope_approved"] is True, report
 assert report["sandbox_patch_retained"] is True, report
@@ -421,10 +430,37 @@ assert report["safe_errors"] == [], report
 assert report["approved_changed_paths"] == ["app.py"], report
 assert report["source_repository_modified"] is False, report
 assert report["stage_commit_push_pr_merge_deploy"] is False, report
+assert report["structured_edit_protocol"] == "v1", report
+assert report["model_authored_patch"] is False, report
+assert report["canonical_patch_generated_by"] == "git", report
+assert report["patch_repair_used"] is False, report
+
+assert edit_proposal["edits"], edit_proposal
+assert [item["path"] for item in edit_proposal["edits"]] == ["app.py"], edit_proposal
+assert edit_proposal["edits"][0]["operation"] == "modify", edit_proposal
+replacements = edit_proposal["edits"][0].get("replacements", [])
+assert replacements, edit_proposal
+assert any(
+    item.get("old_text") == "RETURN_VALUE = 42"
+    and item.get("new_text") == "RETURN_VALUE = 43"
+    for item in replacements
+), edit_proposal
+assert set(edit_proposal.get("requested_test_profiles", [])) <= {"python-check"}, edit_proposal
+
+assert edit_validation["valid"] is True, edit_validation
+assert edit_validation["changed_paths"] == ["app.py"], edit_validation
+assert edit_validation["errors"] == [], edit_validation
+assert edit_apply["changed_paths"] == ["app.py"], edit_apply
+assert edit_apply["status_lines"] == [" M app.py"], edit_apply
+
 assert proposal["changed_paths"] == ["app.py"], proposal
 assert set(proposal.get("requested_test_profiles", [])) <= {"python-check"}, proposal
+assert patch_text.startswith("diff --git a/app.py b/app.py\n"), patch_text
+assert "-RETURN_VALUE = 42" in patch_text, patch_text
+assert "+RETURN_VALUE = 43" in patch_text, patch_text
 assert validation["valid"] is True, validation
 assert validation["changed_paths"] == ["app.py"], validation
+assert validation["errors"] == [], validation
 assert test_payload["scope_intact"] is True, test_payload
 assert test_payload["actual_changed_paths"] == ["app.py"], test_payload
 assert test_payload["results"], test_payload
@@ -458,7 +494,6 @@ assert git(sandbox, "rev-parse", "HEAD") == source_head_before
 assert git(sandbox, "status", "--porcelain=v1", "-uall") == "M app.py"
 
 if host_repository:
-    host_root = Path(host_repository)
     comparisons = (
         ("host-head-before.txt", "host-head-after.txt"),
         ("host-branch-before.txt", "host-branch-after.txt"),
@@ -488,6 +523,8 @@ if implementer_model == "unknown" or reviewer_model == "unknown":
 print("UCA_REAL_SAFE_PROVIDER_IMPLEMENTER_PASS")
 print(f"IMPLEMENTER_ACTUAL_MODEL={implementer_model}")
 print(f"IMPLEMENTER_SCHEMA_REPAIR_USED={implementer_validation.get('repair_used')}")
+print("UCA_REAL_SAFE_PROVIDER_STRUCTURED_EDIT_PASS")
+print("UCA_REAL_SAFE_PROVIDER_GIT_PATCH_GENERATION_PASS")
 print("UCA_REAL_SAFE_PROVIDER_PATCH_VALIDATION_PASS")
 print("UCA_REAL_SAFE_PROVIDER_TESTS_PASS")
 print("UCA_REAL_SAFE_PROVIDER_REVIEW_PASS")
@@ -498,6 +535,7 @@ if host_repository:
     print("UCA_REAL_SAFE_PROVIDER_HOST_REPOSITORY_PRESERVED")
 print("UCA_REAL_SAFE_PROVIDER_QUALIFICATION_PASS")
 print(f"SAFE_FINAL_REPORT={report_path}")
+print(f"SAFE_EDIT_PROPOSAL={artifacts['edit_proposal']}")
 print(f"SAFE_PATCH={artifacts['patch']}")
 print(f"SAFE_TEST_RESULTS={artifacts['tests']}")
 print(f"SAFE_REVIEW={artifacts['review']}")

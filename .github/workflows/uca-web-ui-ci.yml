@@ -1,0 +1,41 @@
+name: UCA Web UI CI
+
+on:
+  pull_request:
+    paths:
+      - "universal-coding-agent/web/**"
+      - "universal-coding-agent/src/universal_coding_agent/web/**"
+      - "universal-coding-agent/pyproject.toml"
+      - ".github/workflows/uca-web-ui-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  web-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          path: repository
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: repository/universal-coding-agent/web/package.json
+
+      - name: Install frontend dependencies
+        working-directory: repository/universal-coding-agent/web
+        run: npm install --no-audit --no-fund
+
+      - name: Run frontend tests
+        working-directory: repository/universal-coding-agent/web
+        run: npm run test
+
+      - name: Typecheck and build frontend
+        working-directory: repository/universal-coding-agent/web
+        run: npm run build
