@@ -96,6 +96,15 @@ class ProgramSourceAcceptanceService:
 
     @contextmanager
     def _transaction(self):
+        from universal_coding_agent.product.local_product_command_store import active
+
+        participant = active(self.connection)
+        if participant is not None and participant.payload["action"] in {
+            "initialize_source", "preview_first_source", "decide_first_source"
+        }:
+            with participant.source_transaction(self):
+                yield
+            return
         with self._lock:
             try:
                 self.connection.execute("BEGIN IMMEDIATE")
@@ -165,6 +174,14 @@ class ProgramSourceAcceptanceService:
 
     def _binding(self, identity: ProgramSourceIdentity, owner_token: str,
                  task_id: str | None = None) -> dict:
+        from universal_coding_agent.product.local_product_command_store import (
+            require_managed_command,
+        )
+
+        require_managed_command(self, identity.program_id, {
+            "initialize_source", "start_first_phase", "decide_first_scope", "preview_first_source",
+            "decide_first_source", "start_continuation", "decide_continuation_scope",
+            "preview_final_source", "decide_final_source"}, owner=owner_token)
         program_id = identity.program_id
         _require(isinstance(owner_token, str) and re.fullmatch(r"[0-9a-f]{32}", owner_token)
                  is not None, "invalid lifecycle owner token")
@@ -247,7 +264,9 @@ class ProgramSourceAcceptanceService:
                  and plan.canonical_hash() == identity.plan_sha256, "approved Program plan differs")
         return plan
 
-    def initialize(self, identity: ProgramSourceIdentity, *, owner_token: str) -> dict:
+    def initialize(self, identity: ProgramSourceIdentity, *, owner_token: str,
+                   participation=None) -> dict:
+        self._participation(participation)
         _require(type(identity) is ProgramSourceIdentity, "invalid Program origin identity")
         with self._transaction():
             binding = self._binding(identity, owner_token)
@@ -264,6 +283,8 @@ class ProgramSourceAcceptanceService:
                 "SELECT * FROM program_source_heads WHERE program_id = ?",
                 (identity.program_id,)).fetchone()
             if existing is not None:
+                _require(participation is None,
+                         "local initialization cannot adopt an existing head")
                 _require(existing["host_sha256"] == self.host_sha256
                          and self._get(existing["initial_receipt_sha256"]) == receipt,
                          "Program source already has another origin")
@@ -272,7 +293,24 @@ class ProgramSourceAcceptanceService:
             self.connection.execute("INSERT INTO program_source_heads VALUES (?, 0, ?, ?, ?, ?)",
                                     (identity.program_id, snapshot_sha, self.host_sha256,
                                      receipt_sha, receipt_sha))
+            if participation is not None:
+                participation.source_finalized(self, strict_json(receipt))
         return strict_json(receipt)
+
+    def _participation(self, participation):
+        from universal_coding_agent.product.local_product_command_store import active
+
+        current = active(self.connection)
+        _require(current is None or participation is current,
+                 "managed source mutations require their atomic Product completion")
+        if participation is not None:
+            from universal_coding_agent.product.local_product_command_store import (
+                LocalProductParticipation,
+            )
+            _require(type(participation) is LocalProductParticipation
+                     and active(self.connection) is participation
+                     and participation.store.source is self,
+                     "invalid local Product transaction participant")
 
     def _dispatch_for(self, task_id):
         self._deny_v3(task_id)
@@ -432,7 +470,8 @@ class ProgramSourceAcceptanceService:
         return {"candidate_sha256": _hash(raw), **candidate}
 
     def accept(self, candidate_sha256: str, *, approved_transition_sha256: str,
-               approval_id: str, owner_token: str) -> dict:
+               approval_id: str, owner_token: str, participation=None) -> dict:
+        self._participation(participation)
         _identifier(approval_id)
         _digest(approved_transition_sha256)
         with self._transaction():
@@ -459,6 +498,7 @@ class ProgramSourceAcceptanceService:
                 dispatch.acceptance_gate(candidate["task_id"], owner_token,
                                          replay=prior is not None)
             if prior is not None:
+                _require(participation is None, "local source decision cannot adopt a receipt")
                 _require(prior["approval_sha256"] == _hash(approval), "accepted approval differs")
                 return self.receipt(candidate_sha256)
             self._expect_head(candidate["program_id"], candidate["before_sha256"],
@@ -477,6 +517,7 @@ class ProgramSourceAcceptanceService:
                 dispatch.acceptance_gate(candidate["task_id"], owner_token,
                                          replay=prior is not None)
             if prior is not None:
+                _require(participation is None, "local source decision cannot adopt a receipt")
                 _require(prior["approval_sha256"] == _hash(approval), "accepted approval differs")
                 return self.receipt(candidate_sha256)
             self._expect_head(candidate["program_id"], candidate["before_sha256"],
@@ -513,4 +554,6 @@ class ProgramSourceAcceptanceService:
                 (after.generation, candidate["after_sha256"], receipt_sha, candidate["program_id"],
                  candidate["generation"], candidate["before_sha256"], self.host_sha256))
             _require(updated.rowcount == 1, "source head compare-and-swap lost")
+            if participation is not None:
+                participation.source_finalized(self, strict_json(receipt))
         return strict_json(receipt)

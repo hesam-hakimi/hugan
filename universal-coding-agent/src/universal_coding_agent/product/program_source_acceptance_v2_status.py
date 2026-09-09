@@ -321,222 +321,228 @@ def request_result(database_path, host_sha256, program_id, request_id):
 def source_transition_status(database_path, program_id):
     identifier(program_id)
     with read_session(database_path) as reader:
-        heads = reader.rows(
-            "program_source_heads",
-            (
-                "program_id",
-                "generation",
-                "source_sha256",
-                "host_sha256",
-                "initial_receipt_sha256",
-                "receipt_sha256",
+        return source_transition_status_in_reader(reader, program_id)
+
+
+def source_transition_status_in_reader(reader, program_id):
+    """Compose the unchanged PR29 proof in one caller-owned recorded read."""
+    identifier(program_id)
+    heads = reader.rows(
+        "program_source_heads",
+        (
+            "program_id",
+            "generation",
+            "source_sha256",
+            "host_sha256",
+            "initial_receipt_sha256",
+            "receipt_sha256",
+        ),
+        "program_id=?",
+        (program_id,),
+        limit=1,
+    )
+    require(
+        len(heads) == 1 and heads[0]["generation"] in {1, 2}, "unsupported accepted source head"
+    )
+    head = heads[0]
+    initial = reader.metadata(head["initial_receipt_sha256"])
+    require(
+        initial["schema"] == "uca-source-initialization-1"
+        and initial["host_sha256"] == head["host_sha256"]
+        and initial["attestation"]["snapshot_sha256"] == initial["source_sha256"]
+        and initial["attestation"]["identity"]["program_id"] == program_id,
+        "source origin lineage differs",
+    )
+    rows = reader.rows(
+        "program_source_acceptances",
+        ("candidate_sha256", "approval_sha256", "receipt_sha256", "task_id"),
+        "program_id=?",
+        (program_id,),
+        limit=2,
+    )
+    require(len(rows) == head["generation"], "source acceptance history is incomplete")
+    history = []
+    for row in rows:
+        receipt = reader.metadata(row["receipt_sha256"])
+        require(
+            receipt["program_id"] == program_id
+            and receipt["host_sha256"] == head["host_sha256"]
+            and all(
+                receipt[k] == row[k] for k in ("candidate_sha256", "approval_sha256", "task_id")
             ),
-            "program_id=?",
-            (program_id,),
-            limit=1,
+            "shared receipt index differs",
         )
-        require(
-            len(heads) == 1 and heads[0]["generation"] in {1, 2}, "unsupported accepted source head"
-        )
-        head = heads[0]
-        initial = reader.metadata(head["initial_receipt_sha256"])
-        require(
-            initial["schema"] == "uca-source-initialization-1"
-            and initial["host_sha256"] == head["host_sha256"]
-            and initial["attestation"]["snapshot_sha256"] == initial["source_sha256"]
-            and initial["attestation"]["identity"]["program_id"] == program_id,
-            "source origin lineage differs",
-        )
-        rows = reader.rows(
-            "program_source_acceptances",
-            ("candidate_sha256", "approval_sha256", "receipt_sha256", "task_id"),
-            "program_id=?",
-            (program_id,),
-            limit=2,
-        )
-        require(len(rows) == head["generation"], "source acceptance history is incomplete")
-        history = []
-        for row in rows:
-            receipt = reader.metadata(row["receipt_sha256"])
+        if receipt["schema"] == "uca-source-acceptance-receipt-1":
             require(
-                receipt["program_id"] == program_id
-                and receipt["host_sha256"] == head["host_sha256"]
-                and all(
-                    receipt[k] == row[k] for k in ("candidate_sha256", "approval_sha256", "task_id")
-                ),
-                "shared receipt index differs",
+                receipt["generation"] == 1 and receipt["materialization_ready"] is False,
+                "first source acceptance must remain receipt-1",
             )
-            if receipt["schema"] == "uca-source-acceptance-receipt-1":
-                require(
-                    receipt["generation"] == 1 and receipt["materialization_ready"] is False,
-                    "first source acceptance must remain receipt-1",
-                )
-                candidate = reader.metadata(row["candidate_sha256"])
-                approval = reader.metadata(row["approval_sha256"])
-                indexed = reader.rows(
-                    "program_source_candidates",
-                    ("program_id",),
-                    "candidate_sha256=?",
-                    (row["candidate_sha256"],),
-                    limit=1,
-                )
-                require(
-                    indexed == [{"program_id": program_id}]
-                    and candidate["schema"] == "uca-source-candidate-1"
-                    and candidate["program_id"] == program_id
-                    and candidate["task_id"] == row["task_id"]
-                    and candidate["host_sha256"] == head["host_sha256"]
-                    and candidate["generation"] == 0
-                    and candidate["before_sha256"]
-                    == receipt["predecessor_sha256"]
-                    == initial["source_sha256"]
-                    and candidate["after_sha256"] == receipt["source_sha256"]
-                    and candidate["transition_sha256"] == receipt["transition_sha256"]
-                    and approval["schema"] == "uca-source-approval-1"
-                    and approval["candidate_sha256"] == row["candidate_sha256"]
-                    and approval["approved_transition_sha256"] == receipt["transition_sha256"],
-                    "first-phase same-owner acceptance lineage differs",
-                )
-            else:
-                require(
-                    receipt["schema"] == "uca-source-acceptance-receipt-2"
-                    and receipt["generation"] == 2,
-                    "unknown source receipt version",
-                )
-                approval = reader.record(row["approval_sha256"], "uca-source-approval-2")
-                response = completed_request(
-                    reader, approval["host_sha256"], program_id, approval["request_id"]
-                )
-                require(
-                    response is not None and response["receipt_sha256"] == row["receipt_sha256"],
-                    "accepted source has no exact completed decision request",
-                )
-            history.append({**receipt, "receipt_sha256": row["receipt_sha256"]})
-        history.sort(key=lambda r: r["generation"])
-        require(
-            [r["generation"] for r in history] == list(range(1, head["generation"] + 1))
-            and history[-1]["source_sha256"] == head["source_sha256"]
-            and history[-1]["receipt_sha256"] == head["receipt_sha256"],
-            "accepted head skips lineage",
-        )
-        if len(history) == 2:
-            require(
-                history[1]["predecessor_sha256"] == history[0]["source_sha256"]
-                and history[1]["predecessor_receipt_sha256"] == history[0]["receipt_sha256"],
-                "mixed receipt predecessor differs",
-            )
-        dispatches = reader.rows(
-            "program_source_dispatches_v3",
-            ("operation_id",),
-            "program_id=?",
-            (program_id,),
-            limit=1,
-        )
-        require(len(dispatches) == 1, "final v3 metadata is missing")
-        terminal, admission, _, _ = terminal_history(
-            reader, program_id, dispatches[0]["operation_id"]
-        )
-        require(
-            admission["source_sha256"] == history[0]["source_sha256"]
-            and admission["acceptance_receipt_sha256"] == history[0]["receipt_sha256"],
-            "historical v3 predecessor differs",
-        )
-        if len(history) == 2:
-            require(
-                history[1]["terminal_receipt_sha256"] == terminal["receipt_sha256"]
-                and history[1]["task_id"] == terminal["task_id"],
-                "accepted terminal lineage differs",
-            )
-        proposals = reader.rows(
-            PROPOSALS,
-            ("candidate_sha256", "request_sha256"),
-            "program_id=?",
-            (program_id,),
-            limit=1,
-        )
-        candidates = []
-        for proposal in proposals:
-            candidate, core, _ = candidate_links(reader, proposal["candidate_sha256"])
-            completed_preview(reader, proposal["candidate_sha256"])
-            decisions = reader.rows(
-                DECISIONS,
-                ("request_sha256",),
+            candidate = reader.metadata(row["candidate_sha256"])
+            approval = reader.metadata(row["approval_sha256"])
+            indexed = reader.rows(
+                "program_source_candidates",
+                ("program_id",),
                 "candidate_sha256=?",
-                (proposal["candidate_sha256"],),
+                (row["candidate_sha256"],),
                 limit=1,
             )
-            for decision in decisions:
-                payload = reader.record(decision["request_sha256"], "uca-source-request-2")
-                response = completed_request(
-                    reader, payload["host_sha256"], program_id, payload["request_id"], payload
-                )
-                require(
-                    response is not None
-                    and response["action"] == "decide"
-                    and response["candidate_sha256"] == proposal["candidate_sha256"],
-                    "recorded decision has no exact completed request",
-                )
             require(
-                core["admission_sha256"] == terminal["admission_sha256"]
-                and core["terminal_receipt_sha256"] == terminal["receipt_sha256"],
-                "candidate terminal lineage differs",
+                indexed == [{"program_id": program_id}]
+                and candidate["schema"] == "uca-source-candidate-1"
+                and candidate["program_id"] == program_id
+                and candidate["task_id"] == row["task_id"]
+                and candidate["host_sha256"] == head["host_sha256"]
+                and candidate["generation"] == 0
+                and candidate["before_sha256"]
+                == receipt["predecessor_sha256"]
+                == initial["source_sha256"]
+                and candidate["after_sha256"] == receipt["source_sha256"]
+                and candidate["transition_sha256"] == receipt["transition_sha256"]
+                and approval["schema"] == "uca-source-approval-1"
+                and approval["candidate_sha256"] == row["candidate_sha256"]
+                and approval["approved_transition_sha256"] == receipt["transition_sha256"],
+                "first-phase same-owner acceptance lineage differs",
             )
-            candidates.append({"candidate_sha256": proposal["candidate_sha256"], **candidate})
-        requests = reader.rows(
-            REQUESTS,
-            (
-                "host_sha256",
-                "request_id",
-                "status",
-                "payload_sha256",
-                "baseline_sha256",
-                "owner_sha256",
-                "response_sha256",
-            ),
-            "program_id=?",
-            (program_id,),
-            limit=2,
+        else:
+            require(
+                receipt["schema"] == "uca-source-acceptance-receipt-2"
+                and receipt["generation"] == 2,
+                "unknown source receipt version",
+            )
+            approval = reader.record(row["approval_sha256"], "uca-source-approval-2")
+            response = completed_request(
+                reader, approval["host_sha256"], program_id, approval["request_id"]
+            )
+            require(
+                response is not None and response["receipt_sha256"] == row["receipt_sha256"],
+                "accepted source has no exact completed decision request",
+            )
+        history.append({**receipt, "receipt_sha256": row["receipt_sha256"]})
+    history.sort(key=lambda r: r["generation"])
+    require(
+        [r["generation"] for r in history] == list(range(1, head["generation"] + 1))
+        and history[-1]["source_sha256"] == head["source_sha256"]
+        and history[-1]["receipt_sha256"] == head["receipt_sha256"],
+        "accepted head skips lineage",
+    )
+    if len(history) == 2:
+        require(
+            history[1]["predecessor_sha256"] == history[0]["source_sha256"]
+            and history[1]["predecessor_receipt_sha256"] == history[0]["receipt_sha256"],
+            "mixed receipt predecessor differs",
         )
-        request_status = []
-        for request in requests:
-            payload = reader.record(request["payload_sha256"], "uca-source-request-2")
+    dispatches = reader.rows(
+        "program_source_dispatches_v3",
+        ("operation_id",),
+        "program_id=?",
+        (program_id,),
+        limit=1,
+    )
+    require(len(dispatches) == 1, "final v3 metadata is missing")
+    terminal, admission, _, _ = terminal_history(
+        reader, program_id, dispatches[0]["operation_id"]
+    )
+    require(
+        admission["source_sha256"] == history[0]["source_sha256"]
+        and admission["acceptance_receipt_sha256"] == history[0]["receipt_sha256"],
+        "historical v3 predecessor differs",
+    )
+    if len(history) == 2:
+        require(
+            history[1]["terminal_receipt_sha256"] == terminal["receipt_sha256"]
+            and history[1]["task_id"] == terminal["task_id"],
+            "accepted terminal lineage differs",
+        )
+    proposals = reader.rows(
+        PROPOSALS,
+        ("candidate_sha256", "request_sha256"),
+        "program_id=?",
+        (program_id,),
+        limit=1,
+    )
+    candidates = []
+    for proposal in proposals:
+        candidate, core, _ = candidate_links(reader, proposal["candidate_sha256"])
+        completed_preview(reader, proposal["candidate_sha256"])
+        decisions = reader.rows(
+            DECISIONS,
+            ("request_sha256",),
+            "candidate_sha256=?",
+            (proposal["candidate_sha256"],),
+            limit=1,
+        )
+        for decision in decisions:
+            payload = reader.record(decision["request_sha256"], "uca-source-request-2")
+            response = completed_request(
+                reader, payload["host_sha256"], program_id, payload["request_id"], payload
+            )
             require(
-                payload["host_sha256"] == request["host_sha256"]
-                and payload["program_id"] == program_id
-                and payload["request_id"] == request["request_id"],
-                "request history identity differs",
+                response is not None
+                and response["action"] == "decide"
+                and response["candidate_sha256"] == proposal["candidate_sha256"],
+                "recorded decision has no exact completed request",
             )
-            reader.metadata(request["baseline_sha256"])
-            digest(request["owner_sha256"])
-            if request["status"] == "completed":
-                require(
-                    completed_request(
-                        reader, request["host_sha256"], program_id, request["request_id"]
-                    )
-                    is not None,
-                    "completed request disappeared",
+        require(
+            core["admission_sha256"] == terminal["admission_sha256"]
+            and core["terminal_receipt_sha256"] == terminal["receipt_sha256"],
+            "candidate terminal lineage differs",
+        )
+        candidates.append({"candidate_sha256": proposal["candidate_sha256"], **candidate})
+    requests = reader.rows(
+        REQUESTS,
+        (
+            "host_sha256",
+            "request_id",
+            "status",
+            "payload_sha256",
+            "baseline_sha256",
+            "owner_sha256",
+            "response_sha256",
+        ),
+        "program_id=?",
+        (program_id,),
+        limit=2,
+    )
+    request_status = []
+    for request in requests:
+        payload = reader.record(request["payload_sha256"], "uca-source-request-2")
+        require(
+            payload["host_sha256"] == request["host_sha256"]
+            and payload["program_id"] == program_id
+            and payload["request_id"] == request["request_id"],
+            "request history identity differs",
+        )
+        reader.metadata(request["baseline_sha256"])
+        digest(request["owner_sha256"])
+        if request["status"] == "completed":
+            require(
+                completed_request(
+                    reader, request["host_sha256"], program_id, request["request_id"]
                 )
-            else:
-                require(
-                    request["status"] == "pending" and request["response_sha256"] is None,
-                    "unknown request recovery state",
-                )
-            request_status.append(
-                {"request_id": request["request_id"], "status": request["status"]}
+                is not None,
+                "completed request disappeared",
             )
-        return {
-            "schema": "uca-source-transition-status-2",
-            "program_id": program_id,
-            "generation": head["generation"],
-            "source_sha256": head["source_sha256"],
-            "lineage": history,
-            "candidates": candidates,
-            "requests": request_status,
-            "terminal_receipt_sha256": terminal["receipt_sha256"],
-            "source_bytes_verified": False,
-            "filesystem_verified": False,
-            "current_authority_verified": False,
-            "execution_authorized": False,
-            "automatic_execution": False,
-            "materialization_ready": False,
-        }
+        else:
+            require(
+                request["status"] == "pending" and request["response_sha256"] is None,
+                "unknown request recovery state",
+            )
+        request_status.append(
+            {"request_id": request["request_id"], "status": request["status"]}
+        )
+    return {
+        "schema": "uca-source-transition-status-2",
+        "program_id": program_id,
+        "generation": head["generation"],
+        "source_sha256": head["source_sha256"],
+        "lineage": history,
+        "candidates": candidates,
+        "requests": request_status,
+        "terminal_receipt_sha256": terminal["receipt_sha256"],
+        "source_bytes_verified": False,
+        "filesystem_verified": False,
+        "current_authority_verified": False,
+        "execution_authorized": False,
+        "automatic_execution": False,
+        "materialization_ready": False,
+    }

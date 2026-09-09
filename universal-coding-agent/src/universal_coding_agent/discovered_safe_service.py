@@ -261,6 +261,12 @@ class DiscoveredSafeAgentService:
                 "solution_discovery_provenance_ref": provenance_ref.uri,
             },
         )
+        if _execution is None:
+            from universal_coding_agent.product.local_product_first_phase import current_driver
+
+            driver = current_driver()
+            if driver is not None:
+                task = driver.discovery_completed(task)
         if _execution is not None:
             completed = _execution.discovery_completed(task)
             if type(_execution) is ContinuationSafeExecution:
