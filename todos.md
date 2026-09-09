@@ -1,9 +1,10 @@
-Read the attached ETL_0909_R3R4_CORRECTION_TEST02.md completely,
-including Appendix A.
+Read C:\docs\ETL_0909_R3R4_TEST03_INPUTS\START_HERE.md completely.
 
-Execute ETL-0909-R3R4-CORRECTION-TEST02 within its exact boundaries.
-Authenticate baseline identities from the existing local machine records.
-Do not start a duplicate writer.
+Verify the supplied input bytes, then read the complete incorporated
+brief and glossary.
 
-Complete the bounded corrections and permitted local tests.
-Return the complete report and evidence path, then stop for independent review.
+Execute ETL-0909-R3R4-CORRECTION-TEST03 within its exact boundaries.
+Preserve TEST02's blocked evidence. Do not start a duplicate writer.
+
+Return the complete report and evidence path, then stop for
+independent review.
