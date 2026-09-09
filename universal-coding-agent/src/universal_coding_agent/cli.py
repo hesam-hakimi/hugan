@@ -116,6 +116,8 @@ def parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8765)
     serve.add_argument("--ui-dist", type=Path, default=Path("web/dist"))
+    serve.add_argument("--local-product-binding", type=Path)
+    serve.add_argument("--enable-local-product-commands", action="store_true")
     serve.add_argument(
         "--allow-remote-ui",
         action="store_true",
@@ -126,6 +128,23 @@ def parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
+    if arguments.command == "serve":
+        from universal_coding_agent.product.local_product_binding import LocalProductBinding
+
+        arguments._local_binding = (
+            LocalProductBinding.load(arguments.local_product_binding)
+            if arguments.local_product_binding is not None else None)
+        if arguments._local_binding is not None:
+            arguments._local_binding.preflight(
+                arguments.state_root.resolve() / "product" / "programs.sqlite")
+        if arguments._local_binding is not None and arguments.enable_local_product_commands:
+            from universal_coding_agent.product.local_product_binding import check, local_authority
+            from universal_coding_agent.web.app import is_loopback_host
+
+            authority = local_authority(arguments._local_binding.value["local_origin"])
+            check(is_loopback_host(arguments.host), "local_boundary_denied")
+            host = f"[{arguments.host}]" if ":" in arguments.host else arguments.host
+            check(authority == f"{host}:{arguments.port}", "local_boundary_denied")
     if arguments.command == "safe-source-publish":
         return _run_source_control_publish(arguments)
     provider = load_provider(arguments.provider_factory)
@@ -318,6 +337,14 @@ def _run_server(arguments: argparse.Namespace, provider) -> int:
         )
     if arguments.port < 1 or arguments.port > 65535:
         raise ValueError("port must be between 1 and 65535")
+    binding = getattr(arguments, "_local_binding", None)
+    if binding is not None and arguments.enable_local_product_commands:
+        from universal_coding_agent.product.local_product_binding import check, local_authority
+
+        authority = local_authority(binding.value["local_origin"])
+        check(is_loopback_host(arguments.host), "local_boundary_denied")
+        host = f"[{arguments.host}]" if ":" in arguments.host else arguments.host
+        check(authority == f"{host}:{arguments.port}", "local_boundary_denied")
 
     state_root = arguments.state_root.resolve()
     workspace = ProductWorkspace.create(state_root / "product", provider)
@@ -326,7 +353,8 @@ def _run_server(arguments: argparse.Namespace, provider) -> int:
         state_root=state_root / "web-runtime",
         allow_local_sources=arguments.allow_local_sources,
     )
-    app = create_product_app(runtime, ui_dist=arguments.ui_dist)
+    app = create_product_app(runtime, ui_dist=arguments.ui_dist, local_product_binding=binding,
+                             enable_local_product_commands=arguments.enable_local_product_commands)
     uvicorn.run(app, host=arguments.host, port=arguments.port, log_level="info")
     return 0
 

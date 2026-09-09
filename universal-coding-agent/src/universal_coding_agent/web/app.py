@@ -269,6 +269,7 @@ class ProductWebRuntime:
     workspace: ProductWorkspace
     state_root: Path
     allow_local_sources: bool = False
+    local_product_host: Any = None
     executor: ThreadPoolExecutor = field(
         default_factory=lambda: ThreadPoolExecutor(
             max_workers=1,
@@ -286,7 +287,9 @@ class ProductWebRuntime:
     _lock: threading.RLock = field(default_factory=threading.RLock)
 
     def close(self) -> None:
-        self.executor.shutdown(wait=False, cancel_futures=True)
+        if self.local_product_host is not None:
+            self.local_product_host.close()
+        self.executor.shutdown(wait=self.local_product_host is not None, cancel_futures=True)
         self.workspace.close()
 
     def start_safe_task(self, request: SafeTaskStartRequest) -> dict[str, Any]:
@@ -1122,6 +1125,11 @@ class ProductWebRuntime:
             self._end_program_control_action(program_id)
 
     def program_execution_status(self, program_id: str) -> dict[str, Any]:
+        from universal_coding_agent.product.local_product_binding import local_program_route
+
+        if local_program_route(self.workspace.programs.database_path, program_id):
+            raise HTTPException(
+                status_code=409, detail="Managed Program requires the local Product status route.")
         program_status = self.workspace.programs.status(program_id)
         bindings = self.workspace.programs.execution_bindings(program_id)
         with self._lock:
@@ -1531,6 +1539,8 @@ def create_product_app(
     runtime: ProductWebRuntime,
     *,
     ui_dist: Path | None = None,
+    local_product_binding=None,
+    enable_local_product_commands: bool = False,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app: FastAPI):
@@ -1542,6 +1552,15 @@ def create_product_app(
         version="0.1.0",
         lifespan=lifespan,
     )
+    from universal_coding_agent.web.local_product_api import install
+
+    if enable_local_product_commands and local_product_binding is not None:
+        from universal_coding_agent.product.local_product_commands import LocalProductHost
+
+        if runtime.local_product_host is None:
+            runtime.local_product_host = LocalProductHost(runtime.workspace, local_product_binding)
+    install(app, runtime, local_product_binding,
+            enabled=enable_local_product_commands and local_product_binding is not None)
 
     @app.exception_handler(DocumentValidationError)
     async def document_error(_request: Request, exc: DocumentValidationError):

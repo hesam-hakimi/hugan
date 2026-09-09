@@ -171,7 +171,15 @@ def record(raw, schema):
 class Reader(V3Reader):
     def __init__(self, connection):
         super().__init__(connection)
-        self.artifact_total, self.artifact_sizes = 0, {}
+        self.artifact_sizes = self._account["sizes"]
+
+    @property
+    def artifact_total(self):
+        return self._account["opaque"]
+
+    @artifact_total.setter
+    def artifact_total(self, value):
+        self._account["opaque"] = value
 
     def artifact(self, value, *, maximum=24_000_000):
         """Hash stored opaque bytes in bounded chunks, without decoding source/evidence.
@@ -305,21 +313,29 @@ class Reader(V3Reader):
             args,
         ).fetchall()
         require(len(sizes) <= limit, "source row count exceeded")
+        caps = [4096 if "ref" in field or field.endswith("_path") else 128 for field in fields]
         for row in sizes:
             for i in range(0, len(row), 2):
                 require(row[i + 1] in {"text", "integer", "null"}, "invalid source row type")
-                self.budget(row[i] or 0, 4096 if "ref" in fields[i // 2] else 128)
+                self.budget(row[i] or 0, caps[i // 2])
         selected = self.connection.execute(
             "SELECT "
             + ",".join(
+                f"length(CAST({k} AS BLOB)),typeof({k}),"
                 f"CASE WHEN typeof({k}) IN ('text','integer','null') "
-                f"AND coalesce(length(CAST({k} AS BLOB)),0)<=4096 THEN {k} END"
-                for k in fields
+                f"AND coalesce(length(CAST({k} AS BLOB)),0)<={cap} THEN {k} END"
+                for k, cap in zip(fields, caps, strict=True)
             )
             + suffix,
             args,
         ).fetchall()
-        return [dict(zip(fields, row, strict=True)) for row in selected]
+        require(len(selected) == len(sizes), "source selected row count changed")
+        result = []
+        for header, row in zip(sizes, selected, strict=True):
+            require(tuple(header) == tuple(v for i, v in enumerate(row) if i % 3 != 2),
+                    "source selected row type/size changed")
+            result.append(dict(zip(fields, row[2::3], strict=True)))
+        return result
 
 
 def schema(connection, *, initialize=False):
@@ -416,6 +432,11 @@ class AcceptanceStore:
                         sqlite3.SQLITE_OK if read_only_pragma(name, column) else sqlite3.SQLITE_DENY
                     )
                 if action in {sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE, sqlite3.SQLITE_DELETE}:
+                    from universal_coding_agent.product.local_product_command_store import (
+                        participation_sql,
+                    )
+                    if not initialize and participation_sql(db, action, name, database):
+                        return sqlite3.SQLITE_OK
                     ok = (
                         (database == "main" and name == "sqlite_master")
                         if initialize
@@ -461,6 +482,11 @@ class AcceptanceStore:
                 owner.pins()
                 schema(db)
                 self.boundary(label + "_before_commit")
+                if not initialize:
+                    from universal_coding_agent.product.local_product_command_store import active
+                    participant = active(db)
+                    if participant is not None:
+                        participant.before_commit()
                 if verify is not None:
                     verify()
                     owner.pins()

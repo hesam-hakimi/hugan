@@ -633,6 +633,13 @@ class ProgramSourceAcceptanceV2Service:
 
     def _operate(self, payload):
         record(canonical(payload), payload["schema"])
+        from universal_coding_agent.product.local_product_command_store import (
+            require_managed_command,
+        )
+
+        require_managed_command(self.store, payload["program_id"],
+            {"preview_final_source"} if payload["action"] == "preview" else {"decide_final_source"},
+            claimed=False, child=payload["request_id"])
         program, operation, request_id = (
             payload[k] for k in ("program_id", "operation_id", "request_id")
         )
@@ -696,6 +703,11 @@ class ProgramSourceAcceptanceV2Service:
                 owner = self.v3.lifecycle.reserve_program_worker_in_transaction(
                     self.store.connection, program, task_ids=tasks
                 )
+                from universal_coding_agent.product.local_product_command_store import active
+
+                participant = active(self.store.connection)
+                if participant is not None:
+                    participant.claim(owner=owner, lower_payload=payload)
                 _, owner_sha, _ = self.v3._witness(admission, owner)
                 payload_sha = self.db.put(payload)
                 baseline_sha = self.store._put(canonical(baseline))
@@ -873,4 +885,6 @@ class ProgramSourceAcceptanceV2Service:
                     self.store.connection, program, task_ids=tasks, owner_token=owner
                 )
                 self.db.boundary("after_worker_release")
+                if participant is not None:
+                    participant.host.final_completed(participant, response)
             return response

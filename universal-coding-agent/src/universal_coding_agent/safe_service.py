@@ -48,6 +48,7 @@ class SafeAgentService:
     owns_control: bool = False
     owns_remote_operations: bool = False
     execution_adapter: Any = None
+    local_first_driver: Any = None
 
     @classmethod
     def create(
@@ -107,6 +108,13 @@ class SafeAgentService:
             test_runner=selected_test_runner,
             cancellation=control_service.cancellation,
         )
+        from universal_coding_agent.product.local_product_first_phase import current_driver
+
+        local_first_driver = current_driver()
+        if local_first_driver is not None:
+            if execution_adapter is not None:
+                raise ValueError("local first phase cannot use a continuation adapter")
+            services = local_first_driver.bind_services(services, state_root, protocol)
         if execution_adapter is not None:
             from universal_coding_agent.product.program_continuation_execution_adapter import (
                 ContinuationSafeExecution,
@@ -131,6 +139,7 @@ class SafeAgentService:
             owns_control=owns_control,
             owns_remote_operations=owns_remote_operations,
             execution_adapter=execution_adapter,
+            local_first_driver=local_first_driver,
         )
 
     def close(self) -> None:
@@ -149,6 +158,24 @@ class SafeAgentService:
 
     def _execution_gate(self, thread_id: str, task_id: str | None = None, *, action="run",
                         source_task=None) -> None:
+        from universal_coding_agent.product.local_product_binding import local_safe_route
+
+        if local_safe_route(self, thread_id, task_id, source_task):
+            if self.local_first_driver is not None:
+                self.local_first_driver.gate(thread_id, task_id, action)
+                return
+            from universal_coding_agent.product.local_product_command_store import (
+                current_participant,
+            )
+            from universal_coding_agent.product.program_continuation_execution_adapter import (
+                ContinuationSafeExecution,
+            )
+
+            participant = current_participant()
+            if (participant is None or type(self.execution_adapter) is not ContinuationSafeExecution
+                    or self.execution_adapter.dispatch is not participant.host.continuation
+                    or self.control is not participant.host.workspace.control):
+                raise ValueError("local Product task requires its explicit command")
         self.verify_source_dispatch_control()
         from universal_coding_agent.product.program_continuation_execution_adapter import (
             ContinuationSafeExecution,

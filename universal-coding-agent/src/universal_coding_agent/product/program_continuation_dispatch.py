@@ -521,6 +521,13 @@ class ProgramContinuationDispatchService:
     ):
         for value in (program_id, operation_id, request_id):
             identifier(value)
+        from universal_coding_agent.product.local_product_command_store import (
+            require_managed_command,
+        )
+
+        require_managed_command(self.store, program_id,
+            {"decide_continuation_scope"} if action == "approve_scope" else {"start_continuation"},
+            claimed=action != "approve_scope", child=request_id)
         integer(expected_epoch)
         payload = {
             "schema": PREFIX + "request-3",
@@ -973,6 +980,11 @@ class ProgramContinuationDispatchService:
                 owner = self.lifecycle.reserve_program_worker_in_transaction(
                     self.store.connection, program_id, task_ids=tasks
                 )
+                from universal_coding_agent.product.local_product_command_store import active
+
+                participant = active(self.store.connection)
+                if participant is not None:
+                    participant.claim(owner=owner, lower_payload=payload)
                 self.db.boundary("after_fresh_worker")
                 self._state(
                     operation_id,
@@ -1325,6 +1337,15 @@ class ProgramContinuationDispatchService:
 
     def reconcile(self, program_id, operation_id, *, request_id):
         """Finish a reversible seal failure only with the original returned live object."""
+        from universal_coding_agent.product.local_product_command_store import (
+            require_managed_command,
+        )
+
+        part = require_managed_command(self.store, program_id,
+            {"start_continuation", "decide_continuation_scope"}, child=request_id)
+        if part is not None:
+            require(part.reconciliation_observer is not None,
+                    "managed reconciliation requires its observation")
         recorded = self.request_result(program_id, request_id)
         if recorded["request_status"] == "completed":
             return recorded
@@ -1463,6 +1484,11 @@ class ProgramContinuationDispatchService:
             "v3 request completion CAS differs",
         )
         self.db.boundary("after_request_completion")
+        from universal_coding_agent.product.local_product_command_store import active
+
+        participant = active(db)
+        if participant is not None:
+            participant.host.continuation_completed(participant, payload, response)
         return response
 
     def _lineage(self, receipt, before):

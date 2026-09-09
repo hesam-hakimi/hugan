@@ -55,7 +55,7 @@ def read_root_locator(safe):
     return parse_record(raw, "uca-program-source-dispatch-root-3")
 
 
-def task_has_source_marker(task):
+def task_has_source_marker(task, *, local_only=False):
     """Recognize source affinity without interpreting a version as authority."""
     if task is None:
         return False
@@ -67,7 +67,10 @@ def task_has_source_marker(task):
     # These are reserved admission markers. Unknown, absent-value or rewritten
     # versions remain denial evidence; equality with the known version is not
     # required. C2's actual adapter/registry checks still decide its own entry.
-    marked = bool({"execution_schema", "admission_sha256"} & metadata.keys())
+    local = any(key.startswith("local_product_") for key in metadata)
+    if local_only:
+        return local
+    marked = local or bool({"execution_schema", "admission_sha256"} & metadata.keys())
     for item in evidence:
         if type(item) is not dict or type(item.get("context_type")) is not str:
             raise ValueError("invalid checkpoint routing evidence")
@@ -75,7 +78,7 @@ def task_has_source_marker(task):
     return marked
 
 
-def checkpoint_has_source_marker(safe, thread_id):
+def checkpoint_has_source_marker(safe, thread_id, *, local_only=False):
     """Bounded plain-data denial evidence, including corrupt version metadata."""
     if not table(safe.connection, "checkpoints"):
         return False
@@ -121,7 +124,7 @@ def checkpoint_has_source_marker(safe, thread_id):
         raise ValueError("unsupported checkpoint routing encoding")
     if type(value) is not dict or type(value.get("channel_values")) is not dict:
         raise ValueError("invalid checkpoint routing channels")
-    return task_has_source_marker(value["channel_values"].get("task"))
+    return task_has_source_marker(value["channel_values"].get("task"), local_only=local_only)
 
 
 def table(connection, name, alias="main"):

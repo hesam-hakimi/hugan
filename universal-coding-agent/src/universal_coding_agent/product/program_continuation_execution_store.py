@@ -14,10 +14,23 @@ import re
 import sqlite3
 import time
 from contextlib import ExitStack, closing, contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 
 MAX_RECORD = 65_536
 MAX_TOTAL = 1_048_576
+_READ_BUDGET = ContextVar("uca_source_logical_read_budget", default=None)
+
+
+@contextmanager
+def composed_read_budget():
+    require(_READ_BUDGET.get() is None, "nested composed source read")
+    token = _READ_BUDGET.set({"metadata": 0, "cache": {}, "opaque": 0, "sizes": {}})
+    try:
+        yield
+    finally:
+        _READ_BUDGET.reset(token)
+
 PREFIX = "uca-program-continuation-"
 FLAGS = {
     "execution_authorized": False,
@@ -345,7 +358,17 @@ def parse_record(raw, schema):
 
 class Reader:
     def __init__(self, connection):
-        self.connection, self.total, self.cache = connection, 0, {}
+        self.connection = connection
+        self._account = _READ_BUDGET.get() or {"metadata": 0, "cache": {}, "opaque": 0, "sizes": {}}
+        self.cache = self._account["cache"]
+
+    @property
+    def total(self):
+        return self._account["metadata"]
+
+    @total.setter
+    def total(self, value):
+        self._account["metadata"] = value
 
     def budget(self, n, maximum=MAX_RECORD):
         from universal_coding_agent.product.program_source_capture_budget import charge
@@ -369,13 +392,21 @@ class Reader:
             for i in range(0, len(row), 2):
                 require(row[i + 1] in {"text", "integer", "null"}, "invalid v3 row field")
                 self.budget(row[i] or 0, 4096)
-        return [
-            dict(zip(fields, row, strict=True))
-            for row in self.connection.execute(
-                "SELECT " + ",".join(fields) + suffix,
-                args,
-            ).fetchall()
-        ]
+        selected = self.connection.execute(
+            "SELECT " + ",".join(
+                f"length(CAST({k} AS BLOB)),typeof({k}),"
+                f"CASE WHEN typeof({k}) IN ('text','integer','null') "
+                f"AND coalesce(length(CAST({k} AS BLOB)),0)<=4096 THEN {k} END"
+                for k in fields) + suffix,
+            args,
+        ).fetchall()
+        require(len(selected) == len(sizes), "v3 selected row count changed")
+        result = []
+        for header, row in zip(sizes, selected, strict=True):
+            actual_header = tuple(v for i, v in enumerate(row) if i % 3 != 2)
+            require(tuple(header) == actual_header, "v3 selected row size/type changed")
+            result.append(dict(zip(fields, row[2::3], strict=True)))
+        return result
 
     def record(self, value, schema):
         digest(value)
@@ -387,11 +418,16 @@ class Reader:
             ).fetchone()
             require(row is not None and row[1] == "blob", "missing v3 record")
             self.budget(row[0])
-            raw = self.connection.execute(
-                "SELECT content FROM program_source_artifacts WHERE sha256=?", (value,)
-            ).fetchone()[0]
-            require(sha(raw) == value, "v3 record digest differs")
+            selected = self.connection.execute(
+                "SELECT CASE WHEN typeof(content)='blob' AND length(content)=? "
+                "THEN substr(content,1,?) END FROM program_source_artifacts WHERE sha256=?",
+                (row[0], row[0], value)).fetchone()
+            require(selected is not None and type(selected[0]) is bytes
+                    and len(selected[0]) == row[0]
+                    and sha(selected[0]) == value, "v3 record digest differs")
+            raw = selected[0]
             self.cache[value] = raw
+        require(len(self.cache[value]) <= MAX_RECORD, "cached v3 record exceeds bound")
         return parse_record(self.cache[value], schema)
 
     def receipt(self, value, program_id):
@@ -855,6 +891,11 @@ class ContinuationExecutionStore:
                         sqlite3.SQLITE_OK if read_only_pragma(name, column) else sqlite3.SQLITE_DENY
                     )
                 if action in {sqlite3.SQLITE_INSERT, sqlite3.SQLITE_UPDATE, sqlite3.SQLITE_DELETE}:
+                    from universal_coding_agent.product.local_product_command_store import (
+                        participation_sql,
+                    )
+                    if not initialize and participation_sql(db, action, name, database):
+                        return sqlite3.SQLITE_OK
                     if (
                         not initialize
                         and database == "main"
@@ -911,6 +952,11 @@ class ContinuationExecutionStore:
                 yield Reader(db)
                 self.pins()
                 self.boundary("before_commit")
+                if not initialize:
+                    from universal_coding_agent.product.local_product_command_store import active
+                    participant = active(db)
+                    if participant is not None:
+                        participant.before_commit()
                 db.commit()
                 self.boundary("after_commit")
             except BaseException:

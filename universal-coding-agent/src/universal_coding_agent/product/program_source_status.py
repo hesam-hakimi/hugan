@@ -381,6 +381,16 @@ class _SourceReader:
 
 def require_legacy_program_route(database_path: Path, program_id: str, task_id=None) -> None:
     """Reject routing cumulative source through v1; never grant v2 permission."""
+    from universal_coding_agent.product.local_product_binding import local_program_route
+
+    if local_program_route(database_path, program_id, task_id):
+        from universal_coding_agent.product.local_product_first_phase import current_driver
+
+        driver = current_driver()
+        if (driver is None or driver.program_id != program_id
+                or driver.host.programs.database_path != database_path
+                or task_id not in {None, driver.task_id}):
+            raise ValueError("local Product Program requires its explicit command")
     status = program_source_status(database_path, program_id)
     if status["status"] == "uninitialized":
         return
