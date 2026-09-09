@@ -1,177 +1,156 @@
-TASK_ID: ETL-0909-WORKFLOW-EMPTY-PROJECT-INDEPENDENT-REVIEW01
-TYPE: BOUNDED INDEPENDENT BOUNDARY REVIEW
-REVIEWED_TASK: ETL-0909-WORKFLOW-EMPTY-PROJECT-BOOTSTRAP01
+TASK_ID: ETL-0909-WORKFLOW-EMPTY-PROJECT-HOST-SMOKE01
+TYPE: BOUNDED REAL VSCODE WORKFLOW VERIFICATION
 
-Use English for all communication, reports, and artifacts.
+Use English for all communication, UI guidance, reports, and artifacts.
 
-GOAL
-Independently review the completed empty-project workflow bootstrap
-change and its retained evidence. Determine whether its local source
-boundary is acceptable.
+OBJECTIVE
+Verify the accepted empty-project workflow bootstrap through a real
+VS Code Extension Development Host, real selection/confirmation dialogs,
+and real filesystem writes in one fresh temporary consumer folder.
 
-This is a review task. Do not implement fixes or rerun the project.
+This is verification, not implementation or release.
 
-OWNER REQUIREMENT
-A user must be able to initialize the packaged ETL Copilot workflow
-in an explicitly selected new/empty consumer project without first
-creating ETL marker folders.
+AUTHORITATIVE INPUTS
+Resolve and read the complete report and result for:
+ETL-0909-WORKFLOW-EMPTY-PROJECT-INDEPENDENT-REVIEW01
 
-The intended flow is:
-select consumer root -> preview workflow assets -> approve -> create
-the approved assets in that same root.
+Follow its machine-recorded links to:
+ETL-0909-WORKFLOW-EMPTY-PROJECT-BOOTSTRAP01
 
-This does not make every unknown folder a verified ETL workspace,
-remove protected-root exclusions, or authorize unrelated write routes.
+Use bounded direct-child discovery under C:\docs. Authenticate task
+identity and source/build relationships from machine records.
+Never derive hashes from screenshots or choose evidence by timestamp alone.
 
-REPORTED STATE — VERIFY FROM MACHINE RECORDS
-BOOTSTRAP01 reports:
-- LOCAL_CHECKED_AWAITING_INDEPENDENT_BOUNDARY_REVIEW.
-- 13 new tests passed.
-- A separate regression probe failed against pre-edit sources and
-  passed against post-edit sources.
-- 143 adjacent tests passed in the named passing suites.
-- The customization suite retained three documented pre-existing
-  failures; it was not fully green.
-- No real VS Code Host or installed-extension qualification.
-- Repository output and maintainer .github content were preserved.
+Carry forward:
+- Review result: ACCEPTED_WITH_LIMITATIONS.
+- The new 13-test suite and regression red/green evidence were authenticated.
+- Adjacent-suite totals lacked retained output; do not claim them verified.
+- F-1 through F-5 and U-1/U-2 remain recorded limitations.
+- No installed-extension or release acceptance exists.
 
-Treat these as claims to inspect, not conclusions to copy.
+PRECONDITIONS
+Verify the reviewed source identities, worktree, branch, HEAD, staged
+state, and dirty set against the review records.
 
-INPUTS AND BASELINE
-1. Resolve the existing BOOTSTRAP01 evidence bundle using bounded
-   direct-child discovery under C:\docs and its machine-recorded task ID.
-   Do not select a bundle solely because it has the newest timestamp.
+Check for an active writer or conflicting Host. Do not launch a duplicate,
+terminate unrelated processes, resolve pending editor changes, or repair
+a mismatching baseline.
 
-2. Read its full report, result, governing task brief, exact task diff,
-   baseline/precopy records, preservation records, and relevant test
-   outputs. Follow explicit artifact links within that evidence chain.
+AUTHORITY
+You may:
+- Create a fresh evidence directory and a fresh temporary consumer folder.
+- Prepare an isolated development-host launch surface outside the repository.
+- Launch the existing local VS Code executable with isolated user-data
+  and extension directories.
+- Exercise the actual workflow initialization command and real dialogs.
+- Create only the selected packaged workflow assets and their managed
+  .gitignore within the explicitly confirmed temporary consumer root.
+- Preserve the resulting evidence and temporary test output.
 
-3. Obtain expected worktree, branch, HEAD, changed paths, hashes, and
-   byte counts from those records. Never transcribe a hash from a photo.
+Do not:
+- Change product source, tests, references, repository output, or Git.
+- Install dependencies, package a VSIX, install the candidate into the
+  user's normal VS Code profile, publish, or release.
+- Write to any real consumer repository or reference checkout.
+- Execute unrelated ETL jobs, publishing, deployment, or broad test suites.
+- Substitute mocks, direct initializer calls, or filesystem adapters for
+  the real Host path.
 
-4. Verify that the live five-file post-state matches the reviewed
-   evidence. src/test/testPatterns.ts was already dirty before this
-   task: compare its actual pre-task copy, not HEAD.
+RUNTIME PREPARATION
+Reuse the authenticated BOOTSTRAP01 external compiled output when its
+identity and completeness support a real development-host launch.
 
-5. Confirm no writer or relevant Host is currently using the worktree.
-   If one is active, return WAITING_FOR_ACTIVE_TASK. Do not start another.
+Resolve required runtime resources, package metadata, and existing
+dependencies from actual files. Keep any necessary staging outside the
+repository and record its source-to-staging identities.
 
-If task identity, baseline, or required evidence is missing or conflicting,
-report the precise blocker. Do not repair, reset, normalize, or re-pin it.
-Do not reconstruct missing contract text.
+Do not launch the stale repository out/ as though it contained bootstrap.
+Do not rebuild merely for convenience. If the retained build cannot
+support an authentic launch without additional changes, report the exact
+blocker and smallest required preparation; do not expand scope.
 
-REVIEWED DELTA
-- src/customization/WorkflowTargetResolver.ts
-- src/customization/CopilotWorkflowInitializer.ts
-- src/customization/CopilotWorkflowCommands.ts
-- src/test/testPatterns.ts
-- src/test/suite/workflowEmptyProjectBootstrap.test.ts
+Record the actual loaded extension path, version, and compiled-code
+identity. Version text alone is not sufficient proof.
 
-Read directly required callers and helpers to establish behavior.
-Do not broaden into unrelated project cleanup or historical audits.
+ONE BOUNDED SCENARIO
+1. Create a genuinely empty temporary folder outside protected roots.
+   Open it as the only workspace folder in the isolated Host.
+   Record its exact absolute path and initial empty inventory.
 
-REVIEW QUESTIONS
+2. Invoke the registered command:
+   databricks-etl-copilot.initializeCopilotWorkflow
 
-A. Bootstrap eligibility and root selection
-- Does setup work for a genuinely empty selected consumer directory?
-- Is bootstrap opt-in limited to the intended workflow operations?
-- Does default classification remain unchanged?
-- Does multi-root selection require an explicit choice?
-- Determine how populated but unmarked directories are treated.
-  Assess that behavior against explicit consumer designation and the
-  governing brief; do not assume "unknown" alone proves either safety
-  or a defect.
-- Verify protected extension/framework/reference roots, filesystem
-  roots, and home exclusions. Check actual identity and containment
-  behavior, including aliases and junctions where relevant.
-  Basename-list parity alone is not proof of protected-root identity.
+   Use the base profile for the smallest packaged asset set.
 
-B. Preview, approval, and actual writes
-- Trace the selected root through preview, confirmation, approved plan,
-  revalidation, and filesystem write.
-- Verify that approval binds the actual destination and written assets,
-  including relevant content/profile changes.
-- Inspect the optional approvedPlan parameter and every production
-  caller. Determine whether bootstrap can bypass the required
-  preview/approval binding through another entrypoint.
-- Examine changes between preview and write: root, file set, content,
-  and existing destination state.
-- Check managed .gitignore changes explicitly: are these side effects
-  adequately disclosed and authorized, contained to the selected root,
-  and protective of existing user content?
-- Cancellation must cause no provisioning writes. Blockers or drift
-  must not authorize unapproved side effects.
-- Verify physical containment is enforced at the actual write boundary.
+3. Exercise one cancellation at the real confirmation flow.
+   Verify zero consumer-file writes, including no .gitignore creation.
 
-C. Preservation and user-visible results
-- Existing user-modified files must not be silently overwritten.
-- Repeat initialization must preserve the documented idempotent behavior.
-- Assets must come from the packaged catalog; no maintainer control-plane
-  files or artificial ETL markers may be introduced.
-- Creation, unchanged files, conflicts, blockers, cancellation, and
-  managed .gitignore changes must be reported accurately.
-- A blocked or empty result must not be presented as successful creation.
-- Job/env writing and other non-bootstrap operations must retain their
-  existing authorization and root-selection boundaries.
+4. Invoke the same command again and complete the real profile selection,
+   root confirmation, and Initialize approval.
 
-D. Evidence quality
-- Authenticate the exact diff and pre/post identities.
-- Verify that the regression probe exercises the relevant real code and
-  that its red result is the intended assertion failure.
-- Verify the retained compiler and test outputs, source-to-output
-  relationship, and the reported test counts.
-- Check the evidence supporting the three pre-existing customization
-  failures. Do not describe that suite as fully passing.
-- Distinguish external compilation, headless tests with simulated user
-  interaction, real temporary filesystem writes, real VS Code Host
-  behavior, and installed-extension qualification.
-- Verify relevant preservation claims using retained machine records.
+   Before approval, record the actual root and exact planned asset paths.
+   Explicitly disclose that the existing implementation also creates a
+   managed .gitignore. This task authorizes that additional file only in
+   this temporary root; it does not resolve product disclosure finding F-1.
 
-AUTHORITY AND EFFICIENCY
-Allowed:
-- Read-only inspection and hashing.
-- Read-only helper scripts that do not import or execute project code.
-- Creation of this review's report and result in one fresh evidence
-  directory outside the repository.
+   Do not bypass the product's confirmation flow.
 
-Not allowed:
-- Source, reference, existing-evidence, or editor-change mutation.
-- Compiler, tests, runner, Host, or product execution.
-- Dependency installation, output promotion, packaging, installation,
-  Git mutation, publishing, or release.
-- Real consumer workspace writes.
+5. Verify actual created files against the packaged catalog and expected
+   written content, including managed metadata where applicable.
+   Record the .gitignore content separately.
 
-Reuse unchanged accepted evidence. Do not rerun the earlier consumer-write
-smoke or reopen accepted protocol/STTM work. Missing installed evidence is
-a stated qualification limit, not automatically a local source defect.
+   Verify no unexpected files or artificial ETL marker directories were
+   created, and no writes escaped the temporary consumer root.
 
-DELIVERABLE
-Produce one concise report.md and result.json.
+6. Capture real Target Resolution and Setup Outcome messages, dialog
+   selections, created/blocked/conflicted counts, and relevant Host logs.
 
-For each material finding include:
-- exact file and location;
-- reachable path or concrete evidence;
-- violated requirement and practical consequence;
-- smallest necessary correction.
+Use real UI interaction if available. If your environment cannot operate
+the dialogs, prepare everything first, then give the owner one concise
+English instruction containing the exact window, command, profile,
+temporary root, and buttons to use. Do not simulate their answers or
+claim completion while waiting.
 
-Separate demonstrated defects, unresolved evidence questions, and
-non-blocking limitations. Do not invent a defect to fill a checklist.
+EVIDENCE AND PRESERVATION
+Keep a small evidence bundle:
+- launch/source identity record;
+- before/after consumer inventory;
+- actual preview and confirmed write set;
+- relevant Host/output logs and UI evidence;
+- content verification;
+- repository preservation check;
+- report.md and result.json.
 
-End with:
+Retain existing evidence unchanged. Do not delete retained directories
+to make the earlier incorrect cleanup claim appear true.
+Do not rerun adjacent suites to recreate missing historical evidence.
+
+ASSESSMENT
+A successful run establishes only the exercised real development-host
+empty-project workflow scenario.
+
+It does not establish installed VSIX qualification, release readiness,
+all profiles, all multi-root cases, or the original job/env write fix.
+
+If blocked or failing, preserve the concrete symptom and stop without
+implementing a fix.
+
+FINAL FIELDS
 TASK_ID:
-REVIEWED_TASK:
-REVIEW_RESULT: ACCEPTED / ACCEPTED_WITH_LIMITATIONS / CHANGES_REQUIRED / BLOCKED / WAITING_FOR_ACTIVE_TASK
-REVIEWED_SOURCE_IDENTITY:
-BASELINE_AND_DIFF_VERIFIED:
-BOOTSTRAP_ROOT_SELECTION:
-PREVIEW_APPROVAL_WRITE_BINDING:
-GITIGNORE_AUTHORIZATION_AND_PRESERVATION:
-PROTECTED_ROOT_AND_CONTAINMENT:
-LOCAL_TEST_EVIDENCE:
-MATERIAL_FINDINGS:
+STATUS: PASS / FAIL / BLOCKED / WAITING_FOR_OWNER_UI
+LOADED_EXTENSION_IDENTITY:
+TEMPORARY_CONSUMER_ROOT:
+REAL_VSCODE_HOST_USED:
+REAL_DIALOGS_EXERCISED:
+CANCELLATION_ZERO_WRITES:
+APPROVED_ASSET_SET:
+MANAGED_GITIGNORE_DISCLOSED_FOR_THIS_RUN:
+ACTUAL_CREATED_FILES:
+CONTENT_VERIFICATION:
+UNEXPECTED_OR_OUTSIDE_ROOT_WRITES:
+REPOSITORY_CHANGED: NO
 RETAINED_LIMITATIONS:
-REPOSITORY_CHANGED_BY_REVIEWER: NO
-PROJECT_COMPILER_TEST_RUNNER_OR_HOST_EXECUTED_BY_REVIEWER: NO
+EMPTY_PROJECT_WORKFLOW_HOST_VERIFIED:
 EMPTY_PROJECT_WORKFLOW_INSTALLED_VERIFIED: NO
 INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 EVIDENCE_ROOT:
@@ -179,8 +158,4 @@ REPORT_PATH:
 RESULT_PATH:
 NEXT_CONDITIONAL_GATE:
 
-If accepted, identify the smallest separately bounded real VS Code
-workflow verification needed next. If changes are required, identify
-only the necessary correction scope. Execute neither.
-
-Stop after delivering the review.
+Stop after delivering the result.
