@@ -5,7 +5,7 @@ import sqlite3
 import subprocess
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
 
 import httpx
@@ -278,6 +278,12 @@ finally:
                     [sys.executable, "-c", writer_code, str(path)], capture_output=True, timeout=5
                 )
                 assert writer.returncode != 0 and b"database is locked" in writer.stderr
+            done, pending_controls = wait(controls, timeout=60)
+            assert not pending_controls, (
+                f"{len(pending_controls)} of {len(controls)} control requests "
+                "did not finish within the aggregate deadline"
+            )
+            assert done == set(controls)
             for future in controls:
                 response = future.result(timeout=15)
                 assert response.status_code in {400, 500}, response.text
