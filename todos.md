@@ -1,269 +1,240 @@
-TASK_ID: ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01
-TYPE: BOUNDED INDEPENDENT REVIEW OF RETAINED BUILD AND RUNTIME EVIDENCE
+TASK_ID: ETL-0909-PRODUCT-WRITE-EVIDENCE01
+TYPE: BOUNDED EVIDENCE INTAKE AND RECORD CORRECTION
 
 ENVIRONMENT AND LANGUAGE
-Use a fresh independent LOCAL Windows VS Code Agent reviewer.
+Use one ordinary LOCAL Windows VS Code Agent.
 Use English for all conversation and artifacts.
 
-OBJECTIVE
-Review ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01 and determine whether its
-source -> checked build -> promotion -> canonical manifest -> actual run
-relationship supports acceptance of the nominal protocol-3 focused scenario.
-
-Reported outcome:
-- RUNTIME_EVIDENCE_OBTAINED
-- No source changes
-- 11 compiler outputs promoted within the four-source boundary
-- One runner invocation, one Host launch, no retries
-- Eight focused tests passed
-- Host exit 0, parent PASS/0, empty cause ledger
-- No consumer product writes
-
-These are claims to authenticate, not predetermined review conclusions.
-
-AUTHORITY
-This prompt authorizes read-only repository/evidence inspection and new
-review-only measurements and reports in an exclusive external directory.
-
-Do not compile, run tests, import/execute project modules, launch the runner,
-producer or Host, promote outputs, modify Git, or edit existing evidence.
-
-Read-only analysis helpers may parse files, compare bytes, compute identities,
-and assess retained records. Inspect reused helpers before use; never run a
-helper that writes to a prior evidence directory.
-
-Do not repeat accepted TEST03/TEST04 source or unit reviews.
-Do not implement fixes during this review.
-
-RESOLVE THE ACTUAL EVIDENCE
-Expected repository:
+Expected development repository:
   C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Resolve the reviewed bundle through bounded direct-child discovery:
-  C:\docs\ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01-*
+OBJECTIVE
+Prepare a concrete, evidence-backed next task for the original consumer
+file-write defect.
 
-Select by result.json task identity and evidence relationships, not timestamp.
+The latest independent review:
+  ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01
+accepted the build/promotion/manifest relationship and nominal protocol-3
+focused runtime with limitations.
 
-Read the complete RUNTIME01 brief, report.md, result.json, and the following
-records, resolving their actual paths through the report:
+Do not reopen that accepted scenario or rerun its build, tests or Host.
+Unexecuted fault branches remain unqualified; they are not prerequisites
+for collecting the original write-defect evidence.
 
-- measurements/p3-preflight.json
-- measurements/p3-process-scan.json
-- attempts/b1-checked/build-result.json
-- attempts/b1-checked/build-diagnostics.json
-- Compiler read-set and source/output association records
-- promotion-plan.json and promotion-journal.json
-- Destination pre-copies and staged/promoted outputs
-- measurements/p3-qa-materialization.json
-- run-root-creation-receipt.json and execution-plan.json
-- pre-launch-recheck.json
-- run-status.json, run-stdout.txt, run-stderr.txt, supervisor.log
-- Original manifest/result artifacts and their preserved copies
-- measurements/p3-run-assessment.json
-- measurements/p3-run-assessment-correction.json
-- measurements/p3-end-state.json
-- measurements/p3-buildinfo-resolution.json
-- addendum/l1-superseded-claim-reference.md
+Also address the review's four record findings in this same task.
+Do not create a separate engineering cycle for these corrections.
 
-Follow exact cross-references to REVIEW03 and the accepted C1 build/run
-records only where needed to authenticate baseline, outputs, Host or fixture.
+AUTHORITY
+Allowed:
+- Bounded read-only inspection of existing evidence and relevant source.
+- Read-only analysis helpers.
+- Copying specifically identified evidence into a new external task directory.
+- Corrected report/result derivatives and a concise defect-intake record.
 
-Do not recursively scan C:\docs or unrelated workspaces.
-Do not request credentials, profile dumps, or consumer data.
+Not allowed:
+- Repository source, configuration or generated-output changes.
+- Compiler, tests, runner, producer, Host or product execution.
+- Reproducing a write by executing it.
+- Consumer-workspace mutation.
+- Dependency installation, Git mutation, packaging or release.
+- Editing prior evidence, reference state, changelog or frozen briefs.
 
-Read expected hashes from machine records. Never transcribe them from images
-or use a fresh measurement as its own expected baseline.
+This prompt does not authorize a future guarded-write operation.
+That approval must identify the actual temporary workspace and exact write set.
 
-RUNTIME01 reported that 01_CURRENT_STATE.json and
-08_DECISIONS_AND_CHANGELOG.md were inaccessible after bounded probes.
-Assess this against its “where accessible” instruction. Do not claim they
-were read or create a new blocker solely from their optional absence when
-the governing brief and necessary original evidence are available.
+READ AND RESOLVE
+Read this entire prompt and the complete latest runtime independent review.
 
-PREFLIGHT
-Confirm no conflicting writer/runner/Host is active.
-An ordinary editor or language server alone is not a blocker.
-Do not remove locks or terminate processes.
+Resolve its bundle through bounded direct-child discovery:
+  C:\docs\ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01-*
 
-Authenticate:
-- Repository/common-Git identity, branch, HEAD, staging and dirty-path set.
-- All five accepted reviewed source identities.
-- Live promoted outputs against RUNTIME01's recorded post-state.
-- Required retained evidence and copy/original relationships.
+Select by machine task identity and reviewed-task relationships, not recency.
+Follow its recorded path to:
+  ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01
 
-Use git --no-optional-locks for read-only Git checks.
+Read the relevant original report, result, correction records, run status,
+inventory, preserved runner evidence and the four findings R-1 through R-4.
 
-Current drift must be reported separately from the historical run's evidence.
-Do not repair drift or silently replace the reviewed baseline.
+Use current reference pointers where accessible. Their previously reported
+absence does not require recreating the reference pack for this task.
 
-Create a new exclusive external review directory:
-  C:\docs\ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01-<UTC>-<GUID>
+Do not recursively search C:\docs, user profiles, chat storage, Local History,
+or unrelated workspaces. Never derive expected hashes from photographs.
 
-BUILD AND PROMOTION REVIEW
-Verify from retained compiler records and inspected build-helper source:
+Create one exclusive external directory:
+  C:\docs\ETL-0909-PRODUCT-WRITE-EVIDENCE01-<UTC>-<GUID>
 
-- A checked Program using the actual configuration and installed compiler.
-- Configuration, options, global, syntactic, semantic, declaration and emit
-  diagnostics were captured.
-- noEmitOnError=true, successful emit, zero reported errors/warnings.
-- Physical writes were redirected to external staging.
-- Incremental/build-info persistence was prevented.
-- Source identities came from actual compiler reads.
-- Source/output associations are supported by compiler and source-map data,
-  rather than guessed filenames.
+Keep all new artifacts there. Preserve original records byte-for-byte.
 
-Reconcile the reported 2028 emissions against 2020 existing outputs:
-2009 identical, 11 different, eight staged-only unit companions.
+PART A — CORRECT THE RECORD WITHOUT REWRITING HISTORY
 
-Authenticate that:
-- The promotion plan preceded destination writes.
-- All 11 changes belong to compiler companions of:
-    src/test/runTest.ts
-    src/test/b3OutcomePolicy.ts
-    src/test/suite/index.ts
-    src/test/suite/sttmRealHostStructuredResult.test.ts
-- Five identical companions were skipped.
-- Eight staged-only unit companions were not promoted.
-- Every replacement has a valid preimage, journal entry and read-back identity.
-- No required runtime dependency mismatch was omitted.
-- No output outside the frozen plan changed.
+R-1: Host-log retention
+The reviewed report claimed three logs were copied into logs/host/, but the
+directory was empty. The reviewer authenticated 25 logs still in RUN_ROOT
+against the retained runner evidence.
 
-Do not rebuild merely to reproduce already-retained evidence.
-If provenance is insufficient, identify the exact unsupported relationship.
+Resolve only those explicitly recorded log paths.
+If they still exist and match their recorded hashes, copy the recorded logs
+into this new task directory and verify each copy.
 
-THREE MEASUREMENT CORRECTIONS
-Independently assess these corrections without overwriting their originals:
+Do not copy a whole profile or arbitrary RUN_ROOT contents.
+Do not modify or delete originals.
 
-1. Output-path keys:
-   The original C1 inventory was out/-relative while the promotion journal
-   was repository-relative. Confirm the normalization maps both to the same
-   files without collisions, omissions, or hidden content mismatches.
+Clearly distinguish:
+- Logs that were absent from the original evidence bundle.
+- Logs newly preserved by this task.
+- Any logs now unavailable or mismatched.
 
-2. Declared coverage:
-   The initial assessment confused the focused suite's 49 comparisons with
-   the runner's derived Host-evidence prefix.
-   Recompute from actual source and retained runtime data:
-     49 focused-suite comparison records
-     124 derived Host-evidence rows
-     40 runner-owned measurements
-     164 total runner comparisons
-   Verify the correction supersedes only the affected fields and preserves
-   the original record. Do not infer declaredCoverage from a count alone.
+If unavailable, correct the retention claim and report the durability gap.
+Do not regenerate logs or rerun the Host.
 
-3. BUILD_INFO_CHANGED:
-   Check the claimed null-versus-omitted-field representation difference
-   against file existence and byte identities at the recorded stages.
-   Determine whether it is a helper-record discrepancy or actual drift.
-   A successful final verdict alone cannot settle this question.
+R-2: Residual declaredCoverage and explanation
+Create a corrected derivative of RUNTIME01 result.json and a correction map.
+Cover every affected field identified by the reviewer, including:
 
-MANIFEST, HOST, FIXTURE AND RUN REVIEW
-Verify:
-- Prepared VS Code 1.135.0 and dependency identities from prior records and
-  RUNTIME01 measurements.
-- The quarantine was valid at the recorded execution time; do not renew it.
-- The authenticated 23-file QA seed/copy relationship and unchanged workbook.
-- RUN_ROOT was exclusively created, empty at launch, disjoint from QA and
-  TASK_ROOT, and compatible with the real runner's containment contract.
-- Supported child settings and ordered development/dependency paths.
-- No pre-seeded nonce, delivery or acceptance fields.
-- The protected set was derived from current policy, with all four promoted
-  runtime JavaScript modules covered.
-- Fresh manifest generation and canonical acceptance occurred in the same
-  authorized runner invocation.
-- Manifest entries match the promoted bytes; digest differences from C1 are
-  explained by authorized promotion.
-- Exactly one runner and one Host executed, with no retries or hidden probes.
-- Host/parent exits, timing, process ownership, cleanup and post-exit checks
-  are supported by original logs and records.
+  runtimeAssessment.compositionEvidence
+    .bindComparisonProvenance.declaredCoverage
 
-Do not equate a matching post-run digest with proof of prelaunch acceptance.
-Identify the evidence supporting each phase separately.
+Authenticate the correct values from retained evidence:
+- 49 focused-suite comparison records.
+- 124 derived Host-evidence rows forming the runner's declared prefix.
+- 40 runner-owned measurements.
+- 164 total runner comparisons.
 
-NOMINAL RUNTIME RESULT
-Independently verify:
-- Protocol version 3 was produced and accepted in the focused result path.
-- Nonce, suite identity, loaded-file identity, delivery completion and QA
-  correlation agree across the original artifacts.
-- Eight unchanged authored tests ran and passed, with zero pending/failures.
-- Host comparisons and runner comparisons passed under their actual schemas.
-- Parser cardinality was one, outcome fulfilled, wrapper restoration succeeded,
-  and the recorded tool invocation count was one.
-- Structured and Markdown mapping identities and projections match their
-  existing authenticated expectations.
-- The parent result is PASS/0 with an empty ledger.
-- Both evidence artifacts reached their primary destinations.
-- Protected post-exit checks passed and no task-owned processes remained.
+Correct the explanation that incorrectly describes the 49 suite records as
+the rows directly bound by runner provenance. They are inputs consumed by
+buildHostEvidenceComparisons; the derived prefix is 124 rows.
 
-For the bind -> integrity handling -> exemption -> attribution sequence,
-distinguish directly recorded runtime facts from conclusions inferred through
-the authenticated executed source path.
+Identify the affected notes and superseded fields precisely.
+Do not perform a global replacement of 49; that value remains correct for
+the focused suite's own records.
 
-Zero integrity failures means the failure-handling loop body was not exercised.
-With all comparisons passing, no actual waiver or failing attribution
-disposition was demonstrated. Do not describe those branches as runtime-proven.
+Leave the original assessment and result files unchanged.
 
-LIMITATIONS AND PRESERVATION
-Verify the L-1 addendum identifies the missing TEST02 section 5.2 reference
-without changing the original brief, classification, or prior evidence.
+R-3: Narrative timestamps
+Use exact timestamps from run-status.json and the original machine result
+in the corrected report derivative. Do not manually copy them from images.
 
-Carry forward:
-- The retained F-2 duplicate-cause limitation.
-- The known F-4 historical artifact limitation.
-- The eleven explicitly unexercised runtime categories.
-- The distinction between STTM read-only validation and guarded product writes.
+R-4: Inventory omission
+Account for the omitted result-emit-stdout.txt and the original inventory's
+documented self-exclusion.
 
-Review R5 disclosures against actual stderr/logs. Report the observed inherited
-MCP identity and unauthenticated GitHub probes accurately. Do not claim absolute
-offline isolation, initiate network probes, or expand this into a new investigation.
+Publish an explicit supplemental entry or corrected derivative index.
+Finalize this task's own inventory after its artifacts are written, with
+self-exclusions clearly stated.
 
-Verify source, output, QA, consumed evidence and relevant Host preservation.
-Report unexpected changes precisely; do not normalize them away.
+Produce corrected report/result derivatives linked to the original identities
+and this review. Label them as later corrections, not original run artifacts.
+Do not present the original inconsistent fields as current facts.
 
-DECISION AND DELIVERABLES
-Return ACCEPTED, ACCEPTED_WITH_LIMITATIONS, CHANGES_REQUIRED, or BLOCKED.
+Verify these corrections directly. No compiler, test run, full historical
+audit or new independent code-review gate is needed solely for them.
 
-Acceptance applies only to the authenticated build/promotion/manifest relationship
-and the nominal protocol-3 focused runtime scenario. It grants no acceptance of
-unexecuted failure branches, full B3, consumer writes, installed .148, or release.
+PART B — COLLECT THE ORIGINAL WRITE-DEFECT EVIDENCE
 
-For each finding state:
-- Concrete requirement and evidence location.
-- Whether it affects acceptance.
-- Smallest necessary correction or missing record.
-Do not create new requirements solely to remove a disclosed non-material limit.
+Use already-visible owner context and exact evidence locators explicitly
+identified in the current references or supplied reports.
 
-Write report.md, result.json, and only necessary review measurements.
-Separate independently measured facts, authenticated retained evidence,
-inherited acceptance, and remaining uncertainty.
+Do not substitute the synthetic STTM read-only fixture for the original
+write-failure scenario.
+
+Collect the following, recording each source and any missing item:
+
+1. Actual failure
+   - Verbatim observed error and stack, where available.
+   - Exact user action/tool/command that failed.
+   - Expected behavior versus actual behavior.
+   - Whether files were absent, partially written, written to the wrong root,
+     blocked, or reported successful without the expected outputs.
+   - Extension version and runtime environment, if recorded.
+
+   If no exception or stack was produced, record that honestly and preserve
+   the observed symptom. Do not manufacture an error from a source-code string.
+
+2. Reproducible input and workspace
+   - The exact owner-selected consumer workspace.
+   - The workbook/STTM/configuration actually consumed by the failing route.
+   - Original paths and machine identities when available.
+   - Relevant settings and existing files needed to reproduce the behavior.
+
+   Do not choose a consumer root by guessing.
+   Do not demand a workbook if the observed failure occurred before that
+   route consumed one. Mark applicability from evidence.
+
+3. Intended preview and write set
+   - Exact relative output paths and intended operations.
+   - Recorded preview statuses and existing-file/conflict conditions.
+   - Any recorded discrepancy between Preview, Validation and Write roots.
+   - What approval was actually given for the failed operation.
+
+   Distinguish a captured preview from a proposed expected set.
+   Do not invent filenames or treat a proposed manifest as an observed one.
+
+4. Future guarded-write boundary
+   Prepare a proposed isolated temporary-consumer test boundary if the inputs
+   are sufficient, including exact intended writes and preservation checks.
+
+   Do not create or populate that consumer workspace, invoke a preview tool,
+   approve a manifest, or execute a write in this task.
+   Record existing specific approval if present; do not infer it from approval
+   of the STTM read-only run.
+
+If evidence identifies the relevant product entrypoint, inspect only its
+necessary source path to distinguish the actual consumer write route from
+M2 evidence persistence and STTM read-only validation.
+
+Label source-based hypotheses as hypotheses. Do not claim a root cause or
+implemented fix from this intake alone.
+
+Do not broaden searches to compensate for missing locators. Complete Part A
+and all supported intake work, then identify the smallest missing information.
+
+DELIVERABLES
+Return:
+- A short English report.md.
+- result.json with evidence locators and intake readiness.
+- Corrected RUNTIME01 report/result derivatives and correction map.
+- Authenticated log copies that could be preserved.
+- A compact write-defect intake table:
+    required item | observed value | evidence | missing/uncertain
+- One bounded proposed next task if the evidence supports it.
+
+Reuse prior records by reference instead of copying whole build bundles.
+Do not build a general evidence-management framework.
+
+STATUS RULES
+Use:
+  READY_FOR_BOUNDED_WRITE_DIAGNOSIS
+when the failure and necessary inputs are sufficiently identified, or:
+  BLOCKED_MISSING_WRITE_REPRO_INPUTS
+with the exact missing items.
+
+Missing write inputs do not undo accepted nominal protocol-3 runtime.
+Record completed evidence corrections even if intake is blocked.
+
+If owner information is necessary, ask one consolidated, specific question.
+Screenshots or pasted text are acceptable. Do not request the same runtime
+reports again, raw repository exports, credentials, or unrestricted data.
 
 End with:
-TASK_ID: ETL-0909-PROTOCOL3-RUNTIME-INDEPENDENT-REVIEW01
-REVIEWED_TASK: ETL-0909-PROTOCOL3-FOCUSED-RUNTIME01
-REVIEW_RESULT:
-BUILD_AND_PROMOTION_ACCEPTED:
-CANONICAL_MANIFEST_AND_RUN_CORRELATION_ACCEPTED:
-NOMINAL_PROTOCOL3_RUNTIME_ACCEPTED:
-MEASUREMENT_CORRECTIONS_ACCEPTED:
-PRESERVATION_ACCEPTED:
-MATERIAL_FINDINGS:
-RETAINED_LIMITATIONS:
-REPOSITORY_CHANGED_BY_REVIEWER: NONE
-PROJECT_COMPILER_TEST_RUNNER_OR_HOST_EXECUTED_BY_REVIEWER: NO
+TASK_ID: ETL-0909-PRODUCT-WRITE-EVIDENCE01
+STATUS:
+R1_LOG_RETENTION:
+R2_RECORD_CONSISTENCY:
+R3_TIMESTAMPS:
+R4_INVENTORY:
+ORIGINAL_WRITE_FAILURE_EVIDENCE:
+REPRODUCIBLE_INPUT_AND_ROOT:
+PREVIEW_AND_WRITE_SET:
+GUARDED_WRITE_APPROVAL_STATUS:
+MISSING_ITEMS:
+REPOSITORY_CHANGED: NO
+COMPILER_TEST_RUNNER_HOST_OR_PRODUCT_EXECUTED: NO
+CONSUMER_WORKSPACE_WRITTEN: NO
 ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
-FULL_B3_INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
-REVIEW_ROOT:
+EVIDENCE_ROOT:
 REPORT_PATH:
 RESULT_PATH:
-NEXT_CONDITIONAL_GATE:
+NEXT_BOUNDED_TASK_OR_OWNER_QUESTION:
 
-NEXT GATE
-If accepted, identify the smallest next required gate from the dependency
-roadmap and the minimum error/reproduction evidence needed for the original
-product-write scenario. Distinguish actual blockers from deferred follow-ups;
-do not automatically turn all eleven unexercised categories into separate tasks.
-
-If changes are required or evidence is blocked, propose only the specific
-correction or missing evidence needed. No automatic rebuild, rerun, repair,
-state update, installation or release follows this review.
-
-Stop after delivering the report.
+Stop after delivering the result.
