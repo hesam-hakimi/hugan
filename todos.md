@@ -1,64 +1,152 @@
-Continue ETL-0909-CONSUMER-WRITE-SMOKE01 in the same task.
+TASK_ID: ETL-0909-WORKFLOW-EMPTY-PROJECT-BOOTSTRAP01
+TYPE: BOUNDED WORKFLOW BOOTSTRAP REPAIR
+LANGUAGE: English only for Agent conversation, code and artifacts.
 
-OWNER APPROVAL
-I approve ONE guarded write of the two prepared files into this exact
-temporary consumer root:
+OWNER PRODUCT REQUIREMENT
+A user must be able to initialize the ETL Copilot workflow in a new,
+empty project folder. Existing ETL artifacts or workflow files must not
+be prerequisites for creating the initial workflow.
 
-C:\Users\tag5916\AppData\Local\Temp\etl-smoke01-WIzazQ\etl-acz0001-aczdg
+The required user flow is:
+select project root -> preview workflow files -> explicit approval ->
+create the workflow files inside that same root.
 
-Approved CREATE destinations:
-1. job_conf/conf/ERUS9/IMSB_MASTER_AREA_V3_PASSED_EXTRACT.json
-   Prepared content: 1172 bytes.
-2. env_conf/dev/env_conf_erus9_dev.yaml
-   Prepared content: 250 bytes.
+This supersedes any assumption that absence of ETL workspace markers
+alone must prohibit first-time workflow setup.
 
-This approval binds to the exact contents and machine-recorded SHA-256
-values in the completed preparation report, section 8, and its
-fixture/approval-request-template.json.
+It does not authorize arbitrary unknown folders as ETL write targets,
+remove protected-root exclusions, or bypass preview and approval.
 
-Read hashes from those authenticated machine records, not photographs.
-Confirm the root above matches the recorded root exactly. Do not
-substitute another root, change contents or overwrite existing files.
+CURRENT CONTEXT
+The screenshot shows version 0.3.147 and:
+@etl /workflow create
+-> workflow manager setup
+-> target type unknown
+-> blocked because no ETL workspace markers were found.
 
-EXECUTION
-- Revalidate the prepared driver, executable/source correspondence,
-  fixture identity, destination containment and absence of both files.
-- Preserve the preparation evidence. Record this owner approval in a
-  separate continuation record using the prepared approval mechanism.
-- Generate a fresh preview in the execution process and compare its
-  root, exact file set, content hashes and CREATE dispositions with
-  this approval. An expired preview ID must not be reused.
-- Proceed through the normal trusted approval/consume mechanism.
-  The driver-controlled dialog response is authorized only for this
-  exact matching manifest.
-- Execute one guarded write through the prepared real product route
-  and declared Node filesystem adapter.
-- Necessary parent directories are permitted only inside the approved
-  consumer root.
-- Read both files back and verify their exact bytes/hashes.
-- Compare the fixture parent before/after: only the two approved files
-  and their necessary directories may be added; the reference stand-in
-  and existing marker files must remain unchanged.
-- Record the product response separately from observed disk outcomes.
+The screenshot establishes that blocker, not that its folder was empty.
+Build the new regression using an actually empty temporary project.
 
-Do not rebuild, repeat accepted tests, change product source, promote
-repository out/, launch a Host, install, package, publish, access cloud
-services, manipulate Git or write into a real consumer project.
+ETL-0909-CONSUMER-WRITE-SMOKE01 now reports GUARDED_WRITE_VERIFIED:
+two approved job/env files were written and read back through the local
+Node filesystem adapter. Preserve that result at its reported boundary.
+It does not establish workflow bootstrap or installed-extension behavior.
+Do not repeat that write.
 
-If preconditions differ, stop before writing and identify the difference.
-If the write fails or is partial, retain the evidence and report the
-actual outcome. Do not automatically retry, overwrite or clean it up.
+1. ESTABLISH THE ACTUAL IMPLEMENTATION
 
-Return the continuation report and machine result, preserving preparation
-history and the existing negative-case evidence.
+Worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Report REAL_FILESYSTEM_WRITE_VERIFIED according to measured results.
-Keep:
-REAL_VSCODE_FILESYSTEM_WRITE_VERIFIED: NO
-ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
+Expected branch:
+fix/workspace-write-completion-0.3.148
+
+Read the latest SMOKE01 continuation report/result and the accepted
+preview-containment review through their original machine references.
+Verify the current baseline and absence of a concurrent writer.
+Do not repair unexplained drift or resolve pending editor changes.
+
+Trace the actual @etl /workflow create registration, setup handler,
+[CopilotWorkflow] target resolution, preview and provisioning consumers.
+
+Search the relevant src/, resources/copilot/ and package command
+registrations. Read complete relevant implementations and local rules.
+Do not guess filenames or invent a replacement workflow architecture.
+
+Identify precisely where absence of existing ETL markers blocks setup.
+
+2. IMPLEMENT THE SMALLEST COHERENT CORRECTION
+
+Permitted mutation boundary:
+- Workflow setup target eligibility and explicit target confirmation.
+- Its direct preview/provisioning consumers where required.
+- Relevant user-facing outcome reporting.
+- Targeted regression tests.
+
+Record exact affected paths before editing.
+
+Required behavior:
+A. A new empty project can enter workflow setup without pre-existing
+   job_conf/, env_conf/, sttm/ or generated workflow files.
+B. The destination root is explicitly selected or confirmed by the user.
+   Multi-root workspaces must never silently select the first folder.
+C. Keep this bootstrap eligibility specific to workflow initialization.
+   Do not globally classify every unknown folder as a verified ETL project.
+D. Known extension/source/reference roots remain prohibited targets.
+   Preserve canonical-path and symlink/junction protections.
+E. Derive the workflow file set from the existing packaged assets and
+   provisioning contract. Do not copy maintainer control-plane files or
+   create dummy ETL markers merely to satisfy the old classifier.
+F. Preview the exact files and bind approval and provisioning to the same
+   root, file set and contents. Cancellation must cause no writes.
+G. Create only approved workflow assets inside the selected project.
+   Preserve existing user files and the established conflict policy.
+H. Repeated setup must be safe and idempotent. Do not silently overwrite
+   user-modified workflow assets.
+I. Report created/unchanged/conflicted/blocked/cancelled outcomes clearly.
+   Returning from the command is not proof that files were created.
+
+Do not require the user to manually create ETL folders as a workaround.
+Do not weaken the separate job/env write validation or its accepted
+containment implementation.
+
+3. VERIFY WITH TARGETED LOCAL TESTS
+
+Submitting this prompt authorizes this bounded source repair, relevant
+compiler checks, and local tests confined to fresh task-owned fixtures.
+Any test-generated workflow files must remain inside those fixtures;
+simulated user selections/approvals must be explicitly labeled.
+
+Cover:
+- First setup in an actually empty project.
+- Explicit selection among multiple workspace folders.
+- Rejection of protected roots and escaping destinations.
+- Cancellation before provisioning.
+- Repeated setup and preservation of a user-modified existing file.
+- Existing recognized consumer workspace behavior.
+
+Exercise the real setup/provisioning decisions and packaged asset plan,
+not a parallel implementation of their logic.
+
+Use existing installed tools and the minimum necessary compilation.
+Place generated test/build output outside repository out/.
+Reuse unaffected accepted evidence; do not rerun the STTM/protocol-3
+campaign or the completed consumer write smoke.
+
+Retain genuine failing regression evidence where feasible. Correct
+routine in-scope implementation/test failures within this same task.
+
+4. LIMITS
+
+No real consumer-project writes, Extension Host run, installation,
+packaging, release, cloud operation, Git mutation or repository out/
+promotion is authorized.
+
+Do not change test-mode activation to enable unrelated write tools.
+Do not update canonical references or rewrite historical reports.
+Do not claim an installed-product fix from local tests.
+
+5. HANDOFF
+
+Return report.md, result.json, task.diff, authenticated pre/post identities
+and the relevant original test output.
+
+Explain:
+- The actual cause of the empty-project bootstrap block.
+- The exact workflow-specific eligibility change.
+- The packaged workflow files selected by the existing implementation.
+- Root/preview/approval/provisioning consistency.
+- Measured tests and their execution level.
+- Remaining runtime or installed-product gaps.
+
+Successful local completion:
+STATUS: LOCAL_CHECKED_AWAITING_INDEPENDENT_BOUNDARY_REVIEW
+EMPTY_PROJECT_WORKFLOW_LOCAL_RESULT: PASS
+EMPTY_PROJECT_WORKFLOW_INSTALLED_VERIFIED: NO
 INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 
-This verifies only the prepared local product-module integration using
-the declared filesystem adapter. Stop after delivering the result.
+The next gate is independent review of this exact bootstrap delta,
+followed by the appropriately bounded real VS Code workflow scenario.
+Do not restart accepted unrelated work.
 
-Use English only.
+Stop after delivering the reviewable result.
