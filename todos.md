@@ -1,19 +1,28 @@
-TASK_ID: ETL-0909-PREVIEW-CONTAINMENT-INDEPENDENT-REVIEW01
-TYPE: INDEPENDENT REVIEW OF THE COMPLETED REPAIR DELTA
-LANGUAGE: English only for conversation, code and artifacts.
-
-REVIEWED_TASK:
-ETL-0909-PREVIEW-CONTAINMENT-REPAIR01
+TASK_ID: ETL-0909-CONSUMER-WRITE-SMOKE01
+PHASE: PREPARE_THEN_WAIT_FOR_EXACT_WRITE_APPROVAL
+LANGUAGE: English only.
 
 OBJECTIVE
-Independently assess whether the completed repair prevents escaping
-destinations from becoming approvable preview entries while preserving
-the existing write-time guard and valid consumer destinations.
+Prepare a concrete, minimal real-filesystem smoke for the accepted
+consumer preview/approval/write boundary.
 
-Review the actual implementation and evidence. Do not implement fixes.
-Do not reopen unrelated accepted work.
+Use the real product route and actual disk I/O through an explicitly
+disclosed local filesystem adapter. This is a local product-module
+integration check, not Extension Host or installed-extension qualification.
 
-1. INPUTS AND IDENTITY
+Complete all preparation in this task, then present the exact consumer
+root and write manifest for owner approval. Do not write product outputs
+during this preparation phase.
+
+ACCEPTED INPUT
+ETL-0909-PREVIEW-CONTAINMENT-INDEPENDENT-REVIEW01:
+ACCEPTED_WITH_LIMITATIONS for the exact reviewed source delta.
+
+Do not reopen its accepted containment extraction, error-propagation
+decision or six-test regression. Preserve its recorded limitations and
+the unrelated pre-existing test failures.
+
+1. RESOLVE AND REUSE
 
 Active worktree:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
@@ -21,142 +30,145 @@ C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 Expected branch:
 fix/workspace-write-completion-0.3.148
 
-Resolve the reviewed task's evidence directory through bounded direct-child
-task-prefix discovery under C:\docs. Authenticate its task identity using
-machine records, not directory recency or screenshot-transcribed hashes.
+Resolve the review bundle by bounded direct-child task-prefix discovery
+under C:\docs. Read its report/result and relevant build/source records.
+Follow explicit references to REPAIR01 and REPRO01 only as needed.
 
-Read the complete issued repair brief, report.md, result.json, task.diff,
-pre-edit records and relevant original compiler/test logs.
-Follow the explicit REPRO01 references only where needed to establish F-1.
+Authenticate the current reviewed source and corresponding externally
+compiled modules from machine records. Do not copy hashes from photos.
 
-Verify the exact diff endpoints against authenticated pre-edit bytes
-and the live reviewed post-state, including both new files.
+Reuse the review's checked external build if its source/configuration/
+dependency correspondence is established. Do not use stale repository
+out/ merely because earlier runtime passed.
 
-Reported mutation set:
-- src/core/trusted/WriteAuthorization.ts
-- src/writers/RepoWriter.ts
-- src/tools/EtlActionToolService.ts
-- src/chat/WriteCoordinator.ts
-- src/chat/DeployCoordinator.ts
-- src/test/suite/workspaceWriteCollision.test.ts
-- src/test/testPatterns.ts
-- src/core/utils/ArtifactWriteContainment.ts [new]
-- src/test/suite/previewDestinationContainment.test.ts [new]
+No broad rebuild, repeat historical review or unrelated test campaign.
+If reusable executable correspondence cannot be established, identify
+the exact missing dependency or artifact before proposing another build.
 
-Reported baseline transition:
-10 pre-existing dirty paths to 19; original ten unchanged.
-HEAD, branch and staging unchanged; repository out/ unchanged.
+Check for concurrent writers. Do not repair unexplained baseline drift.
 
-Confirm these against actual records. Do not restore or repair drift.
-Check for concurrent writers before reviewing.
+2. PREPARE A GENUINE FILESYSTEM LANE
 
-2. REQUIRED REVIEW
+Inspect the existing diagnostic driver and product write seam.
 
-Read complete affected implementations and their immediate consumers.
+Prepare the smallest external adapter needed for actual filesystem I/O
+while retaining:
+- the real EtlActionToolService.writeToWorkspace route;
+- actual validation and root selection;
+- the trusted preview/approval/consume sequence;
+- actual RepoWriter and its per-write containment checks.
 
-A. Manifest boundary
-Verify buildWriteManifestFiles requires the actual selected consumer root
-at every caller, without a default-root or empty-root bypass.
-Check that invalid write destinations are rejected before preview storage,
-approvable rendering or approval eligibility.
-Check mixed valid/invalid sets and unchanged valid destination contents.
+Do not call RepoWriter directly as a substitute for the approved route.
+Do not fabricate approval tokens or bypass validation.
 
-B. Shared containment
-Compare the extracted routine with the original RepoWriter implementation.
-Verify lexical and physical containment checks, their ordering, errors,
-and protected-path policy remain equivalent.
-Confirm the writer still independently checks immediately before each
-write; preview approval must not cache away that protection.
-Inspect junction/symlink handling and uncertainty/failure behavior.
+Use Node filesystem operations only as the declared adapter for the
+required vscode.workspace.fs interface. Record exactly which interfaces
+are adapted and which product modules execute.
 
-C. Write versus reference destinations
-Verify every destination classified as "reference"/UNCHANGED is genuinely
-non-mutating throughout its consumers.
-Do not accept the exclusion merely because the report calls it intentional.
-Check that a write cannot be misclassified to bypass validation.
-Keep unrelated input-read policy outside this repair's scope.
+A recording/no-op adapter cannot qualify successful writing.
+Do not change extension activation or enable write tools in Test mode.
+No Extension Host or installed-extension invocation is authorized.
 
-D. Error propagation — explicit acceptance question
-The repair reports throwing Error from writeToWorkspace instead of
-returning a structured "Write Blocked" response.
+During preparation, product write/createDirectory calls must remain
+disabled and counted. A preview unexpectedly attempting mutation is a
+failure; do not silently absorb it and report success.
 
-Trace actual handling through EtlActionToolService, WriteCoordinator
-and DeployCoordinator, and compare it with the issued repair requirement
-for the existing structured blocker mechanism.
+If a faithful local adapter requires product changes or bypassing a
+required interface, stop that dependent step and report the concrete gap.
 
-Determine whether this is contract-compatible failure handling or a
-material unmet requirement. Check for false success, lost blockers,
-partial authorization, uncaught failures or unintended continuation.
+3. CREATE THE REVIEWABLE TARGET
 
-Similarity to a pre-existing conflict error is not, by itself, proof of
-acceptance. Do not automatically classify this issue as a limitation.
+Create one fresh task-owned temporary fixture parent containing:
+- an isolated consumer workspace;
+- a stand-in reference workspace for the multi-root condition.
 
-E. Tests and evidence
-Verify the identical final regression was used against authentic
-pre-edit and post-edit product code, and both trees compiled successfully.
+Fixture setup and evidence files are permitted.
+Product output files are not yet permitted.
 
-Reported targeted results:
-pre-edit: 1 passing / 5 failing;
-post-edit: 6 passing / 0 failing.
+Use the authenticated derived REPRO01 input, with its original-versus-
+derived distinction retained. Do not replay the obsolete historical
+payload as though it passes current validation.
 
-Inspect the retained first-attempt assertion correction:
-distinguish direct writer behavior, which may handle valid members
-individually, from the preview route, which must not authorize the invalid
-member. Confirm the correction did not weaken the required preview check.
+The proposed product outputs are exactly:
+job_conf/conf/ERUS9/IMSB_MASTER_AREA_V3_PASSED_EXTRACT.json
+env_conf/dev/env_conf_erus9_dev.yaml
 
-Verify test adapter instrumentation supports the claimed absence of write
-attempts. A no-op filesystem adapter cannot establish successful writing.
+Resolve their actual authored spelling and content from machine records.
 
-Check the reported unchanged adjacent failures and timeout explanation
-from original logs. Do not describe the whole test set as passing.
+Generate a fresh preview using the explicitly selected temporary consumer
+root. Record the absolute root, authored relative paths, canonical
+destinations, CREATE dispositions, content hashes and preview lifetime.
 
-3. PROPORTIONATE VERIFICATION AUTHORITY
+Confirm both files are absent and both destinations remain within that
+root. Preserve a recoverable record of the exact proposed contents.
 
-Source and existing evidence are read-only.
-Create only a fresh exclusive review evidence directory and task-owned
-temporary fixtures.
+Do not reuse the old REPRO01 preview ID or temporary workspace.
+Do not expose unrelated workspace data or request credentials.
 
-You may use existing installed compiler/test tooling to independently
-execute the six-test containment regression against verified source,
-with necessary output directed outside the repository.
+4. PREPARE THE SMOKE CASES
 
-Use additional targeted checks only to resolve a concrete review risk.
-Reuse authenticated adjacent-suite evidence rather than automatically
-rerunning all eleven suites or the protocol-3/STTM campaign.
+Positive case, executable only after exact owner approval:
+- Revalidate the approved root, file set, contents and current preview.
+- Use the normal trusted approval mechanism.
+- Perform one guarded write through the real product route.
+- Read both files back from disk and compare bytes/hashes with the
+  approved manifest.
+- Record the actual product response and actual file outcomes separately.
+- Verify no unexpected output was created elsewhere in the fixture parent.
 
-No source edits, repository out/ promotion, Host, actual product writes,
-approval tokens, package installation, Git mutation, packaging, cloud
-operations, reference updates or pending-editor resolution.
+Negative case:
+- Use one escaping job destination in the same bounded fixture.
+- Require rejection before any approvable preview or approval token.
+- Require zero product filesystem mutation attempts.
+- Do not treat rejection by an external adapter alone as proof that the
+  product containment check worked.
 
-Never use a stale REPRO01 preview ID or treat its temporary workspace
-as approved for writing.
+Prepare these checks now; do not execute the positive write.
 
-4. REVIEW RESULT
+5. AUTHORITY AND PRESERVATION
 
-Return report.md and result.json containing:
-- Authenticated reviewed source/diff identities.
-- Acceptance decision and its exact scope.
-- Findings with code/evidence locations and practical impact.
-- Error-propagation contract decision.
-- Shared-containment and write/reference-boundary decisions.
-- Actual independent checks and retained limitations.
-- Source, output and evidence preservation results.
-- The smallest conditional next gate.
+Allowed now:
+read-only source/evidence inspection, external diagnostic files,
+temporary fixture setup, and non-mutating product preview calls.
 
-Use ACCEPTED, ACCEPTED_WITH_LIMITATIONS, or CHANGES_REQUIRED.
-Do not hide unmet requirements in a limitations section.
+Not allowed now:
+product output writes, approval-token creation, source edits, repository
+out/ changes, Host, installation, packaging, cloud operations, publishing,
+Git mutation or canonical reference updates.
 
+Preserve real consumer projects, extension/reference repositories,
+existing evidence and pending editor changes.
+
+6. HANDOFF AND PAUSE
+
+Return a concise report.md and result.json with:
+TASK_ID
+STATUS
+REVIEWED_SOURCE_MATCH
+EXECUTABLE_SOURCE_CORRESPONDENCE
+EXECUTION_LANE
+SIMULATED_AND_REAL_INTERFACES
+EXACT_TEMPORARY_CONSUMER_ROOT
+PROPOSED_WRITE_SET_AND_CONTENT_HASHES
+PREVIEW_STATUS_AND_EXPIRY
+PRODUCT_MUTATION_ATTEMPTS
+REMAINING_BLOCKERS
+EXACT_OWNER_APPROVAL_REQUEST
+EVIDENCE_ROOT
+
+If ready:
+STATUS: READY_FOR_EXACT_WRITE_APPROVAL
+PRODUCT_OUTPUT_FILES_WRITTEN: NO
+REAL_FILESYSTEM_WRITE_VERIFIED: NO
 REAL_VSCODE_FILESYSTEM_WRITE_VERIFIED: NO
 ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
-INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 
-If accepted, identify the remaining prerequisites for a separately bounded
-real-filesystem guarded-write smoke. The current test-mode registration
-gap and simulated filesystem are not resolved by this source review.
-Accepted earlier runtime remains evidence for its original candidate;
-it does not automatically qualify these newly changed sources.
+Present one concrete approval request naming the actual temporary root
+and the two exact files. Explain that approval covers only that local
+smoke, not real consumer projects or installed/release qualification.
 
-If changes are required, return the smallest coherent correction scope.
-Do not implement it or launch another task.
+Retain the prepared fixture and driver for continuation in this same task.
+If preview refresh is needed later, revalidate the approved root, exact
+paths and contents; any material change requires a new approval.
 
-Stop after delivering the review.
+Stop here and wait for that approval. Do not launch another task.
