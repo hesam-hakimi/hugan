@@ -1,0 +1,27 @@
+{
+  "taskId": "ETL-0909-R3R4-CORRECTION-TEST03",
+  "preparedAtUtc": "2026-09-09T02:49:18.076115+00:00",
+  "role": "Document and exact-reference delivery package; not execution evidence",
+  "originalBriefLibraryFileId": "libfile_76b7d1c032488191be5dabfb641f159c",
+  "glossarySourceLibraryFileId": "libfile_2078a1b4e1f08191a3975260952b3d9b",
+  "sourceStateLiveVerifiedByAuthor": false,
+  "etlCompilerTestsRunnerHostOrProductExecutedByAuthor": false,
+  "inventoryRule": "The three other members are included; input-manifest.json excludes itself to avoid recursive hashing.",
+  "files": [
+    {
+      "path": "START_HERE.md",
+      "bytes": 12495,
+      "sha256": "7f136a6edd88925806daf94fbcc8ab7b332c3561c9294425e5cf8c06fbcd317b"
+    },
+    {
+      "path": "ETL_0909_R3R4_CORRECTION_TEST02.md",
+      "bytes": 60009,
+      "sha256": "1d5dc8b3f5c2ce02441c5b0cce39700e2a46f0d53a32a59547b2dd977a2d6ac9"
+    },
+    {
+      "path": "ETL_QUALIFICATION_GLOSSARY.md",
+      "bytes": 25565,
+      "sha256": "537f32326590454d1070ce6ab32315240abcce4ce8c604f0c8aec65ad4ab749e"
+    }
+  ]
+}

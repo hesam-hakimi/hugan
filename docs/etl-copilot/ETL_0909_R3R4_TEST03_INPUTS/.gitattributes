@@ -1,0 +1,8 @@
+# Keep authenticated input bytes unchanged during Windows Git checkout.
+START_HERE.md -text
+ETL_0909_R3R4_CORRECTION_TEST02.md -text
+ETL_QUALIFICATION_GLOSSARY.md -text
+input-manifest.json -text
+ETL_0909_R3R4_TEST03_INPUTS.zip -text
+README.md text eol=lf
+.gitattributes text eol=lf
