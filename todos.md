@@ -1,174 +1,64 @@
-TASK_ID: ETL-0909-CONSUMER-WRITE-SMOKE01
-PHASE: PREPARE_THEN_WAIT_FOR_EXACT_WRITE_APPROVAL
-LANGUAGE: English only.
+Continue ETL-0909-CONSUMER-WRITE-SMOKE01 in the same task.
 
-OBJECTIVE
-Prepare a concrete, minimal real-filesystem smoke for the accepted
-consumer preview/approval/write boundary.
+OWNER APPROVAL
+I approve ONE guarded write of the two prepared files into this exact
+temporary consumer root:
 
-Use the real product route and actual disk I/O through an explicitly
-disclosed local filesystem adapter. This is a local product-module
-integration check, not Extension Host or installed-extension qualification.
+C:\Users\tag5916\AppData\Local\Temp\etl-smoke01-WIzazQ\etl-acz0001-aczdg
 
-Complete all preparation in this task, then present the exact consumer
-root and write manifest for owner approval. Do not write product outputs
-during this preparation phase.
+Approved CREATE destinations:
+1. job_conf/conf/ERUS9/IMSB_MASTER_AREA_V3_PASSED_EXTRACT.json
+   Prepared content: 1172 bytes.
+2. env_conf/dev/env_conf_erus9_dev.yaml
+   Prepared content: 250 bytes.
 
-ACCEPTED INPUT
-ETL-0909-PREVIEW-CONTAINMENT-INDEPENDENT-REVIEW01:
-ACCEPTED_WITH_LIMITATIONS for the exact reviewed source delta.
+This approval binds to the exact contents and machine-recorded SHA-256
+values in the completed preparation report, section 8, and its
+fixture/approval-request-template.json.
 
-Do not reopen its accepted containment extraction, error-propagation
-decision or six-test regression. Preserve its recorded limitations and
-the unrelated pre-existing test failures.
+Read hashes from those authenticated machine records, not photographs.
+Confirm the root above matches the recorded root exactly. Do not
+substitute another root, change contents or overwrite existing files.
 
-1. RESOLVE AND REUSE
+EXECUTION
+- Revalidate the prepared driver, executable/source correspondence,
+  fixture identity, destination containment and absence of both files.
+- Preserve the preparation evidence. Record this owner approval in a
+  separate continuation record using the prepared approval mechanism.
+- Generate a fresh preview in the execution process and compare its
+  root, exact file set, content hashes and CREATE dispositions with
+  this approval. An expired preview ID must not be reused.
+- Proceed through the normal trusted approval/consume mechanism.
+  The driver-controlled dialog response is authorized only for this
+  exact matching manifest.
+- Execute one guarded write through the prepared real product route
+  and declared Node filesystem adapter.
+- Necessary parent directories are permitted only inside the approved
+  consumer root.
+- Read both files back and verify their exact bytes/hashes.
+- Compare the fixture parent before/after: only the two approved files
+  and their necessary directories may be added; the reference stand-in
+  and existing marker files must remain unchanged.
+- Record the product response separately from observed disk outcomes.
 
-Active worktree:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Do not rebuild, repeat accepted tests, change product source, promote
+repository out/, launch a Host, install, package, publish, access cloud
+services, manipulate Git or write into a real consumer project.
 
-Expected branch:
-fix/workspace-write-completion-0.3.148
+If preconditions differ, stop before writing and identify the difference.
+If the write fails or is partial, retain the evidence and report the
+actual outcome. Do not automatically retry, overwrite or clean it up.
 
-Resolve the review bundle by bounded direct-child task-prefix discovery
-under C:\docs. Read its report/result and relevant build/source records.
-Follow explicit references to REPAIR01 and REPRO01 only as needed.
+Return the continuation report and machine result, preserving preparation
+history and the existing negative-case evidence.
 
-Authenticate the current reviewed source and corresponding externally
-compiled modules from machine records. Do not copy hashes from photos.
-
-Reuse the review's checked external build if its source/configuration/
-dependency correspondence is established. Do not use stale repository
-out/ merely because earlier runtime passed.
-
-No broad rebuild, repeat historical review or unrelated test campaign.
-If reusable executable correspondence cannot be established, identify
-the exact missing dependency or artifact before proposing another build.
-
-Check for concurrent writers. Do not repair unexplained baseline drift.
-
-2. PREPARE A GENUINE FILESYSTEM LANE
-
-Inspect the existing diagnostic driver and product write seam.
-
-Prepare the smallest external adapter needed for actual filesystem I/O
-while retaining:
-- the real EtlActionToolService.writeToWorkspace route;
-- actual validation and root selection;
-- the trusted preview/approval/consume sequence;
-- actual RepoWriter and its per-write containment checks.
-
-Do not call RepoWriter directly as a substitute for the approved route.
-Do not fabricate approval tokens or bypass validation.
-
-Use Node filesystem operations only as the declared adapter for the
-required vscode.workspace.fs interface. Record exactly which interfaces
-are adapted and which product modules execute.
-
-A recording/no-op adapter cannot qualify successful writing.
-Do not change extension activation or enable write tools in Test mode.
-No Extension Host or installed-extension invocation is authorized.
-
-During preparation, product write/createDirectory calls must remain
-disabled and counted. A preview unexpectedly attempting mutation is a
-failure; do not silently absorb it and report success.
-
-If a faithful local adapter requires product changes or bypassing a
-required interface, stop that dependent step and report the concrete gap.
-
-3. CREATE THE REVIEWABLE TARGET
-
-Create one fresh task-owned temporary fixture parent containing:
-- an isolated consumer workspace;
-- a stand-in reference workspace for the multi-root condition.
-
-Fixture setup and evidence files are permitted.
-Product output files are not yet permitted.
-
-Use the authenticated derived REPRO01 input, with its original-versus-
-derived distinction retained. Do not replay the obsolete historical
-payload as though it passes current validation.
-
-The proposed product outputs are exactly:
-job_conf/conf/ERUS9/IMSB_MASTER_AREA_V3_PASSED_EXTRACT.json
-env_conf/dev/env_conf_erus9_dev.yaml
-
-Resolve their actual authored spelling and content from machine records.
-
-Generate a fresh preview using the explicitly selected temporary consumer
-root. Record the absolute root, authored relative paths, canonical
-destinations, CREATE dispositions, content hashes and preview lifetime.
-
-Confirm both files are absent and both destinations remain within that
-root. Preserve a recoverable record of the exact proposed contents.
-
-Do not reuse the old REPRO01 preview ID or temporary workspace.
-Do not expose unrelated workspace data or request credentials.
-
-4. PREPARE THE SMOKE CASES
-
-Positive case, executable only after exact owner approval:
-- Revalidate the approved root, file set, contents and current preview.
-- Use the normal trusted approval mechanism.
-- Perform one guarded write through the real product route.
-- Read both files back from disk and compare bytes/hashes with the
-  approved manifest.
-- Record the actual product response and actual file outcomes separately.
-- Verify no unexpected output was created elsewhere in the fixture parent.
-
-Negative case:
-- Use one escaping job destination in the same bounded fixture.
-- Require rejection before any approvable preview or approval token.
-- Require zero product filesystem mutation attempts.
-- Do not treat rejection by an external adapter alone as proof that the
-  product containment check worked.
-
-Prepare these checks now; do not execute the positive write.
-
-5. AUTHORITY AND PRESERVATION
-
-Allowed now:
-read-only source/evidence inspection, external diagnostic files,
-temporary fixture setup, and non-mutating product preview calls.
-
-Not allowed now:
-product output writes, approval-token creation, source edits, repository
-out/ changes, Host, installation, packaging, cloud operations, publishing,
-Git mutation or canonical reference updates.
-
-Preserve real consumer projects, extension/reference repositories,
-existing evidence and pending editor changes.
-
-6. HANDOFF AND PAUSE
-
-Return a concise report.md and result.json with:
-TASK_ID
-STATUS
-REVIEWED_SOURCE_MATCH
-EXECUTABLE_SOURCE_CORRESPONDENCE
-EXECUTION_LANE
-SIMULATED_AND_REAL_INTERFACES
-EXACT_TEMPORARY_CONSUMER_ROOT
-PROPOSED_WRITE_SET_AND_CONTENT_HASHES
-PREVIEW_STATUS_AND_EXPIRY
-PRODUCT_MUTATION_ATTEMPTS
-REMAINING_BLOCKERS
-EXACT_OWNER_APPROVAL_REQUEST
-EVIDENCE_ROOT
-
-If ready:
-STATUS: READY_FOR_EXACT_WRITE_APPROVAL
-PRODUCT_OUTPUT_FILES_WRITTEN: NO
-REAL_FILESYSTEM_WRITE_VERIFIED: NO
+Report REAL_FILESYSTEM_WRITE_VERIFIED according to measured results.
+Keep:
 REAL_VSCODE_FILESYSTEM_WRITE_VERIFIED: NO
 ORIGINAL_PRODUCT_WRITE_FIX_VERIFIED: NO
+INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 
-Present one concrete approval request naming the actual temporary root
-and the two exact files. Explain that approval covers only that local
-smoke, not real consumer projects or installed/release qualification.
+This verifies only the prepared local product-module integration using
+the declared filesystem adapter. Stop after delivering the result.
 
-Retain the prepared fixture and driver for continuation in this same task.
-If preview refresh is needed later, revalidate the approved root, exact
-paths and contents; any material change requires a new approval.
-
-Stop here and wait for that approval. Do not launch another task.
+Use English only.
