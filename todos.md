@@ -1,160 +1,97 @@
-TASK_ID: ETL-0910-INSTALLED-WORKFLOW-SMOKE01
-TYPE: BOUNDED PRIVATE VSIX INSTALLATION AND WORKFLOW VERIFICATION
+TASK_ID: ETL-0910-INSTALLED-WORKFLOW-REVIEW-AND-ASSET-AUDIT01
+TYPE: BOUNDED INDEPENDENT EVIDENCE REVIEW AND PROFILE AUDIT
+ENVIRONMENT: Existing local Windows ETL extension development environment
+LANGUAGE: English for all communication and artifacts
 
-Use English for all communication, UI guidance, reports, and artifacts.
+Review the completed ETL-0910-INSTALLED-WORKFLOW-SMOKE01 and
+determine why its Base initialization generated no agents or skills.
 
-GOAL
-Install the exact private 0.3.148 VSIX produced by
-ETL-0910-VSIX-CANDIDATE-PREP01 and verify the Base-profile empty-project
-workflow through the installed extension.
+This task authorizes read-only inspection and creation of one new,
+small review evidence directory. It does not authorize product changes
+or another runtime execution.
 
-Do not rebuild or repackage.
+1. Resolve the actual inputs
 
-INPUT AND IDENTITY
-Resolve PREP01 through its machine-recorded task identity under C:\docs.
-Read its complete report.md and result.json, package inventory, and
-relevant verification records.
+Use bounded direct-child discovery under C:\docs to locate the completed
+ETL-0910-INSTALLED-WORKFLOW-SMOKE01 evidence root. Resolve by task identity,
+report/result content and evidence relationships, not timestamp alone.
 
-Obtain the actual VSIX path, SHA-256, size, and packaged file identities
-from those records. Recompute the VSIX hash before installation.
-Never transcribe hashes from screenshots.
+Read its complete report.md and result.json, its governing issued brief,
+and the directly referenced PREP01 package records and relevant checks.
+Follow current reference pointers and explicit owner decisions.
+Do not execute historical prompts or reconstruct missing reference text.
 
-Expected:
-- Extension ID: td-etl.databricks-etl-copilot
-- Candidate version: 0.3.148
-- PREP01 status: CANDIDATE_BUILT_AND_CONTENT_VERIFIED
+Obtain all paths, hashes and expected identities from machine records.
+Never transcribe a hash from a screenshot.
 
-The source repository remaining at version 0.3.147 is expected:
-PREP01 changed version metadata only in packaging staging.
-Do not "repair" the repository version.
+Confirm no writer or task execution conflicts with the reviewed worktree.
+If a concrete prerequisite is missing or contradictory, report that exact
+blocker without repairing the baseline or broadening the search.
 
-Carry forward the recorded vsce 3.7.1 versus pinned 3.9.2 deviation.
-Do not treat packaging as release qualification. If an applicable
-governing rule makes that exact tool pin mandatory for this private
-installation, identify the rule and stop rather than waive it.
+2. Review the installed Base scenario
 
-INSTALLATION BOUNDARY
-Use the existing local VS Code executable.
+Inspect retained evidence for:
+- Exact candidate VSIX, installed extension and activation identity.
+- The reported 65 installed files, zero missing files and two explained
+  installation metadata cases.
+- Real Initialize dialog disclosure, cancellation with zero writes,
+  and approval producing eight Base assets plus managed .gitignore.
+- Content traceability, destination containment and preservation.
+- The limits of the content comparison and earlier-run corroboration.
 
-Install the candidate once into one isolated test environment with
-dedicated user-data and extensions directories, reusable across test
-folders. Do not install separately per workspace or replace the owner's
-normal extension installation.
+Evaluate the disclosed missing install transcript, dependency enablement,
+workspace-trust isolation limits and packaging-tool deviation against
+the actual brief. Separate acceptance blockers from retained limitations.
 
-Check for an already-running execution of this task before starting.
-If the exact candidate is already installed in this test environment,
-authenticate it and reuse it instead of reinstalling.
+No rerun is authorized to fill an evidence gap.
 
-Use normal VS Code installation and reload behavior.
-Do not use --extensionDevelopmentPath or load the staged source.
-Do not bypass platform trust or signature checks.
+3. Audit profile asset selection
 
-Use existing required extensions where available. If the declared
-GitHub Copilot Chat dependency is disabled, use normal Enable/Reload
-within this test environment and record it.
-Do not request credentials or install additional dependencies.
-Report a concrete dependency blocker if necessary.
+Read only the relevant recorded catalog, profile-selection code and
+packaged resources. Authenticate source correspondence before relying
+on current source to explain the installed candidate.
 
-PROVE WHAT IS RUNNING
-After installation and reload, record:
-- actual VS Code version and test-environment paths;
-- installed extension ID, version, and installation path;
-- activation evidence tied to the workflow command;
-- installed entrypoint, runtime bundles, and resources matching the
-  VSIX inventory, allowing only identified installation metadata.
+Produce one table for the available profiles, showing:
+- Profile name.
+- Generated asset categories and counts.
+- Exact agent and skill destination paths, where included.
+- Supporting source or package evidence.
 
-Version text alone is insufficient.
-The extension must run without a link to repository node_modules,
-staged sources, or repository out/.
+Distinguish:
+(a) resources shipped inside the extension,
+(b) assets selected for the consumer profile,
+(c) files observed on disk in this Base run,
+(d) actual agent/skill discovery or usability, if evidenced.
 
-ONE FOCUSED SCENARIO
-Create one fresh, genuinely empty temporary consumer folder outside
-the source and reference trees. Open it as the only workspace folder.
+Answer whether the absence of agents and skills is explained by Base
+selection, a packaging omission, initialization behavior, or remains unknown.
+Do not claim that an intentionally smaller profile satisfies the owner's
+complete development workflow without supporting evidence.
 
-Use the real Command Palette command:
-ETL: Initialize Copilot Workflow
+The owner expects a fresh consumer project to receive the assets required
+for its selected development workflow. The top-level resources layout is
+a separately deferred concern; do not relocate files or change defaults.
 
-Registered command:
-databricks-etl-copilot.initializeCopilotWorkflow
+4. Keep this review small
 
-1. Choose Base through the real profile picker.
-2. Confirm the exact temporary root through the real folder modal.
-3. Capture the Initialize approval dialog.
-   Verify it displays:
-   - the selected destination;
-   - all eight Base catalog asset paths;
-   - the managed .gitignore creation/update disclosure.
+No compiler, tests, runner, Host, installation, packaging, dependency
+installation, Git mutation, source edits, consumer writes, editor Keep/Undo,
+or reference-state update.
 
-The product dialog itself must disclose .gitignore.
-An external disclosure record cannot substitute for this check.
+Reuse existing inspection tools and evidence. Do not create another
+JavaScript/PowerShell testing framework. Do not scan unrelated workspaces,
+profiles, chat history or credentials.
 
-4. Cancel at the Initialize approval.
-   Verify the consumer folder remains empty, including no .gitignore.
+Write only report.md and result.json into one fresh review directory.
+Include:
+- Review result and exact acceptance boundary.
+- Material findings and retained limitations.
+- Profile asset table and completeness conclusion.
+- The smallest justified next task, if needed.
+- Paths to the review artifacts.
 
-5. Invoke the same command again and approve through the real dialogs.
-   This task authorizes only the displayed Base assets, their necessary
-   parent directories, and managed .gitignore in this temporary root.
+Do not reopen unchanged accepted work or automatically turn every retained
+limitation into another task. A Base initialization PASS does not establish
+the original job/env write fix or full release acceptance.
 
-6. Verify:
-   - exactly eight catalog assets plus .gitignore were created;
-   - asset content and managed metadata match the installed catalog;
-   - no unexpected files or artificial ETL marker directories exist;
-   - recorded writes remain within the selected consumer root;
-   - output and notifications accurately report the result.
-
-Use existing UI automation if available. Do not stub dialogs, invoke
-the initializer directly, or create another automation framework.
-If manual interaction is required, prepare the environment first and
-give the owner one concise English instruction with the exact window,
-root, command, profile, and buttons. Never claim unobserved clicks.
-
-PRESERVATION AND EVIDENCE
-Leave the repository, candidate VSIX, and earlier evidence unchanged.
-Record relevant before/after checks without a broad machine scan.
-
-Retain a compact report.md, result.json, installation/activation logs,
-dialog evidence, and consumer before/after inventory with content checks.
-
-Only close processes started by this task after preserving evidence.
-Keep the installed test environment identifiable for later use.
-
-No source changes, compiler, packaging, broad suites, Git mutation,
-reference updates, real consumer writes, ETL jobs, deployment, or release.
-
-ASSESSMENT
-A PASS verifies only the installed 0.3.148 Base-profile initialization
-scenario in one empty, single-root temporary workspace.
-
-Do not claim:
-- all profiles or multi-root behavior qualified;
-- Repair/Upgrade disclosure fixed;
-- the original job/env write defect verified;
-- full product or release acceptance.
-
-Keep F-2 through F-5 and U-1/U-2 recorded.
-
-FINAL FIELDS
-TASK_ID:
-STATUS: PASS / FAIL / BLOCKED / WAITING_FOR_OWNER_UI
-VSIX_IDENTITY:
-INSTALLED_EXTENSION_IDENTITY:
-ACTIVATION_VERIFIED:
-TEMPORARY_CONSUMER_ROOT:
-REAL_GITIGNORE_DISCLOSURE_VISIBLE:
-CANCELLATION_ZERO_WRITES:
-CREATED_FILES:
-CONTENT_VERIFICATION:
-UNEXPECTED_OR_OUTSIDE_ROOT_WRITES:
-REPOSITORY_CHANGED: NO
-EMPTY_PROJECT_WORKFLOW_INSTALLED_VERIFIED:
-VERIFICATION_SCOPE: BASE_PROFILE_EMPTY_SINGLE_ROOT
-FULL_PRODUCT_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
-RETAINED_LIMITATIONS:
-EVIDENCE_ROOT:
-REPORT_PATH:
-RESULT_PATH:
-NEXT_CONDITIONAL_GATE:
-
-If failing, preserve the exact symptom and stop without implementing
-a fix. If passing, report the remaining qualification gaps without
-starting another task.
+Stop after delivering the review.
