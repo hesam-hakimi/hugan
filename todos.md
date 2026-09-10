@@ -1,104 +1,101 @@
-TASK_ID: ETL-0910-SCAFFOLDED-SKILL-ROOT-GUIDANCE-PARITY01
+TASK_ID: ETL-0910-SCAFFOLDED-SKILL-ROOT-GUIDANCE-PARITY-REVIEW01
 
 Communicate entirely in English.
 
-Implement and verify the bounded correction below. This prompt authorizes
-the necessary source/template edits and focused permanent repository tests.
+Perform an independent, read-only review of:
+ETL-0910-SCAFFOLDED-SKILL-ROOT-GUIDANCE-PARITY01
+
+Review the source correction and retained test evidence. Do not repeat
+the skill-resolution investigation or earlier initialization qualification.
 
 Environment
-Use the existing ETL extension development worktree:
+Existing development worktree:
 C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Confirm the actual worktree and branch from current repository records.
-Preserve all pre-existing changes. Do not reset, clean, switch branches,
-commit, or modify unrelated files.
+Confirm its current identity and preserve all existing changes.
+Resolve the implementation evidence directory through bounded discovery
+and its machine-readable task identity.
 
-Context
-Read the completed:
-ETL-0910-INSTALLED-WORKFLOW-SKILL-SHADOW-RESOLUTION01
+Read the implementation's complete report.md, result.json, task-diff.patch,
+retained pre/post files, and test logs. The owner's latest screenshots
+contain the implementation summary followed by the older shadow-resolution
+report; do not confuse those two tasks.
 
-Use its machine-readable evidence to locate the two skill bodies and their
-source definitions. Read applicable local instructions and the current
-agile repair contract through existing reference pointers.
+Scope
+Review these reported changes against their retained pre-task state:
+- src/customization/CopilotAssetCatalog.ts
+- src/test/suite/copilotWorkflowCustomization.test.ts
+- src/test/suite/workflowEmptyProjectBootstrap.test.ts
 
-The observed verdict is WORKSPACE_BODY_CONFIRMED for one installed
-invocation. The extension copy was skipped as duplicate-name.
-Do not repeat that investigation or generalize its scope.
+Inspect directly relevant production dependencies and existing tests only
+where needed to assess a concrete claim.
 
-Problem
-The generated Workspace etl-validate-write skill lacks the explicit
-consumer-root and multi-root guidance present in the extension copy.
-That guidance therefore did not reach the model through the invoked skill.
+Review criteria
+1. Confirm the live files match the implementation's recorded post-state.
+   Separate this task's delta from pre-existing uncommitted work.
+   Do not use the editor's changed-file panel as the authoritative diff.
 
-Correction
-1. Trace the generated skill through CopilotAssetCatalog and its actual
-   template source. Edit the authoritative producer, not a generated
-   consumer file or the installed extension.
+2. Verify the actual generated etl-validate-write body now includes:
+   explicit consumer-root selection, workspaceRoot usage consistent with
+   tool schemas, exclusion of extension/source/reference roots, no reliance
+   on workspace-folder order, and consistent preview/approval/write targets.
 
-2. Add the missing target-root guidance, aligned with the existing product
-   contract:
-   - Select the intended consumer workspace explicitly.
-   - Pass workspaceRoot where the existing tool contract supports it.
-   - Never select a root merely because it is the first workspace folder.
-   - Exclude extension, source, and reference roots as consumer targets.
-   - Resolve ambiguous selection before proceeding.
-   - Keep preview, approval, and write bound to the same selected root
-     and approved manifest.
+   Ensure job/env evidence requirements do not block workflow initialization
+   in an explicitly selected empty project.
 
-   Scope existing job_conf/env_conf evidence requirements to the applicable
-   job/env operation. Do not introduce an ETL-marker prerequisite for
-   initializing workflow assets in an explicitly selected empty project.
+3. Confirm the change preserves qualified tool names, approval requirements,
+   side-effect restrictions, asset identity/path/profile membership, and
+   unrelated asset content. Verify the managed version change is limited
+   to the intended asset: 1.1.4 to 1.1.5.
 
-3. Preserve the skill's existing qualified tool names, approval requirements,
-   and restrictions on publishing, deployment, execution, and manual writes.
-   Port only the relevant root guidance; do not copy unrelated behavioral
-   differences from the extension skill.
+4. Assess the permanent tests against real production APIs:
+   - previous generated fixture authenticity;
+   - corrected content generation;
+   - Audit detecting the stale asset;
+   - approval required before Upgrade;
+   - only the intended asset upgraded;
+   - updated version/hash and post-upgrade audit;
+   - preservation of user-owned content and existing conflict safeguards;
+   - empty-project initialization remains supported.
 
-4. Increment this managed asset's version using the existing versioning
-   convention so previously generated copies can be identified for upgrade.
-   Keep its name, asset ID, destination, and profile membership stable.
-   Do not bump the extension/package version in this task.
+   Distinguish properties actually tested from source-only conclusions.
+   Check existing coverage before declaring a missing test.
 
-Permanent verification
-Extend the existing repository tests and use the real production
-catalog/rendering and managed-asset APIs.
+5. Verify retained red/green evidence:
+   - new tests fail behaviorally with the previous producer;
+   - the corrected producer was restored;
+   - typecheck succeeds;
+   - customization changes from 51 passing/3 failing to 53 passing/3 failing;
+   - bootstrap changes from 13 passing/0 failing to 14 passing/0 failing;
+   - packageAssets records 34 passing/0 failing.
 
-Verify:
-- Newly generated etl-validate-write content contains the required root
-  guidance and retains its approval and side-effect restrictions.
-- A fixture representing the previous managed asset is detected as needing
-  an update through the existing Audit/Upgrade mechanism.
-- The supported upgrade produces the corrected content and metadata,
-  respecting existing approval/conflict rules and preserving user-owned
-  content.
-- The change does not alter unrelated assets or prevent empty-project
-  workflow initialization.
+   Compare the identities and causes of the three retained failures.
+   Equal failure counts alone do not establish no regression.
 
-Reuse existing coverage where it already proves these properties.
-Demonstrate that the targeted regression test fails on the previous
-producer and passes after the correction, without reverting unrelated work.
+6. Account for the disclosed test-compilation changes to out/ and
+   .tsbuildinfo.test using retained records. Compilation was authorized;
+   do not create a new blocker merely because build artifacts changed.
+   Distinguish test compilation from VSIX packaging. Do not restore or
+   clean those artifacts during this review.
 
-Run the focused tests and the relevant typecheck. Necessary compilation for
-those tests is authorized using the established test setup. Retain concise
-actual commands, exit codes, and results.
-
-Efficiency
-- Use permanent repository tests, not new JS/PowerShell helpers under docs.
-- Do not create another test framework or repeat broad qualification runs.
-- No new Copilot request, installed Host smoke, dependency installation,
-  VSIX packaging, installation, or real consumer modification.
-- Preserve the reusable installed environment and retained consumer workspace.
-- Leave skill renaming, resource-layout changes, other skill differences,
-  and the original job/env write investigation outside this correction.
+Execution boundaries
+No source edits, compiler/test execution, Host launch, Copilot request,
+packaging, installation, Git mutation, consumer upgrade, or reference-state
+updates. Use retained evidence and ordinary read-only inspection.
+Do not create another helper framework or inspect chat/session stores.
 
 Delivery
-Review the final diff and provide a concise report.md and result.json with:
-- changed files and rationale;
-- managed asset version before/after;
-- focused regression and upgrade results;
-- any concrete remaining limitation;
-- whether the source correction is ready for review.
+Create only a concise report.md and result.json in a new review directory.
 
-State explicitly that the installed candidate and existing consumer skill
-remain unchanged until a later delivery/upgrade step. Do not claim an
-installed fix, original job/env write verification, or release acceptance.
+Return:
+- ACCEPTED, ACCEPTED_WITH_LIMITATIONS, or CHANGES_REQUIRED;
+- concrete findings with supporting file/evidence references;
+- verified test scope and retained limitations;
+- readiness of the exact source state for candidate preparation.
+
+If accepted, identify the next bounded delivery step: package the accepted
+source and verify the existing consumer asset's supported upgrade in the
+reusable isolated environment. Do not execute that step in this review.
+
+Keep installed delivery, original job/env write verification, and release
+acceptance explicitly unclaimed.
