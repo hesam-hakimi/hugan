@@ -1,67 +1,84 @@
 TASK_ID: ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01
-TYPE: Independent read-only review of the completed installed upgrade smoke.
+TYPE: Focused independent read-only acceptance review
+ENVIRONMENT: Windows development agent; existing ETL evidence and the
+retained dedicated test installation and temporary consumer.
 
-Review:
-ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01
+LANGUAGE AND NO-VISION
+Use English for ALL communication, progress updates, final responses,
+code, comments, tests and documents. Do not append Persian summaries.
+The vision service is unavailable. Do not capture screenshots, record
+video, inspect images, or invoke vision/OCR services.
+Use retained DOM/accessibility text, structured UI events, logs, file
+contents, inventories and checksums. State any specific visual limitation.
 
-Goal
-Determine whether the retained evidence supports delivery of the
-etl-validate-write managed asset from 1.1.4 to 1.1.5 in the existing
-Autonomous Guarded consumer workspace, with the claimed preservation
-and approval behavior.
+OBJECTIVE
+Close the pending acceptance decision for the completed existing-consumer
+skill upgrade. Produce a clear verdict and identify the next concrete
+step toward correct job/env writes.
 
-Use English for all outputs.
+START FROM EXISTING WORK
+Resolve these records by their contents and identities, not folder recency:
+- ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01
+- Its RECONCILE record
+- ETL-0910-EXACT-VSIX-INSTALL-INITIALIZE-REVIEW01
 
-Scope
-Resolve the exact task bundle and predecessor acceptance from local
-records. Use recorded paths and recompute hashes from actual files;
-do not transcribe hashes from photographs. Preserve all original records.
+Check whether this independent review already exists or is in progress.
+Reuse a completed review; do not create a duplicate or concurrent review.
+The completed Upgrade must not be repeated or artificially recreated
+through a downgrade. Reconciliation alone is not independent acceptance.
 
-Review these claims:
-1. The installed extension and selected consumer match the recorded
-   baseline. Distinguish extension version 0.3.147 from managed asset
-   version 1.1.5.
-2. Pre-upgrade Audit identified exactly one stale asset. Independently
-   check that the expected target was derived from the installed catalog
-   and frozen before approval, rather than copied from the final output.
-3. Pending and Cancel inventories support zero changes. Correlate the
-   retained DOM transitions, timestamps, inventories and actual button
-   selection. Inspect retained screenshots where supported; state any
-   visual-review limitation.
-4. Exactly one Upgrade Managed Assets operation changed the target.
-   Overwrite and Repair were not executed.
-5. The resulting file matches the independently checked expectation,
-   has valid managed metadata/checksum and the Target Root guidance.
-   Verify that the other 20 assets and .gitignore remained unchanged.
-6. Post-upgrade Audit reports 21 current assets and no stale assets.
-   Do not describe this as a second upgrade.
-7. Review N1–N5 independently. Separate acceptance of this observed
-   one-file upgrade from unresolved disclosure and destructive-action
-   UI issues. Explain the trailing-newline change and retain the limit
-   that non-empty user content outside the managed block was untested.
-8. Inspect launch arguments, including --disable-workspace-trust,
-   against the task's actual authorization. Report any deviation and
-   qualification limit; do not infer normal workspace-trust behavior
-   or rerun the Host to compensate.
-9. Preserve the distinct historical FIX01 and PARITY01 test results.
-   Do not merge their counts or claim the adjacent suite is green.
+FOCUSED REVIEW
+1. Verify the original evidence inventory and the current target and
+   installed identities using actual files. Distinguish extension version
+   0.3.147 from managed asset version 1.1.5.
 
-Boundaries
-No Host launch, model request, ETL tool invocation, build, test run,
-packaging, installation, source edit, Git mutation, consumer write,
-Repair, Overwrite, deployment or release.
-Reuse existing evidence and helpers where useful. Do not create another
-JS/PowerShell test framework or modify existing evidence.
+2. Independently verify the expected skill content against the installed
+   catalog and the actual rendering/checksum rules. Correlate retained
+   records showing that the expectation preceded approval and mutation.
+   Do not rely only on report prose or file modification times.
 
-Deliver only a concise report.md and valid result.json in a new review
-directory. Include:
-- Review verdict and evidence supporting it.
+3. Verify the recorded Cancel and approval sequences, pending inventories,
+   exact Upgrade Managed Assets selection, and the resulting single-file
+   change. Check that Overwrite and Repair were not selected.
+
+4. Confirm delivery of repo.skill.validate-write from 1.1.4 to 1.1.5,
+   including Target Root guidance. Verify preservation of the other
+   20 assets and .gitignore, and the recorded post-Audit current status.
+   Preserve the limitation that non-empty user content outside the
+   managed section was not exercised.
+
+5. Assess the existing findings independently, concentrating on their
+   effect on this acceptance decision and release readiness:
+   missing destination/change disclosure, the sibling Overwrite action,
+   and the remaining recorded findings.
+   Check launch flags, including --disable-workspace-trust, against the
+   actual authorized scope. Do not infer normal trust-path qualification.
+
+Do not repeat unrelated historical investigations. Preserve accepted
+Base initialization results and keep historical FIX01 and PARITY01 test
+results separate.
+
+EXECUTION BOUNDARIES
+Read-only inspection only. No Host launch, model request, ETL operation,
+build, test execution, packaging, installation, source/Git change,
+consumer mutation, deployment or release.
+Reuse existing evidence and helpers. Do not create another JS/PowerShell
+framework. Leave original evidence unchanged.
+
+DELIVERY
+Write only concise report.md and result.json in the review directory.
+Include:
+- Verdict and directly supporting evidence.
 - Blocking findings, non-blocking findings and retained limitations.
-- Whether this specific existing-consumer upgrade is accepted.
+- Acceptance status of this specific consumer skill upgrade.
 - Original job/env write correctness: not established by this review.
-- Post-upgrade skill invocation: not established by this review.
+- Post-upgrade model loading of the skill: not established by this review.
 - Release acceptance: not granted.
-- One smallest justified next task.
 
-Keep consumer resource-layout and broader agent/skill completeness
-follow-ups open. Do not start the next task automatically.
+If accepted, specify one actionable next task for qualifying actual
+preview → approval → job/env write behavior in the correct temporary
+consumer root, reusing the existing environment and permanent tests.
+If blocked, specify the smallest correction needed.
+
+Finish this acceptance decision without introducing another reconciliation
+stage or expanding into unrelated cleanup.
