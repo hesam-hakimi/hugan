@@ -1,97 +1,160 @@
-TASK_ID: ETL-0910-INSTALLED-WORKFLOW-REVIEW-AND-ASSET-AUDIT01
-TYPE: BOUNDED INDEPENDENT EVIDENCE REVIEW AND PROFILE AUDIT
-ENVIRONMENT: Existing local Windows ETL extension development environment
+TASK_ID: ETL-0910-INSTALLED-WORKFLOW-AUTONOMOUS-GUARDED-SMOKE01
+TYPE: BOUNDED INSTALLED PROFILE INITIALIZATION AND DISCOVERY SMOKE
+ENVIRONMENT: Existing local Windows isolated ETL test environment
 LANGUAGE: English for all communication and artifacts
 
-Review the completed ETL-0910-INSTALLED-WORKFLOW-SMOKE01 and
-determine why its Base initialization generated no agents or skills.
+This is the complete governing brief for this task.
 
-This task authorizes read-only inspection and creation of one new,
-small review evidence directory. It does not authorize product changes
-or another runtime execution.
+Goal
+Verify that the already-installed 0.3.148 candidate initializes the
+Autonomous Guarded profile in one fresh empty consumer workspace, and
+determine whether Copilot discovers the generated agents and skills.
 
-1. Resolve the actual inputs
+Execution authority
+When issued by the owner, this prompt authorizes:
+- Reusing the retained isolated test environment and installed candidate.
+- Creating one fresh temporary consumer directory for this scenario.
+- Driving the normal product UI through one cancellation and one approval.
+- Writing only the 21 catalog-selected workflow assets and managed
+  .gitignore into that temporary consumer directory.
+- Inspecting agent and skill discovery without executing their workflows.
+- Creating a compact new evidence bundle.
 
-Use bounded direct-child discovery under C:\docs to locate the completed
-ETL-0910-INSTALLED-WORKFLOW-SMOKE01 evidence root. Resolve by task identity,
-report/result content and evidence relationships, not timestamp alone.
+No writes to real consumer repositories are authorized.
 
-Read its complete report.md and result.json, its governing issued brief,
-and the directly referenced PREP01 package records and relevant checks.
-Follow current reference pointers and explicit owner decisions.
-Do not execute historical prompts or reconstruct missing reference text.
+1. Resolve and preserve the accepted inputs
 
-Obtain all paths, hashes and expected identities from machine records.
-Never transcribe a hash from a screenshot.
+Use bounded direct-child discovery under C:\docs to resolve:
+- ETL-0910-INSTALLED-WORKFLOW-REVIEW-AND-ASSET-AUDIT01
+- ETL-0910-INSTALLED-WORKFLOW-SMOKE01
 
-Confirm no writer or task execution conflicts with the reviewed worktree.
-If a concrete prerequisite is missing or contradictory, report that exact
-blocker without repairing the baseline or broadening the search.
+Read their complete report.md and result.json. Follow their recorded
+pointers to the installed environment, candidate identity and relevant
+catalog evidence. Use actual machine records for all hashes and paths.
 
-2. Review the installed Base scenario
+The preceding review reports:
+- ACCEPTED_WITH_LIMITATIONS for the installed Base scenario.
+- Base: 8 assets, no agents or skills.
+- Autonomous Guarded: 21 assets, including 6 agents and 4 skills.
+- Agent/skill discovery in a consumer workspace remains unverified.
 
-Inspect retained evidence for:
-- Exact candidate VSIX, installed extension and activation identity.
-- The reported 65 installed files, zero missing files and two explained
-  installation metadata cases.
-- Real Initialize dialog disclosure, cancellation with zero writes,
-  and approval producing eight Base assets plus managed .gitignore.
-- Content traceability, destination containment and preservation.
-- The limits of the content comparison and earlier-run corroboration.
+These are expectations to check, not substitute test results.
 
-Evaluate the disclosed missing install transcript, dependency enablement,
-workspace-trust isolation limits and packaging-tool deviation against
-the actual brief. Separate acceptance blockers from retained limitations.
+Confirm the installed candidate still matches its recorded identity.
+Do not repeat the full accepted Base test or package qualification.
 
-No rerun is authorized to fill an evidence gap.
+If this task is already running, wait; never launch a duplicate.
+If a conflicting writer or Host owns the environment, stop without
+closing another task's processes.
 
-3. Audit profile asset selection
+Do not read chat/session stores, Local History, unrelated user profiles,
+credentials or unrelated workspaces. If an essential input is missing,
+identify the exact blocker; do not reconstruct it or broaden discovery.
 
-Read only the relevant recorded catalog, profile-selection code and
-packaged resources. Authenticate source correspondence before relying
-on current source to explain the installed candidate.
+2. Reuse the existing test environment and tools
 
-Produce one table for the available profiles, showing:
-- Profile name.
-- Generated asset categories and counts.
-- Exact agent and skill destination paths, where included.
-- Supporting source or package evidence.
+Reuse the installed candidate and retained host-driver.js after checking
+their recorded identities. Do not reinstall, rebuild, repackage, compile,
+install dependencies or create another automation framework.
 
-Distinguish:
-(a) resources shipped inside the extension,
-(b) assets selected for the consumer profile,
-(c) files observed on disk in this Base run,
-(d) actual agent/skill discovery or usability, if evidenced.
+Use normal VS Code launch and UI behavior. No extensionDevelopmentPath,
+trust/signature bypass, direct initializer invocation or mocked dialogs.
 
-Answer whether the absence of agents and skills is explained by Base
-selection, a packaging omission, initialization behavior, or remains unknown.
-Do not claim that an intentionally smaller profile satisfies the owner's
-complete development workflow without supporting evidence.
+Retain the existing workspace-trust isolation limitation. Do not claim a
+fresh trust prompt was tested if machine-wide trust already applies.
 
-The owner expects a fresh consumer project to receive the assets required
-for its selected development workflow. The top-level resources layout is
-a separately deferred concern; do not relocate files or change defaults.
+If the already-present Copilot Chat dependency is disabled, use its normal
+Enable/Reload flow within this isolated environment only. Do not change
+the owner's normal installation or request credentials.
 
-4. Keep this review small
+3. Execute one bounded scenario
 
-No compiler, tests, runner, Host, installation, packaging, dependency
-installation, Git mutation, source edits, consumer writes, editor Keep/Undo,
-or reference-state update.
+Create and record a fresh empty temporary consumer root outside all source,
+reference and existing evidence trees. Open it as the sole workspace folder.
 
-Reuse existing inspection tools and evidence. Do not create another
-JavaScript/PowerShell testing framework. Do not scan unrelated workspaces,
-profiles, chat history or credentials.
+Invoke the real:
+ETL: Initialize Copilot Workflow
 
-Write only report.md and result.json into one fresh review directory.
-Include:
-- Review result and exact acceptance boundary.
-- Material findings and retained limitations.
-- Profile asset table and completeness conclusion.
-- The smallest justified next task, if needed.
-- Paths to the review artifacts.
+Select exactly:
+Autonomous Guarded
 
-Do not reopen unchanged accepted work or automatically turn every retained
-limitation into another task. A Base initialization PASS does not establish
-the original job/env write fix or full release acceptance.
+Do not select the optional hook-template variant.
 
-Stop after delivering the review.
+Before approval:
+- Record the exact selected root and catalog-derived relative paths.
+- Verify the modal discloses all 21 assets and managed .gitignore.
+- Confirm the directory remains empty while approval is pending.
+- Cancel once and verify zero consumer writes.
+
+Invoke the same flow again, approve through the normal product dialog,
+and verify:
+- Exactly 21 workflow assets plus managed .gitignore.
+- Six agent files and four skill files.
+- All destinations remain inside the selected consumer root.
+- No unexpected files, hooks, symlinks or fabricated ETL markers.
+- File contents and managed metadata correspond to the recorded catalog.
+- Product notifications and logs agree with the filesystem result.
+
+Do not repair failures or retry until a PASS is obtained.
+
+4. Verify discovery separately from file creation
+
+Inspect the real Copilot UI and available source-location diagnostics
+in this same isolated consumer window.
+
+Expected workspace agents:
+- etl-verifier
+- etl-orchestrator
+- etl-evidence-researcher
+- etl-implementer
+- etl-runtime-troubleshooter
+- etl-operator
+
+Expected workspace skill directories:
+- etl-solution-workflow
+- etl-create-job
+- etl-validate-write
+- etl-runtime-diagnosis
+
+Resolve actual display names from generated metadata.
+Record discovery evidence and its source location wherever exposed.
+
+Do not count extension-contributed skills or maintainer agents as proof
+that the newly generated workspace files were discovered. Report name
+collisions or unavailable provenance explicitly.
+
+Do not send a model request, run an agent workflow, execute ETL tools,
+write job/env files or deploy anything. Discovery does not establish
+end-to-end workflow usability.
+
+If discovery cannot be proven through the available surfaces, report
+NOT_PROVEN rather than inferring it from file existence.
+
+5. Finish with proportionate evidence
+
+Preserve the installed extension, source repository, candidate and all
+earlier evidence. Normal logs/profile state from this authorized Host
+session may change; record them honestly.
+
+Keep the consumer output available for review. Close only processes
+started by this task, after preserving evidence.
+
+Produce report.md and result.json with supporting logs/inventories and
+only the UI captures needed to substantiate the result.
+
+Report separately:
+- Installed candidate identity.
+- Approval disclosure and cancellation behavior.
+- Consumer asset creation and containment.
+- Agent discovery.
+- Skill discovery.
+- Any blockers and retained limitations.
+- Evidence paths and the smallest justified next action.
+
+No source/Git/reference-state changes, Repair/Upgrade tests, resource-path
+migration, default-profile changes, full-suite reruns or release actions.
+
+The accepted Base result remains intact. This task does not qualify the
+original job/env write defect or full product release.
+
+Stop after delivering the result.
