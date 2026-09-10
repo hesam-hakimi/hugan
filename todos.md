@@ -1,113 +1,73 @@
-TASK_ID: ETL-0910-AG-SMOKE-REVIEW-AND-SKILL-COMPARISON01
-TYPE: BOUNDED INDEPENDENT REVIEW AND READ-ONLY CONTENT COMPARISON
-ENVIRONMENT: Existing local Windows ETL development environment
-LANGUAGE: English for all communication and artifacts
+TASK_ID: ETL-0910-INSTALLED-WORKFLOW-SKILL-SHADOW-RESOLUTION01
 
-Review the completed
-ETL-0910-INSTALLED-WORKFLOW-AUTONOMOUS-GUARDED-SMOKE01
-and assess the practical significance of its three skill-name collisions.
+Communicate entirely in English.
 
-This prompt defines this review's scope. It authorizes read-only inspection
-and one small new review evidence directory. It authorizes no runtime run
-or product change.
+Objective
+Determine which etl-validate-write SKILL.md is actually loaded when invoking the skill from the retained Autonomous Guarded consumer workspace.
 
-1. Resolve existing evidence
+This is one bounded investigation. Do not repeat the accepted initialization/discovery smoke or expand into general qualification.
 
-Use bounded direct-child discovery under C:\docs to resolve the completed
-task by task identity and report/result content.
+Read the completed:
+ETL-0910-AG-SMOKE-REVIEW-AND-SKILL-COMPARISON01
 
-Read its complete report.md and result.json and follow only their relevant
-pointers to the preceding review, installed candidate, retained consumer
-output and supporting records.
+Resolve its exact location, installed extension, isolated test environment, and retained consumer workspace from existing machine-readable records. Do not derive execution pins or hashes from screenshots.
 
-Obtain exact paths, versions and hashes from machine records.
-Do not transcribe hashes from screenshots.
+Established facts
+- The installed 0.3.148 initialization/discovery scenario was accepted with limitations.
+- Workspace and extension versions of three same-name skills materially differ.
+- The Workspace etl-validate-write body lacks the extension version's explicit consumer-root and multi-root guidance.
+- UI discovery identifies the Workspace entry. Actual invocation resolution remains unverified.
+- Product root and containment guards remain in force.
 
-Confirm no conflicting writer is active. Do not close another task's
-processes, repair baseline drift or launch a duplicate task.
+Authorized scope
+This task authorizes one controlled, read-only Copilot request in the existing isolated test environment and preservation of its relevant diagnostic evidence.
 
-Do not access chat/session stores, Local History, unrelated profiles,
-credentials or unrelated workspaces. If an earlier execution brief is
-unavailable, do not reconstruct it or claim complete procedural compliance
-with it; distinguish verified behavior from unavailable contract evidence.
+Use the existing authenticated session if available. If interactive sign-in is required, prepare the invocation first, then ask me to complete normal sign-in myself. Never request, extract, or manipulate credentials or tokens.
 
-2. Independently assess the reported result
+Do not invoke ETL action tools, generate job/env files, publish, deploy, or run jobs. Do not modify either skill, product code, installed files, or real consumer projects.
 
-Verify the retained evidence for:
-- The unchanged installed 0.3.148 candidate.
-- Disclosure of 21 destinations and managed .gitignore.
-- Cancellation with zero writes.
-- Approval producing 21 assets plus .gitignore in the selected consumer root.
-- Six workspace agents and four workspace skills discovered in the real UI.
-- Separation of workspace entries from built-in or extension contributions.
-- Preservation of repository, installed extension and previous evidence.
+Procedure
+1. Reuse the installed candidate and retained consumer workspace. Confirm their relevant identities against the accepted records. Preserve existing evidence.
 
-Keep the content-verification boundary honest: metadata self-consistency
-and catalog identity are not a complete independent rendering comparison.
+2. Read only the two recorded etl-validate-write files and their registration metadata. Identify a few distinguishing passages, especially consumer-root selection and permitted side effects.
 
-Inspect the three overwritten click records restored from driver stdout.
-Determine whether retained evidence supports their authenticity and ordering.
-Do not manufacture missing records or rerun the scenario.
+3. Check whether supported diagnostics for this new invocation can reveal the resolved skill path or loaded content. Do not inspect historical chat/session stores.
 
-Evaluate the unreliable non-profile QuickPick detail field and the declined
-cleanup wildcard operation. Record actual effects and evidence limits.
-Do not turn a disclosed near-miss into an unsupported data-loss claim.
+4. Invoke the visible etl-validate-write skill through the normal supported UI. Submit this single request:
 
-3. Compare the three colliding skills
+   "Use etl-validate-write for a read-only preparation explanation.
+   Explain how you would select the consumer workspace root, handle
+   multiple workspace folders, and establish the preview and approval
+   requirements. No ETL tool calls, commands, file writes, publishing,
+   deployment, or job execution are authorized. Do not perform a write."
 
-Compare the actual generated workspace files with the corresponding files
-declared by the installed extension's chatSkills contribution:
+5. Preserve the invocation selection, relevant diagnostic trace, and response. Establish which body loaded using recorded path/content evidence where available.
 
-- etl-create-job
-- etl-validate-write
-- etl-runtime-diagnosis
+   UI listing alone is insufficient. The model's claim about its own
+   source, or its wording resembling one version, is also insufficient.
 
-For each pair, report:
-- Exact source locations.
-- Byte equality or differences.
-- Frontmatter and substantive instruction differences.
-- Whether differences are only managed metadata/profile annotations.
-- Any meaningful difference in workflow steps, tool use, approval rules,
-  target-root handling or write behavior.
+6. Report one verdict:
+   - WORKSPACE_BODY_CONFIRMED
+   - EXTENSION_BODY_CONFIRMED
+   - BOTH_BODIES_CONFIRMED
+   - UNDETERMINED
 
-Use etl-solution-workflow only as the recorded non-colliding workspace
-reference; do not expand this into an audit of every skill.
+   Explain exactly what supports the verdict and any remaining uncertainty.
+   If resolution cannot be established, stop after this request and identify
+   the missing observation. Do not launch additional scenarios automatically.
 
-Keep these conclusions separate:
-- Which entry the discovery UI displays.
-- Whether the two bodies materially differ.
-- Which body an actual invocation loads.
+Efficiency and preservation
+- Reuse existing inspection tools and Host automation where applicable.
+- Do not create another JavaScript or PowerShell helper framework.
+- No rebuild, reinstall, packaging, dependency changes, Git mutation,
+  reference-state updates, or unrelated test runs.
+- Do not rename skills or change precedence.
+- Close only task-owned processes if necessary. No wildcard cleanup.
+- Keep the reusable installed environment and consumer workspace.
 
-The previous smoke establishes listing behavior, not invocation-time
-resolution. Do not promote a UI listing or source inference into runtime proof.
+Deliver
+Write a concise report.md and result.json in one new task evidence directory. Include the relevant evidence excerpts, verdict, practical implication for root-selection guidance, and smallest justified corrective task.
 
-If the bodies are equivalent, explain whether the collision creates any
-demonstrated behavioral risk. If they materially differ, identify the exact
-risk and the smallest additional evidence needed. Do not rename, delete,
-disable or edit either copy.
-
-4. Finish without another execution cycle
-
-No Host launch, model request, agent invocation, ETL tool call, compiler,
-tests, installation, packaging, dependency installation, Git mutation,
-consumer writes, editor Keep/Undo or reference-state changes.
-
-Reuse existing inspection tools. Create no new test framework or temporary
-JavaScript/PowerShell harness. Perform no cleanup or wildcard deletion.
-
-Write only report.md and result.json into one fresh review directory,
-including:
-- Review result and precise acceptance boundary.
-- Material findings and retained limitations.
-- The three-skill comparison table.
-- Whether invocation-resolution testing is justified by a concrete risk.
-- The smallest justified next action and evidence paths.
-
-Do not automatically convert every limitation into another task.
-Do not reopen the accepted Base scenario.
-Resource layout, default-profile changes and packaging cleanup remain deferred.
-
-This review does not establish end-to-end workflow usability, the original
-job/env write fix or full release acceptance.
-
-Stop after delivering the result.
+Keep initialization, skill loading, original job/env write verification,
+and release acceptance as separate claims. This investigation must not
+claim that the original consumer-write defect is fixed.
