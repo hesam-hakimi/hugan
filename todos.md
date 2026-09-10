@@ -1,105 +1,129 @@
-TASK_ID: ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-REVIEW01
-TYPE: SMALL INDEPENDENT DELTA REVIEW
-REVIEWED_TASK: ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-FIX01
+TASK_ID: ETL-0910-VSIX-CANDIDATE-PREP01
+TYPE: BOUNDED PRIVATE VSIX BUILD AND CONTENT VERIFICATION
 
-Use English for all communication and artifacts.
+Use English for all communication, reports, and artifacts.
 
 GOAL
-Review only the Initialize-dialog disclosure fix and its permanent
-regression test. Do not restart bootstrap qualification.
+Produce one private VSIX candidate containing the accepted source,
+including empty-project workflow bootstrap and the accepted Initialize
+.gitignore disclosure fix.
+
+Candidate version: 0.3.148.
+This version identifies a private test candidate, not an accepted release.
+
+ENVIRONMENT
+Local Windows Agent.
+Expected source worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
 INPUTS
-Resolve the reviewed task's evidence bundle under C:\docs using its
-machine-recorded task identity.
+Read the complete report.md and result.json for:
+ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-REVIEW01
 
-Read its complete report.md, result.json, task-diff.patch, the two
-pre-copies, and retained red/green and typecheck outputs.
-Follow earlier evidence links only when needed to establish the baseline.
+Follow its machine-recorded links to FIX01 and the accepted bootstrap
+and prior Host evidence where needed.
 
-Obtain expected paths and hashes from machine records, not photographs.
+Carry forward:
+- ACCEPTED_WITH_LIMITATIONS.
+- F-1 accepted for Initialize only.
+- The previous Host PASS exercised sources before the disclosure fix.
+- Repair/Upgrade disclosure omissions and F-2 through F-5, U-1/U-2
+  remain open.
+- Original job/env write-fix and installed/release qualification are
+  not established by this workflow evidence.
 
-REVIEW SCOPE
-1. src/customization/CopilotWorkflowCommands.ts
-2. src/test/suite/workflowEmptyProjectBootstrap.test.ts
+BASELINE
+Resolve evidence by task identity, not newest timestamp.
+Authenticate the current source against the accepted evidence chain.
+Use actual machine hashes; never transcribe hashes from photos.
 
-Reported delta:
-- Product: +4/-1, one Initialize-dialog hunk.
-- Test: +47/-3, extending the existing cancellation case.
-- Red: 12 passing / 1 intended assertion failure.
-- Green: 13 passing / 0 failing.
-- Typecheck: exit 0.
-- No new helper scripts or test framework.
+Check for a concurrent writer or conflicting build.
+Preserve existing dirty changes and pending editor changes.
+Do not build from HEAD alone: accepted changes exist in the worktree.
 
-Verify these claims; do not copy them as conclusions.
+If source identity materially conflicts with the reviewed state,
+report the exact mismatch without repairing the baseline.
 
-CHECKS
-A. Authenticate the exact pre/post delta and live post-state.
-   Both files were already dirty: use task pre-copies, not HEAD.
-   Confirm no concurrent writer. Do not infer this from matching hashes.
+AUTHORIZED WORK
+1. Inspect existing package.json, build/package scripts, packaging
+   rules, runtime resources, and available local tooling.
 
-B. Verify that the actual Initialize approval dialog discloses managed
-   .gitignore creation/update before the user decides, while preserving
-   the selected root and complete catalog asset list.
+2. Prepare an isolated build/package staging directory outside the
+   repository using the authenticated current working-tree content.
 
-C. Assess the complete message for clarity, including the existing
-   statement about not overwriting files. The .gitignore exception
-   must be understandable. Do not introduce a writer/schema redesign.
+3. Set version 0.3.148 only in staged package metadata. Record this
+   packaging-only change explicitly. Preserve extension identity and
+   all unrelated metadata; do not modify repository version files.
 
-D. Confirm Initialize/Cancel branching, write guards, approval plan,
-   generated content, and asset counts are unchanged.
+4. Compile the accepted source once using existing local dependencies
+   and the project's applicable build configuration.
+   Retained FIX01 compiled trees were disposable and removed.
+   Do not reuse stale repository out/ or the older bootstrap build as
+   though either included the disclosure fix.
 
-E. Verify the permanent test calls the registered production command,
-   records real dialog arguments through the existing fixture, checks
-   disclosure before the simulated answer, and retains zero-write
-   cancellation coverage without weakening existing assertions.
+5. Package one uniquely named private VSIX using existing local
+   packaging tooling. Inspect lifecycle scripts before invoking them.
+   Do not silently bypass required project gates or omit dependencies
+   merely to make packaging succeed.
 
-F. Inspect the retained red/green failure and success evidence.
-   Distinguish recorded execution from checks performed by this review.
-   Disposable compiled trees were removed; do not reconstruct them
-   or claim to authenticate bytes that are no longer retained.
+6. Inspect the actual VSIX archive and verify:
+   - expected extension ID and candidate version;
+   - valid entrypoint and required runtime dependencies;
+   - compiled bootstrap and disclosure code match this build;
+   - packaged catalog/resources/media are present and consistent;
+   - no dependency points back to the development workspace;
+   - no evidence bundles, temporary fixtures, credentials, or
+     maintainer-only control-plane files are accidentally included.
 
-G. The adjacent customization suite reported 50 passing / 4 failing
-   on both builds. Inspect the retained failure details if relying on
-   that comparison: three historical failures plus a package.json
-   ENOENT caused by the external build layout. Do not call it green
-   or infer absence of regressions from equal counts alone.
+Use existing packaging rules. If they require a source/config repair
+or an unavailable tool, report the concrete blocker and smallest
+necessary follow-up instead of expanding this task.
 
-CARRY FORWARD
-- F-1 closure, if accepted, applies only to Initialize.
-- Repair/Upgrade disclosure omissions remain follow-up candidates.
-- F-2 through F-5 and U-1/U-2 remain open.
-- The earlier Host PASS exercised pre-fix sources.
-- This review grants no installed-extension or release qualification.
+EFFICIENCY
+Reuse existing build/package commands and tools.
+Do not create another testing framework or a collection of JS helpers
+under C:\docs.
 
-AUTHORITY
-Read-only source/evidence inspection and hashing are allowed.
-Create only a compact report.md and result.json in a fresh external
-review directory.
+Do not rerun historical red/green, broad suites, or Host scenarios.
+Run only checks required to build and inspect this candidate.
 
-No edits, compiler/tests, Host, new testing tools, Git mutation,
-packaging, installation, reference updates, or historical reruns.
+BOUNDARIES
+No product-source edits, repository out/ promotion, dependency
+installation, Git mutation, reference updates, VSIX installation,
+Host launch, real consumer writes, publishing, or release.
 
-If the baseline or evidence is materially inconsistent, identify the
-precise issue. Do not repair it or broaden scope automatically.
+Staging, compiler output, the VSIX, and this task's evidence may be
+written outside the repository.
 
 DELIVERY
-Return:
+Retain the VSIX and a compact evidence bundle containing:
+- report.md and result.json;
+- source/build/package identity and the staging metadata delta;
+- actual commands, exit codes, and relevant output;
+- archive inventory and content-verification results;
+- repository preservation results.
+
+Record the VSIX's exact path, SHA-256, size, extension ID, and version.
+Do not call the package runtime-tested or ready for release.
+
+End with:
 TASK_ID:
-REVIEWED_TASK:
-REVIEW_RESULT: ACCEPTED / ACCEPTED_WITH_LIMITATIONS / CHANGES_REQUIRED / BLOCKED
-EXACT_DELTA_VERIFIED:
-F1_INITIALIZE_DISCLOSURE:
-PERMANENT_TEST_AND_RETAINED_RESULTS:
-MATERIAL_FINDINGS:
-RETAINED_LIMITATIONS:
-REPOSITORY_CHANGED_BY_REVIEWER: NO
-COMPILER_TESTS_OR_HOST_EXECUTED_BY_REVIEWER: NO
+STATUS: CANDIDATE_BUILT_AND_CONTENT_VERIFIED / BLOCKED
+SOURCE_IDENTITY:
+STAGING_METADATA_CHANGE:
+BUILD_RESULT:
+PACKAGE_CONTENT_VERIFICATION:
+VSIX_PATH:
+VSIX_SHA256:
+VSIX_SIZE:
+EXTENSION_ID:
+CANDIDATE_VERSION:
+REPOSITORY_CHANGED: NO
+CANDIDATE_INSTALLED: NO
+HOST_EXECUTED: NO
 INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
+RETAINED_LIMITATIONS:
 EVIDENCE_ROOT:
-NEXT_CONDITIONAL_GATE:
+NEXT_CONDITIONAL_GATE: BOUNDED_INSTALL_AND_INSTALLED_WORKFLOW_SMOKE
 
-If accepted, identify bounded VSIX preparation as the next candidate
-task. Do not execute it. If changes are needed, name only the smallest
-necessary correction.
-
-Stop after delivering the review.
+Stop after delivering the candidate and report.
