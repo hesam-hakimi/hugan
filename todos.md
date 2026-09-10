@@ -1,161 +1,126 @@
-TASK_ID: ETL-0909-WORKFLOW-EMPTY-PROJECT-HOST-SMOKE01
-TYPE: BOUNDED REAL VSCODE WORKFLOW VERIFICATION
+TASK_ID: ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-FIX01
+TYPE: SMALL PRODUCT DISCLOSURE FIX WITH PERMANENT REGRESSION TEST
 
-Use English for all communication, UI guidance, reports, and artifacts.
+Use English for all communication, code, tests, and reports.
+
+ENVIRONMENT
+Local Windows Agent.
+Expected worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+
+Resolve actual baseline identities from the retained machine records.
+Do not copy hashes from screenshots.
 
 OBJECTIVE
-Verify the accepted empty-project workflow bootstrap through a real
-VS Code Extension Development Host, real selection/confirmation dialogs,
-and real filesystem writes in one fresh temporary consumer folder.
+Fix finding F-1: workflow initialization creates or updates the managed
+.gitignore, but the real approval dialog lists only the catalog assets.
 
-This is verification, not implementation or release.
+Before the user clicks Initialize, the dialog must explicitly disclose
+that .gitignore may also be created or updated in the selected root.
 
-AUTHORITATIVE INPUTS
-Resolve and read the complete report and result for:
-ETL-0909-WORKFLOW-EMPTY-PROJECT-INDEPENDENT-REVIEW01
+AUTHORIZED EDITS
+Only:
+1. src/customization/CopilotWorkflowCommands.ts
+2. src/test/suite/workflowEmptyProjectBootstrap.test.ts
 
-Follow its machine-recorded links to:
-ETL-0909-WORKFLOW-EMPTY-PROJECT-BOOTSTRAP01
+Keep the change small. Do not redesign the workflow, approval-plan
+schema, writer, test infrastructure, or root classification.
 
-Use bounded direct-child discovery under C:\docs. Authenticate task
-identity and source/build relationships from machine records.
-Never derive hashes from screenshots or choose evidence by timestamp alone.
+CONTEXT AND PREFLIGHT
+Read the complete report and result for:
+- ETL-0909-WORKFLOW-EMPTY-PROJECT-INDEPENDENT-REVIEW01
+- ETL-0909-WORKFLOW-EMPTY-PROJECT-HOST-SMOKE01
 
-Carry forward:
-- Review result: ACCEPTED_WITH_LIMITATIONS.
-- The new 13-test suite and regression red/green evidence were authenticated.
-- Adjacent-suite totals lacked retained output; do not claim them verified.
-- F-1 through F-5 and U-1/U-2 remain recorded limitations.
-- No installed-extension or release acceptance exists.
+Locate them through bounded direct-child discovery under C:\docs and
+machine-recorded task identities. Follow relevant linked records.
 
-PRECONDITIONS
-Verify the reviewed source identities, worktree, branch, HEAD, staged
-state, and dirty set against the review records.
+The independent review accepted the bootstrap with limitations.
+HOST-SMOKE01 reported PASS for the Base profile in a real development
+Host: cancellation wrote nothing; approval created eight catalog assets
+plus .gitignore. Installed-extension qualification remains unverified.
 
-Check for an active writer or conflicting Host. Do not launch a duplicate,
-terminate unrelated processes, resolve pending editor changes, or repair
-a mismatching baseline.
+Verify the two edit targets against their recorded post-state, and
+confirm the expected repository baseline and no concurrent writer.
+Preserve all existing dirty changes. If a material mismatch exists,
+report it without repairing the baseline.
 
-AUTHORITY
-You may:
-- Create a fresh evidence directory and a fresh temporary consumer folder.
-- Prepare an isolated development-host launch surface outside the repository.
-- Launch the existing local VS Code executable with isolated user-data
-  and extension directories.
-- Exercise the actual workflow initialization command and real dialogs.
-- Create only the selected packaged workflow assets and their managed
-  .gitignore within the explicitly confirmed temporary consumer root.
-- Preserve the resulting evidence and temporary test output.
+IMPLEMENTATION
+- Locate the actual Initialize approval dialog used by the registered
+  workflow command.
+- Preserve the selected root and complete catalog asset list.
+- Add a clear English disclosure before approval, for example:
+  "This also creates or updates the managed .gitignore in this folder
+  for generated workflow files."
+- Put this in the real modal message or detail, visible before the
+  decision. Logging it afterward is insufficient.
+- Match the wording to actual behavior. Do not claim byte-preservation
+  of an existing .gitignore: the separate EOL finding F-2 remains open.
+- Preserve Initialize/Cancel behavior and all write guards.
+- Do not change generated content, asset counts, or writer behavior.
+- Do not close F-2 through F-5 or U-1/U-2 through this fix.
 
-Do not:
-- Change product source, tests, references, repository output, or Git.
-- Install dependencies, package a VSIX, install the candidate into the
-  user's normal VS Code profile, publish, or release.
-- Write to any real consumer repository or reference checkout.
-- Execute unrelated ETL jobs, publishing, deployment, or broad test suites.
-- Substitute mocks, direct initializer calls, or filesystem adapters for
-  the real Host path.
+PERMANENT TEST
+Extend the existing bootstrap test suite using its current command
+registration and VS Code dialog fixture.
 
-RUNTIME PREPARATION
-Reuse the authenticated BOOTSTRAP01 external compiled output when its
-identity and completeness support a real development-host launch.
+Test the arguments passed to the actual approval dialog:
+- selected root remains visible;
+- catalog asset paths remain visible;
+- .gitignore creation/update is disclosed before approval resolves.
 
-Resolve required runtime resources, package metadata, and existing
-dependencies from actual files. Keep any necessary staging outside the
-repository and record its source-to-staging identities.
+Retain the existing cancellation check proving zero files, including
+no .gitignore. Reuse that case rather than duplicating its setup.
 
-Do not launch the stale repository out/ as though it contained bootstrap.
-Do not rebuild merely for convenience. If the retained build cannot
-support an authentic launch without additional changes, report the exact
-blocker and smallest required preparation; do not expand scope.
+The test must exercise the production command, not a copied formatting
+function or a search for text in source files.
 
-Record the actual loaded extension path, version, and compiled-code
-identity. Version text alone is not sufficient proof.
+VALIDATION
+Use existing local dependencies and the existing focused test method.
+Run the focused regression and bootstrap suite, plus the relevant
+TypeScript check.
 
-ONE BOUNDED SCENARIO
-1. Create a genuinely empty temporary folder outside protected roots.
-   Open it as the only workspace folder in the isolated Host.
-   Record its exact absolute path and initial empty inventory.
+Where practical, run the new assertion before the product edit to
+confirm the intended failure, then verify it passes after the edit.
+Do not create full pre/post source-tree copies for this small change.
 
-2. Invoke the registered command:
-   databricks-etl-copilot.initializeCopilotWorkflow
+Keep permanent test logic in the repository test file.
+Reuse the existing runner/adapter; do not create a new JavaScript
+testing framework or new helper scripts under C:\docs.
+Place necessary compiler output in a fresh disposable build directory,
+leaving repository out/ and historical evidence untouched.
 
-   Use the base profile for the smallest packaged asset set.
+No broad suite reruns or real Host rerun are required in this task.
+If the existing focused method cannot run within this boundary,
+report the exact blocker instead of inventing another harness.
 
-3. Exercise one cancellation at the real confirmation flow.
-   Verify zero consumer-file writes, including no .gitignore creation.
+BOUNDARIES
+No dependency installation, Git mutation, version bump, packaging,
+VSIX installation, release, real consumer writes, or reference updates.
+Local test writes are permitted only in fresh temporary fixtures.
+Do not resolve pending editor changes.
 
-4. Invoke the same command again and complete the real profile selection,
-   root confirmation, and Initialize approval.
+DELIVERY
+Perform a focused author review of the two-file delta.
+Retain a compact report.md, result.json, exact task diff, and actual
+test/compiler output in one fresh evidence directory.
 
-   Before approval, record the actual root and exact planned asset paths.
-   Explicitly disclose that the existing implementation also creates a
-   managed .gitignore. This task authorizes that additional file only in
-   this temporary root; it does not resolve product disclosure finding F-1.
+Record commands, exit codes, test counts, and changed-file identities.
+Do not claim that the old Host run executed this new source.
 
-   Do not bypass the product's confirmation flow.
-
-5. Verify actual created files against the packaged catalog and expected
-   written content, including managed metadata where applicable.
-   Record the .gitignore content separately.
-
-   Verify no unexpected files or artificial ETL marker directories were
-   created, and no writes escaped the temporary consumer root.
-
-6. Capture real Target Resolution and Setup Outcome messages, dialog
-   selections, created/blocked/conflicted counts, and relevant Host logs.
-
-Use real UI interaction if available. If your environment cannot operate
-the dialogs, prepare everything first, then give the owner one concise
-English instruction containing the exact window, command, profile,
-temporary root, and buttons to use. Do not simulate their answers or
-claim completion while waiting.
-
-EVIDENCE AND PRESERVATION
-Keep a small evidence bundle:
-- launch/source identity record;
-- before/after consumer inventory;
-- actual preview and confirmed write set;
-- relevant Host/output logs and UI evidence;
-- content verification;
-- repository preservation check;
-- report.md and result.json.
-
-Retain existing evidence unchanged. Do not delete retained directories
-to make the earlier incorrect cleanup claim appear true.
-Do not rerun adjacent suites to recreate missing historical evidence.
-
-ASSESSMENT
-A successful run establishes only the exercised real development-host
-empty-project workflow scenario.
-
-It does not establish installed VSIX qualification, release readiness,
-all profiles, all multi-root cases, or the original job/env write fix.
-
-If blocked or failing, preserve the concrete symptom and stop without
-implementing a fix.
-
-FINAL FIELDS
+End with:
 TASK_ID:
-STATUS: PASS / FAIL / BLOCKED / WAITING_FOR_OWNER_UI
-LOADED_EXTENSION_IDENTITY:
-TEMPORARY_CONSUMER_ROOT:
-REAL_VSCODE_HOST_USED:
-REAL_DIALOGS_EXERCISED:
-CANCELLATION_ZERO_WRITES:
-APPROVED_ASSET_SET:
-MANAGED_GITIGNORE_DISCLOSED_FOR_THIS_RUN:
-ACTUAL_CREATED_FILES:
-CONTENT_VERIFICATION:
-UNEXPECTED_OR_OUTSIDE_ROOT_WRITES:
-REPOSITORY_CHANGED: NO
-RETAINED_LIMITATIONS:
-EMPTY_PROJECT_WORKFLOW_HOST_VERIFIED:
-EMPTY_PROJECT_WORKFLOW_INSTALLED_VERIFIED: NO
+STATUS: LOCAL_CHECKED_AWAITING_DELTA_REVIEW / BLOCKED
+CHANGED_FILES:
+F1_DISCLOSURE_IMPLEMENTED:
+PERMANENT_REGRESSION_TEST:
+FOCUSED_TEST_RESULT:
+TYPECHECK_RESULT:
+AUTHOR_REVIEW:
+RETAINED_FINDINGS:
+REPOSITORY_OUT_CHANGED: NO
+REAL_HOST_EXECUTED_THIS_TASK: NO
 INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 EVIDENCE_ROOT:
-REPORT_PATH:
-RESULT_PATH:
-NEXT_CONDITIONAL_GATE:
+NEXT_CONDITIONAL_GATE: REVIEW_THIS_SMALL_DELTA_BEFORE_VSIX_PREPARATION
 
-Stop after delivering the result.
+Stop after delivering the result. Do not start packaging or another task.
