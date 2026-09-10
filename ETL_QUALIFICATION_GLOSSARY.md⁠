@@ -1,31 +1,67 @@
-Executive Narrative
-Ask is progressing toward a Deposits-focused conversational analytics MVP. Architecture approval is complete. SpruceX setup is underway, with pilot readiness dependent on confirmed ownership, governed data access and business validation.
+TASK_ID: ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01
+TYPE: Independent read-only review of the completed installed upgrade smoke.
 
-Program Health
+Review:
+ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01
 
-Field	Status
-Current health	Y – Risk of delay
-Outlook health	Y – Key dependencies remain open
-Previous health	Confirm from previous report
+Goal
+Determine whether the retained evidence supports delivery of the
+etl-validate-write managed asset from 1.1.4 to 1.1.5 in the existing
+Autonomous Guarded consumer workspace, with the claimed preservation
+and approval behavior.
 
-Updates at a Glance
+Use English for all outputs.
 
-Workstream / pillar	Lead(s)	Key message — progress, dependency and next milestone	Health
-Platform & Infrastructure	Venkat	Architecture approval complete. SpruceX setup progressing. Next: confirm application registration, TAO and infrastructure provisioning dates.	Y
-Application & Analytics	AskTD Engineering – TBC	Application foundation progressing. Architecture review identified required controls. Next: complete and validate the Deposits question-to-answer workflow.	Y
-Data, Metadata & Access	Data Platform / IAM – TBC	Initial focus agreed on Deposits. Next: confirm approved datasets, enterprise entitlements, metadata sources and the query-serving path.	Y
-Governance & Business Validation	Governance / Deposits Business – TBC	PIA and DAC activities progressing. LLM usage inventory prepared. Next: assign the MRM owner and establish business-approved reference answers.	Y
+Scope
+Resolve the exact task bundle and predecessor acceptance from local
+records. Use recorded paths and recompute hashes from actual files;
+do not transcribe hashes from photographs. Preserve all original records.
 
-Key Decisions
+Review these claims:
+1. The installed extension and selected consumer match the recorded
+   baseline. Distinguish extension version 0.3.147 from managed asset
+   version 1.1.5.
+2. Pre-upgrade Audit identified exactly one stale asset. Independently
+   check that the expected target was derived from the installed catalog
+   and frozen before approval, rather than copied from the final output.
+3. Pending and Cancel inventories support zero changes. Correlate the
+   retained DOM transitions, timestamps, inventories and actual button
+   selection. Inspect retained screenshots where supported; state any
+   visual-review limitation.
+4. Exactly one Upgrade Managed Assets operation changed the target.
+   Overwrite and Repair were not executed.
+5. The resulting file matches the independently checked expectation,
+   has valid managed metadata/checksum and the Target Root guidance.
+   Verify that the other 20 assets and .gitignore remained unchanged.
+6. Post-upgrade Audit reports 21 current assets and no stale assets.
+   Do not describe this as a second upgrade.
+7. Review N1–N5 independently. Separate acceptance of this observed
+   one-file upgrade from unresolved disclosure and destructive-action
+   UI issues. Explain the trailing-newline change and retain the limit
+   that non-empty user content outside the managed block was untested.
+8. Inspect launch arguments, including --disable-workspace-trust,
+   against the task's actual authorization. Report any deviation and
+   qualification limit; do not infer normal workspace-trust behavior
+   or rerun the Host to compensate.
+9. Preserve the distinct historical FIX01 and PARITY01 test results.
+   Do not merge their counts or claim the adjacent suite is green.
 
-* Start with Deposits and conversational insights.
-* Initiate AskTD application registration and ownership.
-* Proceed with available approved infrastructure.
+Boundaries
+No Host launch, model request, ETL tool invocation, build, test run,
+packaging, installation, source edit, Git mutation, consumer write,
+Repair, Overwrite, deployment or release.
+Reuse existing evidence and helpers where useful. Do not create another
+JS/PowerShell test framework or modify existing evidence.
 
-Key Risks
+Deliver only a concise report.md and valid result.json in a new review
+directory. Include:
+- Review verdict and evidence supporting it.
+- Blocking findings, non-blocking findings and retained limitations.
+- Whether this specific existing-consumer upgrade is accepted.
+- Original job/env write correctness: not established by this review.
+- Post-upgrade skill invocation: not established by this review.
+- Release acceptance: not granted.
+- One smallest justified next task.
 
-SpruceX provisioning and unresolved entitlement, metadata and query-serving dependencies may delay pilot readiness.
-
-Executive Actions
-
-Assign the TAO and business/model owner. Confirm owners and target dates for the outstanding platform/data dependencies and Deposits validation.
+Keep consumer resource-layout and broader agent/skill completeness
+follow-ups open. Do not start the next task automatically.
