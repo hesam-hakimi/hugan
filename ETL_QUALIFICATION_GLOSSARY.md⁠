@@ -1,575 +1,67 @@
-ETL Extension Qualification and Repair Glossary
-
-Document role: shared vocabulary and minimum context for fresh implementation
-and review Agents
-Applies to: ETL-0904 recovery, source-repair, evidence, and qualification
-tasks
-Updated: 2026-09-05
-Status: reference material; not execution authorization
-
-1. How an Agent must use this document
-
-Read this file completely before interpreting a task that uses identifiers such
-as B3, M2, A3, Snapshot01, primary failure, or Host evidence.
-
-The identifiers in this document are project-local. They are not industry
-standards and must not be interpreted from model memory. If a task prompt gives
-a narrower or newer definition, the task prompt governs that task. If the task
-prompt conflicts with the current-state document, stop and report the conflict;
-do not select whichever interpretation makes implementation easier.
-
-This document does not authorize source edits, tests, compilation, a runner,
-an Extension Host, packaging, installation, Git mutation, or release.
-Authorization is always supplied by the active task prompt and is limited to
-the exact files, operations, and gates named there.
-
-2. Authority and reading order
-
-For a fresh Agent, use this order:
-
-1. the active task prompt — exact authorization and stop conditions;
-2. this glossary — terminology and finding-code definitions;
-3. ETL_LATEST.md — current navigation and next gate;
-4. ETL_STATE_REV3.md — governing reported state and evidence overlays;
-5. the delta or independent-review report named by the active task;
-6. live repository state — re-derived only through commands authorized by the
-task prompt.
-
-No screenshot, prior Agent report, filename, branch name, or earlier prompt is
-authority to mutate or execute. A report can establish what an Agent observed;
-it cannot grant the next operation.
-
-3. Finding-code glossary
-
-3.1 Blocker findings (B)
-
-|Code|Definition                                                                                                                                                   |Ownership/status in the current repair chain                         |
-|----|-------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-|`B1`|Markdown renderer output behavior, including human-readable mapping identity and target/source presentation.                                                 |Product concern; out of B3 repair scope.                             |
-|`B2`|Observation and evidence accuracy: whether retained observations truthfully represent the run and do not claim facts that were not measured.                 |Separate observation tranche; out of current B3 repair.              |
-|`B3`|Canonical verdict, failure classification, precedence, accumulation, cause-based deduplication, primary-failure selection, persistence, and exit consistency.|Current repair domain. Exact subrequirements are in §4.              |
-|`B4`|Handling of the `ETL_TEST_READ_ONLY_TOOL_ONLY` environment variable, including whether its value and absence are interpreted safely and evidenced correctly. |Separate observation/configuration tranche; out of current B3 repair.|
-
-3.2 Major findings (M)
-
-|Code|Definition                                                                                                                                                                                                                                                                 |Ownership/status in the current repair chain                                                           |
-|----|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
-|`M1`|Extension Host PID matching and liveness evidence: process-argument recognition, false-positive avoidance, and proof that relevant Host processes have exited.                                                                                                             |Separate observation tranche; out of current B3 repair.                                                |
-|`M2`|Evidence persistence: the reduced record has a deterministic distinct filename, is lexically contained under the authorized evidence root, uses exclusive/CreateNew semantics, preserves the original failure, and reports both failures if the reduced write also fails.  |Independently accepted at static-source level; preserve unchanged. Runtime behavior remains unverified.|
-|`M3`|Authorization and containment ordering: isolation-root freshness and dedication are proved before evidence-write authorization; recoverable post-authorization failures leave evidence when a safe destination exists; stage reflects the last successfully completed gate.|Independently accepted at static-source level; preserve unchanged. Runtime behavior remains unverified.|
-|`M4`|Compiled-artifact provenance: proof that executed JavaScript corresponds exactly to the reviewed TypeScript source and intended build.                                                                                                                                     |Separate provenance work; out of current B3 repair.                                                    |
-|`M5`|Registration evidence from the VS Code API: proof of the tools/commands actually registered and visible through the authoritative API rather than inference from manifests or logs alone.                                                                                  |Separate observation tranche; out of current B3 repair.                                                |
-
-3.3 Coupled findings (C)
-
-|Code|Definition                                                                                                                                                                                   |Ownership/status in the current repair chain       |
-|----|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-|`C1`|Parser-wrapper restoration: restoring the controlled wrapper/observer needed to inspect parser behavior without changing product semantics.                                                  |Separate wrapper tranche; out of current B3 repair.|
-|`C2`|Channel assertions: independent validation of Markdown and structured-result channels, including their deliberately different representations and their identity/count/order parity contract.|Separate channel tranche; out of current B3 repair.|
-
-4. B3 subrequirements
-
-|Code  |Required meaning                                                                                                                                                                                                                                                       |
-|------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|`B3-1`|One canonical model represents `PASS`, `FAIL`, and `BLOCKED`. No competing verdict source may override it.                                                                                                                                                             |
-|`B3-2`|Classification precedence is deterministic and independent of observation order. Infrastructure outranks product; product outranks none. Primary classification, stage, and message must also be stable for the same cause multiset.                                   |
-|`B3-3`|Product boundary: product failure is permitted only after a trustworthy result proves it came from the authorized focused suite and its counts are coherent. Missing, foreign, malformed, inconsistent, or infrastructure-compromised evidence is not product evidence.|
-|`B3-4`|Failure accumulation: every distinct relevant cause is retained. The presence of one cause must not suppress another independent cause.                                                                                                                                |
-|`B3-5`|Cause-based deduplication: the same underlying cause observed more than once is represented once, while distinct causes remain distinct even if they occur at the same stage or produce similar text.                                                                  |
-|`B3-6`|Verdict/exit consistency: process exit status is derived from the final canonical verdict; no independent late assignment may contradict it.                                                                                                                           |
-|`B3-7`|B3 changes preserve the accepted M2 evidence-write behavior.                                                                                                                                                                                                           |
-|`B3-8`|B3 changes preserve accepted M3 authorization ordering and last-completed-stage semantics.                                                                                                                                                                             |
-
-Current static status after ETL-0904-REVIEW-B3-REMAINDER:
-
-|Requirement|Status   |
-|-----------|---------|
-|B3-1       |Satisfies|
-|B3-2       |Violates |
-|B3-3       |Violates |
-|B3-4       |Violates |
-|B3-5       |Violates |
-|B3-6       |Satisfies|
-|B3-7       |Preserved|
-|B3-8       |Preserved|
-
-5. Current blocking B3 findings
-
-These are the five findings owned by ETL-0904-IMPL05A1-B3-REPAIR:
-
-1. Runner-comparison suppression: a runner mismatch is added only when the
-global failure ledger is empty. This can discard a distinct infrastructure
-cause when a product or infrastructure row already exists.
-2. Incomplete focused-suite identity: a structurally valid result can cross
-the product boundary without proving focusedMode === true, the authorized
-focusedSuiteFile, exact suiteTitles, and exact loadedFiles.
-3. Insertion-order-dependent primary datum: class precedence is stable, but
-stage/message selection inside the winning class uses the first inserted row.
-4. Missing count coherence: nonnegative integer counts are accepted without
-proving the producer’s relationships among tests, passes, failures, pending,
-suites, or loaded-file counts.
-5. Non-equivalent cause keys: some keys represent an observation location or
-broad bucket rather than the underlying event. One cause may receive two
-keys, or unrelated causes may share one key.
-
-These are blocking requirements, not discretionary backlog suggestions.
-
-6. Verdict and classification vocabulary
-
-RunVerdict
-
-The terminal outcome category:
-
-• PASS: the authorized focused run completed with trustworthy evidence and no
-classified failure;
-• FAIL: at least one product failure exists and no infrastructure failure
-exists;
-• BLOCKED: at least one infrastructure failure exists, whether or not product
-failures also exist.
-
-FailureClassification
-
-The causal class attached to a failure row:
-
-• product: trustworthy focused-suite evidence established an actual product
-assertion failure;
-• infrastructure: environment, harness, evidence, identity, process,
-containment, or observation failure prevents clean product qualification;
-• none: no classified failure.
-
-Precedence
-
-infrastructure > product > none.
-
-Precedence selects the winning class; it must not delete lower-priority causes
-from failure.all.
-
-Failure ledger
-
-The complete set/list of classified failures retained for final outcome
-derivation. It must represent every distinct cause exactly once.
-
-failure.all
-
-The persisted collection of all distinct classified causes. It is not only the
-winning cause and must not be filtered merely because a higher-priority cause
-exists.
-
-failure.primary
-
-The canonical representative of the winning classification. For the same
-multiset of causes, its classification, stage, and message must be identical
-regardless of discovery or insertion order.
-
-Primary-datum tie-break
-
-A documented total ordering over immutable failure-row data used after class
-precedence. It must be deterministic for every reachable pair. “First inserted”
-is not a valid tie-break.
-
-Verdict-derived exit
-
-The exit code is calculated from the final verdict. PASS maps to zero;
-FAIL and BLOCKED map to nonzero. A Host or runner exit code by itself must
-not manufacture a product classification.
-
-7. Cause and deduplication vocabulary
-
-Underlying cause
-
-The real failure event being represented—for example one surviving Host PID,
-one parent post-exit verification failure, one unreadable result artifact, or
-one focused-suite assertion failure.
-
-Observation site
-
-A place in control flow where an event is noticed. Two observation sites can
-observe one cause; one observation site can encounter different causes.
-Therefore an observation-site label is not automatically a cause identity.
-
-Cause key
-
-A stable internal key that is equal for repeated observations of the same
-underlying cause and different for distinct causes. It must not depend only on
-the current stage, a generic error bucket, or ledger state.
-
-Same-cause deduplication
-
-Repeated observation of one event results in one ledger row.
-
-Distinct-cause accumulation
-
-Independent events coexist in the ledger even if they share a stage,
-classification, or similar message. Deduplication is never implemented as
-“add only if the ledger is empty.”
-
-Mutable-artifact double observation
-
-Reading a result file twice can produce two different observations if the file
-changes between reads. A robust design uses one retained immutable observation
-or otherwise proves that repeated sites share one cause identity and cannot
-contradict each other.
-
-8. Focused-Mocha evidence vocabulary
-
-Producer
-
-The source that emits the structured Mocha result. For this chain, inspect the
-actual producer in src/test/suite/index.ts; do not derive its contract from a
-consumer’s duplicated interface.
-
-Consumer or guard
-
-Code that reads, shape-checks, or converts the producer’s result, including the
-authoritative mochaResultGuard behavior used by the runner.
-
-Oracle/evaluator
-
-The B3 logic that decides whether the result is trustworthy enough to establish
-a product PASS or FAIL. A shape-valid object is not necessarily authoritative.
-
-Focused-suite identity
-
-Proof that evidence belongs to the one authorized focused suite. It includes:
-
-• focusedMode is exactly true;
-• focusedSuiteFile matches the authorized suite using the producer’s actual
-path-normalization rules;
-• suiteTitles contains exactly the expected title set;
-• loadedFiles contains exactly the authorized file set;
-• foreign, missing, duplicate, or additional suites/files fail closed.
-
-Count coherence
-
-All producer-defined relationships among counts and arrays hold. At minimum,
-the Agent must derive—not guess—the relationship among tests, passes,
-failures, and pending, plus relationships such as suite/file counts to their
-arrays when the producer exposes them.
-
-The adversarial object tests=8, passes=8, pending=0, failures=3 is
-individually nonnegative but incoherent and cannot establish product failure.
-
-Product boundary
-
-The exact point after which a failure may be classified as product. Every
-shape, identity, consistency, and infrastructure precondition must succeed
-before crossing it.
-
-Fail closed
-
-When trustworthy product attribution cannot be proved, do not guess product.
-Record the appropriate infrastructure failure and produce BLOCKED.
-
-9. M2 evidence-persistence vocabulary
-
-Evidence root
-
-The already-authorized directory under which evidence outputs may be created.
-It is not permission to write elsewhere.
-
-Primary evidence record
-
-The full evidence file created after complete evidence assembly.
-
-Reduced evidence record
-
-A smaller fallback record that preserves the original failure when full
-evidence creation or the primary write fails. Its schema is separately governed
-and must not be expanded by an unrelated B3 task.
-
-Distinct reduced filename
-
-A deterministic filename derived from the trusted primary filename, without
-accepting separators or traversal from failure-controlled input. Primary and
-reduced files can coexist.
-
-Lexical containment
-
-Resolve and normalize candidate output paths against the canonical existing
-evidence root, then prove each resolved parent equals that root and that primary
-and reduced paths differ. Candidate files need not exist and must not require
-realpath resolution.
-
-Exclusive/CreateNew semantics
-
-Create the file only if it does not exist—for Node filesystem writes, the
-reviewed implementation uses flag: 'wx'. Neither primary nor reduced evidence
-may overwrite a prior file.
-
-Dual-write failure contract
-
-If primary and reduced writes both fail, no success record may be claimed;
-stderr identifies both failures and process exit is nonzero. The secondary
-failure must not erase or relabel the primary failure.
-
-10. M3 authorization and stage vocabulary
-
-Isolation root
-
-The dedicated filesystem root used for the focused qualification run.
-
-Freshness
-
-Proof that the isolation root was newly prepared for this run and does not
-contain stale evidence capable of contaminating it.
-
-Dedication
-
-Proof that the root is exclusively and safely assigned to this run rather than
-shared with unrelated work.
-
-Evidence-write authorization
-
-The explicit internal state permitting writes only to a safe destination.
-Freshness and dedication must succeed before it is set.
-
-Last successfully completed stage
-
-The stage value persisted on failure must name the most recent gate that
-completed successfully, not the gate currently being attempted. Assignments
-are therefore made after successful gates, subject to the accepted stage model.
-
-Stage assignment versus stage schema
-
-• Stage assignment: updating the current stage variable at a gate boundary.
-• Stage schema: the allowed field/type/vocabulary persisted by finalization.
-
-The current B3 repair must preserve both the eight accepted assignments and the
-finalization-stage schema.
-
-11. Finalization and post-exit vocabulary
-
-Full-evidence assembly
-
-Construction of the complete evidence object before its primary exclusive
-write.
-
-Finalization flow
-
-The finally-side control flow that performs evidence capture, classification,
-assembly, and persistence after the focused run. Only the exact B3
-classification seam may change in the bounded B3 repair.
-
-Finalization-stage tracking
-
-Stage values used inside finalization itself. This is distinct from the
-accepted main-gate stage assignments and is reserved for its separately scoped
-A3 work unless a task says otherwise.
-
-Post-exit verification
-
-The external/parent-side checks executed after child or Host exit. Their
-invocation count and ordering are independent invariants and must not be moved
-by a B3 repair.
-
-A1, A2, and A3 labels
-
-These are repair-tranche labels, not severity levels:
-
-• A1: B3 classification/verdict work;
-• A2: M2/M3 evidence-persistence and authorization-ordering work;
-• A3: finalization-stage tracking, finalization-flow, reduced-record
-completeness, and post-exit ordering work reserved from A1/A2 unless the
-owner explicitly expands scope.
-
-12. Repository and baseline vocabulary
-
-Active worktree
-
-The linked working directory in which the task is authorized to inspect or
-edit. It must match the exact path in the active prompt.
-
-Linked primary worktree
-
-The primary checkout sharing Git object/common metadata with the active linked
-worktree. Its existence does not authorize editing it.
-
-HEAD
-
-The committed revision. It is repository identity evidence but is not a valid
-near-baseline for src/test/runTest.ts, which contains extensive uncommitted
-work.
-
-Snapshot01
-
-The preserved pre-repair evidence snapshot rooted at the exact path named by
-the active task. Its manifest must be hash-verified before use. Snapshot01 is
-the cumulative comparison baseline, not always the immediate task baseline.
-
-Immediate task baseline
-
-The exact byte-for-byte src/test/runTest.ts state immediately before the
-current repair. It is normally recovered from hash-proven VS Code Local History
-and is used for the task-only diff.
-
-Baseline drift
-
-Any unexpected mismatch in worktree identity, branch, HEAD, dirty path set,
-staging, pinned hash/size, or required baseline. When the prompt says drift is a
-stop condition, the Agent must not repair the baseline.
-
-Dirty inventory
-
-The complete set of modified and untracked paths reported by
-git status --porcelain=v1 --untracked-files=all. A pre-existing dirty file is
-not automatically an edit made by the current task.
-
-Staging area
-
-The Git index changes shown by git diff --cached. “Empty staging” means no
-staged path, even when the worktree is dirty.
-
-index.lock
-
-A Git lock file in worktree or common metadata. Its presence can indicate an
-active/interrupted Git operation and is a stop condition when the prompt says so.
-
-Diffstat/numstat
-
-Added/deleted line counts for a named comparison pair. A VS Code panel may use
-a different baseline; never compare figures without naming both endpoints.
-Exit code 1 from git diff --no-index means differences exist, not task failure.
-
-Line-ending counts
-
-Counts of CRLF, bare LF, and bare CR bytes. They detect forbidden whole-file
-normalization that ordinary text diffs can obscure.
-
-13. Execution and evidence vocabulary
-
-Source-only repair
-
-An authorized source edit plus read-only inspection. It does not authorize
-type-checking, compiling, testing, emitting output, or launching a Host.
-
-Static source review
-
-Reasoning from source text and diffs without executing it. It can establish
-control-flow support and scope confinement but not runtime behavior.
-
-Independent source review
-
-A static review performed by a fresh Agent that did not implement or self-review
-the relevant change. Independence does not expand authorization.
-
-Targeted runtime test
-
-A separately authorized execution that triggers named success/failure paths and
-observes actual files, stderr, exit status, processes, and evidence. Static
-support remains UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST until this occurs.
-
-Runner
-
-The parent test-launch/control process implemented around runTest.ts. Merely
-reading its source is not running it.
-
-Extension Host or Host
-
-The VS Code development/test process that loads the extension. A normal already-
-running VS Code editor is not the prohibited Host. Process matching must use
-actual executable arguments, excluding prompt/inspection text matches.
-
-Compile versus type-check
-
-• Type-check: TypeScript analysis, even with no emit.
-• Compile/emit: generating JavaScript or other build output.
-
-Both are separate execution gates and are forbidden unless explicitly
-authorized.
-
-Git mutation
-
-Any operation changing index, worktree, refs, stash, branch, or history,
-including stage, commit, checkout, restore, reset, clean, stash, merge, tag, and
-push. Read-only status, rev-parse, hash-object, and diff are not mutations.
-
-14. Evidence-status vocabulary
-
-|Term                                       |Meaning                                                                                                                                    |
-|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-|`VERIFIED`                                 |Directly established by the authorized observer within the boundary actually inspected.                                                    |
-|`REPORTED`                                 |Claimed by an Agent/report/screenshot but not independently reproduced at the relevant boundary.                                           |
-|`STATIC_SOURCE_SUPPORT`                    |Source control flow indicates expected behavior; runtime has not established it.                                                           |
-|`UNVERIFIED_UNTIL_AUTHORIZED_TARGETED_TEST`|Runtime behavior remains unknown until a separately authorized targeted test.                                                              |
-|`STALE`                                    |Previously useful evidence or instruction superseded by newer authority/state.                                                             |
-|`UNKNOWN`                                  |Not established by retained evidence.                                                                                                      |
-|`IMPLEMENTED_AWAITING_INDEPENDENT_REVIEW`  |Authorized source edits were made and statically self-inspected; they are neither independently accepted nor runtime-qualified.            |
-|`ACCEPTABLE`                               |An independent review accepted the exact reviewed scope. It still does not imply runtime qualification.                                    |
-|`NOT_ACCEPTABLE`                           |At least one scoped requirement failed independent review.                                                                                 |
-|`BLOCKED_*`                                |Work stopped under a named precondition, baseline, authorization, or coupling rule. A blocker is a valid outcome and must not be concealed.|
-
-15. Scope and preservation vocabulary
-
-In scope
-
-The exact files, symbols, findings, and operations the task may change.
-
-Out of scope
-
-Anything the task may inspect only when needed for context but may not change or
-assess as part of its verdict.
-
-Preservation boundary
-
-Code or behavior that must remain byte-identical, token-identical, or
-semantically unchanged relative to the immediate task baseline.
-
-Coupling blocker
-
-The required stop result when a scoped repair cannot be correct without
-changing a forbidden adjacent area. It names the exact path, symbol, reason,
-and minimum proposed expansion; it is not permission to perform that expansion.
-
-Deferred backlog candidate
-
-A real observation outside the current authorization. It is recorded but not
-fixed and cannot be used to excuse a blocking in-scope requirement.
-
-16. Minimum material a fresh Agent must inspect
-
-For ETL-0904-IMPL05A1-B3-REPAIR, the Agent must have and inspect:
-
-1. this complete glossary at
-docs/glossary/ETL_QUALIFICATION_GLOSSARY.md;
-2. the complete active task prompt;
-3. ETL_LATEST.md and the current overlay in ETL_STATE_REV3.md;
-4. ETL_DELTA_2026-09-05_B3_REMAINDER_INDEPENDENT_REVIEW.md or the complete
-independent-review report;
-5. the Snapshot01 manifest and Snapshot01 src/test/runTest.ts payload;
-6. live src/test/runTest.ts;
-7. live src/test/suite/index.ts as the focused-result producer;
-8. the authoritative Mocha-result guard/consumer source located by symbol search;
-9. expected focused-suite filename/title constants and every relevant
-classifyFailure, verdict, ledger, finalization, and post-exit call site;
-10. an immutable hash-proven immediate pre-repair runTest.ts baseline.
-
-The Agent may not substitute snippets, screenshots, this glossary, or model
-memory for reading the actual source and active prompt.
-
-17. Current chain checkpoint
-
-As of this document:
-
-• ETL-0904-REVIEW-A1A2-COUPLING: M2/M3 and accepted last-completed-stage
-semantics accepted by static independent review;
-• ETL-0904-IMPL05A1-B3-REMAINDER: implemented, not accepted;
-• ETL-0904-REVIEW-B3-REMAINDER: NOT_ACCEPTABLE with five B3 blockers;
-• next gate: ETL-0904-IMPL05A1-B3-REPAIR;
-• after implementation: fresh ETL-0904-REVIEW-B3-REPAIR;
-• only after B3 repair acceptance: resume ETL-0904-REVIEW02B;
-• compilation, Host execution, and targeted runtime qualification remain
-separate owner-authorized gates.
-
-18. Non-negotiable interpretation rules
-
-1. Never infer a finding code from its letter or number alone.
-2. Never treat an accepted adjacent tranche as permission to edit it.
-3. Never treat source support as runtime verification.
-4. Never use HEAD as the immediate baseline for heavily uncommitted
-runTest.ts work.
-5. Never use global ledger emptiness as cause deduplication.
-6. Never treat shape validity as focused-suite identity.
-7. Never treat class precedence as proof of order-independent primary evidence.
-8. Never accept individually valid counts without producer-defined coherence.
-9. Never assume an observation-site label equals an underlying-cause identity.
-10. Never hide a scope coupling or baseline mismatch to obtain a success token.
+TASK_ID: ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01
+TYPE: Independent read-only review of the completed installed upgrade smoke.
+
+Review:
+ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01
+
+Goal
+Determine whether the retained evidence supports delivery of the
+etl-validate-write managed asset from 1.1.4 to 1.1.5 in the existing
+Autonomous Guarded consumer workspace, with the claimed preservation
+and approval behavior.
+
+Use English for all outputs.
+
+Scope
+Resolve the exact task bundle and predecessor acceptance from local
+records. Use recorded paths and recompute hashes from actual files;
+do not transcribe hashes from photographs. Preserve all original records.
+
+Review these claims:
+1. The installed extension and selected consumer match the recorded
+   baseline. Distinguish extension version 0.3.147 from managed asset
+   version 1.1.5.
+2. Pre-upgrade Audit identified exactly one stale asset. Independently
+   check that the expected target was derived from the installed catalog
+   and frozen before approval, rather than copied from the final output.
+3. Pending and Cancel inventories support zero changes. Correlate the
+   retained DOM transitions, timestamps, inventories and actual button
+   selection. Inspect retained screenshots where supported; state any
+   visual-review limitation.
+4. Exactly one Upgrade Managed Assets operation changed the target.
+   Overwrite and Repair were not executed.
+5. The resulting file matches the independently checked expectation,
+   has valid managed metadata/checksum and the Target Root guidance.
+   Verify that the other 20 assets and .gitignore remained unchanged.
+6. Post-upgrade Audit reports 21 current assets and no stale assets.
+   Do not describe this as a second upgrade.
+7. Review N1–N5 independently. Separate acceptance of this observed
+   one-file upgrade from unresolved disclosure and destructive-action
+   UI issues. Explain the trailing-newline change and retain the limit
+   that non-empty user content outside the managed block was untested.
+8. Inspect launch arguments, including --disable-workspace-trust,
+   against the task's actual authorization. Report any deviation and
+   qualification limit; do not infer normal workspace-trust behavior
+   or rerun the Host to compensate.
+9. Preserve the distinct historical FIX01 and PARITY01 test results.
+   Do not merge their counts or claim the adjacent suite is green.
+
+Boundaries
+No Host launch, model request, ETL tool invocation, build, test run,
+packaging, installation, source edit, Git mutation, consumer write,
+Repair, Overwrite, deployment or release.
+Reuse existing evidence and helpers where useful. Do not create another
+JS/PowerShell test framework or modify existing evidence.
+
+Deliver only a concise report.md and valid result.json in a new review
+directory. Include:
+- Review verdict and evidence supporting it.
+- Blocking findings, non-blocking findings and retained limitations.
+- Whether this specific existing-consumer upgrade is accepted.
+- Original job/env write correctness: not established by this review.
+- Post-upgrade skill invocation: not established by this review.
+- Release acceptance: not granted.
+- One smallest justified next task.
+
+Keep consumer resource-layout and broader agent/skill completeness
+follow-ups open. Do not start the next task automatically.
