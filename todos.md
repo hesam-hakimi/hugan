@@ -1,129 +1,160 @@
-TASK_ID: ETL-0910-VSIX-CANDIDATE-PREP01
-TYPE: BOUNDED PRIVATE VSIX BUILD AND CONTENT VERIFICATION
+TASK_ID: ETL-0910-INSTALLED-WORKFLOW-SMOKE01
+TYPE: BOUNDED PRIVATE VSIX INSTALLATION AND WORKFLOW VERIFICATION
 
-Use English for all communication, reports, and artifacts.
+Use English for all communication, UI guidance, reports, and artifacts.
 
 GOAL
-Produce one private VSIX candidate containing the accepted source,
-including empty-project workflow bootstrap and the accepted Initialize
-.gitignore disclosure fix.
+Install the exact private 0.3.148 VSIX produced by
+ETL-0910-VSIX-CANDIDATE-PREP01 and verify the Base-profile empty-project
+workflow through the installed extension.
 
-Candidate version: 0.3.148.
-This version identifies a private test candidate, not an accepted release.
+Do not rebuild or repackage.
 
-ENVIRONMENT
-Local Windows Agent.
-Expected source worktree:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+INPUT AND IDENTITY
+Resolve PREP01 through its machine-recorded task identity under C:\docs.
+Read its complete report.md and result.json, package inventory, and
+relevant verification records.
 
-INPUTS
-Read the complete report.md and result.json for:
-ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-REVIEW01
+Obtain the actual VSIX path, SHA-256, size, and packaged file identities
+from those records. Recompute the VSIX hash before installation.
+Never transcribe hashes from screenshots.
 
-Follow its machine-recorded links to FIX01 and the accepted bootstrap
-and prior Host evidence where needed.
+Expected:
+- Extension ID: td-etl.databricks-etl-copilot
+- Candidate version: 0.3.148
+- PREP01 status: CANDIDATE_BUILT_AND_CONTENT_VERIFIED
 
-Carry forward:
-- ACCEPTED_WITH_LIMITATIONS.
-- F-1 accepted for Initialize only.
-- The previous Host PASS exercised sources before the disclosure fix.
-- Repair/Upgrade disclosure omissions and F-2 through F-5, U-1/U-2
-  remain open.
-- Original job/env write-fix and installed/release qualification are
-  not established by this workflow evidence.
+The source repository remaining at version 0.3.147 is expected:
+PREP01 changed version metadata only in packaging staging.
+Do not "repair" the repository version.
 
-BASELINE
-Resolve evidence by task identity, not newest timestamp.
-Authenticate the current source against the accepted evidence chain.
-Use actual machine hashes; never transcribe hashes from photos.
+Carry forward the recorded vsce 3.7.1 versus pinned 3.9.2 deviation.
+Do not treat packaging as release qualification. If an applicable
+governing rule makes that exact tool pin mandatory for this private
+installation, identify the rule and stop rather than waive it.
 
-Check for a concurrent writer or conflicting build.
-Preserve existing dirty changes and pending editor changes.
-Do not build from HEAD alone: accepted changes exist in the worktree.
+INSTALLATION BOUNDARY
+Use the existing local VS Code executable.
 
-If source identity materially conflicts with the reviewed state,
-report the exact mismatch without repairing the baseline.
+Install the candidate once into one isolated test environment with
+dedicated user-data and extensions directories, reusable across test
+folders. Do not install separately per workspace or replace the owner's
+normal extension installation.
 
-AUTHORIZED WORK
-1. Inspect existing package.json, build/package scripts, packaging
-   rules, runtime resources, and available local tooling.
+Check for an already-running execution of this task before starting.
+If the exact candidate is already installed in this test environment,
+authenticate it and reuse it instead of reinstalling.
 
-2. Prepare an isolated build/package staging directory outside the
-   repository using the authenticated current working-tree content.
+Use normal VS Code installation and reload behavior.
+Do not use --extensionDevelopmentPath or load the staged source.
+Do not bypass platform trust or signature checks.
 
-3. Set version 0.3.148 only in staged package metadata. Record this
-   packaging-only change explicitly. Preserve extension identity and
-   all unrelated metadata; do not modify repository version files.
+Use existing required extensions where available. If the declared
+GitHub Copilot Chat dependency is disabled, use normal Enable/Reload
+within this test environment and record it.
+Do not request credentials or install additional dependencies.
+Report a concrete dependency blocker if necessary.
 
-4. Compile the accepted source once using existing local dependencies
-   and the project's applicable build configuration.
-   Retained FIX01 compiled trees were disposable and removed.
-   Do not reuse stale repository out/ or the older bootstrap build as
-   though either included the disclosure fix.
+PROVE WHAT IS RUNNING
+After installation and reload, record:
+- actual VS Code version and test-environment paths;
+- installed extension ID, version, and installation path;
+- activation evidence tied to the workflow command;
+- installed entrypoint, runtime bundles, and resources matching the
+  VSIX inventory, allowing only identified installation metadata.
 
-5. Package one uniquely named private VSIX using existing local
-   packaging tooling. Inspect lifecycle scripts before invoking them.
-   Do not silently bypass required project gates or omit dependencies
-   merely to make packaging succeed.
+Version text alone is insufficient.
+The extension must run without a link to repository node_modules,
+staged sources, or repository out/.
 
-6. Inspect the actual VSIX archive and verify:
-   - expected extension ID and candidate version;
-   - valid entrypoint and required runtime dependencies;
-   - compiled bootstrap and disclosure code match this build;
-   - packaged catalog/resources/media are present and consistent;
-   - no dependency points back to the development workspace;
-   - no evidence bundles, temporary fixtures, credentials, or
-     maintainer-only control-plane files are accidentally included.
+ONE FOCUSED SCENARIO
+Create one fresh, genuinely empty temporary consumer folder outside
+the source and reference trees. Open it as the only workspace folder.
 
-Use existing packaging rules. If they require a source/config repair
-or an unavailable tool, report the concrete blocker and smallest
-necessary follow-up instead of expanding this task.
+Use the real Command Palette command:
+ETL: Initialize Copilot Workflow
 
-EFFICIENCY
-Reuse existing build/package commands and tools.
-Do not create another testing framework or a collection of JS helpers
-under C:\docs.
+Registered command:
+databricks-etl-copilot.initializeCopilotWorkflow
 
-Do not rerun historical red/green, broad suites, or Host scenarios.
-Run only checks required to build and inspect this candidate.
+1. Choose Base through the real profile picker.
+2. Confirm the exact temporary root through the real folder modal.
+3. Capture the Initialize approval dialog.
+   Verify it displays:
+   - the selected destination;
+   - all eight Base catalog asset paths;
+   - the managed .gitignore creation/update disclosure.
 
-BOUNDARIES
-No product-source edits, repository out/ promotion, dependency
-installation, Git mutation, reference updates, VSIX installation,
-Host launch, real consumer writes, publishing, or release.
+The product dialog itself must disclose .gitignore.
+An external disclosure record cannot substitute for this check.
 
-Staging, compiler output, the VSIX, and this task's evidence may be
-written outside the repository.
+4. Cancel at the Initialize approval.
+   Verify the consumer folder remains empty, including no .gitignore.
 
-DELIVERY
-Retain the VSIX and a compact evidence bundle containing:
-- report.md and result.json;
-- source/build/package identity and the staging metadata delta;
-- actual commands, exit codes, and relevant output;
-- archive inventory and content-verification results;
-- repository preservation results.
+5. Invoke the same command again and approve through the real dialogs.
+   This task authorizes only the displayed Base assets, their necessary
+   parent directories, and managed .gitignore in this temporary root.
 
-Record the VSIX's exact path, SHA-256, size, extension ID, and version.
-Do not call the package runtime-tested or ready for release.
+6. Verify:
+   - exactly eight catalog assets plus .gitignore were created;
+   - asset content and managed metadata match the installed catalog;
+   - no unexpected files or artificial ETL marker directories exist;
+   - recorded writes remain within the selected consumer root;
+   - output and notifications accurately report the result.
 
-End with:
+Use existing UI automation if available. Do not stub dialogs, invoke
+the initializer directly, or create another automation framework.
+If manual interaction is required, prepare the environment first and
+give the owner one concise English instruction with the exact window,
+root, command, profile, and buttons. Never claim unobserved clicks.
+
+PRESERVATION AND EVIDENCE
+Leave the repository, candidate VSIX, and earlier evidence unchanged.
+Record relevant before/after checks without a broad machine scan.
+
+Retain a compact report.md, result.json, installation/activation logs,
+dialog evidence, and consumer before/after inventory with content checks.
+
+Only close processes started by this task after preserving evidence.
+Keep the installed test environment identifiable for later use.
+
+No source changes, compiler, packaging, broad suites, Git mutation,
+reference updates, real consumer writes, ETL jobs, deployment, or release.
+
+ASSESSMENT
+A PASS verifies only the installed 0.3.148 Base-profile initialization
+scenario in one empty, single-root temporary workspace.
+
+Do not claim:
+- all profiles or multi-root behavior qualified;
+- Repair/Upgrade disclosure fixed;
+- the original job/env write defect verified;
+- full product or release acceptance.
+
+Keep F-2 through F-5 and U-1/U-2 recorded.
+
+FINAL FIELDS
 TASK_ID:
-STATUS: CANDIDATE_BUILT_AND_CONTENT_VERIFIED / BLOCKED
-SOURCE_IDENTITY:
-STAGING_METADATA_CHANGE:
-BUILD_RESULT:
-PACKAGE_CONTENT_VERIFICATION:
-VSIX_PATH:
-VSIX_SHA256:
-VSIX_SIZE:
-EXTENSION_ID:
-CANDIDATE_VERSION:
+STATUS: PASS / FAIL / BLOCKED / WAITING_FOR_OWNER_UI
+VSIX_IDENTITY:
+INSTALLED_EXTENSION_IDENTITY:
+ACTIVATION_VERIFIED:
+TEMPORARY_CONSUMER_ROOT:
+REAL_GITIGNORE_DISCLOSURE_VISIBLE:
+CANCELLATION_ZERO_WRITES:
+CREATED_FILES:
+CONTENT_VERIFICATION:
+UNEXPECTED_OR_OUTSIDE_ROOT_WRITES:
 REPOSITORY_CHANGED: NO
-CANDIDATE_INSTALLED: NO
-HOST_EXECUTED: NO
-INSTALLED_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
+EMPTY_PROJECT_WORKFLOW_INSTALLED_VERIFIED:
+VERIFICATION_SCOPE: BASE_PROFILE_EMPTY_SINGLE_ROOT
+FULL_PRODUCT_OR_RELEASE_ACCEPTANCE: NOT_GRANTED
 RETAINED_LIMITATIONS:
 EVIDENCE_ROOT:
-NEXT_CONDITIONAL_GATE: BOUNDED_INSTALL_AND_INSTALLED_WORKFLOW_SMOKE
+REPORT_PATH:
+RESULT_PATH:
+NEXT_CONDITIONAL_GATE:
 
-Stop after delivering the candidate and report.
+If failing, preserve the exact symptom and stop without implementing
+a fix. If passing, report the remaining qualification gaps without
+starting another task.
