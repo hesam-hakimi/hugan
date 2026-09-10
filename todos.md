@@ -1,73 +1,104 @@
-TASK_ID: ETL-0910-INSTALLED-WORKFLOW-SKILL-SHADOW-RESOLUTION01
+TASK_ID: ETL-0910-SCAFFOLDED-SKILL-ROOT-GUIDANCE-PARITY01
 
 Communicate entirely in English.
 
-Objective
-Determine which etl-validate-write SKILL.md is actually loaded when invoking the skill from the retained Autonomous Guarded consumer workspace.
+Implement and verify the bounded correction below. This prompt authorizes
+the necessary source/template edits and focused permanent repository tests.
 
-This is one bounded investigation. Do not repeat the accepted initialization/discovery smoke or expand into general qualification.
+Environment
+Use the existing ETL extension development worktree:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
+Confirm the actual worktree and branch from current repository records.
+Preserve all pre-existing changes. Do not reset, clean, switch branches,
+commit, or modify unrelated files.
+
+Context
 Read the completed:
-ETL-0910-AG-SMOKE-REVIEW-AND-SKILL-COMPARISON01
+ETL-0910-INSTALLED-WORKFLOW-SKILL-SHADOW-RESOLUTION01
 
-Resolve its exact location, installed extension, isolated test environment, and retained consumer workspace from existing machine-readable records. Do not derive execution pins or hashes from screenshots.
+Use its machine-readable evidence to locate the two skill bodies and their
+source definitions. Read applicable local instructions and the current
+agile repair contract through existing reference pointers.
 
-Established facts
-- The installed 0.3.148 initialization/discovery scenario was accepted with limitations.
-- Workspace and extension versions of three same-name skills materially differ.
-- The Workspace etl-validate-write body lacks the extension version's explicit consumer-root and multi-root guidance.
-- UI discovery identifies the Workspace entry. Actual invocation resolution remains unverified.
-- Product root and containment guards remain in force.
+The observed verdict is WORKSPACE_BODY_CONFIRMED for one installed
+invocation. The extension copy was skipped as duplicate-name.
+Do not repeat that investigation or generalize its scope.
 
-Authorized scope
-This task authorizes one controlled, read-only Copilot request in the existing isolated test environment and preservation of its relevant diagnostic evidence.
+Problem
+The generated Workspace etl-validate-write skill lacks the explicit
+consumer-root and multi-root guidance present in the extension copy.
+That guidance therefore did not reach the model through the invoked skill.
 
-Use the existing authenticated session if available. If interactive sign-in is required, prepare the invocation first, then ask me to complete normal sign-in myself. Never request, extract, or manipulate credentials or tokens.
+Correction
+1. Trace the generated skill through CopilotAssetCatalog and its actual
+   template source. Edit the authoritative producer, not a generated
+   consumer file or the installed extension.
 
-Do not invoke ETL action tools, generate job/env files, publish, deploy, or run jobs. Do not modify either skill, product code, installed files, or real consumer projects.
+2. Add the missing target-root guidance, aligned with the existing product
+   contract:
+   - Select the intended consumer workspace explicitly.
+   - Pass workspaceRoot where the existing tool contract supports it.
+   - Never select a root merely because it is the first workspace folder.
+   - Exclude extension, source, and reference roots as consumer targets.
+   - Resolve ambiguous selection before proceeding.
+   - Keep preview, approval, and write bound to the same selected root
+     and approved manifest.
 
-Procedure
-1. Reuse the installed candidate and retained consumer workspace. Confirm their relevant identities against the accepted records. Preserve existing evidence.
+   Scope existing job_conf/env_conf evidence requirements to the applicable
+   job/env operation. Do not introduce an ETL-marker prerequisite for
+   initializing workflow assets in an explicitly selected empty project.
 
-2. Read only the two recorded etl-validate-write files and their registration metadata. Identify a few distinguishing passages, especially consumer-root selection and permitted side effects.
+3. Preserve the skill's existing qualified tool names, approval requirements,
+   and restrictions on publishing, deployment, execution, and manual writes.
+   Port only the relevant root guidance; do not copy unrelated behavioral
+   differences from the extension skill.
 
-3. Check whether supported diagnostics for this new invocation can reveal the resolved skill path or loaded content. Do not inspect historical chat/session stores.
+4. Increment this managed asset's version using the existing versioning
+   convention so previously generated copies can be identified for upgrade.
+   Keep its name, asset ID, destination, and profile membership stable.
+   Do not bump the extension/package version in this task.
 
-4. Invoke the visible etl-validate-write skill through the normal supported UI. Submit this single request:
+Permanent verification
+Extend the existing repository tests and use the real production
+catalog/rendering and managed-asset APIs.
 
-   "Use etl-validate-write for a read-only preparation explanation.
-   Explain how you would select the consumer workspace root, handle
-   multiple workspace folders, and establish the preview and approval
-   requirements. No ETL tool calls, commands, file writes, publishing,
-   deployment, or job execution are authorized. Do not perform a write."
+Verify:
+- Newly generated etl-validate-write content contains the required root
+  guidance and retains its approval and side-effect restrictions.
+- A fixture representing the previous managed asset is detected as needing
+  an update through the existing Audit/Upgrade mechanism.
+- The supported upgrade produces the corrected content and metadata,
+  respecting existing approval/conflict rules and preserving user-owned
+  content.
+- The change does not alter unrelated assets or prevent empty-project
+  workflow initialization.
 
-5. Preserve the invocation selection, relevant diagnostic trace, and response. Establish which body loaded using recorded path/content evidence where available.
+Reuse existing coverage where it already proves these properties.
+Demonstrate that the targeted regression test fails on the previous
+producer and passes after the correction, without reverting unrelated work.
 
-   UI listing alone is insufficient. The model's claim about its own
-   source, or its wording resembling one version, is also insufficient.
+Run the focused tests and the relevant typecheck. Necessary compilation for
+those tests is authorized using the established test setup. Retain concise
+actual commands, exit codes, and results.
 
-6. Report one verdict:
-   - WORKSPACE_BODY_CONFIRMED
-   - EXTENSION_BODY_CONFIRMED
-   - BOTH_BODIES_CONFIRMED
-   - UNDETERMINED
+Efficiency
+- Use permanent repository tests, not new JS/PowerShell helpers under docs.
+- Do not create another test framework or repeat broad qualification runs.
+- No new Copilot request, installed Host smoke, dependency installation,
+  VSIX packaging, installation, or real consumer modification.
+- Preserve the reusable installed environment and retained consumer workspace.
+- Leave skill renaming, resource-layout changes, other skill differences,
+  and the original job/env write investigation outside this correction.
 
-   Explain exactly what supports the verdict and any remaining uncertainty.
-   If resolution cannot be established, stop after this request and identify
-   the missing observation. Do not launch additional scenarios automatically.
+Delivery
+Review the final diff and provide a concise report.md and result.json with:
+- changed files and rationale;
+- managed asset version before/after;
+- focused regression and upgrade results;
+- any concrete remaining limitation;
+- whether the source correction is ready for review.
 
-Efficiency and preservation
-- Reuse existing inspection tools and Host automation where applicable.
-- Do not create another JavaScript or PowerShell helper framework.
-- No rebuild, reinstall, packaging, dependency changes, Git mutation,
-  reference-state updates, or unrelated test runs.
-- Do not rename skills or change precedence.
-- Close only task-owned processes if necessary. No wildcard cleanup.
-- Keep the reusable installed environment and consumer workspace.
-
-Deliver
-Write a concise report.md and result.json in one new task evidence directory. Include the relevant evidence excerpts, verdict, practical implication for root-selection guidance, and smallest justified corrective task.
-
-Keep initialization, skill loading, original job/env write verification,
-and release acceptance as separate claims. This investigation must not
-claim that the original consumer-write defect is fixed.
+State explicitly that the installed candidate and existing consumer skill
+remain unchanged until a later delivery/upgrade step. Do not claim an
+installed fix, original job/env write verification, or release acceptance.
