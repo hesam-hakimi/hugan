@@ -1,96 +1,109 @@
-Repair C-LIVE-1: preserve local content during context migration
+Qualify the C-LIVE-1 correction and remaining F-Q1 outcome
 
-Submit to the existing source implementation session, or one successor that assumes its released ownership.
+Submit to the current session. Continue the existing installed-qualification task.
 
-TASK_ID: ETL-0911-CONSUMER-CONTEXT-DESTINATION-MIGRATION01
-ACTION_ID: C-LIVE-1-REPAIR01
-RELATED_QUALIFICATION: ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01
+TASK_ID: ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01
+ACTION_ID: C-LIVE-1-INSTALLED-RESUME01
 STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
-TYPE: Same-source-task bounded defect correction, permanent regression tests and focused independent review
+TYPE: One distinguishable private candidate; remaining Upgrade and Overwrite phases only
 
-Authority and immediate objective
+Objective and authority
 
-Owner submission authorizes the smallest source/test correction for C-LIVE-1, isolated affected test execution and one focused independent review. Preserve existing bounded authority; do not ask again for these actions. Finish this correction rather than producing another design-only report.
+Owner submission authorizes one task-owned source staging, one successful build/package of the reviewed correction, one isolated installation/activation, and completion of the remaining bounded Upgrade and F-Q1 Overwrite phases below. Reuse the existing qualification task, retained fixtures and remaining authority. Do not restart the campaign or request already-granted approval for these bounded actions. Real product confirmation controls must still be exercised against fresh previews.
 
-All prompts, progress, questions, code, tests and deliverables must be English. No screenshots, video, image inspection, OCR or vision by you or any subagent. Use existing text, DOM, accessibility, logs and filesystem evidence.
+Speak and write English throughout, including subagent messages. Never capture screenshots/video, inspect images, use OCR or call vision. Use text/DOM/accessibility, logs, structured outcomes and filesystem checks.
 
-This action does not authorize packaging, installation, version changes, dependency installation, Git mutation, live product commands, consumer migration/writes, job execution or publication. Prepare the smallest installed follow-up, but do not execute it here. Test fixtures may be created and mutated only as isolated temporary test workspaces through the existing test setup.
+No product source/test edits, dependency installation/update, Git mutation, real-consumer write, job run, deployment or publication. Staging-only candidate version metadata is permitted; the repository version stays unchanged. Demo delivery remains deferred and must not be launched. Preserve .147, .149 and .150 environments and evidence, both worktrees, shared out/, tracked build state, maintainer .github/** and retained consumers.
 
-Current evidence to preserve
+Authenticate the completed source correction
 
-The latest .150 continuation reports PARTIAL_INSTALLED_QUALIFICATION and released runtime/source ownership:
+Use the actual claim/result locators for:
 
-• Initialize cancellation passed without writes.
-• Approved Initialize completed: 8 assets plus .gitignore, 9 physical writes, four context destinations under .github/etl-context/, no resources tree. This approval is spent and non-retryable.
-• Upgrade cancellation passed. The proposed approved Upgrade was stopped because external-module.md was scheduled for deletion despite user text after its managed-block terminator. The displayed local-edit warning referred to a different file.
-• F-Q1 Overwrite phases have not executed. No legacy deletion occurred. Phase-2/phase-3 fixtures must remain intact and must not be reseeded.
-• The report states one Upgrade approval, one Overwrite approval and one cancellation remain. Authenticate the ledger. Determine from existing events whether the phase-2b stop involved another Cancel click or stopped before dispatch; do not infer the count from wording or run anything to resolve it. Record an unresolved discrepancy if necessary.
+• ETL-0911-CONSUMER-CONTEXT-DESTINATION-MIGRATION01, action C-LIVE-1-REPAIR01;
+• this existing installed qualification and its latest partial-result/ledger records.
 
-The suspected mechanism is that migration checks legacyStatus == userModified, while appended content is represented separately by hasContentOutsideManagedSection. Confirm from exact source and retained evidence; do not promote this hypothesis to a proven cause without that check. The fixture expectation that appending text changes managed-body classification was wrong. Correct that expectation without dismissing the unsafe deletion plan.
+Read the final source action, final reviewer delta-check and prepared installed follow-up. The owner reports SOURCE_C_LIVE_1_REPAIR_VERIFIED_WITH_LIMITATIONS, source ownership released, and reviewer ACCEPTED_WITH_LIMITATIONS with both concrete findings closed. Confirm exact records; preserve newer evidence rather than rolling it back to this brief.
 
-The prior host/driver issues are resolved within their reported scope: disabled built-in Copilot Chat was enabled; window.dialogStyle was changed to custom so the approval surface entered the DOM; exact Initialize label and bounded surface waits were corrected. Do not repeat those investigations. Keep the exact settings delta, including the three reported hygiene settings, visible in installed provenance. Never reuse the trust-bypass setting/launcher or fuzzy palette fallback.
+Reported correction: only ConsumerContextMigrationPlanner.ts and copilotWorkflowCustomization.test.ts changed. The planner now treats legacyHasOwnContent separately from managed-body status, retains those files, and guards approved deletions. The existing command plan discloses the exact retained item. Retention may leave its new destination absent; the accepted non-destructive behavior explicitly tells the user to run Repair to create it. This is a disclosed limitation, not a reason to run an extra Repair command here.
 
-Resume once, from authenticated records
+Reported affected verification: customization 76 pass / 3 known failures after a behavioral red; bootstrap 25/0, containment 66/0, packageAssets 34/0, overlay 6/0, typecheck exit 0. Reviewer R1-R5 verified. Authenticate relevant source/test/fixture/dependency/settings/output identities; counts or HEAD alone are insufficient. Do not rerun source suites merely to package or reuse old results against mismatched inputs.
 
-Read the latest .150 report/result and C-LIVE-1 evidence, its prepared phase expectations, the C implementation and review-continuation final records, and the existing migration contract. Resolve actual paths and helper locations from claims/results, not screenshot transcription. Preserve newer records.
+Check actual task disposition and ownership before setup. Missing results do not imply not started. Reuse this claim/root with a distinct continuation and retained historical records. Do not steal ownership, start a duplicate task, scan all C:\docs, query session storage or launch a separate reconciliation stage. Resolve helpers from final result locators, never from guessed paths.
 
-Use the existing C source task/claim and append an identifiable action continuation without replacing historical outcomes. If this action already has an owner or result, resume or consume that disposition; do not duplicate it. Verify the .150 runtime/source release and absence of another source owner. Missing output alone does not mean not started.
+Preserve the exact ledger
 
-Working source: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
-Protected linked primary: C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+The authenticated source report resolved the previous ambiguity:
 
-Inspect only affected source and dependencies. Pin exact preimages before editing, preserving existing dirty/untracked work. HEAD and version are not sufficient identity. Use targeted claims/locators; no whole-C:\docs scan, session-store reconstruction or separate reconciliation campaign.
+• Phase 1a and phase 2a each executed Cancel with driverExit 0.
+• Phase 1b Initialize completed 9 physical writes (8 assets plus .gitignore). Its approval is spent and non-retryable.
+• Phase 2b stopped before dispatch, budgetConsumed 0, no click: it was not a third cancellation.
+• Remaining: ONE Upgrade approval, ONE Overwrite approval and ONE cancellation for the F-Q1 discard phase.
 
-Required behavior
+Verify whether newer events change this ledger. Preserve the phase-1 fixture and result; never initialize it again. Phase-2 and phase-3 fixtures remain retained inputs: authenticate their full contents, do not reset/reseed or replace them with easier cases. Do not run any live phase whose write status is uncertain. A report failure cannot restore a spent budget.
 
-1. Confirm the exact path from audit through migration decision, approved plan and final legacy unlink. Cover every existing migration disposition capable of deleting a legacy file, including MOVE and ADOPT.
-2. A legacy file with genuine user content before or after the managed section must be retained byte-for-byte. A modified managed body must retain its existing protection. Use the established classifier’s semantics, including generated-preamble and whitespace handling; do not redefine all audit statuses globally to make this test pass.
-3. Apply the preservation decision through the existing authoritative operation plan. Do not add another planner or approval mechanism. Preview must identify the exact retained legacy path and the reason. A warning for another asset is insufficient. If the new default context will be created and links will switch, preserve the existing disclosure/user-decision contract; do not claim customized content was transferred when it was only retained at the old path.
-4. A retained path must never enter the physical deletion set, including when its new destination is already current. Adding a warning while still deleting the user’s content is not an acceptable repair. Do not introduce an override that permits this deletion.
-5. Preserve full-file preimage checks at execution. If relevant legacy bytes change after preview, block that deletion without silently recalculating a different approved operation. New destination verification and known-reference protection must remain intact.
-6. Preserve successful migration of genuinely uncustomized legacy files, ADOPT of verified current destinations, unmanaged/new-path collisions, interruption recovery and existing reference retention. Keep unknown-reference limitations explicit; this task does not add an unrestricted consumer scan.
+Reuse the working build and runtime interfaces
 
-Use the smallest affected edit set. Do not modify packaged context authorities, consumer destination names, profile membership, asset bodies/versions, contribution points, job/env writing, diagnostic F-1, or unrelated source. If an additional file is necessary for this exact correction, explain the dependency and retain its preimage.
+Source, read-only:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
 
-Permanent tests and verification
+Protected linked primary:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-Extend the existing suites and test entrypoints; reuse current helpers and disposable workspace setup. Do not write under the repository’s .github/** or use retained live fixtures as test inputs that get mutated.
+Resolve the FINAL .150 staging/build/package/install/launcher/selector/approval-driver/verifier interfaces. Reuse them with minimal task-owned parameter changes. No new harness, catalog extractor or reporting system.
 
-First reproduce the reported suffix case against the pre-fix behavior through the migration/Upgrade entrypoint: independently assert that a legacy file carrying literal owner text must not be scheduled for deletion. Record the actual failure, not a compile error represented as a behavioral failure. Do not repeatedly revert product files to manufacture red results.
+The source report proposes private version 0.3.151. Use it only if exact candidate records show it is unused. If it has already been issued, inspect that disposition before creating anything; do not overwrite or relabel an existing package. Choose another unused private identity only when .151 belongs to an unrelated candidate and the normal existing allocation process supports it. .148 was consumed previously; a top-level claim scan alone is not enough to establish version availability.
 
-Cover these distinct risks, combining cases when appropriate:
+Stage the authenticated current working-tree source, including relevant dirty/untracked content, outside both worktrees. Record exact staging differences; only the intended staging package-version metadata should differ from captured source. Build in expendable staging using existing dependencies/tooling; do not compile into or delete protected shared out/ or modify .tsbuildinfo.test.
 
-• User suffix and user prefix outside the managed section: exact legacy bytes survive preview plus Upgrade; the exact path/reason is disclosed and absent from deletion outcomes.
-• The same protection when the destination already exists and audits current (ADOPT must not unlink a customized legacy file).
-• Modified managed content remains protected; whitespace-only exterior and the recognized generated preamble retain their established classification.
-• Positive control: an uncustomized eligible legacy file still migrates; the verified destination exists before legacy deletion.
-• Legacy content added after preview: deletion is blocked and the new user bytes survive.
-• Existing known-reference retention and real registered-command disclosure remain correct. Assert the exact affected file, not merely that any warning appeared.
+Run the existing required package gates. Pin source -> VSIX -> installed identities. Verify the C-LIVE-1 behavior is represented in the compiled package, F-Q1 remains present, and packaged context authorities/contribution points remain as expected. Esbuild may rename identifiers: use established structural checks rather than treating missing source symbol names in a minified bundle as a defect. Static checks do not replace live outcomes.
 
-Expected preservation bytes and dispositions must come from controlled fixture inputs and literal expectations, not from the planner under test. Keep relevant F-Q1 command-output regression coverage.
+Install this exact candidate once into a separate task-owned profile/extensions environment. Do not overwrite .150 or install into Hesam’s default profile. Reuse the exact working normal-trust settings from retained records: window.dialogStyle custom and the recorded telemetry/update/startup settings. Never copy the historical trust-disable flag/setting or another user’s authentication state. If the manifest-declared built-in Copilot Chat dependency is disabled in this new profile, normally enable that exact dependency in this profile only; do not use Enable All Extensions, install arbitrary extensions or bypass policy. No dependency download is authorized by this action.
 
-Run affected tests with the retained isolated compiler/Mocha/stub commands and existing dependencies. Keep compilation output and incremental state task-owned. Do not use a compile command that deletes shared out/, run a broad VS Code host suite, or change the toolchain. Check test-source and compiled-output identities so the earlier stale-output incident cannot recur.
+Confirm actual GUI executable/version/profile/extension-directory identity, normal trust state, discovered commands and installed candidate identity. Verify activation at the first already-planned workflow command; do not invoke Initialize as an activation probe. Use the corrected exact-label selector and bounded surface waits. Never select the first/closest palette result or click unverified coordinates. Do not repeat the resolved host diagnosis unless new evidence shows a recurrence.
 
-Reuse unrelated suite results only when relevant source, tests, fixtures, dependencies, settings and output identities match. Compare the three known adjacent failures by identity; neither fix them opportunistically nor relabel them as new. Do not target an arbitrary test count.
+Execute only the remaining phases
 
-One owner and bounded parallel review
+Register the corrected expected results BEFORE invoking a command, as a new evidence record preserving the original failing expectation. Use literal fixture inputs, not the planner under test, to define expected preservation and deletion sets.
 
-You are the sole source/test editor. One read-only subagent may independently trace the deletion paths while you implement and later review the final diff and actual regression evidence. It must write only in its own evidence directory, never control a host, and never edit shared source/helpers or run consumer writes. Use it only if parallel agent capability exists; do not block useful implementation work waiting for a slot.
+Phase 2b: one fresh, approved Upgrade
 
-The reviewer must directly assess the reported case, MOVE/ADOPT protection, post-preview drift and the positive migration control. Preserve its actual verdict. Correct concrete in-scope findings and have that reviewer re-check the changed portion. Do not relabel an outstanding CHANGES_REQUIRED result as accepted or start a separate general review campaign.
+Use the unchanged phase-2 fixture. The source follow-up reports this intended legacy disposition:
 
-Completion and next installed gate
+• Retain external-module.md, including its exact owner-authored suffix.
+• Retain etl-2x-context.md and companion-tool-policy.md because of the existing known-reference cases.
+• The only eligible legacy deletion is etl-module-reference.md.
 
-Return a short report/result containing:
+Resolve full old/new paths from the actual fixture and approved migration contract; basenames are descriptive, not path authority. Verify the controlled fixture supports these expectations.
 
-• confirmed cause, exact changed files and source identity;
-• regression outcomes and final reusable commands/parameter locations;
-• reviewer verdict and unresolved findings, separately from executor verification;
-• preserved .147/.149/.150 installed environments, live fixture identities and shared output state;
-• latest write/cancellation ledger, including any unresolved discrepancy.
+Require a fresh preview from the NEW candidate showing the exact retained paths/reasons, the eligible move/deletion, root/profile and .gitignore effects. The previously unsafe deletion of external-module.md must be absent. A warning naming a different file is insufficient. Where a retained legacy file leaves the new context destination absent, require the accepted precise Repair disclosure and honestly report that limitation; do not claim full asset availability or effective customization transfer.
 
-Use SOURCE_C_LIVE_1_REPAIR_VERIFIED_WITH_LIMITATIONS only when the affected checks substantiate the repair; report independent review separately. Do not claim .150 contains this correction or that source tests establish installed acceptance.
+Before approval, durably flush the still-open approval surface, exact intended button and complete before inventory, then acknowledge capture. Exercise the genuine exact Upgrade approval once. Do not reuse an old .150 preview/approval object or replace its plan after approval.
 
-Prepare a concise addition to the existing installed-qualification plan for a distinguishable future private candidate, selected from actual candidate records. Reuse the completed build/install/driver interfaces and exact working normal-trust profile settings. Preserve .150 as historical evidence. Continue only the remaining Upgrade and F-Q1 work after appropriate candidate qualification and explicit mapping of remaining authority. Do not repeat Initialize or automatically transfer a .150 approval to a changed preview. Record the corrected expected treatment of external-module.md while preserving the physical phase-2/phase-3 fixtures.
+Verify actual writes/deletions and explicit partial/retained outcomes, byte-identical owner content and reference-bearing files, verified new content for the one eligible migration, unmanaged .gitignore content, and preservation of old directories. No retained file may appear in the actual deletion set. No silent extra Repair or second Upgrade is permitted.
 
-Close the source continuation with result pins and explicit source-ownership release after review. Retain bounded Base/Upgrade and B1/C1 acceptance, the QA exception, R3/R4 uncertainty, document 10 limits, diagnostic F-1, historical CASE2 authority dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/adjacent-suite/source/preservation limits and the Windows case-folding gap. Quarantine ends 2026-09-13 inclusive UTC with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. Demo delivery remains deferred.
+If the fresh preview still contains unexpected or undisclosed destructive effects, do not approve. Dismiss safely as necessary and record the real interaction; do not falsify the cancellation ledger or proceed just to finish. Escalate the concrete finding within the result.
+
+Phase 3a/3b: remaining F-Q1 cancellation and Overwrite
+
+Use the unchanged phase-3 fixture and its retained exact expectations. Reach the genuine scoped discard confirmation and use the ONE remaining planned cancellation; verify zero changes. Then obtain a fresh preview and execute the ONE authorized Overwrite sequence, including every normal product confirmation.
+
+Before each write-capable button, use the existing flushed pending-evidence protocol and exact-label verification. Verify actual created/replaced sets and channel output: a written asset must not also be listed as Skipped, while a genuinely unwritten item remains disclosed. Treat the legacy overwritten union as compatibility output, not as the physical replacement count. Preserve all unrelated fixture content according to the approved plan.
+
+Do not repeat B’s .149 campaign, D’s job/env write, historical CREATE cases or the successful .150 Initialize. No extra migration/Repair phase is authorized.
+
+Finish without restarting successful work
+
+Use one runtime owner. At most one read-only subagent may validate corrected fixture expectations while staging proceeds, then review final retained outcomes in its own directory. It must not edit shared files, build/install, control the host, approve writes or mutate fixtures. Keep executor verification separate from its actual bounded verdict; address concrete reporting findings from retained evidence.
+
+After every phase, persist outcome and budget state immediately. Successful, partial or uncertain writes are non-retryable. If a helper/report fails, fix only task-owned caller/report code and verify from retained records; never repeat the product write. Keep dependencies, settings, helper changes and effects explicit. Continue from durable checkpoints if context is tight rather than treating all remaining phases as an indivisible run.
+
+Return a short report/result with candidate and source identities, corrected phase-2 expected/actual sets, proof of preserved external-module.md owner content, actual phase-3 outcome, complete budget ledger, reviewer verdict, preservation measurements and FINAL reusable commands/parameter locations. Close with result pins and explicit source/runtime release.
+
+Use INSTALLED_C_LIVE_1_UPGRADE_AND_FQ1_VERIFIED_WITH_LIMITATIONS only if these remaining installed cases and required checks pass. Otherwise report the exact partial/failure state. Campaign reporting must distinguish:
+
+• fresh Initialize was observed successfully on .150;
+• repaired migration and F-Q1 were observed on the new candidate;
+• no fresh Initialize was run on that new candidate.
+Do not turn cross-candidate evidence into an exact-new-candidate all-phases claim. Do not call a focused review independent campaign acceptance.
+
+Retain Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, document 10 limits, diagnostic F-1, historical CASE2 authority dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/adjacent-suite/source/preservation limits and the Windows case-folding gap. The three known adjacent failures remain open. Quarantine ends 2026-09-13 inclusive UTC with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. Demo remains deferred.
