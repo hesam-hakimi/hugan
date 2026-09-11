@@ -1,74 +1,71 @@
-# Session C — consumer asset completeness and resource\-layout design
+# Session A — close concrete findings in the existing write review
 
-TASK\_ID: ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01
-TYPE: READ\-ONLY REQUIREMENTS AND DESIGN — no implementation or runtime
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
+TASK\_ID: ETL\-0911\-CONSUMER\-WRITE\-CONSOLIDATED\-INDEPENDENT\-REVIEW01
+ACTION\_ID: FINDINGS\-CONTINUATION01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; ChatGPT has not launched this action
+TYPE: Reporting correction and focused re\-review within the existing task
 
-## Goal and environment
+## Objective and authority
 
-Complete the bounded design for the two owner requests retained in document 10:
+Close the concrete reporting, attribution and evidence\-qualification findings in the completed consolidated review\. This is a continuation of that review, not a new reconciliation stage or another full review\. Do not rerun either product campaign\.
 
-- `ETL-0910-CONSUMER-RESOURCE-LAYOUT-FOLLOWUP01`\.
-- `ETL-0910-CONSUMER-WORKFLOW-ASSET-COMPLETENESS-FOLLOWUP01`\.
+Owner submission authorizes reading the relevant original text records and creating new continuation\-owned reports outside the repositories\. Do not alter original evidence, corrupt reviewer files, historical verdicts, inventories, traces or original CASE2 result\.json\. Produce a clearly identified corrected successor copy/addendum with an explicit relationship to the originals\.
 
-Determine the required assets for the intended consumer development workflow and propose a clean destination/migration for its generated context documents\. This session may run alongside Session A’s consumer\-write review and Session B’s Upgrade UI design\. Its output is a design, not a new mandatory prerequisite for accepting already completed write cases\.
+No product source/test edits, product execution, Host launch, build, package, install, Git mutation, fixture/consumer changes, timestamp restoration, jobs or publication\. Pure offline parsing of retained data is allowed\. Do not execute retained runtime helpers\. Fix in\-scope report/parsing mistakes from existing data without restarting product work\.
 
-Windows development environment:
+ALL coordinator/subagent progress, questions, final answers and deliverables must be English\. No screenshots, video, image inspection, OCR or vision, including hidden capture hooks\. The owner photographs are intake information; resolve claims against original Windows text, structured results, logs and filesystem evidence\.
 
-- Source worktree, read only: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`\.
-- Linked primary, protected: `C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`\.
-- Existing installed evidence environment, read only: `C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01`\.
-- Reported product: `td-etl.databricks-etl-copilot 0.3.147`, private candidate\. Resolve exact relevant identities from original records; do not treat a Windows path or version as proof of access or identity\.
+## Disposition and ownership
 
-ALL coordinator/subagent messages and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\. Use source text and retained inventories, structured results, logs and DOM/accessibility traces\.
+The owner supplied multiple final replies and said the submissions were complete\. Several coordinator instances nevertheless wrote into the SAME review root, with conflicting generation labels and concatenated reviewer documents\.
 
-## Authority, isolation and efficient reading
+Check this exact task AND this continuation action against existing terminal records and any known active ownership before starting\. An absent node\.exe process, absent report, old timestamp, or a folder alone cannot establish that a task is not running\. Do not redispatch the original review\. If this continuation is already complete, return its result\. If active or unresolved, report its disposition and do not create another instance or take over\.
 
-Owner submission authorizes read\-only inspection and new task\-owned design documents outside both repositories\. No source/catalog/prompt/test edits, consumer changes, migration, file relocation/deletion, tests, product commands, Host launch, build, install, dependencies, Git mutation, jobs or publication\. Do not change global/profile settings or edit shared current\-state/reference files\.
+Use the existing exclusive ownership mechanism if one is available\. Otherwise atomically create ONE action claim using CreateNew semantics at:
+C:\\docs\\ETL\-0911\-WRITE\-REVIEW\-FINDINGS\-CONTINUATION01\.claim\.json
+Record task/action, owner session identity, unique token and intended output root\. Never overwrite, expire or steal an existing claim; inspect it and report the actual status\. Keep terminal status and result location in the claim after completion\.
 
-Check THIS task’s actual disposition first; do not duplicate an active or completed instance\. Sessions A and B are allowed concurrent readers\. Do not stop them or require their completion to inspect your own scope\.
+Write only in a new, unique continuation directory outside the old review root:
+C:\\docs\\ETL\-0911\-WRITE\-REVIEW\-FINDINGS\-CONTINUATION01\-<UTC>\-<unique>
+Only this coordinator may write its top\-level reports\. Recheck ownership before final publication\. Each delegated reviewer gets its own token\-named output subdirectory; never reuse reviewers/A or reviewers/B in the old root\. Do not stop another agent or modify its artifacts\.
 
-For a new task, create one exclusive output directory:
-`C:\docs\ETL-0911-CONSUMER-ASSETS-LAYOUT-DESIGN01-<UTC>-<unique>`\.
-Write only `design.md`, `result.json` and indispensable supporting notes inside it\. Preserve prior evidence and other session outputs; any continuation must retain earlier attempts\.
+## Resolve these original records once
 
-Use the available document 10, current contract 09 v1\.1 and safety model 05\. A Library path does not imply a synchronized Windows copy; the owner requirements needed for this task are repeated below\. Resolve missing original evidence only for claims that depend on it\. Do not request a whole reference pack or reread entire old bundles\.
+Use exact task IDs, report metadata and SOURCE\_INDEX where available, not newest\-folder selection\. Reported locators:
 
-Use `rg` within the relevant asset catalog, package declarations, instructions/links, discovery and audit/upgrade consumers and existing tests\. Read complete relevant functions/contracts\. Record inspected\-file identities and verify them before finalizing; measured drift makes the affected design stale, not permission to repair the baseline\. Do not execute imported product modules or catalog scripts that may have side effects\. Reuse retained inventory data; do not build a general catalog extractor\.
+- CASE1: C:\\docs\\ETL\-0910\-INSTALLED\-CONSUMER\-JOBENV\-WRITE\-SMOKE01\-20260911T014313Z\-25AD3C0C\-D7F2\-42BA\-8E98\-AE277BF27D25
+- CASE2: C:\\docs\\ETL\-0910\-INSTALLED\-CONSUMER\-JOBENV\-MULTIROOT\-AND\-OVERWRITE\-SMOKE01\-20260911T022320Z\-FF38CCC9\-9677\-479A\-93F6\-6821E3F27DBA
+- REVIEW: C:\\docs\\ETL\-0911\-CONSUMER\-WRITE\-CONSOLIDATED\-INDEPENDENT\-REVIEW01\-20260911T025933Z\-5552370E\-7203\-4A23\-B475\-18AE96557DE7
 
-## Owner requirements and reported observations
+Read the issued CASE2 brief completely, existing review report/result, CONCURRENCY\_DISCLOSURE\.md, the continuation/reconciliation addenda, ADDENDUM\-X4\-ENV\-AUTHORITY\.md, ADDENDUM\-SECOND\-COORDINATOR\-RECONCILIATION\.md, and only their relevant checks/reviewer records\. Names are locators to authenticate, not proof that files exist or that every addendum has the same author\.
 
-The owner wants a tidy consumer root\. These generated context destinations currently introduce top\-level `resources`:
+Use the current available Reference v2 contract 09 v1\.1, safety 05 and checkpoint 12\. Do not request a whole reference mirror, reread all history, or scan session databases broadly\. A Library path is not proof of a Windows copy\. Resolve only a missing requirement that changes a decision\. Reconcile genuinely newer records without rolling state backward\.
 
-```text
-resources/copilot/context/etl-2x-context.md
-resources/copilot/context/companion-tool-policy.md
-resources/copilot/context/etl-module-reference.md
-resources/copilot/context/external-module.md
-```
+## Apply the bounded corrections
 
-A replacement destination has NOT been selected\. Extension package source paths and consumer destination paths are separate concerns\. Preserve user\-owned files and define migration before proposing removal of old generated paths\.
+1. Preserve the original recorded CHANGES\_REQUIRED verdict as historical\. Record which specific claims a successor qualifies or supersedes\. Do not claim that a later addendum automatically replaced the original verdict\.
+2. Resolve only the reviewer attributions necessary for the concrete findings\. A concatenation is not one valid JSON record\. Reuse existing salvage outputs and offsets/hashes where possible; validate the claimed source relationship\. Do not edit the damaged original, invent missing outputs, or count repeated claim fragments as reviewers\. The latest owner image reports three of four lanes accepted with limitations, contradicting an earlier “all four agree” tally; authenticate before citing either tally\. Acceptance is evidence\-based, not a vote\. If a generation cannot be attributed, mark it unattributed and exclude it from a numerical tally\.
+3. Correct CASE2’s factual accounting in the successor result: one content update; two physical overwrites; job 1172 to 1173 bytes in that run; env content identical at 250 bytes but mtime changed\. Authenticate exact paths, hashes and times from originals\. Distinguish execution outcome from acceptance and from authority interpretation\. Record envContentPreserved=true and envPhysicallyUntouched=false where supported\. Do not leave an unqualified PASS that suggests untouched\-env qualification\.
+4. Assess the complete authority language together\. The brief authorized one approved content update to the existing temporary job, said to preserve the environment/unrelated files, required destination paths and environment input unchanged, and allowed no\-op only as supported by the normal protocol\. The installed caller reportedly used envConfigReused=false; the available reference route uses true, while env fields are optional\. A disclosed product approval does not alone expand owner authority\. Conversely, availability of a different input does not alone prove that the issued scenario required that input\. Separate the agreed physical rewrite from the disputed interpretation\. Keep both supported arguments; do not force an unauthorized\-write finding, retroactively grant permission, or silently dismiss a concrete finding\. If exact records do not resolve it, retain AUTHORITY\_INTERPRETATION\_DISPUTED and leave that boundary unaccepted\. This does not prevent recording supported content\-preservation and execution claims\.
+5. Qualify temporal and preservation evidence precisely\. Reports indicate no standalone pending inventory retained for CASE1/CASE2; relevant observations occur in traces persisted after the operation\. Authenticate the available event sequence without promoting a post\-write file’s timestamps into independent pre\-write proof\. A new live hash check cannot recreate a missing historical baseline\. Distinguish retained BEFORE/AFTER inventories from executor assertions for the workflow consumer, reference/ambiguity roots and dirty source\. Resolve the conflicting installed\-65\-file identity claims from the already referenced inventory if available; do not launch a broad source\-to\-installed audit\.
+6. Correct “only overrides changed” to the actual caller\-only delta, including version/logging/observability/validation changes when supported\. Retain the missing original false\-FAIL verifier artifact as an evidence limitation\. A corrected final verifier is not the missing original\. Retain the fact that report repair did not require another write only at the strength supported by session records\.
+7. Keep F\-1 open as a minor real diagnostic defect: overwrite reported as &#91;CREATE&#93;/Created in the output channel while modal/structured result were correct\. “Zero product defects” is too broad\. Distinguish it from the absence of a demonstrated functional writer defect\.
 
-The intended consumer workflow must receive the agents, skills, prompts, instructions and supporting files it actually needs\. Consumers must not require a source checkout of either this extension or `etl-framework-adb`\. Preserve the established public Orchestrator/internal specialist model; do not create a new agent architecture or blindly copy every maintainer/extension asset\.
+## Focused independent check and completion
 
-Reported Base behavior: eight catalog assets plus managed `.gitignore`, with no agents/skills by design\. A separate AG consumer reports 21 managed assets plus `.gitignore`, with six agents and four skills discovered\. One validate\-write skill Upgrade to 1\.1\.5 received bounded independent acceptance\. These observations do not prove missing packaging or complete end\-to\-end workflow readiness\.
+Use at most ONE fresh reviewer for the corrections above, in an exclusive child directory\. The reviewer must not be an author of the evidence/corrections under review\. While the reviewer inspects the affected original clauses and identities, the coordinator may prepare the corrected copy; bind the final check to the finished copy’s exact identity\. Do not assign another complete A/B campaign\. If no independent reviewer is available, deliver useful corrections labeled AUTHOR\_CHECK\_ONLY\_INDEPENDENT\_REVIEW\_PENDING\.
 
-Reuse original install/Base and AG workflow/Upgrade inventory records, resolving their roots by task ID and report metadata under direct children of `C:\docs`\. Start with `ETL-0910-EXACT-VSIX-INSTALL-INITIALIZE-SMOKE01`, `ETL-0910-INSTALLED-WORKFLOW-SMOKE01`, `ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01` and its independent review only where their records are relevant\. Do not infer missing records from task names or reconstruct source hashes from report photographs\.
+Produce only a concise report\.md and one parseable result\.json, plus a corrected CASE2 result copy if needed and indispensable attribution notes\. Identify source paths/hashes, replaced claims, unresolved claims, original versus successor verdict, and focused reviewer identity/verdict\. Preserve any concrete reviewer disagreement\. A malformed or incompletely attributed record is not automatically product failure\.
 
-## Produce the bounded design
+Allowed completion statuses:
 
-1. Build one compact evidence\-backed mapping for the intended workflow: required capability/asset, packaged presence, profile selection, consumer destination, recorded installation/discovery and unresolved gap\. Separate these sets\. Distinguish managed asset counts from total files and count exclusions\. Start with Base/AG; inspect another profile only for a concrete requirement\.
-2. Determine whether any demonstrated gap lies in packaging, catalog/profile selection, initialization, links or discovery\. Mark unsupported hypotheses and unavailable evidence clearly\. Do not call Base’s deliberate smaller set a defect\.
-3. Compare at most two plausible consumer destinations supported by existing conventions\. Recommend one with reasons and an exact old\-to\-new mapping for the four context files\. Consider instruction/skill links, relative\-path resolution and audit/repair/upgrade consumers\. Selecting a proposed design does not authorize migration\.
-4. Define future migration behavior for unchanged managed files, customized managed files, unmanaged collisions, missing legacy files and partial/interrupted migration\. Preserve user content, prevent stale/broken references and do not delete a directory merely because its known managed files moved\. Reuse existing ownership and recovery mechanisms where sufficient; state remaining limitations instead of promising unverified atomicity\.
-5. Identify the minimum FUTURE editable paths/functions and all affected links, catalog metadata, managed ignore entries and audit/repair/upgrade behavior\. Keep packaged source placement independent of consumer destination selection\. Coordinate only the interface with B: current/proposed paths and operation\-plan itemization\. Do not redesign B’s dialogs\.
-6. Define permanent test cases through existing entrypoints: intended\-profile completeness; fresh initialization and link resolution; legacy managed migration; customized/unmanaged preservation; repeated audit/upgrade behavior; and interruption/collision cases affected by the chosen design\. Specify expected outcomes and fixtures independently of implementation\. Do not create or run tests in this task\.
-7. Recommend the smallest staged implementation order, distinguishing a demonstrated completeness defect from optional layout improvement\. Identify any exact shared files with B; propose one later writer/integration owner rather than concurrent edits to the recovery worktree\.
+- FINDINGS\_CORRECTED\_REVIEWED\_WITH\_LIMITATIONS
+- FINDINGS\_PARTIALLY\_CLOSED\_WITH\_NAMED\_GAPS
+- AUTHOR\_CHECK\_ONLY\_INDEPENDENT\_REVIEW\_PENDING
+- BLOCKED\_ACTIVE\_OR\_UNRESOLVED\_OWNER
 
-## Delegation, result and boundaries
+Include successorRuntimeDisposition: ELIGIBLE\_FOR\_BOUNDED\_SUCCESSOR or BLOCKED, with the exact evidence\-dependent reason\. Eligibility requires trustworthy relevant installed/helper/fixture/output identities and no unresolved finding that makes the proposed narrow runtime unsafe or uninterpretable\. It does not require invented historical evidence or unanimous retrospective authority interpretation\. Historical untouched\-env and approved\-multi\-root acceptance remain unestablished\.
 
-This is already a parallel session; default to no nested subagents\. If useful capacity exists, use at most ONE read\-only subagent for a concrete asset/link coverage slice while the parent designs migration\. Do not repeat A’s write review or B’s UI work\. Only the parent writes consolidated outputs; all agents retain this scope\.
+Document the authenticated final reusable command and parameter paths from the completed bundle, marked NOT EXECUTED\. Do not invent a command from filename guesses\. The planned successor is one approved multi\-root job overwrite with genuine env reference/UNCHANGED, not another CREATE or a repetition of the old four scenarios\.
 
-Return `DESIGN_READY_FOR_IMPLEMENTATION_SCOPING`, `BLOCKED_DEPENDENCY` or `OWNER_DECISION_REQUIRED`, with a precise reason when not ready\. Include the inventory mapping, recommended destination, migration rules, future editable surfaces/test matrix, verified identities, unknowns, dependencies and a bounded next implementation proposal\. Make routine design choices autonomously; do not invent product requirements to avoid a genuine unresolved owner decision\.
-
-Finish independently without waiting indefinitely for A/B; reference their output as pending when unavailable\. Do not modify their reports or shared documents\. Do not run any write, migration or workflow command to improve the report\. Preserve unrelated acceptance, toolchain/source/preservation limits and the bounded QA exception\. Quarantine expires inclusively on 2026\-09\-13 UTC with no automatic reliance from September 14\. This design grants no runtime, release or full\-product acceptance\.
+Keep Upgrade disclosure/workflow\-asset Overwrite UI and document 10’s layout/completeness requests open and separate\. Preserve B1/C1 acceptance, the bounded QA exception, R3/R4 successor uncertainty, trust\-restricted/model\-route/historical\-incident/toolchain/no\-lockfile/adjacent\-suite/source\-acceptance and preservation limits\. F1/F3 quarantine expires 2026\-09\-13 inclusive UTC, with no automatic extension from September 14\. Do not confuse that quarantine with the diagnostic F\-1 finding\. Never claim RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\.
