@@ -1,84 +1,109 @@
-TASK_ID: ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01
-TYPE: Focused independent read-only acceptance review
-ENVIRONMENT: Windows development agent; existing ETL evidence and the
-retained dedicated test installation and temporary consumer.
+TASK_ID: ETL-0910-INSTALLED-CONSUMER-JOBENV-WRITE-SMOKE01
+TYPE: Installed-product preview, approval and consumer-write qualification
 
-LANGUAGE AND NO-VISION
-Use English for ALL communication, progress updates, final responses,
-code, comments, tests and documents. Do not append Persian summaries.
-The vision service is unavailable. Do not capture screenshots, record
-video, inspect images, or invoke vision/OCR services.
-Use retained DOM/accessibility text, structured UI events, logs, file
-contents, inventories and checksums. State any specific visual limitation.
+ENVIRONMENT
+Windows; reuse the installed td-etl.databricks-etl-copilot 0.3.147 in:
+C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01
+Reuse its dedicated user-data/extensions directories and existing
+automation transport. Resolve exact current identities from local records.
 
-OBJECTIVE
-Close the pending acceptance decision for the completed existing-consumer
-skill upgrade. Produce a clear verdict and identify the next concrete
-step toward correct job/env writes.
+LANGUAGE / NO VISION
+Use English for all messages, progress updates and deliverables.
+No screenshots, video, image inspection, OCR or vision calls.
+Disable screenshot hooks in reused automation.
+Use text/DOM events, product tool results, logs and filesystem evidence.
 
-START FROM EXISTING WORK
-Resolve these records by their contents and identities, not folder recency:
-- ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01
-- Its RECONCILE record
-- ETL-0910-EXACT-VSIX-INSTALL-INITIALIZE-REVIEW01
+ACCEPTED BASELINE
+ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01 accepted the
+consumer skill upgrade with limitations and zero blocking findings.
+Preserve that acceptance. Do not repeat Initialize, Upgrade, catalog
+reconstruction, installation review or historical reconciliation.
 
-Check whether this independent review already exists or is in progress.
-Reuse a completed review; do not create a duplicate or concurrent review.
-The completed Upgrade must not be repeated or artificially recreated
-through a downgrade. Reconciliation alone is not independent acceptance.
+Check whether this task is already running or completed before acting.
+Resume valid existing work; do not create a concurrent or duplicate run.
 
-FOCUSED REVIEW
-1. Verify the original evidence inventory and the current target and
-   installed identities using actual files. Distinguish extension version
-   0.3.147 from managed asset version 1.1.5.
+AUTHORIZED WORK
+Prepare one fresh disposable consumer workspace and exercise the installed
+product's actual preview → approval → write route for exactly two new
+fixture outputs: one job configuration and one environment configuration.
 
-2. Independently verify the expected skill content against the installed
-   catalog and the actual rendering/checksum rules. Correlate retained
-   records showing that the expectation preceded approval and mutation.
-   Do not rely only on report prose or file modification times.
+This task authorizes that bounded temporary write after the actual
+preview identifies the selected root, both CREATE paths and their content.
+Use the normal product approval mechanism bound to that exact preview.
+Do not bypass approval, forge approval records, or replace the product
+writer with direct filesystem writes.
 
-3. Verify the recorded Cancel and approval sequences, pending inventories,
-   exact Upgrade Managed Assets selection, and the resulting single-file
-   change. Check that Overwrite and Repair were not selected.
+EXECUTION
+1. Check the installed candidate against the accepted identity once.
+   Reuse existing helpers; make only the minimum task-specific adaptation.
+   Use normal Workspace Trust behavior; do not pass
+   --disable-workspace-trust or alter global trust settings.
+   If trust interaction is required, use the normal UI for this temporary
+   folder only and record the observed behavior.
 
-4. Confirm delivery of repo.skill.validate-write from 1.1.4 to 1.1.5,
-   including Target Root guidance. Verify preservation of the other
-   20 assets and .gitignore, and the recorded post-Audit current status.
-   Preserve the limitation that non-empty user content outside the
-   managed section was not exercised.
+2. Resolve and reuse the converged synthetic fixture retained under
+   ETL-0909-PRODUCT-WRITE-REPRO01:
+   measurements/d6-converged-full-route-preview.json
+   derivedFixtureDisclosure.{jobConfig,envConfig}
+   Verify it against its actual retained records, not screenshot hashes.
+   Do not invent another fixture or substitute customer data.
 
-5. Assess the existing findings independently, concentrating on their
-   effect on this acceptance decision and release readiness:
-   missing destination/change disclosure, the sibling Overwrite action,
-   and the remaining recorded findings.
-   Check launch flags, including --disable-workspace-trust, against the
-   actual authorized scope. Do not infer normal trust-path qualification.
+3. Create the temporary consumer through OS temporary-directory APIs,
+   outside source, reference and installed-extension trees.
+   Use a distinct prefix from helper/scratch files.
+   Prepare only required fixture prerequisites, including job_conf/
+   and env_conf/ layout markers, and record the baseline.
 
-Do not repeat unrelated historical investigations. Preserve accepted
-Base initialization results and keep historical FIX01 and PARITY01 test
-results separate.
+4. Invoke the supported installed ETL preview/write tools through the
+   normal Host workflow. Reuse the recorded valid call shape.
+   Do not import repository source or mock the writer/approval services.
+   Pass the selected consumer workspaceRoot explicitly where supported.
 
-EXECUTION BOUNDARIES
-Read-only inspection only. No Host launch, model request, ETL operation,
-build, test execution, packaging, installation, source/Git change,
-consumer mutation, deployment or release.
-Reuse existing evidence and helpers. Do not create another JS/PowerShell
-framework. Leave original evidence unchanged.
+5. Before approval, retain the actual root, both relative and resolved
+   destinations, proposed content, and the product's manifest identity.
+   Require exactly two CREATE outputs contained in that consumer root.
+   Confirm preview has created neither output.
+
+6. Complete the normal approval and guarded write once, bound to the
+   unchanged preview. A changed root, destination, content or artifact set
+   requires a new preview and its corresponding approval.
+
+7. Verify actual on-disk content against the approved preview:
+   exactly the two intended outputs, no unexpected product-created files,
+   no changes to existing fixture files, and no write outside the root.
+   Retain the actual product result, including structured blockers or
+   partial outcomes. A success message alone is insufficient.
+
+EFFICIENCY AND FAILURE HANDLING
+Reuse accepted permanent-test results within their recorded scope.
+Do not rebuild test outputs or rerun suites simply because this is a new
+task. Do not create another evidence framework or catalog extractor.
+
+If the product route fails, preserve the smallest reproducible failure:
+exact input, preview, tool result, observed filesystem delta and the
+specific permanent regression-test target. Stop repeated attempts unless
+a concrete, authorized correction to the test invocation justifies one.
+Do not silently modify the fixture or weaken validation to obtain PASS.
+
+BOUNDARIES
+No product source edits, build, packaging, installation, version bump,
+Git mutation, real consumer changes, publish, deploy or ETL runtime job.
+Leave the previously accepted workflow consumer unchanged.
+Close only task-owned Host processes and preserve the reusable environment.
 
 DELIVERY
-Write only concise report.md and result.json in the review directory.
-Include:
-- Verdict and directly supporting evidence.
-- Blocking findings, non-blocking findings and retained limitations.
-- Acceptance status of this specific consumer skill upgrade.
-- Original job/env write correctness: not established by this review.
-- Post-upgrade model loading of the skill: not established by this review.
-- Release acceptance: not granted.
+Produce concise report.md and result.json, with only the supporting
+tool/log and before/after evidence needed for this scenario.
+Reference earlier accepted records instead of reproducing their reports.
 
-If accepted, specify one actionable next task for qualifying actual
-preview → approval → job/env write behavior in the correct temporary
-consumer root, reusing the existing environment and permanent tests.
-If blocked, specify the smallest correction needed.
+Report separately:
+- Installed preview/approval/write outcome.
+- Approved versus actual paths and content.
+- Preservation and containment outcome.
+- Normal trust behavior actually observed.
+- Any concrete defect and smallest corrective task.
+- Historical original-incident reproduction: only claim if actually tested.
+- Multi-root behavior and full release readiness: not established here.
 
-Finish this acceptance decision without introducing another reconciliation
-stage or expanding into unrelated cleanup.
+Keep the Upgrade disclosure/Overwrite release issues open.
+Finish this scenario without adding another reconciliation stage.
