@@ -1,76 +1,84 @@
-# Deliver the existing qualified private VSIX for Hesam’s demo
+# Qualify C migration and F\-Q1 in one new private installed candidate
 
-TASK\_ID: ETL\-0911\-PRIVATE\-DEMO\-VSIX\-HANDOFF01
 STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
-TYPE: Exact\-artifact demo handoff; may run in a new session alongside C review
+TYPE: Bounded combined installed qualification after focused review closure
+TASK\_ID: Reuse the exact combined\-installed task ID already proposed in the completed C report section 8\. If no ID was assigned there, use ETL\-0911\-CONTEXT\-MIGRATION\-AND\-OUTCOME\-INSTALL\-QUALIFY01\. Do not create a duplicate task under a second name\.
 
-## Goal and bounded authority
+## Activate from the completed review
 
-Give Hesam an installable copy of the ALREADY BUILT private 0\.3\.149 VSIX, its full SHA\-256, and short usable installation/demo instructions\. Do not build the current worktree: C migration and the F\-Q1 source fix are under a separate review and are not in this qualified \.149 binary\.
+Resolve the implementation and REVIEW\-FINDINGS\-CONTINUATION01 through the actual pointers from:
+`C:\docs\ETL-0911-CONSUMER-CONTEXT-DESTINATION-MIGRATION01.claim.json`
 
-Owner submission authorizes read\-only authentication of the retained \.149 package and its qualification records, creation of a unique demo\-delivery directory, byte\-identical copying of that VSIX, and writing the short handoff files below\. This is private owner handoff, not publication or release acceptance\.
+Read the final continuation result, new reviewer verdict, source/test identity records and prepared combined\-install brief\. The owner reports:
 
-No source/test changes, build, repackaging, version bump, signing change, dependency setup, Git mutation, extension installation, Host launch, product command, consumer write, ETL job or publication is authorized by THIS delivery task\. Supply installation commands for Hesam to use later; do not execute them\. Do not rerun earlier qualification tests or write sequences to prepare the handoff\.
+- `REVIEW_FINDINGS_CLOSED_WITH_LIMITATIONS`; new focused independent verdict `VERIFIED`; ownership `CLOSED_SOURCE_FREEZE_RELEASED`\.
+- A replacement reviewer owns the new verdict; the original CHANGES\_REQUIRED record remains unchanged\. Preserve this substitution and both records\.
+- All eight product files retain the implementation’s final hashes\. Only two test files changed in the continuation\.
+- T\-12b now covers ADOPT after a successful new\-file write: current destination retained without rewriting, eligible legacy removed\. The malformed interruption case remains separately blocked\. A blocked\-legacy disclosure test was also added\.
+- Final affected outcomes: customization 72 pass / 3 known failures; bootstrap 25 pass / 0 fail; typecheck exit 0\. Other suites were not rerun because their relevant product source was unchanged, with reuse accepted by the reviewer\. Authenticate the actual dependency/reuse record, not counts alone\.
+- The stale 57\-pass/8\-fail lane artifacts were preserved and excluded from acceptance\.
+- Scope attribution was corrected: 22 of 23 criticized files predated the task; the remaining bootstrap test was legitimate task\-owned F\-Q1 coverage\. Do not repeat the incorrect claim that all 23 were pre\-existing\.
+- The original \.149 qualification review record contains 12 CONFIRMED plus one PARTIAL; its independent\-campaign\-acceptance flag is false\. This is a predecessor’s tally, not the new C review tally\.
 
-ALL replies, progress, questions and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\. Use text, structured records, filesystem checks and hashes\. Do not create another JavaScript helper, harness, catalog extractor or review/reporting framework for a file\-copy handoff; existing tools and a short report are sufficient\. No subagent is needed\.
+Authenticate terminal release and current ownership before setup\. Source counts, mtimes or a closed claim alone do not replace exact records\. Preserve newer evidence if it differs materially; do not roll it back to this summary\.
 
-## Parallel execution boundary
+## Authority and parallel boundaries
 
-The other session is continuing:
-`ETL-0911-CONSUMER-CONTEXT-DESTINATION-MIGRATION01 / REVIEW-FINDINGS-CONTINUATION01`\.
+Owner submission authorizes one task\-owned staging snapshot of the authenticated final source, the minimum staging\-only metadata change for a new distinguishable private version, one successful build/package cycle through the existing tooling, one isolated installation/activation, and the three bounded approved command phases below on fresh disposable fixtures\. Necessary fixture preparation, cancellation checks and task\-owned evidence are included\. No public release is authorized\.
 
-It may edit source and run isolated tests\. This handoff reads only the completed \.149 qualification bundle and VSIX and writes only its own delivery directory\. It neither needs nor releases C’s source ownership\. Do not wait for C’s review, acquire a source/runtime lock, inspect changing source as the package baseline, or modify that session’s claim/report\. Do not use either retained installed environment or Hesam’s default profile\.
+ALL coordinator/subagent communication and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\. Use existing text/DOM/accessibility controls, source, logs, hashes and structured outcomes\.
 
-Check this exact handoff task’s disposition using its claim/result before setup\. If already delivered, reuse its authenticated result; if active, do not duplicate it\. Use the established task ownership mechanism or one atomic CreateNew claim:
-`C:\docs\ETL-0911-PRIVATE-DEMO-VSIX-HANDOFF01.claim.json`
+No new product source/test fix, dependency installation/update, Git mutation, real\-consumer write, ETL job or publication\. Protect both worktrees, maintained `.github` files, shared out/, tracked build state, prior evidence and all retained consumers\. Do not overwrite the \.147 or \.149 installed environments\.
 
-No whole\-C:\\docs scan, session\-storage query or broad historical reconstruction\.
+The private \.149 demo\-handoff task may continue in parallel: it copies immutable package bytes and does not own this task’s new runtime\. Preserve its package, output directory and claim\. Do not wait for that file\-copy task or change its delivered package to the new candidate\. Another source\-editing or shared\-runtime task must not run concurrently with this qualification’s protected source capture/runtime ownership\.
 
-## Resolve and authenticate the original package
+Check the exact combined\-install task’s running/completed/blocked/not\-started disposition using its retained brief, claim and result pointers\. Missing output is not proof of inactivity\. Reuse an existing task/result where present\. Otherwise acquire one exclusive task claim and use one unique output root outside predecessor bundles and both worktrees\. Do not steal claims or kill another session’s processes\.
 
-Read this completed qualification claim and follow its exact result/artifact pointers:
+## Reuse the completed \.149 qualification workflow
+
+Source worktree, read\-only:
+`C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
+
+Protected linked primary:
+`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
+
+Resolve the \.149 package/install/driver/fixture interfaces from:
 `C:\docs\ETL-0911-WORKFLOW-UPGRADE-PLAN-BINDING-INSTALL-QUALIFY01.claim.json`
 
-Read the current original result and only the report sections needed for package identity, qualification scope, constraints and final locators\. If a pointer differs, use one direct task\-prefix listing, not a broad content scan\. A Windows path supplied by ChatGPT is a locator, not proof that ChatGPT accessed it\.
+Use its FINAL working staging, packaging, normal install, text\-driven workflow caller and pending\-evidence helpers, with minimal task\-owned parameter adjustments for the new paths and plans\. Do not rebuild a harness, catalog extractor or reporting system\. Do not execute its old write commands or D’s job/env driver\. Use precise result locators; no whole\-C:\\docs scan or session\-storage reconstruction\.
 
-Reported package context, to verify against originals:
+Stage the exact final dirty/untracked source by authenticated byte identity, not HEAD alone\. Include C/F\-Q1 and the final test inputs where needed\. The repository package version still being \.147 does not mean its source is the old installed \.147 product\. Select the next unused private candidate identity from actual package records; do not assume \.150 is unused, relabel \.149, or change the repository version\. Record every staging\-only metadata difference\.
 
-- Extension ID: `td-etl.databricks-etl-copilot`\.
-- Private package version: `0.3.149`\.
-- VSIX size: 1,269,223 bytes; 66 entries; full SHA\-256 is in the retained records\. Never use size, entry count or a hash prefix as identity proof\.
-- Qualification status: `INSTALLED_WORKFLOW_UPGRADE_PLAN_BINDING_VERIFIED_WITH_LIMITATIONS`, 77/77 checks passed\.
-- Staging included the authenticated B source repair and earlier dirty/untracked content, with only the package version line changed from \.147 to \.149\. Its installed bundle matched the staged bundle\.
-- Both approved qualification operations were consumed; the claim was closed with explicit runtime/source\-freeze release\.
+Build only in expendable task staging using existing dependencies/tools\. Do not run a destructive compile against protected worktree out/\. Retain the existing toolchain/no\-lockfile/QA\-exception limitations exactly; do not treat them as a waiver of new failures or extend quarantine\.
 
-Verify the actual VSIX’s full SHA\-256 against its retained package record and inspect its embedded manifest read\-only to confirm ID/version\. Use the existing archive/package reader; do not extract into or alter a protected installed environment\. Follow the retained source\-to\-package identity record, not today’s changed worktree\.
+Run the required existing package checks and retain the source \-\> VSIX \-\> installed identity chain\. Verify packaged context authorities and contributions remain unchanged, while the compiled consumer catalog/commands contain the reviewed new destinations, specific link\-version updates, migration handling and F\-Q1 renderer\. Static strings alone do not prove behavior\. Reuse source tests when relevant identities match; do not rerun every suite merely to package\.
 
-If the exact VSIX is missing, corrupt or mismatched, report the exact blocker\. Do not reconstruct it from an installed directory, rebuild a replacement, download another version, fall back to \.147/\.148 or silently substitute an unqualified candidate\. If a verified immutable copy is already named in the same qualification records, that identical copy may be used\.
+Install the exact VSIX into a NEW task\-owned user\-data/extensions environment\. Use normal installation and reload, not F5/Extension Development Host\. Confirm extension ID/version, installed bundle identity and activation from text/structured Host evidence\. Hesam’s default environment and the demo \.149 environment remain untouched\.
 
-## Deliver a small usable packet
+## Bounded live cases
 
-Create one unique folder, for example:
-`C:\docs\ETL-DEMO-0.3.149-<UTC>-<unique>`
+Read the retained combined\-install brief and actual reviewed plan/fixture contracts before choosing exact inputs\. Reuse its minimal fixtures\. Use at most three fresh disposable consumers, one for each phase below\. Derive explicit expected paths, dispositions, physical writes/deletions, ignore effects and preservation sets from controlled fixture inputs BEFORE invocation\. Do not calculate both actual and expected results using the planner under test\.
 
-Deliver exactly these essentials:
+1. **Fresh initialization\.** One fresh eligible Base consumer\. Cancel the genuine initialization approval once and verify zero changes; then obtain a fresh preview and approve Initialize once\. Verify the four consumer context paths under `.github/etl-context/`, intended managed files, resolved known links and the promised fresh\-root layout\. No top\-level resources directory should be introduced by these consumer assets\. Do not count helper/evidence directories as part of the consumer\.
+2. **Existing\-consumer migration\.** Use a synthetic legacy fixture derived from authenticated pre\-migration data, not a retained consumer\. Cover an eligible unchanged legacy/new pair that genuinely moves, a known customized instruction/prompt still referencing its legacy target, and customized legacy content requiring an explicit decision or a blocked item\. Cancel the actual migration\-capable Upgrade preview once, verify zero changes, then approve one fresh correctly disclosed bounded plan\. Require at least one actual eligible migration and accurate partial/retained outcomes\. Verify copied/current new content before eligible deletion, preservation of the known referenced/customized legacy files, unmanaged ignore content, and the old directories remaining\. A customized legacy file retained on disk is not proof its customization stays effective; verify the explicit approved decision or non\-activation of the blocked item\. If the real plan cannot meet these conditions, cancel and report the exact gate rather than silently broadening the scenario\.
+3. **F\-Q1 installed outcome\.** A separate synthetic fixture at the NEW layout, prepared with the existing fixture builder, carrying a controlled modified asset and any genuine unwritten item needed by the prepared brief\. Reach the real discard confirmation and Cancel once; verify zero changes\. Obtain a fresh preview and approve Overwrite once, including the normal scoped discard confirmation\. Verify actual created/replaced sets and final channel output: a successfully written asset must not also be listed as Skipped; a genuinely unwritten item must not be hidden by an intended write\. Treat the legacy overwritten union as compatibility output, not a physical\-replacement count\.
 
-1. The original\-named `.vsix`, copied byte\-identically\. Verify the destination SHA\-256 equals both the source and retained record\.
-2. `DEMO_README.md`, concise and in English\.
-3. `demo-result.json`, with actual disposition, source and delivered absolute paths, extension ID/version, full SHA\-256, size, qualification\-record pointers, delivery timestamp and limitations\.
+Budget: at most one approved Initialize, one approved migration\-capable Upgrade and one approved Overwrite, each on its own fresh fixture, plus the three specified cancellation attempts\. Do not repeat B’s completed \.149 campaign, D’s overwrite, historical CREATE cases or the same successful phase\. No job/env writes\. Do not reset/reseed a successful phase to rerun it\.
 
-Do not copy source repositories, node\_modules, agent session histories, credentials, unsanitized logs or real consumer data into the demo folder\. Do not zip/repackage the VSIX\. Keep predecessor bundles untouched\.
+Before each write\-capable approval click, persist and flush the existing standalone pending dialog/plan observation and before inventory, then acknowledge capture and click through the genuine controls\. Keep preview identity/root/path/content binding and after inventories\. Do not bypass confirmations or forge an approved plan\. Unexpected targets, undisclosed local\-content loss or writes outside the budget require cancellation\.
 
-The README must include:
+Successful, partial or uncertain writes are non\-retryable\. Preserve results immediately and investigate read\-only\. Correct task\-owned caller/report failures from retained evidence, without another product write\. Do not build a second candidate to hide an observed product defect; report the smallest necessary source repair separately\.
 
-- The exact ready\-to\-install VSIX path and expected SHA\-256\.
-- Prerequisites grounded in the retained package/environment records\. Distinguish tested versions from manifest minimum requirements; do not invent account or connector requirements\. A consumer must not need either ETL source repository or an etl\-framework\-adb checkout just to install this extension\.
-- Copyable PowerShell commands using the actual local VS Code executable and quoted absolute paths to check the hash, install once into a NEW dedicated demo environment with its own user\-data and extensions directories, and open a fresh demo workspace\. Keep those commands explicitly NOT EXECUTED by this task\. Installation is once per demo environment, not per workspace; subsequent consumer folders use that installed extension\. Do not point the commands at B/D’s retained profiles or change Hesam’s default profile\.
-- How to confirm the installed extension ID/version and use normal reload if necessary\. Do not use F5/Extension Development Host as the installation method\.
-- A short suggested demo centered on the qualified workflow root/profile/item disclosure and cancellation behavior\. State that this task has not launched or rehearsed that demo\. Prior B/D write budgets cannot be replayed; any future live demonstration writes require a fresh disposable target, a separately bounded write scope and the product’s normal approvals\. Do not instruct automatic approval or bypass any gate\.
-- Honest scope: \.149 contains B’s workflow approval/disclosure repair; it does NOT contain C’s `.github/etl-context/` migration or the later F\-Q1 fix\. F\-Q1 is the minor final\-output overlap between Replaced and Skipped; it does not imply a second physical write\. Job/env diagnostic F\-1 is separate\. The model\-driven Chat/@etl\-write route and full ETL end\-to\-end readiness were not established by the \.149 workflow qualification\.
-- The package is private and qualified only within the retained bounded evidence\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\. Preserve QA exception, R3/R4, historical CASE2, trust/toolchain/no\-lockfile/adjacent\-suite/source/preservation limitations by reference, without dumping engineering history into the demo steps\. Quarantine ends 2026\-09\-13 inclusive UTC; this handoff does not extend it or authorize reliance on that exception from September 14\.
+## Limits, review and closeout
 
-## Finish
+Reuse the accepted source\-level stale\-plan, collision, malformed\-interruption and ADOPT tests where identities match; this installed smoke does not replay every source case\. Unknown consumer references remain outside the explicit preservation guarantee; known reference\-bearing files must use their actual on\-disk content\.
 
-Return `EXACT_PRIVATE_0149_DEMO_VSIX_DELIVERED_WITH_LIMITATIONS` only after the exact package has been copied and its identity verified\. Otherwise report the precise blocked or already\-running disposition\. Close this task’s claim with result pointer and package hash\.
+Windows case\-folding of normalizeManagedRelativePath remains without a direct test\. A private function need not be exported merely for a test\. If an existing public command input can meaningfully exercise that case within one planned fixture, include it without another write phase; otherwise retain the specific gap and make no new case\-folding claim\. This reported nonblocking coverage gap is not a reason to restart source work or invent a harness\.
 
-The final response must lead with the VSIX’s full absolute Windows path and demo folder, then give the exact version/hash and the README path\. State that no rebuild, install, Host launch or product write occurred and that the parallel C review was untouched\. Do not claim a demo rehearsal or qualification beyond the retained evidence\.
+At most ONE read\-only subagent may check the concrete fixture expectations while the coordinator prepares staging, then review retained final outcomes in its own directory\. It must not edit source/tests, build, install, operate a Host or mutate consumers\. The coordinator is the only runtime owner and final\-report writer\.
+
+Return report\.md/result\.json with exact source/package/installed identities, actual per\-phase plans and outcomes, written/deleted/retained sets, cancellations, measurement limits, preservation evidence, reviewer verdict and all FINAL reusable command/parameter/fixture locations\. Mark consumed write commands non\-retryable\. Use `INSTALLED_CONTEXT_MIGRATION_AND_OUTCOME_VERIFIED_WITH_LIMITATIONS` only if required installed checks pass; separately state executor verification and the actual focused review scope\. Otherwise report the precise failure, block or uncertainty\.
+
+Close the task with result pins, write counters, exact candidate/environment paths and explicit runtime/source\-freeze release\. Preparing a demo handoff of this NEW candidate is a possible successor, not authority to replace the parallel \.149 delivery or its files\.
+
+Preserve Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, document 10 limits, job/env F\-1, historical CASE2 dispute, trust/model/@etl\-write/historical\-incident/toolchain/no\-lockfile/adjacent\-suite/source/preservation limits\. Three known adjacent customization failures remain open\. Quarantine ends 2026\-09\-13 inclusive UTC with no automatic extension from September 14\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\.
