@@ -1,73 +1,99 @@
-Resume the existing .151 candidate: enable the dependency and finish live phases
+Finish the .151 continuation: correct observation, wire the guard, run remaining phases
 
 TASK_ID: ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01
-ACTION_ID: DEPENDENCY-ENABLE-AND-RESUME01
+ACTION_ID: OBSERVER-AND-LIVE-CONTINUATION01
 STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
-TYPE: Same-task runtime continuation, no new candidate
+TYPE: Same-task helper correction and remaining installed qualification
 
-Submit to the current session. Use English for all replies, subagent communication and deliverables. No screenshots, recording, image inspection, OCR or vision. Use existing text/DOM/accessibility, structured records, logs and filesystem checks.
+Continue in the current session. English only for every reply, subagent message and deliverable. No screenshots, video, image inspection, OCR or vision. Use existing text/DOM/accessibility, structured results, logs and filesystem checks.
 
-Continue from the actual result
+Current state and authority
 
-The latest owner-supplied report states CANDIDATE_0_3_151_BUILT_VERIFIED_INSTALLED_REMAINING_PHASES_BLOCKED_ON_DEPENDENCY_ENABLE. The action closed with source/runtime release. Candidate .151 was built, package-verified and installed in the isolated env151 profile, but github.copilot-chat is disabled, preventing the candidate from loading. An Extensions-view row selector returned no rows; no enable action occurred. A failed selector is not proof that the extension is absent.
+The latest action ended DEPENDENCY_ENABLE_ATTEMPTED_UNVERIFIED_REMAINING_PHASES_STILL_UNEXECUTED, with runtime/source release. It invoked the exact Enable All Extensions action in env151, but did not verify the effect. Its observer read obsolete SQLite page contents and then overwrote its own pre-action observation. Preserve that fact; do not treat the currently retained corrupted re-read as valid pre-action evidence.
 
-No approvals, cancellations, writes or deletions were performed in that action. Remaining: one Upgrade approval, one Overwrite approval and one planned F-Q1 cancellation. Initialize was successfully completed on .150 and is spent. Authenticate this ledger and preserve any newer outcome.
+The author says an earlier complete read showed only github.copilot-chat disabled and all fallback criteria satisfied. This remains an author-reported historical decision unless an independent retained contemporaneous record authenticates it. A clean current read cannot recreate or prove that historical state. Do not restore timestamps, synthesize the lost preimage or claim the original decision was independently verified. Do not label the original action proven unauthorized solely from the corrupted later record either.
 
-Reuse the exact existing task/claim/root and final locators. Check whether this continuation already has an owner or result before doing anything. Resume its actual state; do not create another campaign or infer inactivity from a missing file. Read the latest .151 result, the source C-LIVE-1 repair/reviewer result, and the prepared phase-2b/3a/3b plans. Do not rescan all C:\docs or reconstruct session history.
+.151 is already built, package-verified and installed; no candidate change is needed. Current source repair and package identities must be read from their actual retained records. Remaining budgets are reported as one Upgrade approval, one Overwrite approval and one F-Q1 cancellation; Initialize is spent on .150. All p1/p2/p3 fixtures are intact at their recorded identities. Check for newer actions/results before relying on these facts.
 
-Authority and protected state
+Owner submission authorizes finishing the existing bounded work: repair the task-owned observer, selector, guard-configuration and reporting errors; verify current dependency enablement; normally enable only the exact dependency if a current verified disabled state still requires it; launch/reload only the task-owned host as needed; then execute the remaining already-authorized phases. Do not stop at another preparation-only report once these bounded defects are fixable.
 
-Owner submission authorizes completion of the already-issued remaining phases, necessary task-owned selector/report fixes, normal isolated-host launch/reload and the narrowly scoped dependency enablement below. Do not ask again for these bounded actions. Preserve every normal product approval against a fresh preview.
+Do not rebuild, repackage, reinstall, bump a version, install dependencies, change product source/tests or Git, launch jobs, publish, or write to a real consumer. No SQLite enablement edits, authentication/trust edits, trust-bypass settings, private API enablement or another Enable All attempt. Preserve .147/.149/.150, the default profile, both worktrees, retained consumers and evidence. Demo stays deferred.
 
-Do not build, repackage, reinstall, create another candidate, install/update dependencies, change source/tests, mutate Git, run jobs, publish, or write to a real consumer. Preserve .147/.149/.150, the default profile, both worktrees, all prior evidence and retained fixtures. Do not reset or reseed p1/p2/p3. Demo remains deferred.
+Read the exact latest continuation, original qualification plan, C-LIVE-1 source/reviewer result, existing phase specs and final locators. Reuse the task/claim/root with an identifiable continuation. Check current ownership/disposition; do not duplicate a running or completed action or steal ownership. No broad C:\docs scan, session-store reconstruction or standalone reconciliation campaign.
 
-Authenticate the .151 VSIX/installed bundle hashes and exact profile/extensions paths from retained records. Do not replace them with counts or CLI version alone. Confirm the actual GUI executable/profile and task ownership before interaction. Reuse normal-trust launch, custom dialog rendering and the exact recorded telemetry/update/startup settings. Never use a trust-disable flag/setting or edit trust/authentication state.
+1. Repair the observer once, without changing the observed database
 
-Fix the selector and enable the exact dependency
+Replace the existing observer’s raw SQLite byte/page scanning with a real SQLite query using an already available SQLite-capable runtime or the existing supported state-reading interface. Do not install tooling or write another general database/reporting framework.
 
-The safety requirement is verified identity and scope; a particular Extensions-list DOM shape is not a requirement. Inspect the actual Extensions view, extension details, accessible labels and normal context actions in this VS Code build. Repair the existing probe to match the actual surface instead of requiring one guessed row containing an inline Enable button.
+Resolve the exact env151 profile state path from retained launch records and the running GUI arguments. Read only the schema/key needed to establish extension enablement; do not dump unrelated profile, credential or authentication contents. The effective state includes the relevant profile/scope and policy restrictions, not a guessed default.
 
-Preferred path: open the details or context action for the exact extension identifier github.copilot-chat, establish that it is the disabled manifest-declared dependency in env151, and invoke its normal Enable action. Match the extension identifier as well as the action; a display name or the closest search result is insufficient. Record pending action identity before clicking. Do not inject arbitrary enablement into internal storage or invoke private implementation APIs.
+If querying SQLite, use a read-only connection with normal transactional/WAL-aware semantics. Do not use immutable mode for a live mutable database, copy only the main database while ignoring its WAL, inspect superseded pages, modify tables, checkpoint or truncate the database. An absent/null field is not automatically proof that everything is enabled. Corroborate the parsed current state with normal GUI/host evidence.
 
-A narrowly bounded fallback is authorized by this submission, replacing only the predecessor’s unconditional prohibition on Enable All Extensions:
+Keep each observation in a new uniquely named file with exclusive-create semantics. Include observation time, exact isolated profile identity, data source/query and parsed result. Once written and flushed, a pre-action record must never be reused as an output path for an after-action read. Preserve the old corrupted record and add a correction note rather than overwriting it again.
 
-• Use it only if the targeted normal action remains unavailable AND an authoritative, complete profile-scoped enablement observation establishes that the entire effective disabled-extension set is exactly {github.copilot-chat}.
-• A filtered search, empty row list or count alone cannot establish that set. Confirm profile identity, policy restrictions and scope. Do not use this fallback if another disabled extension exists, the set is unknown, or an administrative restriction applies.
-• Invoke the exact normal Extensions: Enable All Extensions action only in that isolated task profile. Immediately verify the resulting effective disabled set and that no other extension/profile setting was changed by the action. The normal loading of this candidate after its dependency becomes enabled is expected.
-• Record why the fallback was eligible and the exact before/after enablement state. This is not general authorization to enable other extensions, bypass policy or alter another profile.
+Check the repaired helper offline with a small task-owned input demonstrating valid/absent/invalid values and refusal to overwrite an existing observation. If an existing SQLite fixture helper is available, reuse it; do not build a broad test harness. Check only enough to resolve the observer defect.
 
-If neither route can be grounded, report the exact observed state, labels and blocking condition. Do not stop merely because the old row selector returned empty, choose a fuzzy match, repeat blind launches, or propose a reinstall.
+2. Establish current enablement and actual activation
 
-Reload the task-owned window normally if required. Confirm the dependency is enabled, candidate commands are discoverable, and .151 activates at the first already-planned Upgrade command. Do not run Initialize as an activation probe. Keep exact-label matching and bounded waits for actual surfaces; no first-row/closest-match fallback or unverified coordinate click.
+First observe current env151 state. The earlier Enable All may already have worked; do not repeat an action merely because its observer failed.
 
-Fix the close-report field error without product execution
+If the dependency is enabled, proceed directly to command discovery and the first planned Upgrade command. Confirm actual candidate activation from host evidence at that boundary; do not invoke Initialize as a probe.
 
-The report identifies a mismatched field name, matchesRegistered versus byteIdenticalToRegisteredInput, which printed undefined. Inspect the producer’s actual retained schema and hashes in the final result, then fix only the task-owned formatter/close helper to consume the correct field. Preserve the original erroneous line and issue an attributable correction; do not rewrite historical evidence or convert undefined to true by default.
+If the dependency is verifiably still disabled, use the normal targeted Enable action for the exact identifier github.copilot-chat in env151 only. Verify the extension identifier and profile before acting, capture an immutable before record, and query the after state separately. Respect administrative restrictions; never bypass policy.
 
-No additional live command or product write is permitted to repair this reporting fault. Keep this work inside this continuation, not a separate reconciliation stage.
+The retained selector fault was focus, not missing extensions. Explicitly focus the actual Extensions search control, verify its value after filling the exact-identifier query, and inspect the matching details/context action. Identify the extension by its exact ID, not solely the visible name or marketplace results. Bind interaction to the correct CDP target/process, user-data/extensions paths and workspace. A title alone is not sufficient, and a general Marketplace list is not an installed-extension inventory. Preserve exact-target checks; repair their implementation rather than deleting them.
 
-Complete phases 2b, 3a and 3b
+Use the retained normal-trust launcher, window.dialogStyle custom and established bounded waits. No first-row/closest-match fallback or unverified coordinate click. If a normal reload is needed, close/reload only the task-owned host and verify identity again.
 
-Reuse the FINAL working phase runner and plan locators from the .151 result (the report names u6-run-phase.js; resolve its exact path and arguments). Keep the retained driver, verifier and fixture implementations. Do not create a new harness, catalog extractor or reporting framework.
+3. Wire and verify the existing pre-click guard
 
-Register the corrected phase-2 expectations before invocation. On the existing phase-2 fixture, external-module.md must be retained byte-for-byte with its owner content. The retained plan identifies etl-2x-context.md and companion-tool-policy.md as additional retained legacy files and etl-module-reference.md as the only eligible legacy deletion. Resolve exact paths from the fixture, not these basenames. Verify these expectations against controlled inputs, independently of the planner under test.
+The latest report says flow-workflow.js now has a pre-click assertion guard, but its phase-2b specification was not wired because an inline shell edit was mangled. Read the actual helper diff and correct the task-owned integration before product execution.
 
-Phase 2b: obtain a fresh .151 Upgrade preview, check the exact root/profile, write/delete/retention sets and .gitignore effects, then exercise the one remaining Upgrade approval. The preview must disclose the specific retained external-module.md and its reason. Where its new destination remains absent, require the accepted Run Repair disclosure; do not perform an extra Repair operation or claim that retained customization was transferred. Verify the one eligible migration and preservation of user content, known references, unrelated files and old directories. No retained legacy file may be deleted.
+Write the assertion configuration through an ordinary structured file operation or patch, not interpolated inline shell text. Parse it immediately and verify the driver loads the intended spec via its real plan/parameter interface. Do not change product source or invent a second planner.
 
-Phase 3a: using the unchanged phase-3 fixture, reach the genuine scoped discard confirmation and execute the remaining planned Cancel. Verify zero changes.
+Using retained text/controlled offline inputs, verify that the guard:
 
-Phase 3b: obtain a fresh preview and exercise the one remaining Overwrite sequence, including all normal scoped confirmations. Verify actual created/replaced sets and final output: no successfully written asset is also shown as Skipped, and genuinely unwritten items remain disclosed. Do not use the compatibility overwritten union as a physical replacement count.
+• accepts the expected fully disclosed phase plan;
+• refuses a plan scheduling external-module.md for deletion;
+• refuses missing exact-file retention/Repair disclosure where required;
+• refuses missing/unreadable specs, unknown approval surfaces and wrong roots;
+• throws before any click on those negative cases.
 
-Before every write-capable decision, flush standalone pending surface/plan evidence and the before inventory, acknowledge capture, then click the exact verified control. Unexpected targets or undisclosed loss forbid approval; safely dismiss as needed and record the actual interaction and resulting ledger. Never consume an approval merely to finish a task.
+Expected paths/dispositions must be literals derived from the registered fixture, never produced by the planner being checked. Match paths/dispositions accurately; do not mistake the word deletion inside a retained-file explanation for an actual deletion operation. Do not tune the guard to accept the earlier unsafe preview.
 
-Checkpoint actual outcomes and budgets after each phase. Successful, partial or uncertain writes are non-retryable. A helper/report failure must be repaired from retained evidence, not by repeating the product write. Do not rerun .150 Initialize, B’s .149 campaign, D’s job/env writes or any CREATE campaign. Do not repeat source suites/package gates whose relevant identities remain valid.
+Once these small checks pass, complete the remaining live phases in this same continuation. Do not hand back another instruction to run them later merely because the helper corrections were completed first.
 
-Review and close
+4. Finish only 2b, 3a and 3b
 
-One runtime owner only. At most one read-only subagent may examine the retained expectations while the coordinator fixes the selector, then review the final evidence in its own directory. It must not control the host, enable extensions, build/install, edit shared helpers or mutate consumers. Address concrete findings within the same task and distinguish its bounded verdict from executor verification.
+Authenticate retained fixture identities and ledger once before execution. Do not reset/reseed p1/p2/p3. Use the final existing phase runner/verifiers and exact locators, with the corrected guard attached.
 
-Return a concise report/result with exact .151 identities, dependency recovery method and scope, actual per-phase outcomes, external-module.md preservation evidence, F-Q1 outcome sets, corrected reporting field, remaining budgets and FINAL reusable command/parameter locations. Close with result pins and explicit runtime/source-ownership release.
+2b — ONE fresh .151 Upgrade approval:
 
-Use INSTALLED_C_LIVE_1_UPGRADE_AND_FQ1_VERIFIED_WITH_LIMITATIONS only after those actual installed phases/checks pass. Otherwise report the precise partial or blocked state. Keep successful Initialize attributed to .150; do not claim all phases ran on .151 or that a focused review is independent campaign acceptance.
+• Retain external-module.md with exact owner text and disclose that exact path/reason.
+• Preserve the known-reference retentions etl-2x-context.md and companion-tool-policy.md.
+• Only etl-module-reference.md is the expected eligible legacy deletion; resolve full paths from the retained contract.
+• Verify root/profile, created/updated/deleted/retained sets and .gitignore effects. Where retention leaves a new destination absent, require the accepted Run Repair disclosure; do not run Repair or claim customization was transferred.
+• Flush the actual still-open approval surface, expected decision and before inventories; acknowledge capture; then click the genuine approval once.
+• Verify actual eligible migration, preservation of all retained legacy bytes and reference-bearing content, unmanaged ignore content and old directories.
 
-Retain Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, document 10 limits, diagnostic F-1, historical CASE2 authority dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/adjacent-suite/source/preservation limits and the Windows case-folding gap. Three known adjacent failures remain open. Quarantine ends 2026-09-13 inclusive UTC, with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. Demo remains deferred.
+3a — the ONE remaining planned cancellation on the existing phase-3 fixture, at its genuine scoped discard confirmation. Verify zero changes.
+
+3b — ONE fresh .151 Overwrite sequence on that fixture, through every normal confirmation. Verify real created/replaced sets and F-Q1 channel output: successfully written assets must not also be listed as Skipped, while genuinely unwritten items remain disclosed. Do not interpret the legacy overwritten union as a physical replacement count.
+
+For every write-capable decision, enforce exact target/plan checks and flush standalone pending evidence before clicking. Unexpected targets or undisclosed destructive effects forbid approval. Safely dismiss if necessary and record the actual budget impact; do not fabricate a successful cancellation or spend an approval to finish.
+
+Checkpoint each phase’s actual outcome and remaining budgets immediately. Never repeat a successful, partial or uncertain write because a verifier/report failed. Correct in-scope helper/report issues from retained evidence. No repeat Initialize, no B/D campaign, no job/env operation and no extra migration/Repair phase.
+
+5. Focused review and close
+
+One runtime owner. If parallel subagents are available, at most one read-only verifier may inspect the observer/guard corrections and evidence while the coordinator operates the host, then check final outcomes in its own directory. It must not control the host, read unrelated profile data, edit shared files or mutate fixtures. Fix and re-check concrete in-scope findings without starting a general review campaign.
+
+Report the actual current enablement and activation evidence separately from the damaged historical pre-action record. Keep that historical provenance limitation visible even if the live phases pass; do not manufacture restoration of the original fallback eligibility proof.
+
+Keep REPORT-FIELD-001 closed through the retained additive correction unless fresh evidence contradicts it; do not redo the corrected operation. Record only the new observer/guard delta and actual live outcomes.
+
+Return concise report/result with source/VSIX/installed identities, immutable observation locations, helper/spec paths and final reusable commands, per-phase outcomes, external-module.md preservation, F-Q1 sets, budget ledger, review verdict and remaining limitations. Close with result pins and explicit runtime/source release.
+
+Claim INSTALLED_C_LIVE_1_UPGRADE_AND_FQ1_VERIFIED_WITH_LIMITATIONS only if those installed phases/checks pass. Otherwise name the exact unresolved condition and last durable checkpoint. Initialize remains a .150 observation; repaired migration/F-Q1, if successful, belong to .151. No cross-candidate all-phases claim and no independent campaign acceptance from a focused review.
+
+Preserve bounded Base/Upgrade and B1/C1 acceptance, QA exception, R3/R4 uncertainty, document 10 limits, diagnostic F-1, historical CASE2 dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/adjacent-suite/source/preservation limits and Windows case-folding gap. Three adjacent failures remain open. Quarantine ends 2026-09-13 inclusive UTC with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. Demo remains deferred.
