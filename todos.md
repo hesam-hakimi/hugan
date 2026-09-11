@@ -1,82 +1,101 @@
-Resume the existing B repair after D completion
+# Qualify the repaired workflow commands in one installed private candidate
 
-TASK_ID: ETL-0911-WORKFLOW-UPGRADE-PLAN-BINDING-REPAIR01
-TYPE: Continuation of the existing source repair; no new task or review campaign
-STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
+TASK\_ID: ETL\-0911\-WORKFLOW\-UPGRADE\-PLAN\-BINDING\-INSTALL\-QUALIFY01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
+TYPE: Bounded package, isolated installation and installed workflow qualification
 
-D evidence and the narrow release condition
+## Objective and authority
 
-The owner has supplied D’s completed report. Authenticate its actual terminal result and claim directly:
+Qualify the completed B source repair at the existing consumer destinations\. The installed private \.147 still contains the old workflow Upgrade/Overwrite behavior\. This task closes that specific installed\-candidate gate\. C’s context migration is a later, separate change and must not be added here\.
 
-Task root:
-C:\docs\ETL-0911-INSTALLED-CONSUMER-JOBENV-MULTIROOT-WRITE-AND-ENV-REUSE-SMOKE01-20260911T094319Z-86692AD2-79A3-4A7C-8226-BEB3A6934D3F
+Owner submission authorizes one task\-owned staging copy of the authenticated repaired source, the minimum staging\-only package\-version metadata needed for a distinguishable private candidate, one local production build/package cycle through the existing toolchain, one isolated installation/activation, and the bounded workflow command sequence below in ONE fresh disposable consumer\. It authorizes fixture preparation, normal approval of those exact fixture\-only plans and task\-owned evidence\. No public release is authorized\.
 
-Result: result.json within that root; supporting report: report.md.
+It does not authorize new product source/test repairs, dependency installation or upgrades, Git mutation, real\-consumer writes, ETL job runs, publication, context migration, or writes to any retained accepted consumer\. Do not modify the recovery worktree, linked primary, their maintained `.github` trees, shared `out/`, tracked build state, or D’s installed environment\. Source defects discovered here become precise findings for a bounded repair; task\-owned caller/report errors may be corrected without repeating a successful or uncertain write\.
 
-Claim:
-C:\docs\ETL-0911-MULTIROOT-JOB-WRITE-ENV-REUSE-SMOKE01.claim.json
+ALL coordinator/subagent communication and deliverables must be English\. No screenshots, video, image inspection, OCR or vision, including hidden capture hooks\. Use existing text/DOM/accessibility tools, structured outcomes, logs and filesystem observations\.
 
-Owner-supplied observations, to authenticate rather than copy into proof:
+## Authenticate the completed predecessor once
 
-• MULTIROOT_JOB_WRITE_ENV_REUSE_VERIFIED_WITH_LIMITATIONS, marked EXECUTOR_VERIFICATION.
-• The final reply states the claim is closed. The photos do not show a separate explicit source-freeze release record.
-• Both eligible consumers remained open; the explicitly selected target was index 1, with the other eligible consumer at index 0.
-• Cancel caused zero changes. One fresh approved operation returned Created=0, Overwritten=1, Skipped=0, Blocked=0, for the job only.
-• The job changed from 1173 to 1172 bytes, with the single planned loggable: false -> true delta. The env remained identical in SHA-256, size, last-write time and creation time. No broader metadata preservation is established.
-• Standalone flushed pending capture and acknowledgement preceded the approval click and write. This supplies prospective pre-write evidence; it does not repair historical evidence gaps.
-• Offline parameter checks: 18/18. Outcome assertions: 76/76. A separate read-only verifier confirmed 10/10 claims, zero refuted. That focused supplement is expressly not independent campaign acceptance.
-• Installed .147, predecessor bundles and protected source/output identities were reported unchanged. Diagnostic F-1 remains open. Historical CASE2 authority interpretation remains disputed.
+B claim:
+`C:\docs\ETL-0911-WORKFLOW-UPGRADE-PLAN-BINDING-REPAIR01.claim.json`
 
-When the owner submits this continuation, submission explicitly releases the D-specific source freeze for the already authorized B source/test repair, conditional on authenticating D’s completed, closed ownership record and finding no newer active owner of the relevant source/runtime. This is a prospective, limited release; do not claim the photos already established one. No separate D rerun, new reconciliation stage or repeated owner permission is required when these conditions hold.
+B reported root:
+`C:\docs\ETL-0911-WORKFLOW-UPGRADE-PLAN-BINDING-REPAIR01-20260911T094707Z-4158F458-D929-49BF-AD33-D739E10860E7`
 
-Check only the exact claims, result pointers and current relevant ownership records. Process absence, file age and counts are not ownership proof. If D’s actual claim remains active or conflicts with a newer owner, preserve the blocker and name the exact record; do not take over, edit D’s records or kill processes. Do not scan all of C:\docs or query session storage.
+Read its actual terminal claim/result, report sections 7\-10, `checks/r7-diff-and-preservation.json`, the final reviewer result and their exact dependency pointers\. Reported latest status at 2026\-09\-11T10:58Z is `SOURCE_REPAIR_VERIFIED_WITH_LIMITATIONS`\. Final focused reviewer `diffreview-4158F458` returned `ACCEPTED_WITH_LIMITATIONS`: 10 confirmed, 1 partial, 0 refuted, no blocking or major finding\. The coordinator supplied additional catalog\-identity evidence for the informational partial item; do not rewrite the reviewer’s verdict as 11 independently confirmed claims\.
 
-D’s single overwrite authority is spent. Never invoke its run-session.js, replay its report section 12 command chain, rerun CREATE, repeat the overwrite, or invoke old setup/verifiers that mutate preserved evidence to unblock B. Authenticate retained records read-only. Fix reporting gaps from existing evidence only.
+B contains retained historical sections that still say no source edits, no finished diff, pending review or outstanding D freeze\. Its latest header, execution sections and terminal structured records supersede those older preparation statements\. Record this relationship briefly in this task’s intake\. Do not restart B, reopen D, mutate predecessor reports or create a separate reconciliation stage merely to fix their presentation\. If the actual terminal records conflict materially, name the exact conflict before building\.
 
-Resume retained preparation
+Reported regression evidence:
 
-Continue in the SAME B session, claim and task root. Reuse plan/edit-and-test-plan.md, retained preimages, the final authenticated B design, and the preparation review. Do not duplicate the task, restart catalog extraction or rebuild a harness.
+- workflowEmptyProjectBootstrap: 14 pass / 0 fail \-\> 21 pass / 0 fail\.
+- copilotWorkflowCustomization: 53 pass / 3 fail \-\> 62 pass / 3 fail\.
+- physicalWriteContainment: 64 pass / 0 fail \-\> 66 pass / 0 fail\.
+- packageAssets: 34 pass / 0 fail, unchanged; consumerRepoOverlayService: 6 pass / 0 fail, unchanged\.
+- 18 new permanent cases, covering the 16 planned groups plus Windows path acceptance and `.gitignore` drift cases\. Production typecheck with `--noEmit` exited 0\.
+- The three customization failures were preserved by title/error identity: missing deploy\-v3 prompt, missing `name` frontmatter on business\-context instructions, and missing legacy AGENT\.md files\. They remain open\. A separate seven\-failure packageAssets reading came from a missing `.vscodeignore` in the isolated lane; it was corrected as a lane\-input issue, not a product fix\.
 
-Retain the nine authorized edit targets from that plan: five existing product files, one new extracted plan module and three test files. Preserve dirty/untracked preimages; HEAD is not their byte baseline. registerVscodeStub.ts remains inspect-only unless a concrete dependency within the existing authority establishes otherwise. Recheck the relevant source/test/fixture/dependency/settings and output identities once before mutation. Resolve any material drift from actual evidence, not HEAD/version/counts alone.
+Reuse these outcomes only after matching relevant source, tests, fixtures, dependencies, settings and outputs\. HEAD/version/counts alone are insufficient\. Do not rerun every suite by default\. Verify packaging and any checks materially affected by the staging/version delta\. Preserve the existing bounded QA exception exactly; it is not a general waiver for arbitrary failures\.
 
-The original B source-repair scope remains in force: one approved operation plan through preview, disclosure and writing; correct CREATE/OVERWRITE accounting; profile and managed .gitignore disclosure; exact-loss confirmation and cancellation behavior; affected Initialize/Repair compatibility. No asset body, asset version, profile membership, context destination/migration or job/env diagnostic F-1 changes.
-
-Carry forward these preimplementation clarifications, whether or not their separate message was previously submitted:
-
-1. Bind canonical root, profile, operation, paths, dispositions, intended content and managed .gitignore effects to the approved plan. Include relevant whole-file preimage identities and approved resulting content. Drift must reject the mismatched operation before writes; do not silently replace or expand the approved plan.
-2. User-facing Upgrade/Overwrite commands must always pass the actual approved plan. If the legacy programmatic caller retains optional-plan compatibility, state that boundary explicitly; do not claim every entrypoint is plan-bound.
-3. Compile tests only into task-owned output and incremental-state paths using supported existing compiler/runner options. Preserve shared out/ and tracked .tsbuildinfo.test. Do not use the destructive production compile script, install dependencies or invent another harness. If the existing runner cannot support isolation, report the precise gate and deliver the bounded patch.
-4. Keep the corrected T-7 physical-write versus byte-difference distinction and T-10 overwrite-loss versus Upgrade-preservation expectation. Retain relevant T-13/T-14/T-15 coverage. Fifteen planned cases are not fifteen executed or passing tests. Use controlled fixture expectations for write sets, profile effects, cancellation and .gitignore; do not calculate expected results with the planner under test.
-5. Preserve containment checks before empty-entry early returns, compatible ensureIgnored results for existing callers, and affected Initialize/Repair behavior. Inspect relevant callers without expanding into unrelated repairs.
-6. Do not repeatedly revert shared dirty source to manufacture per-test red proofs. Use one focused pre-fix baseline when necessary, or existing isolated compilation of retained preimages. Compare adjacent failures by actual identity, not pass/fail counts, and preserve them as unresolved where out of scope.
-
-The preparation reviewer returned NEEDS_REFINEMENT. Resolve those concrete findings; do not treat that preparation review as acceptance of the finished patch.
-
-Ownership, parallel work and verification
-
-ALL coordinator and subagent replies, progress, questions, tests and deliverables must be English. No screenshots, video, image inspection, OCR or vision. Use text, structured outcomes, source, logs and filesystem checks only.
-
-The B coordinator is the only source/test editor and test-execution owner. At most ONE fresh read-only subagent may inspect independent test expectations while the coordinator implements, then review the completed diff and retained outcomes in its own token-named output directory. Reuse that reviewer if already available. It must not author code it accepts, run competing tests, operate the installed Host, invoke a write tool or mutate shared reports.
-
-C may continue its existing read-only migration-design correction in parallel. Do not wait for C to finish to repair B at current destinations. Do not authorize concurrent B/C edits to CopilotWorkflowCommands.ts or CopilotWorkflowUpgrader.ts. Later migration implementation needs its own bounded scope and one integration owner; it is not authorized here.
-
-Source worktree:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Source locator, read\-only:
+`C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
 
 Protected linked primary:
-C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
+`C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`
 
-Protected installed environment:
-C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01
+Protected installed evidence environment:
+`C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01`
 
-Only the existing bounded source/test edits, affected tests, isolated test-directed compilation and task-owned evidence are authorized. Use unique disposable fixtures through existing entrypoints. No writes to either repository’s .github, retained accepted consumers or D fixtures. No production bundle, VSIX, install, dependency change, Git mutation, real-consumer write, job run or publication.
+Resolve the final reusable packaging/install/workflow\-smoke helpers from the actual completed exact\-private\-\.147 and workflow bundles, using existing result locators and SOURCE\_INDEX when needed\. Consult the current engineering contract and relevant packaging/QA\-exception provenance\. Do not scan all of C:\\docs, reconstruct session history or reread entire historical bundles\. D’s job/env `run-session.js` is not a workflow\-command driver and must never be replayed\.
 
-Apply the repair, run affected permanent regressions and negative safety cases, address concrete in-scope review findings, and rerun only affected checks. Stop optional testing once the repair is sufficiently verified. Do not turn a report failure into repeated product work.
+## Ownership and candidate identity
 
-Close the same B task
+Check this exact new task’s running/completed/blocked/not\-started disposition through its claim and direct result pointers before setup\. Missing results do not prove not started\. Return retained results or resume reporting if already completed; never duplicate an installed write sequence\.
 
-Update the existing report.md and result.json with actual changes, exact source/preimage relationships, final reusable test commands and parameter/output locations, case-level outcomes, focused reviewer verdict, preservation evidence and remaining limitations. Distinguish source verification from installed qualification. Use SOURCE_REPAIR_VERIFIED_WITH_LIMITATIONS only if required affected checks pass; otherwise name the exact blocked or partially verified scope.
+Use the established exclusive ownership mechanism or atomically create one claim at:
+`C:\docs\ETL-0911-WORKFLOW-UPGRADE-PLAN-BINDING-INSTALL-QUALIFY01.claim.json`
 
-The installed .147 candidate still contains the old B behavior until a separately bounded package/install qualification. Prepare its smallest necessary follow-up brief without executing it. Do not start another broad write review: retain D’s supplement for the existing consolidated review.
+Use one unique task root outside both worktrees\. The coordinator is the sole build/install/runtime owner\. Do not steal claims or kill another session’s processes\. B source repair must be terminal, and no active C implementation may change its source while the staging snapshot is being authenticated\. Once copied and authenticated, operate only on the frozen staging bytes\.
 
-Preserve bounded Base/Upgrade and B1/C1 acceptance, the QA exception, R3/R4 successor uncertainty, diagnostic F-1, C/document 10 work, historical CASE2 dispute, trust-restricted/model-route/historical-incident/toolchain/no-lockfile/adjacent-suite/source-acceptance/preservation limits. Quarantine ends 2026-09-13 inclusive UTC, with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS.
+Stage the complete required build inputs, including B’s pre\-existing dirty/untracked content and nine\-file repair, using the existing packaging workflow\. Do not build from HEAD alone\. Record the source\-to\-staging identity mapping and the exact staging\-only metadata delta\. Choose a locally unused private candidate identity from actual package records; historical \.148 evidence already exists, so do not assume \.148 is unused or relabel an old binary\. Do not bump asset body versions, change profile membership or move context assets\.
+
+Use existing installed dependencies and the established build/package tools\. No dependency download, lockfile invention or new build system\. A destructive compile script may run only against expendable staging output that this task created, never against the recovery worktree’s protected output\. If the existing workflow cannot build without altering protected inputs, stop at that precise gate rather than rebuilding the toolchain\.
+
+Produce one VSIX; record its SHA\-256, package identity and source mapping\. Run the existing package\-content verifier and confirm the new plan/disclosure code is in the actual bundle, including root/profile detail and the conditional `Discard Local Edits and Overwrite` path\. Static strings alone are not installed behavior proof\.
+
+Install only in a task\-owned isolated extension/user\-data environment, using the established normal install method\. Do not update Hesam’s default profile or the retained D/\.147 environment\. Confirm the activated extension ID, candidate version and installed byte identity through text/structured evidence; use normal reload when needed, not Extension Development Host/F5 as a substitute\.
+
+## One fresh fixture and a bounded real command sequence
+
+Reuse the existing workflow fixture constructor/catalog mapping and final text\-driven workflow caller\. Make only minimal task\-owned parameter adjustments\. Do not create another harness, catalog extractor or reporting framework\.
+
+Create one unique disposable consumer with the existing entrypoints/fixture helpers\. Seed controlled, documented cases from B’s permanent tests: a stale managed asset, a customized managed asset, an asset with user\-authored suffix, a missing selected asset, and unmanaged `.gitignore` content\. Include a current uncustomized agent/skill with its normal generated preamble to check that generated frontmatter alone is not reported as user content\. Keep the customization needed for the later Overwrite case present after Upgrade; determine this from the existing fixture contract before the first command\.
+
+For the profile disclosure case, use an authenticated AG managed\-ignore baseline and select Base where the existing fixture supports it\. Record the actual 21\-to\-8 managed\-entry delta and preservation of unselected assets; removing 13 ignore entries is not deleting 13 assets\. Resolve exact asset paths/versions from the authenticated fixture, not from guesses in this prompt\. Do not put ETL source checkouts or framework dependencies in the consumer\.
+
+Before invoking any write\-capable command, retain the explicit expected paths, dispositions, content identities, preservation expectations and physical write budget for that phase\. Capture the actual decision text and a flushed standalone filesystem inventory before approval, using the established evidence seam\. A post\-run trace is not a replacement for pending evidence\. Approval applies only to the displayed fixture plan; unexpected targets or losses require cancellation\.
+
+Run only this sequence through the REAL INSTALLED workflow commands:
+
+1. Upgrade preview \-\> Cancel\. Verify zero fixture changes, displayed root/profile/itemized operations and `.gitignore` effects, and the bounded cancellation record\.
+2. Fresh Upgrade preview \-\> approve once\. Verify the approved plan’s exact changes, preserved user customization/suffix and unmanaged ignore content, and actual missing/existing item handling\. Capture structured results and after\-state immediately\.
+3. Overwrite preview \-\> proceed only as needed to reach the genuine extra discard confirmation, then Cancel there\. Verify zero changes from that attempt and that the extra dialog describes actual local\-content loss\.
+4. Fresh Overwrite preview \-\> approve its normal and conditional discard confirmations once\. Verify only the approved fixture changes, including the explicitly disclosed loss of the seeded disposable customization\. Confirm protected and unselected files remain unchanged\.
+
+Budget: at most ONE approved Upgrade and ONE approved workflow Overwrite, each on fresh plan evidence, plus the two specified cancellation attempts\. Normal creation of an approved missing workflow asset in this NEW fixture is within scope\. Prior CREATE campaigns, job/env tools and all D writes remain out of scope\. Do not reseed or restore the fixture between successful operations merely to repeat them\.
+
+Compare actual `created` and `replaced` sets separately\. B intentionally retains legacy `overwritten` as their union for compatibility; do not interpret that union as a count of physical replacements or confuse it with D’s job/env counters\. Require the UI and actual approved operations to agree\.
+
+If a write succeeds, is partial or is uncertain, preserve its results and investigate read\-only\. Do not click again, retry the operation, rerun CREATE or roll back timestamps\. A caller/report error is repaired using retained evidence, never by repeating the product write\. Do not bypass genuine confirmation dialogs or forge approved plans\. If a required dialog cannot be safely operated with existing text tools, stop with the exact blocker\.
+
+## Review, preservation and delivery
+
+At most ONE read\-only subagent may check concrete fixture expectations while the coordinator prepares the candidate, then inspect final retained outcomes in its own token\-named directory\. It must not build, install, operate a Host, invoke commands, mutate consumers or write shared reports\. Preserve one coordinator’s ownership; no concurrent source edits or runtime agents\.
+
+Report exact source \-\> VSIX \-\> installed identities, actual command route, displayed plan/confirmation records, Cancel and write results, before/after measurements, preservation checks and the final reusable commands with every helper/parameter/fixture locator\. Keep all successful write commands clearly marked as consumed and not retryable\. Do not claim metadata classes you did not measure\.
+
+Return concise report\.md and parseable result\.json and close the task claim with terminal disposition, result pins, write counters and explicit release of this task’s runtime/source freeze\. This closeout is part of the task, not another approval/reconciliation stage\.
+
+Use `INSTALLED_WORKFLOW_UPGRADE_PLAN_BINDING_VERIFIED_WITH_LIMITATIONS` only when the required installed checks pass\. Separately report executor verification and the focused review’s actual verdict/scope; do not manufacture independent campaign acceptance\. Otherwise name the precise partial, failed, blocked or uncertain scope\. A package/install result alone does not prove the workflow behaviors\.
+
+Keep the user\-facing command route’s plan binding distinct from the intentionally unchanged boolean\-only ConsumerRepoOverlayService programmatic route\. Preserve C/document 10 work, diagnostic F\-1, accepted Base/Upgrade and B1/C1 scopes, QA exception, R3/R4 uncertainty, historical CASE2 dispute, trust/model/@etl\-write/historical\-incident/toolchain/no\-lockfile/adjacent\-suite/source/preservation limits\. D remains complete and must not be repeated\. Quarantine ends 2026\-09\-13 inclusive UTC, with no automatic extension from September 14\. No `RELEASE_ACCEPTANCE` or `FULL_PRODUCT_OR_ASKTD_READINESS`\.
