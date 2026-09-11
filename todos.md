@@ -1,75 +1,65 @@
-# Resume the existing \.150 installed qualification at activation and live phases
+Diagnose the unavailable .150 commands, recover the isolated Host, and resume
 
-TASK\_ID: ETL\-0911\-CONTEXT\-MIGRATION\-AND\-OUTCOME\-INSTALL\-QUALIFY01
-ACTION\_ID: LIVE\-RESUME01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
-TYPE: Same\-task continuation; reuse the installed candidate and unconsumed authority
+TASK_ID: ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01
+ACTION_ID: COMMAND-SURFACE-RECOVERY01
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
+TYPE: Same-task bounded Host recovery and completion of unexecuted live phases
 
-The owner supplied `BLOCKED_AT_ACTIVATION_LIVE_PHASES_NOT_EXECUTED`\. The report records a built and installed private \.150 candidate, zero product writes, three unchanged prepared disposable fixtures and all three approved\-phase budgets unconsumed\. It attributes the stop to executor time/context budget and lazy activation, not an observed product defect\. Authenticate the actual record before acting; this message does not assume nothing newer has run\.
+The latest supplied result is BLOCKED_COMMAND_SURFACE_UNREACHABLE_IN_ISOLATED_HOST. Preserve it as newer evidence than the earlier lazy-activation hypothesis. The .150 VSIX and installation matched their pins, all three fixtures were unchanged, and no product approval or planned cancellation was consumed. A palette probe did execute an unintended built-in editor command. The cause of the unavailable extension commands was NOT isolated; do not claim a proven Host-only cause, product-code defect or successful installed qualification.
 
-Continue the SAME qualification task from activation\. Existing bounded authority persists; do not request it again\. Do not create another qualification, rebuild/repackage/reinstall, bump the version, reconstruct fixtures or restart the earlier source reviews\. The demo handoff is deferred by the owner and must not be resumed here\.
+Authority and strict boundaries
 
-ALL replies, progress, questions and artifacts must be English\. No screenshots, video, image inspection, OCR or vision, including hidden capture hooks\. Use the final existing text/DOM/accessibility driver, structured outcomes, logs and filesystem checks\. No source/test changes, dependency changes, Git mutation, real\-consumer writes, jobs or publication\.
+Continue the same qualification. Owner submission authorizes focused read-only diagnosis, correction of task-owned launch/selection helpers, and the following narrowly bounded environment actions when the diagnosis justifies them: use the correct already installed VS Code executable with the existing .150 task profile/directories; normally enable this exact installed extension if it is disabled in that isolated environment; and install only a manifest-declared VS Code extension dependency into the isolated .150 extensions directory if actual Host diagnostics establish it is missing and prevents loading. Resolve such an extension only through the normal trusted extension installation mechanism and verify its identity/compatibility. This last action is a narrow exception to the earlier no-dependency-install rule; it does NOT permit npm dependencies, toolchain changes, arbitrary extensions, VS Code downloads or product repairs.
 
-## Restore the exact retained run
+The original three planned live phases remain authorized only to the extent their actual budgets are unconsumed. After safe Host recovery, complete them using the retained LIVE-RESUME01 instructions and prepared expectations without asking for the same authority again.
 
-Read this task’s actual claim and follow its result/locator pointers:
-`C:\docs\ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01.claim.json`
+No rebuild, repackaging, candidate version change, .150 product reinstall, source/test edit, Git mutation, real-consumer write, ETL job or publication. Do not change Hesam’s default environment, accounts, .147/.149 environments, deferred demo delivery, maintained worktrees, shared out/ or predecessor evidence. Do not copy authentication/session data between profiles. If required recovery lies outside this explicit scope, report its exact cause and smallest required action, not another generic activation blocker.
 
-Read the final result/report, the ready\-for\-successor section, prepared three\-phase plans and their registered expectations, and exact helper interfaces\. The supplied report mentions a launch helper followed by `qb-dismiss-and-activation.js` and `qc-run-phase.js`; resolve their FULL paths, arguments and behavior from the bundle rather than transcribing an abbreviated command chain from the photo\.
+ALL replies and deliverables must be English. No screenshots, video, image inspection, OCR or vision. Use existing text/DOM/accessibility tooling, Host/scan logs, configuration and filesystem evidence.
 
-Retained evidence to authenticate:
+Reacquire exact task state
 
-- All ten reviewed source/test files matched the implementation/continuation final hashes\.
-- 943\-file staging snapshot with one package\-version line changed; candidate `0.3.150`\.
-- Package gate exit 0: 66 entries, 54 required entries and 43 manifest checks; 42 packaged authorities and contributions unchanged\.
-- Installed `td-etl.databricks-etl-copilot` \.150, 65 files, retained source \-\> VSIX \-\> installed mapping\.
-- VSIX reported 1,270,991 bytes; obtain and verify its FULL hash from the original record, never from a screenshot prefix\.
-- Three synthetic fixtures and expectations were prepared before invocation, reportedly registered at 13:53:48Z, and remained byte\-unchanged at closeout\.
-- Original operation counts were zero; budgets unconsumed; the claim closed and runtime/source ownership was released\.
+Resolve the latest result and continuations through:
+C:\docs\ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01.claim.json
 
-Check the actual latest disposition and per\-phase outcomes FIRST\. If another continuation is active, do not duplicate or take over\. If a phase already completed or may have written, resume its evidence/reporting only and never rerun it\. Reacquire this task’s bounded runtime ownership through its established continuation mechanism if available, preserving prior terminal records and pins as history\. Do not infer ownership from process absence or timestamps, steal claims or kill unrelated processes\.
+Check actual current ownership and any newer outcomes before acting. Do not duplicate an active continuation, steal claims or infer inactivity from missing processes. Reuse the established continuation mechanism, preserving closed predecessor records and pins. Acquire only this task’s isolated runtime ownership if free. Resolve exact executable/profile/extension directory/endpoint/fixture/helper paths from the completed bundle; do not transcribe truncated commands from the photo.
 
-Compare the relevant \.150 installed bytes, helpers, settings, fixture/plan identities and output state with the pinned records\. Work from the frozen installed candidate and existing expectations; today’s worktree is not a replacement baseline\. Do not repeat the entire source/package investigation\. If anything material differs, identify the affected gate before any write rather than rebuilding or reseeding it\.
+Reuse the pinned .150 package/install identity and fixture records. Confirm only the identities relevant to the next action. Never reconstruct/reseed a fixture or repeat a possibly completed write. Missing command visibility does not consume a write budget; the unrelated built-in command must remain disclosed separately.
 
-Preserve both worktrees, their `.github` files, shared out/ and tracked build state, \.147/\.149 environments, \.149 demo\-delivery files, Hesam’s default environment, predecessor evidence and all retained accepted consumers\.
+Correct the two execution problems before probing again
 
-## Resolve lazy activation through the normal command route
+1. Exact command selection. A fuzzy palette search for ETL is not permission to execute the best match. Read the current installed manifest’s exact command IDs/titles and the actually rendered palette row. Require an allowlisted exact identity before selecting a row. No match means no click. Alternatively use an existing command-ID execution seam if it invokes the real installed contributed command without injecting product code or manufacturing approval. Never issue Enter against an unverified search result. Fix only the existing task-owned selector; a new automation framework is not needed.
+2. Normal Workspace Trust. The previous --disable-workspace-trust launch was outside the supplied instructions. Retain that launch delta as evidence, but do not reuse it, add trust-disabling flags, reset trust storage, pretrust workspaces programmatically or disable confirmation safeguards. Use the original normal-trust launcher for new sessions. If the still-running Host was launched with the bypass, normally close only that task-owned Host after verifying its identity and relaunch without the flag. Do not kill other sessions. If a genuine trust/user interaction blocks progress, identify it honestly rather than bypassing it.
 
-An installed extension that activates on a contributed workflow command need not already be active before that first command\. Do not repeatedly probe for idle activation, force eager activation, patch activationEvents, change the bundle or start F5/Extension Development Host\.
+Find the actual loading reason before choosing a fix
 
-Reuse the retained \.150 Host/profile launch method and its task\-owned endpoint\. Inspect the existing activation helper once\. Issue the planned normal first workflow command to reach its preview/approval boundary and observe activation through the Host log/structured extension state\. The first planned action is the Initialize cancellation case: reaching its genuine approval dialog does not authorize clicking an approval button\.
+Batch independent read-only observations where possible; follow the evidence rather than repeating settled-host waits or cycling launch flags.
 
-Keep all actual product confirmations intact\. Capture the still\-pending dialog and required before inventory using the existing flushed evidence seam, then Cancel as planned\. If activation genuinely throws or no expected dialog can be reached, retain exact logs and report that concrete fault\. Do not characterize lazy inactivity before invocation as a product defect or compensate with reinstall/rebuild\.
+• Read the exact extension’s entry in the running Host’s Extensions view using DOM/accessibility text. Capture its actual enabled/disabled, compatibility, dependency or installation-scope reason and available diagnostics. Do not click Enable/Install until the reason and intended exact target have been identified.
+• Record the running GUI Host’s actual executable path, version/build/commit/architecture, process arguments, user-data path, profile, extensions directory and local/remote context. Compare them with the successful .149 launch record. A code --list-extensions result may come from a different executable or scope and does not prove that the GUI can load the extension.
+• Inspect relevant extension discovery/scan and Host logs for the exact ID td-etl.databricks-etl-copilot, not only activation lines. Determine whether the candidate was discovered, rejected, disabled, located in another scope, waiting for a dependency, or failed on activation. Read the installed manifest’s relevant engines, commands, activation and extensionDependencies fields, without altering them.
+• Resolve github.copilot-chat as the actual GUI Host sees it: built-in, separately installed, disabled, incompatible or absent. The fact that two custom extensions directories contain similar files does NOT exclude a dependency problem across different Host versions or dependency resolution contexts. Correct the prior exclusion if the actual evidence contradicts it; do not install it speculatively.
 
-If the helper currently assumes activation must precede the first command, make only the smallest task\-owned control\-flow correction needed to observe activation at the normal command boundary\. Preserve all approval checks and prepared input identities; record the exact helper delta\. Do not build another caller or reporting system\.
+Capture the smallest causal explanation supported by these observations. Apply only the matching bounded fix from the authority above, recording the precise before/after environment or helper delta. Use existing tooling. If a task-local declared dependency must be installed, pin its exact identity/version and retain the normal installation outcome. Do not silently absorb that environment change into the old .149 qualification assumptions.
 
-## Complete the retained three phases
+Then verify the expected command surface and actual candidate loading in that same GUI Host. Use the exact first planned command and its pending approval boundary to observe normal activation when appropriate. Never replace that evidence with CLI listing alone. If commands still cannot be reached, retain exact diagnostics and stop before product writes; do not repeat the same unsupported hypothesis or claim an unproven root cause.
 
-Use the already prepared fixtures and plans, not new ones\. This continuation does not renew any consumed authority\. The original total budget remains:
+Resume remaining live work immediately after recovery
 
-1. Fresh initialization fixture: one Cancel/no\-change attempt, then one fresh approved Initialize\.
-2. Legacy migration fixture: one Cancel/no\-change attempt, then one fresh approved migration\-capable Upgrade, including its intended partial/retained outcomes\.
-3. F\-Q1 fixture: one Cancel at the genuine discard confirmation, then one fresh approved Overwrite through its normal confirmations\.
+Reuse the FINAL retained launch, activation, qc-run-phase.js and pending-evidence interfaces with the minimal proven correction. Read their exact arguments from the bundle. Do not rerun old B/D sequences, package verification or a broad source review.
 
-Before each approval, enforce the original phase’s exact expected root, paths, dispositions, content/identity changes, retention/deletion and physical\-write budget\. Persist and flush pending evidence and acknowledgement before the click\. Unexpected scope requires cancellation\. Use the actual result to compare created/replaced/skipped sets; never substitute intended writes for actual writes or treat the legacy overwritten union as a physical replacement count\.
+Authenticate the current phase checkpoints. Original maximum budget remains one approved Initialize, one approved migration-capable Upgrade and one approved Overwrite on the three prepared disposable fixtures, each with its specified cancellation case. All were reported unconsumed; use actual latest records rather than assuming that remains true.
 
-Verify each phase immediately from retained structured outcomes and before/after inventories\. Preserve fresh `.github/etl-context/` layout/link expectations, eligible migration/deletion, known\-reference and customized\-legacy retention, unmanaged ignore text, no directory deletion, and the F\-Q1 final\-output assertions from the original prepared plans\. Do not silently switch customized content or expand reference scanning beyond the approved known\-file set\.
+Preserve exact roots, paths, per-phase write/deletion budgets, expected content, partial migration/known-reference preservation and F-Q1 output expectations. Capture and flush standalone pending evidence BEFORE each write-capable approval. Select only the exact intended buttons. A changed or undisclosed plan must be cancelled.
 
-Do not require all three phases to fit in one model context window\. Treat each completed phase as a durable checkpoint within THIS task: persist its result, write\-budget consumption, identities and next permitted action before moving on\. Continue autonomously through the remaining phases while sufficient execution capacity is available\. If a context/time handoff is necessary, checkpoint and resume the unexecuted remainder without new owner approval\. Never start an approval click unless its immediate outcome can be captured durably; never retry a successful, partial or uncertain write after a handoff\.
+Record each phase’s outcome, consumed budget and before/after inventories durably before continuing. Use context handoffs within the same task if needed; no requirement exists to squeeze all phases into one response. A successful, partial or uncertain operation is never retryable. Repair caller/report errors from retained evidence, without reseeding, timestamp restoration or another product invocation.
 
-A reporting failure permits a bounded reporting fix, not another product operation\. An uncertain outcome requires read\-only evidence recovery\. Do not reset fixtures, restore timestamps or replay a completed phase to improve the report\.
+Final evidence and review
 
-## Reuse the completed checks and finish
+At most one read-only reviewer may inspect the final concrete recovery explanation and retained phase outcomes in its own directory. Reuse an existing assigned reviewer if available. It must not operate the Host, mutate consumers, install extensions or write the coordinator’s report.
 
-Do not reopen the corrected version\-selection or minified\-symbol probes\. \.148 was previously consumed; \.150’s recorded choice is established subject to exact artifact identity\. Minified esbuild identifiers are not reliable literal package markers\. Reuse the retained structural/package checks; new live outcomes now supply the remaining behavior evidence\.
+Return concise report.md/result.json with the actual command-loading cause or exact unresolved diagnostic, proven recovery delta, command-selection correction, normal-trust launch evidence, exact product/dependency/Host identities, phase outcomes and consumed budgets. Retain the prior unintended built-in command and trust-bypass attempt as historical deviations; do not erase or relabel them as successful checks. Final preservation must name what was measured.
 
-Keep Windows path case\-folding’s existing coverage gap explicit; do not invent a successful test or export private functions here\. Preserve the three known adjacent customization failures and the source\-level review’s exact acceptance limits\.
+Record the final reusable command and all parameter/helper/fixture locations. Close continuation ownership with result pins and explicit runtime/source-freeze release. Use INSTALLED_CONTEXT_MIGRATION_AND_OUTCOME_VERIFIED_WITH_LIMITATIONS only after all required live checks pass; otherwise state the precise partial/failed/blocked/uncertain scope. Package installation is not live product acceptance.
 
-At most one read\-only reviewer may inspect retained outcomes in its own task\-owned directory after sufficient evidence exists\. Reuse an already assigned reviewer if present\. It must not operate the Host, execute commands, mutate consumers or write shared reports\. The coordinator alone owns runtime actions and consolidated output\.
-
-Return a concise final report/result with exact \.150 VSIX and installed paths/hashes, phase\-level checks, actual write/deletion counters, cancellation and preservation evidence, reviewer verdict, remaining limitations and final reusable helper commands/parameter locations\. Mark all consumed writes as non\-retryable\. Use `INSTALLED_CONTEXT_MIGRATION_AND_OUTCOME_VERIFIED_WITH_LIMITATIONS` only if the required live checks pass; otherwise record the precise partial, blocked, failed or uncertain disposition\. An installed package alone is not live qualification\.
-
-Close the continuation with result pins and explicit runtime/source\-freeze release\. Keep prior BLOCKED\_AT\_ACTIVATION evidence as history, not an operative instruction to restart\. No demo delivery or default\-profile installation is included\.
-
-Preserve accepted Base/Upgrade and B1/C1 scopes, QA exception, R3/R4 uncertainty, document 10 limits, job/env F\-1, historical CASE2 dispute, trust/model/@etl\-write/historical\-incident/toolchain/no\-lockfile/adjacent\-suite/source/preservation limits\. Quarantine ends 2026\-09\-13 inclusive UTC, without automatic extension from September 14\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\.
+Keep the Windows case-folding coverage gap, three adjacent failures, accepted Base/Upgrade and B1/C1 scopes, QA exception, R3/R4 uncertainty, document 10 limits, job/env F-1, historical CASE2 dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/source/preservation limits. Quarantine ends 2026-09-13 inclusive UTC with no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. The demo handoff remains deferred.
