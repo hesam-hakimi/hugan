@@ -1,109 +1,127 @@
-TASK_ID: ETL-0910-INSTALLED-CONSUMER-JOBENV-WRITE-SMOKE01
-TYPE: Installed-product preview, approval and consumer-write qualification
+TASK_ID: ETL-0910-INSTALLED-CONSUMER-JOBENV-MULTIROOT-AND-OVERWRITE-SMOKE01
+TYPE: Focused installed-product qualification using the existing harness
 
 ENVIRONMENT
-Windows; reuse the installed td-etl.databricks-etl-copilot 0.3.147 in:
+Windows; reuse the dedicated ETL test environment:
 C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01
-Reuse its dedicated user-data/extensions directories and existing
-automation transport. Resolve exact current identities from local records.
+Installed product: td-etl.databricks-etl-copilot 0.3.147.
+Resolve actual paths and identities from the completed predecessor:
+ETL-0910-INSTALLED-CONSUMER-JOBENV-WRITE-SMOKE01.
 
 LANGUAGE / NO VISION
-Use English for all messages, progress updates and deliverables.
+Use English for ALL communication and deliverables.
 No screenshots, video, image inspection, OCR or vision calls.
-Disable screenshot hooks in reused automation.
-Use text/DOM events, product tool results, logs and filesystem evidence.
+Use existing text/DOM automation, tool results, logs and filesystem checks.
 
-ACCEPTED BASELINE
-ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01 accepted the
-consumer skill upgrade with limitations and zero blocking findings.
-Preserve that acceptance. Do not repeat Initialize, Upgrade, catalog
-reconstruction, installation review or historical reconciliation.
+MANDATORY REUSE
+The predecessor completed the installed single-root CREATE scenario:
+two correct files, no pre-approval writes, 12 verification groups passed.
 
-Check whether this task is already running or completed before acting.
-Resume valid existing work; do not create a concurrent or duplicate run.
+Reuse its FINAL working repeatable caller, flow driver, fixture,
+verification helpers and retained temporary job/env consumer.
+Do not select the obsolete one-shot caller.
+The caller must handle BOTH observed gates:
+- VS Code tool confirmation from prepareInvocation.
+- The product's trusted write-approval dialog.
 
-AUTHORIZED WORK
-Prepare one fresh disposable consumer workspace and exercise the installed
-product's actual preview → approval → write route for exactly two new
-fixture outputs: one job configuration and one environment configuration.
+Read the existing interfaces once and parameterize them for these cases.
+Allow only minimal changes needed for the new scenarios.
+Do not build another harness, catalog extractor or evidence framework.
+Do not repeat the accepted CREATE scenario or rebuild test outputs.
+Check for an existing/in-progress instance of this task before execution.
 
-This task authorizes that bounded temporary write after the actual
-preview identifies the selected root, both CREATE paths and their content.
-Use the normal product approval mechanism bound to that exact preview.
-Do not bypass approval, forge approval records, or replace the product
-writer with direct filesystem writes.
+AUTHORITY AND PRESERVATION
+This task authorizes disposable fixture setup and one approved content
+update to the existing temporary consumer's job configuration.
+Preserve its environment configuration and unrelated files.
+Preserve all prior evidence and the separate accepted workflow consumer.
 
-EXECUTION
-1. Check the installed candidate against the accepted identity once.
-   Reuse existing helpers; make only the minimum task-specific adaptation.
-   Use normal Workspace Trust behavior; do not pass
-   --disable-workspace-trust or alter global trust settings.
-   If trust interaction is required, use the normal UI for this temporary
-   folder only and record the observed behavior.
+Use normal product approval bound to the exact preview.
+No forged approval records, mocked services or direct filesystem writes
+to substitute for the product operation.
 
-2. Resolve and reuse the converged synthetic fixture retained under
-   ETL-0909-PRODUCT-WRITE-REPRO01:
-   measurements/d6-converged-full-route-preview.json
-   derivedFixtureDisclosure.{jobConfig,envConfig}
-   Verify it against its actual retained records, not screenshot hashes.
-   Do not invent another fixture or substitute customer data.
+SCENARIOS
+Establish expected behavior from the existing contract and focused prior
+tests before execution. Inspect only relevant source if a concrete
+contract detail remains unresolved.
 
-3. Create the temporary consumer through OS temporary-directory APIs,
-   outside source, reference and installed-extension trees.
-   Use a distinct prefix from helper/scratch files.
-   Prepare only required fixture prerequisites, including job_conf/
-   and env_conf/ layout markers, and record the baseline.
+1. Root selection and reference exclusion
+Reuse the temporary job/env consumer. Add a disposable reference stand-in
+using the established reference-classification fixture.
+Open the reference folder first and the consumer second.
 
-4. Invoke the supported installed ETL preview/write tools through the
-   normal Host workflow. Reuse the recorded valid call shape.
-   Do not import repository source or mock the writer/approval services.
-   Pass the selected consumer workspaceRoot explicitly where supported.
+Preview with the explicit consumer workspaceRoot. Verify that every
+destination resolves inside that consumer. Reverse folder order and
+verify destination selection remains consistent.
 
-5. Before approval, retain the actual root, both relative and resolved
-   destinations, proposed content, and the product's manifest identity.
-   Require exactly two CREATE outputs contained in that consumer root.
-   Confirm preview has created neither output.
+Exercise explicit reference-root rejection through a non-mutating preview.
+Require no output files in the reference stand-in.
+Never use the actual source repository as a negative-test write target.
 
-6. Complete the normal approval and guarded write once, bound to the
-   unchanged preview. A changed root, destination, content or artifact set
-   requires a new preview and its corresponding approval.
+2. Genuine ambiguity
+Use two eligible disposable consumer roots with no explicit or otherwise
+unambiguous selected target. Omit workspaceRoot and verify the documented
+ambiguity blocker and zero output writes.
 
-7. Verify actual on-disk content against the approved preview:
-   exactly the two intended outputs, no unexpected product-created files,
-   no changes to existing fixture files, and no write outside the root.
-   Retain the actual product result, including structured blockers or
-   partial outcomes. A success message alone is insufficient.
+Do not assume that one reference folder plus one eligible consumer is
+ambiguous. If the resolver legitimately identifies a unique target,
+that is a different scenario.
 
-EFFICIENCY AND FAILURE HANDLING
-Reuse accepted permanent-test results within their recorded scope.
-Do not rebuild test outputs or rerun suites simply because this is a new
-task. Do not create another evidence framework or catalog extractor.
+3. Existing identical files
+Preview the unchanged retained fixture against the existing consumer.
+Record the actual disposition and compare it with the contract.
+Do not describe an identical-payload run as proof of content replacement.
+Exercise a no-op only as supported by the normal product protocol.
+Verify the promised preservation behavior.
 
-If the product route fails, preserve the smallest reproducible failure:
-exact input, preview, tool result, observed filesystem delta and the
-specific permanent regression-test target. Stop repeated attempts unless
-a concrete, authorized correction to the test invocation justifies one.
-Do not silently modify the fixture or weaken validation to obtain PASS.
+4. Actual content replacement and cancellation
+Prepare one minimal, schema-valid change to an existing non-routing job
+field, keeping both destination paths and the environment input unchanged.
+Retain the exact before/after content delta.
+
+Obtain the real preview. Require that only the intended job content
+changes and that the environment file is preserved.
+Cancel the product write-approval dialog once and verify zero changes.
+
+Obtain a fresh valid preview and approve that exact change once through
+the normal product controls.
+Verify the resulting job bytes match the approved content, the environment
+and unrelated files remain unchanged, and no output escapes the selected
+consumer root.
+
+EXECUTION DISCIPLINE
+Use the installed registered etl_write_to_workspace route through the
+existing caller. Preserve the distinction from model-driven Chat behavior.
+Use the same explicit root throughout each preview/approval/write sequence.
+Compare Windows path identity correctly while retaining authored casing.
+
+Keep normal launch settings; do not disable Workspace Trust.
+Carry forward the existing trust limitation without another trust
+investigation or session-storage inspection.
+
+If a check fails, preserve the exact input, product result and filesystem
+delta. Identify the smallest product or harness correction.
+Do not weaken expectations, reset evidence or repeat uncertain writes.
+
+A report-generation failure must never trigger another product write.
+Resume from retained outputs and fix only reporting when appropriate.
 
 BOUNDARIES
-No product source edits, build, packaging, installation, version bump,
-Git mutation, real consumer changes, publish, deploy or ETL runtime job.
-Leave the previously accepted workflow consumer unchanged.
-Close only task-owned Host processes and preserve the reusable environment.
+No product source edits, build, packaging, installation, version change,
+Git mutation, real consumer writes, deployment, publishing or ETL job run.
+No repeated historical audits or standalone reconciliation stage.
 
 DELIVERY
-Produce concise report.md and result.json, with only the supporting
-tool/log and before/after evidence needed for this scenario.
-Reference earlier accepted records instead of reproducing their reports.
+Produce concise report.md and result.json with minimal supporting evidence.
+Report each scenario as PASS, FAIL or NOT EXERCISED, with its actual scope.
+Separate product defects from caller/reporting failures.
 
-Report separately:
-- Installed preview/approval/write outcome.
-- Approved versus actual paths and content.
-- Preservation and containment outcome.
-- Normal trust behavior actually observed.
-- Any concrete defect and smallest corrective task.
-- Historical original-incident reproduction: only claim if actually tested.
-- Multi-root behavior and full release readiness: not established here.
+Record the final reusable invocation, parameter locations and helper paths
+in the existing report so the next task can run them without reconstruction.
 
-Keep the Upgrade disclosure/Overwrite release issues open.
-Finish this scenario without adding another reconciliation stage.
+Keep Upgrade disclosure/Overwrite UI issues open.
+Do not claim historical-incident reproduction, model-driven Chat
+qualification or full release readiness.
+
+Finish with the remaining concrete release blockers. Retain evidence for
+one consolidated independent review of the related write scenarios.
