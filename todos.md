@@ -1,69 +1,43 @@
-Clarify the completed .151 outcome in the existing task
+# Close only the concrete REPORT\-COUNT\-002 findings
 
-TASK_ID: ETL-0911-CONTEXT-MIGRATION-AND-OUTCOME-INSTALL-QUALIFY01
-ACTION_ID: OUTCOME-REPORT-CORRECTION01
-STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
-SCOPE: Retained-evidence correction within the completed task, no runtime execution
+TASK\_ID: ETL\-0911\-CONTEXT\-MIGRATION\-AND\-OUTCOME\-INSTALL\-QUALIFY01
+ACTION\_ID: REPORT\-COUNT\-002\-FINDINGS\-CLOSE01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
+SCOPE: Same\-task correction closure; retained evidence only
 
-Continue in the current session. All communication and deliverables must be English. No screenshots, recording, image inspection, OCR or vision. Read the actual retained text/structured evidence, not owner report images.
+Continue in the current session\. All replies and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\.
 
-The latest result reports INSTALLED_C_LIVE_1_UPGRADE_AND_FQ1_VERIFIED_WITH_LIMITATIONS on .151, with source/runtime release:
+The owner supplied your REPORT\_COUNT\_CORRECTED\_NO\_RUNTIME\_EXECUTION result and REPORT\-COUNT\-002 correction\. The count distinction is understood\. Do not start another reconciliation campaign or another live qualification\. No host launch, enablement, runtime command, consumer/fixture write, reset, reseed, source/test edit, build/package/install, Git mutation or publication is authorized\.
 
-• phase 2b: Upgrade passed, 3 writes and 1 legacy deletion;
-• phase 3a: scoped discard cancellation passed, zero changes;
-• phase 3b: Overwrite passed, Replaced: 8, Skipped: 0;
-• closing ledger: 5 writes and 1 deletion total;
-• external-module.md retained with its owner suffix byte-for-byte;
-• all remaining approvals/cancellations consumed, no retries permitted.
+Read only the exact existing correction/result, its review findings and the small set of primary records needed by those findings\. Check this action’s actual disposition first; consume an existing completed result rather than duplicating it\. Use the existing task/claim/root and final locators\. Do not scan historical bundles or request already\-granted permission for this bounded correction work\.
 
-The apparent count discrepancy may reflect different meanings such as changed-byte files versus executed write operations. Establish the actual meanings before declaring a defect. Do not silently change 5 to 11 based on arithmetic alone, or treat identical bytes as proof that no write occurred.
+Preserve these corrected facts and their limits:
 
-Authority and boundaries
+- 5 distinct byte\-changed consumer paths across the reported phases, plus 1 deletion\. This is not an established physical write\-operation count\.
+- Phase 2b: 3 byte\-changed paths and 1 deletion; product reports Upgraded 1, Replaced 0, Created 0, Skipped 1\. Keep product categories separate from migration effects and \.gitignore changes\.
+- Phase 3a: cancellation, zero changes\.
+- Phase 3b: product reports Replaced 8, Skipped 0, while 2 consumer paths changed bytes\. Seven of the eight replaced assets ended byte\-identical\. The changed asset is create\-etl\-solution\.prompt\.md; \.gitignore is the separate changed consumer path, outside that eight\-asset replaced set\.
+- A path can legitimately be in both a product\-replaced set and a byte\-changed set\. These measure different things\. No unsupported assertion that those sets are disjoint\.
+- Physical write\-operation count remains UNESTABLISHED\. Do not infer it from equal SHA\-256 values, timestamps alone or reported replacement count\.
 
-Owner submission authorizes reading the directly relevant retained records, correcting task-owned reporting code if necessary, and appending a concise attributable correction to this same task. Do not request repeated approval for this bounded evidence work.
+The last result says the focused reviewer returned CHANGES\_REQUIRED, caught two errors, and the author applied both fixes\. That does not itself record the reviewer’s final disposition\. First look for an already\-retained post\-correction re\-check\. If it exists, use its exact verdict and scope\. Otherwise ask the SAME read\-only reviewer to re\-check ONLY its two findings against the actual corrected text and primary evidence, then record the verdict\. Do not commission a second general review or repeat unrelated checks\. If the original instance is unavailable, disclose that limitation; a single replacement may review only those named corrections and must be identified as a replacement\. Never promote the author’s assertion to a reviewer verdict\.
 
-No host launch, reload, extension enablement, product/tool invocation, Initialize, Upgrade, Overwrite, Repair, fixture write/reset/reseed, source/test edit, build/package/install, dependency change, Git mutation, job run or publication. No fresh tracing run or repeated write to settle a reporting question. Do not reacquire a runtime lease simply to read evidence.
+Carry forward two narrowed claims accurately:
 
-Check the exact existing claim/result/action disposition first. If the correction already exists, consume it rather than duplicating it. Reuse the existing output root and locators; preserve historical records/pins and append corrected provenance. No general reconciliation campaign, full historical bundle reread or broad filesystem/session-store scan.
+1. external\-module\.md byte preservation during the actual approved \.151 Upgrade is supported\. The final ‘Legacy copies kept: 2’ section lists only the two reference\-bearing files, not external\-module\.md\. Do not claim that this final outcome section disclosed the customized legacy retention\. Keep preview disclosure and final\-outcome disclosure as separate claims; the omission does not prove the destructive defect recurred\.
+2. The genuinely\-unwritten live case was phase 2b’s skipped copilot\-instructions\.md, not phase 3b, which had Skipped 0\. Overwrite\-route negative coverage remains attributed to its authenticated source test\. Do not expand the live claim or run another case\.
 
-Resolve the count from primary records
+Record the missing customized\-legacy entry in the final outcome as a separate OPEN presentation/completeness finding, with the exact evidence pointer and the existing contract it affects if available\. Do not silently close it under C\-LIVE\-1 or F\-Q1, call it a demonstrated data\-loss defect, or implement a product fix in this action\. Prepare only the smallest proposed correction and acceptance assertion for later scoping if the existing final\-outcome contract requires it\. If that requirement is not established, say so rather than inventing one\.
 
-Read the original phase-2b/3a/3b structured command results, ordered pending/after evidence, complete path sets, channel output, available filesystem measurements and the final verifier/report calculation.
+Finish with ONE concise closure addendum containing:
 
-Produce one compact per-phase table distinguishing:
+- the corrected count labels and the physical\-operation\-count limitation;
+- the actual final reviewer disposition and status of its two findings;
+- the two narrowed claims and the newly tracked final\-outcome omission;
+- links to retained evidence and the existing final report\-only command, if needed\.
 
-1. Executed/confirmed file write operations, with the available evidence basis.
-2. Distinct paths whose bytes changed.
-3. Created paths, replaced paths and any unchanged-content rewrites.
-4. Deleted paths, reported separately from writes.
-5. Consumer scope and whether .gitignore is included.
+Preserve original CHANGES\_REQUIRED and earlier incorrect wording as history\. Amend current pointers only through the existing task’s normal additive correction process\. Do not edit original evidence or rewrite old timestamps\. Close this action with no runtime ownership claimed\.
 
-Keep planned operations, returned compatibility arrays and observed filesystem effects distinct. Do not double-count a path because it appears in both replaced and a legacy overwritten union. Equal SHA-256 values establish equal bytes, not absence of a write. File timestamps are corroboration with their actual precision/limits, not invented event traces. If the retained records cannot prove a physical-operation count, mark that count unestablished and report the proven structured/path/byte facts instead.
+All approved writes and cancellations remain spent and non\-retryable\. Initialize remains \.150 evidence; repaired migration and F\-Q1 belong to \.151\. No claim that all phases ran on \.151, no independent campaign acceptance and no release/full\-product acceptance\.
 
-If the 5 figure is a byte-difference count, relabel it accordingly and report supported write counts separately. If the 8 or 3 figure is wrong, identify its source and correct it. Do not force a predetermined total or manufacture evidence. Preserve all original reported values in the correction history.
-
-Confirm the actual bounded claims without rerunning them
-
-Against the same phase records, check:
-
-• external-module.md owner content was preserved during the actual approved .151 Upgrade, not merely preserved while no command ran;
-• the sole actual legacy deletion was the eligible etl-module-reference.md, with its new destination recorded;
-• the known-reference retentions and the scoped cancellation are supported;
-• the modified asset written during phase 3b was not also reported Skipped;
-• the retention/new-destination-absent limitation and Run Repair disclosure remain explicit. No Repair was executed and no customization transfer is claimed.
-
-Do not claim that a genuinely unwritten item’s final disclosure was exercised live if the actual phase had no such item (the reported Skipped set is empty). Attribute relevant negative coverage to its authenticated source tests where applicable; do not add another live case.
-
-Confirm the final budget ledger is zero remaining for this campaign. Keep Initialize attributed to .150, and repaired migration/F-Q1 to .151. All successful/partial/uncertain writes remain non-retryable regardless of report correction.
-
-Existing focused review and closeout
-
-Locate the actual installed continuation’s retained reviewer result, if any. Report its exact scope and verdict; do not infer an independent review from the executor’s success label or substitute the earlier source-review verdict.
-
-If an existing read-only reviewer is available, have it check only this concrete correction and the affected outcome claims. If no installed reviewer result exists, at most one read-only subagent may perform that focused check in its own directory using primary evidence, independently of the report author’s totals. It must not control the host or mutate shared files. This supplements the retained consolidated evidence; it does not create an independent campaign acceptance claim or another broad review stage. If no reviewer capability is available, finish the factual correction and state that limitation honestly.
-
-Finish with one short report/result addendum and any necessary narrow formatter patch, identifying corrected values, evidence pointers, measurement limits, actual review verdict and final report-only command/parameters. Do not list a write-capable runner as an action to retry. Preserve the original successful phase evidence; if a claim is unsupported, narrow that claim rather than rerunning it. Close this action without reclaiming or extending runtime ownership.
-
-Retain the destroyed historical pre-enable observation as unauthenticated; a current KEY_ABSENT observation is not proof of historical eligibility. Current activation evidence is separate. Keep the earlier deviations and corrections intact.
-
-Carry forward Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, document 10 limits, diagnostic F-1, historical CASE2 dispute, trust/model/@etl-write/historical-incident/toolchain/no-lockfile/adjacent-suite/source/preservation limits, Windows case-folding gap and the three adjacent failures. Quarantine ends 2026-09-13 inclusive UTC with no automatic extension from September 14. Demo remains deferred. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS.
+Preserve the unauthenticated historical pre\-enable observation, earlier deviations, REPORT\-FIELD\-001, known\-reference/retention/new\-destination\-absent limitations, Windows case\-folding gap, three adjacent failures, diagnostic F\-1, historical CASE2 dispute, Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, document 10 and trust/model/@etl\-write/toolchain/no\-lockfile/source/preservation limits\. Quarantine ends 2026\-09\-13 inclusive UTC with no automatic extension from September 14\. Demo remains deferred\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\.
