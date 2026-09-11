@@ -1,98 +1,97 @@
-# Submit only to Session C — consumer asset completeness and resource\-layout design
+Session D — one approved multi-root job overwrite with genuine env reuse
 
-TASK\_ID: ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
-DISPOSITION IN RECEIVED IMAGES: UNKNOWN; no result for this task was identified
+TASK_ID: ETL-0911-INSTALLED-CONSUMER-JOBENV-MULTIROOT-WRITE-AND-ENV-REUSE-SMOKE01
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not launched by ChatGPT
+TYPE: Gated installed-product qualification using the final existing caller
 
-This file continues the SAME previously issued task\. It does not create a second task or establish that the original task was never started\. The owner supplied final images from several sessions, but their displayed task ID was the consumer\-write consolidated review\. Do not run that review in this session\.
+Activation, purpose and exact authority
 
-## Mandatory continuation and ownership instructions
+Do not execute this prompt before the existing review’s FINDINGS-CONTINUATION01 result identifies ELIGIBLE_FOR_BOUNDED_SUCCESSOR. Read that result, its named limits and its authenticated helper/fixture locators. If it is unavailable or blocked, report the precise dependency and stop before launch or mutation. Do not repeat the review or reinterpret a missing result as “not started.”
 
-These instructions supplement the original task reproduced below\. ALL replies and deliverables are English\. No screenshots, video, image inspection, OCR or vision\. Retained text, DOM/accessibility records, source text and filesystem checks only\. No new runtime actions or implementation authority is added\.
+Owner submission after that gate authorizes bounded setup in a new task directory, minimal parameterization/corrections to task-owned copies of the existing caller/flow/verifiers, normal launches of the dedicated installed test profile, one cancellation of the new write plan, and at most ONE product-approved overwrite of the already existing temporary consumer JOB file. This expressly authorizes selecting envConfigReused=true for the genuine reference route while retaining the env payload/path identity. It authorizes ZERO env writes, ZERO CREATE outputs and ZERO writes to the second root.
 
-Check this exact task’s disposition first\. If completed, inspect and return its existing result with only concrete needed corrections\. If active, report that result location/status and do not duplicate it\. If blocked, resolve only an in\-scope dependency\. If not started, execute the original design scope below\. An absent report, missing node\.exe process, stale timestamp or a Library path alone cannot establish inactivity or Windows access\. Where status remains genuinely unresolved, report it without creating another instance\.
+This is prospective authority for this task only. It does not change the authority interpretation or verdict of CASE2.
 
-Use an existing exclusive task ownership mechanism if available\. Otherwise acquire one atomic CreateNew claim at C:\\docs\\ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01\.claim\.json before new task\-owned output\. Record owner session identity, token and output location; never overwrite, expire or steal another claim\. Keep a completed status and result pointer in it\. A finished prior design should be reused, not repeated merely because this claim did not exist before\.
+No product source/test edits, rebuild, package, install, version/dependency change, Git mutation, real-consumer writes, ETL job run, deployment or publication. No repair/recreation of missing retained CREATE outputs. Do not restore timestamps or directly write job/env files to simulate the product operation.
 
-Use only this task’s uniquely owned output root\. Never write into the consumer\-write review root or another design task’s directory\. Recheck ownership before writing top\-level deliverables\. Only the coordinator writes design\.md/result\.json\. An optional subagent gets a unique token\-named output directory and a concrete read\-only slice; it cannot append to the parent’s or another reviewer’s files\.
+ALL parent/subagent replies and deliverables must be English. No screenshots, video, image inspection, OCR or vision, including hidden capture hooks. Use the existing text/DOM/accessibility transport, structured outcomes, logs and filesystem checks. Keep normal Workspace Trust settings; no trust bypass or renewed session-storage investigation.
 
-This session may run concurrently with the other design lane and Session A’s limited report corrections\. It may also continue during Session D’s runtime because this lane is read\-only: do not launch the Host, control the editor/profile, mutate consumers or run tests\. Do not wait for the write\-review authority dispute to produce an independently useful design\.
+Prevent duplicate execution and shared-runtime collisions
 
-This is design work; any later shared source/catalog implementation needs one integration owner and a separately bounded brief\. Finish after resolving this design’s concrete questions\. Do not build a catalog extractor, add another review campaign or generate a general reporting system\.
+Check this exact task’s running/completed/blocked/not-started disposition using existing task ownership and terminal records. Missing reports, absent node.exe or stale timestamps alone do not prove inactivity. A completed or uncertain successful write is not permission for another write. Return a completed result or resume reporting from retained outcomes as appropriate.
 
-## Original issued scope — retained below
+Use existing exclusive runtime ownership if available. Otherwise atomically create ONE CreateNew claim:
+C:\docs\ETL-0911-MULTIROOT-JOB-WRITE-ENV-REUSE-SMOKE01.claim.json
+Include session identity, token, output directory, installed profile and retained consumer. Never steal/expire an existing claim. Keep terminal status/result location in it.
 
-# Session C — consumer asset completeness and resource\-layout design
+Ensure no other task currently owns or uses the dedicated Host/profile, retained consumer or CDP endpoint. Only this coordinator operates the runtime; do not kill another process to obtain it. Read-only Sessions B/C may continue independently. Recheck ownership before the approval click and before top-level report writes.
 
-TASK\_ID: ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01
-TYPE: READ\-ONLY REQUIREMENTS AND DESIGN — no implementation or runtime
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
+Create one exclusive output directory:
+C:\docs\ETL-0911-INSTALLED-CONSUMER-JOBENV-MULTIROOT-WRITE-AND-ENV-REUSE-SMOKE01-<UTC>-<unique>
+Preserve all predecessor evidence and helpers. No concurrent parent/subagent writes to shared report names.
 
-## Goal and environment
+Reuse and identity preconditions
 
-Complete the bounded design for the two owner requests retained in document 10:
+Dedicated environment: C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01
+Reported product: td-etl.databricks-etl-copilot, private 0.3.147.
+Source locator, read only if a concrete contract dependency remains:
+C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Linked primary remains protected:
+C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2
 
-- `ETL-0910-CONSUMER-RESOURCE-LAYOUT-FOLLOWUP01`\.
-- `ETL-0910-CONSUMER-WORKFLOW-ASSET-COMPLETENESS-FOLLOWUP01`\.
+Resolve the real completed CASE1 and CASE2 roots from the continuation result. The final CASE2 caller was v3, derived from CASE1’s final repeatable v2, not the obsolete one-shot extension.v1.js. Reported interfaces to authenticate:
 
-Determine the required assets for the intended consumer development workflow and propose a clean destination/migration for its generated context documents\. This session may run alongside Session A’s consumer\-write review and Session B’s Upgrade UI design\. Its output is a design, not a new mandatory prerequisite for accepting already completed write cases\.
+• harness/extension.js and package.json
+• helpers/flow-plan.js
+• predecessor helpers/flow-jobenv.js via ETL_JOBENV_TRANSPORT
+• helpers/run-session.js
+• control/input.json
+• fixture/fixture-pointer.json and fixture/plans
+• existing checks, inventory and measurement helpers
 
-Windows development environment:
+Read their actual interfaces once. Reuse them rather than rebuilding a harness, catalog extractor, driver or reporting system. The caller must support BOTH VS Code prepareInvocation confirmation and the separate trusted product approval dialog. Keep undefined toolInvocationToken/installed helper route distinctions where applicable.
 
-- Source worktree, read only: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`\.
-- Linked primary, protected: `C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`\.
-- Existing installed evidence environment, read only: `C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01`\.
-- Reported product: `td-etl.databricks-etl-copilot 0.3.147`, private candidate\. Resolve exact relevant identities from original records; do not treat a Windows path or version as proof of access or identity\.
+Before reuse, compare relevant installed bytes, helper source, test/verifier source, fixture and dependencies, launch/settings identities, root identities and existing output hashes against the retained evidence. HEAD/version/counts alone are insufficient. Installed files were reported as 65; repository dirt as 26 and out as 2041, which are not substitutes for identity evidence. If a material identity differs, name the affected claim and stop before writing; do not rebuild or repair the baseline.
 
-ALL coordinator/subagent messages and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\. Use source text and retained inventories, structured results, logs and DOM/accessibility traces\.
+Resolve the retained temporary consumer from original records, not a transcribed TEMP suffix. Its existing job and env were reported at:
 
-## Authority, isolation and efficient reading
+• job_conf/conf/ERUS9/IMSB_MASTER_AREA_V3_PASSED_EXTRACT.json
+• env_conf/dev/env_conf_erus9_dev.yaml
 
-Owner submission authorizes read\-only inspection and new task\-owned design documents outside both repositories\. No source/catalog/prompt/test edits, consumer changes, migration, file relocation/deletion, tests, product commands, Host launch, build, install, dependencies, Git mutation, jobs or publication\. Do not change global/profile settings or edit shared current\-state/reference files\.
+The last CASE2 job reportedly has top-level loggable=false; env is 250 bytes and byte-identical to its predecessor content. Authenticate exact current bytes and prior output identities. If the temporary consumer is missing, stop. Do not repeat CREATE.
 
-Check THIS task’s actual disposition first; do not duplicate an active or completed instance\. Sessions A and B are allowed concurrent readers\. Do not stop them or require their completion to inspect your own scope\.
+Reuse the second eligible disposable consumer and workspace fixture from CASE2. Open BOTH eligible consumers in one real .code-workspace for the entire new sequence. Explicit workspaceRoot must resolve to the retained target. Verify both roots from the existing text/structured workspace observation. A reference stand-in is not a substitute for the second eligible root.
 
-For a new task, create one exclusive output directory:
-`C:\docs\ETL-0911-CONSUMER-ASSETS-LAYOUT-DESIGN01-<UTC>-<unique>`\.
-Write only `design.md`, `result.json` and indispensable supporting notes inside it\. Preserve prior evidence and other session outputs; any continuation must retain earlier attempts\.
+Plan the one new delta
 
-Use the available document 10, current contract 09 v1\.1 and safety model 05\. A Library path does not imply a synchronized Windows copy; the owner requirements needed for this task are repeated below\. Resolve missing original evidence only for claims that depend on it\. Do not request a whole reference pack or reread entire old bundles\.
+Use a single schema-valid non-routing job delta from the actual retained current state, preferably loggable=false to true if that exact starting value and meaning are authenticated. Preserve all routing/module/entity/path fields and unrelated bytes under the product’s normal serialization. Record the exact expected before/after delta before approval. Do not choose another field silently after unexpected baseline drift.
 
-Use `rg` within the relevant asset catalog, package declarations, instructions/links, discovery and audit/upgrade consumers and existing tests\. Read complete relevant functions/contracts\. Record inspected\-file identities and verify them before finalizing; measured drift makes the affected design stale, not permission to repair the baseline\. Do not execute imported product modules or catalog scripts that may have side effects\. Reuse retained inventory data; do not build a general catalog extractor\.
+Set envConfigReused=true through the genuine installed tool input, preserving the existing env path and content. Derive any other required input fields from the actual installed schema/reference branch. Do not simulate reuse by leaving a writable env item in the plan, dropping it after approval, mocking the service or forging a reference result.
 
-## Owner requirements and reported observations
+Preview must identify exactly one job OVERWRITE and the existing env as a non-writing reference/UNCHANGED according to the current contract. Require no env CREATE/OVERWRITE and no second-root destination. Expected physical write counts are Created=0 and Overwritten=1. Record other counters using the verified reference contract; do not invent labels or counts. If the actual plan includes env writing, cancel and finish as a concrete failure without approving.
 
-The owner wants a tidy consumer root\. These generated context destinations currently introduce top\-level `resources`:
+If caller/flow support is missing, change only the minimum task-owned caller/flow parameters and expectations. Preserve default legacy semantics and both approval gates. Record the full actual diff, including incidental version/logging changes, and check the affected parameter translation/expected outcomes without a product write. This authority does not allow a product fix or a new harness.
 
-```text
-resources/copilot/context/etl-2x-context.md
-resources/copilot/context/companion-tool-policy.md
-resources/copilot/context/etl-module-reference.md
-resources/copilot/context/external-module.md
-```
+Execute once with durable pending evidence
 
-A replacement destination has NOT been selected\. Extension package source paths and consumer destination paths are separate concerns\. Preserve user\-owned files and define migration before proposing removal of old generated paths\.
+1. Capture and persist a BEFORE inventory outside the consumers for the target job/env, target unrelated files, second root and separate accepted workflow consumer using existing verifiers. Include hashes, size, mtime and creation time where relevant. Record the approved plan’s root, exact paths, payload identities and preview identity.
+2. With both roots still open, obtain the genuine preview and pass the normal Host confirmation as applicable. At each write-capable approval gate, especially the pending product dialog, persist a standalone pending inventory and textual dialog/plan observation BEFORE accepting or cancelling it. Use the existing flow seam: finish and flush the capture, record a sequence acknowledgement, then issue the action. A trace first saved after writing is not standalone pre-write evidence. Do not invent retrospective timestamps.
+3. Cancel the product approval once for THIS new root/reference plan. Verify no job/env, unrelated-target or second-root changes. This is the affected negative case for the changed env branch. Do not repeat the old root-order, reference-rejection, ambiguity or CREATE campaign when their relevant identities still match.
+4. Obtain a fresh normal preview. Verify the same explicit root and intended content, reference disposition and both-open-roots state. Persist pending evidence before clicking Approve write. Approve exactly once through the real controls bound to that preview. No approval token forgery, stale preview reuse, automatic fallback write or manual filesystem substitute.
+5. Immediately retain the tool’s structured result and AFTER inventories. The job must match the approved expected bytes. The env must remain hash-, size-, mtime- and creation-time-identical to BEFORE and all pending/cancel captures. Verify the reference outcome as well as file measurements. Prove zero changes to the second root and protected unrelated/workflow files using actual comparable retained records. State precisely which metadata were measured; do not claim unmeasured metadata preservation.
 
-The intended consumer workflow must receive the agents, skills, prompts, instructions and supporting files it actually needs\. Consumers must not require a source checkout of either this extension or `etl-framework-adb`\. Preserve the established public Orchestrator/internal specialist model; do not create a new agent architecture or blindly copy every maintainer/extension asset\.
+Preserve concrete failures and exact inputs/results/deltas. Do not weaken expectations. If a write result is successful, partial or uncertain, investigate read-only from retained evidence and filesystem state; do not retry the write. If a report fails, correct reporting in place within this task’s outputs and resume from retained measurements. Never use report failure to justify another invocation capable of writing.
 
-Reported Base behavior: eight catalog assets plus managed `.gitignore`, with no agents/skills by design\. A separate AG consumer reports 21 managed assets plus `.gitignore`, with six agents and four skills discovered\. One validate\-write skill Upgrade to 1\.1\.5 received bounded independent acceptance\. These observations do not prove missing packaging or complete end\-to\-end workflow readiness\.
+Efficient regression and delegation
 
-Reuse original install/Base and AG workflow/Upgrade inventory records, resolving their roots by task ID and report metadata under direct children of `C:\docs`\. Start with `ETL-0910-EXACT-VSIX-INSTALL-INITIALIZE-SMOKE01`, `ETL-0910-INSTALLED-WORKFLOW-SMOKE01`, `ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01` and its independent review only where their records are relevant\. Do not infer missing records from task names or reconstruct source hashes from report photographs\.
+Keep prior safety negatives visible, with a compact identity-based reuse record. Run an affected offline helper check only for a real parameter/expectation change; do not add tests that merely mirror implementation. If reuse fails because a relevant input changed, identify the smallest affected negative gate. Do not replay all prior scenarios. Permanent product regression tests belong with a separately authorized product fix, which this task does not authorize.
 
-## Produce the bounded design
+At most ONE subagent may perform a bounded read-only check of the exact plan/input expectations or retained outcomes in its own token-named directory while the parent performs useful independent work. It must never launch a Host, approve, invoke the tool, mutate consumers, change shared controls or rebuild a verifier. Runtime remains serial. Author verification is not independent acceptance. Retain the new delta for a focused supplement to the SAME consolidated review; do not start another general review/reconciliation campaign.
 
-1. Build one compact evidence\-backed mapping for the intended workflow: required capability/asset, packaged presence, profile selection, consumer destination, recorded installation/discovery and unresolved gap\. Separate these sets\. Distinguish managed asset counts from total files and count exclusions\. Start with Base/AG; inspect another profile only for a concrete requirement\.
-2. Determine whether any demonstrated gap lies in packaging, catalog/profile selection, initialization, links or discovery\. Mark unsupported hypotheses and unavailable evidence clearly\. Do not call Base’s deliberate smaller set a defect\.
-3. Compare at most two plausible consumer destinations supported by existing conventions\. Recommend one with reasons and an exact old\-to\-new mapping for the four context files\. Consider instruction/skill links, relative\-path resolution and audit/repair/upgrade consumers\. Selecting a proposed design does not authorize migration\.
-4. Define future migration behavior for unchanged managed files, customized managed files, unmanaged collisions, missing legacy files and partial/interrupted migration\. Preserve user content, prevent stale/broken references and do not delete a directory merely because its known managed files moved\. Reuse existing ownership and recovery mechanisms where sufficient; state remaining limitations instead of promising unverified atomicity\.
-5. Identify the minimum FUTURE editable paths/functions and all affected links, catalog metadata, managed ignore entries and audit/repair/upgrade behavior\. Keep packaged source placement independent of consumer destination selection\. Coordinate only the interface with B: current/proposed paths and operation\-plan itemization\. Do not redesign B’s dialogs\.
-6. Define permanent test cases through existing entrypoints: intended\-profile completeness; fresh initialization and link resolution; legacy managed migration; customized/unmanaged preservation; repeated audit/upgrade behavior; and interruption/collision cases affected by the chosen design\. Specify expected outcomes and fixtures independently of implementation\. Do not create or run tests in this task\.
-7. Recommend the smallest staged implementation order, distinguishing a demonstrated completeness defect from optional layout improvement\. Identify any exact shared files with B; propose one later writer/integration owner rather than concurrent edits to the recovery worktree\.
+Deliver
 
-## Delegation, result and boundaries
+Return concise report.md and a parseable result.json with actual disposition, identity evidence, open-root observations, plan/input binding, Cancel and final results, durable pending capture paths, before/after file measurements, physical write counts, preserved boundaries and remaining defects. Include the exact FINAL reusable command and every parameter/helper/fixture location so a successor does not reconstruct them.
 
-This is already a parallel session; default to no nested subagents\. If useful capacity exists, use at most ONE read\-only subagent for a concrete asset/link coverage slice while the parent designs migration\. Do not repeat A’s write review or B’s UI work\. Only the parent writes consolidated outputs; all agents retain this scope\.
+Use MULTIROOT_JOB_WRITE_ENV_REUSE_VERIFIED_WITH_LIMITATIONS only if all new required assertions pass, and mark this EXECUTOR_VERIFICATION unless a distinct focused independent result is actually available. Otherwise use a precise BLOCKED, FAILED or WRITE_OUTCOME_UNCERTAIN status. Do not convert older unsupported preservation claims into accepted historical evidence because this new run passed.
 
-Return `DESIGN_READY_FOR_IMPLEMENTATION_SCOPING`, `BLOCKED_DEPENDENCY` or `OWNER_DECISION_REQUIRED`, with a precise reason when not ready\. Include the inventory mapping, recommended destination, migration rules, future editable surfaces/test matrix, verified identities, unknowns, dependencies and a bounded next implementation proposal\. Make routine design choices autonomously; do not invent product requirements to avoid a genuine unresolved owner decision\.
-
-Finish independently without waiting indefinitely for A/B; reference their output as pending when unavailable\. Do not modify their reports or shared documents\. Do not run any write, migration or workflow command to improve the report\. Preserve unrelated acceptance, toolchain/source/preservation limits and the bounded QA exception\. Quarantine expires inclusively on 2026\-09\-13 UTC with no automatic reliance from September 14\. This design grants no runtime, release or full\-product acceptance\.
+Keep diagnostic F-1, Upgrade disclosure/workflow-asset Overwrite UI, and document 10 resource-layout/completeness work open. Preserve bounded Base/Upgrade and B1/C1 acceptance, QA exception, R3/R4 successor uncertainty, trust-restricted/model-route/historical-incident/toolchain/no-lockfile/adjacent-suite/source-acceptance and preservation limits. Quarantine ends 2026-09-13 inclusive UTC; no automatic extension from September 14. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS.
