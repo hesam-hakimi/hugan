@@ -1,62 +1,50 @@
-# Session B successor — repair workflow Upgrade approval and disclosure
+# Session C continuation — close concrete migration\-design gaps
 
-TASK\_ID: ETL\-0911\-WORKFLOW\-UPGRADE\-PLAN\-BINDING\-REPAIR01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; no action launched by ChatGPT
-TYPE: Bounded source repair, permanent affected regressions and focused independent review
+TASK\_ID: ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01
+ACTION\_ID: MIGRATION\-DESIGN\-CORRECTIONS01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
+TYPE: Focused correction of the completed design; no implementation or runtime
 
-## Objective and activation
+## Purpose and authority
 
-Implement the demonstrated workflow Upgrade/Overwrite defects from the completed Session B design\. The design’s B\-1/B\-2/B\-3 findings concern approval binding, actual write dispositions/counts and profile\-dependent managed \.gitignore changes\. They are distinct from previously accepted project B1/C1 work and from the job/env writer route\.
+Correct the concrete contradictions and missing migration cases below in the completed design\. Do not repeat the catalog extraction, packaging survey, discovery investigation or entire original design task\. The original scope found no demonstrated asset\-completeness defect; preserve that bounded conclusion and its provenance\.
 
-Read\-only preparation may run beside Session D and Session C’s design correction\. Begin source edits or tests only after Session D has a terminal result and explicitly released the shared runtime/source freeze\. Do not infer this from process absence or elapsed time\. If D is active, complete useful read\-only inspection and retain the exact edit/test plan; do not poll broadly or mutate\. If D ended with an uncertain write, require its evidence to be preserved and its runtime ownership explicitly released; do not investigate it by rerunning the tool\.
+Owner submission authorizes reading the necessary existing records/source functions and writing only new continuation\-owned design/result documents outside both worktrees\. No source/test edits, test execution, fixture changes, consumer migration, Host launch, build, package, installation, Git mutation, job or publication\.
 
-Owner submission authorizes, after that condition, only the source/test surfaces named by B’s final implementation design, the small formatter extraction proposed there, affected existing test execution and test\-directed compilation, and new task\-owned evidence\. It does not authorize a production extension bundle, VSIX, installation, dependency changes, Git mutation, real\-consumer write, job run or publication\. A test harness may create its own disposable fixtures using existing entrypoints; it must not use the retained accepted consumers or the dedicated installed profile\. Do not create a replacement harness to work around a blocked runner\.
+ALL agent/subagent communication and deliverables must be English\. No screenshots, video, image inspection, OCR or vision\. Use original source/design text, structured evidence and filesystem observations only\.
 
-## Language, environment and ownership
-
-ALL coordinator/subagent messages and engineering artifacts must be English\. No screenshots, video, image inspection, OCR or vision\. Use source text, structured test outcomes, logs and filesystem checks only\.
-
-Source worktree:
+Reported completed design root:
+C:\\docs\\ETL\-0911\-CONSUMER\-ASSETS\-LAYOUT\-DESIGN01\-20260911T043330Z\-2CBFBD13\-0B5F\-432A\-B139\-866E23F9ECD2
+Reported design\.md: 43,361 bytes; result\.json: 23,240 bytes\. Authenticate full identities from originals\.
+Source locator, read only:
 C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
 Protected linked primary:
 C:\\repos\\etl\-extension\\etl\_fw2\\etl\_framework\_extension\_hf1\_v2
-Protected installed environment:
-C:\\docs\\ETL\-TESTENV\-INSTALLED\-WORKFLOW\-SMOKE01
 
-Authenticate the completed B design/result using its terminal claim and exact records:
+B’s final design is now reported complete at:
 C:\\docs\\ETL\-0911\-UPGRADE\-DISCLOSURE\-OVERWRITE\-DESIGN01\-20260911T043238Z\-A4ADC04D\-9272\-4BDE\-9D5B\-5497A81901C9
-Reported final design\.md: 38,832 bytes; result\.json: 21,950 bytes\. Obtain full identities from originals; do not use these counts as hashes\. C read an earlier B snapshot of 37,720 bytes, so do not implement from C’s stale quotation\.
+Its final design was reported at 38,832 bytes, while C quoted an earlier 37,720\-byte snapshot\. Read the final shared\-interface section and bounded implementation proposal, not all of B’s history\.
 
-Read B’s final design and its bounded next\-implementation proposal completely, then the affected source functions and test entrypoints\. Consult the final C design/correction only for the shared plan interface\. Do not wait for C to implement B at current destinations\. Resolve the actual editable list from B; do not infer six filenames from this summary\.
+Check this action’s actual disposition before starting\. Preserve the completed original C claim and outputs\. Use a new action\-specific CreateNew claim or the established ownership mechanism; do not overwrite/expire another claim\. The new output root must be unique and outside the original root\. No whole\-C:\\docs content search, session database query or new general reconciliation stage\.
 
-Check this exact task’s disposition through its claim/terminal records and direct task roots\. No whole\-C:\\docs content scans, session\-store queries, broad history reconstruction or absence\-based claims of inactivity\. Use existing exclusive ownership or atomically create one CreateNew claim at C:\\docs\\ETL\-0911\-WORKFLOW\-UPGRADE\-PLAN\-BINDING\-REPAIR01\.claim\.json\. Do not steal/expire claims\. Use one unique task output root outside both worktrees; the coordinator alone writes final reports\. Each child gets a token\-named output directory\.
+## Make these decisions concrete
 
-Before edits, retain the complete preimage of each file you will touch and a focused diff baseline\. Preserve pre\-existing dirty content, \.github maintainer files, installed bytes, prior evidence and out artifacts\. Read\-only Git observations are allowed; no reset, checkout, clean, commit, stash or broad regeneration\. Test\-directed output must use existing configurable temporary outputs where supported\. If a necessary command would destroy protected outputs, report that exact gate instead of changing the toolchain or inventing a new build system\.
+1. Correct the layout acceptance statement\. The proposal expressly retains resources/, resources/copilot/ and resources/copilot/context/ even when empty\. Therefore only a FRESH consumer can have exactly \.github and \.gitignore at its top level; an EXISTING migrated consumer still has resources\. Preserve the no\-directory\-deletion scope and state that narrower outcome\. Do not add directory deletion merely to make the original claim true\.
+2. Make interruption recovery reachable\. M1 currently requires the new path to be missing, but M6 says a run interrupted after write\-new will converge through M1 even though the new path now exists\. Add the exact restart decisions for an existing new managed\-current file, managed\-stale file, customized file, unmanaged collision and failed/incomplete new write\. Define when the legacy copy may be deleted and when both must remain\. Reuse the existing classifier; no new general migration engine or promise of filesystem atomicity\.
+3. Specify what M2 COPY\-FORWARD writes\. State whether the new file contains current managed defaults or preserves user modifications\. Keeping a customized legacy file is not proof that its customization remains effective after consumers switch to the new path\. Define a conservative automatic behavior that preserves user content and avoids silently changing which customized content is used\. Clearly disclose any case requiring a later explicit user decision; do not resolve it by silently overwriting either copy\.
+4. Preserve references before deleting legacy files\. The design says user\-modified instructions are skipped, so their old path text can remain, while migration may delete the referenced legacy context file\. Define the dependency between preserved known instruction/prompt references and each proposed deletion\. Retain a legacy target when an inspected preserved reference still needs it, or block that migration item with an actionable explanation\. Do not survey every user file or claim all unknown references were proved safe\. Add a meaningful expected test for this concrete combination\.
+5. Bind migration and deletion to B’s approved plan\. Include old/new identities, copy/create/move/retain dispositions, \.gitignore consequences and destructive scope in that same plan\. Recheck both old and new files before any proposed deletion; require the new copy to be verified and block changed identities\. A successful write\-new alone does not permit deleting a legacy file changed after preview\. Add the affected stale\-plan/interruption/collision expectations to existing test entrypoints, design only\.
+6. Tighten preservation wording\. “Never data loss” cannot be a general guarantee from write\-then\-delete without the preconditions above\. State the actual bounded interruption guarantee and its limits\. Explain exactly which retained legacy paths remain ignored or become untracked, and why\. Do not let a \.gitignore side effect silently conceal the retention decision\.
+7. Reconcile only the final B/C shared interface\. B’s demonstrated approval/disclosure defects are implemented first at CURRENT destinations by one future integration owner\. C subsequently adds migration items to that same plan\. Do not require a combined patch or parallel edits to CopilotWorkflowCommands\.ts/CopilotWorkflowUpgrader\.ts\. C’s design correction may proceed alongside D and B’s read\-only preparation; no source ownership is acquired here\.
+8. Keep \.github/etl\-context/ as the recommended working destination\. The directory spelling is a routine design choice, not a new blocking permission gate; implementation remains separately scoped\. Packaged resources/copilot/context/\*, package contributions and packaged runtime authorities stay unchanged\. Do not propagate links into twenty unrelated assets or bump global context/policy versions to force a whole\-profile rewrite\.
+9. Qualify provenance in the completeness conclusion\. The existing design combines current installed \.147 packaging observations with historical AG/discovery records explicitly labeled \.148\. Preserve those individual identities and load\-time\-only discovery limits\. File counts or matching version labels cannot promote historical discovery to new invocation\-time or current\-candidate end\-to\-end acceptance\. Reuse the existing mapping; no repeat inventory campaign\.
 
-## Required product behavior
+## Output and delegation
 
-1. Reuse the existing CopilotWorkflowApprovedPlan seam already used by Initialize\. Carry one authoritative operation plan through preview, modal disclosure, approval and writing\. Upgrade/Overwrite must not discard the shown plan and construct a replacement after approval\. Read\-only drift checks are allowed; they must block affected execution rather than silently expand/recalculate the approved write set\.
-2. Bind the operation to the actual canonical consumer root, selected profile, exact paths, dispositions and intended content, including managed \.gitignore effects\. Use full\-file preimage identity and non\-whitespace content outside managed sections as proposed by the audited design\. A boolean approval alone must not authorize a different plan\. Preserve Initialize’s accepted behavior and inspect affected shared callers rather than breaking their contracts\.
-3. Make preview counts and final counters agree with actual operations\. Existing files and missing assets cannot all be counted as overwritten\. If normal workflow overwrite also creates missing assets, include those CREATE operations in the approved plan and disclose/count them separately; otherwise exclude them consistently according to the authenticated design\. No hidden output paths\.
-4. At the decision point show the selected root/profile, exact destination paths, current/target versions when applicable, per\-item disposition and what local content would be lost\. Reuse the itemized preview already produced and the existing dialog detail seam; do not introduce a second catalog, planner or approval engine\.
-5. Derive and disclose the managed \.gitignore delta from the same selected plan/profile\. Cover the measured AG\-to\-Base case: the old block may contain 21 entries while Base has eight\. Do not describe that as deleting 13 assets\. Show the actual add/remove effects and preserve non\-managed content\. Reuse the proposed previewIgnored seam and existing ownership rules\.
-6. Keep routine Upgrade and explicitly destructive workflow Overwrite distinct\. Request the design’s extra confirmation only when local modifications would actually be discarded; bind it to the exact same plan and scope\. Cancel must leave all target bytes unchanged and produce the bounded cancellation record\. Do not log asset bodies or unnecessary user content\.
-7. No asset body changes, profile membership changes, asset version bumps, context migration, packaged resource moves or diagnostic job/env F\-1 repair belong in this task\. Keep plan items destination\-independent so a later C migration can reuse the interface, without implementing speculative migration machinery now\.
+Return a concise design\-corrections\.md and one parseable result\.json referencing the unchanged original design\. Include an amended migration decision table, corrected fresh\-versus\-existing acceptance, affected permanent\-test additions, final B interface dependency and smallest implementation scope\. Do not produce another 22\-asset inventory\.
 
-## Regression and independent check
+At most ONE optional read\-only subagent may check the restart/preservation table in its own token\-named directory while the coordinator resolves the final B interface\. Only the parent writes consolidated outputs\. A design correction is not product or independent runtime acceptance\.
 
-Implement the twelve permanent cases proposed by the final B design in its existing suites, refining expected outcomes against the actual contract\. Include independent expectations for changed root/profile/content after preview, missing\-versus\-existing disposition counts, outside\-managed\-section customization, unchanged and customized overwrite confirmation, Cancel/no writes, managed \.gitignore additions/removals with user content, and affected Initialize/Repair behavior\.
+Finish DESIGN\_CORRECTIONS\_COMPLETE\_WITH\_LIMITATIONS or name the exact unresolved dependency\. Do not wait indefinitely for B implementation, and do not run migration to improve the report\.
 
-Use unique temporary consumers and existing fixtures; no tests may write under either repository’s \.github\. Run affected checks and keep relevant negative safety cases\. Reuse earlier results only if the relevant source/tests/fixtures/dependencies/settings and output identities match\. Do not broaden into unrelated adjacent\-suite repairs or relabel known failures as passed\.
-
-Use at most ONE fresh read\-only subagent for a concrete test\-expectation review while the coordinator inspects/implements, then a focused review of the finished diff and retained outcomes\. It must not author product/test changes it independently accepts, mutate shared outputs, run installed\-product writes or launch a competing runtime\. If independent delegation is unavailable, return author verification with independent acceptance pending\.
-
-Fix concrete in\-scope review findings and rerun only affected tests\. Stop when this repair is sufficiently verified\. If tests cannot run under the existing toolchain, deliver the exact patch and precise blocked gate; do not install dependencies or claim acceptance\.
-
-## Delivery
-
-Provide report\.md/result\.json with final source identities, protected preimage/diff relationship, B finding\-to\-change mapping, exact regression commands/results, independent reviewer identity/verdict, remaining limitations and the smallest installed\-candidate qualification brief\. Record any test\-directed compilation output and verify it did not replace the retained installed candidate\.
-
-Use SOURCE\_REPAIR\_VERIFIED\_WITH\_LIMITATIONS only with passing required affected checks; add independent acceptance only when actually obtained\. Otherwise report the exact blocked or partially verified scope\. The installed \.147 remains unchanged and still has the old behavior until a separately bounded package/install qualification is executed\. Do not call this shipped or installed acceptance\.
-
-Retain existing Base/Upgrade and B1/C1 boundaries, QA exception, R3/R4 uncertainty, trust/model/historical\-incident limits, toolchain/no\-lockfile/adjacent\-suite/source\-acceptance limits and diagnostic F\-1\. Quarantine ends 2026\-09\-13 inclusive UTC with no automatic reliance from September 14\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\.
+Preserve accepted scopes, QA exception, R3/R4 uncertainty, source/toolchain/no\-lockfile/adjacent\-suite limits, trust/model/historical boundaries, diagnostic F\-1 and untouched prior write evidence\. Quarantine expires 2026\-09\-13 inclusive UTC with no automatic extension from September 14\. No release or full\-product acceptance is granted\.
