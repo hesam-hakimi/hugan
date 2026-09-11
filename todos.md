@@ -1,113 +1,63 @@
-Next Windows engineering prompt — consolidated consumer-write review
+# Session B — Upgrade disclosure and workflow overwrite design
 
-TASK_ID: ETL-0911-CONSUMER-WRITE-CONSOLIDATED-INDEPENDENT-REVIEW01
-TYPE: BOUNDARY — independent review of completed evidence; no product execution
-STATUS: PREPARED_FOR_OWNER_SUBMISSION; no review has been launched by ChatGPT
+TASK\_ID: ETL\-0911\-UPGRADE\-DISCLOSURE\-OVERWRITE\-DESIGN01
+TYPE: BOUNDARY DESIGN ONLY — read\-only inspection, no implementation or runtime
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
 
-Objective and authority
+## Goal and environment
 
-Complete ONE consolidated independent review of the related completed consumer-write evidence. Decide the acceptance of the installed single-root CREATE and the subsequent root-selection/ambiguity/overwrite/cancellation cases at their actual boundaries. Close concrete review findings or name the smallest remaining gap. This review is itself the next gate; do not add a preliminary reconciliation task.
+Prepare the smallest implementation\-ready design for the remaining Upgrade disclosure and Overwrite Existing Assets workflow UI gaps\. This task may run concurrently with Session A’s consolidated write review and Session C’s asset/layout design\. Do not wait for their results to inspect this separate boundary\.
 
-When the owner submits this prompt, proceed within this read-only review scope without routine reapproval. Only new review-owned documents and minimal analysis outputs outside the repositories are writable. No source edits, build, package, install, Git mutation, fixture mutation, product tool invocation, Host launch, consumer write, job run, deployment or publication is authorized. Pure offline parsing of retained evidence is allowed after confirming it cannot run product code or modify existing evidence.
+Windows development environment:
 
-Environment, language and inputs
+- Source worktree, read only: `C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`\.
+- Linked primary, protected: `C:\repos\etl-extension\etl_fw2\etl_framework_extension_hf1_v2`\.
+- Installed evidence environment, read only: `C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01`\.
+- Reported installed product: `td-etl.databricks-etl-copilot 0.3.147`, private candidate\. Authenticate relevant identities from original records; these paths and the version are locators, not proof of access or matching bytes\.
 
-• Windows development agent; dedicated installed test environment: C:\docs\ETL-TESTENV-INSTALLED-WORKFLOW-SMOKE01.
-• Product reported: td-etl.databricks-etl-copilot 0.3.147, private candidate. Authenticate exact installed bytes from original records; version/HEAD alone are insufficient.
-• Source worktree, if a concrete static dependency requires it: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147. All repositories and existing evidence remain read-only.
-• Use English for ALL coordinator and subagent progress, questions, final answers and deliverables. Do not append Persian summaries.
-• No screenshots, video, image inspection, OCR or vision, including hidden capture hooks. Use original text/DOM/accessibility traces, structured outcomes, logs and filesystem measurements. DOM-derived button rectangles and click coordinates are valid textual evidence; do not fabricate visual observations.
+Use English for ALL agent/subagent progress, questions, final answers and artifacts\. No screenshots, video, image inspection, OCR or vision\. Use source text, existing DOM/accessibility traces, structured outcomes, logs and filesystem measurements\.
 
-Use the already available current contracts and original issued briefs. The governing reference is /ETL Copilot Reference v2, especially contract 09 version 1.1, safety document 05 and checkpoint 12. A Library path does not establish a Windows mirror. Do not demand or rebuild a whole reference pack. Resolve a missing original requirement only where it changes a review decision; report the precise dependent gap and continue the remaining review.
+## Authority, isolation and efficient reading
 
-New result received — supersedes only the predecessor’s missing-result status
+Owner submission authorizes this inspection/design and only new task\-owned documentation outside both worktrees\. No source/resource/test edits, generated code, fixture changes, tests, product tool calls, Host launches, build, install, package, dependency changes, Git mutation, consumer writes, jobs or publication\. Read\-only Git observations may use disabled optional locks\. Do not mutate the running editor’s settings or profile\.
 
-The owner supplied the completed report for:
-ETL-0910-INSTALLED-CONSUMER-JOBENV-MULTIROOT-AND-OVERWRITE-SMOKE01.
+Check THIS task’s disposition before starting: running means do not duplicate; completed means inspect its existing result; a missing report alone does not mean not started\. Sessions A and C are permitted concurrent readers, not blockers\. Do not stop or control their processes\.
 
-Reported status: MULTIROOT_AND_OVERWRITE_SMOKE_PASSED_WITH_LIMITATIONS; four scenarios PASS. This is executor evidence, not independent acceptance. The reported run is complete; do not resume or repeat it merely because checkpoint 12 still says result not received.
+For a new task, create one exclusive output directory:
+`C:\docs\ETL-0911-UPGRADE-DISCLOSURE-OVERWRITE-DESIGN01-<UTC>-<unique>`\.
+Write only your own `design.md`, `result.json` and indispensable supporting notes there\. Do not modify shared reference/state files, existing reports or other sessions’ outputs\. If returning to an interrupted task, preserve earlier outputs and record the continuation\.
 
-Key review distinctions:
+Use `rg` to locate the relevant command handlers, dialog construction, asset plan/catalog, approval and write consumers, plus existing test entrypoints\. Read complete relevant functions/contracts and follow only real dependencies\. Record identities of inspected files once and verify them before finalizing; if they drift, mark the affected analysis stale and identify the changed dependency\. Do not rebuild, reset or scan all history to fix drift\.
 
-• Explicit consumer-root previews were invariant to folder order; the reference stand-in was rejected; two eligible consumers without an explicit root were blocked without writes.
-• Identical payloads were classified OVERWRITE for BOTH destinations. The dialog was declined; there was no executed content-identity no-op. A genuine reused-environment reference/UNCHANGED case was not exercised.
-• The changed-job case cancelled once, obtained a fresh preview, then approved once. The job changed only its top-level loggable value from true to false. Result: Created 0, Overwritten 2, Skipped 0, Blocked 0; exactly one file’s CONTENT changed.
-• The environment was inside the approved overwrite set and rewritten with identical content; its mtime changed. Content preservation is not an untouched-file claim or proof of existing-environment reuse.
-• The approved write ran with a SINGLE root open. Multi-root approved writing remains unexercised; the issued multi-root scenario required previews, so do not automatically call this an execution failure.
-• A reporting parser incorrectly used collapsed detail text, then was corrected to parse retained fullText. No product operation was reportedly repeated. Authenticate both the failure and correction.
-• Task-local F-1 is a diagnostic logging discrepancy: existing env labeled CREATE and overwrite operations logged as Created. The modal and structured result reportedly identify OVERWRITE correctly. Assess severity independently; do not close unrelated F-1 findings or erase this observation under “zero defects.”
+Reference v2 contract 09 v1\.1 and safety document 05 govern proportionality\. Use available matching copies; never invent a Windows mirror or make delivery of the entire pack a prerequisite\. The task\-specific operative requirements are included below\. Resolve only a missing original requirement that materially affects your design\.
 
-Resolve evidence once; prevent duplicate work
+## Evidence and known boundary
 
-Check whether THIS review is already running, completed, blocked or not started. Reuse its completed result or report an active review; do not create a duplicate. Do not interfere with other tasks or terminate their processes.
+Resolve original `C:\docs` task roots by task ID, report contents and metadata, not newest\-name selection:
 
-Resolve original task roots by the exact task IDs, original reports and run metadata under direct children of C:\docs; do not choose by newest directory name alone or scan entire drives. Review:
+- `ETL-0910-INSTALLED-WORKFLOW-EXISTING-CONSUMER-UPGRADE-SMOKE01`\.
+- `ETL-0910-EXISTING-CONSUMER-UPGRADE-INDEPENDENT-REVIEW01`\.
+- Relevant disclosure findings from `ETL-0910-WORKFLOW-GITIGNORE-DISCLOSURE-REVIEW01`, only as needed\.
 
-1. ETL-0910-INSTALLED-CONSUMER-JOBENV-WRITE-SMOKE01 — installed single-root CREATE.
-2. ETL-0910-INSTALLED-CONSUMER-JOBENV-MULTIROOT-AND-OVERWRITE-SMOKE01 — the new result above.
-3. ETL-0909-PRODUCT-WRITE-REPRO01 — only the routing/fixture provenance used by those cases.
-4. ETL-0909-CONSUMER-WRITE-SMOKE01 — only the adapter-write evidence and dependencies actually relied on.
+Reported accepted scope: one AG consumer’s scaffolded validate\-write skill upgraded from 1\.1\.4 to 1\.1\.5; other managed assets and managed `.gitignore` were preserved\. This bounded acceptance does not close the decision UI gaps\.
 
-Read complete issued requirements and reports for the two installed cases, then the original records needed for each claim. Do not re-audit all historical bundles. A missing predecessor record blocks only claims that depend on it. Current consumer bytes legitimately differ from the first run’s post-state after the later approved job change; verify that recorded transition rather than demanding all old snapshots equal today’s consumer.
+Reported open concerns: Upgrade presents counts at the decision point, while root, paths, versions and managed `.gitignore` details are elsewhere in the output channel\. Overwrite Existing Assets lacks sufficient itemization and has not been qualified end to end\. Treat exact claims as reported until authenticated\. Existing nonempty user content outside managed sections was not exercised by the accepted Upgrade\.
 
-Create one exclusive C:\docs\ETL-0911-CONSUMER-WRITE-CONSOLIDATED-INDEPENDENT-REVIEW01-<UTC>-<unique> output directory only if a new review is needed. Preserve earlier attempts. No overwrite of original reports, inventories, traces or helpers.
+The completed job/env multi\-root/overwrite smoke is a DIFFERENT operation; Session A reviews it\. Do not rerun it or use its result to accept workflow\-asset overwrite\. Its diagnostic logging F\-1 is also outside this implementation design\.
 
-Parallel delegation and reviewer independence
+## Produce the design
 
-If subagent delegation is supported, use at most TWO fresh reviewers in parallel after the coordinator resolves the shared evidence roots once. Give both this complete scope and the resolved record locations. They must not be instances that authored the evidence they review. Record actual reviewer identity and scope; procedural independence is not organizational independence.
+1. Trace actual Upgrade and Overwrite Existing Assets entrypoints through planning, decision UI, approval and writing\. Identify shared consumers with Initialize/Repair, preserving their distinct acceptance boundaries\. Where source identity cannot be tied to installed evidence, separate source\-design findings from installed observations\.
+2. Define the decision\-time information users need: actual selected consumer root, action/profile, exact destination paths, per\-item disposition, applicable current/target asset versions, managed `.gitignore` effects, and treatment of customized/unmanaged files\. Include only relevant product information\. Design explicit Cancel and accurately scoped confirmation\.
+3. Reuse one authoritative operation plan so displayed items and approved writes agree on root, paths, content and scope\. Determine how existing controls bind that plan and handle drift\. Do not invent a second catalog, planning engine or approval mechanism when the existing seam suffices\.
+4. Keep routine Upgrade distinct from explicit workflow overwrite\. Define preservation of user content and managed sections; collisions or missing ownership must not silently expand overwrite authority\. Identify the smallest affected files/functions and propose exact behavior changes, not patches\.
+5. Propose meaningful permanent regressions using EXISTING test entrypoints: correct root/path/version/disposition disclosure; pending/Cancel with no writes; stale/current and customized assets; managed `.gitignore` plus nonempty user sections; approved plan versus actual writes; applicable stale\-plan rejection; and affected Initialize/Repair behavior\. Specify independent expected fixtures and which checks may be reused when identities match\. Do not execute tests or create a new harness\.
+6. Identify shared files/interfaces with Session C, especially catalog destinations and their presentation\. Design against CURRENT destinations; do not implement or assume C’s future migration\. Propose one later integration owner and order for shared changes\.
 
-• Reviewer A — behavior and approval: installed invocation route, preview/cancel/approval binding, root selection/exclusion/ambiguity, dispositions and actual resulting bytes.
-• Reviewer B — provenance, authority and preservation: installed/source/helper/input identity, allowed mutations, filesystem transitions, retained evidence, reporting correction and task-scope compliance.
+## Delegation and handoff
 
-Both are read-only and return concise claim/record/conclusion/finding tables through the agent channel. They may inspect shared records but must not run shared helpers, create a replacement harness or write into each other’s outputs. The coordinator owns the only consolidated report.md and result.json and prepares the conditional next plan while they review. Use small, relevant cross-checks to resolve disagreements; do not repeat both audits.
+This session is already one parallel work lane\. Default to no additional subagents\. If useful capacity exists, delegate at most ONE bounded read\-only subtask &#40;for example existing regression coverage&#41;, while the parent completes the UI/control\-flow design\. Do not delegate Session A’s review or Session C’s inventory work\. All agents obey this prompt; only the parent writes the consolidated outputs\. No independent acceptance claim from an author check\.
 
-An implementing coordinator may organize the review but cannot independently accept its own work. Preserve the fresh reviewers’ conclusions, and leave disputed or uncovered boundaries unaccepted. If delegation is unavailable, a genuinely fresh reviewer session may perform both lanes sequentially. If this is still the authoring instance and no separate reviewer is available, finish useful author analysis and label it AUTHOR_CHECK_ONLY_INDEPENDENT_REVIEW_PENDING; do not claim independence or rerun the product.
+Finish with `DESIGN_READY_FOR_IMPLEMENTATION_SCOPING`, `BLOCKED_DEPENDENCY` or `OWNER_DECISION_REQUIRED`, stating the precise dependency/decision when applicable\. Make routine design choices yourself and explain them\. Include observed versus proposed behavior, exact source/evidence identities, editable surfaces for a FUTURE task, test matrix, shared\-file dependencies, remaining risks and the smallest next implementation brief\. Do not execute that brief\.
 
-No Host runs are permitted in this review. For FUTURE approved runtime tasks, the shared profile/consumer and CDP port 9377 require one session at a time. Never parallelize writes or Hosts against those shared resources.
-
-Required review decisions
-
-1. Authenticate the real installed product route and distinguish it from source imports, mocked services, model-driven Chat and @etl /write. Check the relevant source-to-installed relationship wherever a static source contract is used as an oracle.
-2. Verify applicable VS Code prepareInvocation confirmation and separate trusted product approval from retained traces. Bind input, previewId, root, exact paths/content, pending inventories, cancellation, fresh preview and final result. Do not infer approval from a PASS label alone.
-3. Verify both root orders and reference rejection were preview-only; verify genuine eligible-versus-eligible ambiguity and zero writes. Account for the additional conservative blocker with one eligible consumer plus one reference root when no root is supplied.
-4. Independently check existence-based OVERWRITE semantics. Keep declined identical payload, successful changed-content replacement, genuine env-reference reuse and multi-root approved write as separate coverage claims.
-5. Decide whether rewriting the byte-identical env complied with the ORIGINAL issued authority and preservation promise. Approval of two paths does not expand owner authority. If only content preservation was required, state that bounded conclusion; if an untouched/reused env was required, record the scope/coverage finding. Do not silently strengthen or waive the original requirement, infer a new product defect solely from the mtime change, restore the file, or rerun a write.
-6. Verify job bytes against the approved delta and env bytes against the original; distinguish content hashes, mtimes, created/overwritten counts and canonical Windows path identity while retaining authored casing.
-7. Check recorded preservation of the installed 65-file tree, separate accepted workflow consumer, reference/ambiguity fixtures, repository dirty paths and relevant source/output identities. Reported 26 dirty files and 2041 outputs are cross-checks, not sufficient identity proof. Resolve actual helper/report changes and their destinations; an editor change-count badge is not proof of product-source mutation. Expand inspection only for measured drift or a concrete scope concern.
-8. Verify the v2-to-v3 caller change was bounded to request overrides and preserved real gates, with no obsolete v1 caller. Reuse the existing transport/verifier interfaces. Review the retained detail/fullText correction and no-extra-write evidence; do not overwrite earlier failed results or introduce another catalog extractor.
-9. Assign a task-qualified identity and justified severity to the F-1 diagnostic logging discrepancy. Check whether any reviewed decision depends on that log; do not let contradictory diagnostics silently serve as authoritative evidence.
-
-Reusable evidence interfaces
-
-Resolve these from the completed bundle, without reconstructing or executing its runtime workflow:
-
-• Caller: harness/extension.js (v3) and harness/package.json.
-• Driver: helpers/flow-plan.js; transport: predecessor helpers/flow-jobenv.js, selected through ETL_JOBENV_TRANSPORT.
-• Runtime launcher, READ ONLY in this task: helpers/run-session.js.
-• Inputs/variants/expected identities: control/input.json.
-• Root pointers and plans: fixture/fixture-pointer.json, fixture/plans/*.json and the retained .code-workspace files.
-• Original outcomes: control/<session>/res-*.json; DOM traces: ui/<session>-trace.json; logs: logs/<session>/.
-• Checks: checks/a1-baseline.json, checks/d1-verification.json, per-session checks and inventory/*.json.
-• Approved delta/output evidence: measurements/job-variant-delta.json, retained written-file measurements and measurements/s4-channel-write-lines.txt.
-
-These are reported relative locations, not new expected hashes. Read the real bundle to confirm them. Do not blindly execute a1-baseline.js, fixture builders or d1-verify.js: they may overwrite original records. Any necessary offline recheck must use inspected non-mutating logic and write only to the new review directory.
-
-Deliver the verdict and complete the next plan
-
-Return one concise report.md and result.json: reviewed tasks/identities, reviewer independence, claim-to-record decisions, actual checks, findings with severity and exact evidence, preservation/scope conclusions and the selected next gate. Use ACCEPTED_WITH_LIMITATIONS, CHANGES_REQUIRED or BLOCKED_EVIDENCE_GAP for the independent review; use the author-only fallback above when applicable. Identify accepted and unaccepted subscopes separately. Fix review-owned parsing/reporting mistakes within this task from retained inputs; do not run the product for reporting.
-
-Plan conditionally, without executing the successor:
-
-• A concrete evidence/report finding: propose the smallest correction using retained results; re-review only the finding and affected interfaces.
-• A demonstrated product/safety defect: specify the smallest authorized-next repair proposal and meaningful permanent regression cases before affected runtime requalification. This task itself grants no product-edit authority.
-• If the bounded write evidence is accepted: prioritize the missing approved write with two roots open; assess genuine existing-env reference/UNCHANGED coverage against the intended contract. Define the exact fixture, expected env content/mtime behavior, positive/negative cases, allowed mutation and candidate identity for that next brief. Reuse completed root-order/CREATE checks; do not execute the old plan wholesale.
-• In parallel planning only, scope the material Upgrade disclosure/Overwrite Existing Assets UI work and its permanent tests. Keep it separate from job/env overwrite. No concurrent edits to the recovery worktree.
-• Retain model-driven Chat, @etl /write, trust-restricted behavior, include/onboarding/split-job routes and skipped/blocked partial outcomes as distinct unqualified scopes; order required checks by intended release coverage. Do not invent a new trust-storage investigation here.
-
-Carry forward toolchain/no-lockfile, adjacent-suite failures, dirty-source acceptance and preservation limits, accepted B1/C1 and the bounded QA substitution exception. Resolve R3/R4 successor uncertainty only for a depended-on gate. Keep document 10’s resource-layout and asset-completeness requests visible. F1/F3 quarantine expires inclusively on 2026-09-13 UTC; no automatic reliance from 2026-09-14 without a recorded disposition.
-
-Record confirmed reusable helper paths, parameter locations and the existing runtime command template as documentation marked NOT EXECUTED. Never claim historical-incident reproduction, RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS.
-
-────────
-
-Preparation provenance: this prompt was planned from current Reference v2 documents and owner-supplied report photographs IMG_0962.jpeg through IMG_0967.jpeg. ChatGPT inspected those photographs; it did not inspect raw Windows bundles or perform an independent engineering review. The photographs are not required Windows inputs and must not be processed by the Windows agent. This file records a next task, not a started or completed review, and does not update the existing current-state files by itself.
+Do not wait indefinitely for A or C\. Mark their unpublished results pending and return this independently useful design\. A only needs your task ID, result location and dependency summary; do not edit A’s report\. Keep release/toolchain/adjacent\-suite and source\-acceptance limits visible without re\-auditing them\. Preserve B1/C1 acceptance and the existing QA exception\. Do not rely on an unrenewed quarantine from 2026\-09\-14; its recorded expiry is 2026\-09\-13 inclusive UTC\. No release or full\-readiness acceptance is granted by this design\.
