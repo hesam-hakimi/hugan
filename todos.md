@@ -1,79 +1,55 @@
-# Finish the related /create parser corrections and independent review
+Qualify the corrected /create path through a real write preview
 
-TASK\_ID: ETL\-0911\-CREATE\-ENV\-ROLE\-BINDING\-REPAIR01
-ACTION\_ID: PARSER\-CORRECTIONS\-AND\-REVIEW01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not launched by ChatGPT
-TYPE: Same\-source\-task continuation; narrowly expanded parser defect scope
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
+ACTION_ID: CREATE-ROUTE-B-INSTALLED-QUALIFICATION01
+Continue from the authenticated CREATE-ENV-ROLE-BINDING repair and its final parser-corrections review. Resolve the existing claims and exact result paths; reuse an already prepared qualification task if present. Otherwise create one bounded successor, not a separate triage campaign.
 
-Continue in the current Windows session\. English only for all coordinator/subagent communication, code, tests and reports\. No screenshots, video, image inspection, OCR or vision\.
+Owner submission authorizes the preparation, isolated build/package/install and preview-only execution below. PRODUCT_WRITE_AUTHORIZATION_BUDGET: 0. No deployment, publication, real-consumer writes or demo delivery.
 
-## Current result and precise expansion
+1. Establish the starting point and dispose of the three failures
 
-Read the retained final source result, actual review findings, post\-review diff and test commands\. The owner reports:
+Authenticate the final four source/test files against the retained final identities and the final VERIFIED reviewer artifact. Preserve the preceding three CHANGES_REQUIRED artifacts as history. The reported relevant result is 126 passing, zero failing; the separate createPlanLlmService result is 4 passing / 3 failing and must remain separate.
 
-- GoalInterpreter\.extractFolders harvested slash\-containing tokens with only a \.md exclusion, allowing the explicitly reused environment config into references\.folders and the workload plan\.
-- The correction now uses isSuppliedEnvironmentConfigReference at three candidate\-producing branches, including inline\-backtick extraction and the folders\-section branch corrected after review\.
-- 74 affected checks pass and typecheck exits 0\. Only GoalInterpreter\.ts and phase4ConversationalPlanner\.test\.ts changed\.
-- The reviewer correctly returned CHANGES\_REQUIRED for a bypass\. The author corrected it, but the corrective delta has NOT received independent re\-review\.
-- CREATE\-PHRASING\-WORKLOAD\-COLLAPSE\-001 is independently reproduced: ‘Create an ETL job from folders raw/customer\_orders into ADLS curated\.’ becomes table ADLS and source folders without any env clause\.
+Read the exact three failure titles, assertions, errors and relevant dependency paths. Absence of changed symbol names in grep is insufficient to establish that failures are unrelated. Determine whether each is a fixture/output-resource problem, an actual regression, or an unresolved prerequisite of the intended /create route. Correlate the reported PowerShell exit-code-1 notification with retained command evidence if available; otherwise leave its origin unknown.
 
-Owner submission now explicitly includes the smallest fix for CREATE\-PHRASING\-WORKLOAD\-COLLAPSE\-001 alongside closure of the environment\-role review findings\. Its previous out\-of\-scope classification was correct for the previous brief; preserve that history rather than claiming it was always authorized\. This is not authority for a general natural\-language parser rewrite\.
+Use existing source preimages if a focused baseline comparison is necessary. Do not reset/revert the working tree or treat HEAD as the preimage of dirty files. A missing trusted_core.md in the isolated test output may be addressed through the existing task-owned test lane using the authenticated existing resource, if that is what the test actually requires. Do not download resources, install dependencies, weaken assertions, or skip failing cases to obtain green results. Run only checks needed to resolve these failures or required package gates; do not repeat the full successful inventory without a concrete reason.
 
-Complete both concrete source corrections and their focused independent review in this continuation\. Do not end merely after applying a reviewer correction without having its changed portion re\-checked\.
+If a required route or package prerequisite remains broken or causality is unresolved in a way that affects this qualification, stop before building and state the exact blocker and proposed bounded fix. This action does not authorize additional product-source repair. If evidence establishes that remaining failures do not block this bounded route, record that limited disposition and CONTINUE through the following stages in the same task. Do not pause merely to request permission for the already authorized build and preview.
 
-## Authority and preservation
+2. Produce one distinguishable installed candidate
 
-Authorized: targeted source/test edits for these two defects, isolated affected test compilation/execution using existing tooling, and a bounded independent re\-check\. No runtime Chat/model request, product command, consumer write, build/package/install, dependency download/update, version change, Git mutation, job, deployment or publication\.
+Use the retained .151 build/package/install interfaces and current authenticated source snapshot, including required dirty/untracked product inputs. Determine the next unused private version from authoritative candidate records; .152 is a possibility, not an assumed reservation. Change the version only in isolated staging.
 
-Use the existing task/claim/root, check actual action disposition and source ownership, and preserve newer evidence\. Do not duplicate running/completed work or infer inactivity from missing output\. Append identifiable continuation records without altering old reviews/evidence\.
+Build and package once in task-owned output, execute the required package gates, and verify the source-to-staging-to-VSIX-to-installed identity chain. Check required resources and the corrected behavior structurally; minified identifier absence is not evidence of missing code. Preserve shared out, .tsbuildinfo.test, original source/package files, Git state, previous VSIX files and previous installed extension directories. No dependency installation or toolchain replacement.
 
-Source: C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147
-Protected linked primary: C:\\repos\\etl\-extension\\etl\_fw2\\etl\_framework\_extension\_hf1\_v2
+Reuse the existing signed-in isolated env151 user-data/profile through the normal launcher with a NEW task-owned extensions directory for this candidate, if the existing supported launch interface permits it. Verify the actual host arguments, loaded candidate and extension directory. Do not overwrite the .151 installed directory or copy credentials/session storage. Normal chat/profile activity is allowed and must not be described as byte-preserved profile state. Never use the default user profile. Only one host may use this task profile at a time.
 
-Pin relevant preimages and preserve existing dirty/untracked work, shared out/, \.tsbuildinfo\.test, installed environments and the signed\-in env151 profile\. Do not repeat fixture setup, sign\-in, host diagnosis or prior runtime cases\. No broad C:\\docs/session\-store scan or historical reconciliation campaign\.
+Retain normal workspace trust and the recorded custom-dialog/telemetry/update/startup settings. Do not disable trust, edit authentication or enablement databases, or enable all extensions. If genuine interactive account consent/sign-in is still necessary, leave the exact isolated window available and identify the owner action; never manufacture authorization. Otherwise continue without asking again.
 
-## Trace and fix only the concrete parser failures
+3. Exercise Route B, with zero approved writes
 
-1. Reproduce the exact CREATE\-PHRASING\-WORKLOAD\-COLLAPSE\-001 input offline against current code before editing\. Trace actual branch precedence/capture groups and downstream role assignment\. Do not assume the regex/mechanism before inspecting it\.
-2. Parse the explicitly supplied folder raw/customer\_orders as the workload input and ADLS curated as destination context under the existing contract\. Structural words in that sentence must not silently become a workload table/source\. Derive literal expected normalized roles/paths from the established valid\-folder contract, not from the parser under test\.
-3. Preserve valid ‘Migrate folders …’ behavior and legitimate explicit workload names\. Do not blanket\-ban the words ADLS/folders/env or YAML/JSON/file inputs; correct roles and precedence in the affected sentence forms\.
-4. Preserve the env\-reuse correction across all actual candidate\-producing paths: bare paths, quoted/backtick tokens and the folders\-section branch\. An env\-only request must clarify genuine missing workload inputs, not invent a table/target/write mode\.
-5. The current environment\-context check is a bounded lexical heuristic &#40;reported preceding window <=120 characters with sentence boundaries&#41;\. Do not describe it as a complete semantic understanding guarantee\. Have the reviewer inspect its actual bounds and verify that the supplied role language is not applied to an unrelated neighboring workload\. Fix concrete in\-scope regressions; record unsupported language variants honestly rather than expanding to arbitrary natural\-language coverage\.
-6. Do not merely replace the failing live test request with a friendlier phrase or weaken its expectations\. No changes to writers, approval gates, workflow migration, packaged assets, file\-extension policy, diagnostic F\-1 or OUTCOME\-DISCLOSURE\-001\.
+Preserve the previous Route A observation on .151. Do not rerun Route A or claim that its observation qualifies this new candidate. Do not repeat any spent Initialize, Upgrade or Overwrite operation.
 
-Use the smallest coherent edit set, preferably the same parser/test seam\. Any additional affected file must have a concrete dependency justification and protected preimage\.
+Reuse the frozen chat-write fixture and the final helpers/d1-drive-turn.js transport. Verify the fixture against its retained identities. Do not reseed it or inject a fabricated participant candidate/session. Record new evidence in exclusive-create files; never overwrite pre-action captures.
 
-## Tests through existing entrypoints
+Before dispatch, register the exact original env-reuse request and expected clarification. Drive the real @etl /create participant route on the newly installed candidate. Confirm that the reused environment configuration is not enrolled as a workload or assigned a curated data target. It must ask for the missing workload when no actual workload has been supplied.
 
-Retain the six environment\-role regressions and the existing positive case in which env\_conf/dev/customer is legitimately a workload\. Add minimal permanent coverage for:
+Then provide a concrete controlled workload grounded in the retained fixture/test contract, for example the accepted raw/customer_orders to curated/customer_orders case where applicable. Declare any necessary source, target and write-mode values explicitly as synthetic test inputs before submitting them; do not infer production intent, guess answers for the user, or claim unavailable data was validated. Reuse the existing environment configuration unchanged. If the existing fixture cannot support the intended preview, report the exact missing prerequisite instead of manufacturing a successful plan.
 
-- the exact observed ‘Create an ETL job from folders raw/customer\_orders into ADLS curated\.’ form;
-- that same concrete workload plus an explicit unchanged\-env\-reuse clause: only the real workload enters the plan;
-- existing valid folder phrasing remaining valid;
-- the reviewer\-identified quoted/backtick and folders\-section bypasses staying closed\.
+Continue normal clarification turns within this same participant session until a real candidate preview exists, then invoke @etl /write through its ordinary UI. Do not substitute direct helper invocation or agent-mode tool state for the participant route.
 
-Use independent literal expected workload/source/target roles and assert that missing\-input outcomes cannot dispatch a writer\. No live model call, fixture consumer write or fake claim of installed behavior\. Record a behavioral pre\-fix failure where feasible; a compile/import failure is not a behavioral red\.
+Inspect the full proposed paths, CREATE/REUSE/other dispositions, environment reuse, and validation status. Preserve the requested job identity. Record .conf versus .json as a contract question or supported difference according to actual product evidence, not an automatic defect.
 
-Run the relevant existing suites using the retained isolated lane\. Use already installed compiler/test binaries; do not allow npx to fetch missing tooling\. Output and incremental state remain task\-owned\. Verify the emitted tests correspond to the edited test/source identities, and do not run a command that removes protected out/\.
+Capture the genuine final product write-approval surface and decline it using the exact verified Cancel/decline control. Never click Approve write, Apply, or another write-authorizing action. LM-access consent, a clarification cancellation and tool progress labels are not this approval boundary. If no genuine final gate is reached, report the actual stage; do not claim approval-gate coverage.
 
-The previous report says createFlowScenarios\.test\.ts was not emitted by tsconfig\.test\.json and createPreviewFlow ran instead\. Inspect why and whether the omitted suite covers the changed entrypoint or an explicitly required gate\. If relevant, include that existing suite in a task\-owned test compilation configuration using existing dependencies; do not edit global configuration or invent another harness\. If it is not relevant or cannot run for a concrete dependency reason, state the exact coverage limit\. Do not count an unexecuted suite as passed or claim a similarly named suite is equivalent without evidence\.
+Use the driver’s actual quick-input/generating/approval states. Observe an in-flight request without resubmitting it. A clarification must produce a visible bounded checkpoint, not endless polling; unexpected questions stop for diagnosis. Limit helper corrections to concrete transport/observation defects and reuse the existing helper. Do not invent a new harness.
 
-Reuse unaffected results only when source/tests/fixtures/dependencies/settings/compiled outputs relevant to those results still match\. Do not rerun broad adjacent suites solely to increase totals; preserve the three historical unrelated failures without opportunistic fixes\.
+4. Verify and close
 
-## Independent re\-check must reach an actual recorded disposition
+Establish zero product writes using control-flow evidence plus before/after file identities; equal hashes alone do not prove absence of identical-content writes. Preserve original fixtures and all historical budgets. Do not consume an old write allowance or treat a reporting failure as permission to repeat an operation.
 
-Use one read\-only reviewer, preferably the original instance if available, to inspect both the existing corrective delta and the newly authorized phrasing fix\. It may independently trace the reproducer while the sole coordinator edits; it must not modify source/tests, run a Host, send model requests or mutate consumers\.
+Obtain one focused read-only review of the resulting qualification evidence if the retained workflow requires it, with an on-disk verdict and explicit scope. Do not reopen the already VERIFIED source review unless actual source drift or a new concrete finding requires it.
 
-If the original instance cannot resume, use one clearly identified replacement and preserve the original CHANGES\_REQUIRED as historical\. Capture the actual returned review verbatim with provenance at receipt, or have it write an artifact in its own evidence directory\. Do not leave the verdict only in an ephemeral message\.
+Use INSTALLED_CREATE_ROLE_BINDING_AND_ROUTE_B_PREVIEW_VERIFIED_WITH_LIMITATIONS only if the corrected clarification, genuine participant preview, final product write-gate decline and zero-write checks all pass. Otherwise give the precise partial result and last durable checkpoint. Report candidate and output paths, failure dispositions, live stages observed, actual reviewer verdict and outstanding limitations. Release this task’s runtime/source ownership on closure.
 
-Have it check the exact failures, three extraction branches, valid workload preservation, no\-write/missing\-input behavior and actual test execution\. Address concrete findings and have the changed portion re\-checked before closing\. A passing author suite is not an independent reviewer verdict\. If an unresolved requirement remains, report it precisely rather than promoting the result\.
-
-## Close and prepare the installed successor without executing it
-
-Return one concise report/result with confirmed causes, changed\-file/preimage identities, actual test commands/results, omitted\-suite disposition, real final reviewer verdict and limitations\. Record final reusable command/parameter locations; no new reporting framework or general reconciliation stage\.
-
-If both defects are corrected and reviewed, record that each finding is closed at SOURCE scope only\. \.151 still contains the old parser\. Prepare the smallest distinguishable\-candidate follow\-up and expected Route B sequence: first prove the original env\-only input asks for the genuinely missing workload, then supply a concrete synthetic workload from the registered fixture contract, reach preview and decline the final write approval\. Do not inject participant session state or manufacture a candidate to bypass /create\. No candidate version is reserved or built by this task\.
-
-Route A’s \.151 preview remains retained evidence; do not rerun it now\. For a future candidate, justify reuse from the actual affected dependency boundary rather than version alone\. Route B’s previous Escape was a clarification cancellation, not a product write\-approval cancellation\. Final Chat write approval remains unobserved in that task\.
-
-Close with result pins and explicit source\-ownership release\. Preserve all prior scopes and open limits: spent write budgets; Base/Upgrade/B1/C1 acceptance; QA exception; R3/R4 uncertainty; document 10; OUTCOME\-DISCLOSURE\-001; diagnostic F\-1; historical CASE2 dispute; Windows case\-folding; three adjacent failures; trust/model/historical\-incident/toolchain/no\-lockfile/source/preservation limits\. Quarantine ends 2026\-09\-13 inclusive UTC with no automatic extension from September 14\. No RELEASE\_ACCEPTANCE or FULL\_PRODUCT\_OR\_ASKTD\_READINESS\. Demo remains deferred\.
+Carry forward OUTCOME-DISCLOSURE-001, Windows path/case-folding test gaps, the bounded lexical-heuristic limitation, three known adjacent failures, and any unresolved createPlanLlmService failures as separate items. Preserve historical evidence limitations and all Base/Upgrade/B1/C1, QA, R3/R4, trust/model, job/env F-1, CASE2, toolchain/no-lockfile and source-preservation boundaries. Quarantine ends 2026-09-13 inclusive UTC; do not extend it or rely on it after expiry. No RELEASE_ACCEPTANCE, FULL_PRODUCT_OR_ASKTD_READINESS, or cross-candidate all-phases claim. Demo remains deferred.
