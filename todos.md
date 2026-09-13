@@ -1,73 +1,84 @@
-Repair the concrete job-config contract gaps before another live qualification
+Qualify the repaired job-config contract through the consumer Orchestrator
 
-TASK_ID: ETL-0912-JOBCONFIG-CONTRACT-AND-QUALIFICATION-REPAIR01
 STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
-Scope: bounded source/test correction, existing test-driver correction and focused review. PRODUCT_WRITE_AUTHORIZATION_BUDGET: 0.
+TASK: Use the exact qualification task ID prepared in the final ETL-0912-JOBCONFIG-CONTRACT-AND-QUALIFICATION-REPAIR01 report. If none was assigned, use ETL-0913-JOBCONFIG-INSTALLED-ORCHESTRATOR-QUALIFY01. Do not instantiate both.
+PRODUCT_WRITE_AUTHORIZATION_BUDGET: 0.
 
-Use the current Windows engineering session. Resolve the final GATE-PATH-AND-EVIDENCE-REVIEW01 report and reviewer verdict under ETL-0912-INSTALLED-0152-ORCHESTRATOR-PREVIEW01. Authenticate ownership release and current source preimages. Reuse an existing matching repair task if already instantiated; otherwise acquire one bounded task. No broad C:\docs scan, duplicate intake or reconciliation campaign.
+Execute in the current Windows engineering session. All prompts, replies, tests and artifacts must be English. No screenshots, video, image inspection, OCR or vision. Reuse the final build/install, fixture, capture and review interfaces. One source/runtime owner; no simultaneous hosts sharing the isolated user-data profile.
 
-Owner submission authorizes the source/test and task-helper changes below. All engineering communication is English. No screenshots, video, image inspection, OCR or vision. No live host/model run, approved consumer write, build/package/install, dependency installation, version bump, Git mutation, DBFS publish, job execution or deployment. Preserve .152, all historical fixtures/evidence, both worktrees’ unrelated changes, shared out and .tsbuildinfo.test. Compilation/tests must use the existing isolated output lane with its authenticated resources.
+Authority and outcome
 
-Correct starting state
+Owner submission authorizes one isolated distinguishable private build/package/install, necessary synthetic fixture preparation, normal use of the signed-in isolated profile/model, read-only checks, natural-language Orchestrator interaction, preliminary tool consent where it cannot write, and decline of the genuine final product write approval. Execute the complete bounded task without repeated routine permission requests.
 
-The selected consumer Orchestrator reached the genuine etl_write_to_workspace tool owned by td-etl.databricks-etl-copilot .152. There was no generic-edit bypass. Skip declined prepareInvocation consent for the FIRST call. The tool body never executed: no extension-owned preview, previewId, retained candidate bytes or final Approve write modal existed. The earlier PREVIEW_AND_CANCEL_VERIFIED claim was withdrawn. Preserve that correction; do not rerun or rewrite history.
+No additional product-source/test repair, dependency installation, default-profile mutation, Git mutation, external job, DBFS publish, deployment or release. No approved consumer artifact write. Concrete task-owned capture/fixture/launcher faults may be corrected in place without fabricating outcomes. A new product defect requires an accurate blocked result and the smallest proposed repair, not an unreviewed patch.
 
-Three different causes need different repairs:
+1. Authenticate the final source repair and reuse its results
 
-1. Product gap: the model-supplied job path was job_conf/ERUS9/… instead of job_conf/conf/ERUS9/…, with no destination-layout check before preview. The DBFS path mapper’s filename fallback would drop the zone, as established by code tracing, not deployment.
-2. Product gap: .conf and .json are both permitted by the shipped job-config contract, but several discovery consumers recognize only .json. A correct conf/ directory alone does NOT restore .conf inventory/discovery.
-3. Test/executor gap: the clarification answer omitted registered filter order_status IS NOT NULL; candidate bytes and validator payloads were not captured; tool consent was mislabeled as final approval. Do not attribute the wrong clarification answer to the product.
+Read the repair’s final report, result pins, changed-file inventory, prepared next brief and actual final reviewer verdict. Verify source identities and ownership release before snapshotting. Preserve all earlier reports and .152 evidence. Missing candidate bytes from the old run remain missing; do not reconstruct its validation or approval history.
 
-A. Enforce job-config destination shape at the trusted boundary
+Reported changes to authenticate:
 
-Inspect the real contract, valid consumers and guarded preview/write path. Add the smallest shared validation at the appropriate job-artifact boundary BEFORE a preview manifest/record is accepted, and ensure the write phase cannot evade it. Require the applicable job_conf/conf/ layout and a permitted extension from the authoritative contract. Use existing normalization/containment utilities; keep canonical root safety independent from relative layout.
+• JobConfigArtifactPolicy and the trusted manifest-building path enforce destination shape, including on the previewId-bearing call; containment remains separate.
+• DbfsPublisher preserves conforming zone/subpaths and explicitly rejects invalid job paths instead of falling back to filename only.
+• Supported-extension discovery and actual parsing recognize .conf as well as .json; ArtifactDiscovery uses the established parseJobConfig seam.
+• Clarification data includes order_status IS NOT NULL; the driver distinguishes all approval states by protocol and rejects missing evidence.
+• Read-format interpretation was resolved from packaged/code-backed Framework semantics, while FRAMEWORK-DOC-READFORMAT-CONFLICT-001 remains a documentation conflict.
 
-Reject an invalid model-supplied destination with an actionable explanation before preview creation or writing. Do not silently relocate it, create a new candidate under a different path, or mutate a previously approved plan. Do not broaden generic PathValidator rules for unrelated artifact types or invent a new planning/approval subsystem.
+The reported 584 passing / 5 failing result has five failures reproduced in the pre-fix baseline and no new failures. Read their identities and the relevant qualification constraints once; do not call the suite all-green, recount the new regressions as additional totals, or repeat all suites merely for this package. A required gate cannot be waived solely because its failure is old.
 
-Inspect DbfsPublisher’s corresponding job-config mapping. Remove silent zone loss for invalid job-config paths through the smallest explicit validation/error behavior consistent with valid callers. Preserve the zone/subpath for conforming paths and keep different zones’ same-named jobs distinct. No actual publishing is permitted. Do not migrate existing consumer files or change unrelated artifact mapping.
+Retain the specific missing pre-task preimage for the already-untracked previewDestinationContainment.test.ts. The retained final copy establishes its current bytes, not its earlier bytes or a reconstructed Git diff. Do not reopen accepted source review simply to manufacture that history.
 
-B. Make supported extensions work through discovery
+2. Build and install one new private candidate
 
-Trace and correct the affected readers identified in the review:
+Check current free disk space and available local toolchain first; the previous disk exhaustion and npm-cache cleanup are recorded history. Do not delete Temp, fixtures, evidence, historical candidates or source. If space is immediately being consumed again, diagnose that growth read-only before compilation. Do not repeatedly generate partial outputs on an exhausted disk.
 
-• src/core/artifacts/ArtifactReuseTypes.ts;
-• src/tools/EtlReadOnlyToolService.ts;
-• src/services/postRunVerification/VerificationIntentResolver.ts;
-• src/customization/RepoInventoryService.ts.
+Use the established staging/build/package pipeline outside the protected worktrees. Include the authenticated current product inputs, including required dirty/untracked files. Select a genuinely unused private version from authoritative records; .153 is only a possible next value. Bump version only in staging. No shared out or .tsbuildinfo.test writes, dependency installation, Git reset or source regeneration.
 
-Verify the actual paths and call sites before edits. Apply the existing contract’s supported-extension policy consistently, reusing the established seam where available. A glob change is insufficient if downstream classification or parsing still rejects the supported artifact. Preserve legitimate .json behavior and ambiguity/collision handling; do not arbitrarily select one file when both extensions identify the same job. Do not solve this by forbidding .conf, renaming it to .json, changing its contents, or depending on an unused constant.
+Run the required package gates, verify required resource/config parsing support, and establish source -> staging -> VSIX -> installed identities. Minified symbol-name absence is not a missing-code test. Preserve the actual original package-gate semantics and any retained toolchain limitations.
 
-Keep the change confined to job-config layout, recognition and affected consumers. If a broader parser redesign is required, document the concrete boundary and do not expand silently.
+Install only into a new task-owned extensions directory. Reuse the normal signed-in env151 user-data/profile and working launch settings, preserving earlier installed extension directories and VSIX files. No credential copying, database edits, Enable All, trust-disable flags or default-profile use. Verify the actual GUI executable, loaded extension/version and extensions directory, not CLI listing alone.
 
-C. Repair the existing qualification driver and input contract
+If a package gate fails because the source repair is defective, stop with the concrete defect. If a task-owned staging/resource path is wrong, correct it and verify the affected stage without rebuilding unrelated evidence or changing product code.
 
-Reuse the final transport and fixture utilities; no new harness. Preserve the frozen fixture and failed transcript. Prepare corrected clarification data outside the consumer, including the exact registered filter. Answers must distinguish registered literals, derived paths and unresolved technical choices. A question asserting ‘no additional filtering’ must not receive agreement when the registered filter is nonempty.
+3. Prepare a complete and observable live case
 
-Resolve READFORMAT-VIEW-VS-ANSWER-001 against the actual packaged Framework semantics: whether plain path-backed Delta can legitimately use read-format: view without type: srz_zone. A Delta source declaration alone is not proof of an SRZ classification. Record the supported encoding and its authority, or retain the semantic blocker. Do not label validator-driven changes equivalent without evidence or invent a new business answer.
+Create one new disposable consumer from the retained supported synthetic fixture using the existing builder. Preserve the old consumers byte-for-byte. Use the candidate’s exact applicable shipped agent/skill/context bytes, with provenance. No product Initialize/Upgrade/Repair or workflow provisioning run is authorized here; copied setup assets do not qualify those routes.
 
-Correct the observer’s state distinctions:
+Register the full business facts before the model request: the six mappings, intended job identity, physical source/target facts, append behavior, required order_status IS NOT NULL filter, existing env reuse and supported read semantics. Keep derived paths labeled as derived. Use the now-established Framework encoding rather than asking a synthetic user to assert technical facts unsupported by the fixture. Preserve the documentation conflict separately.
 
-1. Host consent for a preview-producing call;
-2. Actual tool result with extension-owned previewId/manifest;
-3. Host consent for the identical-content call carrying that previewId;
-4. The genuine Approve write modal.
+Expected job destination: job_conf/conf/ERUS9/CUSTOMER_ORDERS_CURATED_LOAD.conf, if the retained fixture carries that identity. Both .conf and .json are contract-permitted; this case deliberately exercises .conf. Do not silently drop conf/, the zone, the filter or a declared business requirement. Missing facts must be clarified, not invented.
 
-The driver must never classify Allow Once/Skip by label alone as final approval. Before any future qualification claim, it must durably capture the actual final rendered candidate bytes, the corresponding validator payload with verbatim warnings, the preview manifest/ID and the pending final approval. A model summary, tool progress row or output-path string is insufficient. Missing evidence produces a specific incomplete result, never a fabricated success. Do not reconstruct the lost old candidate or inject stale preview state.
+Preflight the actual supported STTM layout, env substitutions and schema through the existing read-only interfaces. Assert independent mapping and business expectations, not merely table counts. Keep preparation results separate from live user-route evidence; do not inject their candidate/preview/session into Chat. Freeze the completed consumer before the live request.
 
-Offline helper checks may use clearly labeled synthetic observations to test these distinctions; they are not live product evidence. No UI consent or write click is authorized in this task.
+Before dispatch, establish that the corrected capture path can persist full tool arguments/results and exact candidate content rather than only progress labels. Use the existing capture interface. Save observations outside the consumer with exclusive-create semantics. The run may claim validation/preview only when the actual payloads are retained, not when the model says they exist. Record a precise capture limitation if a required payload is inaccessible.
 
-D. Focused verification and independent review
+4. Drive the genuine Orchestrator and the correct two-stage writer
 
-Use permanent behavioral regressions for the product changes: invalid/missing conf/ layout and prefix lookalikes; conforming .conf and .json paths; unchanged canonical containment; invalid paths producing no accepted preview/write; supported config discovery and reuse through the affected real consumers; ambiguous dual-extension cases according to existing policy; zone-preserving DBFS path mapping without external calls. Verify unrelated artifact behavior where the changed seam is shared. Use independent literal expected outcomes rather than deriving both sides from the policy under test.
+Open only the disposable consumer in the product host. Select the actual ETL Orchestrator and record its identity, displayed model and observable instruction/skill loading. The product model must not use extension source, Framework source checkout or C:\docs evidence as hidden workspace context.
 
-Reproduce concrete pre-fix behavior using retained source/preimages or existing pre-fix APIs without resetting the dirty tree. Run the smallest affected suites and required adjacent checks, not the entire historical inventory. Include the corrected isolated resources so a missing test-lane resource is not confused with a product regression. Preserve known unrelated failures and report new ones separately.
+Submit one normal natural-language request to prepare the declared job from the workbook, reuse the existing env and show the validated changes for review before saving. The user request must contain no /create, /write, tool names or instructions coordinating internal specialists. Let the Orchestrator choose its own tools. Supply business clarifications from the registered facts, explicitly preserving the filter. Do not steer a wrong result by changing the declared business case.
 
-Use one focused independent reviewer for the final source diff, affected tests and helper changes. If the named Verifier is unavailable, a disclosed equivalent read-only reviewer is acceptable; it must not mutate product/source/consumer files or control runtime. Preserve its actual verdict in its own task-owned directory, or capture a returned message honestly when file output is unavailable. Address concrete in-scope findings and obtain the actual final disposition; do not self-promote CHANGES_REQUIRED.
+Capture the real interpretation, render and validation tool results, including exact errors/warnings and each changed candidate’s identity. Model repairs are allowed through the normal product route; each final business requirement must still hold after repair. Do not accept a model paraphrase of validator output or infer three warnings from two summarized causes.
 
-E. Finish with a concrete next qualification brief
+Use the established gate sequence, confirming it still applies to this exact candidate:
 
-Report changed files, behavior corrected, actual tests and reviewer verdict, source identities and preservation. Claim source repair only to the extent proven. No new installed qualification is established here.
+1. The first etl_write_to_workspace call has no previewId. Host Allow Once permits entry into a call that creates an extension-owned preview record and returns without writing. After verifying that exact invocation and its no-write branch, accept this preliminary consent. Do not click Skip here and call the preview complete.
+2. Capture the actual returned previewId, full manifest/dispositions, canonical root, exact proposed paths and proposed bytes/checksums. Verify env reuse and the unchanged consumer. Confirm the final rendered, validated and previewed artifact identities agree.
+3. Through the Orchestrator’s normal continuation, request the final file review with saving still unapproved. It must call the tool with that previewId and identical content. Do not inject state or invoke the tool yourself as a substitute for the model route. If host invocation consent appears again, it may be accepted only after confirming the independent final approval still prevents writes.
+4. Reach and capture the actual trusted modal whose affirmative button is Approve write. Capture its preview binding and the unchanged consumer while pending. Select the exact negative control, normally Cancel. Never select Approve write. Record the resulting product outcome and preservation.
 
-Prepare, but do not execute, the smallest next candidate/package-and-Orchestrator-preview brief using the existing .152 build/install and driver interfaces. A distinguishable candidate is required because source changed; .152 remains historical. The future run needs a fresh legitimate preview, captured bytes/validation/manifest, correct layout, intact filter, established read semantics, and decline at the genuine final Approve write modal. Keep approved writing as a later explicitly scoped gate. Do not reuse the previous report’s proposed .152 write brief as if its prerequisites were met.
+Never infer stage four from Allow Once / Skip or from the host’s ‘changes workspace source’ subtitle. Neither preliminary consent authorizes a product write. Generic editing, shell writes, external jobs or any route bypassing the final gate remain forbidden.
 
-Close ownership with result pins. Retain open INCLUDE-SQL-KEY-EXTRACTION-001 unless separately reproduced/fixed under an applicable authority, Route B’s separate gap, broader STTM and four-header limitations, OUTCOME-DISCLOSURE-001, catalog-asset limitations, Windows case-folding gaps and all historical Base/Upgrade/B1/C1, QA, R3/R4, F-1, CASE2, model/trust/toolchain/source-preservation boundaries. Quarantine ends 2026-09-13 inclusive UTC without automatic extension. No RELEASE_ACCEPTANCE or FULL_PRODUCT_OR_ASKTD_READINESS. Demo remains deferred.
+If a preview expires or normal product state legitimately requires a new one, follow the product’s own renewal path and document why; do not fabricate or revive a stale record. Observe in-flight requests without resubmitting them. Keep clarification/capture repairs bounded and do not introduce model/provider matrices or duplicate successful runs.
+
+5. Review and close the bounded installed result
+
+Assert the correct job layout, intended filter/mappings/read semantics, exact candidate-to-validator-to-preview relationship, verbatim warning disposition, env preservation and final-gate cancellation. Support zero product writes with control flow plus file identities; equal hashes alone are insufficient. All fixture-setup writes are separate and pre-freeze.
+
+Use one focused independent read-only reviewer on these actual installed observations. It must not control the host or mutate the consumer. Permit its own verdict file in task evidence, or capture a returned verdict with honest provenance when file output is unavailable. Correct report errors from retained records; do not rerun a successful interaction solely to improve a report.
+
+Use an installed Orchestrator trusted-preview/final-approval-cancel VERIFIED_WITH_LIMITATIONS status, carrying the ACTUAL candidate version, only if every required stage and its evidence is established. Otherwise state the last durable stage and exact blocker. Source tests, package checks and model narration do not substitute for installed observations.
+
+If successful, prepare the smallest next brief for one explicitly authorized write on a fresh controlled consumer with exact expected effects; do not execute that write in this task. Preserve the new VSIX, useful fixture and final helpers for reuse. Close the claim with result pins and ownership release.
+
+Carry the HOCON module-tree parsing limitation, FRAMEWORK-DOC-READFORMAT-CONFLICT-001, missing historical test preimage, five baseline failures with their identities, Route B’s separate gap, INCLUDE-SQL-KEY-EXTRACTION-001, STTM-format limits and all remaining historical acceptance/preservation limits. Current date is 2026-09-13 UTC; quarantine lasts only through 2026-09-13 inclusive. If execution crosses into September 14, do not rely on an expired exception or silently extend it: identify the affected gate and proceed only where that reliance is unnecessary. No RELEASE_ACCEPTANCE, FULL_PRODUCT_OR_ASKTD_READINESS or approved-write claim. Demo remains deferred.
