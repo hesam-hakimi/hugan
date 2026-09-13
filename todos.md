@@ -1,25 +1,33 @@
-Check the current execution now. The consumer Chat has remained
-visually unchanged. Your last report said scroll-accumulate was
-running, but that does not establish live progress.
+Complete section 5 of the SAME task:
+ETL-0913-JOBCONFIG-INSTALLED-ORCHESTRATOR-QUALIFY01.
 
-Continue the SAME task and installed 0.3.153. Do not restart,
-rebuild, reinstall, or resubmit the original user request.
+Use result-installed-observation.json and retained evidence from
+the completed 0.3.153 interaction. Do not repeat the live run,
+rebuild, reinstall, regenerate the candidate, or submit another
+product request. Product-write budget remains zero.
 
-Using text/DOM/process evidence only:
-1. Determine whether the model is generating, awaiting input or
-   consent, or has completed its response.
-2. Check whether the task-owned capture process is making actual
-   progress. Bound this check to 60 seconds; do not poll indefinitely.
-3. If only the collector is stalled, preserve its partial evidence
-   and stop that collector only. Keep the product host and Chat
-   session intact. Correct the existing helper only if necessary.
-4. If the response is complete, advance the existing Orchestrator
-   conversation through the already-authorized preview workflow.
-   Capture the actual validator result, candidate bytes, previewId
-   and manifest, then reach the genuine final approval and Cancel.
+Run the already-authorized focused independent read-only review.
+Verify separately:
+- The selected consumer Orchestrator route.
+- Actual preview creation and previewId-bearing continuation.
+- Genuine Approve write / Cancel modal and its cancellation.
+- Destination, filter, mappings, read semantics and env preservation.
+- Candidate-to-validation-to-preview identity.
+- Zero writes and unchanged consumer files.
 
-Do not classify model prose or Allow Once/Skip as final approval.
-Product-write budget remains zero.
+Distinguish product-rendered tool results from model narration
+and from raw tool-result JSON, which was not captured. Determine
+whether retained evidence satisfies each original requirement.
+Do not silently relax the evidence contract or infer missing
+arguments merely from the absence of a visible Preview ID.
 
-Report the exact waiting component and take the next authorized
-action. Do not finish with another unsupported “still running” claim.
+Keep Windows path-case differences and unavailable runtime/DBFS
+compatibility explicit. Do not reconstruct missing payloads.
+
+Correct reporting issues from existing evidence. If a required
+identity or validation fact remains unproven, identify that exact
+gap and use a bounded partial result rather than full qualification.
+
+Finish with the independent verdict, final report/result pins,
+remaining gaps and ownership release. Preserve the working
+helpers and installed candidate. No approved-write or release claim.
