@@ -1,62 +1,161 @@
-# Prepare maintainer workflow corrections alongside the product repair
+Run a bounded SharePoint authentication feasibility probe in the local Windows VS Code environment.
 
-TASK\_ID: ETL\-0914\-MAINTAINER\-WORKFLOW\-STAGED01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
-PARALLEL\_WITH: ETL\-0914\-ALIAS\-VALIDATION\-REPAIR\-QUALIFY01\.
-OUTPUT: A minimal, reviewed customization patch prepared outside the active repository\. No live integration in this task\.
+Objective
 
-Run in a separate engineering chat\. Use English for all progress, replies, code and documents\. Use text, filesystem records and available diagnostics; no screenshots, video, OCR or vision\. Complete the staged corrections under this bounded authority without repeated routine permission requests\.
+Determine whether a VS Code extension can use the built-in Microsoft authentication provider, with its DEFAULT client registration, to access an owner-selected SharePoint Online site and read one harmless test file.
 
-## 1\. Preserve the running repair and reuse the audit
+We have no dedicated Microsoft Entra App Registration or Client ID for this extension. External MCP servers are unavailable. This task evaluates the existing VS Code authentication route; it does not implement the full SharePoint connector.
 
-The SQL/include predecessor reported completion on installed \.158, including genuine preview/continuation/Cancel and zero writes\. F\-ALIAS\-1 remains the subject of the separate repair\. Its execution status must come from actual task records; do not assume it is finished, restart it or take over its ownership\.
+All communication, code, comments, and reports must be in English.
 
-The coverage audit ETL\-0914\-TEST\-COVERAGE\-AND\-REUSE\-AUDIT01 is complete\. Reuse its final report and relevant references rather than repeat the audit\. Resolve the actual worktree from those records; last reported locator: C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147\.
+1. Preserve the current environment
 
-Read applicable repository instructions and only the maintainer files/helpers needed below\. The reported inventory contains maintainer agents, instruction files, prompt files and a run\-tests skill\. Verify actual filenames and contents\. Photographs established existence, not loading or effective routing\.
+* Read applicable AGENTS.md instructions.
+* Inspect the installed VS Code version, extension host location, and availability of the built-in Microsoft authentication provider.
+* Work in a separate local probe folder outside the active product checkout. Preserve ongoing ETL Copilot work and uncommitted changes.
+* Do not replace the installed product VSIX, change shared authentication settings, clear existing sessions, or modify production extension code.
+* Use text, filesystem, DOM, accessibility, and structured logs. No screenshots, video, OCR, or vision.
+* Run authentication in the local Windows VS Code extension host, not GitHub Actions, a remote agent, WSL, or a container.
 
-Use already available local reference copies where useful\. A Library/sandbox path is not a Windows file path\. If a handoff package is supplied, stage it outside the active repository\. Missing optional reference copies should not prevent work supported by authentic local files and the audit\.
+2. Keep the authentication experiment exact
 
-## 2\. Work exclusively in an inert staging directory
+Use the supported VS Code API:
 
-Create one new task directory under C:\\docs with before/, proposed/, report\.md and result\.json\. Copy only selected maintainer files, preserving their repository\-relative paths, plus the small read\-only dependencies needed to understand them\. Record original hashes and capture times\. Do not clone the full repository or copy credentials, profiles or consumers\.
+vscode.authentication.getSession(‘microsoft’, requestedScopes, options)
 
-The active repository is read\-only for this task\. Do not modify live \.github, AGENTS\.md, src, tests, resources, package/configuration files, shared out, build info, existing helpers, ownership records or other tasks’ artifacts\. Do not add staged files to any customization search path or open proposed/ as an agent workspace\. These are candidate documents, not instructions that govern this executing session\.
+Use the provider’s default client registration.
 
-Do not attach to the active runtime, CDP connection, signed\-in profile or consumer chat\. No product compile, test suite campaign, VSIX/package/install, model qualification, fixture generation, dependency installation, Git\-state mutation or consumer write\. This task needs no product write allowance\.
+Do not:
 
-Read moving inputs with before/after hashes for the selected files\. If a selected file changes during capture, recapture that file when stable or defer its patch hunk; do not freeze the worktree, poll indefinitely or treat another task’s legitimate changes as your failure\. Do not acquire an exclusive lock that blocks the product repair\.
+* Set a VSCODE_CLIENT_ID override.
+* Register an Entra application or create credentials.
+* Substitute an Azure CLI, Graph Explorer, Office, or another application’s Client ID.
+* Use external MCP services, application permissions, or a service account.
+* Extract browser cookies, reuse another application’s token cache, or request manually pasted tokens/passwords.
+* Change tenant consent, Conditional Access, proxy, TLS, or device compliance policies.
 
-## 3\. Produce concrete minimal corrections
+The user must choose the intended organizational account. Keep subsequent stages bound to that account. Do not silently switch accounts or tenants.
 
-Implement the following in proposed/ where the actual evidence supports them:
+Use the provider’s normal interactive sign-in experience when necessary. The owner completes sign-in and MFA. Reuse an existing suitable session through the supported API when possible.
 
-1. **Planning route\.** Inspect plan\-change\.prompt\.md and the actual Planner/Verifier agent definitions\. Correct a demonstrated Verifier reference for planning to the actual Planner identity\. Check the installed VS Code/Copilot versions, session type and supported frontmatter before selecting syntax\. A body reference alone does not prove agent selection\. Do not invent tool IDs, change model policy or add permissions\.
-2. **Test instructions\.** Inspect the real run\-tests skill, focused runners, package scripts and the final b1\-lane/t1\-run\-suites helper interfaces\. Replace unsafe or misleading command guidance with the existing isolated execution procedure and actual arguments/outputs\. The audited compile/test:unit/pretest path deletes shared out, and compile:test can write out/build info\. Do not execute these commands to rediscover their side effects\. Prefer durable existing entrypoints; if helpers exist only under task evidence, document how to resolve/authenticate those copies instead of inventing a permanent repository path or copying a new framework into the project\.
-3. **Duplicated instructions\.** Remove only demonstrated redundant procedural text, replacing it with resolvable references to the applicable canonical procedure\. Preserve the full meaning and applicability of each requirement\. Keep global safety rules global\. Narrow applyTo only where its effective scope is established; otherwise leave the selector intact and record the uncertainty\. Do not relax Planner/reviewer requirements, approval boundaries, candidate identity, preservation or quarantine rules under the label of simplification\.
-4. **Reviewer result persistence\.** Where a read\-only reviewer is required to write an artifact it cannot create, prepare a consistent handoff: the reviewer returns its complete structured verdict, and the parent preserves it unchanged with accurate authorship\. Do not claim a parent\-authored file was authored by the reviewer or expand the reviewer’s product\-write/tool authority\. If existing instructions require a different supported mechanism, preserve that rule and name the concrete incompatibility rather than bypassing it\.
+3. Prepare a minimal executable probe
 
-Keep the maintainer Orchestrator distinct from the shipped consumer ETL Orchestrator\. Do not modify resources/copilot or consumer workflow assets\. Do not expand into F\-ALIAS\-1, suite registration, R1/R2 replay implementation, writeFlow diagnosis or P3 runner instrumentation; report relevant dependencies only\.
+Create a small local extension with a command named:
 
-For compatibility, use actual local schemas/help and primary documentation:
+SharePoint Auth Probe: Run
 
-- https://code\.visualstudio\.com/docs/agent\-customization/prompt\-files
-- https://code\.visualstudio\.com/docs/agent\-customization/custom\-agents
-- https://code\.visualstudio\.com/docs/agent\-customization/custom\-instructions
-- https://code\.visualstudio\.com/docs/agent\-customization/agent\-skills
+Use an Extension Development Host with the installed VS Code version and applicable organizational policies. Prefer existing tools and dependencies.
 
-The current prompt\-file documentation distinguishes Local\-agent support from Agent Host, which does not load prompt files\. Match the installed environment; do not initiate an upgrade or migration\. If runtime loading cannot be inspected without disturbing the active session, mark it NOT\_RUNTIME\_VERIFIED and provide the exact later diagnostic check\. Static syntax validity is not proof of loading\.
+The command must perform the stages below and produce a sanitized report. Keep tokens inside the running extension. Do not expose credentials through a language-model tool.
 
-## 4\. Validate and independently review the staged patch
+Compile/load the probe and execute everything your available tools support. If invoking the command or completing sign-in requires the owner, finish the harness first, then provide the exact launch or Command Palette action needed.
 
-Check only the changed documents: frontmatter using available parsers/schemas, relative references, actual agent identifiers, command/interface accuracy and preservation of operative rules\. Prepare a small before/after requirements map for removed or moved text\. Compare proposed changes against copied preimages and produce changes\.patch\. Do not install tools or create a general validation platform\.
+Do not claim a live test succeeded based on compilation, mocks, or source inspection.
 
-Use one independent read\-only reviewer for this staged instruction boundary\. It should inspect the exact diff and underlying evidence, identify any permission expansion, lost rule, unsupported syntax or fabricated command, and return a structured verdict\. The parent may persist that response unchanged in its own task directory\. Correct in\-scope findings and review their delta\. No additional product session or runtime campaign is required\.
+4. Identify one bounded target
 
-## 5\. Return an integration\-ready handoff
+Ask once for:
 
-Deliver proposed files, changes\.patch, a concise report\.md and result\.json\. Record each target path, original/proposed hash, purpose, verification and reviewer disposition\. Separate observed host compatibility from static checks and unverified loading\. Report any unchanged item whose evidence did not justify a correction\.
+* The SharePoint site URL.
+* The document library and path of one existing, non-sensitive, small text file the owner can already read.
 
-Give a short integration procedure for after the product repair releases ownership: compare target hashes against these preimages, reconcile only changed files if necessary, apply the reviewed candidate under the then\-applicable instructions, and perform the listed loading/routing checks in a suitable session\. Do not apply the patch automatically when another task appears to finish\. Adoption of the staged candidate is a later integration action, not a gate on the active repair\.
+Collect these through local input or an explicitly supplied test configuration. Do not search unrelated folders, browser history, or the tenant for a target.
 
-State explicitly that the patch is prepared and reviewed to its measured scope but is not installed or active\. Do not claim backlog integration, runtime routing success, measured speed\-up, product acceptance or release readiness\. Preserve unknowns and finish without waiting for the parallel repair\.
+Confirm whether the target is SharePoint Online. If it is SharePoint Server on premises, mark this Graph-specific probe NOT_APPLICABLE and report that the authentication design needs to match that server.
+
+Do not create/upload a SharePoint file or redeem a sharing link to acquire access. Missing target information must be recorded as pending, not guessed.
+
+5. Execute and report each stage separately
+
+Stage A — Basic Microsoft authentication control
+
+* Request the delegated scope https://graph.microsoft.com/User.Read through the default provider.
+* Call GET https://graph.microsoft.com/v1.0/me?$select=id.
+* Report only whether the call succeeded and whether the expected account was selected.
+* This stage proves basic Microsoft Graph access, not SharePoint access.
+
+Stage B — SharePoint permission acquisition
+
+* For the site-by-path test, request https://graph.microsoft.com/Sites.Read.All through the SAME default provider and selected account.
+* Explain that this is a delegated read scope that can cover sites the user can access; the probe itself will only access the selected test target.
+* Do not request write scopes or bundle unrelated permissions.
+* If Entra requires administrator consent, blocks the application, or rejects first-party preauthorization, record the result and stop dependent stages.
+* An error such as AADSTS65002 is evidence about the default client authorization route. Do not repeatedly retry it or switch Client IDs.
+
+Stage C — Actual SharePoint site access
+
+* Use the acquired SharePoint session to resolve only the supplied site:
+    GET /v1.0/sites/{hostname}:/{server-relative-site-path}
+* Use correct URL encoding and minimal selected response fields.
+* Resolve the specified library/file within that site using documented Graph endpoints. Keep metadata enumeration small and bounded.
+* Do not enumerate all tenant sites or unrelated content.
+
+Stage D — Actual file read
+
+* Retrieve metadata and content for the selected existing test file.
+* Read at most 64 KiB and stop reading at the limit, even if a server ignores a Range request.
+* Report status, bytes read, and optional matching of an owner-supplied harmless marker. Do not include the document’s text in chat or reports.
+* Handle Graph’s preauthenticated download redirect correctly: never forward the Graph bearer token to another host and never log the signed download URL.
+* Respect organizational network restrictions.
+
+Stage E — Bounded search
+
+* If the preceding stages succeed, perform one Microsoft Graph search for the selected test file, restricted to its site or folder, with at most five results.
+* POST /v1.0/search/query is allowed solely for this read-only search.
+* Escape the query correctly and retain the fixed target restriction.
+* Report API success separately from finding the expected file. Empty results do not prove an authentication failure or successful content discovery.
+
+Stage F — Session reuse
+
+* Reacquire the same SharePoint session silently through the supported VS Code API and repeat one small metadata request.
+* Report whether another interactive sign-in was required.
+* Do not force expiry or sign out the owner’s account. This stage does not prove refresh-token or revocation behavior.
+
+An access-denied check is optional only if the owner explicitly supplies a known inaccessible test resource. Do not guess private resources. A random 404 is not proof of authorization enforcement.
+
+6. Keep evidence safe and conclusions precise
+
+* Never print/store access tokens, refresh tokens, authorization codes, cookies, Authorization headers, signed URLs, complete session objects, or raw document content.
+* Do not decode Graph access tokens to infer permissions. API outcomes are the evidence.
+* Record requested scopes and provider-reported session scopes separately; do not label either as independently verified token permissions.
+* Record stage, UTC time, outcome, HTTP status, sanitized Graph/AADSTS error code, and correlation/request ID when available.
+* Redact account identifiers and sensitive target details in the shareable report.
+* Distinguish observed errors from inferred causes. A 403 alone does not establish whether the cause is consent, user access, or policy.
+* Stop repeat attempts for persistent authentication/authorization errors. Do not run the full ETL regression suite or rebuild unrelated packages.
+
+7. Deliver the result
+
+Create these files in the isolated probe folder:
+
+* README.md with exact run instructions.
+* AUTH_PROBE_RESULT.md.
+* AUTH_PROBE_RESULT.json.
+* The minimal probe source.
+
+Return:
+
+* Probe folder and VS Code version.
+* Whether live execution occurred.
+* Confirmation that the default Microsoft provider registration was used without a Client ID override.
+* A compact stage table: PASS, FAIL, BLOCKED, NOT_RUN, or NOT_APPLICABLE.
+* Sanitized evidence for any blocker.
+* One verdict:
+    PASS — The default identity route read the selected SharePoint file.
+    PARTIAL — Some stages succeeded, but the end-to-end file read was not proven.
+    BLOCKED — An observed authentication, authorization, policy, or network blocker prevented progress.
+    NOT_RUN — Live execution still requires an identified owner action.
+    NOT_APPLICABLE — The target is not SharePoint Online.
+
+Report search and session-reuse results separately from the main verdict. A PASS establishes feasibility only for this tested account, target, environment, and time.
+
+Finish with one evidence-based next step. If blocked, identify the missing prerequisite without changing organizational controls. Do not claim that a SharePoint connector is implemented.
+
+Official references:
+
+* VS Code Authentication API
+* Get SharePoint site by path
+* List document libraries
+* Download file content
+* Microsoft Graph search
+
+Proceed with preparation and all executable steps now. Request owner interaction only when sign-in, target selection, or an unavailable UI action actually requires it.
