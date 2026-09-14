@@ -1,94 +1,114 @@
-# Preserve validation codes and reconcile failure identities
+Deliver the reviewed validation repair and qualify the installed writer
 
-TASK\_ID: ETL\-0914\-VALIDATION\-CODE\-AND\-FAILURE\-IDENTITY01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
-PREDECESSOR: ETL\-0914\-COVERAGE\-REPLAY\-AND\-TIMING01\.
-SCOPE: One narrow source/test/helper repair with focused independent review\.
-DELIVERY\_BOUNDARY: Source changes only; no VSIX/package/install or installed\-runtime claim in this task\.
-PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 0\.
-DIAGNOSTIC\_OR\_CONSUMER\_MODEL\_REQUESTS\_AND\_HOST\_LAUNCHES: 0\.
+TASK_ID: ETL-0914-VALIDATION-CODE-DELIVERY-QUALIFY01
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
+PREDECESSOR: ETL-0914-VALIDATION-CODE-AND-FAILURE-IDENTITY01.
+SCOPE: Check the final helper validity guard, deliver the reviewed source in a traceable candidate, and qualify the installed public writer with recorded R2 and R1 inputs through genuine final Cancel.
+PRODUCT_WRITE_AUTHORIZATION_BUDGET: 0. Never select Approve write.
+QUALIFICATION_SCOPE: Post-generation installed-tool replay; no new natural-language generation/default-selection claim.
 
-Execute on submission, preferably in the same engineering session\. All communication, code, tests and documents must be English\. Use text, DOM/accessibility and filesystem evidence only\. No screenshots, video, OCR or vision\. Complete the authorized inspection, minimal edits, focused checks and review without repeated routine approval requests\.
+Execute on submission, preferably in the same engineering session. The owner authorizes the bounded preparation, isolated build/package, required package checks, local installation/activation, targeted qualification and independent review in this brief. All communication, code, tests and documents must be English. Use text, DOM/accessibility and filesystem evidence only. No screenshots, video, OCR or vision; disable capture hooks in reused drivers. Complete routine in-scope fixes without asking again for the same permission.
 
-## 1\. Reuse the current state
+1. Recover the accepted source and exact current state
 
-Resolve the predecessor’s actual report, result, diff, relevant raw logs, helper and reviewer return under the established C:\\docs task location\. Resolve the worktree from those records; its last reported path was C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147\. Read applicable repository instructions and the effective repair contract\. Use already\-read unchanged references; do not restart the project, maintainer integration, authentication diagnostics or the coverage audit\.
+Resolve the predecessor’s final report/result, three review passes, source diff, relevant test records and final helper bytes under the established C:\docs task location. Use its actual final revision, not an intermediate photographed editor buffer. Resolve the worktree from the records; its last reported path was C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147.
 
-The owner’s latest report states:
+Read applicable repository instructions and the effective repair/verification contract. Reuse unchanged references already read. If this is a new session, restore architecture and safety boundaries from 02/05. Later authenticated task results supersede older state text saying the repairs or maintainer integration are still running. Do not restart September 11 tasks, the coverage audit, P1/P2/P3 or authentication/routing diagnostics.
 
-- P1: all five suites were registered exactly once, normal headless discovery selected 153 files, and the compiled runUnitTests runner executed all five\. writeFlow remains unregistered\.
-- P2: permanent recorded R1/R2 coverage uses the product’s real validators\. R1 reaches preview with the SQL include in CREATE and WHERE order\_status IS NOT NULL preserved through readIncludeSql\. R2 rejects without preview\. Its error code is asserted at the real validator, because the pipeline currently drops it\.
-- A valid differing column alias with SQL reading the registered view was added as a positive control, taking the reported real\-validator tests from 28 to 29\.
-- P3: the task\-owned t1\-run\-suites helper records monotonic duration, unknown values as null, raw exit/signal and separate allGreen/regressionsIntroduced fields\. No new framework or MOCHA\_RESULT\_FILE support was needed\.
-- The focused seven\-suite comparison had zero failures on either side\. Full headless results were baseline 2438 passing / 26 failing and post 2577 passing / 24 failing\. Three post failure identity strings remained mispaired\. One apparent NEW result was a duration\-suffix pairing artifact; five failures were reported as lane\-input ENOENT errors for docs/\*\*\.
-- The older \.159 report’s 16 failures are a different population; writeFlow did not execute in the new headless run\. Preserve both populations separately\.
-- Independent review was reported VERIFIED after one low finding was corrected\. Ownership was released\. Worktree package\.json stayed 0\.3\.147, protected shared out and \.tsbuildinfo\.test were unchanged, the five applied maintainer files were intact, and dirty count changed from 76 to 77\.
+The latest owner report states:
 
-Authenticate the actual current identities and ownership release before editing; the reported counts/version are not byte proofs\. If a successor already fixed either item, verify and reuse its result\. Do not overlap a conflicting writer\. Create one new task evidence directory and retain pre\-edit bytes; do not modify the closed predecessor’s evidence or helper in place\.
+• Source repair independently VERIFIED after three review passes; three source/test files, +63/-9.
+• ValidationError/ValidationWarning now permit an optional code. Six lines preserve existing producer codes across the sourcing, transformation and output-strategy folds. The Framework fold emits plain strings and remains uncoded.
+• R2 asserts SQL_FIELD_HOLDS_ARTIFACT_PATH at the real composed pipeline seam, with message/type/stage and uncoded-issue preservation. A type-compatible red lane compiled and then failed behaviorally; post-fix focused checks reported 120 passing.
+• On a blocked request, public writeToWorkspace returns data: null and renders messages only. The repair does not add a public structured-code protocol.
+• The corrected extractor uses the Mocha failure epilogue and file-level identity. Historical logs contain 24 post and 26 baseline failures, represented once each. Review corrected the account to three genuine mispairings plus 21/23 fidelity improvements, and rejected unsafe non-ASCII normalization.
+• A separate full run around the source repair reported identical pre/post results: 2577 passing, 24 failing, 5 pending. These are not the older 2438/26 versus 2577/24 coverage comparison, and not the historical .159 population of 16 failures including nine writeFlow cases.
+• Source was reviewed but no new distributable was built, packaged, installed or activated. The last reported installed candidate remains .159; worktree package.json remains .147.
 
-Library/sandbox paths are not Windows paths\. Use authentic local records\. If a required exact input is missing, use the established documentation staging transfer outside the worktree; block only its dependent action\. Do not reconstruct recorded inputs from photographed text\.
+Authenticate ownership release and absence of a conflicting writer. If an equivalent successor candidate already exists, verify/reuse it instead of building a duplicate. Acquire this task’s bounded ownership and create a new evidence directory. Establish current byte identities for the relevant source, tests, tools and protected state. HEAD, version, dirty count and old mtimes alone are insufficient. Preserve unrelated dirty changes, the five applied maintainer files, shared out, .tsbuildinfo.test, historical consumers, candidates and ledgers. Do not retrospectively turn mtime evidence into historical byte proof.
 
-## 2\. Repair the loss of the existing structured error code
+Library/sandbox links are not Windows paths. Use authentic local predecessor records. Transfer a genuinely missing supplied reference into documentation staging outside the active worktree; never overwrite application files or reconstruct recorded payloads from pictures.
 
-Inspect the complete relevant PreWriteValidationPipeline implementation and its actual issue types, transformation\-validator producer, writer consumer and result formatting\. The report locates the loss near the transformation\-issue fold around line 1071; this is a locator, not a guaranteed current line number\.
+2. Check the small remaining helper condition
 
-Confirm where an existing validator issue’s code is lost\. Preserve that code alongside the existing message when folding the issue into the pipeline’s structured result\. Use the existing optional field and result contract\. Preserve message text, severity, path/context, issue order and current blocking behavior\. Do not manufacture codes for uncoded issues, infer codes by parsing messages, change SQL/include acceptance or weaken validation\.
+Inspect the final reviewed helper and its tests before changing anything. The photographed version appeared to define parseComplete from count agreement and unique identities while calculating everyFailureHasTestFile and titlesAllClosedByColon separately. This is a conditional finding, not proof that the final reviewed bytes still have the gap.
 
-Carry the supported field to the existing composed structured\-result seam consumed by writeToWorkspace\. Trace what the public tool actually returns and report that scope precisely\. If this requires a new public protocol rather than preservation of an existing supported field, identify the concrete boundary and retain a failing reproduction instead of inventing a protocol in this task\. Complete the independent helper work while that decision is unresolved\.
+If already corrected, reuse the existing proof. Otherwise minimally strengthen the task-owned/maintained helper’s validity decision: RESOLVED requires a valid completed runner summary, matching counts, no ambiguous duplicate identities, a complete reconstructed title and an owning test file for every failed case on both sides. Missing/truncated summary or incomplete identity must remain UNKNOWN, with regressionsIntroduced: null rather than an empty array. Handle a genuinely completed zero-failure run according to the actual runner format; missing evidence is not zero.
 
-Use the predecessor’s permanent byte\-pinned fixtures and real pipeline:
+Use the retained complete logs and small malformed derivatives to check a missing file identity, an unterminated title and incomplete summary even when apparent counts match. Retain a genuinely distinct-failure control so normalization cannot merge failures. Preserve exact non-ANSI identity text and all raw totals. Do not rerun the full suite solely to reparse logs or mutate a closed task’s helper/evidence. A helper-only correction does not itself change the candidate’s shipped inputs.
 
-1. Extend R2 so SQL\_FIELD\_HOLDS\_ARTIFACT\_PATH is asserted on the real composed pipeline result, with rejection and no preview still asserted\. A validator\-only assertion or a mocked code at the writer is insufficient to close this remaining gap\. If the tool’s current structured contract exposes that result, assert it there as well\.
-2. Keep R1’s actual preview, include CREATE classification and effective SQL filter assertions passing\.
-3. Cover coded and uncoded issues through the affected fold, preserving uncoded behavior and existing message/severity/context\. Reuse existing cases where they establish this behavior\.
-4. Retain the valid differing\-alias control and the existing Framework identity rules: table\.name when present, otherwise the sourceList key; alias renames a column and is not a view name\.
+Reuse the predecessor’s independent source review. Obtain focused review of any new evidence-trust delta before relying on its classification. Keep one continuing reviewer for the subsequent delivery evidence; do not restart the full historical audit.
 
-Do not stub the transformation validator or replace the prewrite pipeline with a lightweight implementation\. Existing VS Code surface stubs, a bounded DBFS probe substitute and disposable filesystem fixtures are suitable\. No live DBFS or consumer writes are needed\. An in\-memory/disposable test preview is not a reusable product approval\.
+3. Freeze, build, package and install the coherent candidate
 
-Use the existing unsupported\-path rejection as the behavioral starting point\. When practical, capture the new composed\-code assertion failing against matching pre\-edit source and passing after the fix; a compile/import failure is not behavioral red\. Do not rebuild historical \.155/\.156 versions or regenerate their proposals to get that evidence\.
+Use the established isolated build/packaging lane and inspected b1-lane/t1-run-suites/focused-runner interfaces. Resolve the version from actual candidate history; do not assume .160 or reuse a version with different bytes. Apply candidate versioning through the established staging mechanism, preserving the recovery worktree’s package.json and Git state.
 
-## 3\. Repair the three failure\-identity pairings
+Match accepted source, shipped assets, configuration, toolchain/dependencies and executed outputs. Reuse matching checks and compiled outputs where valid; compile changed TypeScript in isolated output where needed. The old installed .159 bundle cannot stand in for the new code. Do not hand-edit generated JavaScript or an installed bundle.
 
-Inspect the predecessor’s final extractor/comparator and the original full\-headless records\. Preserve its two rejected parser attempts as history\. Work in the established maintained helper source or a new task\-owned copy with a stable reusable location, retaining the inherited copy separately\. Do not build another runner/evidence framework\.
+Run the existing applicable package-content/provenance gate from the corresponding build tree, plus only the required regression checks not supported by matching evidence. Record raw exits, failures and comparison outcomes. No-new-regressions is not all-green. Retain the 24 current full-run failures, five pending cases, reported lane-input failures and the separately attributed historical 16/nine writeFlow findings. Determine whether any actual unresolved finding blocks this delivery under the existing gate; do not create blanket new gates, skip a required one, force a passing exit or renew the expired quarantine.
 
-Prefer existing structured test events/results when available\. Otherwise make the smallest correction to the existing parser using the actual captured output\. Anchor identities in the available test file, full suite/test title and case discriminator; document any missing component\. Strip only demonstrated reporter decoration such as ANSI sequences and appended duration text\. Do not discard meaningful numbers, paths or parameter values in test names, collapse genuine duplicate cases, or pair failures by a global ordinal alone\.
+Build one candidate from the accepted coherent shipped input set. Preserve .159 and earlier candidates. Record source-to-build/package identity, complete applicable shipped-resource inventory and full hashes. The previous 63/63 resource count is historical, not a count to force onto this candidate.
 
-Use the retained outputs to verify:
+After the applicable gate passes, install through the established local VSIX mechanism and activate normally. Verify package, installed bytes and active runtime correspondence, including the new code-bearing bundle and shipped consumer resources. A version string alone is insufficient. If shipped inputs change after packaging, retain and invalidate the affected candidate evidence, then create and qualify a distinguishable replacement within this same bounded task; do not relabel old bytes.
 
-- All 24 post failures and all 26 baseline failures remain represented exactly once, with correct raw\-log references and counts matching the runner\.
-- The three identified mispairings are corrected, including the apparent NEW duration\-suffix case\.
-- Pass/failure/pending counts and native process exit/signal are preserved; allGreen remains false for these full runs\.
-- Comparison accounts for actual selection changes\. Newly selected or unmatched cases are not automatically new product regressions\. Unknown correspondence remains explicit instead of becoming an empty regressionsIntroduced array\.
+No Git reset/clean/commit/branch operation, dependency installation, permission weakening, external publishing, deployment or release. Naive compile/test:unit/pretest can delete shared out; compile:test writes shared out/build info. Do not run them in the recovery worktree. Check available space before substantial staging and reuse established outputs where their inputs match.
 
-Use small meaningful regression checks derived from the observed bad pairings and a genuine distinct\-failure counterexample\. Confirm the parser cannot normalize two genuinely different failures into one\. Reuse the captured logs; do not repeat the full headless campaign just to parse it again\. If one identity cannot be established from retained records, rerun only the necessary affected case with existing result support, or state the exact remaining limitation\.
+4. Prepare the installed replay before issuing a preview
 
-Keep the five reported ENOENT lane\-input failures visible with their actual evidence and classification\. They still count as failed executions\. Do not repair unrelated product tests, change assertions, add ignore rules or renew quarantine\. Keep the \.159 historical 16 failures, including nine writeFlow cases, separately attributed; do not merge them with the newer 24 or claim they ran here\. Quarantine expired after September 13 UTC and was not renewed\.
+Reuse the established text-only driver/collector and appropriate consumer test host under exclusive ownership. Prefer the existing working consumer profile; keep the retained maintainer profile separate. A .151 component in a reused user-data path identifies profile history, not the extension version. Authenticate the active candidate independently. Do not copy/read credentials or token stores, create a replacement profile unnecessarily, add PAT/.env authentication, or alter account/provider/network settings. If authorization has actually expired, identify that exact prerequisite; do not restart the prior authentication investigation.
 
-## 4\. Bound the edits and execution
+Use the product’s actual registered etl_write_to_workspace tool in the installed host through an existing supported invocation route. Calling a source-imported service with a VS Code stub is not installed qualification. Do not patch the extension, register a convenience test-only endpoint or stub installed validators to make the test possible.
 
-Authorized edits are the identified pipeline fold, narrowly necessary existing type/consumer handling for that same optional field, the existing composed tests/test support, the established failure extractor/comparator and this task’s documentation\. Preserve the completed suite registrations, maintainer customization, SQL/include parsing and Framework view\-identity repair\.
+Prefer deterministic invocation through that existing public-tool route. If the established supported route is model-mediated, it may relay the recorded cases, but its actual tool arguments must be captured and compared. This remains recorded-input replay, not natural generation. Run the two intended cases, R2 then R1. Authority includes their necessary continuations and retries of a failed case only after a concrete in-scope correction; count every attempt in the request/tool ledger. Record actual model calls/submissions and any unintended request separately; never hide them in helper-local zero counters. No unrelated prompt, generation experiment or rerun of an accepted case merely for cleaner evidence. If no supported installed route can exercise a required case, report the concrete limitation without substituting a mock or inventing a public API.
 
-Take the actual current dirty source as the baseline\. Use the existing b1\-lane/t1\-run\-suites mechanisms and focused runner interfaces\. Reuse matching baseline evidence only when source, tests, configuration, toolchain and compiled identities correspond\. Compile changed TypeScript into an isolated lane; do not hand\-edit generated JavaScript\.
+Resolve the predecessor’s permanent pinned R1/R2 fixtures and required read dependencies. The original locators are .156 evidence/final/c43-etl_write_to_workspace.arguments.json and .155 evidence/live/c27-etl_write_to_workspace.arguments.json. Keep original bytes immutable. Stage a disposable consumer fixture outside historical consumer directories, using the corresponding authenticated dependency context. Apply normal managed-asset projection before measuring the qualification baseline.
 
-Do not run naive compile/test:unit/pretest in the recovery worktree: they can delete shared out\. Do not run compile:test there because it writes shared out/build info\. Preserve shared out, \.tsbuildinfo\.test, package version, dependencies, Git state and all unrelated dirty files\. Do not reset, clean, commit, switch branches, upgrade tools or install dependencies\.
+Prepare a documented replay overlay only for necessary temporary-root rebasing and removal of historical continuation/approval handles. Preserve job/include/SQL semantics, names and recorded mappings. Retain original and replay hashes with the exact adaptation. First calls have no previewId or historical approval token. Do not use caller-provided bytes to override existing workspace env/read-dependency authority.
 
-Run the affected pipeline/writer tests, the relevant identity controls and helper verification required by the actual delta\. Broaden only for a concrete dependency or required gate\. Fix task\-caused failures and repeat their affected checks in this same task, preserving each attempt\. No maintainer or consumer host launches, account/PAT/\.env changes, model requests, product writes, package/install, Databricks job execution, deployment or release\.
+Verify normalized reference resolution, required dependency bytes and destination absence before the run. Keep task evidence/helpers outside the consumer workspace. Measure consumer files and prospective destinations after setup; track pending and post-Cancel states against that same baseline. Fixture preparation is separate from product writes. Do not modify historical .155 output or spent ledgers.
 
-This task changes shipped source behavior, so the test\-only no\-package conclusion from the predecessor must not be transferred to eventual delivery\. This task intentionally ends at reviewed source: \.159 remains the last reported installed candidate and does not qualify the new code\. Record the changed shipped input and the minimum future candidate/installed check needed when the repair is delivered; do not launch that campaign here or label the source fix installed\.
+Prepare driver, collector and checks before issuing a preview so expensive setup cannot consume its lifetime. No Databricks job execution, DBFS writes, new data-access setup or validator bypass. Preserve and report the existing offline/runtime limits and any applicable warnings.
 
-## 5\. Review and handoff
+5. Execute the two installed cases
 
-Treat the structured\-result and failure\-classification changes as BOUNDARY changes\. Use one independent read\-only review of the combined delta, reusing prior validated contracts and evidence\. Require inspection of real code propagation, unchanged rejection behavior, composed assertions, distinct failure identity preservation, raw counts/exits and all remaining uncertainty\. Resolve in\-scope findings and obtain focused re\-review\. Preserve the full reviewer return; parent\-persisted output must use artifactAuthoredByReviewer: false\.
+R2: invalid SQL artifact path is rejected
 
-Deliver report\.md, result\.json and task\.diff with the necessary original logs and recoverable preimages\. Include:
+Invoke the actual registered writer with the recorded R2 input and no previewId. The sql field contains sql/customer_orders_transform.sql; the Framework executes sql as SQL text, so this representation is invalid.
 
-- Exact baseline/post and changed\-file identities; retained protected state and unrelated dirty changes\.
-- Where the error code now survives, what the public writer actually exposes, and the real composed R2 result\. Distinguish any narrower verified seam from public exposure\.
-- Corrected baseline/post failure mapping, all raw totals, selection differences, unresolved cases and separate historical findings\.
-- Focused test commands/outcomes, measured versus reused evidence, timing limits and the independent review’s final scoped disposition\.
-- Zero product writes, diagnostic/consumer model requests, host launches, packages and installs in this task\.
-- A concise next\-step assessment: whether the original \.json write path has a demonstrated remaining blocker, which concrete failed tests affect delivery, and the smallest later candidate/installed qualification needed\. Do not promote logging/classification defects into a claimed write blocker without tracing the consumer\.
+Require rejection for the intended validation reason, no previewId, no final write modal and zero consumer writes. Capture the actual arguments and public response. An unrelated path/env/parse failure is not a passing R2 result. Do not let a model silently repair the request and count that different input as R2.
 
-Preserve historical item E, F\-ROOT\-1, ledger byte\-identity limits, the check\-to\-write race, runtime/DBFS limits and relevant unexercised branches\. Do not rewrite \.155 artifacts or spent ledgers\. Historical \.154/\.155 write allowances remain spent, and the \.159 preview is consumed/expired\. A future actual \.json write needs fresh bounded owner authorization and a fresh matching preview\.
+The public blocked result is expected to retain its existing data: null/message-only contract. Do not demand a public JSON code or add one. Evidence that SQL_FIELD_HOLDS_ARTIFACT_PATH survives internally comes from the reviewed real composed tests and source-to-installed identity. The installed public observation proves rejection and its visible diagnostic; keep those claims separate. Use an already-supported internal diagnostic if available without altering product behavior, but do not invent an observation that the tool does not expose.
 
-Release ownership\. Report reviewed source completion separately from installed delivery, actual write success and release readiness\. Stop when this bounded task is sufficiently verified; do not start another audit or an unrelated baseline\-repair campaign\.
+R1: supported include reaches genuine Cancel
+
+Invoke the recorded supported R1 proposal through the same installed public tool, with no previewId. The .json job contains HOCON; its ../sql/customer_orders_curated_load.json include from ERUS9 resolves to the supplied keyed-HOCON artifact under job_conf/conf/sql. Supported .json includes remain valid. Preserve the required WHERE order_status IS NOT NULL filter and recorded mappings.
+
+Require all of the following:
+
+1. Real writer-internal validation succeeds and issues a fresh previewId/checksum. The intended job and SQL include appear in CREATE, with no unexpected overwrite. Include resolution and measured read-dependency binding correspond to the staged files.
+2. The continuation uses that issued previewId and the identically bound paths/content. Compare captured argument/content hashes; do not reconstruct the second payload from memory or silently edit it after preview.
+3. The actual extension-owned Approve write / Cancel modal appears. Confirm the intended modal and Cancel control through DOM/accessibility before activation; do not use blind Enter or coordinates. Host Allow Once is distinct from product write approval.
+4. Select genuine Cancel. Retain the actual cancellation result and verify consumer bytes and destination absence while pending and after cancellation. Product writes remain zero.
+
+Honor the existing expiresAt and approval-store behavior. Do not extend expiry, reuse a consumed preview, bypass a guard or approve a write. If transport or timing prevents completion, preserve the failed attempt and diagnose it. A necessary corrected attempt must start from a new preview under the same zero-write scope; never replay the expired continuation. Stop optional repeats once the required evidence is complete.
+
+This qualification does not establish that a new natural-language request generates this artifact or exercises a new alias branch. Reuse .159’s generation evidence only where relevant shipped prompt/model inputs still match, retaining its ALIAS_PRESENT limitation. The Framework identity rule remains table.name when present, otherwise sourceList key; alias is a column rename. Do not force a new generation campaign or alter the recorded payload to manufacture a preferred branch.
+
+6. Review, preserve and hand off
+
+Have the continuing independent reviewer inspect candidate provenance, actual installed invocation, case/input correspondence, public-versus-internal code claims, preview/content/dependency binding, genuine Cancel, failure accounting and preservation. Reuse valid source/test reviews. Correct task-caused helper/driver/staging faults in scope and review their delta; preserve each failed attempt. A newly demonstrated product defect outside this delivery scope must remain an exact blocker with its reproduction, not an excuse to weaken the case or broaden the repair silently.
+
+Preserve the full reviewer return and distinguish parent persistence with artifactAuthoredByReviewer: false. Do not report independent acceptance until the actual final disposition supports it.
+
+Deliver one report.md and result.json with the relevant diff, original logs and recoverable preimages. Include:
+
+• Final helper-condition disposition and any focused correction; actual review status.
+• Accepted source, build/package, installed and active identities, exact version and retained VSIX location.
+• R2’s actual public rejection and its internal-code evidence boundary; R1’s fresh preview, identical continuation, modal, Cancel and zero-write evidence.
+• Selected checks and raw exits/counts; measured/reused/unexecuted evidence; separate historical failure populations and all outstanding delivery/release findings.
+• Actual host, model/submission/tool counts and phase durations, with unknown/overlapping time disclosed. Do not claim a speed-up from a partial UI timer.
+• Protected-state/consumer preservation, including the five maintainer files and unrelated dirty changes. Retain usable profiles and previous candidates; release only this task’s ownership.
+
+State completion narrowly as installed qualification of this candidate and these cases. Identify the smallest next action toward an actual .json write, including the qualified candidate and fixture/dependency prerequisites. That later write requires fresh bounded owner authorization and a fresh matching preview. This task has zero product-write allowance; .154/.155 allowances remain spent and .159’s preview remains consumed/expired.
+
+Carry historical item E, F-ROOT-1, ledger byte-identity limits, the check-to-write race, runtime/DBFS limits, non-green runs and relevant unexercised branches unchanged. Quarantine expired after September 13 UTC and was not renewed. No release, deployment or full-readiness claim follows from this qualification.
