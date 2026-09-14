@@ -1,80 +1,70 @@
-# Execute one approved local write using the installed 0\.3\.155
+# Align generated job configs with the owner’s \.json requirement
 
-STATUS: OWNER\_AUTHORIZED\_FOR\_SUBMISSION; not executed by ChatGPT\.
-TASK\_ID: ETL\-0914\-INSTALLED\-0155\-APPROVED\-WRITE\-EXECUTE01\.
-PREDECESSOR: ETL\-0914\-INCLUDE\-FRESHNESS\-AND\-INSTALLED\-QUALIFY01, completed on installed 0\.3\.155 through genuine final Cancel\.
-PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 1 final trusted approval for exactly two CREATE files: the qualified job config and its reusable SQL include\. Non\-retryable once dispatched\.
+STATUS: OWNER\_REQUESTED\_CORRECTION; prepared for submission, not executed by ChatGPT\.
+TASK\_ID: ETL\-0914\-JOB\-CONFIG\-JSON\-ALIGNMENT01\.
+PREDECESSOR: ETL\-0914\-INSTALLED\-0155\-APPROVED\-WRITE\-EXECUTE01, completed with two approved local file creations\.
+SCOPE: Determine the actual \.json contract, correct the qualification case and any necessary generation defaults, verify affected behavior, and prepare a concrete corrected candidate\.
+PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 0\. The successful \.155 trial’s single approval is spent; no repeat, rename, overwrite or additional installed\-product write is authorized by this task\.
 
-The owner explicitly confirmed that the write must now be performed and requested execution using existing files and tools, without regenerating everything\. This is fresh authority for this task\. The failed \.154 trial’s approval remains spent and its ledger remains untouched\. Do not ask again for the authorized final click when the conditions below hold\.
+Use the Windows engineering workspace\. This prompt is self\-contained for a new engineering chat\. All replies, code, tests and documents must be English\. Use text, files and existing diagnostics; no screenshots, video, OCR or vision\. Reuse existing files, helpers and accepted evidence\. Complete the bounded correction without restarting the project or regenerating the test infrastructure\.
 
-Use the Windows engineering session, with English\-only replies, prompts and artifacts\. This prompt also works in a new engineering chat\. Use text, DOM and filesystem; no screenshots, video, OCR or vision\.
+## 1\. Restore the successful result and the corrected requirement
 
-## 1\. Reuse the completed preparation
+Resolve the predecessor’s exact task root under C:\\docs using its task ID\. Read its final report/result, pins and reviewer/approved\-write verdict, plus the final business\-check correction and referenced source/installation records\. Read applicable repository instructions\. Authenticate the actual current worktree and source state before editing; the last recorded worktree is C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147\.
 
-Resolve the predecessor’s exact task root under C:\\docs\. Read its final result/report, pins, installed\-review verdict and referenced launch, fixture, business\-fact and helper records\. Follow applicable repository instructions\. Authenticate installed 0\.3\.155 against its recorded identity and confirm released runtime ownership\. Limit reads to what this execution needs\.
+The report establishes a bounded successful \.155 natural\-language Orchestrator write: one approval spent, two CREATE outputs, consumer 22 \-\> 24 files, both read\-back hashes matching the approved preview, all original files unchanged\. The job was job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.conf &#40;866 bytes&#41;; the SQL artifact was sql/customer\_orders\_transform\.sql &#40;228 bytes&#41;\. Resolve exact paths/hashes from retained records, not this summary\. Preserve those outputs, ledger, captures and verdict as historical evidence\.
 
-Reuse the existing installed extension, extensions directory, test profile, launch configuration, collector and final approval driver, including the v2 expiry/time\-reserve guard\. Resolve exact paths from records; do not perform blanket version substitutions inside absolute paths\. Start or reuse the correctly owned isolated host as needed, with no concurrent host sharing the profile\.
+The owner now requires generated job configs to have the \.json extension\. Earlier engineering prompts explicitly requested \.conf\. Therefore the observed \.conf output alone does not prove a product defect: first distinguish a qualification\-input mistake from an incorrect generation default or unsupported content format\. The successful \.conf write is not evidence that the new \.json requirement is met\.
 
-Do not rebuild, repackage, reinstall, choose another version, compile, rerun completed source/package suites, regenerate managed assets or recreate fixture generators and helper/test suites\. Reuse helpers with explicit task\-specific output paths and parameters\. If the existing approval driver hard\-codes one CREATE, a minimal task\-local adaptation to guard the exact two\-file manifest is authorized; preserve the original and check the changed guard offline without spending approval\. Prefer parameter changes, introduce no new harness, and do not reopen product\-source repair\.
+Acquire normal source ownership if needed\. If this task already exists, resume its current state rather than instantiate a duplicate\. Preserve preimages for touched tracked and untracked files and all unrelated dirty work\.
 
-Create one small execution record with a fresh one\-approval ledger, plus the captures/results needed for this run\. Reference prior evidence in place\. Do not copy historical reports or overwrite collector/reviewer outputs\. If this task already exists, inspect its recorded outcome and budget before resuming: spent, dispatched or uncertain means no second approval\.
+## 2\. Determine the smallest correct change
 
-## 2\. Use an existing prepared consumer
+Inspect the actual job renderer, filename/default policy, consumed Orchestrator instructions/skills, parser/schema and relevant artifact\-discovery/preview paths\. Use a representative accepted \.json job from available authorized local project or framework resources\. Record its provenance and the parser that consumes it\. The owner’s repository screenshot showed \.json filenames under job\_conf/gsc; it did not show their contents and does not by itself establish the serialization dialect or a universal directory rule\.
 
-Prefer an already prepared, unused write consumer that matches the qualified \.155 fixture\. If none exists, make at most one byte\-for\-byte copy of the retained 22\-file \.155 consumer into a fresh disposable root\. This isolation copy is authorized; do not run setup/bootstrap/fixture\-generation again\. Preserve the historical consumer\. Verify copied configuration references resolve inside the new consumer where required; do not use a blind search\-and\-replace\.
+Answer these questions from actual evidence:
 
-Record the canonical root, baseline inventory/hashes and current ledger bytes once before the request\. Both output destinations must be absent\. Resolve the SQL include’s exact relative destination from the predecessor’s actual preview manifest; do not invent its name\. Register the complete permitted effect:
+- Does the installed product already support the required \.json job output and its expected content?
+- What extension does an ordinary new\-job request choose when the user does not explicitly name \.conf?
+- Did the qualification brief itself force the wrong suffix, or do shipped generation assets/defaults also need correction?
 
-- CREATE job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.conf\.
-- CREATE the exact reusable SQL include destination just resolved from the qualified manifest\.
-- Preserve all pre\-existing files byte\-identically, including the reused env and shared disk include\. UNCHANGED references and measured read dependencies are allowed; they are not write destinations\.
-- Permit only parent\-directory creation needed for these two files\. No overwrite, deletion, extra artifact, initialization/upgrade, \.gitignore/workflow edit or external effect\.
+If \.json is already correctly supported and selected by the intended generation route, correct the reusable qualification facts, expected destination and misleading active examples only where needed\. Do not manufacture a product defect, change an unrelated parser or bump the version just to fix a test request\.
 
-Freeze this baseline\. Reuse the registered six mappings, transformations, order\_status IS NOT NULL filter, physical source/target facts, write mode and Framework read semantics\. Do not change the business case or copy the two proposed outputs into place manually\. Verify adequate disk space and that capture and approval helpers are ready before creating the preview; avoid another lengthy preflight campaign\.
+If the new\-job default or generation contract is wrong, make the minimum necessary source/consumed\-asset correction so this consumer route produces \.json naturally\. Merely hard\-coding \.json in one new test prompt must not hide a remaining wrong product default\. Align the relevant renderer/default, preview destination and write manifest through existing seams\. Do not create a parallel writer or approval path\.
 
-If authentication requires owner interaction, identify the exact existing test window and pause only for sign\-in\. Do not copy credentials, change trust/settings, substitute profiles or enable blanket approvals\.
+Keep the existing ERUS9 test directory layout for this suffix correction unless a directly applicable contract proves it invalid; do not move it to gsc based on a screenshot\. The intended corrected test destination is job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.json\. SQL remains sql/customer\_orders\_transform\.sql\. This requirement does not rename env/shared configs or all include files\. Preserve supported reading/editing of historical \.conf artifacts unless it directly conflicts with the owner’s new\-job requirement; global removal is not requested\.
 
-## 3\. Obtain the fresh preview through ETL Orchestrator
+## 3\. Make the content correct, not just the filename
 
-Open only the selected consumer and verify the loaded extension is the pinned \.155\. Select its actual ETL Orchestrator\. Use a concise natural\-language request containing the registered facts and the two output locations, asking to reuse the existing env/shared include and save the job plus reusable SQL include after preview approval\. No slash commands, tool names, specialist choreography, direct helper tool invocation or manual filesystem write may substitute for the product route\.
+Verify the serialization expected by the real consumer\. If its \.json files are JSON, the candidate must parse as JSON and satisfy the actual framework schema\. If accepted project examples deliberately use HOCON under a \.json suffix, document that proven distinction and preserve the actual consuming contract; do not claim a strict\-JSON conversion from a suffix alone\. Do not invent a schema or assume formatting based on the repository listing\.
 
-Reuse the prior preparation and facts, but obtain a fresh product\-issued preview: the cancelled/expired predecessor preview cannot authorize this operation\. Do not inject old preview/store state or force the candidate to match historical byte counts\. The new internally validated preview determines the exact approved bytes\.
+Preserve the six mappings, transformations, order\_status IS NOT NULL filter, physical source/target semantics, write mode, SQL reference and reused env/shared dependency behavior\. Check variable substitution and path semantics through the real parser; do not rewrite HOCON concatenation into a different effective value merely to make text look like JSON\. Use the predecessor’s corrected business checks\. Its final generic\_dataframe\_write candidate was a modules\-only fragment: do not reintroduce an inapplicable etl20\_job wrapper assertion or the rejected earlier checker expressions\.
 
-Capture actual tool arguments/results with the existing collector\. For the first writer invocation, establish that previewId is absent and it is the preview\-producing branch before granting its specific host consent\. Assistant narration or a UUID\-shaped sentence is not evidence of a product preview\.
+Prepare one corrected \.json candidate in a task\-owned review directory outside the historical consumer\. Reuse the real renderer/parser/validation seams where available and label this as an offline review artifact, not an installed\-product write or a trusted live preview\. Reuse the existing SQL content by reference rather than regenerating it\. Record candidate bytes/hash, validation outcome and any transformation from the qualified \.conf representation\. Do not invent previewId or approval data for this artifact\.
 
-Check the actual new preview:
+If an accepted sample is unavailable, use the actual implemented parser/schema and shipped examples to complete what they can establish, naming that evidence scope\. If a material format ambiguity remains, identify the exact missing sample or contract instead of silently guessing\. The \.json naming requirement itself is already settled by the owner\.
 
-- Exact registered root and exactly the two permitted CREATE destinations; every reference remains outside the write set\.
-- Registered job/SQL semantics preserved, and the writer’s internal pre\-write validation passes\. Retain actual diagnostics\. Known nonblocking runtime/DBFS limitations may be carried for this local file\-only trial; blocking errors or unresolved semantic conflicts cannot be waived\.
-- Product\-issued previewId, manifest checksum, proposed byte lengths/hashes and effective env/include dependency identities captured\. Independently recompute the two proposed file hashes from the exact available candidate bytes\. If validation transforms content, identify its final output; do not trim or normalize to manufacture equality\.
-- Reused env and shared include come from the intended workspace files\. Preserve the evidence’s distinction between raw disk content, validator text and path identity; do not demand model\-supplied env text when the product reads the file itself\.
-- Consumer still matches its baseline and neither target exists\.
+## 4\. Verify only the affected behavior
 
-Complete heavy checks before the preview and the necessary actual\-preview binding checks afterward\. Use bounded observation; collector activity is not model progress\. Do not resubmit an in\-flight or queued request\.
+Reuse existing suites and helpers\. Add or adjust only meaningful regressions needed for changed behavior:
 
-## 4\. Approve once, within the real deadline
+- The intended new\-job generation chooses \.json and the content is accepted by the real consumer parser/schema\.
+- The \.json artifact is discovered and the same destination/content reach validation, preview, approval binding and the test writer/read\-back through the existing pipeline\.
+- Changing \.conf to \.json changes the bound destination; an old approval cannot authorize a different filename or content\.
+- Existing env/include authority, the separate SQL artifact and legitimate legacy input support remain intact where affected\.
 
-Continue normally through the Orchestrator with the authenticated previewId and the same bound plan/arguments\. Verify the actual continuation arguments and grant its specific host invocation consent only after confirming the independent final approval boundary\. Allow Once is not final write approval\.
+Automated test writes belong in disposable test workspaces only\. Keep filename extension, parsed meaning and exact candidate bytes as separate assertions\. Do not weaken business checks to obtain a pass or treat an earlier unrelated parser failure as proof of the intended guard\.
 
-At the genuine extension\-owned Approve write / Cancel modal, check the root, two destinations, pending set and unchanged baseline using the existing driver\. Read the product’s authoritative expiresAt and apply the existing time reserve immediately before the affirmative action\. Do not spend ten minutes doing repeated audits while the modal waits\.
+If product or test code changes, run the compiler and affected suites in the existing isolated lane, comparing relevant failures against the authenticated current pre\-edit baseline\. Reuse unchanged evidence when its inputs match\. Do not rerun broad source/package campaigns, recreate fixtures, generate new harnesses or rely on an expired exception to waive a required failure\.
 
-If the reserve is insufficient before any affirmative dispatch, cancel that pending attempt and allow at most one ordinary fresh\-preview renewal through the Orchestrator, with all new binding checks\. Never extend TTL, replay an answer or recycle the cancelled preview\. Any scope/content/root mismatch or missing binding evidence means Cancel and a concrete blocker, not an affirmative click\.
+Use one focused independent read\-only reviewer for the attribution, actual format contract, minimal diff, candidate and affected tests\. Preserve reviewer provenance and any corrective\-delta verdict\. Do not repeat the successful \.155 write review\.
 
-Immediately before dispatch, durably mark this task’s single approval spent and record the previewId, checksum, canonical root, two destinations and their content identities\. Use the existing guarded driver to select the exact visible Approve write button once\. The owner has authorized this click; do not stop for another routine confirmation\. Keep the task ledger distinct from the product’s approval record and report only durability evidence actually observed\.
+## 5\. Finish with a ready next action
 
-After dispatch, do not click again, retry the write, reset the budget, renew approval or rebuild the fixture, even if the product errors, times out or the result is unclear\. Resolve the outcome by read\-only observation\. An approval rejected after dispatch is still spent under this task’s one\-attempt budget\.
+Produce a concise result with: why \.conf was selected; the actual \.json content contract and evidence; changed files, if any; the corrected candidate path/hash; meaningful verification; and whether shipped inputs changed\.
 
-## 5\. Read back and finish
+If no shipped input changed, explicitly retain installed \.155 for the next qualification\. If shipped code/assets changed, identify the exact reviewed delta requiring one distinguishable future candidate\. Do not build, package, install or launch another long live qualification in this task\. The next prompt must reuse this preparation instead of repeating it\.
 
-Let the existing invocation settle with bounded waits\. Capture its actual approve\-turn result; do not invent a repeated evidence section if the product does not publish one there\. Verify from disk:
+Prepare, but do not execute, the smallest follow\-up for a fresh natural\-language Orchestrator preview of the corrected \.json output and its SQL include\. Preserve normal trusted approval and expiry checks\. A future real write needs a fresh explicit bounded authorization; the \.155 successful trial and \.154 failed trial both have spent budgets\. Do not rename/delete the successful \.conf file or amend its evidence to make history appear JSON\-compliant\.
 
-- Exactly two added files at the registered destinations\. If the confirmed baseline was 22 files, the result is 24; derive counts from inventory\.
-- Both files’ bytes, lengths and SHA\-256 values match the exact trusted\-preview content and its final internal validation identities\.
-- Every original file is byte\-identical, including env and shared include; no unexpected temporary/partial/backup artifacts exist in the consumer\.
-- Product\-reported effects agree with measured effects\. Count files separately from directories and avoid claiming unobserved low\-level I/O counts\.
-
-If one file exists, both exist with wrong content, or reporting fails after creation, preserve that exact state\. Do not repair, roll back, clean up or perform a compensating write\. Report the concrete partial/failed/uncertain outcome and spent budget\.
-
-Use one focused independent read\-only review of this new preview\-to\-approved\-write\-to\-read\-back chain\. Reuse accepted source/package/Cancel findings; do not repeat their reviews\. Keep review outputs separate from historical artifacts\. Finish with a concise result containing the actual root/output paths, preview/read\-back hashes, original\-file preservation, approval consumption, reviewer verdict and evidence references\. No new test\-output campaign is required\.
-
-Claim bounded installed \.155 Orchestrator approved LOCAL write success only if both files and the full chain are verified\. Otherwise state the exact failure or limitation\. Release acquired runtime ownership according to the existing procedure\. Preserve historical ledger limitations, unexercised branches and runtime/DBFS limits\. No source edit, Git mutation, dependency change, DBFS publication, remote job/deployment, release acceptance or general product\-readiness claim is authorized\.
+Preserve shared out, \.tsbuildinfo\.test, package versions, installed bundles, profiles, historical consumers and ledgers\. No Git mutation, dependency installation, shared cleanup, external publishing, DBFS/job execution or release claim\. Record source/case alignment only to the extent verified and release acquired source ownership\.
