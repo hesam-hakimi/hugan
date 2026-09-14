@@ -1,93 +1,89 @@
-# One approved local write through the installed consumer ETL Orchestrator
+# Repair reused\-env authority and expiry during write approval
 
 STATUS: OWNER\_AUTHORIZED\_FOR\_SUBMISSION; not executed by ChatGPT\.
-TASK\_ID: ETL\-0914\-INSTALLED\-0154\-ORCHESTRATOR\-APPROVED\-WRITE01\.
-PREDECESSOR: ETL\-0913\-TRUSTED\-WRITE\-EVIDENCE\-INSTALLED\-QUALIFY01, completed on 0\.3\.154\.
-PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 1 final trusted approval, for the single manifest defined below; non\-retryable once dispatched\.
+TASK\_ID: ETL\-0914\-ENV\-REUSE\-AND\-APPROVAL\-EXPIRY\-REPAIR01\.
+PREDECESSOR: ETL\-0914\-INSTALLED\-0154\-ORCHESTRATOR\-APPROVED\-WRITE01, closed with approval spent and no write\.
+SCOPE: Two bounded product\-source corrections, affected permanent tests and focused independent review\.
+PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 0\. The predecessor’s single approval remains spent and non\-retryable\.
 
-The owner explicitly agreed to this controlled write trial after the installed preview\-and\-Cancel qualification\. This is fresh authority for this task only; earlier zero/spent budgets remain unchanged\. Execute the bounded work without asking again for routine permission or for the already\-authorized final click when every condition below holds\.
+Continue in the Windows engineering workspace; this prompt is self\-contained for a fresh Copilot chat if needed\. All engineering replies, prompts, code, tests and documents must be English\. Use text, DOM, files and existing diagnostics only; no screenshots, video, OCR or vision\. Complete this authorized source task without repeated routine permission requests\.
 
-Use the Windows engineering session\. This prompt is self\-contained for a fresh GitHub Copilot chat if needed\. All engineering replies, prompts, code, tests and artifacts must be English\. Use text, DOM, files and existing diagnostics; no screenshots, video, OCR or vision\.
+## 1\. Restore the actual failure and preserve its evidence
 
-## 1\. Restore the completed qualification and reuse it
+Resolve the predecessor’s claim/evidence directory under C:\\docs using its exact task\-ID prefix\. Read its final report\.md, result\.json, pins\.json, reviewer/review\.md, approval ledger and directly referenced observations\. Follow references to the final \.154 source/installation identities and the trusted\-write\-evidence source repair\. Read applicable repository instructions\. Search within those identified roots and relevant source paths, not all historical campaigns\.
 
-Resolve the predecessor’s final claim/evidence directory under C:\\docs by its exact task\-ID prefix\. Read its final report, result, final Verifier verdict and referenced install, launch, fixture, collector and preservation records\. Apply repository instructions\. Resolve full authoritative paths and hashes from those files, not screenshots or guessed identifiers\. Limit searches to the identified task roots and relevant source references\.
+Authenticate the findings before editing:
 
-Expected state to authenticate once:
+- Installed 0\.3\.154 reached a genuine trusted preview through the natural\-language consumer ETL Orchestrator\. It proposed one CREATE under job\_conf/conf/ERUS9/ plus an UNCHANGED env reference\. Writer internal validation reported zero errors / three warnings / seven stages\.
+- The one Approve write action was dispatched and the dialog accepted the answer\. The store then refused to record approval\. The roughly ten\-minute preview lifetime had elapsed while the modal was pending\. The product returned a combined already\-used/concurrently\-approved/expired message without identifying the actual reason\.
+- requestWriteAuthorization checks expiry before opening the dialog and calls store\.approve afterward\. Confirm the actual expiry anchor, comparison and store/consume behavior from source\. Preserve the report’s timing range; do not manufacture a more precise historical timestamp or stronger click/fsync proof\.
+- Reused env content supplied by the model differed from the actual file: outer HOCON braces were removed and a destination\.storage\.account value changed\. This is a semantic divergence as well as a byte difference\. The env file itself stayed unchanged because the reused reference was skipped by RepoWriter\.writeArtifacts, but validation used the divergent input\.
+- The consumer remained at 21 files, target absent, with no partial/temp outputs\. The prior budget is spent\. Preserve the consumer and all original records exactly as left; no retry, rollback, cleanup or compensating write\.
 
-- INSTALLED\_0154\_TRUSTED\_WRITE\_EVIDENCE\_VERIFIED\_WITH\_LIMITATIONS\. The real product preview result contained v1 evidence; writer\_internal\_prewrite returned zero errors / three warnings and seven stages\. Input/output identities matched in that run\.
-- Real preview creation, its previewId\-bearing continuation, and genuine final Cancel were observed\. The independent reviewer reported 24 confirmed / 3 partial / 0 refuted\. All 21 consumer files were preserved; job\_conf remained absent\.
-- The job was CREATE/proposed\_write\_content; the env was UNCHANGED/reference\_input\_content\. Hashes were independently recomputed from captured arguments\. The authored destination was job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.conf and the required order\_status IS NOT NULL filter survived\.
-- Known limits include unavailable runtime/DBFS compatibility, the SQL\-includes warning, the unexercised destination\_path\_identity branch, historical standalone\-validation byte identity, and the previously unverified approve\-turn result shape\.
+Acquire the normal source claim after verifying ownership release\. If this task is already active, resume its existing claim\. Preserve full current preimages/hashes for every touched tracked or untracked file and all unrelated dirty state\. Installed \.153/\.154, profiles, VSIX files, historical tests and reports remain unchanged\.
 
-Reuse installed 0\.3\.154, the recorded env154 extensions directory, signed\-in env151 user\-data/profile, final launch settings, fixture builder and existing collector\. Do not rebuild, repackage, reinstall, bump a version, repeat version discovery or rerun accepted source/package suites\. Verify current installed identity and released ownership; an actual mismatch is a prerequisite to resolve, not permission to regenerate the product\.
+## 2\. Make the existing env file authoritative for reuse
 
-Register one normal task claim and one runtime owner\. If this task already exists, inspect its ledger/result and resume only unspent work; a completed or uncertain approval must never trigger another write\. No concurrent hosts sharing the isolated profile\. If sign\-in expired, reopen the exact isolated window for owner\-performed interactive sign\-in and retain a checkpoint; do not inspect/copy credentials or swap profiles\.
+Trace the existing reuse flow through EtlActionToolService, its validator, manifest builder, trusted preview/store and final writer\. Use those existing seams; do not add a second configuration resolver or approval pipeline\.
 
-The inherited quarantine expired at the end of 2026\-09\-13 UTC\. The predecessor recorded that its required gates did not use it\. Check applicability to this new task; do not extend the exception or waive a required failure merely because it is old\.
+Implement this rule when the request declares an existing env is being reused:
 
-## 2\. Define the authorized effect before any model request
+- Resolve the declared env path using the existing explicit\-workspace and containment rules\. Read the actual workspace file and use that snapshot as the env input to validation and planning of the guarded write\. Missing/unreadable/out\-of\-scope files must fail clearly before approval; never fall back to model\-supplied env text\.
+- Model\-supplied env text is non\-authoritative in this mode\. If supplied text differs, emit an explicit bounded diagnostic that the existing file is being reused and supplied changes were not applied\. Do not merge the model’s storage account or other values into the effective config\. Do not rewrite the file to fit the model\. Preserve the semantics of genuinely new or separately authorized env\-write modes\.
+- Preserve original disk bytes and the exact text actually given to the validator\. Do not add trim/newline normalization as a shortcut\. If existing decoding/parsing transforms representation, identify those stages honestly rather than equating their hashes\.
+- Bind the reused env dependency’s canonical path and actual content fingerprint to the trusted preview\. Carry that snapshot through the existing store/manifest contract using authoritative product state, never a caller\-provided hash\.
+- Recheck the bound dependency on the preview\-bearing continuation and at the existing last safe check before writing, including after the user answers the modal\. A changed, replaced, removed or unreadable env must prevent writing and require a fresh preview/validation/explicit approval\. Do not silently rebase the old approval onto a new env\. Document the actual check/atomicity boundary without claiming filesystem guarantees the implementation does not provide\.
 
-Create ONE new disposable consumer using the retained supported fixture and exact \.154 managed assets\. Preserve all historical consumers\. Register its canonical absolute root and complete inventory, hashes and exact business facts before the first request\. Expected starting inventory is 21 files with no job\_conf; verify it rather than hard\-coding success\. Setup writes and task\-evidence writes are separate from product writes\.
+Extend the existing versioned evidence/result contract compatibly to identify that validation used an existing workspace env snapshot and to expose its actual identities and drift outcome\. Keep disk\-content, validation\-input and path\-only hashes distinct\. Do not relabel an old destination\_path\_identity or reference\_input\_content value as a disk\-content hash\. Preserve existing human\-readable preview behavior and keep diagnostics concise; no whole\-file/credential dumps or background logging service\.
 
-The entire allowed product manifest is:
+## 3\. Handle preview expiry across the real approval lifecycle
 
-- CREATE exactly one new file: job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.conf inside this new consumer\.
-- Keep every pre\-existing file byte\-identical, including the actual registered env file\. An UNCHANGED/reused env reference is allowed in the manifest, but no env write is authorized\.
-- No overwrite, deletion, additional artifact, \.gitignore update, source/workflow modification or external effect\. Creation of the parent directories needed for that one file is allowed\.
+Preserve the existing absolute lifetime and security behavior\. Expired approval must still fail closed\. Do not solve this by increasing the TTL, pausing its clock while a dialog is open, refreshing expiresAt on access, treating a stale affirmative answer as valid, or carrying that answer into another preview\.
 
-Freeze the new consumer and record an approval budget of one before opening the live conversation\. Do not seed the old rendered job or preview/store state\. Use a fresh product\-issued preview\. The former cancelled preview and its IDs/hashes cannot authorize this write\.
+Implement the smallest correction through requestWriteAuthorization and the actual trusted store/consume path:
 
-Retrieve the original registered business case: six mappings and their transformations, physical source/target facts, append/Delta behavior, existing env reuse, the exact order\_status IS NOT NULL filter and resolved Framework read semantics\. Preserve derived\-versus\-declared distinctions\. Do not force the new artifact to equal the old 1,037\-byte job: the new validated preview defines its bytes after its business requirements are checked\.
+- Expose the authoritative preview expiry and timestamp basis in the real preview evidence\. At the point the dialog is about to open, re\-evaluate expiry after any validation or other time\-consuming work\. Do not show an actionable approval for a record already expired\.
+- Give the user a concise, accurate expiry notice in the existing approval flow, including the deadline or remaining time as measured when displayed\. If the existing supported dialog API can update, disable or close an expired pending modal without unrelated UI changes, use it\. Do not promise live countdown/automatic closure if that API cannot provide it; document that limitation and implement correct result handling regardless\.
+- On an affirmative response, use the existing atomic store operation and current time to determine whether approval can still be recorded\. Preserve the checks again at consumption/write boundaries\. Distinguish expiration from already\-consumed/concurrent approval and other actual rejection reasons; avoid a separate check\-then\-approve race\.
+- If expiration occurred while waiting, return a specific structured expiry outcome plus a clear user message that no write occurred and a fresh preview and explicit approval are required\. Do not replay the affirmative answer or automatically dispatch a new write\. Retain the old preview/attempt as history\.
+- A subsequent normal user\-requested renewal must create a new product preview identity, rerun the necessary current validation/dependency checks and require its own explicit final approval\. It must not reuse a spent approval or expired record\.
 
-Check actual disk space/growth and retain at least 2 GB free plus sufficient headroom\. No shared cache/log, Temp or historical\-evidence cleanup is authorized\. Verify the collector and the existing gate driver before live work\. A bounded task\-owned driver change is allowed to support this task’s single affirmative click; it must reject a wrong root, extra file, changed content, ambiguous modal or spent/unknown budget\. Use focused offline checks, not a live trial approval\. No blanket auto\-approval setting or new harness\.
+Use supported existing interfaces and narrow type changes\. Preserve containment, destination shape, content checksums, env dependency checks, expiry/consumption and the genuine final Approve write / Cancel boundary\. No generic UI auto\-approval, custom replacement writer, alternate permission channel or state injection\.
 
-## 3\. Obtain and inspect a new preview through the real user route
+## 4\. Permanent behavioral tests without real\-time waits
 
-Open only the new consumer in the product host and verify loaded 0\.3\.154\. Select the actual ETL Orchestrator and record the model and observable context loading\. Extension source, Framework checkout and C:\\docs evidence must not become hidden model context\.
+Use the existing test framework and controlled clock/fake\-timer facilities; add no dependency and do not wait ten real minutes\. Exercise actual service/store/result paths, not only formatting or source\-string assertions\. Use isolated filesystem fixtures and writer spies\. Offline test fixture writes are allowed; live product writes are not\.
 
-Use an ordinary natural\-language request for this one job and its file\-change preview\. Include known business facts up front to reduce avoidable clarifications\. Do not use /create, /write, tool names, internal specialist instructions or direct helper tool calls as a substitute for Orchestrator routing\. The task authorizes saving only after the checks below\. Answer genuine clarifications from the frozen facts; normal model repair may change proposed content, but not the business case\.
+Env cases:
 
-Capture actual tool arguments/results from this exact session using the existing collector\. Keep model narration separate\. Do not infer previewId from a UUID\-shaped sentence\. Collect with bounded progress checks and preserve partial results if collection fails; do not resubmit an in\-flight model request\.
+1. Reused env supplied with the observed storage\-account mutation: validation receives the real file’s content, the supplied difference is disclosed, and the file is not changed\. Exercise braced/unbraced HOCON and the trailing\-LF difference without hiding semantic or byte differences\.
+2. Missing/unreadable env and a path outside the allowed workspace: no fallback to caller text, no preview/approval/write\.
+3. Env changes between preview and continuation, and while the approval modal is pending: stale approval cannot write; the diagnostic and required next action are accurate\. Cover replacement/deletion as appropriate at the same seam\.
+4. Unchanged reused env: current file snapshot, actual validator input and trusted evidence agree according to their declared representation; the valid path still works\. Preserve the existing new\-env behavior in its affected regression suite\.
 
-For the first writer call, verify its actual arguments omit previewId and that it is the preview\-only branch\. Accept its specific preliminary host consent\. Persist the complete product preview and v1 evidence outside the consumer\.
+Expiry cases:
 
-Before advancing to final approval, establish all of these:
+5. Already expired at invocation, expiry during validation before modal display, expiry exactly at the documented boundary, and expiry while the modal is pending: no writer call; correct expiry outcome and user guidance\.
+6. Approval before expiry followed by expiry before consumption, where reachable: the actual final guard remains effective\.
+7. Timely valid approval succeeds through the real source path in an isolated test\. Cancel does not write\. Consumed/concurrent records cannot be approved twice and are not mislabeled as expired\.
+8. Explicit renewal produces a new ID/current snapshot and still requires a fresh approval\. A stale dialog answer, supplied checksum or repeated call cannot transfer authority\.
 
-- The canonical root is the new registered consumer; the manifest contains exactly the allowed CREATE and any correctly classified UNCHANGED references\.
-- The proposed job satisfies the registered mappings, transformations, filter, write mode and read semantics\. Its destination conforms to the expected layout\. Record authored, normalized and displayed path spellings; do not confuse Windows case normalization with permission for another path\.
-- Actual writer INTERNAL pre\-write validation passed for the proposed content\. Preserve verbatim diagnostics and input/output identities\. Known nonblocking runtime/DBFS\-unavailable and SQL\-includes limitations may be carried for this local file\-only trial; no external execution is being qualified\. An unexplained semantic conflict or blocking validation cannot be waived\.
-- The final internally validated artifact identity matches the trusted preview’s proposed content\. Preserve exact available candidate bytes, byte lengths and hashes and independently recompute them from the captured bytes using the published algorithm/encoding\. If validation transforms content, prove which output enters the preview; never trim or normalize evidence to manufacture equality\.
-- The real product previewId and manifest checksum are recorded\. Treat reference/path hashes according to their declared role; verify existing env preservation independently from filesystem bytes\.
-- The consumer still matches its pre\-request freeze, the new job does not exist, the capture is complete, and no other pending write operation can be confused with this one\.
+Combined case: exercise env drift and expiry around the same pending approval, checking that the writer is never called and that the reported reason corresponds to the implemented ordering\. Do not weaken one protection to test the other\.
 
-Missing binding evidence, extra effects, unexpected drift or an unknown budget means no affirmative click\. Capture the precise blocker and safely cancel this operation\. Do not repair the consumer to make the test pass\.
+Compile in the established isolated task\-owned lane with required resources and local dependencies\. Shared out and \.tsbuildinfo\.test must remain untouched\. Run affected trusted\-write/env/approval/result suites and required related regression gates\. Reuse unrelated authenticated results\. For a claimed pre\-existing failure, use relevant preserved preimages/baseline evidence; baseline status alone cannot waive a mandatory gate\. Fix regressions introduced by this task within scope\.
 
-## 4\. Spend the single approval on the exact preview
+## 5\. Update the reusable driver guidance, review and close
 
-Continue normally through the Orchestrator to a writer call carrying the authenticated previewId and identical relevant content/root/path/env arguments\. Capture and compare those arguments\. Accept a second preliminary host consent only after confirming the independent trusted final modal still guards the write\. Allow Once remains invocation consent, not the final approval\.
+Make only a small necessary update to the existing qualification helper/brief: heavy identity/fixture/capture checks should happen before the preview is created\. Checks that depend on the actual new preview must still happen afterward\. Read the product’s authoritative expiresAt immediately before a future final click and enforce an explicit time reserve for that action\. If time is insufficient, obtain a fresh preview through the normal product flow before any approval is spent; never skip binding checks or rely on an estimated historical TTL anchor\.
 
-Capture the genuine Approve write / Cancel modal, its pending set and a fresh unchanged\-consumer inventory\. Confirm that it belongs to the inspected invocation and exact manifest\. All reviewable preview/evidence checks must be complete before the affirmative action\.
+The old approval ledger remains spent\. This source task creates no new live\-run or approval allowance\. Do not exercise the installed product, rebuild/package/install, bump a version, change sign\-in/trust/profile state, mutate Git, publish to DBFS, deploy or run external jobs\. No shared cache/Temp/evidence cleanup is authorized\. Check disk capacity before isolated compilation and checkpoint if it cannot complete\.
 
-Persist a durable task\-owned record marking the one approval as spent immediately BEFORE dispatching the exact visible Approve write click\. Include the previewId, checksum, root, sole destination and proposed content identity\. Do not disclose or manufacture any internal approval secret\. Select Approve write exactly once through the normal product UI\. This click is explicitly owner\-authorized when all preceding conditions hold\.
+Use one independent read\-only reviewer for the final source diff, authoritative env behavior, expiry/concurrency ordering, result contract and tests\. Permit its verdict only in task evidence\. Resolve relevant findings and have corrective deltas checked\. State reviewer provenance accurately and preserve intermediate verdicts rather than promoting an older review over later edits\.
 
-If the preview expires before that dispatch, at most one normal product renewal is permitted with a newly captured preview and all checks repeated; never revive/inject an old record\. Once the click is dispatched, do not issue another write, reset the ledger, re\-click, retry or rebuild the fixture, even if a timeout, error, lost response or missing file makes the outcome uncertain\. Resolve uncertainty by read\-only observation and report it accurately\.
+Deliver one concise report/result with changed\-file pins, behavioral test outcomes, final reviewer verdict, implemented lifecycle behavior and precise residual limits\. Claim verified source repair only where established; do not claim installed/runtime qualification, close the failed \.154 write retrospectively or call its absence of writes a successful write test\.
 
-## 5\. Verify the actual persisted result and close
+Prepare, but do not execute, the smallest follow\-up to build one distinguishable candidate and qualify the corrected consumer Orchestrator flow\. Select an unused private version only when that build is authorized\. Any later real write requires a fresh, explicit bounded approval budget; do not inherit or reset the predecessor’s one spent approval\. Preserve \.154 and the failed trial as historical evidence\.
 
-Wait for the existing operation to settle using a bounded observation\. Capture the real approve\-turn tool result, including errors, counts and any emitted evidence; its shape was previously untested\. Do not invent v1 metadata if that turn does not emit it\. An absent repeated evidence section is not itself a failed write if the required chain is otherwise proven; report the actual transport behavior separately\.
+Release source ownership with final pins\. Carry runtime/DBFS, historical standalone\-validation byte identity, Framework documentation, case\-normalization and other acceptance limits\. The quarantine ended after 2026\-09\-13 UTC and is not extended; identify any actual required\-gate dependency\. No RELEASE\_ACCEPTANCE, FULL\_PRODUCT\_OR\_ASKTD\_READINESS or demo\-delivery claim\.
 
-Read the new consumer from disk and verify:
-
-- Exactly one added file at the authorized destination; expected file count 21 \-\> 22, with no modified/deleted pre\-existing paths\. Count directory creation separately from files\.
-- Read\-back file bytes, length and SHA\-256 equal the precise trusted\-preview content and writer\-internal validated identity\. Displayed filenames, equal\-looking text or a success message alone are insufficient\.
-- The env and all other original files remain byte\-identical\. No unexpected partial/temp/backup files remain in the consumer\.
-- Product\-reported outcome and measured changes agree within their stated metrics\. Distinguish a file’s creation, byte\-changed paths and physical write\-operation counts; do not invent low\-level I/O evidence\.
-
-If any check fails, preserve the actual resulting consumer and evidence without rollback, cleanup, another approval or a compensating product write\. Report the concrete discrepancy and spent/uncertain outcome\. A successful file creation followed by reporting failure must not be repeated\.
-
-Use one independent read\-only reviewer for this new preview \-\> approved write \-\> read\-back chain, the scope of effects and the ledger\. It must not drive the host or mutate the consumer\. Correct report errors additively from retained evidence\. Reuse accepted source/package/preview\-Cancel findings rather than reopening unrelated reviews\.
-
-Publish one concise final report, machine\-readable result and reviewer verdict with pins, the exact new consumer/output path, preview/read\-back hashes, original\-file preservation and approval consumption\. Claim bounded installed 0\.3\.154 Orchestrator approved LOCAL write VERIFIED\_WITH\_LIMITATIONS only if the full chain is established\. Otherwise use the exact partial/blocked outcome\. Preserve useful artifacts and release runtime ownership after observation is complete\.
-
-No product\-source repair, Initialize/Upgrade/Repair, Git mutation, dependency changes, DBFS publish, Databricks/ADF run, remote deployment or release is authorized\. Keep \.153/\.154 and historical consumers intact\. Carry historical standalone\-validation byte identity, unexercised branches, runtime/DBFS and other acceptance limits\. This new trial uses the writer’s internal final validation as its stated validation stage; it does not retroactively close the earlier standalone comparison\. No RELEASE\_ACCEPTANCE, FULL\_PRODUCT\_OR\_ASKTD\_READINESS or demo\-delivery claim\.
+If a material behavior/API change beyond these two repairs is required, return the exact conflict and smallest reviewable alternative\. Do not broaden the task into another audit or an open\-ended harness rebuild\.
