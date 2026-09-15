@@ -1,113 +1,89 @@
-# Perform one authorized JSON job/include write and verify reuse
+# Investigate the nine historical writeFlow failures in a separate session
 
-TASK\_ID: ETL\-0915\-JSON\-PAIR\-WRITE\-AND\-REUSE01
+TASK\_ID: ETL\-0915\-WRITEFLOW\-NINE\-FAILURES\-INVESTIGATE01
 STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
-PREDECESSOR: ETL\-0914\-VALIDATION\-CODE\-DELIVERY\-QUALIFY01\.
-QUALIFIED\_CANDIDATE: 0\.3\.160, subject to matching actual installed identities\.
-OWNER\_AUTHORIZATION: Fresh authorization explicitly granted on 2026\-09\-15 for the operation below\.
-MAX\_FINAL\_APPROVE\_WRITE\_ACTIONS: 1\.
-AUTHORIZED\_PRODUCT\_OPERATION: One CREATE batch containing exactly two files: the qualified R1 job and its SQL include, in one freshly staged consumer\.
-OVERWRITE\_DELETE\_RENAME\_AUTHORIZATION: 0\.
-SCOPE: Fresh preview, one genuine final approval, physical readback, and read\-only discovery/reuse verification of that pair\.
+MODE: Independent investigation and isolated reproduction; no integration or repair\.
+PARALLEL\_WITH: ETL\-0915\-JSON\-PAIR\-WRITE\-AND\-REUSE01\.
+PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 0\.
+PRODUCT\_MODEL\_REQUESTS: 0\. ADDITIONAL\_VSCODE\_HOST\_LAUNCHES: 0\.
 
-Execute on submission, preferably in the same engineering session\. The owner has already authorized this specific write and delegated the one final Approve write action to you when its fresh preview matches the scope\. Do not ask again for that same bounded permission\. This is a new allowance; it does not revive any historical allowance or preview\.
+Execute on submission in a separate engineering session\. The owner authorizes the bounded investigation, task\-owned diagnostic files, focused offline reproduction and independent read\-only review described here\. All communication, code, tests and documents must be English\. Use text, DOM/accessibility and filesystem evidence only; no screenshots, video, OCR or vision\. Do not reconstruct recorded inputs or test identities from photographs\.
 
-All communication, code, tests and documents must be English\. Use text, DOM/accessibility and filesystem evidence only\. No screenshots, video, OCR or vision; disable capture hooks in reused drivers\. Preserve the active worktree, prior results and existing safety/approval mechanisms\.
+The subject is nine historical failing tests, not nine established product bugs\. Determine their identities, current behavior, causes and relationship to the repaired writer\. Several failures may share one cause\. Produce an actionable repair recommendation without implementing it\.
 
-## 1\. Reuse the qualified delivery
+## 1\. Establish scope and protect the parallel task
 
-Resolve the predecessor’s final report/result, independent review, candidate/package/installed pins, actual R1 arguments and results, final driver, fixture/dependency manifest and corrected helper under the established C:\\docs task location\. Resolve the worktree and appropriate consumer host from those records; the last reported worktree was C:\\repos\\etl\-extension\\etl\_fw2\\recovery\-extension\-product\-0\.3\.147\.
+Create a unique evidence root under the established C:\\docs location\. Own only this task’s evidence and isolated diagnostic lane\. Do not acquire a worktree\-wide lock or interrupt the write task\.
 
-Read applicable repository instructions and the effective repair contract\. Reuse unchanged references already read\. For a new session, additionally restore architecture and safety boundaries from 02/05\. Later authenticated outcomes supersede old reference text that the earlier repairs are still running\. Do not repeat the coverage audit, P1/P2/P3, maintainer integration or authentication/routing investigation\.
+ETL\-0915\-JSON\-PAIR\-WRITE\-AND\-REUSE01 has a separate, newly granted allowance for one final Approve write action covering exactly two CREATE destinations in its staged consumer\. Its execution status and final outcome are not established by this brief\. This investigation cannot consume, renew, amend or borrow that allowance\. It is advisory and is not an additional gate on the authorized write task\.
 
-The predecessor reported independently VERIFIED installed qualification of \.160: package gate exit 0, source/bundle/package/installed correspondence, real R2 rejection, and R1 preview/identical continuation/genuine Cancel with zero consumer delta\. Reused\-env authority held with suppliedTextApplied: false, and destination\_path\_identity was exercised\. Its corrected helper passed eight guard cases; its original 19/20 checker result and accepted additive correction remain historical evidence\. None of these observations constitutes an actual R1 write\.
+Use published ownership/claim metadata only as needed to establish exclusions\. Do not enter the active write task’s evidence directory, inspect its live consumer or approval state, control its UI, touch its profile, or alter its ledger\. Exclude historical consumers and all authentication/token stores too\. Do not ask another session to stop or send it instructions automatically\.
 
-Confirm ownership release and absence of a conflicting writer\. Create one new task evidence root and acquire its bounded ownership\. Record actual current identities; do not infer them from a version string, dirty count or mtime\. Preserve the closed predecessor’s files, all historical consumers/candidates/ledgers, the recovery worktree’s \.147 package version, shared out, \.tsbuildinfo\.test, unrelated dirty changes and the five applied maintainer files\.
+Do not modify the recovery worktree, shared out, \.tsbuildinfo\.test, installed extensions, test registration, maintainer customization or closed predecessor artifacts\. No Git mutations, dependency installation, package/VSIX build, installation, VS Code host launch, model\-driven product invocation, Databricks/DBFS access or network\-dependent test run\. Temporary filesystem writes by inspected offline tests are allowed only inside this task’s disposable lane; they are not authority to use a live consumer or approval store\.
 
-Reconcile the predecessor’s 42/42 resource inventory with earlier 63/63 counts using the existing manifests and their counting scopes\. Record whether this is a population difference or a real content discrepancy\. Do not infer missing files from subtraction or start a new inventory platform\. A material unresolved discrepancy affecting the qualified candidate blocks approval; otherwise reuse the authenticated outcome\.
+If a concrete finding directly threatens the active write’s exact scenario, promptly report the evidence and affected path to the owner\. Do not convert an untested suspicion or the mere existence of historical failures into a new gate\.
 
-Verify the installed \.160 bundle and relevant resources still match its accepted pins and that the active host uses them\. Reuse that installation and valid completed checks\. No product source changes, compile/test campaign, package, rebuild, install, upgrade, dependency installation or Git mutation is authorized or needed in this task\. If \.160 cannot be authenticated, stop the dependent write and report the exact mismatch instead of silently substituting another candidate\.
+## 2\. Recover only relevant completed evidence
 
-Library/sandbox links are not Windows paths\. Use authentic local outputs; transfer a genuinely missing supplied reference to documentation staging outside the worktree\. Do not reconstruct byte\-pinned inputs from photographed text\.
+Resolve actual local task roots and their final reports/results; directory names are locators, not byte provenance\. Start with these closed tasks:
 
-## 2\. Establish the new allowance and prepare the consumer
+1. ETL\-0914\-ALIAS\-VALIDATION\-REPAIR\-QUALIFY01: the nine writeFlow identities, raw pre/post results, and the reported reproduction against shared compiled output\.
+2. ETL\-0914\-COVERAGE\-REPLAY\-AND\-TIMING01: registration decisions, relevant runner interfaces and failure\-population distinctions\.
+3. ETL\-0914\-VALIDATION\-CODE\-AND\-FAILURE\-IDENTITY01 and ETL\-0914\-VALIDATION\-CODE\-DELIVERY\-QUALIFY01: accepted source/test snapshots, compiled\-output provenance, and the final corrected failure extractor and validity guard\.
 
-Use the existing claim/ledger mechanism to bind this fresh allowance to this task, candidate, consumer root and exactly two normalized destination paths\. Resolve the pair from the predecessor’s qualified R1 input\. Expected locators are:
+Read applicable repository instructions and the effective repair/verification contract\. For this new session, restore relevant architecture and safety context from 02/05, then use 03/04/06 and the newest relevant 08 entries only as needed\. Later authenticated task outcomes supersede older reference text\. Do not restart September 11 work, the coverage audit, P1/P2/P3, or authentication/routing diagnostics\. A Library/sandbox link is not a Windows path: stage a genuinely missing supplied document outside the active worktree\.
 
-- job\_conf/conf/ERUS9/CUSTOMER\_ORDERS\_CURATED\_LOAD\.json
-- job\_conf/conf/sql/customer\_orders\_curated\_load\.json
+The latest received reports establish these distinct populations:
 
-Authenticate exact spelling against the accepted R1 record rather than inventing or renaming a destination\. Record the final absolute allowlist before preview\. The include \.\./sql/customer\_orders\_curated\_load\.json must resolve from the ERUS9 job directory to the second file inside this consumer\. Any unexplained discrepancy with the qualified pair must be resolved before approval\.
+- At \.159, 16 failures reproduced in the pre\-edit lane; the nine writeFlow failures also reproduced against shared out\. That supports pre\-existence, not their root causes, harmlessness or waiver\. Do not relabel them as isolated\-lane artifacts without new contrary evidence\.
+- P1 registered five other suites in PURE\_UNIT\_TEST\_PATTERNS\. writeFlow remained outside that list\. Absence there does not mean absence from all prior execution: the runner has separate headless and GUI/integration pattern arrays\.
+- Later full headless runs reported 2577 passing, 24 failing and 5 pending; writeFlow was not part of that population\. Historical 24/26 comparisons and the five reported docs/ENOENT lane\-input failures cannot classify the nine writeFlow failures\.
+- Candidate 0\.3\.160 was installed and qualified for recorded R1/R2 inputs\. R1 reached a genuine final Cancel with zero writes; R2 was blocked with the intended artifact\-path diagnostic plus another sourced\-view error\. This did not prove a completed \.160 write\. Worktree package\.json remained 0\.3\.147\.
 
-Create one fresh, retained consumer fixture in this task’s staging area using the predecessor’s authenticated R1 dependency context\. Setup copies and normal managed\-asset projection are authorized only inside that new fixture before the baseline is measured\. They are separate from the product write\. Do not pre\-create either target file, hand\-write the final artifacts, or reuse a historical consumer as the write destination\. Necessary parent directories may be prepared within the new root\.
+Do not force current reproduction to return exactly nine failures\. Preserve all nine historical identities even if current results differ\.
 
-Use the authoritative existing env/shared files from that qualified fixture context\. Do not overwrite them with caller\-supplied text\. Retain the original R1 argument bytes and create a documented replay overlay only for necessary root rebasing and removal of historical continuation/approval handles\. Preserve the qualified job/SQL/include contents, filter and mappings\. No old previewId, checksum authorization handle or spent ledger may be transferred\.
+## 3\. Establish matching inputs before reproduction
 
-The job’s \.json suffix does not make its contents strict JSON: preserve stage\-keyed HOCON and the supported keyed\-HOCON SQL include\. Preserve SQL text in the include’s sql field; never replace it with an artifact path\. Keep WHERE order\_status IS NOT NULL and the recorded mappings\. The Framework view identity remains table\.name when present, otherwise the sourceList key; alias is a column rename\.
+Prefer immutable closed\-task source, tests, fixtures and compiled snapshots corresponding to the accepted \.160 source\. The installed VSIX alone may not contain the test inputs\. Resolve their relationship from existing build records and relevant hashes; a version string, HEAD, timestamp or dirty count is insufficient\. A clean checkout of the \.147 HEAD is not a substitute for the later accepted dirty source\.
 
-Before the first tool call, record the baseline file set and relevant byte hashes, prove both targets absent and bind the normalized read dependencies to the staged root\. Keep task evidence/helpers outside the consumer\. Establish expected bytes for both target contents from the exact final submitted strings and the existing writer’s encoding contract, including newline/BOM behavior; retain byte counts and hashes before writing\.
+Inspect only the relevant files and dependency closure\. Use closed logs and static tracing first\. If a necessary file exists only in the live worktree, a bounded read\-only copy is allowed only when published ownership permits it and before/after hashes establish a stable input\. Otherwise complete the available analysis and name the exact missing snapshot\. Do not copy an actively changing tree or silently mix revisions\.
 
-Prepare the final driver, collectors, readback and discovery commands before preview\. Reuse the working consumer profile/host under exclusive ownership, keeping the maintainer profile separate\. A historical \.151 component in a user\-data path is not the extension version\. Do not copy/read credentials, add PAT/\.env authentication, switch providers or create a replacement profile unnecessarily\. If the existing account is actually expired, identify that concrete prerequisite; otherwise reuse it without another login request\.
+For any execution, use task\-owned copies of matching artifacts\. Inspect the selected tests, setup/teardown, imports and runner for output, process and filesystem side effects before running them\. Redirect temporary roots and outputs into this task’s lane through existing supported mechanisms\. No test may reach an active or historical consumer, shared output, profile or approval store\.
 
-Reuse the predecessor’s supported route to the actual registered etl\_write\_to\_workspace tool in the installed host\. No source\-imported writer with VS Code stubs, patched extension or test\-only endpoint can substitute for this product operation\. A model\-mediated route may relay the recorded input if required by that established mechanism, but capture and compare its actual arguments\. This remains recorded\-input replay; it is not a new natural\-language generation claim\.
+Reuse inspected b1\-lane/t1\-run\-suites helpers and existing focused runners, with their actual interfaces and refusal conditions\. No new test framework\. Never execute naive compile/test:unit/pretest in the recovery worktree: these can delete protected shared out; compile:test also writes shared output/build info\. Reuse matching compiled output where possible\. If changed diagnostic TypeScript must compile, use an isolated output/build\-info location and existing dependencies\.
 
-## 3\. Issue and inspect a fresh preview
+## 4\. Investigate the failures and prove the classification
 
-Submit the prepared R1 input with no previewId through the installed public tool\. Capture its actual arguments and response\. Require:
+Recover each original test’s exact file and full title, expectation, observed error and relevant input\. Trace the failure into the current product and Framework contract\. Check whether a failure reaches the intended writer branch or stops earlier in setup/validation\.
 
-1. Successful real writer\-internal validation and a newly issued previewId/checksum with its actual expiresAt\.
-2. Exactly the two allowlisted destinations in CREATE, no overwrite or additional product write\. Existing env/shared context remains read\-only and authoritative\.
-3. Supported include resolution to the second artifact, effective SQL/filter/mappings preserved, and dependency binding matching the current staged files\.
-4. The consumer remains unchanged from its post\-setup baseline while approval is pending, and both destinations remain absent\.
+Retain these demonstrated contracts:
 
-Use actual preview/manifest fields and the existing verified evidence surfaces\. Do not reuse the predecessor’s cancelled preview or demand a field that belongs only to the later modal\. Keep any retained framework\-version warnings explicit; do not silence or downgrade blocking validation\.
+- New job filenames use \.json with HOCON content; \.conf remains compatible\. Supported keyed\-HOCON includes can have \.json, \.yaml or \.sql suffixes\. The \.156 defect was lost includeRef during projection, not a general suffix ban\.
+- The Framework executes sql as text\. A file path placed directly in that field must be rejected with SQL\_FIELD\_HOLDS\_ARTIFACT\_PATH\. The \.155 local write did not prove that representation was executable\.
+- A sourcing view uses table\.name when present, otherwise the sourceList key\. alias renames a column; it is not a view name\. A differing alias with SQL reading the registered view can be valid\. The sourcing module’s own name is not the fallback view\.
+- Producer codes are preserved inside the real composed validation pipeline\. The public blocked writer still returns data: null and message\-only output; no public structured\-code protocol was added\.
 
-Flush the pending\-state evidence before the final click\. Complete expensive preparation and reviews before preview; read the actual expiry instead of assuming the reported approximate ten\-minute lifetime\.
+If retained evidence cannot settle current behavior, run the smallest relevant offline writeFlow selection once against the identified snapshot\. Preserve original tests and expectations\. Any additional probe must answer a named unresolved cause with one controlled variation, record that variation, and remain in the task\-owned lane\. Passing an altered probe is not passing the original test\. Do not rerun all suites or perform a broad baseline campaign\.
 
-If the preview does not match this exact scope, do not approve\. Use genuine Cancel when a modal is present, preserve the outcome and diagnose the concrete issue\. Routine task\-caused staging/driver corrections before any approval may continue within this task and obtain a new preview\. Do not change product acceptance rules, overwrite an unexpected file or conceal unexplained drift to make the case pass\. A cancelled or expired preview cannot be reused\.
+Classify each case with evidence: product defect, stale test expectation, fixture/test defect, runner/environment defect, input/revision mismatch, no longer reproduced, or unresolved\. A stale\-expectation claim requires the actual consumer contract\. A product\-defect claim requires a valid input reaching behavior that violates that contract\. Distinguish a confirmed cause from a plausible explanation\. Do not weaken validation, change assertions, skip tests, register writeFlow, or implement repairs in this task\.
 
-## 4\. Consume the allowance once through the real modal
+Group the nine identities by demonstrated shared cause\. For each group state whether it affects the current two\-file CREATE scenario, another write branch, only test execution, or remains unknown\. Do not infer that all writes are broken from a failure in another branch\.
 
-Continue using that newly issued previewId and the identically bound paths/content\. Compare the captured first and continuation payloads, content hashes and relevant dependencies\. Immediately before approval, recheck the scoped destination absence and lack of conflicting mutation without claiming that this removes the known check\-to\-write race\.
+## 5\. Preserve trustworthy failure accounting
 
-Require the actual extension\-owned Approve write / Cancel modal\. Verify its identity, displayed scope and the Approve write control using DOM/accessibility\. The owner has authorized you to select this control once when the scope matches; do not stop simply to ask the owner to repeat the same permission\. Host Allow Once is a separate host permission and does not consume this product allowance\.
+Reuse the final corrected extractor/guard from the \.160 delivery in a task\-owned copy if compatible with these logs\. Preserve raw log bytes, encoding, exits/signals and runner counts\. Its contract requires a valid summary, matching counts, unique identities, complete titles and owning test files on both sides before declaring correspondence RESOLVED\. Otherwise report UNKNOWN and regressionsIntroduced: null\.
 
-Use a task\-owned copy of the qualified driver\. Its approval branch must require the matched candidate/root/two\-file allowlist, a current bound preview and an unspent task allowance\. Preserve the predecessor’s Cancel driver unchanged\. Do not use blind Enter or a generic click that might target the wrong control/window\.
+Mocha’s inline failure marker and epilogue can describe the same failure twice\. A clean run may omit the failing\-count line; a valid passing summary is different from missing/truncated output\. Handle retained UTF\-16LE logs correctly\. Do not normalize meaningful Unicode, erase distinguishing parameters, or treat a missing summary as zero\. Inspect any unmatched or duplicate identity rather than manufacturing an empty regression list\. Use allGreen only for the explicitly measured selection, never the entire repository\.
 
-Record the allowance state durably with the existing mechanism before dispatch\. Treat the allowance as spent once the approval action is dispatched, or when whether it was dispatched is uncertain\. Record the actual action, preview and tool\-call identity\. If the owner has already selected approval in the task window, that consumes the same allowance; do not also click\.
+## 6\. Review and deliver the investigation
 
-After this single action, wait for and collect the actual tool outcome\. The allowance stays spent even if the response times out, only one file appears, the writer fails, or the UI disconnects\. Recover through read\-only inspection and retained events; do not click again, repeat the write, create a replacement preview for another approval, delete a partial result or manually repair an artifact\. On resume, reconcile the existing ledger and actual filesystem first; a missing response does not establish an unused budget\.
+Obtain one focused independent read\-only review of the nine\-case mapping, cause grouping, contract interpretation and smallest recommended repair\. Give the reviewer frozen task\-local evidence\. Retain its full return; if you persist its response yourself, mark artifactAuthoredByReviewer: false\. Correct report/probe defects within scope without implementing product or permanent test changes\. Keep unconfirmed findings open\.
 
-Product\-internal behavior of that one authorized invocation must be observed as it occurs\. Do not intervene with manual cleanup or claim transactionality/rollback unless the evidence establishes it\. Preserve partial outcomes if any and complete the useful read\-only checks\.
+Deliver report\.md and result\.json with:
 
-## 5\. Verify the actual files and their reuse
+- The nine exact historical identities, original evidence locators, current reproduction status, expected/actual behavior, classifications and cause\-group IDs\.
+- Relevant source/test/compiled\-input identities, commands and raw results; distinguish reused evidence, newly measured evidence and unexecuted checks\.
+- One concise recommendation per confirmed cause: smallest future change surface, acceptance test, whether shipped code changes, and the delivery implications\. Prioritize demonstrated impact, not test count\.
+- Open uncertainties and the exact missing inputs; scoped preservation evidence and actual diagnostic counts/timing\. Unknown is not zero\.
 
-Once the invocation completes, read both destinations from disk independently of the writer’s success message\. Compare exact bytes, lengths and hashes with the pre\-recorded expected contents\. Do not normalize actual output or alter expectations afterward to force equality\. Record BOM/newline differences as differences\. The full consumer delta must contain exactly the two approved new files and no modification/deletion of existing files; account separately for any already\-declared host/evidence storage outside that consumer boundary\.
-
-Verify the physical job/include relationship: the job’s include resolves to the actual second file, that document assigns SQL text, and the effective SQL contains the required filter and mappings\. HOCON content must be inspected through the appropriate existing reader, not rejected by JSON\.parse solely because of its suffix\.
-
-Then use the existing installed product’s supported read\-only discovery/configuration\-reading path, resolving its exact interface from current records\. Start from the consumer root or on\-disk job path, with no supplied replacement body\. Demonstrate that the newly written job is discovered and the actual included SQL file is resolved and read as part of the pair\. Use the normal read\-only refresh or fresh read context where needed; do not substitute a cached caller proposal for evidence of filesystem reuse\.
-
-Capture the selected file paths and actual reader/discovery results\. Merely finding two filenames or repeating a unit test against copied strings is not pair\-reuse verification\. Do not generate another job, call a mutating workflow to demonstrate reuse, authorize a second write, or run a Databricks job\. If only narrower discovery is exposed, report precisely what was observed and the remaining read\-only limitation; do not invent a new public endpoint or claim reuse from static analysis alone\.
-
-The task authorizes the necessary read\-only follow\-up calls, filesystem inspection and evidence collection after the write budget is spent\. Correct collector\-only mistakes within scope, retaining previous outcomes\. It does not authorize source repair or a second product\-write attempt if a defect is found\.
-
-## 6\. Review and retain the result
-
-Use one independent read\-only review of the new approval, physical write/readback, pair reuse and preservation evidence\. Reuse \.160’s valid source/package/installed qualification instead of repeating it\. Preserve the complete reviewer return; parent\-persisted output must be marked artifactAuthoredByReviewer: false\. Resolve in\-scope evidence issues without spending another approval and do not call author corrections independently VERIFIED without the actual disposition\.
-
-Produce one concise report\.md and result\.json with relevant original logs and recoverable setup/input records\. Include:
-
-- Exact active candidate, task/consumer root and approved two\-file allowlist; the 42/63 inventory\-scope reconciliation\.
-- This new allowance’s initial value, actual approval count, final spent/unspent state and any uncertainty\. Keep all historical budgets separate\.
-- Actual first/continuation inputs, fresh preview/checksum/expiry, validation and dependency evidence, modal approval event and final tool outcome\.
-- Pre\-write expected bytes and post\-write filesystem evidence for each file; full consumer delta and protected\-state preservation\.
-- Separate statuses for local write, exact readback, job discovery, include resolution and pair reuse; mark partial/unexecuted outcomes honestly\.
-- Independent review status, actual host/model/submission/tool counts and measured timing, reusing existing fields/helpers\. Unknown time or calls are not zero\.
-- The retained paths needed to use this consumer again and the smallest genuine remaining product issue, if any\.
-
-Retain the created files, fixture, profile and evidence for future use\. Release this task’s ownership without deleting the artifacts or signing out the profile\. Do not execute follow\-on backlog work automatically\.
-
-Carry forward historical item E, F\-ROOT\-1, ledger byte\-identity limits, the check\-to\-write race, runtime/DBFS limits and relevant unexercised branches\. This task’s new byte proof does not repair missing historical proof\. Keep the reported current 24 failures/5 pending cases and historical 16/nine\-writeFlow population separately attributed; no new all\-green claim or renewed quarantine\. Quarantine expired after September 13 UTC and remains unrenewed\.
-
-A successful result proves the scoped local write/readback and the reuse actually observed\. It does not establish Databricks execution, a fresh natural\-language generation result, release, deployment or full readiness\. Historical \.154/\.155 allowances remain spent, and the cancelled \.160 qualification preview remains unusable\. This task has only the one newly granted final approval\.
+Release this task’s ownership and retain its evidence\. Do not automatically integrate the recommendations\. Carry forward item E, F\-ROOT\-1, historical ledger identity limits, the check\-to\-write race, runtime/DBFS limits and relevant unexercised branches\. Quarantine expired after September 13 UTC and was not renewed\. Historical \.154/\.155 allowances remain spent\. This investigation grants no product write, release, deployment or full\-readiness claim\.
