@@ -1,63 +1,62 @@
-# Reconcile writeFlow ownership and integrate the prepared repair once
+Restore the maintainer Developer agent’s frontmatter
 
-CONTINUATION\_OF: ETL\-0915\-WRITEFLOW\-FILESYSTEM\-PRECONDITION\-REPAIR01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
-INPUT: The completed –ISOLATED\-PREP01 result and its reviewed, tested two\-file patch\.
-SCOPE: Resolve the reported ownership conflict, reuse valid completed evidence, and apply the existing bounded test repair when ownership and input identity permit it\. Do not start another implementation\.
+TASK_ID: ETL-0915-MAINTAINER-DEVELOPER-FRONTMATTER-REPAIR01
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
+OWNER_AUTHORIZATION: Hesam approved this bounded next step after the writeFlow repair was reported APPLIED with ownership released.
+SCOPE: Authenticate and repair the malformed leading prefix of the existing maintainer developer.agent.md, preserve the rest of its bytes, and validate and independently review that exact change.
 
-Run this in an existing writeFlow repair session, not a third session\. All communication and artifacts must be English\. Use text/filesystem evidence only; no screenshots, video, OCR or vision\. Existing bounded test\-repair authority persists\. Product\-write budget, product model requests, host launches and VSIX/install operations remain zero\.
+Submit this once in the existing session that returned the latest APPLIED writeFlow result. All communication and engineering artifacts must be English. Use text, DOM/accessibility and filesystem evidence only; no screenshots, video, OCR or vision. Complete the authorized repair and its focused review without seeking the same routine permission again.
 
-## 1\. Establish who actually owns the two files
+1. Establish the current boundary
 
-The owner received a report that the repair is STAGED, not applied, because the task ID and both editable surfaces were already claimed ACTIVE by a live sibling session\. Treat that as an ownership claim to authenticate, not permission to clear it or proof that the current resumed session is a different owner\.
+Use the established task-root and ownership mechanism for this new task. Do not reopen a closed claim or create a second writer. Authenticate the current target and any live ownership before editing. If a different active task owns it, preserve that task and report the exact handoff needed; do not infer abandonment from a quiet directory or missing report.
 
-Use the existing published claim mechanism to identify the exact owner/session, task root, claimed paths, lifecycle and relevant live\-session/process evidence\. A matching task ID, old timestamp, same process name or missing final report alone is insufficient\. Distinguish the current session’s retained claim after context restoration from a genuinely different owner\. Do not invent or weaken ownership rules\.
+Repository locator: C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147. Confirm the actual checkout from local records. Resolve the exact maintainer .github/agents/developer.agent.md path in that checkout; do not edit a consumer ETL agent or a copied evidence file.
 
-- If this is your existing claim, resume it through the normal mechanism; do not create a competing owner or duplicate repair\.
-- If a different owner is demonstrably active, leave its files and evidence directory untouched\. Preserve the ready handoff and report its exact published owner/root and required handoff or release\. Do not cancel it, send it instructions, take its claim, or poll indefinitely\. Continue only the independent preparation below\.
-- If the other owner is closed or has explicitly handed off, use the established acquisition procedure and check its published final result before applying anything\. It may already have applied a repair\.
-- If ownership cannot be determined, report the concrete missing evidence and retain the patch\. Uncertainty is not a stale\-claim exception\.
+Read the complete target, the applicable local instructions, and the relevant finding in the completed overnight report/closeout. Reuse the already-read 09_AGILE_REPAIR_AND_VERIFICATION_CONTRACT.md v1.2. Do not load all history or restart the overnight, coverage or writeFlow tasks. If an input is missing, resolve its named local record through existing published metadata rather than scanning drives or full chat histories.
 
-The overnight review is completed and independently VERIFIED\. Do not confuse that separate read\-only task with the reported owner of the writeFlow test files\. Do not restart its review or begin maintainer edits while the writeFlow preservation boundary is active\.
+Current handoff supersedes older running/STAGED statements:
 
-## 2\. Reuse the final prepared patch and its actual evidence
+• Overnight closeout is independently VERIFIED, with its final disposition in checks/z1-final-status.json. Its historical preservation limit remains 5 of 23 .github files byte-proven; the other 18 had mtime evidence only.
+• The original writeFlow owner has now APPLIED the prepared two-file repair, matched its tested postimages and released ownership. The accepted matrix is baseline 17 passing / 9 failing, behavioral red 17 / 9, repaired 31 / 0, retaining all 26 original cases. Integration reused those matching results with no new compile or suite run.
+• Latest reported worktree version is 0.3.147, dirty count 79, shared out has 2041 files, and .tsbuildinfo.test is 158611 bytes. Installed product is 0.3.160. These are contextual observations, not substitutes for relevant byte identity or today’s ownership check.
 
-Read the isolated preparation’s final report/result, exact task\.diff, both review returns, preimages/postimages, executed\-input identities and final matrix\. Resolve actual paths and full hashes from those records, not the photograph\. Preserve the closed preparation directory\.
+The owner now explicitly authorizes the narrow edit to this one maintainer file. Its exclusion from the earlier overnight/writeFlow tasks does not prohibit this newly approved repair. Other maintainer files, instructions and accepted bodies remain outside the editable scope.
 
-The reported result is two files, \+437/\-0, a 19070\-byte patch, baseline 17 passing / 9 failing and final 31 passing / 0 failing, retaining all 26 original cases\. There is also a type\-compatible red lane: new stub with original suite, compiling successfully but never activating the binding, which reproduces the baseline\. Real filesystem observations distinguish fixture\-only baseline writes from final write/readback effects\. Reuse this evidence where its inputs still match\.
+2. Authenticate and apply the smallest correction
 
-The prepared behavior is an opt\-in bindVscodeTestStubFileSystemToDisk binding, selected by the suite through the retained global registration handle, activated in suiteSetup and restored in suiteTeardown\. It avoids importing the auto\-registering stub into a real Extension Host\. Test registration, runner defaults and product code are unchanged; GUI execution remains unperformed\.
+The overnight finding describes unexpected leading bytes interfering with the opening frontmatter delimiter, present in the worktree while HEAD had a clean header. Inspect the actual leading bytes, encoding/BOM, delimiter and current parser/validator behavior. Do not assume the offending text or deletion length from a photograph or the earlier description of a two-character fix.
 
-Retain the reviewed corrections: realpath\-based path/reparse\-point containment using the longest existing ancestor, a real junction\-escape control, FileNotFound normalization on the five bound operations, and symbolic\-link stat classification\. The disclosed hardlink/object\-identity limitation remains explicit; do not turn path/reparse\-point containment into a claim of complete filesystem\-object isolation\.
+Retain the complete target preimage and its full digest in this task’s evidence directory. Use HEAD only as read-only corroboration of the header; never replace the whole worktree file from HEAD. Preserve existing body edits, frontmatter fields, agent identity, tool/model policy, line endings and encoding. Restoring parseability does not authorize changing the agent’s instructions or routing.
 
-Check which exact material changed after review pass 2 and what disposition covers it\. The report says a non\-blocking hardlink limitation led to narrower scope wording and a rerun against the delivered patch\. If this is the reviewer’s accepted limited option with unchanged reviewed behavior, preserve that accepted disposition\. If the actual boundary code changed beyond the accepted revision, obtain review of only that delta before relying on it\. Compilation and tests alone are not independent review; do not automatically invalidate accepted evidence or restart a full review campaign\.
+• If the reported prefix defect is still present and the intended delimiter is established, remove only the demonstrated extraneous prefix or make the minimum equivalent delimiter correction. Read back the file and prove that every byte outside that exact span is unchanged.
+• If the file is already correct, do not manufacture an edit. Establish its current parseability and report ALREADY_CORRECT with the available provenance.
+• If the actual problem differs or the intended correction conflicts with the current definition, preserve the file and identify the concrete discrepancy. Do not resolve it through an unrelated rewrite, baseline change or permission expansion.
 
-## 3\. Apply only under exclusive ownership and matching inputs
+Apply the authenticated correction in the worktree under this task’s ownership. A patch precheck alone is not APPLIED evidence. Do not use reset/clean, change branches/index/commits, discard unrelated dirty files, alter timestamps to match historical claims or edit closed evidence.
 
-The editable surfaces remain the two actual test files identified by the preparation\. No new source, registration, helper framework, \.github, package or product changes are authorized\.
+3. Verify the effect with existing tools
 
-Before mutation, compare both current files and the relevant dependency inputs with the prepared preimages and postimages:
+Classify this as a narrow machine-consumed instruction boundary under contract v1.2. The acceptance claim is source/frontmatter correctness and preservation of the intended definition. Host loading, agent routing and model behavior are not qualified by this task.
 
-- Both equal the tested postimages: do not apply again\. Reconcile the existing owner’s application/provenance and complete the applicable verification from retained evidence\.
-- Both equal the preimages: when exclusive ownership is established, perform the normal patch precheck and apply the prepared patch once\. Read back both files and compare them with the tested postimages\. Preserve unrelated changes\.
-- A mixed or different state: do not force the patch, reset files, or overwrite someone else’s work\. Identify the actual delta\. Once ownership permits, reuse an existing accepted implementation or minimally rebase the same bounded repair, retaining the competing versions and their attribution\. Changed behavior requires the affected focused checks/review; an unexplained difference remains a concrete blocker\.
+Inspect the existing frontmatter parser and validate-workflow.mjs interface and side effects before running it. Resolve their real locations and supported invocation from the repository; do not invent flags or replacement validators. Use a focused target selection when available. An ordinary read-only workflow-validator run is acceptable if it has no focused selector; it is not a request for a full product test campaign.
 
-A successful git apply –check is not evidence that the patch was applied\. Distinguish STAGED, APPLIED and ALREADY\_APPLIED with actual source bytes and attribution\. Use the existing source\-edit mechanism; do not change branches, index, commits, dependencies or repository history\.
+Reuse an authenticated pre-fix failure if it exercises the same target bytes and consumer. Otherwise capture the current relevant failure before editing, then run the same relevant parser/validation check after the correction. The post-check must read the applied file. Confirm recognition of frontmatter and preservation of its existing parsed fields and body where applicable. If the available check establishes less, state the exact evidence limit.
 
-## 4\. Verify only what integration changes
+Keep raw outcomes and distinguish the corrected target failure from unrelated findings. A remaining Phase H or other maintainer failure does not authorize changing its expected result. Do not add skips, loosen assertions, register more suites or call a partial result repository-wide all-green.
 
-Reuse the final prepared matrix if source, tests, configurations, toolchain and other relevant executed inputs still match\. Record the source\-to\-tested\-output relationship for the applied bytes\. Copying a matching patch into the worktree does not by itself require another baseline/red/green campaign or a new compilation\.
+No new permanent tests, dependency installation, parser implementation or helper framework is needed for this prefix repair. Reuse existing checks; any minimal task-owned invocation must call the existing parser/assertion. No TypeScript compilation, full headless run, shared-out test execution, compile/test:unit/pretest/compile:test, VSIX/package/install, host launch, runtime chat/model request, sign-in operation or product write belongs to this task.
 
-If rebasing or changed dependencies invalidate part of that evidence, run only the corresponding focused checks in a task\-owned lane using existing runners and isolated build\-info/output\. Retain meaningful behavioral red/green coverage where behavior changed\. No full headless campaign, shared\-out execution, worktree compile/test:unit/pretest/compile:test, new host, package or install\.
+4. Review, persist and close
 
-Confirm that all original assertions remain, the binding is opt\-in and restored, and GUI/integration membership remains unchanged\. Do not add writeFlow to PURE\_UNIT\_TEST\_PATTERNS\. State that GUI execution and general provider equivalence remain unobserved\. Keep the other seven historical failures and the separate overnight failure population distinct; do not claim repository\-wide all\-green\.
+Use one independent read-only reviewer for the exact instruction-boundary delta and its relevant evidence. It should check that the defect is demonstrated, the intended header is restored, the body/permissions and other files are preserved, and the acceptance claim matches the measured parser/validator result. Reuse completed surrounding evidence. Correct in-scope findings and re-review only their affected delta; do not restart earlier review campaigns.
 
-Preserve shared out, \.tsbuildinfo\.test, HEAD/package version, unrelated dirty files, maintainer \.github files, installed \.160, consumers and closed evidence\. Attribute observed changes to actual owner records rather than interpreting every change as your regression or silently ignoring unexplained drift\. No broad hash sweep solely to produce another report\.
+Use the established reviewer mechanism. If the named Verifier is unavailable and a generic independent reviewer is used, disclose that identity and its read-only contract. Preserve its complete return unchanged; parent-persisted returns must be marked artifactAuthoredByReviewer: false. Do not manufacture independent acceptance when no independent review was obtained.
 
-## 5\. Deliver the actual disposition
+Persist a concise report.md, result.json, task.diff if changed, the recoverable preimage and necessary raw outputs. Include target path, before/after digests, precise changed span, body-byte preservation, check command/input identity and outcomes, reused versus new evidence, actual review disposition and remaining limitations. Keep final disposition metadata separate from frozen reviewed material.
 
-Use the existing independent review mechanism for any new integration delta that needs review\. Reuse the accepted patch review for byte\-identical, dependency\-coherent integration\. Preserve complete reviewer returns and mark parent\-persisted responses artifactAuthoredByReviewer: false\. Freeze reviewed substance and keep final status metadata separate; do not edit accepted claims after their final review\.
+Check preservation at the actual risk boundary: all other .github files including the five applied maintainer changes; both applied writeFlow files; protected build outputs; installed .160; consumers; and closed reports. Reuse an adequate existing collector and relevant identities. Do not construct a broad historical inventory; counts and mtimes alone are not full byte-preservation proof. Retain and attribute any observed unrelated change rather than resetting it.
 
-Return one concise result with: actual ownership resolution; chosen patch and full identities; STAGED/APPLIED/ALREADY\_APPLIED status; the source readback; reused versus new checks; final review applicability; GUI unexecuted; product \.160 unchanged; and any concrete remaining blocker\. A foreign active owner permits a precise staged handoff, not an APPLIED claim\. Release only your ownership after persistence\.
+Return APPLIED with the actual review disposition, ALREADY_CORRECT, or the precise remaining blocker. Release only this task’s ownership after persistence and stop. Do not automatically start Phase H or another repair.
 
-Do not start another writeFlow implementation, reopen overnight acceptance, adopt a nonexistent shared helper, fix developer\.agent\.md or decide Phase H baselines here\. The \.160 two\-file write/readback remains independently accepted and its one allowance SPENT\. Carry item E, F\-ROOT\-1, historical ledger identity limits, the check\-to\-write race, runtime/DBFS limits and unrenewed expired quarantine forward\. This integration does not establish release readiness\.
+Carry the other seven historical failures and the separate overnight population forward without conflating them. Preserve item E, F-ROOT-1, ledger identity limits, the check-to-write race and runtime/DBFS limitations. The historical .154/.155 and .160 single-write allowances remain SPENT; quarantine expired and was not renewed. No release, deployment, full-readiness or live Developer-agent routing claim follows from this task.
