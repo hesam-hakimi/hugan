@@ -1,105 +1,105 @@
-Continue the existing ETL Copilot Extension work.
+# Refresh Phase H baseline provenance and verify both EvalGating tests
 
-TASK_ID: ETL-0915-PHASE-H-WRITE-RECONCILE01
-STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
-MODE: Reconcile completed evidence and perform only necessary targeted offline verification.
+TASK\_ID: ETL\-0915\-PHASE\-H\-BASELINE\-REFRESH01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
+PREDECESSOR: ETL\-0915\-PHASE\-H\-WRITE\-RECONCILE01\.
+SCOPE: Inspect and apply the prepared bookkeeping\-only baseline refresh, preserve accepted behavior and historical evidence, and verify the two existing EvalGating tests\.
 
-1. Complete this bounded outcome
+The owner approves this bounded baseline refresh and its necessary local verification\. Complete inspection, preparation, focused checks, review, and application without requesting routine authorization again\. This approval does not accept new expected behavior, resolve the corpus coverage limitations, or authorize a release\.
 
-Reconcile these tasks against the applicable current source:
+All execution, responses, code, and artifacts must be in English\. Use text, filesystem, and DOM/accessibility interfaces only; no screenshots, video, OCR, or vision\.
 
-* ETL-0915-PHASE-H-AND-FIRST-RELEASE-SCOPE01
-* ETL-0915-TRUSTED-WRITE-APPROVAL-TEST-REPAIR01
-* ETL-0915-PHASE-H-PARALLEL-GOLDEN-RUN01
+## 1\. Recover the exact proposal and current state
 
-Establish what is fixed, what evidence remains reusable, why the two EvalGating tests failed, and the smallest remaining action toward the proposed first release. This is a delta reconciliation, not a project restart or another historical audit.
+Use the existing checkout:
+`C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147`
 
-All execution, responses, code, tests, reports and questions must be English. Use text, filesystem and DOM/accessibility only; no screenshots, video, OCR or vision. Complete authorized analysis, isolated checks and corrections to your own deliverables without repeated confirmation.
+Read applicable local instructions and the accepted contract:
+`C:\docs\ETL_Team_Test_Prep\references\09_AGILE_REPAIR_AND_VERIFICATION_CONTRACT.md`
 
-This task authorizes task-owned evidence, necessary isolated compilation/offline verification, and concrete unapplied proposals. It does not authorize product/test edits, baseline acceptance, acceptance-policy changes or release.
+Expected v1\.2: 23,684 bytes; SHA\-256:
+`5387aa5c42940eceb2ffcd4d68d732ad3d57f1c69c2288c66bd0f32455e6f75b`\.
 
-2. Recover the authoritative local evidence once
+Resolve the predecessor through its published metadata under `C:\docs`\. Read its actual report, structured result, final review, and the proposal/candidate diff under its recorded `proposals` location\. Follow those records to the real canonical baseline, generator, input inventory, freshness checker, and both EvalGating test identities\. Do not invent paths from the screenshot\.
 
-Expected checkout:
-C:\repos\etl-extension\etl_fw2\recovery-extension-product-0.3.147
+Reuse the relevant completed evidence:
 
-Read applicable local instructions and:
-C:\docs\ETL_Team_Test_Prep\references\09_AGILE_REPAIR_AND_VERIFICATION_CONTRACT.md
+- The approval\-test repair is applied\. Its retained suite observations were 39 passing/2 failing before repair, 41/0 after repair, 37/4 under the negative control, and 41/0 restored\. The control was sensitive but not exclusive to the two repaired tests\. Do not reopen that repair\.
+- Phase H executed 9/9 scenarios with zero behavioral differences within corpus scope\. The reconciliation established applicability to the post\-repair snapshot with no relevant drift\.
+- Both EvalGating failures encountered stale baseline provenance after 28 tracked inputs changed\. The telemetry\-free test stopped at that prerequisite, so its intended check remains unverified\.
+- The baseline refresh is prepared but unapplied\. The reconciliation’s final disposition was VERIFIED\_WITH\_LIMITATIONS\.
 
-Last referenced contract: v1.2, 23,684 bytes, SHA-256:
-5387aa5c42940eceb2ffcd4d68d732ad3d57f1c69c2288c66bd0f32455e6f75b
+Authenticate current relevant inputs once\. Same HEAD, dirty count, or version alone is insufficient\. Use actual machine records for identities; retain the previously disclosed byte\-count discrepancy as a report limitation rather than rewriting the closed repair report\.
 
-Authenticate the applicable version and any accepted successor. Resolve the three tasks through published metadata under C:\docs. Read their actual report.md, result.json, final review records, relevant manifests and repair diff. Do not rely on chat summaries as verification or assume ChatGPT Library/sandbox paths are accessible here.
+Check ownership of the baseline surface and whether this refresh has already been applied\. Reuse your own existing claim where applicable; do not start a duplicate repair or take a live foreign owner’s files\. Establish one new task\-owned evidence root and preserve the original canonical baseline bytes before editing\.
 
-Use one short task-owned evidence root under the established C:\docs convention. Check ownership metadata to avoid duplicate execution. Preserve closed tasks and foreign ownership. Do not rerun the old ETL_Team_Test_Prep\PROMPT.md.
+## 2\. Prove that the proposed change is bookkeeping only
 
-If the approval repair is complete, consume its published final evidence. If still active or unavailable, finish independent Phase H analysis and return an explicit dependency-pending result. Do not interrupt it, inspect its private live working state, poll indefinitely or assume a missing report means it never started.
+Inspect the complete candidate diff and relevant consumers of its changed fields\. Classify every field change before application\.
 
-3. Bind the two results to actual inputs
+Allowed changes are the verified source/input identities and associated provenance metadata needed to bind the existing baseline to the evaluated current inputs\. Every new value must come from actual source bytes, matching retained evaluation evidence, or the repository’s real generation mechanism\. Distinguish the retained evaluation time from the time this refresh is performed\.
 
-The reported golden result, to authenticate locally, was:
+Preserve:
 
-* 9 selected, 9 executed, 0 skipped, 0 errored, 9 compared; exit 0.
-* Zero behavioral differences against the retained 2026-09-01 baseline.
-* Baseline STALE: 28 tracked inputs changed; EvalGating 5 passing / 2 failing.
-* Zero drift among 626 captured inputs at that task’s close.
-* Final review VERIFIED after a corrective revision.
-* No product repair or baseline acceptance applied by that task.
+- Scenario identities, inventory, selection, and expected outputs\.
+- Assertions, thresholds, comparison/normalization rules, metrics definitions, and failure meanings\.
+- The tracked\-input set and freshness algorithm; do not omit inputs or ignore changed files to make the gate pass\.
+- Existing coverage gaps and the distinction between structural parity and stronger semantic or runtime evidence\.
 
-These observations qualify the recorded snapshot only. Compare its relevant source, tests, configuration, fixtures, dependencies and toolchain identities with the approval repair’s final inputs and the current checkout. Include uncommitted changes; HEAD alone is insufficient.
+A metadata\-looking field that changes a behavioral expectation, threshold, case selection, or validation rule is not bookkeeping\. The intended change from stale to fresh through accurate input rebinding is authorized\. If the prepared patch includes a wider change, isolate the permitted refresh where possible and prepare a concrete decision for the remaining change\.
 
-Confirm whether the golden snapshot already included the final repaired onboardingWriteApproval.test.ts. Its report described compile-only overlap and a post-edit test version. Verify this against exact final pins; do not automatically repeat the corpus because the repair finished later.
+Confirm that the recorded 9\-scenario result still applies to the candidate’s effective evaluation inputs\. Reuse it when dependencies match\. If a relevant input differs, determine the impact and repeat only the affected evaluation or the necessary corpus run; do not stamp unevaluated inputs as qualified\. A new task ID or a new report timestamp does not require another full run\.
 
-Classify subsequent changes as affecting compilation, evaluated behavior, or neither. Reuse applicable evidence. If evidence is invalidated, name the changed dependency, affected claim and smallest check required.
+Use the prepared candidate and existing tools\. Do not regenerate a baseline by blindly accepting current output\. Keep the original baseline immutable as historical evidence and record the candidate’s exact identity separately\.
 
-For the approval repair, authenticate its actual applied state, both intended assertion outcomes, meaningful negative-control failure and final review. Do not reapply the patch or repeat valid positive/negative runs. Keep this test repair distinct from product behavior and installed write qualification.
+## 3\. Verify the two real EvalGating tests
 
-4. Resolve the two EvalGating failures and open decisions
+Use the existing isolated lane and the repository’s actual test entrypoint, selecting both named tests or their smallest necessary containing suite\. Record selected and executed identities; an empty selection cannot pass unnoticed\.
 
-Recover both exact test identities, assertions, observed values and failure locations from raw evidence. Do not assume these are the two onboardingWriteApproval regressions or that baseline staleness explains both.
+Inspect command effects first\. Do not run `npm run eval:golden` in the recovery checkout: it deletes shared `out` and writes into `eval`\. Normal compile/test commands can also overwrite shared output and buildinfo\. Put required compilation, fixtures, generated evaluation output, and buildinfo under this task\. Reuse compiled output only when its relevant inputs match\.
 
-For each failure, record:
+Test the exact candidate baseline against a repository\-equivalent isolated tree containing the authenticated current inputs\. Record which baseline and source root the real checker actually opened\. Do not satisfy freshness against a fabricated or reduced inventory\.
 
-* Applicable accepted requirement and evidence.
-* Expected versus observed behavior.
-* Classification: CODE_DEFECT, STALE_TEST_EXPECTATION, ENVIRONMENT_OR_INPUT, ACCEPTANCE_DECISION_REQUIRED, KNOWN_LIMITATION or INSUFFICIENT_EVIDENCE.
-* Whether it affects a proposed release scenario.
-* The smallest concrete correction, decision or missing observation.
+Establish these outcomes:
 
-Use a focused offline check only if retained evidence cannot settle a material question. State that question first. Preserve the assertion and actual failure; do not weaken gates, change normalization, skip cases or accept empty selections.
+|Check                   |Required observation                                                                                                                                                              |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|Original stale condition|Reuse the authenticated failure if still comparable, or run the old baseline in isolation. The original provenance mismatch must remain distinguishable from a behavioral failure.|
+|Baseline freshness test |The existing test reaches its actual freshness checks and passes against the verified candidate and current input set.                                                            |
+|Telemetry-free test     |The existing telemetry-free setup is actually used; execution passes the freshness prerequisite and reaches the intended assertions. Report their real outcome.                   |
 
-Recover the exact open D-row identities and definitions from the predecessor, including those referenced by the golden report. Update only what new evidence actually resolves. Preserve known coverage limits: structural metrics, an empty validation denominator, absent second-turn create-flow coverage, and only one artifact-producing scenario. Nine unchanged scenarios do not decide these policy or coverage questions.
+Do not infer telemetry independence from the test’s name or from fixing the first failure\. Inspect the existing setup/assertions and report precisely what they establish\. If the telemetry test reveals another defect, preserve the failure and identify its cause; do not weaken, skip, or rewrite the assertion to declare success\.
 
-5. Prepare the baseline disposition without applying it
+The existing stale\-baseline evidence may serve as the adverse control when its inputs and checker match\. Add a small isolated control only if necessary to establish that the real freshness gate remains effective\. Do not create a broad mutation campaign or modify product source for this refresh\.
 
-Determine whether the reported 23 changed plus 5 added tracked files support a bookkeeping-only refresh. Trace the applicable accepted changes and distinguish input provenance from scenario expectations.
+Correct in\-scope metadata, staging, or invocation errors and recheck the affected result\. If a genuine product/test\-contract defect or a Git\-history requirement prevents a gate from passing, prepare the smallest separate repair/decision with evidence\. Do not mutate Git history, product code, or acceptance rules to satisfy it\.
 
-If supported, prepare one small, unapplied candidate diff using the established baseline format: exact old/new identities and the tracked-file changes, with unchanged scenario expectations demonstrated. Preserve historical baseline bytes and metadata. If unsupported, state exactly what prevents that conclusion.
+## 4\. Review and apply the verified candidate
 
-Do not refresh canonical input pins, regenerate/accept the baseline, change D-row policy or mark the stale gate PASS in this task. Present any necessary owner decision with a concrete recommendation, alternative and consequence.
+Apply the contract’s BOUNDARY review to the baseline’s acceptance implications\. Obtain a focused independent read\-only review of the full candidate diff, reused corpus applicability, real freshness and telemetry\-test evidence, and preserved limitations\. Reuse established collectors and source records; do not repeat the whole historical audit\.
 
-6. Verify proportionally and preserve the environment
+Run reviewer checks only on isolated copies with fresh output destinations\. Never execute a helper whose fixed path overwrites frozen author results or closed predecessor evidence\. Disclose reviewer provenance and retain the final disposition outside the frozen reviewed files\.
 
-Reuse existing capture, lane, comparison and timing helpers where applicable. No helper-library project, new general harness or script per assertion. Inspect helper destinations so author, reviewer and predecessor outputs cannot overwrite each other.
+Correct in\-scope findings, recheck affected evidence, and apply only the final reviewed bookkeeping candidate\. Immediately before application, verify that the canonical baseline still equals the saved preimage and that the evaluated inputs remain applicable\. Read back the applied bytes and confirm they equal the tested/reviewed candidate\. Record application separately from patch applicability\.
 
-Do not run npm run eval:golden or ordinary compile/test chains in the recovery checkout: the reported chain deletes shared out and rewrites reports. Any necessary execution must use task-owned output, buildinfo, fixtures and results with authenticated inputs and unchanged evaluator semantics.
+If a remaining failure does not invalidate the bookkeeping refresh, report the refresh and that failure separately\. If it invalidates the refresh’s basis, keep the candidate unapplied and provide the exact blocker\. Do not collapse a partial outcome into PASS\.
 
-Do not rerun the whole corpus or general unit suite by default. Broaden only for a named invalidated dependency or applicable required gate.
+## 5\. Preserve scope and finish
 
-Preserve checkout changes, shared out, .tsbuildinfo.test, canonical references, closed evidence, installed 0.3.160 and consumers. No Git mutations, dependency installation, packaging, installation, host launch, model request, approval click, live consumer write, external runtime/DBFS call, publication or teammate messaging. Historical write approvals remain spent; isolated fixture writes grant no live-write authority.
+Only the authenticated canonical baseline file&#40;s&#41; needed for this refresh and this task’s evidence may change\. Preserve product source, tests, runner registration, maintainer files, closed reports, sibling results, shared `out`, shared `.tsbuildinfo.test`, installed 0\.3\.160, and consumers\. No Git reset/clean/index/commit/branch changes, dependency installation, package/install, host launch, model request, live consumer write, approval click, external runtime call, or publication\.
 
-7. Review and deliver the next actionable result
+Local isolated fixture/output writes are permitted\. Historical \.154/\.155/\.160 write allowances remain SPENT; expired quarantine is not renewed\.
 
-Reuse completed reviews for unchanged evidence. Obtain one focused independent read-only review of new classifications, current applicability, baseline proposal and release implications. Delegate only that bounded review if supported, with separate reviewer outputs and accurate provenance; otherwise disclose the review limitation. Resolve relevant findings without repeating prior campaigns.
+Keep the corpus limitations open: structural parity, the empty validation denominator, no second\-turn create flow, zero prompt samples, and only one artifact\-producing scenario\. Refreshing provenance does not resolve them\. Do not confuse their reused decision labels with earlier unrelated D1\-D6 decisions\.
 
-Deliver report.md and result.json with necessary supporting evidence only. Include:
+Preserve prior scoped 0\.3\.160 installed/write qualification as historical evidence\. This task adds no fresh natural\-language, installed\-consumer, or Databricks/ADF/DBFS qualification; do not describe the absence of new qualification as erasing earlier observed success\.
 
-* A status table separating approval-test repair, corpus execution, behavior comparison, baseline freshness, current applicability, review and installed/runtime qualification.
-* Both EvalGating failure dispositions and updated open decision rows.
-* What was reused versus newly executed, and why.
-* A delta to the predecessor’s proposed release scope: established evidence, remaining blockers and unqualified scenarios. Do not invent a new scope.
-* One ready-to-run next implementation brief for the highest-priority unambiguous action, or the exact concrete decision that must precede it. Prepare it; do not execute it.
+Deliver one concise `report.md`, one `result.json`, the final `task.diff`, the retained baseline preimage, and necessary raw check/review evidence\. Include:
 
-Lead the final response with: what is resolved, what remains, whether the golden result can be reused, and the single recommended next action. Keep source/test verification separate from fresh natural-language generation, installed behavior and Databricks/DBFS evidence. Do not claim RELEASE_READY or owner acceptance.
+- Exactly which fields changed and why they are bookkeeping only\.
+- Applied baseline identity and its actual freshness outcome\.
+- Each EvalGating test’s outcome, including whether telemetry assertions were reached\.
+- The reused 9/9 corpus result and the identities supporting reuse; any new execution and its reason\.
+- Preservation, review disposition, unresolved limitations, and one concrete next action\.
 
-Persist the result, release only this task’s ownership and stop.
+Record baseline application, corpus comparison, freshness, telemetry verification, and release status separately\. Do not claim RELEASE\_READY or wider owner acceptance\. Complete all available work, persist the result, release only this task’s ownership, and stop without launching another task\.
