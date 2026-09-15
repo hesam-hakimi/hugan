@@ -1,76 +1,25 @@
-# Make the investigated writeFlow filesystem precondition permanent
+Review the corrected closeout revision and finish the existing task
 
-TASK\_ID: ETL\-0915\-WRITEFLOW\-FILESYSTEM\-PRECONDITION\-REPAIR01
-STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
-PREDECESSOR: ETL\-0915\-WRITEFLOW\-NINE\-FAILURES\-INVESTIGATE01\.
-SCOPE: Implement the reviewed recommendation’s steps 1\-2 only: an opt\-in real\-filesystem binding for the existing headless stub, activated and restored by writeFlow’s test lifecycle\.
-REGISTRATION\_DECISION: Preserve existing GUI/integration membership\. Do not add writeFlow to PURE\_UNIT\_TEST\_PATTERNS or change runner selection\.
-PRODUCT\_WRITE\_AUTHORIZATION\_BUDGET: 0\.
-PRODUCT\_MODEL\_REQUESTS: 0\. ADDITIONAL\_VSCODE\_HOST\_LAUNCHES: 0\.
+CONTINUATION_OF: ETL-0915-OVERNIGHT-REVIEW-CLOSEOUT01
+STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
+SCOPE: One bounded return to independent review of the corrected final artifacts. No new investigation, helper adoption or product repair.
 
-Execute on owner submission, preferably in the same engineering session as the completed investigation\. Submission authorizes the bounded test\-only edits, isolated compilation/checks, task\-local diagnostics and independent review in this brief\. It does not authorize product\-source changes, shared\-helper adoption, a GUI run, installation or consumer writes\. Use English for every response, code comment, test and document\. Use text/filesystem evidence only; no screenshots, video, OCR or vision\.
+Apply this in the same closeout session. Existing authority to resolve report/evidence issues and complete corrective review persists. All responses and artifacts must be English. Use text/filesystem evidence only; no screenshots, video, OCR or vision. Product-write budget, product model requests and host launches remain zero.
 
-## 1\. Recover and reuse the completed investigation
+The owner received your closeout report: original F-001/F-003 claims were narrowed, F-002 concerned aggregation rather than conflicting timestamps, runner arithmetic was explained, and the actual helper convention is copy-forward. However, the closeout reviewer returned CHANGES_REQUIRED; you then changed the material twice without obtaining a second disposition. The remaining action is review of that corrected revision, not another campaign.
 
-Read the predecessor’s actual final report\.md, result\.json, both complete reviewer returns, exact nine\-case mapping, successful contained filesystem\-binding probe and its raw pre/post records\. The owner received pass 1 CHANGES\_REQUIRED followed by pass 2 VERIFIED after corrections\. Resolve its root under C:\\docs by the actual task ID; do not reconstruct paths, hashes or code from the photograph\.
+1. Resolve the actual final closeout report/result, complete reviewer return, author corrections, retained logs and helper identity. Preserve all prior artifacts. Reacquire only scoped evidence ownership if needed; use the existing revision/attempt mechanism. If a later review already exists, reconcile it before requesting another one.
+2. Finish the material before review, then freeze its exact revision with the existing identity mechanism. Retain these limits consistently:
+  • M6 is test/replay, not installed qualification. G1 is confirmed repository-state divergence, without deciding which side is wrong.
+  • The timestamp records describe the same file/instant with different rounding. The reviewer’s enumeration method remains unknown; do not invent it. Preservation is limited to the supported claim: no observed .github mtime within the predecessor window, plus byte identity for 5 of 23 files against independently published task hashes. The other 18 have mtime evidence only, not historical byte proof.
+  • The 17 cleared failure records comprise 15 previously failing tests and two root-level before-all hooks. Those hooks had prevented 19 descendant cases from executing: 15 + 19 explains the 34 additional passes. The historical accounting is 17 cleared + 5 surviving in the selection + 2 outside it = 24. No new repository-wide test total was measured.
+3. Obtain an explicit independent disposition of the two closeout findings and the corrections they required:
+  • ADOPTION-001: confirm the published invocation uses valid syntax for its stated shell, including PowerShell. Do not execute a lane-creation command just to check documentation.
+  • HIST-001: inspect the actual retained epilogue blocks and exact full identities. The author reports 24/24 blocks with suite headings, 17/17 cleared and 5/5 surviving exact matches; inline and epilogue output together produced 48 markers for 24 failures. Have the reviewer verify the relevant records and mapping directly. Reuse existing log-analysis commands if needed; no new Mocha run. Treat the reviewer having read inline markers as a possible explanation, not an established fact about their actions.
+4. Preserve the corrected N-1 recommendation. There is no shared helper inside the worktree to adopt into. Existing helpers live under C:\docs<taskRoot>\helpers; future tasks may copy the authenticated b1-lane.corrected.js into their own new helpers/b1-lane.js when its inputs apply. Resolve the full hash from records, not a photographed prefix. Do not overwrite an active task’s helper, promote it into the product tree, or create a shared tooling project in this continuation. Confirm the adoption wording, location and shell examples are consistent across the reviewed material.
+5. Send the frozen revision and this narrow evidence set to the same independent reviewer if available, otherwise one reviewer scoped to these changes. Retain the complete return and the identity of the reviewed inputs. Parent-persisted reviewer text must have artifactAuthoredByReviewer: false. A reasoned author refutation does not by itself close HIST-001 independently.
+6. Complete any necessary in-scope corrections and return those changed portions to the reviewer within this same continuation. Do not stop merely because a corrective pass is needed, or announce completion immediately after editing a reviewed claim. After acceptance, keep the reviewed substantive files unchanged; store the final verdict in a separate existing status/review record referencing that revision. This avoids changing the material after its final review or requiring a self-referential hash.
 
-The demonstrated cause was the headless environment:
+Finish with either the actual independent acceptance of the final revision, or the precise material blocker/unavailable review that prevents it. Do not manufacture VERIFIED, weaken required evidence or hide a remaining disagreement to achieve closure. Reuse accepted findings; do not restart the overnight audit, rerun six suites, compile/package/install anything, or modify the helper’s demonstrated behavior for presentation.
 
-- RepoWriter uses vscode\.workspace\.fs, while writeFlow checks the physical filesystem with Node fs\.
-- The default headless stub’s writeFile/createDirectory are no\-ops, causing eight cases to observe absent output\. Its always\-successful stat causes the WF\-04 overwrite check to report an existing destination\.
-- Holding the compiled suite, product build, runner, flags and cwd constant while replacing only the filesystem binding changed 17 passing / 9 failing to 26 passing / 0 failing\. This establishes the measured cause; it is not nine product defects\.
-- The suite is registered for the GUI/integration runner, which uses an Extension Host\. No GUI run was performed, so passing there remains unobserved\.
-- The predecessor did not implement its recommended permanent repair\. Its suggested third step would alter runner membership because the GUI exclusion list is derived from pure\-unit patterns\. That optional trade\-off is declined in this task\.
-
-Reuse these results where the inputs match; do not repeat the investigation or reinterpret successful Created log lines as proof of physical writes\. Both predecessor runs emitted such lines\. Physical readback is the relevant evidence for disk effects\.
-
-Read applicable repository instructions and the effective 09 repair/verification contract\. Authenticate the actual current source and test paths using retained records and bounded inspection\. Do not use clean \.147 HEAD as a substitute for the later accepted dirty source; installed \.160 and worktree package\.json \.147 remain distinct\.
-
-## 2\. Establish the narrow edit boundary
-
-Resolve the actual files named registerVscodeStub\.ts and writeFlow\.test\.ts\. These are the two primary editable surfaces\. One existing adjacent test\-only file may be extended, or one focused test\-only file added, only if required to check binding restoration or the exercised filesystem contract\. Record the exact paths before editing\. No other source/helper/configuration changes are included\.
-
-Confirm the investigation is closed and acquire ownership of these exact test surfaces\. Check any active claims, including ETL\-0915\-OVERNIGHT\-REVIEW\-CLOSEOUT01\. A read\-only closeout using frozen evidence need not block this task, but do not edit a surface owned by another task\. If a real conflict exists, prepare the patch and checks in an isolated copy and identify the integration dependency; do not stop or redirect the other agent\.
-
-Create a new task\-owned evidence root with relevant preimages and hashes\. Preserve unrelated dirty work, HEAD, package version, shared out, \.tsbuildinfo\.test, installed \.160, maintainer \.github files, closed evidence, profiles and consumers\. Do not claim historical preservation from current hashes or mtimes alone\.
-
-Inspect the actual packaging boundary and import consumers once\. The investigation reported the test/stub source excluded from shipping; verify that these edits stay test\-only and cannot enter the product bundle or alter package inputs\. Do not launch a build/package/install merely to rediscover a boundary already supported by matching evidence\. If the assumption is false, stop expansion and report the exact coupling\.
-
-## 3\. Implement opt\-in filesystem behavior and suite ownership
-
-Reuse the successful probe’s tested behavior as evidence, adapting it into the existing test mechanism rather than creating a second harness or copying an unreviewed probe wholesale\.
-
-Add an explicit opt\-in binding to the existing headless stub\. Preserve default stub behavior for unrelated suites\. Bind only the local\-file operations actually required by writeFlow, with the relevant vscode\.workspace\.fs argument/result semantics rather than blindly assigning incompatible Node functions\. Physical writes, directory creation and missing/existing stat behavior must agree with the assertions and real consumer calls being tested\.
-
-Keep the binding scoped to the suite’s own temporary root&#40;s&#41;\. Do not follow fixture paths into a live worktree, historical consumer, profile, approval store or another task\. Preserve the actual byte contents and filesystem exceptions needed by these cases\. Do not manufacture success, pretend absent paths exist, suppress an unexpected error or weaken the writer/test assertions\. General equivalence to all VS Code providers, including remote/virtual filesystems, is not required and must not be claimed\.
-
-Activate the binding through writeFlow’s setup only when the existing headless\-stub mechanism is actually in use\. Record the previous binding and restore it on teardown, including setup\-failure paths where registration has already occurred\. Avoid leaking real filesystem behavior to another suite\.
-
-In an actual Extension Host, use its existing vscode\.workspace\.fs unchanged\. Do not import a module that auto\-registers the headless stub into the GUI host just to detect the environment\. Use the repository’s real environment/registration mechanism; do not infer a headless stub merely because a method with the same name exists\. If the environment cannot be established, expose that setup failure instead of silently skipping tests or replacing a real provider\.
-
-Keep all 26 existing writeFlow assertions and their intended behavior\. Add only the focused protection necessary for this new test\-environment boundary, such as restoration and missing/existing\-file behavior that the nine historical failures depend on\. Do not refactor RepoWriter, introduce a product endpoint, change validation semantics, or edit testPatterns\.ts, PURE\_UNIT\_TEST\_PATTERNS, GUI ignore rules or runner defaults\.
-
-## 4\. Verify the changed boundary with minimal execution
-
-Reuse inspected isolated\-lane helpers, the focused runner and existing dependencies\. Compile only what the changed TypeScript requires into task\-owned output/build\-info locations\. Preserve source\-to\-executed\-JS identity; do not hand\-edit generated files or run tests from shared out\. Never execute naive compile/test:unit/pretest/compile:test in the recovery worktree\.
-
-Show a behavioral red/green comparison for the permanent integration\. Prefer matching retained red evidence; if it no longer corresponds, run one focused type\-compatible red case that disables only the new opt\-in behavior in an isolated copy\. Do not use a compilation error from a missing new export as the negative control\. Then run the permanent writeFlow suite through the focused headless route without the predecessor’s external probe injecting its filesystem binding\.
-
-Required observations:
-
-- The original 26 writeFlow cases pass with the permanent suite setup and actual task\-local disk effects\.
-- At least the affected write/readback and absent\-destination behavior are supported by physical filesystem evidence, not Created logs alone\.
-- The opt\-in is inactive by default and restored after the suite; a focused control demonstrates no binding leakage to an unrelated test using the original stub behavior\. Retain the real\-host branch’s source/static or test\-control evidence separately from unexecuted GUI qualification\.
-- Actual pattern\-array and derived\-ignore evaluation still places writeFlow in its existing GUI/integration selection and not the ordinary pure\-unit selection\. Do not advertise new default headless discovery: this task makes the focused headless execution valid while preserving existing registration\.
-
-Reuse the corrected failure identity/encoding guard where relevant\. Record runner selection, test counts, raw exits/signals, input identities and actual timing\. Unknown is not zero\. Do not call the repository all\-green, subtract these nine from a different campaign’s 24 failures, or claim GUI success from the headless result\. The other seven of the historical 16 remain outside this task\.
-
-A full suite campaign, fresh VSIX, installation, product model call or live host is not part of this test\-only repair\. Broaden a focused check only for a concrete changed dependency or failed acceptance above\. Preserve task\-caused failed attempts and fix them within scope; do not skip or waive failures\.
-
-## 5\. Review, deliver and stop
-
-Use one independent read\-only reviewer, with corrective passes as needed, for the actual final stub/suite delta, binding lifecycle, filesystem semantics exercised, runner membership and packaging boundary\. Reuse the investigation’s accepted diagnosis; do not review the entire history again\. Preserve complete returns; parent\-persisted output must be marked artifactAuthoredByReviewer: false\. Author corrections are not final independent acceptance without the reviewer’s disposition\.
-
-Deliver report\.md, result\.json and the minimal task\.diff, with exact edited paths, applied versus staged status, pre/post source identities, original and added test counts, raw results, review status, unchanged registration evidence and preservation checks\. State separately: cause already established, permanent test repair implemented or staged, focused headless result, GUI run not performed, product \.160 unchanged\.
-
-Release only this task’s ownership\. Do not adopt the overnight b1\-lane manifest, fix developer\.agent\.md, change Phase H acceptance, update canonical references, or start follow\-on backlog work\. Preserve the successful \.160 two\-file write/readback and its SPENT allowance; no new preview or approval is available here\. Carry item E, F\-ROOT\-1, historical ledger identity limits, the check\-to\-write race, runtime/DBFS limits, the separate overnight review disposition and expired quarantine forward\. No release, deployment or full\-readiness claim follows\.
+The separate writeFlow investigation is now independently verified: its nine failures came from the headless filesystem stub. ETL-0915-WRITEFLOW-FILESYSTEM-PRECONDITION-REPAIR01 has been issued; its execution outcome is not known here. Do not enter, gate or modify that task. Preserve the accepted .160 physical write/readback and its SPENT allowance, protected maintainer files, item E, F-ROOT-1, historical ledger identity limits, the check-to-write race, runtime/DBFS limits and unrenewed expired quarantine. No release readiness follows from this closeout. Persist the actual final disposition and release only this continuation’s ownership.
