@@ -1,25 +1,63 @@
-Review the corrected closeout revision and finish the existing task
+# Reconcile writeFlow ownership and integrate the prepared repair once
 
-CONTINUATION_OF: ETL-0915-OVERNIGHT-REVIEW-CLOSEOUT01
-STATUS: PREPARED_FOR_OWNER_SUBMISSION; not executed by ChatGPT.
-SCOPE: One bounded return to independent review of the corrected final artifacts. No new investigation, helper adoption or product repair.
+CONTINUATION\_OF: ETL\-0915\-WRITEFLOW\-FILESYSTEM\-PRECONDITION\-REPAIR01
+STATUS: PREPARED\_FOR\_OWNER\_SUBMISSION; not executed by ChatGPT\.
+INPUT: The completed –ISOLATED\-PREP01 result and its reviewed, tested two\-file patch\.
+SCOPE: Resolve the reported ownership conflict, reuse valid completed evidence, and apply the existing bounded test repair when ownership and input identity permit it\. Do not start another implementation\.
 
-Apply this in the same closeout session. Existing authority to resolve report/evidence issues and complete corrective review persists. All responses and artifacts must be English. Use text/filesystem evidence only; no screenshots, video, OCR or vision. Product-write budget, product model requests and host launches remain zero.
+Run this in an existing writeFlow repair session, not a third session\. All communication and artifacts must be English\. Use text/filesystem evidence only; no screenshots, video, OCR or vision\. Existing bounded test\-repair authority persists\. Product\-write budget, product model requests, host launches and VSIX/install operations remain zero\.
 
-The owner received your closeout report: original F-001/F-003 claims were narrowed, F-002 concerned aggregation rather than conflicting timestamps, runner arithmetic was explained, and the actual helper convention is copy-forward. However, the closeout reviewer returned CHANGES_REQUIRED; you then changed the material twice without obtaining a second disposition. The remaining action is review of that corrected revision, not another campaign.
+## 1\. Establish who actually owns the two files
 
-1. Resolve the actual final closeout report/result, complete reviewer return, author corrections, retained logs and helper identity. Preserve all prior artifacts. Reacquire only scoped evidence ownership if needed; use the existing revision/attempt mechanism. If a later review already exists, reconcile it before requesting another one.
-2. Finish the material before review, then freeze its exact revision with the existing identity mechanism. Retain these limits consistently:
-  • M6 is test/replay, not installed qualification. G1 is confirmed repository-state divergence, without deciding which side is wrong.
-  • The timestamp records describe the same file/instant with different rounding. The reviewer’s enumeration method remains unknown; do not invent it. Preservation is limited to the supported claim: no observed .github mtime within the predecessor window, plus byte identity for 5 of 23 files against independently published task hashes. The other 18 have mtime evidence only, not historical byte proof.
-  • The 17 cleared failure records comprise 15 previously failing tests and two root-level before-all hooks. Those hooks had prevented 19 descendant cases from executing: 15 + 19 explains the 34 additional passes. The historical accounting is 17 cleared + 5 surviving in the selection + 2 outside it = 24. No new repository-wide test total was measured.
-3. Obtain an explicit independent disposition of the two closeout findings and the corrections they required:
-  • ADOPTION-001: confirm the published invocation uses valid syntax for its stated shell, including PowerShell. Do not execute a lane-creation command just to check documentation.
-  • HIST-001: inspect the actual retained epilogue blocks and exact full identities. The author reports 24/24 blocks with suite headings, 17/17 cleared and 5/5 surviving exact matches; inline and epilogue output together produced 48 markers for 24 failures. Have the reviewer verify the relevant records and mapping directly. Reuse existing log-analysis commands if needed; no new Mocha run. Treat the reviewer having read inline markers as a possible explanation, not an established fact about their actions.
-4. Preserve the corrected N-1 recommendation. There is no shared helper inside the worktree to adopt into. Existing helpers live under C:\docs<taskRoot>\helpers; future tasks may copy the authenticated b1-lane.corrected.js into their own new helpers/b1-lane.js when its inputs apply. Resolve the full hash from records, not a photographed prefix. Do not overwrite an active task’s helper, promote it into the product tree, or create a shared tooling project in this continuation. Confirm the adoption wording, location and shell examples are consistent across the reviewed material.
-5. Send the frozen revision and this narrow evidence set to the same independent reviewer if available, otherwise one reviewer scoped to these changes. Retain the complete return and the identity of the reviewed inputs. Parent-persisted reviewer text must have artifactAuthoredByReviewer: false. A reasoned author refutation does not by itself close HIST-001 independently.
-6. Complete any necessary in-scope corrections and return those changed portions to the reviewer within this same continuation. Do not stop merely because a corrective pass is needed, or announce completion immediately after editing a reviewed claim. After acceptance, keep the reviewed substantive files unchanged; store the final verdict in a separate existing status/review record referencing that revision. This avoids changing the material after its final review or requiring a self-referential hash.
+The owner received a report that the repair is STAGED, not applied, because the task ID and both editable surfaces were already claimed ACTIVE by a live sibling session\. Treat that as an ownership claim to authenticate, not permission to clear it or proof that the current resumed session is a different owner\.
 
-Finish with either the actual independent acceptance of the final revision, or the precise material blocker/unavailable review that prevents it. Do not manufacture VERIFIED, weaken required evidence or hide a remaining disagreement to achieve closure. Reuse accepted findings; do not restart the overnight audit, rerun six suites, compile/package/install anything, or modify the helper’s demonstrated behavior for presentation.
+Use the existing published claim mechanism to identify the exact owner/session, task root, claimed paths, lifecycle and relevant live\-session/process evidence\. A matching task ID, old timestamp, same process name or missing final report alone is insufficient\. Distinguish the current session’s retained claim after context restoration from a genuinely different owner\. Do not invent or weaken ownership rules\.
 
-The separate writeFlow investigation is now independently verified: its nine failures came from the headless filesystem stub. ETL-0915-WRITEFLOW-FILESYSTEM-PRECONDITION-REPAIR01 has been issued; its execution outcome is not known here. Do not enter, gate or modify that task. Preserve the accepted .160 physical write/readback and its SPENT allowance, protected maintainer files, item E, F-ROOT-1, historical ledger identity limits, the check-to-write race, runtime/DBFS limits and unrenewed expired quarantine. No release readiness follows from this closeout. Persist the actual final disposition and release only this continuation’s ownership.
+- If this is your existing claim, resume it through the normal mechanism; do not create a competing owner or duplicate repair\.
+- If a different owner is demonstrably active, leave its files and evidence directory untouched\. Preserve the ready handoff and report its exact published owner/root and required handoff or release\. Do not cancel it, send it instructions, take its claim, or poll indefinitely\. Continue only the independent preparation below\.
+- If the other owner is closed or has explicitly handed off, use the established acquisition procedure and check its published final result before applying anything\. It may already have applied a repair\.
+- If ownership cannot be determined, report the concrete missing evidence and retain the patch\. Uncertainty is not a stale\-claim exception\.
+
+The overnight review is completed and independently VERIFIED\. Do not confuse that separate read\-only task with the reported owner of the writeFlow test files\. Do not restart its review or begin maintainer edits while the writeFlow preservation boundary is active\.
+
+## 2\. Reuse the final prepared patch and its actual evidence
+
+Read the isolated preparation’s final report/result, exact task\.diff, both review returns, preimages/postimages, executed\-input identities and final matrix\. Resolve actual paths and full hashes from those records, not the photograph\. Preserve the closed preparation directory\.
+
+The reported result is two files, \+437/\-0, a 19070\-byte patch, baseline 17 passing / 9 failing and final 31 passing / 0 failing, retaining all 26 original cases\. There is also a type\-compatible red lane: new stub with original suite, compiling successfully but never activating the binding, which reproduces the baseline\. Real filesystem observations distinguish fixture\-only baseline writes from final write/readback effects\. Reuse this evidence where its inputs still match\.
+
+The prepared behavior is an opt\-in bindVscodeTestStubFileSystemToDisk binding, selected by the suite through the retained global registration handle, activated in suiteSetup and restored in suiteTeardown\. It avoids importing the auto\-registering stub into a real Extension Host\. Test registration, runner defaults and product code are unchanged; GUI execution remains unperformed\.
+
+Retain the reviewed corrections: realpath\-based path/reparse\-point containment using the longest existing ancestor, a real junction\-escape control, FileNotFound normalization on the five bound operations, and symbolic\-link stat classification\. The disclosed hardlink/object\-identity limitation remains explicit; do not turn path/reparse\-point containment into a claim of complete filesystem\-object isolation\.
+
+Check which exact material changed after review pass 2 and what disposition covers it\. The report says a non\-blocking hardlink limitation led to narrower scope wording and a rerun against the delivered patch\. If this is the reviewer’s accepted limited option with unchanged reviewed behavior, preserve that accepted disposition\. If the actual boundary code changed beyond the accepted revision, obtain review of only that delta before relying on it\. Compilation and tests alone are not independent review; do not automatically invalidate accepted evidence or restart a full review campaign\.
+
+## 3\. Apply only under exclusive ownership and matching inputs
+
+The editable surfaces remain the two actual test files identified by the preparation\. No new source, registration, helper framework, \.github, package or product changes are authorized\.
+
+Before mutation, compare both current files and the relevant dependency inputs with the prepared preimages and postimages:
+
+- Both equal the tested postimages: do not apply again\. Reconcile the existing owner’s application/provenance and complete the applicable verification from retained evidence\.
+- Both equal the preimages: when exclusive ownership is established, perform the normal patch precheck and apply the prepared patch once\. Read back both files and compare them with the tested postimages\. Preserve unrelated changes\.
+- A mixed or different state: do not force the patch, reset files, or overwrite someone else’s work\. Identify the actual delta\. Once ownership permits, reuse an existing accepted implementation or minimally rebase the same bounded repair, retaining the competing versions and their attribution\. Changed behavior requires the affected focused checks/review; an unexplained difference remains a concrete blocker\.
+
+A successful git apply –check is not evidence that the patch was applied\. Distinguish STAGED, APPLIED and ALREADY\_APPLIED with actual source bytes and attribution\. Use the existing source\-edit mechanism; do not change branches, index, commits, dependencies or repository history\.
+
+## 4\. Verify only what integration changes
+
+Reuse the final prepared matrix if source, tests, configurations, toolchain and other relevant executed inputs still match\. Record the source\-to\-tested\-output relationship for the applied bytes\. Copying a matching patch into the worktree does not by itself require another baseline/red/green campaign or a new compilation\.
+
+If rebasing or changed dependencies invalidate part of that evidence, run only the corresponding focused checks in a task\-owned lane using existing runners and isolated build\-info/output\. Retain meaningful behavioral red/green coverage where behavior changed\. No full headless campaign, shared\-out execution, worktree compile/test:unit/pretest/compile:test, new host, package or install\.
+
+Confirm that all original assertions remain, the binding is opt\-in and restored, and GUI/integration membership remains unchanged\. Do not add writeFlow to PURE\_UNIT\_TEST\_PATTERNS\. State that GUI execution and general provider equivalence remain unobserved\. Keep the other seven historical failures and the separate overnight failure population distinct; do not claim repository\-wide all\-green\.
+
+Preserve shared out, \.tsbuildinfo\.test, HEAD/package version, unrelated dirty files, maintainer \.github files, installed \.160, consumers and closed evidence\. Attribute observed changes to actual owner records rather than interpreting every change as your regression or silently ignoring unexplained drift\. No broad hash sweep solely to produce another report\.
+
+## 5\. Deliver the actual disposition
+
+Use the existing independent review mechanism for any new integration delta that needs review\. Reuse the accepted patch review for byte\-identical, dependency\-coherent integration\. Preserve complete reviewer returns and mark parent\-persisted responses artifactAuthoredByReviewer: false\. Freeze reviewed substance and keep final status metadata separate; do not edit accepted claims after their final review\.
+
+Return one concise result with: actual ownership resolution; chosen patch and full identities; STAGED/APPLIED/ALREADY\_APPLIED status; the source readback; reused versus new checks; final review applicability; GUI unexecuted; product \.160 unchanged; and any concrete remaining blocker\. A foreign active owner permits a precise staged handoff, not an APPLIED claim\. Release only your ownership after persistence\.
+
+Do not start another writeFlow implementation, reopen overnight acceptance, adopt a nonexistent shared helper, fix developer\.agent\.md or decide Phase H baselines here\. The \.160 two\-file write/readback remains independently accepted and its one allowance SPENT\. Carry item E, F\-ROOT\-1, historical ledger identity limits, the check\-to\-write race, runtime/DBFS limits and unrenewed expired quarantine forward\. This integration does not establish release readiness\.
