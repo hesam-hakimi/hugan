@@ -1,50 +1,28 @@
-Continue from the current CLUE logging result: 13 focused logging tests, 183 full-suite tests and release validation were reported as passing. The logging changes are still uncommitted.
+Continue from the committed TD logger integration with td-python-dytp-logger==1.0.2 and the reported 14 focused / 184 full-suite passing tests.
 
-The next task is to finalize this checkpoint and prepare the real TD Dynatrace integration.
+The next task is to resolve DEV configuration availability and perform one logging smoke test when ready.
 
-1. Preserve and record the completed work
+1. Use the existing configuration inspection helpers to check the actual CLUE startup path and Python environment.
 
-Inspect the current diff and identify the logging and handoff changes from this task. Record the existing test evidence against the tested working-tree state and create a local commit containing only the changes owned by this session.
+For these settings, report only PRESENT, MISSING or BLANK, plus their configuration source:
+DYNATRACE_URL
+DYNATRACE_API_KEY
+TD_DT_LOG_SOURCE
+WEBSITE_SITE_NAME
+MALCODE
+COMPUTERNAME
 
-Preserve unrelated or concurrent work. Reuse the existing valid test results; rerun tests when subsequent changes justify them.
+Check the explicit .env location, inherited process environment, intended precedence and whether configuration is loaded before the TD handler reads or caches it. Do not print secret values or dump the environment.
 
-2. Resolve the real TD logger dependency
+2. Inspect how the installed TD package uses these settings.
 
-Use the project references and existing authorized access to locate the approved wheel or this documented repository:
+In particular, check whether COMPUTERNAME is available in the actual Windows process but missed by the current preflight. Determine how WEBSITE_SITE_NAME maps to application identity for this local/on-prem application.
 
-https://github.com/TD-Enterprise/td-dytp-log-python
+Use verified project references for the DEV destination and application attribution. Do not substitute sample values or invent a MALCODE. If a real value is unavailable, identify the exact external input needed.
 
-The earlier TD guide used the td-python-dytp-logger subdirectory to build the package.
+3. Investigate the visible PowerShell exit-code-1 notification using the corresponding command and sanitized error output. Retry only the affected step if appropriate. If the evidence is unavailable, record that uncertainty.
+4. Once the real DEV configuration is available, send one harmless event with a unique marker through the integrated CLUE logger. Check ingestion acceptance and verify destination visibility separately.
 
-Read the actual package instructions and source. Install the appropriate version into the Python environment used by CLUE and verify its imports there.
+Reuse existing test evidence. If configuration code needs fixing, run the relevant targeted tests. Update the handoff with the actual result and remaining dependencies.
 
-Inspect how DynatraceLogHandler reports send failures, handles timeouts, retries, buffering and shutdown. Integrate it with the existing CLUE logging path and BufferedRetrySink with clear ownership of retry behavior.
-
-Use targeted tests for any integration changes. A normal return from a logging call must not be treated as proof of successful ingestion.
-
-3. Establish the DEV configuration
-
-Use existing configuration helpers to check the required destination, authentication and application/environment attributes. Report setting names and availability without printing secret values.
-
-The earlier Vault instructions describe a Jenkins-agent flow; use the access mechanism appropriate to the actual development environment.
-
-If the package or configuration cannot be obtained, identify the exact missing dependency and complete the preparation that remains possible locally.
-
-4. Perform one bounded DEV smoke test when ready
-
-Send one harmless event with a unique test marker through the actual CLUE logger.
-
-Check the documented ingestion response, including partial-ingestion handling where applicable. Verify that the exact marker is searchable in the intended DEV destination when search access is available.
-
-Report separately:
-
-* TD handler installed and integrated.
-* Event submission attempted.
-* Ingestion acceptance.
-* Destination visibility.
-
-5. Update the handoff
-
-Record the source revision, package version, tests, DEV result and remaining VMC2 verification. Rebuild the release if implementation changes require it.
-
-Keep all development output in English and continue within the existing local development authority.
+Keep all development output in English.
