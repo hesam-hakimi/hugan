@@ -1,29 +1,34 @@
-Continue from the current CLUE local release candidate and preserve the reported 128-test baseline, packaging, and acceptance workflow.
+Continue the current CLUE delivery candidate and incorporate the queue/scheduler requirements from the latest meeting. Preserve the existing implementation, packaging, and any in-progress image, fault-policy, and acceptance refinements.
 
-Complete these three focused delivery refinements using the existing implementation and dependencies:
+Keep all engineering work in English. Use the actual batch entry point and existing durable state, ownership controls, fixtures, and tests.
 
-1. Finish the image conversion path
+First trace the executable path and report which of these behaviors already exist:
 
-JPEG conversion is already within the delivery scope. Implement the required TIFF-to-JPEG path instead of stopping at IMAGE_FORMAT_REQUIRES_CONVERSION.
+* Durable pending-work selection and registration of files arriving during a run.
+* Exclusive ownership, overlapping invocations, and recovery of abandoned work.
+* Independent Symcor and Tungsten dispatch/concurrency controls.
+* Request-rate limits, persisted retry timing, and backlog/storage limits.
 
-Use valid, decodable test images. Verify JPEG pass-through and TIFF conversion by decoding the result, checking dimensions, and preserving document/page identity. Treat signature-only or “JPEG-framed” test bytes as insufficient evidence of a usable image.
+Then complete only the missing behavior needed for the current single-host release.
 
-Handle supported multi-page inputs explicitly without silently selecting or dropping pages. Report only genuine target-environment dependency constraints.
+Select and document one clear application ownership model. A second invocation must not process an already-owned delivery or multiply the effective provider limits. Keep complete incoming files durably pending until capacity is available.
 
-2. Correct the Symcor retry classification
+Define application exit outcomes and distinguish intake acceptance, active processing, batch completion, partial completion, and failure. Record the actual AutoSys trigger/overlap configuration as an external confirmation item; do not assume a 15-minute schedule requires processing to finish within 15 minutes.
 
-Inspect the current awsSystemException → TRANSIENT mapping. Use documented subcodes/conditions or an explicit operation-specific retry policy. Do not present the entire category as proven transient.
+Use independently configurable limits for each provider. Distinguish in-flight requests, requests per second, and records per API request. Do not configure any of them to 100 solely from the meeting discussion.
 
-Keep attempts bounded and preserve fault details in the existing safe error model. Retain the established handling of uncertain Tungsten outcomes.
+Feed committed Symcor image results into Tungsten as capacity becomes available. Preserve page-level checkpoints, held unknown outcomes, source associations, and per-file output rules. Limit upstream work when the downstream backlog or disk threshold is reached.
 
-3. Align the acceptance fixture with debit/credit behavior
+Demonstrate through the actual orchestration path with injected offline providers:
 
-Inspect the –docs-per-item 2 seed, generated associations, and reported debit counts before changing code.
+1. Two overlapping application invocations.
+2. Additional complete files arriving during an active batch.
+3. A process interruption followed by restart and ownership recovery.
+4. Enforced provider limits and restart-safe retry waiting.
+5. A slow Tungsten stage causing controlled upstream backpressure.
 
-Demonstrate one cheque per successful debit row and multiple cheques for the credit scenario, while preserving repeated-case associations and ineligible rows. If a debit query unexpectedly returns multiple documents, expose that outcome explicitly rather than silently selecting one.
+Extend the existing acceptance data to a few hundred varied records across multiple files. Use bounded fake delays or controlled clocks where appropriate. Report observed maximum concurrent calls, processed/pending/held counts, duplicate effects, and input/output reconciliation. Label timings as offline measurements.
 
-Reuse existing tests and add only the coverage needed for these changes. Run the relevant regression suite once after implementation, rebuild the local release candidate, and validate its entry point and acceptance outputs from an isolated extraction.
+The latest meeting leaves the final debit/credit query strategy open pending native samples. Preserve all returned associations and expose unexpected multiplicity; do not impose an unconfirmed cardinality rule.
 
-Keep the native multipart profile marked as awaiting provider evidence until actual response fields and attachment mapping are confirmed. Missing Java helpers should not stop these independent refinements.
-
-Keep credential replacement deferred as instructed. Finish with the rebuilt package path, actual output paths, demonstrated image conversion, corrected debit/credit counts, retry policy, and the precise external inputs still needed for the first connected tests.
+Reuse existing tests, add only missing behavioral coverage, and rebuild the release if code changes. Finish with the demonstrated queue behavior, remaining AutoSys configuration questions, tested commit, and artifact paths. Continue independent delivery work while external answers are pending.
