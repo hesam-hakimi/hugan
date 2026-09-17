@@ -1,93 +1,208 @@
-Continue CLUE development through completion of the local delivery candidate.
+Perform one comprehensive review of the current CLUE solution and its local delivery candidate.
 
-Owner decision: park live Dynatrace onboarding, the VMC2 collection-route decision, DEV destination configuration and live ingestion verification. Keep these recorded as external operational dependencies. They must not block the remaining development.
+The purpose is to assess the implemented solution, identify concrete defects and material risks, and recommend prioritized corrections and improvements.
 
-Preserve the existing structured local logging, TD logger integration and valid tests. Use an explicit configuration setting to disable live forwarding while it is parked. Disabled forwarding must be reported accurately and must not prevent application startup or processing.
+This is a review and reporting task. Inspect the implementation and use appropriate verification, but do not automatically implement fixes or refactor the application during the review.
 
-All development responses, code, tests and documents must remain in English.
+All responses, reports and technical content must be in English.
 
-1. Reconcile the current implementation and finish the remaining scope
+1. Establish the exact review baseline
 
-Read the current handoff and inspect the actual checkout, including newer changes and active-session ownership.
+Locate the current application repository and handoff. Previously recorded paths are:
 
-The latest reported baseline is 187 passing tests, but use the actual current source and evidence. Reuse completed work and existing tests. Identify the remaining implementation tasks from the handoff and recent instructions, then proceed directly with them.
+* C:\repos\fcrm_clue
+* C:\repos\FCRM
+* C:\repos\fcrm_clue\docs\handoff\clue
 
-Resolve routine implementation choices within the existing authority. When an external input is unavailable, record the specific dependency and continue independent work.
+Read CLUE_HANDOFF.md, START_NEW_SESSION.txt, the relevant reference documents, operator instructions and the actual source.
 
-2. Close the remaining queue and execution correctness gaps
+Record:
 
-Use the existing single-host architecture and durable state.
+* Repository, branch, HEAD and review timestamp.
+* Relevant uncommitted changes.
+* Release artifact path and SHA-256.
+* Runtime and dependency versions.
+* The source state covered by existing test and acceptance evidence.
 
-Verify and complete only the behavior that remains unimplemented or unproven:
+The latest report described 204 passing tests and successful execution from an isolated release extraction. Reconcile that report with the current files; do not assume it proves behavior that was not exercised.
 
-* A healthy operation continues beyond the configured lease duration without another invocation taking over its work.
-* A stopped or crashed owner can be recovered appropriately.
-* Overlapping invocations cannot multiply the effective provider limits for one deployment.
-* Actual orchestration uses the intended bounded concurrency and can pass committed Symcor results downstream while respecting Tungsten capacity.
-* Retry waiting, held outcomes, newly arriving files and backpressure remain correct through interruption and restart.
+Respect active-session ownership. If source changes during the review, keep findings attributable to the reviewed version and identify any affected conclusions.
 
-Prefer the simplest reliable ownership model. One active processing coordinator per deployment state directory, with bounded provider workers inside it, is acceptable if it meets the existing requirements. Reuse an equivalent working mechanism if one already exists.
+2. Trace the real application path
 
-A second invocation must have a clear outcome, preserve pending work and avoid duplicate processing. Document the supported deployment model.
+Follow the executable entry point through:
 
-Use controlled clocks and bounded fake providers for missing behavioral tests. Distinguish concurrency, requests per second and records per request. Treat unconfirmed provider limits as unconfirmed.
+* Configuration loading and validation.
+* Incoming-file discovery and completeness checks.
+* Delivery registration and ownership.
+* Input parsing and record validation.
+* Symcor request construction and response handling.
+* Image extraction, decoding/conversion and storage.
+* Tungsten submission and result handling.
+* Durable checkpoints, retry waiting and held outcomes.
+* Output construction, publication, acknowledgement and archiving.
+* Logging, shutdown and exit outcomes.
 
-3. Complete the remaining adapter and data-processing work
+Verify that important components are actually called from the application path. A helper existing in the repository or passing an isolated unit test is not sufficient evidence of integration.
 
-Reconcile the earlier image, fault-policy and acceptance refinements against the current source. Complete actual remaining gaps, including:
+Explain the implemented flow clearly and identify any meaningful difference between the documentation, intended design and actual behavior.
 
-* Supported image decoding/conversion, front/back association and explicit handling of unsupported or ambiguous image formats.
-* SOAP fault classification and retry decisions based on available contract evidence.
-* Preservation of source-row/document associations, partial results and completed page checkpoints.
-* One logical output per input delivery, with accurate processing and delivery status.
+3. Review correctness, recovery and concurrency
 
-Finish the getCriterionRules task already assigned in the handoff if it is still pending. Use the available WSDL/XSD and documented operation through the existing Symcor adapter, limiter and fault handling.
+Assess:
 
-Label schema-derived fixtures accurately. Do not invent TransitBankAcct composition, resolve the timeStamp contradiction by assumption, or impose an unsupported debit/credit cardinality rule.
+* Atomic state transitions and consistency between stored state and filesystem artifacts.
+* Lease renewal, ownership fencing and recovery after a crash.
+* Competing invocations and the scope of the single-coordinator guarantee.
+* Duplicate delivery handling while preserving legitimate repeated investigations.
+* Stable delivery, source-row, document and page identities.
+* Persisted retry timing and behavior after restart.
+* Ambiguous provider outcomes, including acceptance followed by a lost response.
+* Front/back partial completion and reuse of committed results.
+* Arrival of new files while processing is active.
+* Graceful interruption and bounded shutdown.
+* Crashes between output creation, publication, acknowledgement and archive movement.
 
-Keep unresolved business output mappings explicit in the runnable candidate.
+Use realistic failure scenarios. Check what would actually happen, what evidence supports the conclusion and whether the behavior matches the stated contract.
 
-4. Preserve clear integration boundaries
+4. Review provider and data contracts
 
-Missing Dynatrace configuration is now a parked item.
+Assess the Symcor SOAP/XML/MTOM/XOP path, request parameters, attachment association, fault handling, getCriterionRules discovery and caching.
 
-Symcor/Tungsten DEV validation can proceed if the actual required configuration and permitted test inputs are available within the existing authority. Otherwise complete the callable adapters and offline verification, recording the exact missing provider inputs.
+Assess image validity, format handling, page association and resource usage.
 
-Keep these statuses distinct:
+Assess the Tungsten request/response boundary, configuration requirements, metadata mapping, confidence handling and partial or unknown outcomes.
 
-* Implemented.
-* Verified with offline fixtures.
-* Verified against a real DEV provider.
-* Accepted by the business.
-* Verified on VMC2/AutoSys.
+Review:
 
-Preserve the effective owner instructions already recorded in the handoff.
+* Input validation and communication of rejected records.
+* Debit/credit multiplicity and source-row attribution.
+* Preservation of all returned document associations.
+* One logical output per input delivery.
+* Output schema, image representation and reconciliation.
+* Schema-derived fixtures versus captured native provider evidence.
 
-5. Produce the final local release candidate
+Keep unresolved business rules and unavailable provider evidence explicit. Do not invent account normalization, TransitBankAcct composition, timeStamp semantics, debit/credit cardinality or approved output mappings.
 
-After the implementation changes:
+Classify an unresolved contract as an external dependency or risk unless there is evidence of a specific implementation defect.
 
-* Run targeted tests during development and one full regression pass on the final source.
-* Reuse the existing multi-file acceptance fixtures and the bulk scenario where applicable.
-* Verify duplicate delivery, interruption/resume, partial or held outcomes and output correlation through the actual application entry point.
-* Build the release from the intended package contents.
-* Extract it into an isolated directory and verify the documented execution path.
-* Record the runtime, dependencies, source revision, package checksum, commands and acceptance outputs.
+5. Review performance and resource control
 
-Broaden testing only when changes, failures or unresolved concerns justify it.
+Assess:
 
-6. Complete the handoff and delivery report
+* Actual provider concurrency in the orchestration path.
+* Independent Symcor and Tungsten limits.
+* The distinction between in-flight requests, requests per second and records per request.
+* Downstream backpressure and pending-work behavior.
+* Memory usage for XML, Base64 data, images and output construction.
+* Disk growth, staging limits, temporary files and cleanup.
+* Retry amplification, fairness and the possibility of work remaining indefinitely pending.
 
-Update the existing handoff and startup prompt with:
+Use the available workload assumptions and mark uncertain quantities. Do not invent a provider limit or processing SLA.
 
-* Completed functionality and supporting evidence.
-* Exact release location and instructions for running it.
-* Current ownership and source state.
-* Remaining external dependencies, with the evidence needed to close each.
-* The next integration or deployment action when those inputs arrive.
+Distinguish configured concurrency from observed parallel execution. Offline timings do not establish real provider latency or production capacity.
 
-Keep live Dynatrace explicitly parked. Identify any remaining local development work honestly.
+Recommend the smallest practical improvements that address demonstrated bottlenecks or material risks.
 
-Create the appropriate local commits within the current authority. Preserve unrelated work and active-session boundaries.
+6. Review operational readiness and maintainability
 
-Continue through implementation, verification, packaging and handoff. The requested outcome is a reproducibly executable local delivery candidate, not another plan or findings-only report.
+Assess:
+
+* Configuration precedence and initialization timing.
+* Windows-specific assumptions and compatibility risks for RHEL/VMC2.
+* Local state storage, paths, permissions and deployment assumptions.
+* AutoSys exit semantics and scheduling integration boundaries.
+* Structured logging, correlation, redaction and failure isolation.
+* Package contents, dependencies, reproducibility and documented execution.
+* Whether the extracted release is complete and consistent with the reviewed source.
+* Module responsibilities, duplicated logic, excessive coupling and difficult-to-test boundaries.
+
+Review concrete configuration, parser, file-handling and logging behavior that could affect reliability or expose sensitive information. Keep sensitive values out of the report.
+
+Preserve the owner’s decisions:
+
+* Live Dynatrace onboarding and validation are parked.
+* Credential replacement remains deferred.
+* Local implementation and offline validation are distinct from live integration, business acceptance and production readiness.
+
+Do not reopen those decisions as new approval campaigns.
+
+7. Evaluate the quality of the evidence
+
+Review existing tests and acceptance artifacts for meaningful coverage.
+
+Look for tests that:
+
+* Exercise only helpers while bypassing the real entry point.
+* Mirror the implementation without verifying the intended behavior.
+* Use unrealistic fixtures that hide integration problems.
+* Omit consequential failure boundaries.
+* Make stronger claims than their assertions support.
+
+Reuse valid results from the reviewed source. Run focused checks or a small isolated reproduction when necessary to resolve a material concern. Do not repeat the full suite solely to reproduce an unchanged passing count.
+
+Temporary reproduction artifacts may be created outside the application source. Record the commands and relevant sanitized results. Keep application code unchanged during this review.
+
+A failed assertion or a suspected issue must be investigated enough to distinguish a real defect from an incorrect test assumption.
+
+8. Produce actionable findings
+
+For each finding, include:
+
+* A unique ID.
+* Classification: confirmed defect, material risk, evidence gap, external dependency or optional improvement.
+* Severity and recommended priority.
+* Source location, including file and function, with line references where useful.
+* Triggering scenario and actual or expected impact.
+* Supporting evidence and confidence level.
+* Proposed correction or improvement.
+* A focused way to verify the correction.
+* The recommended delivery stage for addressing it.
+
+Use precise wording:
+
+* “Confirmed” requires supporting evidence.
+* “Potential” must explain the assumptions.
+* “Not verified” must not be presented as “not implemented.”
+* “External dependency” must identify the missing input and what it prevents.
+
+Include strengths worth preserving. Avoid cosmetic recommendations unless they materially affect correctness, maintainability or delivery.
+
+9. Deliver one comprehensive report
+
+Create:
+
+docs/handoff/clue/CLUE_SOLUTION_REVIEW.md
+
+The report must contain:
+
+* An executive assessment of the current candidate.
+* The reviewed architecture and executable flow.
+* Strengths and verified capabilities.
+* Prioritized findings with evidence.
+* Test and acceptance coverage gaps.
+* A practical correction/improvement plan.
+* Remaining external integration and deployment dependencies.
+* An evidence appendix with the reviewed revision, commands and artifact locations.
+
+The correction plan must separate:
+
+* Necessary local fixes before accepting the candidate.
+* Work required before real integration or deployment.
+* Improvements that can reasonably follow the initial delivery.
+
+Use roles rather than assigning people by name. Identify dependencies between recommended actions.
+
+Conclude whether the current candidate is suitable for a local demonstration and the next integration stage, and explain any conditions. Do not equate that conclusion with production approval.
+
+10. Finish the review
+
+Return:
+
+* The actual report path.
+* The overall assessment.
+* The most important findings.
+* The recommended order of corrections.
+* Whether any local development remains necessary before proceeding.
+
+Complete this review once all areas above have been assessed and material findings have adequate evidence. Provide the corrections as recommendations; do not start an unrequested remediation cycle.
