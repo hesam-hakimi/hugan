@@ -1,82 +1,50 @@
-Continue CLUE development using the handoff already created in the local workspace.
+Continue from the current CLUE logging result: 13 focused logging tests, 183 full-suite tests and release validation were reported as passing. The logging changes are still uncommitted.
 
-The immediate task for this session is logging validation and the existing TD Dynatrace integration. This message updates the assigned-task and ownership assumptions in START_NEW_SESSION.txt. Preserve the other effective project instructions.
+The next task is to finalize this checkpoint and prepare the real TD Dynatrace integration.
 
-All development responses, code, tests and documents must remain in English.
+1. Preserve and record the completed work
 
-1. Restore the context
+Inspect the current diff and identify the logging and handoff changes from this task. Record the existing test evidence against the tested working-tree state and create a local commit containing only the changes owned by this session.
 
-Locate and read completely:
+Preserve unrelated or concurrent work. Reuse the existing valid test results; rerun tests when subsequent changes justify them.
 
-* C:\repos\fcrm_clue\docs\handoff\clue\CLUE_HANDOFF.md
-* C:\repos\fcrm_clue\docs\handoff\clue\START_NEW_SESSION.txt
+2. Resolve the real TD logger dependency
 
-Then read the referenced documents and actual source files relevant to logging, configuration, the batch entry point and existing tests.
+Use the project references and existing authorized access to locate the approved wheel or this documented repository:
 
-Verify the current repository, branch, HEAD and working-tree changes. Reconcile changes made after the recorded checkpoint without resetting or discarding existing work.
+https://github.com/TD-Enterprise/td-dytp-log-python
 
-Briefly report what you actually read and the current logging implementation you found. Continue with the work after that report.
+The earlier TD guide used the td-python-dytp-logger subdirectory to build the package.
 
-2. Apply the current priority
+Read the actual package instructions and source. Install the appropriate version into the Python environment used by CLUE and verify its imports there.
 
-Complete the independently testable logging work.
+Inspect how DynatraceLogHandler reports send failures, handles timeouts, retries, buffering and shutdown. Integrate it with the existing CLUE logging path and BufferedRetrySink with clear ownership of retry behavior.
 
-Treat the Symcor getCriterionRules task as a separate follow-up. Missing provider settings or answers to Q01–Q11 do not block local logging tests.
+Use targeted tests for any integration changes. A normal return from a logging call must not be treated as proof of successful ingestion.
 
-Use existing queue/recovery evidence where relevant. Add verification only where the logging changes or an actual unresolved issue justify it.
+3. Establish the DEV configuration
 
-3. Establish bounded ownership
+Use existing configuration helpers to check the required destination, authentication and application/environment attributes. Report setting names and availability without printing secret values.
 
-Treat the handoff’s statement that no other session is active as checkpoint information.
+The earlier Vault instructions describe a Jenkins-agent flow; use the access mechanism appropriate to the actual development environment.
 
-If the main checkout is still being developed by another session, use an isolated worktree and branch for logging changes, with a separate processing workspace. Identify how changes will be integrated and keep shared release packaging under one owner.
+If the package or configuration cannot be obtained, identify the exact missing dependency and complete the preparation that remains possible locally.
 
-If this is the only active session, continue on the current checkout while preserving existing work.
+4. Perform one bounded DEV smoke test when ready
 
-A separate processing –workspace isolates state and outputs; it does not isolate edits to shared source files.
+Send one harmless event with a unique test marker through the actual CLUE logger.
 
-4. Validate the existing logging path
+Check the documented ingestion response, including partial-ingestion handling where applicable. Verify that the exact marker is searchable in the intended DEV destination when search access is available.
 
-Inspect and reuse the current logger, forwarding adapter, configuration helpers and fixtures.
+Report separately:
 
-Exercise the actual application logging path with offline providers and an injected logging transport. Cover:
+* TD handler installed and integrated.
+* Event submission attempted.
+* Ingestion acceptance.
+* Destination visibility.
 
-* Successful file processing and output completion.
-* Pending work, retry waiting, held outcomes and interruption/resume.
-* Correlation between execution IDs and stable delivery/item IDs.
-* Structured fields, severity, timestamps and safe error details.
-* Redaction using synthetic sensitive values, including exception paths.
-* Repeated initialization without duplicate handlers.
-* Transport timeouts, retry/buffering behavior and buffer exhaustion.
+5. Update the handoff
 
-Verify that logging failures do not cause indefinite blocking or duplicate business processing. Keep durable processing state as the recovery authority.
+Record the source revision, package version, tests, DEV result and remaining VMC2 verification. Rebuild the release if implementation changes require it.
 
-Reuse existing coverage and fix demonstrated issues.
-
-5. Validate DEV forwarding when its prerequisites are available
-
-Inspect the supported TD logger package instructions. If its source or approved package is accessible, integrate or install it through the existing project environment.
-
-Use existing configuration inspection helpers and report configuration names and presence only.
-
-When the DEV destination, authorized configuration and network access are available, send one harmless uniquely identifiable event through the CLUE logging path. Verify the ingestion response and, where access permits, locate the exact event in the intended DEV destination.
-
-Report ingestion acceptance and destination visibility separately. For the /api/v2/logs/ingest route, handle documented partial-ingestion responses.
-
-If a prerequisite is missing, complete the offline work and identify that specific dependency.
-
-6. Deliver a clear checkpoint
-
-Run the relevant tests and rebuild the release if the implementation changes require it.
-
-Update the handoff with:
-
-* Source revision and changes made.
-* Test commands and actual results.
-* Local logging status.
-* TD package integration status.
-* DEV ingestion and destination-visibility status.
-* Remaining VMC2/AutoSys verification.
-* The next concrete task and any active-session ownership boundaries.
-
-Preserve the distinction between offline fixtures, real DEV integration and VMC2 execution. Continue through implementation and appropriate verification.
+Keep all development output in English and continue within the existing local development authority.
