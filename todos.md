@@ -1,73 +1,124 @@
-Continue the current CLUE candidate and address the two local findings reported in:
+Continue the active CLUE development session and apply the following two owner updates to the current implementation, tests and handoff.
 
-docs/handoff/clue/CLUE_SOLUTION_REVIEW.md
+All responses, code comments, reports and documentation in this development environment must remain in English.
 
-This is a bounded correction task. Preserve the existing implementation, unrelated changes, active-session ownership and acceptance workflow. Keep live Dynatrace parked and preserve the effective owner decisions.
+Continue from the current checkout and latest handoff. Preserve existing work and reuse the current configuration, adapters, component runners and processing controls. The previously reported 214 passing tests are a historical baseline, not evidence that the new Excel behavior is already implemented.
 
-All development output must remain in English.
+Our current scope is the core application: read supplied local data, process it, and generate Excel output locally. ADIDO/TIBCO integration, AutoSys, live Dynatrace onboarding and production deployment remain outside this task. The owner’s decision to defer credential replacement remains in effect.
 
-1. Reconcile the findings with the actual source
+1. Use the supplied files
 
-Read the complete findings and their evidence. Verify the reviewed revision against the current checkout and the previously reported 204-test release.
+Repository:
+C:\repos\fcrm_clue
 
-Trace delivery leases and workspace coordinator leases separately. Explain precisely why the earlier lease-renewal implementation did or did not cover coordinator ownership.
+Workbook:
+C:\repos\fcrm_clue\test_data\Test Data_TDB.xlsx
 
-For each actual defect, establish a small reproducible regression before fixing it. If a finding is already resolved or relies on an unsupported contract assumption, correct its classification with evidence rather than manufacturing a code change.
+The owner confirms that this workbook contains one debit sheet and one credit sheet. Read the actual workbook to discover the exact sheet names, headers, cell types and records.
 
-2. Fix workspace coordinator renewal
+Cheque sample directory:
+C:\repos\fcrm_clue\test_data\test_cheques
 
-Ensure a healthy coordinator retains exclusive ownership beyond its original lease duration, including during long provider waits.
+Files visible in that directory:
 
-Use the existing owner identity and fencing model. Preserve:
+* cheque_001.jpg
+* cheque_002.jpg
+* cheque_003.jpg
+* test_cheques_metadata.csv
+* test_transactions_3_cheques.csv
 
-* Recovery after an owner crashes and renewal stops.
-* Conditional release on a controlled stop.
-* Rejection of stale owners and stale renewal attempts.
-* Pending work when another invocation is already active.
+Verify these files through the filesystem. Read the workbook and CSVs programmatically. Inspect image format and dimensions programmatically as needed. Use text and filesystem inspection for the engineering work, without screenshots or UI automation.
 
-If coordinator ownership is lost, prevent that invocation from dispatching new work and preserve unresolved in-flight outcomes through the existing handling.
+Do not ask the owner again for information available in these files.
 
-Demonstrate this through the actual orchestration path: a healthy owner remains exclusive beyond its original TTL, a competing invocation cannot take over, and recovery becomes possible after renewal stops.
+These are Windows source locations. Do not report them as files already deployed or tested on the Linux DEV server.
 
-Use controlled time or bounded delays.
+2. Update workbook ingestion and parameterize paths
 
-3. Fix completion-marker validation for the supported contract
+Inspect the existing configuration and command interfaces first. Add or reuse configurable paths for:
 
-Inspect the marker formats the application documents, generates and accepts.
+* The input workbook.
+* The cheque sample directory.
+* The output directory.
 
-Where the contract supplies size, hash or other required metadata, validate those declarations against the exact input bytes that will be processed, before business/API processing begins.
+Keep existing conventions and document how relative paths are resolved and which configuration source takes precedence. Paths containing spaces must work. Windows-specific sample paths must not be embedded in application logic or become mandatory Linux paths.
 
-Handle malformed or mismatched inputs through the existing explicit rejection, hold or quarantine path. Ensure that validating one file version cannot lead to processing another.
+Read both debit and credit sheets through the existing processing pipeline. Preserve:
 
-Preserve a documented signal-only .done profile if it is intentionally supported. Do not invent mandatory metadata or claim checksum verification for a marker that does not provide a checksum.
+* Original input values and columns.
+* Identifier text and leading zeros where present.
+* Source file, sheet and row associations.
+* Existing duplicate handling, durable state and restart behavior.
 
-Add focused coverage for applicable cases:
+Rows at the same position in different sheets must remain distinct. Do not invent account-number normalization or new business validation rules from a single sample.
 
-* Valid marker and matching file.
-* Size mismatch.
-* Same-size content alteration detected by the declared hash.
-* Missing or malformed required metadata.
-* Existing signal-only compatibility, if supported.
+For this manually supplied file, use or implement an explicit local-file execution path with the existing processing controls. This test must not depend on an upstream ADIDO completion file. Preserve the established validation behavior of the production arrival path.
 
-4. Verify and rebuild
+3. Produce and verify actual Excel output
 
-After the final code changes, run the focused regressions and the existing full suite once.
+The previous release demonstrated CSV output. Inspect the current code and implement any missing .xlsx import/export capability using the existing adapter structure.
 
-Rebuild the release and reuse the documented isolated-extraction acceptance run. Confirm that duplicate delivery, interruption/resume and output correlation still work.
+Use the supplied workbook and current references to determine the output layout. Prefer preserving debit/credit separation and original fields, then adding the relevant document identifiers, extraction results, confidence values and processing status.
 
-Avoid unrelated enhancements or another comprehensive review cycle.
+Preserve traceability when one input row produces multiple documents. Missing images, failed extraction and unresolved associations must remain explicit rather than silently disappearing.
 
-5. Close the findings with evidence
+If a layout choice is not specified in the available references, use a clearly documented provisional DEV layout that the owner can review.
 
-Update the existing review and handoff with:
+Reuse the original saved cheque images for workbook display or references. Where image association is confirmed, the provisional DEV output may embed those images. Do not depend on Tungsten returning image bytes.
 
-* The status of each finding.
-* The cause and correction.
-* Reproduction and regression evidence.
-* Tested source revision.
-* Updated release path and checksum.
-* Remaining external integration dependencies.
+Verify that the generated file is a real .xlsx workbook that can be reopened and that its sheets, values, associations and any embedded images are present.
 
-Keep unavailable provider contracts, business acceptance and VMC2/AutoSys validation explicitly separate from these local fixes.
+4. Exercise Tungsten independently using the supplied images
 
-Complete the corrections, verification and updated delivery checkpoint. Report any finding that could not be resolved with its exact remaining reason.
+Use the existing Tungsten adapter and component runner. This component test does not require Symcor to be available.
+
+Read both CSV files and current references to identify the images, page sides and document/transaction associations. Do not infer that cheque_001.jpg and cheque_002.jpg are front/back pairs simply because their names are consecutive.
+
+Do not assume these images belong to rows in Test Data_TDB.xlsx. If that relationship is not evidenced, keep the image-based Tungsten test separate from the workbook integration result.
+
+Treat supplied expected metadata as reference data. Never substitute it for a live OCR response or report fixture values as provider-extracted results.
+
+Inspect the current native request example, adapter and configuration. Reuse the existing configured DEV endpoint and credentials. Earlier reports mentioned unresolved Config/sessionId values; check the current state before treating them as missing. Do not guess provider identifiers or copy the API key into unrelated request fields.
+
+When the required configuration, sample identity and connection are usable, run a bounded real Tungsten DEV test through the existing runner:
+
+* Start with one image whose page side is established.
+* Process its matching opposite side only if that association is established.
+* Follow the actual request contract for page submission.
+* Preserve the response and its association with the image and document.
+* Distinguish HTTP success, provider processing success and successfully parsed extraction fields.
+* Handle an ambiguous submission outcome through the existing recovery behavior rather than blindly submitting again.
+
+A captured native response can resolve the remaining response-schema uncertainty. Inspect it and update the parser/mapping only where the evidence supports the change.
+
+If a required value or association is genuinely missing, report the exact missing item and continue all independent implementation and offline verification. Do not stop the whole task at a generic “external dependencies pending” statement.
+
+Keep credentials out of logs, reports and command-line arguments.
+
+5. Verify the changes and update the handoff
+
+Reuse existing test utilities. Add focused coverage for the changed behavior, including:
+
+* Configurable paths, including the supplied filename containing a space.
+* Reading both workbook sheets and preserving their separate row identities.
+* Correct image/transaction associations, including an unresolved association.
+* Real .xlsx generation and readback.
+* Any response-parser change supported by the Tungsten test.
+
+Run the relevant existing regressions and, after implementation changes are complete, run the appropriate full suite once against the final source revision. Repeat only if subsequent changes or failures justify it.
+
+Update the current handoff, development tasks and relevant interface notes. Record:
+
+* The supplied file locations and discovered structure.
+* The actual configuration options and runnable commands.
+* What changed in the implementation.
+* Generated output paths and verification results.
+* Which results used fixtures and which used real Tungsten responses.
+* The machine/environment where each execution occurred.
+* Only the remaining concrete blockers or output decisions.
+
+Remove stale statements that no workbook or cheque samples have been supplied.
+
+Preserve the owner’s original sample files. Do not automatically publish sample data or provider responses. Rebuild the existing local release package if its application code changed.
+
+Complete the implementation and verification that are possible with the supplied files, then return a concise delivery report. Do not end with only a plan.
