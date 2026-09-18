@@ -1,79 +1,99 @@
-Continue the current CLUE implementation session. This is an additive update to the workbook and Tungsten sample task already supplied; preserve and finish that work.
+Continue the current CLUE session from the latest corrected source and handoff.
 
-All engineering responses and artifacts remain in English.
+The reported revision 24c17b6 passed 240 tests and closed the three failure-path findings. Accept that as the reported local baseline. Preserve the single-worker boundary and existing recovery behavior.
 
-A separate review session has reported additional failure-path findings. Incorporate the applicable findings into this implementation, without starting another general architecture review.
+The next task is one isolated, real Tungsten DEV sample execution using the supplied configuration and cheque images.
 
-Keep application edits, tests, packaging and current handoff updates coordinated in this implementation session. Any parallel reviewer should inspect a defined source snapshot rather than modify the same application files.
+All responses, code comments and documentation remain in English.
 
-1. Reconcile the review with current source
+1. Reconcile the existing configuration
 
-Locate and read the relevant CLUE_SOLUTION_REVIEW.md. There may be multiple historical review documents, so identify the report by its content and reviewed revisions.
+Inspect the current Tungsten runner, configuration resolver, native request example and relevant handoff notes.
 
-The new report describes:
+The owner previously supplied configuration at:
+C:\repos\FCRM.env
 
-* R02: a permanent failure for one item aborts its delivery, leaves remaining items unattempted, and does not persist FAILED for the item.
-* R03: backpressure admission/release is not balanced on exception paths.
-* R04: exceptions escape without the controlled failure result and exit_outcome.
-* R10: shared SQLite access/concurrency is a concern explicitly marked unverified.
+Repository:
+C:\repos\fcrm_clue
 
-The review mentions baseline c4fd22f and review HEAD d985047 while another session was editing. Compare its findings with the current checkout, including relevant uncommitted changes.
+Determine which configuration file the previous check-config invocation actually loaded. Check the established resolution order and existing variable-name mappings before declaring anything missing.
 
-Finding numbers differ between reports. Identify findings by title and affected behavior. Do not reopen the previously corrected completion-marker and coordinator-renewal issues simply because an identifier is reused.
+Reconcile:
 
-For each applicable finding, establish a focused reproducer on the current source before changing behavior. If already fixed, record the evidence and preserve the correction.
+* The Tungsten DEV base URL.
+* Primary/secondary key selection and the supplied credential variable names.
+* Config/process configuration.
+* sessionId and its required lifecycle.
+* Any other mandatory request values evidenced by the current native contract.
 
-2. Repair item-failure handling
+Use existing inspection helpers where available. Report configuration names, presence, source and validation status without printing secret values.
 
-A definite, item-scoped permanent provider failure must persist the item’s terminal outcome and allow other independent eligible items to continue according to the existing policy.
+The owner’s decision to defer credential replacement remains in effect. Do not reopen a rotation campaign or claim rotation occurred. Distinguish an old local preflight restriction from an actual provider authentication rejection.
 
-Distinguish item-specific failures from delivery-wide or infrastructure failures, such as shared authentication/configuration problems, state-store failure or loss of ownership. Do not convert every exception into an item failure and continue blindly.
+Do not describe a key as rejected by Tungsten unless an actual provider response supports that conclusion.
 
-Preserve the established COMPLETE/PARTIAL/FAILURE semantics, restart behavior, source associations and Excel reporting. Failed items must remain visible rather than disappearing from the result or appearing successful.
+2. Resolve one usable image sample
 
-3. Repair backpressure cleanup
+Inspect:
+C:\repos\fcrm_clue\test_data\test_cheques
 
-Ensure each successful admission has exactly one matching release at the appropriate lifecycle boundary, including exception and early-exit paths.
+Use the actual current files and the accompanying metadata/transaction CSVs. The last inventory included front.jpg, front (2).jpg, back.jpg, back2.jpg and cheque_003.jpg.
 
-Reuse the current abstractions. Avoid both leaked capacity and premature/double release.
+Choose one image for which the required page type and request values can be established. Record the source of those associations.
 
-Add a focused scenario demonstrating that a failure after admission does not prevent a subsequent eligible item from progressing.
+This isolated OCR test does not require a confirmed connection to a row in Test Data_TDB.xlsx, and it does not require Symcor to run first.
 
-4. Repair controlled CLI outcomes
+Determine from the native contract whether document/ISN fields require existing provider-recognized identifiers or are caller-supplied correlation values. Do not assume either interpretation or invent provider resource identifiers.
 
-Ensure failures at the appropriate command boundary produce the correct existing exit classification and a sanitized structured exit_outcome.
+Do not guess front/back pairings. A supported single-image request is sufficient for this first execution.
 
-Preserve distinctions between configuration errors, item-level partial results and fatal run failures. Retain the existing interruption/recovery behavior.
+3. Prepare and execute one bounded DEV request
 
-An uncaught Python exception may already produce process exit code 1; verify the actual defect rather than assuming no failure code is returned. The requirement is consistent controlled status, reporting and exit behavior.
+Use the existing Tungsten adapter and component runner. Correct only the configuration binding or request preparation that is demonstrably necessary.
 
-5. Handle the unverified concurrency concern proportionately
+Once the required values and sample are usable, execute one bounded real request with the existing authorized DEV configuration.
 
-Inspect connection and lock ownership, including background lease-renewal access, and perform a bounded targeted check where feasible.
+Preserve TLS verification and the existing handling of authentication errors and ambiguous outcomes. Do not blindly repeat a submission after a timeout or switch keys automatically following an authentication rejection.
 
-Do not report a demonstrated SQLite race or corruption without evidence.
+Record separately:
 
-If multi-worker operation cannot be verified within this bounded task, enforce workers=1 for the current DEV milestone and clearly reject unsupported higher values. Do not silently clamp the setting.
+* The execution environment.
+* Whether a request was actually sent.
+* HTTP/transport outcome.
+* Provider processing outcome.
+* Whether actual OCR fields and confidence values were successfully parsed.
 
-A single worker does not by itself prove all shared-connection access safe, because background threads may still use the state store. Address any concrete access defect found without introducing a broad redesign.
+Preserve the native response locally through the existing handling path without dumping credentials, image payloads or sensitive document content into general logs or chat.
 
-6. Finish the workbook/Tungsten task and validate the final revision
+If the real response reveals a parser mismatch, use that response to make a focused correction and regression test. Do not substitute expected values from the sample CSV.
 
-Preserve the supplied two-sheet workbook, configurable file/image/output paths, evidence-based image associations and isolated Tungsten test.
+4. Produce a small, clearly identified Tungsten test result
 
-Keep expected metadata separate from observed OCR responses. A failure-path repair must not turn missing provider evidence into a claimed successful live integration.
+If actual extraction succeeds, generate a small standalone .xlsx test output containing the original sample image and the actual extracted fields, confidence values and sample association.
 
-Use focused regressions for:
+Keep this output clearly identified as the isolated Tungsten test. Do not mix it with simulated workbook results or claim that the full workbook/Symcor integration has passed.
 
-* A multi-item input where an item-specific permanent failure occurs and the other eligible items still receive the correct processing and outcomes.
-* Capacity recovery following an exception.
-* Controlled CLI failure and partial-result reporting.
-* Any concurrency constraint or small concurrency fix introduced.
+Verify that the generated workbook can be reopened and that its content corresponds to the recorded provider response.
 
-After these repairs and the workbook/Tungsten implementation are complete, run the appropriate existing full suite once against the final source, verify the generated .xlsx output, and rebuild the local release package as needed. Repeat checks only when further changes or failures justify them.
+5. Complete independent work if a genuine blocker remains
 
-Update the current handoff with the final source revision, actual test results, working commands, output locations, live-versus-fixture evidence, concurrency limitations and remaining concrete blockers.
+If a required value cannot be found or a connection cannot be established, finish configuration discovery and request preparation first.
 
-Do not automatically expand into the review’s proposed Stage 2 list. Address an item there only if it directly blocks this scoped core execution. Keep the owner’s parked Dynatrace and deferred credential-replacement decisions unchanged.
+Then report only:
 
-Complete applicable corrections and verification, then report which findings were reproduced, already fixed, corrected or still unverified.
+* The exact missing or invalid field, or observed connection/authentication failure.
+* The configuration and reference sources already checked.
+* What evidence is needed to resolve it.
+* Which command is ready to run afterward.
+
+Do not ask the owner again for supplied files or information already available in the source.
+
+6. Keep validation proportional and update the handoff
+
+A configuration-only change or component execution does not require another complete architecture audit or full regression cycle.
+
+For any code change, run focused relevant tests and repository-required checks, clearly identifying which revision they validate. Rebuild the package only if application code changes require it.
+
+Update the current handoff with the actual configuration resolution, runnable command, output paths, live result or precise blocker, and execution environment.
+
+Keep this task focused on obtaining and correctly interpreting the first real Tungsten response.
