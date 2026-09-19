@@ -1,109 +1,206 @@
-Continue the existing Symcor laptop investigation using the owner-supplied PAT endpoint and keystore artifacts.
+CLUE — Identify and compare the TXT and JKS artifacts
 
-All responses, scripts, reports and handoff updates must be in English. Use native files, source code and structured command output; no screenshots, OCR, vision or browser automation.
+Perform a precise, offline investigation of these two files:
 
-This is an authoritative correction to the previous diagnostic target. The owner explicitly authorizes the minimum live, read-only PAT authentication/search/image-retrieval sequence described below. Continue without requesting routine authorization again.
-
-1. Use the supplied PAT endpoint
-
-Authorized endpoint:
-https://penhubpat.td.com/aws/services/AwsService
-
-PAT is the environment label here. Use this exact URL, including its path and case, as the effective SOAP endpoint. Do not use the previous direct aws-cat hosts, select a production endpoint, or let a WSDL default/redirect silently change the destination.
-
-Read the supplied endpoint file:
-C:\repos\FCRM\symcore\SimcoreEndpoints.txt
-
-Reconcile the runtime endpoint with this file and the owner’s explicit PAT selection. If the existing diagnostic rejects the new target because it only recognizes the previous CAT host, make the smallest targeted configuration change needed to allow this exact PAT target.
-
-The previous CAT DNS failure does not establish PAT reachability. The direct-service certificate findings also do not automatically establish the caller-facing authentication requirements of this TD gateway.
-
-2. Inspect the supplied native artifacts
-
-Application repository:
-C:\repos\fcrm_clue
-
-Reference folder:
-C:\repos\FCRM
-
-Specific supplied files:
-C:\repos\FCRM\symcore\clue.dev.td.com.jks
 C:\repos\FCRM\symcore\clue.dev.td.com.txt
-C:\repos\FCRM\symcore\SimcoreEndpoints.txt
+C:\repos\FCRM\symcore\clue.dev.td.com.jks
 
-Read the existing SymcorSoapClient.java, related configuration and current diagnostic report. Verify the actual branch, revision and local changes; preserve ongoing work and the other session’s files.
+The owner suspects the sender supplied the same keystore twice, once as a
+binary file and once in a text encoding.
 
-Do not repeat the conclusion that no certificate exists based only on searches for PEM/PFX/P12 files. Inspect the supplied keystore’s actual format and contents using existing Java/keytool or equivalent local facilities.
+Determine what each file actually contains and whether they represent the
+same artifact. Do not assume the TXT is Base64, the JKS extension proves its
+format, or the previous report's claim that the files differ is correct.
 
-Establish:
+All responses, scripts and reports must be in English.
 
-* Entry types, including whether a PrivateKeyEntry exists or the store contains only trusted certificates.
-* The alias selected by the native client, if any.
-* Relevant certificate validity, key usage and chain.
-* Whether the required store/key passwords are available through existing local configuration or the established secret-input mechanism.
-* Whether the Java sample uses this artifact for TLS client identity, server trust, SOAP message security or another purpose.
+1. Scope and preservation
 
-Use existing passwords through a protected local mechanism. Do not print them, put them in visible command arguments, guess passwords or ask the owner to paste them into chat.
+This is an offline file-identification and comparison task only.
 
-Prefer the binary keystore. The .txt file appears to contain encoded material; do not assume it is an equivalent keystore. Validate an encoded-copy relationship locally only if needed, and never reconstruct credential material from screenshots or print the encoded contents.
+- Preserve both original files, application code, configuration, certificates,
+  the current branch and unrelated work.
+- Do not contact PAT, production, Symcor, Tungsten or external services.
+- Do not import certificates, change passwords, re-save keystores, rotate
+  credentials, commit, push or rebuild the application.
+- Inspect the native files, not screenshots.
+- Do not print raw TXT contents, Base64 payloads, private keys or passwords.
+- Use existing trusted local tools. Do not upload these artifacts to an
+  online decoder or install tools from unapproved sources.
+- Reuse an existing suitable diagnostic helper if available.
 
-If access is blocked by a missing password or unusable entry, identify that precise issue. File presence alone does not prove usability, and a missing password does not mean the certificate file is absent.
+Create only a sanitized comparison report and, if necessary, a small
+reusable diagnostic script.
 
-3. Establish authentication for this PAT route
+Perform decoding in memory where possible. If a native tool requires a
+temporary file, use a restricted local temporary location outside the
+repository and synced/shared folders. Delete temporary keystore copies
+after inspection and record cleanup.
 
-Follow the actual Java implementation and the endpoint-specific documentation.
+2. Identify the original files before interpreting them
 
-Do not assume that the vendor’s direct TLS requirements are identical to the laptop-to-PAT gateway requirements. Do not carry forward a blanket conclusion that PingFed is irrelevant; determine whether the supplied PAT route uses it from actual configuration and code.
+Verify the exact paths and filenames, including any hidden extra extension.
+Record the actual byte sizes and modification timestamps. Timestamps are
+context, not proof of file identity or which version is authoritative.
 
-Keep server trust, client authentication and any SOAP message-security requirements distinct. Keep hostname and certificate verification enabled. Do not reuse the Tungsten TLS bypass or a trust-all configuration from sample code.
+Determine whether the TXT contains:
+- Raw binary with a misleading extension.
+- A single Base64 payload, possibly line-wrapped or with a BOM.
+- A labelled Base64 payload inside a structured text envelope.
+- PEM certificate(s), a certificate request, or private-key material.
+- Password/configuration text or another format.
 
-Confirm that the client actually applies the chosen trust/identity settings and uses the PAT endpoint before making a SOAP call.
+Determine the actual binary container type where applicable: JKS, PKCS12,
+certificate-only content or another identified format.
 
-4. Use the smallest working client path
+Use both format detection and a suitable parser where available. Do not
+classify arbitrary text as a keystore merely because Base64 decoding succeeds.
 
-Reuse the existing Symcor diagnostic and native client wherever practical.
+If the text includes a separately labelled password or password reference,
+report its presence and location without exposing its value or hash. Do not
+assume a long encoded payload is itself a password.
 
-If the supplied Java client can use the keystore with the installed runtime, prefer that existing path for the first bounded PAT verification. Inspect it before execution to ensure it targets PAT, preserves TLS verification and performs only the intended read operations.
+3. Decode only the representation actually evidenced
 
-Do not make a Python keystore conversion a prerequisite for proving laptop connectivity. If Java succeeds, report Java laptop access as verified and Python adapter integration as a separate item.
+If Base64 content is present:
 
-If a small isolated runner or configuration repair is necessary, implement only that diagnostic change. Do not redesign the application or migrate the pipeline to Java.
+- Identify the text encoding correctly, including UTF-8/UTF-16 BOM handling
+  where applicable.
+- Identify the payload boundaries explicitly.
+- Remove only justified text wrappers and permitted formatting whitespace.
+- Use strict Base64 validation on the extracted payload.
+- Do not silently remove arbitrary characters, discard trailing data, repair
+  truncation or repeatedly decode until something appears to work.
+- Document each transformation and whether any content outside the payload
+  remains.
+- Validate the decoded content as the claimed binary format.
 
-Do not rename JKS as PEM or pass a JKS file directly to Requests’ PEM certificate argument. Do not export an unencrypted private key merely to make this diagnostic run. Preserve the original keystore and existing secret handling.
+If there are multiple explicitly separated payloads, identify each and report
+whether any one matches the JKS. Do not arbitrarily concatenate them.
 
-5. Execute a bounded PAT test from the actual laptop
+If the TXT is already binary, compare its bytes directly. If it contains a
+different format, identify it rather than forcing it into JKS.
 
-Confirm execution on the user’s Windows laptop and report the runtime used.
+4. Perform the exact comparison
 
-Using the intended proxy/network path, establish PAT resolution, connectivity, verified TLS and the documented authentication. A higher-level successful operation may establish earlier layers; avoid redundant probes.
+When the TXT yields a valid keystore candidate:
 
-Once ready:
+- Compute the byte length and full SHA-256 of the original JKS and the decoded
+  candidate.
+- Perform a direct byte-for-byte equality check as well.
+- State whether their lengths, hashes and bytes match.
+- If they differ, optionally report the first differing byte offset, without
+  dumping content.
+- Recheck the originals to confirm they were not modified during the task.
 
-* Run one narrow search with an existing valid non-production sample and contract-supported limits.
-* Verify the native SOAP/application outcome, not merely HTTP 200 or a login/proxy page.
-* If a document is returned, use its exact returned identity and required metadata to retrieve one representative cheque’s images through getDocs or the documented equivalent.
-* Validate response metadata, image format and decoded byte count without displaying account numbers, image payloads or credentials.
+Do not compare the hash of the Base64 text directly with the binary JKS and
+call that evidence that the underlying keystores differ.
 
-Interpret empty/count-only/truncated results using the native contract. A valid no-match response verifies search execution but leaves image retrieval unverified.
+Report whole-keystore hashes only. Do not publish hashes of standalone
+passwords or unencrypted private-key material.
 
-Use finite timeouts and minimal attempts. If a stage fails, capture the sanitized error and complete independent local inspection. Do not probe production, weaken TLS, run the full pipeline, or call Tungsten.
+An exact binary comparison does not require knowing the keystore password.
+Do not stop this part of the investigation because a password is unavailable.
 
-6. Update the evidence and finish
+If the bytes match, conclude:
+"The TXT payload decodes to an exact binary copy of the supplied JKS."
 
-Reuse tools/symcor_probe.py and the existing diagnostics/report locations where appropriate. Preserve historical CAT results with their original target labels; append a clearly identified PAT result rather than rewriting past evidence.
+If the TXT also contains other text, describe that separately; do not claim
+the entire TXT consists solely of the encoded keystore.
 
-Report:
+5. If the containers differ, compare their inspectable contents
 
-* Actual runtime, source revision and effective PAT URL.
-* Keystore entry types, relevant validity/chain findings and the authentication mechanism actually used.
-* Whether the .txt artifact was needed and what its relationship to the keystore was shown to be.
-* Verified TLS mode, network/proxy context and the earliest failed stage if blocked.
-* Actual search and image-retrieval outcomes, attempt counts, exit codes and protected local evidence paths.
-* Exact reproducible commands without secrets.
-* Any diagnostic changes made and the focused validation performed.
-* Whether laptop access is verified through Java, Python or neither.
-* The smallest remaining prerequisite, if any.
+Different bytes do not automatically mean different certificates or identities.
 
-Keep other application work, VMC2 setup, credential rotation, publishing and deployment outside this task. Do not ask again for the endpoint or files already supplied.
+Using installed keytool/Java or an equivalent trusted read-only parser, inspect
+both the original JKS and the independently decoded artifact.
 
-Proceed through the available PAT investigation and return concrete results.
+Compare, where accessible:
+- Container format and version.
+- Entry counts and aliases.
+- Entry types: PrivateKeyEntry, trusted certificate, or other type.
+- SHA-256 fingerprints of certificate DER bytes.
+- Public-key fingerprints.
+- Certificate chain membership and order.
+- Relevant validity dates and client-authentication usage.
+
+Compare certificates by their fingerprints, not only by subject names,
+filenames or aliases.
+
+Distinguish:
+- Exact binary equality.
+- Matching public certificates in different containers.
+- Matching leaf certificate with a different chain or trust entries.
+- Different certificates or entry sets.
+- A comparison that remains incomplete.
+
+If private-key entries cannot be unlocked, explicitly say private-key
+equivalence and usability were not verified. Matching public certificates
+alone is insufficient to prove the protected private keys are identical,
+usable or accepted by PAT.
+
+Do not attribute differences to renewal, re-export, passwords or encryption
+randomness unless the evidence actually establishes the cause.
+
+6. Keep password and verification conclusions separate
+
+Use only an already documented, authorized local password source if one is
+available for these exact artifacts. Do not guess passwords, try common
+defaults, brute-force, or ask the owner to paste secrets into chat.
+
+Without a password, perform all supported structural and public-certificate
+inspection and label keystore integrity as NOT VERIFIED.
+
+Report these questions separately for each artifact:
+- Was the format structurally recognized?
+- Was a private-key entry identified?
+- Was store integrity verified with the correct password?
+- Was private-key access actually verified, or not tested?
+
+Listing a PrivateKeyEntry is not proof that the key was successfully unlocked.
+
+Do not export private-key material or modify a keystore merely to perform
+this comparison. If an additional protected-key check is genuinely needed,
+identify it without blocking the completed byte and certificate comparisons.
+
+7. Produce a clear evidence-based report
+
+Create a non-overwriting report under the current CLUE diagnostic/handoff
+location, for example:
+
+docs/handoff/clue/diagnostics/
+SYMCOR_KEYSTORE_FILE_COMPARISON_<timestamp>.md
+
+Include:
+- Actual input paths and file sizes.
+- The TXT's actual content type and text encoding.
+- Exact decoding/extraction steps, if any.
+- Original versus decoded keystore lengths and SHA-256 values.
+- The direct binary equality result.
+- A compact comparison of entries and public certificate fingerprints.
+- Integrity/private-key-access status and any precise limitations.
+- Sanitized commands, tool versions and exit results.
+- Confirmation that originals and application configuration are unchanged.
+- Whether any earlier claim needs correction.
+
+Lead the final response with direct answers to:
+
+1. What exactly is clue.dev.td.com.txt?
+2. Is its decoded payload the exact same file as clue.dev.td.com.jks?
+3. If not, do their public certificates and entry structures match, or
+   what concrete differences were found?
+4. Does each contain a private-key entry or only certificates?
+5. Does either file explicitly provide password information, without
+   revealing it?
+6. What, if anything, is still needed to use the appropriate artifact?
+
+If the files are identical, explicitly say there is no content difference
+requiring one to be preferred. If they differ and neither is established as
+authoritative, preserve both and identify the specific confirmation needed
+from the sender.
+
+Do not claim PAT authentication or connectivity success from this offline
+comparison.
+
+Complete the available checks and return the actual results and report path.
+Do not stop at a proposed investigation plan.
