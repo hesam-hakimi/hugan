@@ -1,105 +1,109 @@
-Investigate whether Symcor can be called successfully from this Windows laptop for the CLUE project.
+Continue the existing Symcor laptop investigation using the owner-supplied PAT endpoint and keystore artifacts.
 
-All responses, scripts, reports and documentation must be in English. Use files, source code, command output and structured logs. Do not use screenshots, browser automation, OCR or vision.
+All responses, scripts, reports and handoff updates must be in English. Use native files, source code and structured command output; no screenshots, OCR, vision or browser automation.
 
-This authorizes a focused local investigation and the minimum live DEV calls needed to verify authentication, search and image retrieval. Proceed within this scope without asking again for routine file reads, diagnostic commands or the stated DEV calls.
+This is an authoritative correction to the previous diagnostic target. The owner explicitly authorizes the minimum live, read-only PAT authentication/search/image-retrieval sequence described below. Continue without requesting routine authorization again.
 
-1. Establish the current workspace and execution environment
+1. Use the supplied PAT endpoint
 
-Application repository: C:\repos\fcrm_clue
-Expected working branch: feature/clue-durable-core
-Reference material: C:\repos\FCRM
-Current handoff: C:\repos\fcrm_clue\docs\handoff\clue
+Authorized endpoint:
+https://penhubpat.td.com/aws/services/AwsService
 
-Verify the actual checkout, revision and working-tree state. Preserve current work; do not reset, switch branches or interrupt an active mutation. Reuse the current handoff and inspect only relevant code and interface artifacts.
+PAT is the environment label here. Use this exact URL, including its path and case, as the effective SOAP endpoint. Do not use the previous direct aws-cat hosts, select a production endpoint, or let a WSDL default/redirect silently change the destination.
 
-Confirm where commands actually execute: the user’s Windows laptop, WSL, a remote VS Code host, a container or another machine. Record the execution environment, interpreter and identity context without exposing sensitive identifiers. Results from a remote environment must not be described as laptop results. If Windows execution is available, run the diagnostic through the laptop’s intended runtime.
+Read the supplied endpoint file:
+C:\repos\FCRM\symcore\SimcoreEndpoints.txt
 
-If the actual laptop is inaccessible, complete the artifact/configuration inspection available to you, prepare exact runnable commands for that laptop, and clearly identify which checks remain unexecuted.
+Reconcile the runtime endpoint with this file and the owner’s explicit PAT selection. If the existing diagnostic rejects the new target because it only recognizes the previous CAT host, make the smallest targeted configuration change needed to allow this exact PAT target.
 
-2. Recover the actual Symcor connection contract
+The previous CAT DNS failure does not establish PAT reachability. The direct-service certificate findings also do not automatically establish the caller-facing authentication requirements of this TD gateway.
 
-Inspect the existing Java sample, WSDL/XSD, Archive Web Service specification, current Python adapter, configuration loader and existing diagnostic commands.
+2. Inspect the supplied native artifacts
 
-Resolve the effective DEV endpoint, gateway/proxy path, authentication mechanism, certificate settings and request construction through the project’s existing configuration precedence. Locate the actual .env files used by that loader, including reference configuration if supported. Never assume a guessed .env path is active.
+Application repository:
+C:\repos\fcrm_clue
 
-Determine:
+Reference folder:
+C:\repos\FCRM
 
-* Which endpoint and native operations implement search and image retrieval.
-* Whether authentication requires a token, session, credentials, client certificate or another documented mechanism.
-* Which required settings are present or missing, without revealing values.
-* Which configuration is actually consumed by the active client.
+Specific supplied files:
+C:\repos\FCRM\symcore\clue.dev.td.com.jks
+C:\repos\FCRM\symcore\clue.dev.td.com.txt
+C:\repos\FCRM\symcore\SimcoreEndpoints.txt
 
-Historical documents mention PingFed ClientCredentials. Confirm its applicability from the current artifacts; do not assume provisioning or token acceptance.
+Read the existing SymcorSoapClient.java, related configuration and current diagnostic report. Verify the actual branch, revision and local changes; preserve ongoing work and the other session’s files.
 
-Use existing local information before requesting missing inputs. Do not invent credentials, request fields or sample identifiers. A missing saved response does not prevent a first live test.
+Do not repeat the conclusion that no certificate exists based only on searches for PEM/PFX/P12 files. Inspect the supplied keystore’s actual format and contents using existing Java/keytool or equivalent local facilities.
 
-Historical context:
+Establish:
 
-* Tungsten’s successful Postman call does not establish Symcor connectivity.
-* Earlier SKIPPED_NO_URL results mean no configured live call occurred; they do not prove a network restriction.
-* Earlier reports described unresolved Symcor TLS issues, but their status must be checked against current evidence.
-* The documented retrieval path is search followed by getDocs using returned identifiers. Confirm the actual operation names and sequence from the native contract.
+* Entry types, including whether a PrivateKeyEntry exists or the store contains only trusted certificates.
+* The alias selected by the native client, if any.
+* Relevant certificate validity, key usage and chain.
+* Whether the required store/key passwords are available through existing local configuration or the established secret-input mechanism.
+* Whether the Java sample uses this artifact for TLS client identity, server trust, SOAP message security or another purpose.
 
-3. Diagnose the connection using the intended client path
+Use existing passwords through a protected local mechanism. Do not print them, put them in visible command arguments, guess passwords or ask the owner to paste them into chat.
 
-Use the current Symcor client and its configured proxy/trust behavior. Establish evidence for endpoint resolution, network connectivity, TLS and authentication. A successful higher-level operation can establish earlier layers; avoid redundant probes.
+Prefer the binary keystore. The .txt file appears to contain encoded material; do not assume it is an equivalent keystore. Validate an encoded-copy relationship locally only if needed, and never reconstruct credential material from screenshots or print the encoded contents.
 
-For any failure, identify the earliest failed stage and report the actual sanitized error. Distinguish missing configuration, name resolution, connection timeout/refusal, proxy failure, certificate trust/hostname failure, client-authentication failure and API authorization failure where evidence permits.
+If access is blocked by a missing password or unusable entry, identify that precise issue. File presence alone does not prove usability, and a missing password does not mean the certificate file is absent.
 
-Do not infer an unavailable API from a failed direct TCP probe when the configured client uses a proxy. Do not assume that browser access, ping or a token from another service establishes API access.
+3. Establish authentication for this PAT route
 
-Keep certificate verification enabled. The earlier CLUE_TUNGSTEN_TLS_VERIFY setting is specific to Tungsten and must not be applied to Symcor. Do not change global TLS settings, import certificates into system stores, disable verification or alter server/network configuration.
+Follow the actual Java implementation and the endpoint-specific documentation.
 
-If certificate validation fails, inspect the available trust configuration and error details. Explain whether the evidence supports a trust-chain issue, hostname issue, a documented client-certificate requirement or an unresolved cause. An installed certificate alone does not prove the Python or Java runtime trusts it; a generic certificate error does not establish mTLS.
+Do not assume that the vendor’s direct TLS requirements are identical to the laptop-to-PAT gateway requirements. Do not carry forward a blanket conclusion that PingFed is irrelevant; determine whether the supplied PAT route uses it from actual configuration and code.
 
-4. Run the smallest useful live DEV retrieval
+Keep server trust, client authentication and any SOAP message-security requirements distinct. Keep hostname and certificate verification enabled. Do not reuse the Tungsten TLS bypass or a trust-all configuration from sample code.
 
-Once the required connection settings and a suitable existing DEV sample are available, execute one bounded search using the normal Symcor client. Use a known small test case and contract-supported limits. Do not send a batch or an unrestricted archive query.
+Confirm that the client actually applies the chosen trust/identity settings and uses the PAT endpoint before making a SOAP call.
 
-Record the requested native operation, HTTP result, SOAP/application outcome, returned count and any limit/continuation indicators. Interpret empty hit lists according to the native contract; count-only or truncated responses must not be reported as genuine zero matches.
+4. Use the smallest working client path
 
-Confirm the response comes from the intended Symcor DEV operation; a proxy page, login page, redirect or unrelated HTTP 200 is insufficient. A SOAP fault alone does not establish a successful search. A valid zero-result response verifies search execution but leaves image retrieval unverified.
+Reuse the existing Symcor diagnostic and native client wherever practical.
 
-If search returns documents, use the exact returned identity, including required associated metadata, to retrieve one representative cheque through getDocs or the documented equivalent. If the contract returns images directly, inspect those bytes without making an unnecessary extra request.
+If the supplied Java client can use the keystore with the installed runtime, prefer that existing path for the first bounded PAT verification. Inspect it before execution to ensure it targets PAT, preserves TLS verification and performs only the intended read operations.
 
-Verify image retrieval programmatically using the response metadata, decoded byte count and actual image format. Record available front/back sides only where native metadata establishes them. Do not use OCR or make an image-to-account association from extracted names.
+Do not make a Python keystore conversion a prerequisite for proving laptop connectivity. If Java succeeds, report Java laptop access as verified and Python adapter integration as a separate item.
 
-Preserve the sample’s search-to-document-to-image traceability. Do not invent or substitute a document ID to force the test to succeed. If no suitable result is available, report search success and the specific prerequisite for testing image retrieval.
+If a small isolated runner or configuration repair is necessary, implement only that diagnostic change. Do not redesign the application or migrate the pipeline to Java.
 
-Use finite timeouts and record actual attempts. Avoid uncontrolled retries. After an authentication or certificate failure, diagnose it before repeating the request. Any extra DEV call must resolve a concrete issue found in the preceding attempt.
+Do not rename JKS as PEM or pass a JKS file directly to Requests’ PEM certificate argument. Do not export an unencrypted private key merely to make this diagnostic run. Preserve the original keystore and existing secret handling.
 
-5. Keep the investigation isolated and reusable
+5. Execute a bounded PAT test from the actual laptop
 
-Reuse existing diagnostics and saved evidence. If no command can isolate Symcor, create only a small diagnostic runner in the project’s existing diagnostics area and use the existing adapter. Do not replace the integration with a newly invented client.
+Confirm execution on the user’s Windows laptop and report the runtime used.
 
-Do not modify application behavior or .env files to hide a failure. Report discovered implementation defects separately. Preserve active processing state and output files.
+Using the intended proxy/network path, establish PAT resolution, connectivity, verified TLS and the documented authentication. A higher-level successful operation may establish earlier layers; avoid redundant probes.
 
-Keep credentials, tokens, private-key material, account numbers and cheque payloads out of chat and shared reports. Store necessary response captures through the existing protected local evidence mechanism and report their paths; use the smallest required data.
+Once ready:
 
-Do not call Tungsten or ADIDO/TIBCO, run the full pipeline or a broad regression suite, change VMC2/AutoSys/Dynatrace configuration, rotate credentials, push or deploy. This is a Symcor laptop diagnostic.
+* Run one narrow search with an existing valid non-production sample and contract-supported limits.
+* Verify the native SOAP/application outcome, not merely HTTP 200 or a login/proxy page.
+* If a document is returned, use its exact returned identity and required metadata to retrieve one representative cheque’s images through getDocs or the documented equivalent.
+* Validate response metadata, image format and decoded byte count without displaying account numbers, image payloads or credentials.
 
-6. Deliver a concrete result
+Interpret empty/count-only/truncated results using the native contract. A valid no-match response verifies search execution but leaves image retrieval unverified.
 
-Produce a concise English report in the existing diagnostics/handoff location. Avoid concurrent edits to a handoff another session is modifying; use a separate dated report when necessary.
+Use finite timeouts and minimal attempts. If a stage fails, capture the sanitized error and complete independent local inspection. Do not probe production, weaken TLS, run the full pipeline, or call Tungsten.
 
-Lead with one of these evidence-based outcomes:
+6. Update the evidence and finish
 
-* Live search and image retrieval verified from the Windows laptop.
-* Live search verified; image retrieval remains unverified.
-* Live attempt failed at a specified stage.
-* Live execution blocked by a specifically identified missing prerequisite.
+Reuse tools/symcor_probe.py and the existing diagnostics/report locations where appropriate. Preserve historical CAT results with their original target labels; append a clearly identified PAT result rather than rewriting past evidence.
 
-Include:
+Report:
 
-* Actual execution environment, source revision, runtime and command used.
-* Relevant code/configuration locations and effective TLS verification mode.
-* A compact table for configuration, network path, TLS, authentication, search and image retrieval: result, evidence and remaining gap.
-* Actual HTTP/SOAP outcomes, native operation names, attempt counts and exit codes where available.
-* Retrieved document/image counts and evidence paths, with sensitive values excluded.
-* Files created or changed.
-* For each unresolved issue, the smallest concrete next action and the responsible role where known.
+* Actual runtime, source revision and effective PAT URL.
+* Keystore entry types, relevant validity/chain findings and the authentication mechanism actually used.
+* Whether the .txt artifact was needed and what its relationship to the keystore was shown to be.
+* Verified TLS mode, network/proxy context and the earliest failed stage if blocked.
+* Actual search and image-retrieval outcomes, attempt counts, exit codes and protected local evidence paths.
+* Exact reproducible commands without secrets.
+* Any diagnostic changes made and the focused validation performed.
+* Whether laptop access is verified through Java, Python or neither.
+* The smallest remaining prerequisite, if any.
 
-Distinguish live evidence, saved-response replay and static inspection. Do not claim VMC2-only access without supporting configuration or network-policy evidence.
+Keep other application work, VMC2 setup, credential rotation, publishing and deployment outside this task. Do not ask again for the endpoint or files already supplied.
 
-Complete every independent check available in this session. Return the actual findings and exact commands, rather than another general investigation plan.
+Proceed through the available PAT investigation and return concrete results.
